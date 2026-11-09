@@ -278,7 +278,7 @@ public sealed partial class VoxelSession
         }
 
         var below = grid.GetBlock(cell.X, cell.Y - 1, cell.Z);
-        if (!BlockDefinition.IsSolid(below) || BlockDefinition.IsLeaves(below) || below is BlockId.Water or BlockId.FireRing or BlockId.Torch or BlockId.PostTorch or BlockId.Chest)
+        if (!BlockDefinition.IsSolid(below) || BlockDefinition.IsTall(below) || BlockDefinition.IsLeaves(below) || below is BlockId.Water or BlockId.FireRing or BlockId.Torch or BlockId.PostTorch or BlockId.Chest)
         {
             return false;
         }

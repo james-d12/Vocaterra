@@ -17,7 +17,7 @@ public sealed class GameDataTests
 
         Assert.Empty(GameDataValidator.Validate(data));
         Assert.Equal(29, data.Nouns.Nouns.Count); // W10 six for the bread; V03 added moneda, manzana and hacha, N07 fuego
-        Assert.Equal(178, data.Phrases.Rows.Count); // D-game-27 the hand-over's five; V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten, V15 El mercado's twenty
+        Assert.Equal(180, data.Phrases.Rows.Count); // D-game-27 the hand-over's five; V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten, V15 El mercado's twenty, PR #48 the small talk's two
         Assert.Equal(95, data.Checks.Count);
         Assert.Equal(12, data.Lessons.Lessons.Count); // W10 added the bakery class; L01 split Luna's first class from the introduction
         Assert.Equal("prototype-valley", data.Scene.Name);

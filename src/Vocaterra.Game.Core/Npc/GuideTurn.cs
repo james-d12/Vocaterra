@@ -17,12 +17,13 @@ namespace Vocaterra.Game.Core.Npc;
 /// <param name="Span">Where in the normalized line the mistake is (the core's span).</param>
 public sealed record GuideError(string Tag, string Expected, string Actual, TextSpan Span);
 
-/// <summary>Where the guide points: the nearest tile of what the player asked for.</summary>
-/// <param name="Place">The noun the player asked about, as a lemma (<c>árbol</c>).</param>
-/// <param name="Target">The tile found.</param>
+/// <summary>Where the guide points: the place the player asked for, as the scene names it (<see cref="Navigation.ScenePlaces.Resolve"/>), else the nearest block of the noun.</summary>
+/// <param name="Place">The word the player asked about, as a lemma (<c>árbol</c>, <c>tienda</c>).</param>
+/// <param name="Target">The block found.</param>
 /// <param name="Blocks">The distance in blocks.</param>
 /// <param name="Direction">The direction as a Spanish phrase.</param>
-public sealed record GuidePointer(string Place, GuideCell Target, int Blocks, string Direction);
+/// <param name="Point">The scene's name of the place when the arrow stands on its point (<c>stall</c>), which its arrival is logged with; <see langword="null"/> for a noun's block.</param>
+public sealed record GuidePointer(string Place, GuideCell Target, int Blocks, string Direction, string? Point = null);
 
 /// <summary>
 /// One normalized word of the typed line with the reading the core's resolver chose for it (<c>PipelineResult.Words</c>, CR-002). The word

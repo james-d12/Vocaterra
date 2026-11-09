@@ -34,7 +34,7 @@ public class LinePersonAgreementTests
         { "villager-open", "yo esto cansado", "unknown", false, ["conj.irregular=estoy"] },
         { "villager-open", "esto cansado", "unknown", false, ["conj.irregular=estoy"] },
         { "villager-open", "yo esto en casa", "unknown", false, ["conj.irregular=estoy"] },
-        { "villager-open", "yo esto bien", "unknown", false, ["conj.irregular=estoy"] },
+        { "villager-open", "yo esto bien", "state_wellbeing", true, ["conj.irregular=estoy"] }, // PR #48: state_wellbeing reads [PRON] [VERB:estar] bien, so the slip is understood (it was unknown)
         { "villager-open", "luz son alta", "unknown", false, ["conj.person=es"] },
         { "villager-open", "pan son caro", "unknown", false, ["conj.person=es"] },
         { "villager-open", "ella compro pan", "state_action", true, ["conj.person=compra"] },

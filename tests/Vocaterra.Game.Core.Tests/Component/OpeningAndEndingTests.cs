@@ -85,7 +85,7 @@ public sealed class OpeningAndEndingTests
         Assert.StartsWith("Campamento (camp): madera (wood) 0/5", Hud(talked), StringComparison.Ordinal);
 
         var gathered = TestGame.NewSessionWithShippedLessons();
-        _ = gathered.Objective.Record(WorldEvents.ItemPickedUp, "madera", 1);
+        _ = gathered.Simulation.GrantItems(ItemId.Wood, 1);
         gathered.Step([]); // the first step of the checklist without ever meeting the guide: nothing is gated, and the line moves on
         Assert.Equal("camp", gathered.CurrentObjective?.Id);
     }
@@ -181,8 +181,8 @@ public sealed class OpeningAndEndingTests
         Assert.False(session.SessionComplete); // the checklist is not done
         Assert.Equal("meet-guide", session.CurrentObjective?.Id);
 
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the wood and the fruit in the bag (#32)
+        _ = session.Simulation.GrantItems(ItemId.Berry, 3);
         _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = session.HostEvent(WorldEvents.BottleFilled);
 
@@ -196,6 +196,7 @@ public sealed class OpeningAndEndingTests
     public void AFullBagKeepsTheSpareTorchOutOfTheBagAndTheLearnerCanStillMakeOne()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        Assert.Equal(0, session.Simulation.GrantItems(ItemId.Berry, 3)); // the camp counts the fruit and the wood in the bag (#32)
         for (var i = 0; i < 100; i++)
         {
             _ = session.Simulation.GrantItems(ItemId.Wood, 99); // until the bag is full
@@ -203,8 +204,6 @@ public sealed class OpeningAndEndingTests
 
         Assert.True(session.Simulation.GrantItems(ItemId.Torch, 1) > 0, "the bag is full");
 
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
         _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = session.HostEvent(WorldEvents.BottleFilled);
 

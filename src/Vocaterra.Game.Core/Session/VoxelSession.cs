@@ -297,7 +297,7 @@ public sealed partial class VoxelSession : GuideSession
     }
 
     /// <inheritdoc />
-    internal override void LessonPointAt(string npc, string noun) => PointAt(npc, noun);
+    internal override void LessonPointAt(string npc, string noun) => PointAtFound(npc, Places.Resolve(noun, Viewpoint, LiveFacts)); // a label first (#43: tienda is the stall, not the nearest roof)
 
     /// <inheritdoc />
     internal override void LessonPointAtPlace(string npc, string place) => PointAtPlace(npc, place);
@@ -736,8 +736,7 @@ public sealed partial class VoxelSession : GuideSession
         Objectives.Any(o => o.Spec.IsOrder && o.Complete && string.Equals(o.Id, order, StringComparison.Ordinal));
 
     /// <inheritdoc />
-    internal override bool HoldsPickup(string lemma, int needed) =>
-        Nouns.ForLemma(lemma) is { } noun && noun.Items.Sum(Simulation.Inventory.Count) >= needed;
+    internal override bool HoldsPickup(string lemma, int needed) => Nouns.ForLemma(lemma) is not null && HeldOfNoun(lemma) >= needed;
 
     /// <inheritdoc />
     protected override string? OrderReadyAt(string npc) =>
@@ -848,13 +847,18 @@ public sealed partial class VoxelSession : GuideSession
     {
         var found = word is null ? null : Places.Resolve(word, Viewpoint, LiveFacts);
         LogWorld(WorldEvents.PlaceAsked, npc, found?.Name ?? WorldEvents.UnknownPlace);
+        PointAtFound(npc, found);
+    }
+
+    // The beacon goes to a place ScenePlaces.Resolve found (an NPC's directions, V02, or a lesson's do step with a point, #43), or stays where it is for none.
+    private void PointAtFound(string npc, FoundPlace? found)
+    {
         if (found is null)
         {
             return;
         }
 
-        // The arrival names the place when the arrow stands on its point; the nearest block of the river or of a noun is named by the word, as a save would name it.
-        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.Point(found.Name) == found.Cell.ToBlock() ? found.Name : null);
+        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.PointNameOf(found));
         if (string.Equals(found.Label, Data.Words.Noun("river"), StringComparison.Ordinal))
         {
             _riverPointed = true;
@@ -900,7 +904,10 @@ public sealed partial class VoxelSession : GuideSession
         foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
             var before = objective.Progress;
-            var done = objective.Record(world, _eventAmount);
+            var wasDone = objective.Steps.Select(static s => s.Done).ToArray();
+            _ = objective.Record(world, _eventAmount);
+            _ = objective.Hold(HeldOfNoun); // a step that asks for items counts the bag, not the pickups (#32): the event's count gives way to it
+            var done = objective.Steps.Where((s, i) => s.Done && !wasDone[i]).ToList();
             if (objective.Progress != before)
             {
                 objective.AdvancedAt = ++_advances; // the tracker lists the objective that moved last first (U01)
@@ -920,7 +927,10 @@ public sealed partial class VoxelSession : GuideSession
     // Logs the checklist steps completed since the last call and completes their checklists, then the objectives another one's progress completes. Returns the steps.
     private IReadOnlyList<ObjectiveStep> FlushObjectives()
     {
-        var pending = _pendingSteps.ToList();
+        HoldObjectives();
+        // A step the bag took back since it was done (#32) is not done after all, and one done again is logged once, as it stands now.
+        var pending = _pendingSteps.Select(static p => (p.Objective, Step: p.Objective.Step(p.Step.Key)!)).Where(static p => p.Step.Done)
+            .DistinctBy(static p => (p.Objective.Id, p.Step.Key)).ToList();
         _pendingSteps.Clear();
         foreach (var (_, step) in pending)
         {
@@ -940,6 +950,33 @@ public sealed partial class VoxelSession : GuideSession
 
         return pending.Select(static p => p.Step).ToList();
     }
+
+    // The steps that ask for items follow the bag (#32): an item eaten, placed, dropped or crafted into another since the last event moves them without an event of its
+    // own. Only objectives not yet done and shown now: a done checklist stands, whatever the bag holds after it. A step it completes is logged as an event's would be.
+    private void HoldObjectives()
+    {
+        foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
+        {
+            var before = objective.Progress;
+            var done = objective.Hold(HeldOfNoun);
+            if (objective.Progress > before)
+            {
+                objective.AdvancedAt = ++_advances;
+            }
+
+            if (objective.IsChecklist)
+            {
+                _pendingSteps.AddRange(done.Select(step => (objective, step)));
+            }
+            else if (objective.Complete)
+            {
+                CompleteObjective(objective);
+            }
+        }
+    }
+
+    // How many items of a noun the bag holds (all of the noun's items: fruta is berries and apples).
+    private int HeldOfNoun(string lemma) => Nouns.ForLemma(lemma) is { } noun ? noun.Items.Sum(Simulation.Inventory.Count) : 0;
 
     // An objective is done: a checklist logs its line, its hooks run (data order), and the session may be complete (the player lit their own fire first, or the
     // checklist was the last thing missing).

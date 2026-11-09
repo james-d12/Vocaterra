@@ -38,8 +38,8 @@ public sealed class OpeningFrontendTests
 
     private static void CompleteTheChecklist(VoxelSession session)
     {
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
-        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the wood and the fruit in the bag (#32)
+        _ = session.Simulation.GrantItems(ItemId.Berry, 3);
         _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = session.HostEvent(WorldEvents.BottleFilled);
     }

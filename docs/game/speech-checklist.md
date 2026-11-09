@@ -18,7 +18,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 
-**To hear:** 1414 of the 1414 files have no mark (guide 470, baker 200, villager 172, shopkeeper 160, farmer 158, fisher 138, smith 116). Two files a line: the normal speed and the slow one.
+**To hear:** 1448 of the 1448 files have no mark (guide 476, baker 204, villager 176, shopkeeper 168, farmer 162, fisher 142, smith 120). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -160,6 +160,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_yes.1 | speech/baker/baker_yes.1.wav | baker | 1.0 | ¡Sí! |  |
 | card.agua | speech/cards/card.agua.slow.wav | guide | 0.8 | el agua |  |
 | card.agua | speech/cards/card.agua.wav | guide | 1.0 | el agua |  |
+| card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.slow.wav | shopkeeper | 0.8 | el agua |  |
+| card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.wav | shopkeeper | 1.0 | el agua |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
 | card.antorcha | speech/cards/card.antorcha.wav | guide | 1.0 | la antorcha |  |
 | card.arbol | speech/cards/card.arbol.slow.wav | guide | 0.8 | el árbol |  |
@@ -204,6 +206,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.moneda | speech/cards/card.moneda.wav | guide | 1.0 | la moneda |  |
 | card.pan | speech/cards/card.pan.slow.wav | guide | 0.8 | el pan |  |
 | card.pan | speech/cards/card.pan.wav | guide | 1.0 | el pan |  |
+| card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.slow.wav | shopkeeper | 0.8 | el pan |  |
+| card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.wav | shopkeeper | 1.0 | el pan |  |
 | card.piedra | speech/cards/card.piedra.slow.wav | guide | 0.8 | la piedra |  |
 | card.piedra | speech/cards/card.piedra.wav | guide | 1.0 | la piedra |  |
 | card.puente | speech/cards/card.puente.slow.wav | guide | 0.8 | el puente |  |
@@ -748,6 +752,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.review.ask.3 | speech/guide/guide.review.ask.3.wav | guide | 1.0 | ¿Qué es esto? Mira bien. |  |
 | guide.review.phrase.donde_esta_el_rio.1 | speech/guide/guide.review.phrase.donde_esta_el_rio.1.slow.wav | guide | 0.8 | ¿Qué buscas? |  |
 | guide.review.phrase.donde_esta_el_rio.1 | speech/guide/guide.review.phrase.donde_esta_el_rio.1.wav | guide | 1.0 | ¿Qué buscas? |  |
+| guide.review.phrase.muy_bien.1 | speech/guide/guide.review.phrase.muy_bien.1.slow.wav | guide | 0.8 | ¿Qué tal? |  |
+| guide.review.phrase.muy_bien.1 | speech/guide/guide.review.phrase.muy_bien.1.wav | guide | 1.0 | ¿Qué tal? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide/guide.review.phrase.no_gracias.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide/guide.review.phrase.no_gracias.1.wav | guide | 1.0 | ¿Quieres agua? |  |
 | guide.review.phrase.pedir_agua.1 | speech/guide/guide.review.phrase.pedir_agua.1.slow.wav | guide | 0.8 | ¿Qué necesitas? |  |
@@ -758,8 +764,32 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.sleep.not_sleepy.1 | speech/guide/guide.sleep.not_sleepy.1.wav | guide | 1.0 | No tengo sueño. |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.slow.wav | guide | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1 | speech/guide/guide.uncertain.1.wav | guide | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.baker | speech/baker/guide.uncertain.1.baker.slow.wav | baker | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.baker | speech/baker/guide.uncertain.1.baker.wav | baker | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.farmer | speech/farmer/guide.uncertain.1.farmer.slow.wav | farmer | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.farmer | speech/farmer/guide.uncertain.1.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.smith | speech/smith/guide.uncertain.1.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.smith | speech/smith/guide.uncertain.1.smith.wav | smith | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.villager | speech/villager/guide.uncertain.1.villager.slow.wav | villager | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.villager | speech/villager/guide.uncertain.1.villager.wav | villager | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.slow.wav | guide | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide/guide.uncertain.2.wav | guide | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.baker | speech/baker/guide.uncertain.2.baker.slow.wav | baker | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.baker | speech/baker/guide.uncertain.2.baker.wav | baker | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.farmer | speech/farmer/guide.uncertain.2.farmer.slow.wav | farmer | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.farmer | speech/farmer/guide.uncertain.2.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.smith | speech/smith/guide.uncertain.2.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.smith | speech/smith/guide.uncertain.2.smith.wav | smith | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.villager | speech/villager/guide.uncertain.2.villager.slow.wav | villager | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.villager | speech/villager/guide.uncertain.2.villager.wav | villager | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide_again.1 | speech/guide/guide_again.1.slow.wav | guide | 0.8 | Claro. Otra vez. |  |
 | guide_again.1 | speech/guide/guide_again.1.wav | guide | 1.0 | Claro. Otra vez. |  |
 | guide_again.2 | speech/guide/guide_again.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo otra vez. |  |
@@ -984,6 +1014,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.me-gustan-las-manzanas | speech/guide/phrase.me-gustan-las-manzanas.wav | guide | 1.0 | Sí, me gustan las manzanas. |  |
 | phrase.me-gusto-el-pan | speech/guide/phrase.me-gusto-el-pan.slow.wav | guide | 0.8 | Sí, me gustó el pan de Luz. |  |
 | phrase.me-gusto-el-pan | speech/guide/phrase.me-gusto-el-pan.wav | guide | 1.0 | Sí, me gustó el pan de Luz. |  |
+| phrase.muy-bien | speech/guide/phrase.muy-bien.slow.wav | guide | 0.8 | Muy bien. |  |
+| phrase.muy-bien | speech/guide/phrase.muy-bien.wav | guide | 1.0 | Muy bien. |  |
 | phrase.necesitamos-agua | speech/guide/phrase.necesitamos-agua.slow.wav | guide | 0.8 | Necesitamos agua. |  |
 | phrase.necesitamos-agua | speech/guide/phrase.necesitamos-agua.wav | guide | 1.0 | Necesitamos agua. |  |
 | phrase.necesito-agua | speech/guide/phrase.necesito-agua.slow.wav | guide | 0.8 | Necesito agua. |  |
@@ -1006,6 +1038,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.que-es-esto | speech/guide/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
 | phrase.que-haces | speech/guide/phrase.que-haces.slow.wav | guide | 0.8 | ¿Qué haces? |  |
 | phrase.que-haces | speech/guide/phrase.que-haces.wav | guide | 1.0 | ¿Qué haces? |  |
+| phrase.que-tal | speech/guide/phrase.que-tal.slow.wav | guide | 0.8 | ¿Qué tal? |  |
+| phrase.que-tal | speech/guide/phrase.que-tal.wav | guide | 1.0 | ¿Qué tal? |  |
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.slow.wav | guide | 0.8 | Queremos pan. |  |
 | phrase.queremos-pan | speech/guide/phrase.queremos-pan.wav | guide | 1.0 | Queremos pan. |  |
 | phrase.quiero-dos-panes | speech/guide/phrase.quiero-dos-panes.slow.wav | guide | 0.8 | Quiero dos panes, por favor. |  |
@@ -1432,8 +1466,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_weather.1.sol | speech/villager/villager_weather.1.sol.wav | villager | 1.0 | Sí, hace sol. |  |
 | villager_weather.1.viento | speech/villager/villager_weather.1.viento.slow.wav | villager | 0.8 | Sí, hace viento. |  |
 | villager_weather.1.viento | speech/villager/villager_weather.1.viento.wav | villager | 1.0 | Sí, hace viento. |  |
-| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. |  |
-| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. |  |
+| villager_well.1 | speech/villager/villager_well.1.slow.wav | villager | 0.8 | Bien, gracias. ¿Y tú? |  |
+| villager_well.1 | speech/villager/villager_well.1.wav | villager | 1.0 | Bien, gracias. ¿Y tú? |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.slow.wav | villager | 0.8 | Solo tengo pan. |  |
 | villager_wont_sell.1 | speech/villager/villager_wont_sell.1.wav | villager | 1.0 | Solo tengo pan. |  |
 | villager_yes.1 | speech/villager/villager_yes.1.slow.wav | villager | 0.8 | ¡Sí! |  |

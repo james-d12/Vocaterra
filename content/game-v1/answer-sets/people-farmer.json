@@ -144,6 +144,12 @@
       "canonical": "yo venderé fruta",
       "aliases": ["venderé fruta mañana"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

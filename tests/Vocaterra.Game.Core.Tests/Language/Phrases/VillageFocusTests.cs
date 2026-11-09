@@ -96,7 +96,7 @@ public sealed class VillageFocusTests
     {
         // V12b's rule for one row (V14): the villager practises ¿Dónde está el río?, and a question about another place is the row practised elsewhere that names it.
         var session = At("villager");
-        Assert.Equal(["donde-esta-el-rio"], session.Support.Cards.Select(static c => c.PhraseId));
+        Assert.Equal(["donde-esta-el-rio", "que-tal", "muy-bien"], session.Support.Cards.Select(static c => c.PhraseId)); // PR #48: and the small talk
         session.Objective.Finish();
 
         var use = Credit(session, line);

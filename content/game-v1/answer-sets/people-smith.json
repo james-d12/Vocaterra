@@ -96,6 +96,12 @@
       "canonical": "iré al río",
       "aliases": ["yo iré al río", "sí, iré al río", "mañana iré al río", "la semana que viene iré al río", "pasado mañana iré al río"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

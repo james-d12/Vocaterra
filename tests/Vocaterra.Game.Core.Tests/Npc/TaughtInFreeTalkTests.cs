@@ -113,6 +113,8 @@ public sealed class TaughtInFreeTalkTests(ITestOutputHelper output)
 
         public GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body) => null;
 
+        public GuideNearest Toward(GuideViewpoint from, GuideCell cell) => new(cell, 0, string.Empty, 0);
+
         public IReadOnlyList<string> NounsAt(GuideCell cell) => [];
     }
 }

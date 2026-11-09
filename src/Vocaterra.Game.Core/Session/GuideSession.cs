@@ -951,7 +951,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (turn.Pointer is { Blocks: > 0 } pointer)
         {
-            Pointer = new PointerMarker(pointer.Place, pointer.Target);
+            Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
         }
 
         LastWordTurn = Words.RecordTurn(turn, turn.CreditKind, Credit, StoredTime.UnixSeconds);
@@ -1172,7 +1172,7 @@ public abstract partial class GuideSession : IDisposable
 
             if (turn.Pointer is { Blocks: > 0 } pointer)
             {
-                Pointer = new PointerMarker(pointer.Place, pointer.Target);
+                Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
             }
 
             words = Words.RecordTurn(turn, turn.CreditKind, Credit, outcome.Request.Now.UnixSeconds);

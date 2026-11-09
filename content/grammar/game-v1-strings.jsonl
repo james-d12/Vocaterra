@@ -288,6 +288,7 @@
 {"id":"dialogue:guide.review.ask.2","text":"A ver, ¿qué es esto?","kind":"npc"}
 {"id":"dialogue:guide.review.ask.3","text":"¿Qué es esto? Mira bien.","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.donde_esta_el_rio.1","text":"¿Qué buscas?","kind":"npc"}
+{"id":"dialogue:guide.review.phrase.muy_bien.1","text":"¿Qué tal?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.no_gracias.1","text":"¿Quieres agua?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.pedir_agua.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:guide.review.phrase.si_por_favor.1","text":"¿Quieres agua?","kind":"npc"}
@@ -417,7 +418,7 @@
 {"id":"dialogue:villager_understood.1","text":"Te entiendo. ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"dialogue:villager_weather.1","text":"Sí, hace {weather}.","kind":"template"}
-{"id":"dialogue:villager_well.1","text":"Bien, gracias.","kind":"npc"}
+{"id":"dialogue:villager_well.1","text":"Bien, gracias. ¿Y tú?","kind":"npc"}
 {"id":"dialogue:villager_wont_sell.1","text":"Solo tengo pan.","kind":"npc"}
 {"id":"dialogue:villager_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"prompts:baker-offer","text":"¿Quieres hacer pan?","kind":"npc"}
@@ -535,6 +536,16 @@
 {"id":"answer-sets/baker-proc:is-there-water.alias1","text":"hay agua aquí","kind":"learner"}
 {"id":"answer-sets/baker-proc:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/baker-proc:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/baker-proc:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/baker-proc:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/baker-proc:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/baker-proc:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/baker-proc:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/baker-proc:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/baker-proc:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/baker-proc:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/baker-proc:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/baker-proc:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple","text":"la manzana es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias1","text":"es roja","kind":"learner"}
 {"id":"answer-sets/lesson-apple:apple.alias2","text":"sí es roja","kind":"learner"}
@@ -1620,6 +1631,18 @@
 {"id":"answer-sets/order-receive:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/order-receive:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/order-receive:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/order-receive:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/order-receive:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/order-receive:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/order-receive:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/order-receive:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/order-receive:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/order-receive:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/order-receive:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/order-receive:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/order-receive:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/order-receive:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/order-receive:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/people-farmer:name","text":"cómo te llamas","kind":"learner"}
 {"id":"answer-sets/people-farmer:name.alias1","text":"cómo te llamas tú","kind":"learner"}
 {"id":"answer-sets/people-farmer:name.alias2","text":"cómo se llama usted","kind":"learner"}
@@ -1724,6 +1747,11 @@
 {"id":"answer-sets/people-farmer:mas-barato-que.alias3","text":"el pan es más caro que la manzana","kind":"learner"}
 {"id":"answer-sets/people-farmer:manana-vendere-fruta","text":"yo venderé fruta","kind":"learner"}
 {"id":"answer-sets/people-farmer:manana-vendere-fruta.alias1","text":"venderé fruta mañana","kind":"learner"}
+{"id":"answer-sets/people-farmer:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/people-farmer:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/people-farmer:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/people-farmer:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/people-farmer:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/people-smith:name","text":"cómo te llamas","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias1","text":"cómo te llamas tú","kind":"learner"}
 {"id":"answer-sets/people-smith:name.alias2","text":"cómo se llama usted","kind":"learner"}
@@ -1802,6 +1830,11 @@
 {"id":"answer-sets/people-smith:ire-al-rio.alias3","text":"mañana iré al río","kind":"learner"}
 {"id":"answer-sets/people-smith:ire-al-rio.alias4","text":"la semana que viene iré al río","kind":"learner"}
 {"id":"answer-sets/people-smith:ire-al-rio.alias5","text":"pasado mañana iré al río","kind":"learner"}
+{"id":"answer-sets/people-smith:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/people-smith:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/people-smith:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/people-smith:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/people-smith:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/places-basic:tree","text":"árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias1","text":"el árbol","kind":"learner"}
 {"id":"answer-sets/places-basic:tree.alias2","text":"un árbol","kind":"learner"}
@@ -1921,6 +1954,11 @@
 {"id":"answer-sets/places-village:luz-hara-pan.alias2","text":"hará pan","kind":"learner"}
 {"id":"answer-sets/places-village:luz-hara-pan.alias3","text":"ella hará pan","kind":"learner"}
 {"id":"answer-sets/places-village:luz-hara-pan.alias4","text":"luz hará pan mañana","kind":"learner"}
+{"id":"answer-sets/places-village:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/places-village:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/places-village:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/places-village:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/places-village:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/supplies:water","text":"quiero agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias1","text":"un agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias2","text":"quiero un agua","kind":"learner"}
@@ -2031,6 +2069,18 @@
 {"id":"answer-sets/supplies:compre-tres-manzanas.alias1","text":"yo compré tres manzanas","kind":"learner"}
 {"id":"answer-sets/supplies:compre-tres-manzanas.alias2","text":"hoy compré tres manzanas","kind":"learner"}
 {"id":"answer-sets/supplies:compre-tres-manzanas.alias3","text":"compré manzanas","kind":"learner"}
+{"id":"answer-sets/supplies:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/supplies:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/supplies:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/supplies:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/supplies:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/supplies:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/supplies:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/supplies:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/supplies:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/supplies:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/supplies:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/supplies:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread","text":"quiero dos panes por favor","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias1","text":"quiero dos panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:bread.alias2","text":"dos panes por favor","kind":"learner"}
@@ -2118,6 +2168,11 @@
 {"id":"answer-sets/supplies-bakery:tienes-veinte-panes.alias1","text":"tú tienes veinte panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:tienes-veinte-panes.alias2","text":"sí, tienes veinte panes","kind":"learner"}
 {"id":"answer-sets/supplies-bakery:quiero-vender-madera","text":"quiero vender la madera","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/supplies-bakery:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"answer-sets/yes-no:yes","text":"sí por favor","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias1","text":"sí","kind":"learner"}
 {"id":"answer-sets/yes-no:yes.alias2","text":"si","kind":"learner"}
@@ -2142,6 +2197,18 @@
 {"id":"answer-sets/yes-no:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/yes-no:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/yes-no:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/yes-no:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/yes-no:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/yes-no:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/yes-no:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/yes-no:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/yes-no:wellbeing","text":"qué tal","kind":"learner"}
+{"id":"answer-sets/yes-no:wellbeing.alias1","text":"cómo estás","kind":"learner"}
+{"id":"answer-sets/yes-no:wellbeing.alias2","text":"cómo está usted","kind":"learner"}
+{"id":"answer-sets/yes-no:wellbeing.alias3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"answer-sets/yes-no:wellbeing.alias4","text":"hola, ¿cómo estás?","kind":"learner"}
 {"id":"intents:ask_activity.ex0","text":"qué haces","kind":"learner","errors":[]}
 {"id":"intents:ask_activity.ex1","text":"qué haces tú","kind":"learner","errors":[]}
 {"id":"intents:ask_activity.ex2","text":"qué hace usted","kind":"learner","errors":[]}
@@ -2274,7 +2341,10 @@
 {"id":"intents:ask_wellbeing.ex5","text":"buenos días, cómo está usted","kind":"learner","errors":[]}
 {"id":"intents:ask_wellbeing.ex6","text":"qué tal","kind":"learner","errors":[]}
 {"id":"intents:ask_wellbeing.ex7","text":"hola, ¿qué tal?","kind":"learner","errors":[]}
-{"id":"intents:ask_wellbeing.ex8","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_wellbeing.ex8","text":"buenas tardes, ¿qué tal?","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex9","text":"bien, ¿y tú?","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex10","text":"muy bien, gracias, ¿y usted?","kind":"learner","errors":[]}
+{"id":"intents:ask_wellbeing.ex11","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_what.ex0","text":"qué es esto","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex1","text":"qué es eso","kind":"learner","errors":[]}
 {"id":"intents:ask_what.ex2","text":"cómo se llama esto","kind":"learner","errors":[]}
@@ -2802,6 +2872,13 @@
 {"id":"intents:state_weather.ex10","text":"hoy llueve mucho","kind":"learner","errors":[]}
 {"id":"intents:state_weather.ex11","text":"está nublado","kind":"learner","errors":[]}
 {"id":"intents:state_weather.ex12","text":"qué frío","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex0","text":"muy bien","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex1","text":"bien, gracias","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex2","text":"muy bien, gracias","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex3","text":"estoy bien","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex4","text":"estoy muy bien, gracias","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex5","text":"yo estoy bien","kind":"learner","errors":[]}
+{"id":"intents:state_wellbeing.ex6","text":"yo está muy bien","kind":"learner","errors":["conj.person"]}
 {"id":"intents:thank.ex0","text":"gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex1","text":"muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex2","text":"mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}
@@ -2851,6 +2928,18 @@
 {"id":"PHRASES.md:adios.variant2","text":"nos vemos","kind":"learner"}
 {"id":"PHRASES.md:adios.variant3","text":"hasta mañana","kind":"learner"}
 {"id":"PHRASES.md:adios.error","text":"yo nos vemos","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-tal.text","text":"¿Qué tal?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant1","text":"¿cómo estás?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant2","text":"¿cómo está usted?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant3","text":"hola, ¿qué tal?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.variant4","text":"hola, ¿cómo estás?","kind":"learner"}
+{"id":"PHRASES.md:que-tal.error","text":"cómo estás usted","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:muy-bien.text","text":"Muy bien.","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant1","text":"bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant2","text":"muy bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant3","text":"estoy bien","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.variant4","text":"estoy muy bien, gracias","kind":"learner"}
+{"id":"PHRASES.md:muy-bien.error","text":"yo está muy bien","kind":"learner","errors":["conj.person"]}
 {"id":"PHRASES.md:no-se.text","text":"No sé.","kind":"learner"}
 {"id":"PHRASES.md:no-se.variant1","text":"no lo sé","kind":"learner"}
 {"id":"PHRASES.md:no-se.variant2","text":"yo no sé","kind":"learner"}

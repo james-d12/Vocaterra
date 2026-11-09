@@ -37,10 +37,12 @@ public sealed partial class NpcService
     private const string ReviewAsk = "guide.review.ask";
     private const string ReviewStream = "guide.review";
 
+    // The place the player asked about is found as the other NPCs' directions and a lesson's point find it (ScenePlaces.Resolve): a word a scene label shows is that place
+    // (tienda is the stall, not the nearest roof, whose block is also tienda's; the river is its own water, not a well's), else the nearest block of the noun.
     private (string Line, GuidePointer? Pointer) Point(Verdict verdict, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
     {
         var place = verdict.Slots.TryGetValue("place", out var lemma) ? lemma : string.Empty;
-        var found = place.Length == 0 ? null : _facts.NearestOfNoun(scene.Player, place);
+        var found = place.Length == 0 ? null : _places.Resolve(place, scene.Player, _facts);
 
         // A thing with no tile in the world (the axe) that the player carries: say so instead of "there is none here".
         if (found is null && CountCarried(place, scene) > 0)
@@ -48,11 +50,11 @@ public sealed partial class NpcService
             return (Have(place, scene, rng, facts), null);
         }
 
-        return PointAt(place, found, rng, facts);
+        return PointAt(place, found is null ? null : _facts.Toward(scene.Player, found.Cell), rng, facts, found is null ? null : _places.PointNameOf(found));
     }
 
-    // The point-at line for the nearest tile of a noun (or the here / none line), with the arrow.
-    private (string Line, GuidePointer? Pointer) PointAt(string place, GuideNearest? found, SeededRng rng, Dictionary<string, string> facts)
+    // The point-at line for a block found (or the here / none line), with the arrow; point is the scene's name of the place the arrow stands on, if any.
+    private (string Line, GuidePointer? Pointer) PointAt(string place, GuideNearest? found, SeededRng rng, Dictionary<string, string> facts, string? point = null)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal) { ["place"] = place };
         if (found is null)
@@ -65,14 +67,14 @@ public sealed partial class NpcService
         if (found.Blocks == 0)
         {
             Merge(facts, values);
-            return (Render(PointHere, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, 0, string.Empty));
+            return (Render(PointHere, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, 0, string.Empty, point));
         }
 
         values["direction"] = found.Direction;
         values["count"] = found.Blocks.ToString(System.Globalization.CultureInfo.InvariantCulture);
         values["unit"] = _words.BlockUnit;
         Merge(facts, values);
-        return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, found.Blocks, found.Direction));
+        return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, found.Blocks, found.Direction, point));
     }
 
     // How many of a catalogue noun's items the player carries (zero when the noun is unknown or the scene has no inventory).

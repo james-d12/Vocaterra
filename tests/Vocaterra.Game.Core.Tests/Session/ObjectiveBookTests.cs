@@ -199,7 +199,8 @@ public sealed class ObjectiveBookTests
         Assert.Equal("Campamento: madera 5/5 · frutas 2/3 · antorcha 0/1 · agua 0/1", loaded.Objective.Summary);
         Assert.False(loaded.SessionComplete);
 
-        _ = loaded.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 1);
+        _ = loaded.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the bag (#32), and the fixture's bag is empty: the wood and fruit it counted are put in
+        _ = loaded.Simulation.GrantItems(ItemId.Berry, 3);
         _ = loaded.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = loaded.HostEvent(WorldEvents.BottleFilled);
 

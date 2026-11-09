@@ -28,7 +28,8 @@ public static class GroundFinder
                 continue;
             }
 
-            return grid.IsSolid(x, y + 1, z) || grid.IsSolid(x, y + 2, z) ? null : new BlockPos(x, y + 1, z);
+            // BlocksBody, not IsSolid: the cell over a tall block (a fence, #33) blocks the body too, so nothing stands on a fence.
+            return grid.BlocksBody(x, y + 1, z) || grid.BlocksBody(x, y + 2, z) ? null : new BlockPos(x, y + 1, z);
         }
 
         return null;
