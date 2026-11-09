@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The German language pack (M37, ADR 0012), the second pack: GermanLanguagePack and what stands behind it. M37 is the text layer (normalizer, folding, numbers,
+       phonetic key, recast policy, punctuation); the morphology (M38), the analysis rules (M39) and the template functions (M40) are placeholders until their
+       milestones. It references the engine; the engine does not reference it (LayeringTests guards that). Namespaces are Vocaterra.Nlp.De.<Folder>. -->
+  <PropertyGroup>
+    <Description>German language pack of Vocaterra.NLP: the ILanguagePack for de with its normalizer, umlaut and ß folding, number words, phonetic key and recast policy.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+  </ItemGroup>
+
+  <!-- The engine namespaces the pack's files use; the pack's own sit under Vocaterra.Nlp.De. -->
+  <ItemGroup>
+    <Using Include="Vocaterra.Nlp.Core.Stages" />
+    <Using Include="Vocaterra.Nlp.Core.Taxonomy" />
+    <Using Include="Vocaterra.Nlp.Core.Verdicts" />
+    <Using Include="Vocaterra.Nlp.Language.Analysis" />
+    <Using Include="Vocaterra.Nlp.Language.Lexicon" />
+    <Using Include="Vocaterra.Nlp.Language.Morphology" />
+    <Using Include="Vocaterra.Nlp.Language.Normalization" />
+    <Using Include="Vocaterra.Nlp.Language.Packs" />
+  </ItemGroup>
+
+</Project>
