@@ -19,6 +19,12 @@
     "nearFuture",
     "obligation",
     "greeting",
+    "greetingOpenings",
+    "addressPronouns",
+    "nameDeterminers",
+    "vocativeBinders",
+    "vocativeJoiners",
+    "quantityArticles",
     "typing",
     "nouns",
     "classAnswers"
@@ -208,6 +214,67 @@
     "greeting": {
       "$ref": "#/definitions/word",
       "description": "The greeting the mic check asks for (hola)."
+    },
+    "greetingOpenings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The greetings a learner's line may open with (NpcTurnRules' Greeting, V15): each phrase is matched word by word, without accents and case. Matching only; the grammar check does not read it."
+    },
+    "addressPronouns": {
+      "type": "object",
+      "required": [
+        "informal",
+        "formal",
+        "plural"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "informal": {
+          "$ref": "#/definitions/word"
+        },
+        "formal": {
+          "$ref": "#/definitions/word"
+        },
+        "plural": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The address pronouns by role (tú, usted, ustedes), matched against the core's lemmas (V28, the off-prompt rule). Matching only."
+    },
+    "nameDeterminers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words before a name that make it a common noun (la luz, el domingo; RecastNames, V20). Matching only."
+    },
+    "vocativeBinders": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words before a trailing name that make it a noun of the sentence (el pan de Luz; Vocative, V14). Matching only."
+    },
+    "vocativeJoiners": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words after a leading name that join it to another noun (Luz y Domingo comieron pan; Vocative, V14). Matching only."
+    },
+    "quantityArticles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The indefinite articles that count one item when the line names no number (vendo un bloque de madera; NpcEffect.CountedSlots, V15b). Matching only."
     },
     "nouns": {
       "type": "object",

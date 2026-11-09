@@ -1,7 +1,7 @@
 {
   "$schema": "../../schema/words.schema.json",
   "schemaVersion": 2,
-  "about": "The target-language words the game itself uses (CONTENT_PLAN C05): they were constants in the code. The guide's direction phrases, the unit and the list joiner of her answers, the speech buttons' labels, the panel's offer to type, the support cards' headings, the label of a thing not seen yet, the pronouns of the book's conjugation tables, the help and no-sé lines, the near future (ir a + infinitive, and the time words that make a present a plan), the greeting (also the hello phrase's id), the Alt-key map of the typing help and the nouns the world's logic is about. The grammar check reads them (the unseen label and the typing map are not words). The place words of the beacon are the scene's labels (game/scene.json); the key words an NPC shows before its first question are its own (game/npcs/<id>.json, schema 2); the player's own stage lines of the needs (hudLines, N05: text only, no WAVs, the English in the locale).",
+  "about": "The target-language words the game itself uses (CONTENT_PLAN C05): they were constants in the code. The guide's direction phrases, the unit and the list joiner of her answers, the speech buttons' labels, the panel's offer to type, the support cards' headings, the label of a thing not seen yet, the pronouns of the book's conjugation tables, the help and no-sé lines, the near future (ir a + infinitive, and the time words that make a present a plan), the greeting (also the hello phrase's id), the Alt-key map of the typing help and the nouns the world's logic is about. The grammar check reads them (the unseen label and the typing map are not words). The place words of the beacon are the scene's labels (game/scene.json); the key words an NPC shows before its first question are its own (game/npcs/<id>.json, schema 2); the player's own stage lines of the needs (hudLines, N05: text only, no WAVs, the English in the locale). The matching lists (greetingOpenings, addressPronouns, nameDeterminers, vocativeBinders, vocativeJoiners, quantityArticles, T02b) are the words the game recognises in a learner's line, not words it says: the grammar check does not read them.",
   "hudLines": {
     "need.hunger.1": "Tengo un poco de hambre.",
     "need.hunger.2": "Tengo hambre.",
@@ -79,6 +79,21 @@
     "joiner": "que"
   },
   "greeting": "hola",
+  "greetingOpenings": ["hola", "buenos días", "buenas tardes", "buenas noches", "buenas días", "buen día"],
+  "addressPronouns": { "informal": "tú", "formal": "usted", "plural": "ustedes" },
+  "nameDeterminers": [
+    "el", "la", "los", "las", "lo", "un", "una", "unos", "unas", "al", "del",
+    "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas", "aquel", "aquella", "aquellos", "aquellas",
+    "mi", "mis", "tu", "tus", "su", "sus", "nuestro", "nuestra", "nuestros", "nuestras"
+  ],
+  "vocativeBinders": [
+    "a", "al", "con", "de", "del", "en", "para", "por", "sin",
+    "el", "la", "los", "las", "un", "una", "unos", "unas", "lo",
+    "mi", "mis", "tu", "tus", "su", "sus",
+    "y", "e", "o", "u", "ni", "que"
+  ],
+  "vocativeJoiners": ["y", "e", "o", "u", "ni"],
+  "quantityArticles": ["un", "una"],
   "typing": [
     { "key": "a", "alt": "á" },
     { "key": "e", "alt": "é" },

@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -15,6 +16,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// </summary>
 public sealed class GreetingTests
 {
+    private static GameWords Words => TestGame.Data.Words;
+
     [Theory]
     [InlineData("hola, quiero dos panes", "quiero dos panes")]
     [InlineData("¡Hola! Quiero dos panes.", "Quiero dos panes.")]
@@ -24,11 +27,11 @@ public sealed class GreetingTests
     [InlineData("buen día quiero pan", "quiero pan")]
     [InlineData("hola amigo", "amigo")] // a rest the core does not take as an intent leaves the line a greeting (below)
     [InlineData("[unk] hola quiero dos panes", "quiero dos panes")] // the recognizer's unknown token before the greeting goes with it (the spoken round trip)
-    public void TheRestIsTheLineAfterAnOpeningGreeting(string line, string rest) => Assert.Equal(rest, Greeting.Rest(line));
+    public void TheRestIsTheLineAfterAnOpeningGreeting(string line, string rest) => Assert.Equal(rest, Greeting.Rest(line, Words));
 
     [Fact]
     public void TheListenersNameAfterTheRecognizersUnknownTokenAndAGreetingIsTakenOut() =>
-        Assert.Equal("[unk] hola quiero dos panes", Vocative.Without("[unk] hola luz quiero dos panes", "Luz")); // heard so in the spoken round trip (V15)
+        Assert.Equal("[unk] hola quiero dos panes", Vocative.Without("[unk] hola luz quiero dos panes", "Luz", Words)); // heard so in the spoken round trip (V15)
 
     [Theory]
     [InlineData("hola")]
@@ -37,7 +40,25 @@ public sealed class GreetingTests
     [InlineData("quiero dos panes")]
     [InlineData("quiero pan, hola")]
     [InlineData("holanda")]
-    public void ALineThatIsOnlyAGreetingOrOpensWithNoneHasNoRest(string line) => Assert.Null(Greeting.Rest(line));
+    public void ALineThatIsOnlyAGreetingOrOpensWithNoneHasNoRest(string line) => Assert.Null(Greeting.Rest(line, Words));
+
+    // T02b: the greetings are the file's (greetingOpenings); a German list works, and the Spanish greetings are then none.
+    [Fact]
+    public void TheGreetingsAreTheFilesOwnSoAnotherLanguagesGreetingOpensALine()
+    {
+        var german = WordsFile.WithList("greetingOpenings", "hallo", "guten tag");
+        Assert.Equal("Brot bitte", Greeting.Rest("hallo Brot bitte", german));
+        Assert.Equal("Brot", Greeting.Rest("Guten Tag Brot", german)); // folded as the Spanish ones are
+        Assert.Null(Greeting.Rest("hola quiero pan", german));
+        Assert.Equal("quiero pan", Greeting.Rest("hola quiero pan", Words));
+    }
+
+    [Fact]
+    public void AGreetingPhraseOfTheFileIsSplitAndFoldedWordByWord()
+    {
+        Assert.Equal("quiero pan", Greeting.Rest("buenos dias quiero pan", Words)); // buenos días in the file, without its accent
+        Assert.Equal("quiero pan", Greeting.Rest("buenos días quiero pan", Words));
+    }
 
     // A session at the bakery, without lessons (a lesson would take the baker's talk), with the coins of two loaves.
     private static VoxelSession AtTheBakery(int coins = 4)
