@@ -882,6 +882,14 @@ Found and fixed in M83 (the owner, 2026-11-07, D-game-23 item 5; found by W02):
   The oracle was right and the analyzer was not at fault. The resolver now adds the language's trailing polite words to both bounds. Regressions:
   `IntentResolverCatalogReadingTests.TheFuzzSeed8eu5g1sTe_A8ReadsAsAskHelpOffThePrompt` (the seed's input) and `TheTrailingPolitePhraseCountsAsLiteralWordsWhenAGrammarOutsideThePromptIsWeighed`.
 
+Found and fixed in M92 (found by M36's merge gate, 2026-11-09):
+
+- **The scorer blamed one heard `h` on two silent-h letters** (`PredictedErrorVariants.Generate`, O9, CsCheck seed `8DQuns3HnRh8`). «ah humana» (Advanced, Greedy, three frames per phone):
+  the learner pronounced the h of «ah» and said «humana» correctly, yet the scorer tagged `pron.silent_h` at offsets 1 and 3. The two silent h letters meet across a word boundary, so inserting
+  an h at either gives the same phones `[a h u m a n a]`: both predicted variants matched the one heard `h`, each was one edit from the reference, and the matcher tagged both. The audio cannot tell them apart.
+  `Generate` now keeps one silent-h variant per phone sequence, the earliest letter in the text (the variants of other tags are untouched), so one heard phone is blamed on at most one letter, deterministically.
+  The oracle is unchanged: the fuzz's injected error is drawn from the same variants. Regressions: `SilentHAcrossWordsTests` (Es tests; both modes, the seed's phrase, «ah», «humana», «la hora», «ah ahora»).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
