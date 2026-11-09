@@ -13,7 +13,7 @@ wait.
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/t05a/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t05a/` for your logs, @@COUNT@@ as the
+**Resources**, **Environment**, **Rules** and **Gate**: they apply to you, with `/tmp/claude-1000/t05a/` for your logs, **11213 passed, 3 skipped** as the
 count before you, and these changes. **What this milestone edits:** the game projects, their tests, `content/game-v1/` (files move out
 of it), the new `content/world-v1/`, `content/schema/`, `content/README.md`, `scripts/content.sh`, `scripts/content-loop.sh`,
 `scripts/merge-gate.sh`, `scripts/prerender-speech.sh` and `scripts/playtest-build.sh` only where they must know the world bundle, and
@@ -30,7 +30,7 @@ The owner decided on 2026-11-08 (D-game-27 item 2, `docs/game/decisions.md`): sp
 language-neutral world data; `content/game-v1` (Spanish) and later `content/game-de-v1` (German) hold only target-language content; the
 save records both hashes. Specification: `docs/research/2026-11-04-german-in-the-game.md` section 5.1 option B and rows G16, G17 (the
 gates and the core's tests stay on the Spanish bundle; G12, the locale, is T05b); the rows T05/T05a in `docs/game/implementation-plan.md`
-section 4.10; **T03's section 5 entry** (grep `T03, neutral world ids`) lists which files are world and which are language, and what is
+section 4.10; **T03's and T04's section 5 entries** (grep `T03, neutral world ids`, `T04, saves per language`; T04's save is version 9 and the speech table `game/speech.json` is language content) list which files are world and which are language, and what is
 still lemma-keyed. ADR 0011 (`docs/nlp/adr/`): one bundle, one language; the core's `ContentLoader` reads the language bundle only.
 
 ## What to build (each committed)

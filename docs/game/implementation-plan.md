@@ -417,7 +417,7 @@ refuses older saves with a clear message and re-records `tests/Vocaterra.Game.Co
 | T02 | Words out of code (G4, G5): the last Spanish literals (`Vocative`, `RecastNames`, `NpcTurnRules`, `GuideSession`, `VoxelSession`, `BookVerbLabels`, `CheckLayer`, `PhraseIds`) into `game/words.json` or the pack; the typing map (`AccentShortcuts`) and its hint as per-language data | T01 | S | Haiku 5.5 | partly done (2026-11-08, gated at `d9cdc0a8`, 10417 passed, 1 failed: the orchestrator's handover index link, repaired after); the rest is T02b (section 5) |
 | T02b | The rest of T02's step 2: thread `GameWords` through `Vocative`, `Greeting`, `RecastNames`, `LineReading`, `NpcService`, `GuideSession` and the host's `ConversationSession` (about 35 call sites); greetings, `tú`/`usted`/`ustedes`, determiners, vocative binders and `un`/`una` into `words.json`; empty the OPEN entries of `SpanishLiteralGuardTests`' allow-list | T02 | S/M | Haiku 5.5 | done (2026-11-09, gated at `f8f076d7`, 10522 passed; section 5) |
 | T03 | Neutral world ids (G11): recipes, objectives and host event details keyed by neutral ids (`torch`, `wood`, `table`), `game/nouns.json` mapping each id to the target-language lemma | T02 | S/M | Sonnet 5.5 | done (2026-11-09, gated at `b76a9247`, 10580 passed; section 5) |
-| T04 | Saves and the speech table (G6, G8): a required `language` in the save, `saves/<language>/` profiles, the save version raised; ASR model id, TTS engine and voices per language from data, `SpeechRules` thresholds per model; gender `n` allowed in `LearnerWords` | T03 | M | Sonnet 5.5 | proposed |
+| T04 | Saves and the speech table (G6, G8): a required `language` in the save, `saves/<language>/` profiles, the save version raised; ASR model id, TTS engine and voices per language from data, `SpeechRules` thresholds per model; gender `n` allowed in `LearnerWords` | T03 | M | Sonnet 5.5 | done (2026-11-09, gated at `0a15bee4`, 11213 passed; section 5) |
 | T05 | Split the world and language bundles (report 5.1 B, G12, G16, G17): `content/world-v1` and a slimmer `content/game-v1`; the save records both hashes; the locale split (UI strings in `content/locale/<l1>/`, target-dependent glosses and lesson text per target language); the content gates and `merge-gate.sh` per bundle; R02's core suite green on the Spanish bundle; hashes re-recorded once, in their own commit | T04 | L | Sonnet 5.5 (high) | split into T05a and T05b (2026-11-09) |
 | T05a | The first half of T05 (orchestrator, 2026-11-09: T05 split in two for size): `content/world-v1` with its own manifest; `GameData` joins world ids with the language bundle's words; `game-v1` names the world it was written against; the validator checks the join; the save records both hashes (version raised); the scripts that copy or hash bundles see the world | T04 | M | Sonnet 5.5 (high) | proposed |
 | T05b | The second half of T05: the locale split (`content/locale/<l1>/` UI text, `content/locale/<l1>/<l2>/` target-dependent text, lemma keys re-keyed to ids), the fallback chain with the target language, the gates, the content loop and CI's grammar step per language bundle | T05a | M | Sonnet 5.5 | proposed |
@@ -2599,6 +2599,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   world = recipes, stations, actions (ids), host-events, objectives (but the checklist `title` is display text), procedures, scene,
   needs, tips, session, controls; language = nouns (lemmas), words (with `places`), lessons, phrases, dialogue, checks, NPC key words,
   the verbs of actions and procedures.
+- **T04, saves per language and the speech table (2026-11-09, Sonnet 5.5 medium, relaunched once from a WIP commit after the owner
+  stopped the first agent; gated at `0a15bee4` on `feature/german`, 11213 passed, 0 failed).** **Save version 9:** a required
+  `language` (the bundle's `LanguageId`, `es` when the manifest has none), checked on load (a wrong language is refused like a wrong
+  version); the bundle hash unchanged and first (T05a adds the second). Profiles: `saves/<language>/` (`autosave.save`, `manual.save`)
+  under `--saves-dir`, else `<session dir>/saves/` with `--session-dir`, else `~/.local/share/vocaterra/saves`; built in
+  `LaunchOptions.ProfileDirectory` and `SaveProfile`, used by `SessionStart.Open` (autosave) and `VoxelGame.SaveNow` (F6); `--save`,
+  `--load`, the playtest's save and the crash save unchanged; there is no title-screen continue yet. Gender `n` accepted (`Genders`).
+  **Speech table** `game/speech.json` (schema 1, `SpeechTable`): `asr.model`, `tts.engine`, `tts.model`, `tts.guideVoice`, `thresholds`
+  by ASR model id; Spanish values equal to the old constants; read by `SpeechEngine`, `TurnWorker`, `GuideSession`, SpeechRender and the
+  model-gated test attributes; the validator checks ids against `models/manifest.json`. **For T08:** `SpeechTable.Problems` and
+  `SpeechEngine` accept only the `kokoro` engine; Piper needs a new engine id. Bundle hash `73b35109…`; scripted runs: no transcript
+  changed (baseline re-captured from a clean checkout); autosaves moved to `saves/es/`, saves gained `version 9` and `language`.
 
 ## 6. Definition of done (every milestone)
 
