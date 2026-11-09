@@ -313,65 +313,6 @@ public sealed class LearnerRecordTests
     }
 
     [Fact]
-    public void AVersionTwoSaveThatCountedTheCheckAnswersLoadsWithoutThemAndKeepsThemInTheHistory()
-    {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.Learner.Append(Entry(1, "quiero dos aguas", [Noun("aguas", "agua", 9, 5), Verb("quiero", "querer", 0, 6)]));
-        session.Learner.Append(CheckEntry(2, "quiero agua", [Noun("agua", "agua", 7, 4), Verb("quiero", "querer", 0, 6)]));
-        session.Learner.Append(CheckEntry(3, "agua", [Noun("agua", "agua", 0, 4)]));
-        var before = Show(session.Learner.Rows);
-
-        // The save as version 2 wrote it: the rows counted every line, the check answers too.
-        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
-        var old = current with
-        {
-            Version = 2,
-            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
-        };
-        Assert.Equal(3, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
-
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-
-        Assert.Equal(before, Show(loaded.Learner.Rows));
-        Assert.Equal(1, Assert.Single(loaded.Learner.Nouns).Times);
-        Assert.Equal(3, loaded.Learner.History.Count);
-        Assert.Equal(InputPlace.Check, loaded.Learner.History[^1].Place);
-
-        // Saved again (version 3) and loaded again, the record is the same: the check answers are not taken out twice.
-        var resaved = SaveGame.Save(loaded, TestGame.Route());
-        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(resaved).Version);
-        var again = SaveGame.Load(resaved, TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-        Assert.Equal(before, Show(again.Learner.Rows));
-    }
-
-    [Fact]
-    public void AVersionTwoSaveWhoseHistoryWasTrimmedTakesOutOnlyTheChecksItStillHolds()
-    {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
-        for (var id = 1; id <= 510; id++)
-        {
-            // Entry 10 is a check answer the bound trims away from the save; entry 11 is one the saved history still holds.
-            var entry = Entry(session.Learner.NextId, $"agua {id}", [Noun("agua", "agua", 0, 4)]);
-            session.Learner.Append(id is 10 or 11 ? entry with { Place = InputPlace.Check, Unit = "say.pedir-agua", Npc = null } : entry);
-        }
-
-        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
-        var old = current with
-        {
-            Version = 2,
-            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
-        };
-        Assert.Equal(510, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
-        Assert.Equal(11, old.Learner.History[0].Id);
-
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-
-        // The history holds 500 entries of 510: it can take out entry 11 only. Entry 10 was counted, is not held, and stays counted.
-        Assert.Equal(509, Assert.Single(loaded.Learner.Nouns).Times);
-        Assert.Equal(511, loaded.Learner.NextId);
-    }
-
-    [Fact]
     public void ReplayingAHistoryWithCheckAnswersGivesTheSameRecordAfterASaveAndALoad()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
@@ -387,12 +328,11 @@ public sealed class LearnerRecordTests
     }
 
     [Fact]
-    public void AVersionOneSaveLoadsWithAnEmptyHistoryAndTheLessonRecordAsFarAsTheSaveAllows()
+    public void ASaveWithNoLearnersRecordLoadsWithAnEmptyHistoryAndTheLessonRecordAsFarAsTheSaveAllows()
     {
         var text = File.ReadAllText(FixturePath("save-v1.json"));
         var document = SaveGame.Parse(text);
-        Assert.Equal(1, document.Version);
-        Assert.Null(document.Learner);
+        Assert.Null(document.Learner); // the fixture was written by the S18 code, before the learner's record, and re-recorded as a version 8 save (T03)
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 

@@ -123,7 +123,7 @@
     { "path": "game/procedures.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/stations.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/actions.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
-    { "path": "game/procedures/pan.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/procedures/bread.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/lessons/en-la-panaderia.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/lessons/first-words.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/lessons/first-class.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },

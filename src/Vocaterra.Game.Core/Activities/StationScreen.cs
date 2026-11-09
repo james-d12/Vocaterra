@@ -13,8 +13,16 @@ public sealed class StationScreen
     /// <summary>The cells of one page of what can be held; the keys 1 to 9 select them.</summary>
     public const int PageSize = 9;
 
-    /// <summary>The noun of the empty hand (key 0).</summary>
-    public const string HandNoun = "mano";
+    /// <summary>The catalogue noun id of the empty hand (key 0); <see cref="HandNoun"/> is its word.</summary>
+    public const string HandId = "hand";
+
+    /// <summary>The noun of the empty hand (key 0): the target language's word for the catalogue noun <see cref="HandId"/> (<c>mano</c>).</summary>
+    /// <param name="session">The session whose catalogue names it.</param>
+    public static string HandNoun(GuideSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.Nouns.LemmaOfId(HandId);
+    }
 
     /// <summary>The icon key of the empty hand.</summary>
     public const string HandIcon = "hand";
@@ -179,7 +187,7 @@ public sealed class StationScreen
         var made = new List<string>();
         foreach (var noun in order.Select(static s => s.ActUse).Distinct(StringComparer.Ordinal))
         {
-            if (station.HasFixture(noun) || string.Equals(noun, HandNoun, StringComparison.Ordinal) || session.Nouns.ForLemma(noun)?.Items.Count > 0)
+            if (station.HasFixture(noun) || string.Equals(noun, HandNoun(session), StringComparison.Ordinal) || session.Nouns.ForLemma(noun)?.Items.Count > 0)
             {
                 continue;
             }
@@ -221,13 +229,13 @@ public sealed class StationScreen
         var station = Station(session);
         if (procedure is null || station is null)
         {
-            return new StationView(StationId, TitleOf(session, StationId), ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, [], null, null);
+            return new StationView(StationId, TitleOf(session, StationId), ProcedureId, ProcedureState.NotStarted, InstructionStrip.Empty, [], [], [], Cell(session, StationCellKind.Hand, HandNoun(session), HandIcon, null, 0, false, false, 0), 0, 1, null, null, null, StationNotice.None, 0, [], null, null);
         }
 
         var run = session.Procedures.View();
         var strip = InstructionStrip.From(run, run.Row is null ? null : session.Phrases.Find(run.Row), session.Data.Words.Buttons, run.Row is not null && audio.CanPlay(run.Row));
         var all = HeldThings(session, bag);
-        if (Held is not null && !string.Equals(Held, HandNoun, StringComparison.Ordinal) && !all.Any(t => string.Equals(t.Noun, Held, StringComparison.Ordinal)))
+        if (Held is not null && !string.Equals(Held, HandNoun(session), StringComparison.Ordinal) && !all.Any(t => string.Equals(t.Noun, Held, StringComparison.Ordinal)))
         {
             Held = null;
         }
@@ -243,7 +251,7 @@ public sealed class StationScreen
         bool Lit(string noun, string? lit) => lit is not null && string.Equals(noun, lit, StringComparison.Ordinal);
         var held = all.Skip(Page * PageSize).Take(PageSize).Select((t, i) =>
             Cell(session, t.Kind, t.Noun, t.Icon, t.Item, t.Count, Lit(t.Noun, run.HighlightUse), string.Equals(t.Noun, Held, StringComparison.Ordinal), i + 1)).ToList();
-        var hand = Cell(session, StationCellKind.Hand, HandNoun, HandIcon, null, 0, Lit(HandNoun, run.HighlightUse), string.Equals(Held, HandNoun, StringComparison.Ordinal), 0);
+        var hand = Cell(session, StationCellKind.Hand, HandNoun(session), HandIcon, null, 0, Lit(HandNoun(session), run.HighlightUse), string.Equals(Held, HandNoun(session), StringComparison.Ordinal), 0);
         var fixtures = station.Fixtures.Select(f => Cell(session, targetNouns.Contains(f.Noun, StringComparer.Ordinal) ? StationCellKind.Target : StationCellKind.Tool, f.Noun, f.Icon, null, 0, false, false, null)).ToList();
         var targets = station.Fixtures.Where(f => targetNouns.Contains(f.Noun, StringComparer.Ordinal))
             .Select(f => Cell(session, StationCellKind.Target, f.Noun, f.Icon, null, 0, Lit(f.Noun, run.HighlightOn), string.Equals(f.Noun, Target, StringComparison.Ordinal), null)).ToList();
@@ -289,14 +297,14 @@ public sealed class StationScreen
         station.Fixtures.Where(f => procedure.Steps.Any(s => string.Equals(s.ActOn, f.Noun, StringComparison.Ordinal))
             || !procedure.Steps.Any(s => string.Equals(s.ActUse, f.Noun, StringComparison.Ordinal))).Select(static f => f.Noun).ToList();
 
-    /// <summary>The station's name for the panel's title (design 10.16): its locale label when the locale has one, else its noun with the article when its id is a catalogue noun, else its id.</summary>
+    /// <summary>The station's name for the panel's title (design 10.16): its locale label when the locale has one, else its noun with the article when its id is a catalogue noun id, else its id.</summary>
     /// <param name="session">The session (its locale and nouns).</param>
     /// <param name="stationId">The station's id.</param>
     internal static string TitleOf(GuideSession session, string stationId) =>
-        session.Locale.Find("ui.station." + stationId) ?? session.Nouns.ForLemma(stationId)?.WithDefinite ?? stationId;
+        session.Locale.Find("ui.station." + stationId) ?? session.Nouns.ForId(stationId)?.WithDefinite ?? stationId;
 
     private static string LabelOf(GuideSession session, string noun, IReadOnlyList<HeldThing> all) =>
-        Label(session, noun, string.Equals(noun, HandNoun, StringComparison.Ordinal) ? 0 : all.FirstOrDefault(t => string.Equals(t.Noun, noun, StringComparison.Ordinal))?.Count ?? 0);
+        Label(session, noun, string.Equals(noun, HandNoun(session), StringComparison.Ordinal) ? 0 : all.FirstOrDefault(t => string.Equals(t.Noun, noun, StringComparison.Ordinal))?.Count ?? 0);
 
     private static string Label(GuideSession session, string noun, int count)
     {

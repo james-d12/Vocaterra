@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/recipes.json",
-  "description": "The crafting recipes. Every name is a catalogue noun of game/nouns.json. Loaded by RecipeBook (Vocaterra.Game.Core).",
+  "description": "The crafting recipes. Every name is the id of a catalogue noun of game/nouns.json. Loaded by RecipeBook (Vocaterra.Game.Core).",
   "type": "object",
   "required": ["schemaVersion", "recipes"],
   "additionalProperties": false,
@@ -18,7 +18,7 @@
       "additionalProperties": false,
       "properties": {
         "output": { "type": "string", "minLength": 1, "description": "The noun made; it must name an item. One recipe per output." },
-        "makes": { "type": "string", "minLength": 1, "description": "The item the recipe makes, by its key, when the output noun names several items (manzana names the apple and the roast apple); it must be one of the noun's items. Default: the noun's first item." },
+        "makes": { "type": "string", "minLength": 1, "description": "The item the recipe makes, by its key, when the output noun names several items (apple names the apple and the roast apple); it must be one of the noun's items. Default: the noun's first item." },
         "count": { "type": "integer", "minimum": 1, "description": "How many one craft makes." },
         "ingredients": {
           "type": "array",
@@ -28,12 +28,12 @@
             "required": ["item", "count"],
             "additionalProperties": false,
             "properties": {
-              "item": { "type": "string", "minLength": 1, "description": "A noun that names an item." },
+              "item": { "type": "string", "minLength": 1, "description": "A catalogue noun id that names an item." },
               "count": { "type": "integer", "minimum": 1 }
             }
           }
         },
-        "station": { "type": "string", "minLength": 1, "description": "A noun that names a block the player stands at to craft (mesa)." }
+        "station": { "type": "string", "minLength": 1, "description": "A catalogue noun id that names a block the player stands at to craft (table)." }
       }
     }
   }

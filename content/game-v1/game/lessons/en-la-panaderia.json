@@ -73,7 +73,7 @@
       "trigger": {
         "event": "procedure_done",
         "npc": "baker",
-        "detail": "pan"
+        "detail": "bread"
       }
     },
     {

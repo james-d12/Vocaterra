@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Activities;
@@ -140,6 +141,27 @@ public sealed class ProcedureBook
         }
 
         return Parse(GameData.HostText(bundle, RelativePath), files);
+    }
+
+    /// <summary>
+    /// The same book with every noun of its steps read through the noun catalogue (T03): the files name the things by neutral id (<c>flour</c>, <c>bowl</c>), and the
+    /// learner is matched by, and shown, the target language's word for each (<see cref="NounCatalog.LemmaOfId"/>). An id the catalogue does not have stays as it is, for the validator.
+    /// </summary>
+    /// <param name="nouns">The noun catalogue.</param>
+    public ProcedureBook InLanguage(NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(nouns);
+        return new ProcedureBook(_procedures.Select(procedure => procedure with
+        {
+            Steps = procedure.Steps.Select(step => step with
+            {
+                What = nouns.LemmaOfId(step.What),
+                Use = step.Use is null ? null : nouns.LemmaOfId(step.Use),
+                Where = step.Where is null ? null : nouns.LemmaOfId(step.Where),
+                From = step.From is null ? null : nouns.LemmaOfId(step.From),
+                With = step.With is null ? null : nouns.LemmaOfId(step.With),
+            }).ToList(),
+        }).ToList());
     }
 
     /// <summary>The ids the index lists, in order.</summary>

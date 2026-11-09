@@ -38,16 +38,16 @@ internal sealed class StationRig
 {
     public const string Actions = """
         { "schemaVersion": 1, "actions": [
-          { "use": "madera", "on": "mesa", "verbs": ["poner"] },
-          { "use": "agua", "on": "mesa", "verbs": ["echar"] },
-          { "use": "mano", "on": "horno", "verbs": ["sacar", "abrir"] } ] }
+          { "use": "wood", "on": "table", "verbs": ["poner"] },
+          { "use": "water", "on": "table", "verbs": ["echar"] },
+          { "use": "hand", "on": "oven", "verbs": ["sacar", "abrir"] } ] }
         """;
 
     /// <param name="locale">The locale the session reads its words from, or <see langword="null"/> for the test locale.</param>
     public StationRig(bool playable = true, Func<bool>? otherPanelOpen = null, LocaleText? locale = null)
     {
         Audio = new FakeInstructionAudio { Playable = playable };
-        var data = ProcedureRig.Data().WithActions(ActionTable.Parse(Actions));
+        var data = ProcedureRig.Data().WithActions(ActionTable.Parse(Actions).InLanguage(TestGame.Nouns));
         if (locale is not null)
         {
             data = data.WithLocale(locale);

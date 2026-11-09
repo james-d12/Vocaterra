@@ -25,7 +25,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 
   | File | Schema | Loaded by (`Vocaterra.Game.Core`) |
   | --- | --- | --- |
-  | `game/nouns.json` | `nouns.schema.json` | `NounCatalog` |
+  | `game/nouns.json` | `nouns.schema.json` (each noun: its neutral `id` (`wood`, `oven`), its `lemma` in the target language, its items and blocks; T03) | `NounCatalog` |
   | `game/recipes.json` | `recipes.schema.json` | `RecipeBook` |
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
@@ -33,7 +33,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/checks.json` | `checks.schema.json` (schema 2, village-plan V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
-  | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
+  | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2; T02b's six matching lists (`greetingOpenings`, `addressPronouns`, `nameDeterminers`, `vocativeBinders`, `vocativeJoiners`, `quantityArticles`) and the typing map; T03's `places`: the words of the scene's labels that are no catalogue noun (`village`: `pueblo`)) |
   | `game/session.json` | `session.schema.json` (the objectives in the HUD's order, the closing line's pool, the starting items, the beacon's start) | `ObjectiveBook` |
   | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks; V03: the play session it starts in, and the orders) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
@@ -175,10 +175,12 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
   `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`). A phrase the guide reviews may name a `reviewLine`, the dialogue
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).
-- **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
-  reading of it with a gender.
-- **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
-  its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
+- **A noun.** Add it to `game-v1/game/nouns.json` with a neutral `id` (English, no language: `wood`, `oven`) and its `lemma`, and the lemma's English to
+  `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun reading of the lemma with a gender. The world's data (recipes, objectives, stations, actions,
+  procedures, host events, the scene's labels) names a noun by its **id**, never by its lemma: `WorldDataNeutralityTests` fails on a lemma in a world file. The lessons,
+  phrases, dialogue, checks and the NPCs' key words are the language's and keep lemmas.
+- **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "river"`): the id of a catalogue noun (it
+  shows the noun's lemma, `río`) or a place of `game/words.json`'s `places` (`"village"` shows `pueblo`); a place with no label shows its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
 - **A river and its current.** The `river.path` in `game/scene.json` is listed from **upstream to downstream** (the first waypoint at the waterfall's pool, the last in
   the lake). The player in the river is carried along its stretches by `RiverCurrents` (water-plan H08), worked out when the scene is built, from the layout, and never
   saved. Each stretch between two neighbouring points of the river's curve runs from its end with the **higher water surface** to the lower; where both ends are level

@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/procedures.schema.json",
   "schemaVersion": 1,
-  "about": "The procedures of the game (W05): the index of game/procedures/<id>.json. W10: the bread.",
-  "procedures": ["pan"]
+  "about": "The procedures of the game (W05): the index of game/procedures/<id>.json. W10: the bread (T03: its id and its nouns are neutral ids).",
+  "procedures": ["bread"]
 }

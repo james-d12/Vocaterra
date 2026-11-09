@@ -262,7 +262,7 @@ public sealed class StationPanel : IScreen
                 _screen.Picked = BakeChoice.Guided;
                 break;
             case StationRegion.Hand:
-                _screen.Held = StationScreen.HandNoun;
+                _screen.Held = StationScreen.HandNoun(_session);
                 _screen.Picked = BakeChoice.Guided;
                 break;
             case StationRegion.Target when hit.Index < view.Targets.Count:
@@ -512,7 +512,7 @@ public sealed class StationPanel : IScreen
         _screen.Picked = BakeChoice.Guided;
         if (digit == 0)
         {
-            _screen.Held = StationScreen.HandNoun;
+            _screen.Held = StationScreen.HandNoun(_session);
             return;
         }
 

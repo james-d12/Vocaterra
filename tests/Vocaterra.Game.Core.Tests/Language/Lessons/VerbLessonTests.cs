@@ -414,7 +414,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ASaveBeforeTheReplayWasKeptReadsACompletedLessonAsDone()
+    public void ASaveWithoutTheReplayKeptReadsACompletedLessonAsDone()
     {
         var session = AtGuide();
         _ = LessonDriver.CompleteAll(session, "first-class");
@@ -422,7 +422,6 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
         var old = document with
         {
-            Version = 3,
             Lessons = document.Lessons! with
             {
                 Replay = null,

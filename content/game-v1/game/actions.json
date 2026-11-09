@@ -3,11 +3,11 @@
   "schemaVersion": 1,
   "about": "The actions of the stations (W05): the verbs a step may use for each pair of a use and a fixture. W10: the six pairs of the bread. Only the hand on the oven has two verbs (sacar, or abrir for the wrong one); every other pair has the one verb that does the job.",
   "actions": [
-    { "use": "harina", "on": "bol", "verbs": ["poner"] },
-    { "use": "agua", "on": "bol", "verbs": ["echar"] },
-    { "use": "cuchara", "on": "bol", "verbs": ["mezclar"] },
-    { "use": "madera", "on": "horno", "verbs": ["poner"] },
-    { "use": "masa", "on": "horno", "verbs": ["poner"] },
-    { "use": "mano", "on": "horno", "verbs": ["sacar", "abrir"] }
+    { "use": "flour", "on": "bowl", "verbs": ["poner"] },
+    { "use": "water", "on": "bowl", "verbs": ["echar"] },
+    { "use": "spoon", "on": "bowl", "verbs": ["mezclar"] },
+    { "use": "wood", "on": "oven", "verbs": ["poner"] },
+    { "use": "dough", "on": "oven", "verbs": ["poner"] },
+    { "use": "hand", "on": "oven", "verbs": ["sacar", "abrir"] }
   ]
 }

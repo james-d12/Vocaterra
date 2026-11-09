@@ -18,11 +18,11 @@ public sealed class StationPanelTests
     public void OpeningStartsTheFirstProcedureOfTheStationAndSpeaksItsFirstRow()
     {
         var rig = new StationRig();
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         Assert.True(rig.Panel.IsOpen);
         Assert.True(rig.Panel.FreesMouse);
         var view = rig.View;
-        Assert.Equal("pan", view.ProcedureId);
+        Assert.Equal("bread", view.ProcedureId);
         Assert.Equal(ProcedureState.InRun, view.State);
         Assert.Equal(3, view.Strip.Dots.Count);
         Assert.Equal(StripDotState.Current, view.Strip.Dots[0].State);
@@ -34,7 +34,7 @@ public sealed class StationPanelTests
     public void ThePanelDoesNotOpenOverAnotherPanel()
     {
         var rig = new StationRig(otherPanelOpen: () => true);
-        Assert.False(rig.Panel.Open("horno"));
+        Assert.False(rig.Panel.Open("oven"));
         Assert.False(rig.Panel.IsOpen);
         Assert.Equal(ProcedureState.NotStarted, rig.Session.Procedures.State);
     }
@@ -45,7 +45,7 @@ public sealed class StationPanelTests
         var rig = new StationRig();
         _ = rig.Session.Simulation.Inventory.Add(ItemId.Apple, 3);
         _ = rig.Session.Simulation.Inventory.Add(ItemId.Coin, 2);
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var view = rig.View;
         Assert.Contains(view.Held, c => c is { Noun: "madera", Kind: StationCellKind.Bag, Count: 1, Label: "la madera ×1" });
         Assert.Contains(view.Held, c => c is { Noun: "manzana", Count: 3, Label: "la manzana ×3" }); // apples and coins are natural distractors
@@ -62,7 +62,7 @@ public sealed class StationPanelTests
             _ = crowded.Session.Simulation.Inventory.Add(item.Id, 1);
         }
 
-        _ = crowded.Panel.Open("horno");
+        _ = crowded.Panel.Open("oven");
         var first = crowded.View;
         Assert.Equal(StationScreen.PageSize, first.Held.Count);
         Assert.True(first.PageCount >= 2);
@@ -81,7 +81,7 @@ public sealed class StationPanelTests
     {
         // The test procedure acts on the table and the oven and with nothing from the station: both fixtures are targets and no tool is held.
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         Assert.Equal(["mesa", "horno"], rig.View.Targets.Select(static t => t.Noun));
         Assert.Equal(["mesa", "horno"], rig.View.Fixtures.Select(static t => t.Noun));
         Assert.DoesNotContain(rig.View.Held, static c => c.Kind == StationCellKind.Tool);
@@ -91,7 +91,7 @@ public sealed class StationPanelTests
     public void TheDigitsSelectWhatIsHeldAndZeroTheEmptyHandAndTabMovesBetweenTargets()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         Assert.Equal("mesa", rig.View.Targets.First(static t => t.Selected).Noun); // the first target is taken until another is chosen
         rig.Hold("agua");
         Assert.True(Cell(rig.View, "agua").Selected);
@@ -109,7 +109,7 @@ public sealed class StationPanelTests
     public void TheVerbChoiceAppearsOnlyForAPairWithSeveralVerbs()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var order = rig.Session.Procedures.Order.ToList();
 
         // One verb for the pair: Enter acts at once, no choice.
@@ -140,7 +140,7 @@ public sealed class StationPanelTests
     public void ThePickedVerbIsTheActAndTheRightOneMovesOn()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.DoStep(rig.Session.Procedures.Order[0]);
         rig.DoStep(rig.Session.Procedures.Order[1]);
         rig.Press(GameKey.D0);
@@ -156,7 +156,7 @@ public sealed class StationPanelTests
     public void AWrongActHighlightsTheThingAndTheTargetAtTheFirstRungButNotBefore()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var step = rig.Session.Procedures.Current!.Steps.First(s => s.Id == rig.Session.Procedures.Order[0]);
         Assert.DoesNotContain(rig.View.Held.Concat(rig.View.Targets), static c => c.Highlight); // nothing shows before a slip at the English rung (design 10.2)
 
@@ -174,7 +174,7 @@ public sealed class StationPanelTests
     public void AtTheLaterRungsTheFirstSlipRepeatsTheSecondSlowsAndTheThirdHighlights()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.Bake(); // a first bake, right: the rows stand at the card-and-audio rung
         rig.NextBake();
         Assert.Equal(ProcedureState.InRun, rig.View.State);
@@ -199,7 +199,7 @@ public sealed class StationPanelTests
     public void HelpShowsTheEnglishAndTheHighlightAtOnceAndStepsTheRowUp()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.Bake();
         rig.NextBake();
         var before = rig.View.Strip;
@@ -219,7 +219,7 @@ public sealed class StationPanelTests
     public void HelpSelectsTheHighlightedThingAndTargetSoEnterMakesTheShownAct()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var step = rig.Session.Procedures.Current!.Steps.First(s => s.Id == rig.Session.Procedures.Order[0]);
 
         rig.Press(GameKey.H);
@@ -235,7 +235,7 @@ public sealed class StationPanelTests
     public void TheThirdSlipsHighlightIsTheSelectionToo()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.Bake();
         rig.NextBake(); // the rows at rung 2: the first and second slips repeat, the third highlights
         var step = rig.Session.Procedures.Current!.Steps.First(s => s.Id == rig.Session.Procedures.Order[0]);
@@ -253,7 +253,7 @@ public sealed class StationPanelTests
     public void TheEnglishShowsOnlyAtTheFirstRungOrAfterHelp()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         Assert.Equal(1, rig.View.Strip.Rung);
         Assert.True(rig.View.Strip.ShowsEnglish);
         Assert.True(rig.View.Strip.ShowsText);
@@ -278,7 +278,7 @@ public sealed class StationPanelTests
     public void WhenTheBakeIsDoneNothingIsTaught()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         foreach (var id in rig.Session.Procedures.Order.ToList())
         {
             rig.DoStep(id);
@@ -295,7 +295,7 @@ public sealed class StationPanelTests
     public void WithNoAudioTheSpanishCardShowsAtTheAudioOnlyRungAndTheActIsReadingEvidence()
     {
         var rig = new StationRig(playable: false);
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.Bake();
         rig.NextBake(11 * 60);
         rig.Bake();
@@ -318,7 +318,7 @@ public sealed class StationPanelTests
     public void AnActIsHeardWhenTheAudioPlayedAndReadWhenTheTextWasOnScreen()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var row = rig.View.Strip.Row!;
         rig.DoStep(rig.Session.Procedures.Order[0]);
         var evidence = rig.Session.Procedures.Progress.EvidenceOf(row);
@@ -330,7 +330,7 @@ public sealed class StationPanelTests
     public void RepeatAndSlowerPlayTheRowAndAreListeningAidsNeverHelp()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         rig.Audio.Played.Clear();
         var row = rig.View.Strip.Row!;
         rig.Press(GameKey.R);
@@ -339,14 +339,14 @@ public sealed class StationPanelTests
         Assert.Equal(1, rig.Session.Procedures.Repeats);
         Assert.Equal(1, rig.Session.Procedures.Slowers);
         Assert.Equal(1, rig.View.Strip.Rung); // no help: the rung did not move
-        Assert.False(rig.Session.Procedures.Progress.RecordOf("pan").Mastered);
+        Assert.False(rig.Session.Procedures.Progress.RecordOf("bread").Mastered);
     }
 
     [Fact]
     public void ABakeThroughTheKeysMakesTheBreadKeepsTheBottleAndEscLeavesWithTheRunSaved()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var order = rig.Session.Procedures.Order.ToList();
         rig.DoStep(order[0]);
         Assert.Equal(StationNotice.Right, rig.View.Notice);
@@ -355,7 +355,7 @@ public sealed class StationPanelTests
         rig.Press(GameKey.Escape); // leave in the middle
         Assert.False(rig.Panel.IsOpen);
         Assert.Equal(ProcedureState.InRun, rig.Session.Procedures.State);
-        Assert.True(rig.Panel.Open("horno")); // the run is resumed where it was
+        Assert.True(rig.Panel.Open("oven")); // the run is resumed where it was
         Assert.Equal(1, rig.View.Strip.Dots.Count(static d => d.State == StripDotState.Done));
 
         rig.DoStep(order[1]);
@@ -384,7 +384,7 @@ public sealed class StationPanelTests
         _ = bag.Add(ItemId.Wood, 2); // using one leaves the slot taken
         _ = bag.Add(ItemId.WaterBottle, 1); // its slot goes to the bottle given back
         _ = bag.Add(ItemId.Coin, 1); // the last slot
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         foreach (var id in rig.Session.Procedures.Order.ToList())
         {
             rig.DoStep(id);
@@ -408,11 +408,11 @@ public sealed class StationPanelTests
     {
         var rig = new StationRig();
         var before = rig.Session.Words.RecordOf("madera").Read;
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var afterOpen = rig.Session.Words.RecordOf("madera").Read;
         Assert.Equal(before + 1, afterOpen);
         rig.Press(GameKey.Escape);
-        _ = rig.Panel.Open("horno"); // the same bake, opened again
+        _ = rig.Panel.Open("oven"); // the same bake, opened again
         Assert.Equal(afterOpen, rig.Session.Words.RecordOf("madera").Read);
         rig.Press(GameKey.PageDown);
         Assert.Equal(afterOpen, rig.Session.Words.RecordOf("madera").Read);
@@ -424,7 +424,7 @@ public sealed class StationPanelTests
     public void TheEnglishOfANounShowsOnHoverUntilTheNounIsKnown()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         Assert.False(string.IsNullOrEmpty(Cell(rig.View, "madera").Hover));
         Assert.Equal(rig.Session.Locale.NounSupport("madera"), Cell(rig.View, "madera").Hover);
     }
@@ -433,7 +433,7 @@ public sealed class StationPanelTests
     public void TalkingKeysCallTheHookW08Fills()
     {
         var rig = new StationRig();
-        _ = rig.Panel.Open("horno");
+        _ = rig.Panel.Open("oven");
         var asked = new List<StationTalk>();
         rig.Press(GameKey.V); // no hook yet: nothing happens
         rig.Panel.OnTalk = asked.Add;

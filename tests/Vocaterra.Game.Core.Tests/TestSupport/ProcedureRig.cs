@@ -13,28 +13,28 @@ namespace Vocaterra.Game.Core.Tests.TestSupport;
 internal static class ProcedureRig
 {
     public const string Pan = """
-        { "schemaVersion": 1, "id": "pan", "station": "horno", "teacher": "baker", "level": "a2",
+        { "schemaVersion": 1, "id": "bread", "station": "oven", "teacher": "baker", "level": "a2",
           "makes": { "item": "bread", "count": 2, "bonus": { "firstTimeSteps": 3, "count": 1 } },
           "uses": [ { "item": "wood", "count": 1 }, { "item": "water-bottle", "count": 1, "leaves": "bottle" } ],
           "steps": [
-            { "id": "madera", "row": "pon-la-madera", "do": "poner", "what": "madera", "where": "mesa", "anyOrder": "mesa" },
-            { "id": "agua", "row": "echa-el-agua", "do": "echar", "what": "agua", "where": "mesa", "anyOrder": "mesa" },
-            { "id": "sacar", "row": "saca-el-pan", "do": "sacar", "what": "pan", "use": "mano", "from": "horno" } ],
+            { "id": "madera", "row": "pon-la-madera", "do": "poner", "what": "wood", "where": "table", "anyOrder": "table" },
+            { "id": "agua", "row": "echa-el-agua", "do": "echar", "what": "water", "where": "table", "anyOrder": "table" },
+            { "id": "sacar", "row": "saca-el-pan", "do": "sacar", "what": "bread", "use": "hand", "from": "oven" } ],
           "chunks": [
             { "id": "la-masa", "row": "haz-la-masa", "steps": ["madera", "agua"] },
             { "id": "el-pan", "row": "haz-el-pan", "steps": ["sacar"] } ],
           "goal": { "row": "haz-pan" } }
         """;
 
-    public const string Stations = """{ "schemaVersion": 1, "stations": [ { "id": "horno", "prop": "oven", "npc": "baker", "fixtures": [ { "noun": "mesa", "icon": "table" }, { "noun": "horno", "icon": "oven" } ] } ] }""";
+    public const string Stations = """{ "schemaVersion": 1, "stations": [ { "id": "oven", "prop": "oven", "npc": "baker", "fixtures": [ { "noun": "table", "icon": "table" }, { "noun": "oven", "icon": "oven" } ] } ] }""";
 
     public static readonly string[] Rows = ["pon-la-madera", "echa-el-agua", "saca-el-pan", "haz-la-masa", "haz-el-pan", "haz-pan"];
 
-    public static ProcedureBook Book { get; } = ProcedureBook.Parse("""{ "schemaVersion": 1, "procedures": ["pan"] }""", new Dictionary<string, string> { ["pan"] = Pan });
+    public static ProcedureBook Book { get; } = ProcedureBook.Parse("""{ "schemaVersion": 1, "procedures": ["bread"] }""", new Dictionary<string, string> { ["bread"] = Pan }).InLanguage(TestGame.Nouns);
 
-    public static StationBook StationBook { get; } = StationBook.Parse(Stations);
+    public static StationBook StationBook { get; } = StationBook.Parse(Stations).InLanguage(TestGame.Nouns);
 
-    public static ProcedureDefinition Definition => Book.Find("pan")!;
+    public static ProcedureDefinition Definition => Book.Find("bread")!;
 
     public static PhraseSheet Sheet()
     {

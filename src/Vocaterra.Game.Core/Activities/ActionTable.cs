@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Activities;
@@ -51,6 +52,17 @@ public sealed class ActionTable
         ArgumentNullException.ThrowIfNull(use);
         ArgumentNullException.ThrowIfNull(on);
         return _verbs.TryGetValue((use, on), out var verbs) ? verbs : [];
+    }
+
+    /// <summary>
+    /// The same table with every use and every fixture read through the noun catalogue (T03): the file names them by neutral id (<c>flour</c> on <c>bowl</c>), the learner acts
+    /// with the target language's words (<see cref="NounCatalog.LemmaOfId"/>). The verbs are the language's and stay. An id the catalogue does not have stays, for the validator.
+    /// </summary>
+    /// <param name="nouns">The noun catalogue.</param>
+    public ActionTable InLanguage(NounCatalog nouns)
+    {
+        ArgumentNullException.ThrowIfNull(nouns);
+        return new ActionTable(Rules.Select(rule => rule with { Use = nouns.LemmaOfId(rule.Use), On = nouns.LemmaOfId(rule.On) }).ToList());
     }
 
     /// <summary>Reads the table from the bundle's verified host file.</summary>

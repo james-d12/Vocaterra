@@ -44,15 +44,13 @@ public static class SaveGame
     /// <summary>
     /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
     /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 7 adds the optional <c>systems</c> map with the player's needs (N01), the NPCs met (L01), and the water that is not
-    /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read).
+    /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read;
+    /// version 8, T03, names the bread's procedure and its station by neutral ids (<c>bread</c>, <c>oven</c>), where a save up to 7 holds the Spanish <c>pan</c> and <c>horno</c>: older saves are refused, with no migration, the game being unreleased).
     /// </summary>
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
-    /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
-    public const string UnqualifiedObjective = "camp";
-
-    /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
-    public const int OldestReadableVersion = 1;
+    /// <summary>The oldest format version this code reads (T03: version 8, the first to name the world's things by neutral ids; an older save is refused with <see cref="SaveException"/>).</summary>
+    public const int OldestReadableVersion = 8;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -82,7 +80,12 @@ public static class SaveGame
             throw new SaveException($"The file is not a {FormatName} save (its format is '{document.Format}').");
         }
 
-        if (document.Version < OldestReadableVersion || document.Version > CurrentVersion)
+        if (document.Version < OldestReadableVersion)
+        {
+            throw new SaveException($"The save is format version {document.Version}, from before the game named its world by neutral ids; this game reads version {OldestReadableVersion} only, so this save cannot be loaded. Start a new game.");
+        }
+
+        if (document.Version > CurrentVersion)
         {
             throw new SaveException($"The save is format version {document.Version}; this game reads versions {OldestReadableVersion} to {CurrentVersion}.");
         }
@@ -245,16 +248,6 @@ public static class SaveGame
         ArgumentNullException.ThrowIfNull(scene);
         var bundle = data.Bundle;
         Check(document, bundle, null, migrate);
-        if (document.Version < 5)
-        {
-            // Before version 5 the save held the camp checklist alone, keyed by the step; the keys are the objective's now (C07). Mapped here, before the migration,
-            // which would drop a key it does not know. An old key has no dot, so a key that has one is left as it is.
-            document = document with
-            {
-                Objective = document.Objective.Select(static step => step.Key.Contains('.', StringComparison.Ordinal) ? step : step with { Key = UnqualifiedObjective + "." + step.Key }).ToArray(),
-            };
-        }
-
         var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
         var collector = migrating ? new SaveMigration.Collector() : null;
         if (document.Session < 1)
@@ -411,7 +404,7 @@ public static class SaveGame
 
         if (document.Learner is { } learner)
         {
-            session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
+            session.Learner.Restore(learner, checksCounted: false); // a save without a learner's record starts with an empty history (S19)
         }
 
         session.RestoreChest(document.Systems?.Chest); // N04: the chest's block is in the world's edits; here its cell and contents

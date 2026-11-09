@@ -10,24 +10,24 @@ public sealed class StationTitleTests
     public void ACatalogueNounStationIsTitledWithItsNounAndArticle()
     {
         var rig = new StationRig();
-        Assert.Equal("la madera", StationScreen.TitleOf(rig.Session, "madera")); // the catalogue's noun with its article
+        Assert.Equal("la madera", StationScreen.TitleOf(rig.Session, "wood")); // the catalogue's noun with its article
     }
 
     [Fact]
     public void TheOpenPanelIsTitledWithTheStationNotWithTheWordStation()
     {
         var rig = new StationRig();
-        Assert.True(rig.Panel.Open("horno"));
-        Assert.Equal("el horno", rig.View.Title); // the oven's noun with its article (W10 added horno to the catalogue)
+        Assert.True(rig.Panel.Open("oven"));
+        Assert.Equal("el horno", rig.View.Title); // the oven's noun with its article (W10 added the oven to the catalogue; the station's id is its noun id, T03)
         Assert.NotEqual("Station", rig.View.Title);
     }
 
     [Fact]
     public void ALocaleLabelWinsOverTheNoun()
     {
-        var locale = TestGame.Locale.With(new Dictionary<string, string>(StringComparer.Ordinal) { ["ui.station.horno"] = "The bread oven" });
+        var locale = TestGame.Locale.With(new Dictionary<string, string>(StringComparer.Ordinal) { ["ui.station.oven"] = "The bread oven" });
         var rig = new StationRig(locale: locale);
-        Assert.True(rig.Panel.Open("horno"));
+        Assert.True(rig.Panel.Open("oven"));
         Assert.Equal("The bread oven", rig.View.Title);
     }
 

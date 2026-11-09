@@ -145,19 +145,19 @@ public enum BlockId : ushort
     Bottles = 45,
 
     /// <summary>The first half of the signpost's board that points to the shop: an arrow and "TIE" (solid). Appended in S15.</summary>
-    SignTiendaA = 46,
+    SignShopA = 46,
 
     /// <summary>The second half of the shop's board: "NDA" (solid). Appended in S15.</summary>
-    SignTiendaB = 47,
+    SignShopB = 47,
 
     /// <summary>The board that points to the river: an arrow and "RÍO" (solid). Appended in S15.</summary>
-    SignRio = 48,
+    SignRiver = 48,
 
     /// <summary>The first half of the mountain's board: an arrow and "MON" (solid). Appended in S15.</summary>
-    SignMontanaA = 49,
+    SignMountainA = 49,
 
     /// <summary>The second half of the mountain's board: "TAÑA" (solid). Appended in S15.</summary>
-    SignMontanaB = 50,
+    SignMountainB = 50,
 
     /// <summary>A torch fixed to a post as scenery (the guide's pergola): drawn like <see cref="Torch"/> and lights its surroundings like a lantern, but it is not the item's torch (not gathered, not a noun, never found by "where is the torch"). Appended in S15.</summary>
     PostTorch = 51,

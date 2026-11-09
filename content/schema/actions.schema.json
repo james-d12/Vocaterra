@@ -20,8 +20,8 @@
       "required": ["use", "on", "verbs"],
       "additionalProperties": false,
       "properties": {
-        "use": { "type": "string", "minLength": 1, "description": "The noun the learner uses: an item held (harina), a hand (mano) or a tool (cuchara)." },
-        "on": { "type": "string", "minLength": 1, "description": "The station fixture the act is done on (bol, horno)." },
+        "use": { "type": "string", "minLength": 1, "description": "The noun the learner uses: the id of a catalogue noun: an item held (flour), a hand (hand) or a tool (spoon)." },
+        "on": { "type": "string", "minLength": 1, "description": "The station fixture the act is done on (bowl, oven): the id of a catalogue noun." },
         "verbs": {
           "type": "array",
           "minItems": 1,

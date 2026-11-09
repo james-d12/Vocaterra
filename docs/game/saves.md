@@ -36,9 +36,18 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 8: neutral world ids (T03)
+
+The current version is 8, and it is the only one read. T03 (D-game-27) made the world's data name things by neutral ids (`game/nouns.json`'s `id`: `wood`, `oven`), so the bread's
+procedure and its station are `bread` and `oven` where a save up to version 7 holds `pan` and `horno` (`systems.procedures`: `known`, `progress[].id`, `run.procedure`, `run.station`,
+`grantedToday`). An older save is refused by `SaveGame.Parse` with a message naming its version and saying to start a new game; the game is unreleased, so there is no migration, and the
+code that mapped a version 4 save's checklist keys and a version 2 save's check counts is gone. `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` and `save-v4.json` keep their names
+and are re-recorded as version 8 saves (the same content, its checklist keys qualified `camp.wood`), so they still test a save with no learner's record, no `systems` and no `sitting`.
+The lemmas in a save (`words[].lemma`, `carded`, `pointer.place`) are the learner's and the language's, and stay.
+
 ## Format version 7: the `systems` map, the needs (N01) and the water
 
-The current version is 7. Two branches each wrote a different version 6 (the needs and the `systems` map on one, the water on the other); they met in the water merge
+(History: the version was 7 before T03.) Two branches each wrote a different version 6 (the needs and the `systems` map on one, the water on the other); they met in the water merge
 (PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
 migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
 in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
@@ -49,7 +58,7 @@ Its `needs` entry holds the player's five meters and two timers: `hunger`, `thir
 `exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones add the regrowth, gift and
 chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data.
 
-- **Versions 1 to 5 load** with full needs (no `systems`).
+- **Versions 1 to 5 loaded** with full needs (no `systems`) until T03; a save without `systems` still does.
 - **The needs are not in the world's digest.** A load and a night compare the digest, and an older save has none; the needs are checked by range instead: a value out of range
   (a drive or health outside 0 to 100, stamina over its maximum, a timer below 0) is **clamped** into it, and a value that is not a number **refuses** the save.
 - **A night is a load in the same run** with the night's changes on the needs (N03): `SaveGame.Sleep` restores the needs as a load does, then `VoxelSession.ApplyNight` applies

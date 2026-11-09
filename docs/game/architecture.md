@@ -246,6 +246,12 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   record holds them. The line itself ("El árbol está a la derecha, a doce bloques.") is still rendered by the game from the bundle's dialogue
   pools with the bundle's template engine, because the core cannot pick one of three templates from a host fact (CR-016, open). The agent's
   reply and the correction come from the core.
+- **Neutral world ids (T03, D-game-27).** The world's data (recipes, objectives, stations, actions, procedures, host events, the scene's labels) names a noun by its neutral id from
+  `game/nouns.json` (`wood`, `oven`; the file's `lemma` is the target language's word for it), never by a lemma (`WorldDataNeutralityTests`). The loaders read the ids
+  through the catalogue (`NounCatalog.ForId`, `LemmaOfId`): `RecipeBook` and `ObjectiveBook` take it as a parameter, and `HostEventTable`, `StationBook`, `ActionTable` and `ProcedureBook`
+  have an `InLanguage(nouns)` that `GameData.Read` and the host's `ConversationSession` call, so the books hold lemmas in memory and the matching of the learner's line is as it was; a
+  station and a procedure keep their ids (`oven`, `bread`). A scene label is an id too: a noun id shows the lemma, a place id shows `game/words.json`'s `places` word
+  (`GameData.LabelWord`). A German bundle changes `nouns.json` and `words.json`, not the world.
 - **Words and learner skills** (CR-002, CR-005, core M26c and M26d). The guide's evaluation reads the catalogue nouns of a turn from the core's
   resolved words, and gives each one its `word.<lemma>` skill in the same learner update, through `extraSkills`.
 - **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps

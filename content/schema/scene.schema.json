@@ -114,7 +114,7 @@
           "label": {
             "type": "string",
             "minLength": 1,
-            "description": "The word the beacon shows for the place (river shows río; C05)."
+            "description": "The id of the word the beacon shows for the place (T03): a catalogue noun id of game/nouns.json (the river is river and shows río) or a place id of game/words.json places (village shows pueblo)."
           }
         }
       },
@@ -346,7 +346,7 @@
           "label": {
             "type": "string",
             "minLength": 1,
-            "description": "The word the beacon shows for the prop's place (needs a name; C05)."
+            "description": "The id of the word the beacon shows for the prop's place (needs a name; T03): a catalogue noun id or a place id of game/words.json."
           }
         }
       }
@@ -432,7 +432,7 @@
           "label": {
             "type": "string",
             "minLength": 1,
-            "description": "The word the beacon shows for the place (river shows río; C05)."
+            "description": "The id of the word the beacon shows for the place (T03): a catalogue noun id of game/nouns.json (the river is river and shows río) or a place id of game/words.json places (village shows pueblo)."
           }
         }
       },

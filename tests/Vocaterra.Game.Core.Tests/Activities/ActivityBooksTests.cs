@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Activities;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Activities;
@@ -147,11 +148,28 @@ public sealed class ActivityBooksTests
         // W05 added the books and the empty files; W10's bread fills them (the tests that predate it read TestGame.Data, the bundle without its procedure).
         var data = TestGame.BreadData;
 
-        Assert.Equal(["pan"], data.Procedures.Procedures.Select(static p => p.Id));
-        Assert.Equal(["horno"], data.Stations.Stations.Select(static s => s.Id));
-        Assert.Equal(["bol", "cuchara", "horno"], data.Stations.Find("horno")!.Fixtures.Select(static f => f.Noun));
+        Assert.Equal(["bread"], data.Procedures.Procedures.Select(static p => p.Id)); // T03: the ids are neutral, the nouns of the books are read through nouns.json
+        Assert.Equal(["oven"], data.Stations.Stations.Select(static s => s.Id));
+        Assert.Equal("oven", data.Procedures.Find("bread")!.Station);
+        Assert.Equal(["bol", "cuchara", "horno"], data.Stations.Find("oven")!.Fixtures.Select(static f => f.Noun)); // the lemmas of ids bowl, spoon and oven
         Assert.Equal(6, data.Actions.Rules.Count);
         Assert.Equal(["sacar", "abrir"], data.Actions.VerbsFor("mano", "horno"));
         Assert.Empty(TestGame.Data.Procedures.Procedures);
+    }
+
+    [Fact]
+    public void TheFilesNameTheNounsByNeutralIdsAndTheLoadedBooksByTheirLemmas()
+    {
+        var stations = StationBook.Parse(GameData.HostText(TestGame.Bundle, StationBook.RelativePath));
+        var actions = ActionTable.Parse(GameData.HostText(TestGame.Bundle, ActionTable.RelativePath));
+
+        Assert.Equal(["bowl", "spoon", "oven"], stations.Find("oven")!.Fixtures.Select(static f => f.Noun));
+        Assert.Equal(["sacar", "abrir"], actions.VerbsFor("hand", "oven"));
+        Assert.Empty(actions.VerbsFor("mano", "horno"));
+
+        var inLanguage = stations.InLanguage(TestGame.Nouns);
+        Assert.Equal(["bol", "cuchara", "horno"], inLanguage.Find("oven")!.Fixtures.Select(static f => f.Noun));
+        Assert.Equal(["sacar", "abrir"], actions.InLanguage(TestGame.Nouns).VerbsFor("mano", "horno"));
+        Assert.Equal("mano", StationScreen.HandNoun(TestGame.NewSession()));
     }
 }

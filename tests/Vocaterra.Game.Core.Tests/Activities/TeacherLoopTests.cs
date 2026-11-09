@@ -42,7 +42,7 @@ public sealed class TeacherLoopTests
 
         public TeacherTalk Talk { get; }
 
-        public bool Open() => Station.Panel.Open("horno", teacherPresent: true);
+        public bool Open() => Station.Panel.Open("oven", teacherPresent: true);
 
         // What the player types at the station: the turn goes to the teacher, is applied by the session and shown on the station's line, as TurnPump does.
         public IReadOnlyList<GuideTurn> Say(string line)
@@ -115,7 +115,7 @@ public sealed class TeacherLoopTests
     public void ALineAtTheStationWithoutTheTeacherGoesNowhere()
     {
         using var rig = new Rig();
-        Assert.True(rig.Station.Panel.Open("horno")); // the default: the teacher is not with the learner
+        Assert.True(rig.Station.Panel.Open("oven")); // the default: the teacher is not with the learner
         Assert.Null(rig.Session.TeachingNpc);
         Assert.False(rig.Talk.Say("Otra vez, por favor."));
         Assert.Equal("idle", rig.TeacherState);
@@ -241,9 +241,9 @@ public sealed class TeacherLoopTests
         Assert.Equal(["baker.give_missing"], turn.HostEvents);
         Assert.Equal(1, rig.Held(ItemId.Wood));
         Assert.Equal(1, rig.Held(ItemId.WaterBottle)); // everything the run lacked
-        Assert.Equal(["pan"], rig.Session.GrantsGivenToday);
+        Assert.Equal(["bread"], rig.Session.GrantsGivenToday);
         var events = rig.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.IngredientsGiven).ToList();
-        Assert.Equal("pan", Assert.Single(events).Detail);
+        Assert.Equal("bread", Assert.Single(events).Detail);
 
         // The second request of the day: nothing is given, and she says why.
         rig.Drop(ItemId.Wood);
@@ -254,9 +254,9 @@ public sealed class TeacherLoopTests
 
         // A reload keeps the day: it does not open the grant again.
         var document = SaveGame.Capture(rig.Session, Pristine());
-        Assert.Equal(["pan"], document.Systems!.Procedures!.GrantedToday!);
+        Assert.Equal(["bread"], document.Systems!.Procedures!.GrantedToday!);
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
-        Assert.Equal(["pan"], loaded.GrantsGivenToday);
+        Assert.Equal(["bread"], loaded.GrantsGivenToday);
         Assert.Equal(ProcedureState.InRun, loaded.Procedures.State);
         var plan = loaded.PlanGrant();
         Assert.NotNull(plan);
@@ -294,28 +294,28 @@ public sealed class TeacherLoopTests
     // A lesson of the class kind whose do step waits for the bake to be done (what W10's introductory class will be): decision 20's exception.
     private const string BakeClass = """
         { "schemaVersion": 1, "lessons": [ { "id": "bake", "npc": "baker", "level": "a1", "title": "A bake", "english": "Bake with Luz.", "autoStart": true, "steps": [
-          { "id": "do", "type": "do", "trigger": { "event": "procedure_done", "detail": "pan" }, "english": "Bake the bread.", "hud": "Bake the bread" },
+          { "id": "do", "type": "do", "trigger": { "event": "procedure_done", "detail": "bread" }, "english": "Bake the bread.", "hud": "Bake the bread" },
           { "id": "end", "type": "explain", "english": "You baked." } ] } ] }
         """;
 
     [Fact]
     public void ALessonWaitingForTheBakeOpensTheGrantWithoutCountingTheDay()
     {
-        var closed = new SaveGameProcedures("pan", granted: true);
+        var closed = new SaveGameProcedures("bread", granted: true);
         var session = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.Lessons(BakeClass));
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker"); // the class starts by itself, its first step waits for procedure_done
         session.EndTalk();
         Assert.Equal("do", session.Lessons.Current!.Id);
         session.RestoreProcedures(closed.Save);
-        Assert.Equal(StartOutcome.Started, session.StartProcedure("pan", "horno", true));
+        Assert.Equal(StartOutcome.Started, session.StartProcedure("bread", "oven", true));
         var plan = session.PlanGrant()!;
         Assert.True(plan.Open); // today's grant was given, and the class needs this one
-        Assert.Equal(["pan"], session.GrantsGivenToday);
+        Assert.Equal(["bread"], session.GrantsGivenToday);
 
         var plain = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
         plain.RestoreProcedures(closed.Save);
-        Assert.Equal(StartOutcome.Started, plain.StartProcedure("pan", "horno", true));
+        Assert.Equal(StartOutcome.Started, plain.StartProcedure("bread", "oven", true));
         Assert.False(plain.PlanGrant()!.Open); // the same state with no class: closed
     }
 
@@ -338,8 +338,8 @@ public sealed class TeacherLoopTests
         var turn = session.Say("¿Cómo hago pan?");
         Assert.Equal("offering_bake", turn.AgentState); // "¿cómo hago pan?" at her open prompt is answered by the offer, which teaches the recipe
         Assert.Contains("baker.teach_recipe", turn.HostEvents);
-        Assert.Equal(["pan"], session.Procedures.Progress.Known);
-        Assert.Equal("pan", Assert.Single(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.RecipeTaught).Detail);
+        Assert.Equal(["bread"], session.Procedures.Progress.Known);
+        Assert.Equal("bread", Assert.Single(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.RecipeTaught).Detail);
         Assert.Equal(ProcedureState.NotStarted, session.Procedures.State); // known is not started
         Assert.Empty(session.Procedures.Progress.Records);
     }
@@ -424,7 +424,7 @@ public sealed class TeacherLoopTests
 
         // Once the bake is done the offer is not made again.
         var baked = NewSession();
-        _ = baked.StartProcedure("pan", "horno", false);
+        _ = baked.StartProcedure("bread", "oven", false);
         foreach (var id in baked.Procedures.Order.ToList())
         {
             var (use, on, verb) = ProcedureRig.ActOf(id);
@@ -450,7 +450,7 @@ public sealed class TeacherLoopTests
         var yes = station.Session.Say("Sí, por favor.");
         Assert.Equal("confirm", yes.Intent);
         Assert.Equal(["baker.start_bake"], yes.HostEvents);
-        Assert.Equal([("horno", "pan")], asked);
+        Assert.Equal([("oven", "bread")], asked);
         Assert.True(station.Panel.IsOpen);
         Assert.Equal(1, station.View.Strip.Rung); // the first rung: audio, the Spanish and the English
         Assert.Equal("teaching", station.Session.Conversation.StateOf("baker"));
@@ -462,7 +462,7 @@ public sealed class TeacherLoopTests
     public void AnOfferDoesNotHoldWhileABakeRunsOrAnotherThingHoldsTheTalk()
     {
         var session = NewSession();
-        _ = session.StartProcedure("pan", "horno", true); // a bake is under way, the teacher listens
+        _ = session.StartProcedure("bread", "oven", true); // a bake is under way, the teacher listens
         Assert.Null(session.BakeOfferOf("baker", asked: false));
         Assert.Null(session.BakeOfferOf("baker", asked: true));
         session.LeaveStation();
@@ -511,7 +511,7 @@ public sealed class TeacherLoopTests
         var document = SaveGame.Capture(rig.Session, Pristine());
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.Equal("teaching", loaded.Conversation.StateOf("baker")); // saved while she listened at the station
-        Assert.Equal(StartOutcome.Resumed, loaded.StartProcedure("pan", "horno", true));
+        Assert.Equal(StartOutcome.Resumed, loaded.StartProcedure("bread", "oven", true));
         Assert.Equal("baker", loaded.TeachingNpc);
         Assert.Equal("teaching", loaded.Conversation.StateOf("baker"));
         loaded.LeaveStation();
@@ -609,14 +609,14 @@ public sealed class TeacherLoopTests
               { "npc": "baker", "event": "baker.b", "action": { "kind": "procedure_slower" } },
               { "npc": "baker", "event": "baker.c", "action": { "kind": "procedure_help" } },
               { "npc": "baker", "event": "baker.d", "action": { "kind": "give_missing" } },
-              { "npc": "baker", "event": "baker.e", "action": { "kind": "teach_recipe", "procedure": "pan" } },
+              { "npc": "baker", "event": "baker.e", "action": { "kind": "teach_recipe", "procedure": "bread" } },
               { "npc": "baker", "event": "baker.f", "action": { "kind": "start_procedure" } } ] }
             """);
         Assert.Equal(NpcEffectKind.ProcedureRepeat, table.Of("baker", "baker.a").Kind);
         Assert.Equal(NpcEffectKind.ProcedureSlower, table.Of("baker", "baker.b").Kind);
         Assert.Equal(NpcEffectKind.ProcedureHelp, table.Of("baker", "baker.c").Kind);
         Assert.Equal(NpcEffectKind.GiveMissing, table.Of("baker", "baker.d").Kind);
-        Assert.Equal((NpcEffectKind.TeachRecipe, "pan"), (table.Of("baker", "baker.e").Kind, table.Of("baker", "baker.e").Procedure));
+        Assert.Equal((NpcEffectKind.TeachRecipe, "bread"), (table.Of("baker", "baker.e").Kind, table.Of("baker", "baker.e").Procedure));
         Assert.Equal((NpcEffectKind.StartProcedure, string.Empty), (table.Of("baker", "baker.f").Kind, table.Of("baker", "baker.f").Procedure));
         Assert.Throws<InvalidDataException>(() => HostEventTable.Parse("""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.a", "action": { "kind": "teach_everything" } } ] }"""));
 

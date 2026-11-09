@@ -101,7 +101,7 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "description": "V21b: with asked. Catalogue nouns the NPC has something else for, by the suffix of the host event it answers instead of <npc>.wont_sell (pan: give_bread, so <npc>.give_bread). The agent takes that event with onHostEvent."
+                    "description": "V21b: with asked. Catalogue noun ids the NPC has something else for, by the suffix of the host event it answers instead of <npc>.wont_sell (bread: give_bread, so <npc>.give_bread). The agent takes that event with onHostEvent."
                   },
                   "asked": {
                     "type": "array",
@@ -110,7 +110,7 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "description": "V21: the catalogue nouns whose request this gift answers (agua, botella). A request for another noun raises <npc>.wont_sell to the agent as a host turn and nothing is given; a line with no noun, or a word the catalogue lacks, is read as a request for the gift."
+                    "description": "V21: the catalogue noun ids whose request this gift answers (water, bottle). A request for another noun raises <npc>.wont_sell to the agent as a host turn and nothing is given; a line with no noun, or a word the catalogue lacks, is read as a request for the gift."
                   }
                 },
                 "description": "The NPC puts items in the inventory, all of them or none (the bottle once, whatever the count)."
@@ -244,7 +244,7 @@
                       "type": "integer",
                       "minimum": 1
                     },
-                    "description": "W04: the price list, catalogue noun to coins for one item (pan: 2, harina: 1). An item not on it raises <npc>.wont_sell and nothing changes hands. Never together with item and price."
+                    "description": "W04: the price list, catalogue noun id to coins for one item (bread: 2, flour: 1). An item not on it raises <npc>.wont_sell and nothing changes hands. Never together with item and price."
                   }
                 },
                 "description": "The NPC sells as many of the item as the learner asked for (the verdict's qty, one when none; no cap since V19, the coins and the bag are the bound) for that many times the price in coins. Otherwise nothing changes hands and a host turn is raised to the agent: another item (or a catalogue noun of no item) <npc>.wont_sell, none asked for <npc>.none_asked, too few coins <npc>.cant_pay (V03), no room in the bag for the items <npc>.no_room (V19)."
@@ -296,7 +296,7 @@
                       "type": "integer",
                       "minimum": 1
                     },
-                    "description": "W04: the price list, catalogue noun to coins for one item (pan: 2, harina: 1). An item not on it raises <npc>.wont_buy and nothing changes hands. Never together with item and price."
+                    "description": "W04: the price list, catalogue noun id to coins for one item (bread: 2, flour: 1). An item not on it raises <npc>.wont_buy and nothing changes hands. Never together with item and price."
                   }
                 },
                 "description": "The NPC buys the item from the learner (V15, the sale turned round): as many as the learner said (the verdict's qty, at most what the bag holds) or, with no number, every one the bag holds, for the price each in coins. A bag with none raises <npc>.cant_sell to the agent as a host turn, a line that offers another item (or a catalogue noun of no item) <npc>.wont_buy, an offer of none <npc>.none_offered, and a bag with no room for the coins <npc>.no_room (V19); then nothing changes hands."

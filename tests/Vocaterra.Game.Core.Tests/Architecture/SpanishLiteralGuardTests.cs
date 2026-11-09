@@ -106,6 +106,17 @@ public sealed class SpanishLiteralGuardTests
             }
         }
 
+        // The noun catalogue's lemmas and labels (T03): the code names a noun by its id, never by its word.
+        using var nouns = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(Root(), "content", "game-v1", "game", "nouns.json")));
+        foreach (var noun in nouns.RootElement.GetProperty("nouns").EnumerateArray())
+        {
+            var lemma = Normal(noun.GetProperty("lemma").GetString()!);
+            if (lemma.Length >= 2)
+            {
+                _ = words.Add(lemma);
+            }
+        }
+
         return words;
     }
 

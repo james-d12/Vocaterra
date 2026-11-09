@@ -223,12 +223,12 @@ public sealed class VillageTests(ITestOutputHelper output)
             Assert.Equal(BlockId.Sign, grid.GetBlock(post.X, post.Y + 3 + row, post.Z));
         }
 
-        Assert.Equal(BlockId.SignTiendaA, grid.GetBlock(post.X, post.Y + 3, post.Z + 1));
-        Assert.Equal(BlockId.SignTiendaB, grid.GetBlock(post.X, post.Y + 3, post.Z + 2));
-        Assert.Equal(BlockId.SignRio, grid.GetBlock(post.X, post.Y + 4, post.Z + 1));
+        Assert.Equal(BlockId.SignShopA, grid.GetBlock(post.X, post.Y + 3, post.Z + 1));
+        Assert.Equal(BlockId.SignShopB, grid.GetBlock(post.X, post.Y + 3, post.Z + 2));
+        Assert.Equal(BlockId.SignRiver, grid.GetBlock(post.X, post.Y + 4, post.Z + 1));
         Assert.Equal(BlockId.Air, grid.GetBlock(post.X, post.Y + 4, post.Z + 2)); // the river's board is one cell long
-        Assert.Equal(BlockId.SignMontanaA, grid.GetBlock(post.X, post.Y + 5, post.Z + 1));
-        Assert.Equal(BlockId.SignMontanaB, grid.GetBlock(post.X, post.Y + 5, post.Z + 2));
+        Assert.Equal(BlockId.SignMountainA, grid.GetBlock(post.X, post.Y + 5, post.Z + 1));
+        Assert.Equal(BlockId.SignMountainB, grid.GetBlock(post.X, post.Y + 5, post.Z + 2));
     }
 
     [Fact]

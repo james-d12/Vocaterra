@@ -22,8 +22,8 @@ public static class BlockArtVillage
     {
         BlockCell.TimberSide or BlockCell.TimberEnd or BlockCell.Lantern or BlockCell.CrateSide or BlockCell.CrateTop or BlockCell.AwningRed
             or BlockCell.AwningWhite or BlockCell.Canvas or BlockCell.ChestSide or BlockCell.ChestTop or BlockCell.FarmlandTop or BlockCell.Wheat
-            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
-            or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
+            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignShopA or BlockCell.SignShopB or BlockCell.SignRiver
+            or BlockCell.SignMountainA or BlockCell.SignMountainB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
             or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer => true,
         _ => false,
@@ -208,15 +208,15 @@ public static class BlockArtVillage
 
             case BlockCell.SignBlank:
                 return BoardPixel(x, y, n);
-            case BlockCell.SignTiendaA:
+            case BlockCell.SignShopA:
                 return SignPixel("<TIE", x, y, n);
-            case BlockCell.SignTiendaB:
+            case BlockCell.SignShopB:
                 return SignPixel("NDA", x, y, n);
-            case BlockCell.SignRio:
+            case BlockCell.SignRiver:
                 return SignPixel("<RIO", x, y, n, accentOn: 2);
-            case BlockCell.SignMontanaA:
+            case BlockCell.SignMountainA:
                 return SignPixel("^MON", x, y, n);
-            case BlockCell.SignMontanaB:
+            case BlockCell.SignMountainB:
                 return SignPixel("TANA", x, y, n, tildeOn: 2);
             case BlockCell.FaceGuide:
                 return FacePixel(x, y, n, hair: new Rgba(78, 48, 28), longHair: true, beard: false, cheeks: true, eyes: new Rgba(40, 80, 60));

@@ -52,16 +52,16 @@
   "sites": {
     // The player's camp: the brink of a ledge on the mountainside (where the player wakes, with the valley falling away to the south-east) and the
     // wider ledge behind it, where the tent and the fire ring stand.
-    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4, "label": "mi campamento" },
+    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4, "label": "my-camp" },
     "camp.ledge": { "x": 149, "z": 109, "y": 72, "radius": 9, "blend": 4 },
-    "trail": { "x": 150, "z": 118, "label": "camino" },
-    "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8, "label": "campamento" },
+    "trail": { "x": 150, "z": 118, "label": "path" },
+    "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8, "label": "camp" },
     "bridge.west": { "x": 226, "z": 205, "y": 37, "radius": 3, "blend": 3 },
     "bridge.east": { "x": 238, "z": 205, "y": 37, "radius": 3, "blend": 3 },
-    "village": { "x": 292, "z": 218, "y": 37, "radius": 24, "blend": 8, "label": "pueblo" },
-    "river": { "x": 230, "z": 222, "label": "río" },
-    "waterfall": { "x": 258, "z": 112, "label": "cascada" },
-    "lake": { "x": 212, "z": 294, "label": "lago" }
+    "village": { "x": 292, "z": 218, "y": 37, "radius": 24, "blend": 8, "label": "village" },
+    "river": { "x": 230, "z": 222, "label": "river" },
+    "waterfall": { "x": 258, "z": 112, "label": "waterfall" },
+    "lake": { "x": 212, "z": 294, "label": "lake" }
   },
 
   // The waterfall: a cliff whose lip is the row of the site; the plateau behind it is raised to "top" and a sheet of water falls into the pool.
@@ -156,14 +156,14 @@
     {"type": "stamp", "stamp": "tent", "site": "camp.ledge", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
     {"type": "block", "block": "chest", "site": "camp.ledge", "dx": -1, "dz": -4, "name": "chest.player"},
     {"type": "block", "block": "crate", "site": "camp.ledge", "dx": -1, "dz": -5},
-    {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player", "label": "fuego"},
+    {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player", "label": "fire"},
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
-    {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench", "label": "mesa"},
+    {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench", "label": "table"},
     {"type": "pergola", "site": "camp.guide", "dx": 0, "dz": -4, "width": 6, "depth": 3, "height": 3, "name": "pergola"},
     {"type": "block", "block": "chest", "site": "camp.guide", "dx": 5, "dz": -3, "name": "chest.guide"},
     {"type": "block", "block": "crate", "site": "camp.guide", "dx": 6, "dz": -2, "height": 2},
-    {"type": "fire_ring", "site": "camp.guide", "dx": 0, "dz": 2, "name": "firering", "label": "fuego"},
+    {"type": "fire_ring", "site": "camp.guide", "dx": 0, "dz": 2, "name": "firering", "label": "fire"},
     {"type": "berry_bush", "site": "camp.guide", "dx": -6, "dz": 3},
     {"type": "berry_bush", "site": "camp.guide", "dx": -5, "dz": -5},
     {"type": "berry_bush", "site": "camp.guide", "dx": 6, "dz": -4},
@@ -174,20 +174,20 @@
     {"type": "bush", "site": "camp.guide", "dx": -8, "dz": -4},
 
     // The bridge: the river's crossing between the two landings.
-    {"type": "bridge", "site": "bridge.west", "length": 13, "width": 3, "facing": "east", "name": "bridge", "label": "puente"},
+    {"type": "bridge", "site": "bridge.west", "length": 13, "width": 3, "facing": "east", "name": "bridge", "label": "bridge"},
 
     // The village: the square, the signpost where the road comes in, the stall (counter on the west side, towards the road), three houses.
     {"type": "paving", "site": "village", "dx": -8, "dz": -6, "width": 16, "depth": 12, "block": "path"},
-    {"type": "signpost", "site": "village", "dx": -14, "dz": 3, "facing": "west", "stamp": "tienda,rio,montana", "name": "signpost", "label": "letrero"},
-    {"type": "stall", "site": "village", "dx": -6, "dz": -9, "width": 2, "depth": 5, "facing": "west", "name": "stall", "label": "tienda"},
-    {"type": "house", "site": "village", "dx": 9, "dz": -9, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1", "label": "casa"},
-    {"type": "house", "site": "village", "dx": 9, "dz": 5, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2", "label": "casa"},
-    {"type": "house", "site": "village", "dx": -13, "dz": 7, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3", "label": "casa"},
+    {"type": "signpost", "site": "village", "dx": -14, "dz": 3, "facing": "west", "stamp": "shop,river,mountain", "name": "signpost", "label": "signpost"},
+    {"type": "stall", "site": "village", "dx": -6, "dz": -9, "width": 2, "depth": 5, "facing": "west", "name": "stall", "label": "shop"},
+    {"type": "house", "site": "village", "dx": 9, "dz": -9, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1", "label": "house"},
+    {"type": "house", "site": "village", "dx": 9, "dz": 5, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2", "label": "house"},
+    {"type": "house", "site": "village", "dx": -13, "dz": 7, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3", "label": "house"},
 
     // The village's furnishing (S15): the stone tower behind the square, the crop field between the houses, fences, crates beside the stall and lanterns on
     // posts by the doors, the square's corners and the road.
-    {"type": "stamp", "stamp": "tower", "site": "village", "dx": 2, "dz": -16, "facing": "north", "name": "tower", "label": "torre"},
-    {"type": "field", "site": "village", "dx": 9, "dz": -2, "width": 7, "depth": 6, "name": "field", "label": "campo"},
+    {"type": "stamp", "stamp": "tower", "site": "village", "dx": 2, "dz": -16, "facing": "north", "name": "tower", "label": "tower"},
+    {"type": "field", "site": "village", "dx": 9, "dz": -2, "width": 7, "depth": 6, "name": "field", "label": "field"},
     {"type": "fence_line", "site": "village", "dx": -8, "dz": 7, "length": 7},
     {"type": "fence_line", "site": "village", "dx": 1, "dz": 7, "length": 7},
     {"type": "block", "block": "crate", "site": "village", "dx": -6, "dz": -3, "height": 2},
@@ -201,8 +201,8 @@
 
     // The village grows (VILLAGE_PLAN V04, inside the levelled disc of radius 24). The bakery in the north-west quarter, next to the stall whose bread it
     // bakes: a timber house with its door to the south, the oven against its east wall, a crate of loaves by the door, a lamp, and a paved strip down to the square.
-    {"type": "house", "site": "village", "dx": -13, "dz": -16, "width": 6, "depth": 5, "height": 3, "facing": "south", "name": "bakery", "label": "panadería"},
-    {"type": "stamp", "stamp": "oven", "site": "village", "dx": -7, "dz": -15, "facing": "north", "name": "oven", "label": "horno"},
+    {"type": "house", "site": "village", "dx": -13, "dz": -16, "width": 6, "depth": 5, "height": 3, "facing": "south", "name": "bakery", "label": "bakery"},
+    {"type": "stamp", "stamp": "oven", "site": "village", "dx": -7, "dz": -15, "facing": "north", "name": "oven", "label": "oven"},
     {"type": "stamp", "stamp": "crate_loaves", "site": "village", "dx": -11, "dz": -11, "facing": "north", "name": "crate.loaves"},
     {"type": "lamp", "site": "village", "dx": -13, "dz": -11, "name": "lamp.bakery"},
     {"type": "paving", "site": "village", "dx": -10, "dz": -11, "width": 1, "depth": 5, "block": "path"},
@@ -210,7 +210,7 @@
 
     // The smithy in the north-east quarter, the tower between it and the bakery (the landmark of the directions): its door to the west, the forge outside it
     // (a fire ring with a fire in it), a stone for the anvil, crates, a lamp, and a paved strip from the door round to the square's corner.
-    {"type": "house", "site": "village", "dx": 12, "dz": -16, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "smithy", "label": "herrería"},
+    {"type": "house", "site": "village", "dx": 12, "dz": -16, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "smithy", "label": "smithy"},
     {"type": "fire_ring", "site": "village", "dx": 9, "dz": -14, "name": "forge"},
     {"type": "block", "block": "post-torch", "site": "village", "dx": 9, "dz": -14},
     {"type": "block", "block": "stone", "site": "village", "dx": 9, "dz": -12, "name": "anvil"},
@@ -223,7 +223,7 @@
 
     // The well in the empty south, behind the gate between the fences; the farmer's crate of apples by the field, and three trees east of it as his orchard
     // (at x 19, not the plan's 17: a crown reaches three columns, and at 17 it would hang over the field's fence).
-    {"type": "stamp", "stamp": "well", "site": "village", "dx": 3, "dz": 10, "facing": "north", "name": "well", "label": "pozo"},
+    {"type": "stamp", "stamp": "well", "site": "village", "dx": 3, "dz": 10, "facing": "north", "name": "well", "label": "well"},
     {"type": "stamp", "stamp": "crate_apples", "site": "village", "dx": 8, "dz": -3, "facing": "north", "name": "crate.apples"},
     {"type": "tree", "site": "village", "dx": 19, "dz": -4},
     {"type": "tree", "site": "village", "dx": 19, "dz": 0},
@@ -254,16 +254,16 @@
 
   // Other names the scene answers to: the guide's clearing is also "camp" (the name the first prototype used).
   "points": {
-    "camp": { "x": 176, "z": 186, "label": "campamento" },
+    "camp": { "x": 176, "z": 186, "label": "camp" },
     // Where the village's new people will stand (VILLAGE_PLAN V04; the NPCs themselves come with their lessons, V10 to V12, as placements in "npcs"): the baker
     // in front of her crate of loaves, facing the square; the smith between his forge and the strip, facing south; the farmer at the field's west fence,
     // facing the wheat (east); the fisher on the bank south of the bridge's east landing, facing the river (west). The fisher's point is labelled (V10): El pueblo's walk
     // back to him points at it and the arrow comes down when he is reached, and "¿Dónde está el pescador?" finds him. The smith's and the farmer's points are
     // labelled the same way (V12): Gente del pueblo's walks to them end when they are reached.
     "npc.baker": { "x": 281, "z": 208 },
-    "npc.smith": { "x": 302, "z": 206, "label": "herrero" },
-    "npc.farmer": { "x": 300, "z": 218, "label": "granjero" },
-    "npc.fisher": { "x": 240, "z": 208, "label": "pescador" }
+    "npc.smith": { "x": 302, "z": 206, "label": "smith" },
+    "npc.farmer": { "x": 300, "z": 218, "label": "farmer" },
+    "npc.fisher": { "x": 240, "z": 208, "label": "fisher" }
   },
 
   // The forest: a tree tried in every 3 x 3 square, kept on the valley floor with this chance, thinner higher up and gone above the tree line.

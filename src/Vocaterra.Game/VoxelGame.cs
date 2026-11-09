@@ -850,10 +850,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         return new StationLayout(_canvas.Width, _canvas.Height, view.Fixtures.Count, view.Targets.Count, view.Strip.Dots.Count, view.Verbs?.Verbs.Count ?? 0).HitAt(x, y, view.Held.Count, view.PageCount);
     }
 
-    // --station <id>: opens the station and starts its first procedure, as E at the oven does (the teacher listens, W08).
+    // --station <id>: opens the station and starts its first procedure, as E at the oven does (the teacher listens, W08). The station is named by its id (oven) or by the
+    // target language's word for it (horno; T03: the launch options are typed in the learner's words).
     private bool OpenStationFromScript(string id)
     {
-        var opened = _stationPanel.Open(id, teacherPresent: true);
+        var station = _session.Data.Stations.Stations.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.Ordinal) || string.Equals(_session.Nouns.ForId(s.Id)?.Lemma, id, StringComparison.Ordinal));
+        var opened = _stationPanel.Open(station?.Id ?? id, teacherPresent: true);
         Console.WriteLine(opened ? StationLine("station " + id) : $"station {id}: not opened");
         return opened;
     }

@@ -72,7 +72,7 @@ try
     Console.WriteLine($"locale: {data.Locale.Code}, bundle {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))} shipped)");
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
-    var layout = options.SceneFile is null ? data.Scene : SceneLayout.Load(layoutFile);
+    var layout = options.SceneFile is null ? data.Scene : data.InLanguage(SceneLayout.Load(layoutFile));
     if (options.SceneFile is not null)
     {
         Console.WriteLine($"scene: {layoutFile} is read from disk (--scene); it skips the bundle's hash check");

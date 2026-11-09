@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../schema/procedure.schema.json",
+  "schemaVersion": 1,
+  "id": "bread",
+  "station": "oven",
+  "teacher": "baker",
+  "level": "a2",
+  "makes": { "item": "bread", "count": 2, "bonus": { "firstTimeSteps": 5, "count": 1 } },
+  "uses": [
+    { "item": "flour", "count": 1 },
+    { "item": "water-bottle", "count": 1, "leaves": "bottle" },
+    { "item": "wood", "count": 1 }
+  ],
+  "steps": [
+    { "id": "harina", "row": "pon-la-harina", "do": "poner", "what": "flour", "where": "bowl", "anyOrder": "bowl" },
+    { "id": "agua", "row": "echa-el-agua", "do": "echar", "what": "water", "where": "bowl", "anyOrder": "bowl" },
+    { "id": "mezclar", "row": "mezcla", "do": "mezclar", "what": "bowl", "with": "spoon" },
+    { "id": "madera", "row": "pon-la-madera", "do": "poner", "what": "wood", "where": "oven" },
+    { "id": "masa", "row": "pon-la-masa", "do": "poner", "what": "dough", "where": "oven" },
+    { "id": "sacar", "row": "saca-el-pan", "do": "sacar", "what": "bread", "use": "hand", "from": "oven" }
+  ],
+  "chunks": [
+    { "id": "la-masa", "row": "haz-la-masa", "steps": ["harina", "agua", "mezclar"] },
+    { "id": "el-horno", "row": "haz-el-pan-horno", "steps": ["madera", "masa", "sacar"] }
+  ],
+  "goal": { "row": "haz-pan" }
+}

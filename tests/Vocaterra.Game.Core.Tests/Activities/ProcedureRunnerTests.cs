@@ -31,7 +31,7 @@ public sealed class ProcedureRunnerTests
 
         public Inventory Bag { get; set; } = ProcedureRig.Bag();
 
-        public StartOutcome Start() => Runner.Start("pan", "horno", true);
+        public StartOutcome Start() => Runner.Start("bread", "oven", true);
 
         public ActResult Act(string step, long time, InstructionPresentation presented = InstructionPresentation.Heard | InstructionPresentation.Read)
         {
@@ -99,7 +99,7 @@ public sealed class ProcedureRunnerTests
         var rig = new Rig();
         _ = rig.Bake(T0);
         _ = rig.Bake(T0 + (11 * Minute));
-        _ = rig.Runner.Start("pan", "horno", false);
+        _ = rig.Runner.Start("bread", "oven", false);
         var view = rig.Runner.View();
         Assert.Equal((3, false, false, true, false), (view.Rung, view.ShowEnglish, view.ShowText, view.PlayAudio, view.TeacherPresent));
         _ = rig.Runner.Help(T0 + (12 * Minute));
@@ -255,11 +255,11 @@ public sealed class ProcedureRunnerTests
         }
 
         Assert.Equal(4, rig.Rung("haz-pan"));
-        Assert.True(rig.Runner.Progress.IsMastered("pan"));
+        Assert.True(rig.Runner.Progress.IsMastered("bread"));
         Assert.Equal(1, raised.Count(static n => n == WorldEvents.ProcedureMastered));
         Assert.Equal(8, raised.Count(static n => n == WorldEvents.ProcedureDone));
-        Assert.Equal(8, rig.Runner.Progress.RecordOf("pan").Completed);
-        Assert.Equal(Enumerable.Range(1, 8), rig.Runner.Progress.RecordOf("pan").Sittings);
+        Assert.Equal(8, rig.Runner.Progress.RecordOf("bread").Completed);
+        Assert.Equal(Enumerable.Range(1, 8), rig.Runner.Progress.RecordOf("bread").Sittings);
     }
 
     [Fact]
@@ -279,8 +279,8 @@ public sealed class ProcedureRunnerTests
             }
         }
 
-        Assert.Empty(rig.Runner.Progress.RecordOf("pan").Sittings);
-        Assert.False(rig.Runner.Progress.IsMastered("pan"));
+        Assert.Empty(rig.Runner.Progress.RecordOf("bread").Sittings);
+        Assert.False(rig.Runner.Progress.IsMastered("bread"));
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public sealed class ProcedureRunnerTests
         Assert.Equal(ProcedureState.InRun, rig.Runner.State);
         Assert.Equal(StartOutcome.Resumed, rig.Start());
         Assert.Equal(1, rig.Runner.View().StepsDone);
-        Assert.Equal(1, rig.Runner.Progress.RecordOf("pan").Runs); // a resumed run is not counted again
+        Assert.Equal(1, rig.Runner.Progress.RecordOf("bread").Runs); // a resumed run is not counted again
         Assert.Equal(1, rig.Phrases.RecordOf(Row(first)).Heard);
     }
 
@@ -464,7 +464,7 @@ public sealed class ProcedureRunnerTests
         other.Runner.Restore(saved);
         Assert.Equal(rig.Runner.View(), other.Runner.View());
         Assert.Equal(order, other.Runner.Order);
-        var (was, now) = (rig.Runner.Progress.RecordOf("pan"), other.Runner.Progress.RecordOf("pan"));
+        var (was, now) = (rig.Runner.Progress.RecordOf("bread"), other.Runner.Progress.RecordOf("bread"));
         Assert.Equal((was.Runs, was.Completed, was.FirstTimeSteps, was.Mastered), (now.Runs, now.Completed, now.FirstTimeSteps, now.Mastered));
         Assert.Equal(was.Sittings, now.Sittings);
         Assert.Equal(StartOutcome.Resumed, other.Start());
@@ -493,14 +493,14 @@ public sealed class ProcedureRunnerTests
         var other = new Rig();
         other.Runner.Restore(saved);
         Assert.Equal(ProcedureState.NotStarted, other.Runner.State);
-        Assert.Equal(1, other.Runner.Progress.RecordOf("pan").Runs);
+        Assert.Equal(1, other.Runner.Progress.RecordOf("bread").Runs);
     }
 
     [Fact]
     public void ARunNeedsItsStationAndItsItems()
     {
         var rig = new Rig();
-        Assert.Equal(StartOutcome.Unknown, rig.Runner.Start("pan", "mesa", true));
+        Assert.Equal(StartOutcome.Unknown, rig.Runner.Start("bread", "table", true));
         Assert.Equal(StartOutcome.Unknown, rig.Runner.Start("nope", "horno", true));
         _ = rig.Start();
         Assert.Equal(ActOutcome.NotRunning, new Rig().Act("sacar", T0).Outcome);

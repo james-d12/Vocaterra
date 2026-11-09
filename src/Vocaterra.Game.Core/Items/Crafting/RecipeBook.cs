@@ -38,7 +38,7 @@ public sealed class RecipeBook
     /// <summary>
     /// Builds the book from the bundle's host file <see cref="RelativePath"/>, whose bytes are the ones the load hashed against the manifest.
     /// </summary>
-    /// <exception cref="InvalidDataException">The file is missing from the bundle, is malformed, or names something that is not a catalogue noun.</exception>
+    /// <exception cref="InvalidDataException">The file is missing from the bundle, is malformed, or names something that is not a catalogue noun id.</exception>
     public static RecipeBook Load(ContentBundle bundle, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(bundle);
@@ -51,7 +51,7 @@ public sealed class RecipeBook
     }
 
     /// <summary>Builds the book from the file's text.</summary>
-    /// <exception cref="InvalidDataException">The text is malformed, a lemma is not a catalogue noun with an item, a station names no block, or a count is not positive.</exception>
+    /// <exception cref="InvalidDataException">The text is malformed, a name is not the id of a catalogue noun with an item, a station names no block, or a count is not positive.</exception>
     public static RecipeBook Parse(string json, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -67,44 +67,44 @@ public sealed class RecipeBook
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var element in root.GetProperty("recipes").EnumerateArray())
         {
-            var outputLemma = element.GetProperty("output").GetString() ?? throw new InvalidDataException("A recipe has no output.");
-            var output = nouns.ForLemma(outputLemma) ?? throw new InvalidDataException($"{RelativePath}: output '{outputLemma}' is not a catalogue noun.");
+            var outputId = element.GetProperty("output").GetString() ?? throw new InvalidDataException("A recipe has no output.");
+            var output = nouns.ForId(outputId) ?? throw new InvalidDataException($"{RelativePath}: output '{outputId}' is not a catalogue noun id.");
             var outputItem = ItemOf(output, RelativePath);
             if (element.TryGetProperty("makes", out var makes) && makes.ValueKind == JsonValueKind.String)
             {
                 // A noun that covers several items (manzana: the apple and the roast apple) says which one the recipe makes, by the item's key.
                 var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(ItemDefinition.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
-                outputItem = made ?? throw new InvalidDataException($"{RelativePath}: '{outputLemma}' does not name the item '{makes.GetString()}' that its recipe makes.");
+                outputItem = made ?? throw new InvalidDataException($"{RelativePath}: '{outputId}' does not name the item '{makes.GetString()}' that its recipe makes.");
             }
 
-            if (!seen.Add(outputLemma))
+            if (!seen.Add(outputId))
             {
-                throw new InvalidDataException($"{RelativePath}: '{outputLemma}' has more than one recipe.");
+                throw new InvalidDataException($"{RelativePath}: '{outputId}' has more than one recipe.");
             }
 
-            var count = PositiveCount(element.GetProperty("count"), outputLemma);
+            var count = PositiveCount(element.GetProperty("count"), outputId);
             var ingredients = new List<RecipeIngredient>();
             foreach (var part in element.GetProperty("ingredients").EnumerateArray())
             {
-                var lemma = part.GetProperty("item").GetString() ?? throw new InvalidDataException($"A recipe for '{outputLemma}' has an ingredient with no item.");
-                var noun = nouns.ForLemma(lemma) ?? throw new InvalidDataException($"{RelativePath}: ingredient '{lemma}' of '{outputLemma}' is not a catalogue noun.");
-                ingredients.Add(new RecipeIngredient(noun, ItemOf(noun, RelativePath), PositiveCount(part.GetProperty("count"), outputLemma)));
+                var ingredientId = part.GetProperty("item").GetString() ?? throw new InvalidDataException($"A recipe for '{outputId}' has an ingredient with no item.");
+                var noun = nouns.ForId(ingredientId) ?? throw new InvalidDataException($"{RelativePath}: ingredient '{ingredientId}' of '{outputId}' is not a catalogue noun id.");
+                ingredients.Add(new RecipeIngredient(noun, ItemOf(noun, RelativePath), PositiveCount(part.GetProperty("count"), outputId)));
             }
 
             if (ingredients.Count == 0)
             {
-                throw new InvalidDataException($"{RelativePath}: the recipe for '{outputLemma}' has no ingredients.");
+                throw new InvalidDataException($"{RelativePath}: the recipe for '{outputId}' has no ingredients.");
             }
 
             NounEntry? station = null;
             BlockId? stationBlock = null;
             if (element.TryGetProperty("station", out var stationValue) && stationValue.ValueKind == JsonValueKind.String)
             {
-                var lemma = stationValue.GetString()!;
-                station = nouns.ForLemma(lemma) ?? throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' is not a catalogue noun.");
+                var stationId = stationValue.GetString()!;
+                station = nouns.ForId(stationId) ?? throw new InvalidDataException($"{RelativePath}: station '{stationId}' of '{outputId}' is not a catalogue noun id.");
                 stationBlock = station.Blocks.Count > 0
                     ? station.Blocks[0]
-                    : throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' names no block.");
+                    : throw new InvalidDataException($"{RelativePath}: station '{stationId}' of '{outputId}' names no block.");
             }
 
             var rule = new Recipe(outputItem, count, ingredients.Select(static i => new Ingredient(i.Item, i.Count)).ToList(), stationBlock);

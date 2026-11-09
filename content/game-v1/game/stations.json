@@ -4,13 +4,13 @@
   "about": "The stations of the game (W05): the places a procedure is done at. W10 adds the bakery's oven: the scene's oven prop, Luz, and three fixtures (the bowl, the spoon and the oven's mouth).",
   "stations": [
     {
-      "id": "horno",
+      "id": "oven",
       "prop": "oven",
       "npc": "baker",
       "fixtures": [
-        { "noun": "bol", "icon": "bowl" },
-        { "noun": "cuchara", "icon": "spoon" },
-        { "noun": "horno", "icon": "oven" }
+        { "noun": "bowl", "icon": "bowl" },
+        { "noun": "spoon", "icon": "spoon" },
+        { "noun": "oven", "icon": "oven" }
       ]
     }
   ]
