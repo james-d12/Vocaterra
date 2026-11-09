@@ -197,7 +197,7 @@ credited at the other's step with the step's note ("The simple future at a step"
 
 **Counts** (measured from `content/game-v1` at V24, 2026-11-02; after phase B in brackets): 10 lessons, 229 steps (6 `a1` and 4 `a2`; the same); 155 phrase
 rows, 74 said, 80 heard and 1 both (the same); 22 catalogue nouns (22); 20 verbs in the lessons' tables (20); 30 intents (29: `ask_how` came with V21) and 70
-prompts (70); 541 speech lines in 1 082 files, in `speech/<speaker>/` and `speech/cards/` since V28 (451 in 902 before the follow-ups, which added 81 lines and 162 files; V28 added 3 lines and 6 files); 87 check items, 43 heard and 44 said (the same). The
+prompts (70); 691 speech lines in 1 382 files on 2026-11-09, in `speech/<speaker>/` and `speech/cards/` since V28 (541 lines in 1 082 files at V28; the count of the day is the "To hear" line of [speech-checklist.md](speech-checklist.md)); 87 check items, 43 heard and 44 said (the same). The
 battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47, 55, 63, 71, 79 and 87 in sessions 4 to 10 (eight a lesson; the same).
 
 

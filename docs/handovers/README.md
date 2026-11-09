@@ -31,19 +31,21 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-08-2233-ui-issues](2026-11-08-2233-ui-issues.md) | The UI issues #5, #6 and #7 (U05 to U08) on `feature/ui-issues`, PR #47 | The owner's review of PR #47 |
-| [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track, then the bread pilot | The owner's needs check, and fixes from it |
-| [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, main (water) and the fixes M83, T9, M84, T10, W04b, H11 merged | The owner's review of PR #40 |
+
+None on `main` (2026-11-09). The open pull requests #50 (`feature/hand-in-speech`) and #51 (`feature/german`) carry their own state on their branches.
 
 **Done**
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-08-2233-ui-issues](done/2026-11-08-2233-ui-issues.md) | The UI issues #5, #6 and #7 (U05 to U08, M91) on `feature/ui-issues` | PR #47 merged into `main` 2026-11-09 |
+| [2026-11-07-1345-bread-pilot](done/2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, water merged in and the fixes M83, T9, M84, T10, W04b, H11, H12, M85 | PR #40 merged into `main` 2026-11-08; M86, launched at the end, did not land (core plan §5) |
+| [2026-11-05-2031-adaptive-design](done/2026-11-05-2031-adaptive-design.md) | The adaptation on `feature/adaptive_design`: the needs, lessons as classes, the presentation track | Its work reached `main` through `feature/bread-pilot` (PR #40); the needs check answered 2026-11-07 |
 | [2026-11-07-1846-water](done/2026-11-07-1846-water.md) | The H series (water) on `feature/water`, then H11 on `feature/bread-pilot` | `feature/water` merged into `main` (PR #45); H11 gated on `feature/bread-pilot` 2026-11-08 |
-| [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) | The bread pilot, W08 and W10 merged, then W02, W03, M80 and the queue | Queue complete 2026-11-07; replaced by [2026-11-07-1345-bread-pilot](2026-11-07-1345-bread-pilot.md) |
+| [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) | The bread pilot, W08 and W10 merged, then W02, W03, M80 and the queue | Queue complete 2026-11-07; replaced by [2026-11-07-1345-bread-pilot](done/2026-11-07-1345-bread-pilot.md) |
 | [2026-11-06-2035-bread-pilot](done/2026-11-06-2035-bread-pilot.md) | The bread pilot, W05 to W07b and T8 merged, W08 stopped partway | Session ended 2026-11-06; replaced by [2026-11-06-2322-bread-pilot](done/2026-11-06-2322-bread-pilot.md) |
 | [2026-11-06-0928-bread-pilot](done/2026-11-06-0928-bread-pilot.md) | The bread pilot's machinery, W05 to W07, on `feature/bread-pilot` | Session ended 2026-11-06; replaced by [2026-11-06-2035-bread-pilot](done/2026-11-06-2035-bread-pilot.md) |
-| [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) | The Adaptation Design Document, revision 3 (PR #30) | PR #30 merged; replaced by [2026-11-05-2031-adaptive-design](2026-11-05-2031-adaptive-design.md) |
+| [2026-11-03-2114-adaptation-design](done/2026-11-03-2114-adaptation-design.md) | The Adaptation Design Document, revision 3 (PR #30) | PR #30 merged; replaced by [2026-11-05-2031-adaptive-design](done/2026-11-05-2031-adaptive-design.md) |
 | [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) | The documentation cleanup | `docs_cleanup` merged into `main` |
 | [2026-11-02-after-followups](done/2026-11-02-after-followups.md) | The owner's decisions after the village follow-ups | M74, M75, V29, M78 and the study merged into `feature/adaptive_design` |
 | [2026-11-03-1019-docs-structure](done/2026-11-03-1019-docs-structure.md) | The documentation layout, before the READMEs and names | Replaced by [2026-11-03-1133-docs-cleanup](done/2026-11-03-1133-docs-cleanup.md) |

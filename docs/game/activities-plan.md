@@ -5,7 +5,9 @@ The W series implements repeatable activities in the existing village. The
 section 9 covers player needs, section 10 the bread procedure, section 15 the delivery sequence and section 18 the open decisions.
 This plan provides milestone briefs and the later activity roadmap.
 
-**Status:** proposed, with direction confirmed in D-game-23 and D-game-24. Complete the queued language follow-ups, then N01–N07
+**Status (2026-11-09):** stages 1 and 2 are built and in `main` (W01 to W08, W04b, W07b and W10; PR #40). Open: W11 (the pilot, waits for
+testers and the owner), W09 and W30 (each needs the owner's word), W12 to W21 (planned) and W22 to W29 (held until the pilot's data); the
+table in section 4 has each row. The original order was: the queued language follow-ups, then N01–N07
 and the needs playtest before the bread pilot. W01 supplies `item_crafted` before N07. N01 owns save version 6 and its `systems`
 map; W06 adds procedure state; W15 adds cooked dishes and buffs to the needs system. Register milestones in
 `implementation-plan.md` section 4 and resolve their required decisions before implementation.

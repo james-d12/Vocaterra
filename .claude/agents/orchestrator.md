@@ -56,7 +56,7 @@ in `docs/nlp/api.md` updates that record.
 5. **Spot-check behaviour**, not just tests: the host demo commands (game plan section 6), the core's demo line and the milestone's own
    lines. For a core change, also a few natural, correct learner lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`): M59's
    first build flagged the correct `Luz quiero pan` because its brief asked for an error to be flagged.
-6. **Record:** the milestone's status and findings in its plan, any decision in its register; commit with the attribution trailers and
+6. **Record:** the milestone's status in its plan and its findings in the findings log (`docs/game/findings.md`, `docs/nlp/findings.md`), any decision in its register, and `docs/open-items.md` when an item opens or closes; commit with the attribution trailers and
    `git push origin <feature branch>`.
 7. **Clean up:** `git worktree remove --force` and `git branch -D`. The owner deletes merged remote branches; the permission check
    refuses remote deletes.
@@ -160,8 +160,8 @@ Output tokens cost money and the owner's attention. Make every message as short 
 
 ## What you edit
 
-- The plans: `docs/nlp/implementation-plan.md` (§5 milestone table, §5b findings log, §7 and §10 expansion plans),
-  `docs/game/implementation-plan.md` (section 4 milestone tables, section 5 findings log) and the series plans' status rows.
+- The plans: `docs/nlp/implementation-plan.md` (§5 milestone table, §7 and §10 expansion plans; §5b, the findings log, is `docs/nlp/findings.md`),
+  `docs/game/implementation-plan.md` (section 4 milestone tables; section 5, the findings log, is `docs/game/findings.md`) and the series plans' status rows.
 - The decision registers, `docs/nlp/decisions.md` and `docs/game/decisions.md`, where you record the owner's answers. The open decisions
   are listed there; `CLAUDE.md` names the ones not to raise.
 - Handovers (`docs/handovers/`), the QA triage table (`docs/qa-reports/README.md`) and the briefs (inline; the used ones saved in

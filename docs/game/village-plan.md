@@ -723,7 +723,9 @@ Moved on 2026-11-03 from `docs/game/README.md`, where V09 and V24 kept them; the
   failures. M68 only if one fails.
 - **The merged milestone branches still on the remote** (owner).
 
-## 6. Owner decisions (D-game-22, proposed)
+## 6. Owner decisions (D-game-22; all answered, see `decisions.md`)
+
+The questions as they were put; the owner's answers to each are under D-game-22 in [decisions.md](decisions.md).
 
 - (a) **Proceed with phase A** (V01 to V07, V10 to V12): yes or no, and whether before or after the first pilot.
 - (b) **The content gate of 3.9**: an A2 ceiling bundle-wide with a per-lesson A1 check, and world words in `a1.txt` under a marked block.

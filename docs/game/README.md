@@ -93,7 +93,7 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |
 | [content/README.md](../../content/README.md) | Editing the content: the edit loop, lessons and their level |
 
-The milestones and the findings log are in [implementation-plan.md](implementation-plan.md), the owner's decisions in [decisions.md](decisions.md),
+The milestones are in [implementation-plan.md](implementation-plan.md), the findings log in [findings.md](findings.md), the owner's decisions in [decisions.md](decisions.md),
 and the series plans are listed in the [docs index](../README.md). The village series' open points are in [village-plan.md](village-plan.md) section 5.
 
 ## Licence

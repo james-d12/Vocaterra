@@ -6,7 +6,7 @@ editing its status; the plan (`implementation-plan.md`) and ADRs follow.
 
 | # | Decision | Status |
 | --- | --- | --- |
-| D1 | Workflow token scope (activate CI) | reopened (owner, 2026-10-23): CI planned with SonarCloud and a required LanguageTool step; waits for the owner to widen the token (workflow scope); see the orchestrator's handover |
+| D1 | Workflow token scope (activate CI) | resolved (2026-10-31): the token has the workflow scope and `.github/workflows/ci.yml` runs (build, test, grammar replay, LanguageTool) on Linux x64; SonarCloud, model-gated tests in CI and the cross-platform matrix are not built |
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | decided (owner, 2026-10-21): accepted for private development builds; the GPL-free sherpa-onnx pin is a blocker on any distribution |
 | D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e); since 2026-10-23 the whole repository, game included (game D-game-20, R01) |
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
@@ -22,6 +22,7 @@ editing its status; the plan (`implementation-plan.md`) and ADRs follow.
 | D14 | German and a multi-language core | decided (owner, 2026-10-22): record the roadmap only (run nothing yet); German in the core only; Piper thorsten for private German speech; register per agent, Sie for strangers; amended (owner, 2026-10-26): one neutral engine plus language-pack projects, Phase A (M31 to M35) unblocked with M52 and M53 |
 
 ## D1. Workflow token scope
+**Status (2026-10-31):** resolved, see the table; the text below is the earlier record (`workflows-pending/` no longer exists).
 **Status (2026-10-21):** deferred by the owner. CI is not a requirement at the moment; the workflow stays parked and the orchestrator does not raise this item until the owner reopens it.
 The GitHub token lacks the `workflow` scope, so nothing under `.github/workflows/` can be pushed.
 The full CI (build and test on three platforms, golden, license scan, model-backed tests, fuzz, weekly
