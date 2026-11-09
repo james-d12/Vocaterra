@@ -1,0 +1,14 @@
+{
+  "$schema": "../../schema/speech.schema.json",
+  "schemaVersion": 1,
+  "about": "The speech models of the target language (T04, research G6). The ASR and TTS ids are ids of models/manifest.json; the guide's voice is the speaker of the TTS model the scripted --speak lines use (Kokoro 28, ef_dora); the NPCs' voices are in game/npcs/<id>.json. The threshold is the mean per-word confidence under which a recognition is uncertain (D-game-9), measured with Kokoro speech through Vosk small Spanish: correct phrases give 0.77 to 1.00 (the lowest word, 'si', 0.50), a mis-heard 'hola' 0.36; the one number to tune in the playtest. Thresholds are keyed by ASR model, so another recognizer brings its own.",
+  "asr": { "model": "vosk-model-small-es-0.42" },
+  "tts": {
+    "engine": "kokoro",
+    "model": "kokoro-multi-lang-v1_0",
+    "guideVoice": { "speaker": 28, "voiceId": "ef_dora" }
+  },
+  "thresholds": {
+    "vosk-model-small-es-0.42": { "wordConfidence": 0.55 }
+  }
+}

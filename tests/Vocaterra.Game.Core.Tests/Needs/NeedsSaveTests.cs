@@ -26,14 +26,14 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void TheSaveIsVersion8AndCarriesTheNeedsUnderSystems()
+    public void TheSaveIsVersion9AndCarriesTheNeedsUnderSystems()
     {
         var session = Played();
 
         var document = SaveGame.Capture(session, Pristine());
 
-        Assert.Equal(8, SaveGame.CurrentVersion);
-        Assert.Equal(8, document.Version);
+        Assert.Equal(9, SaveGame.CurrentVersion);
+        Assert.Equal(9, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }
