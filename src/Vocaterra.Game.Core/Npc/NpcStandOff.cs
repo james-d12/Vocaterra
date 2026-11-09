@@ -88,9 +88,9 @@ public static class NpcStandOff
         {
             var feet = new BlockPos(column.X, column.Y + dy, column.Z);
             if (grid.InBounds(feet.X, feet.Y, feet.Z)
-                && !grid.IsSolid(feet.X, feet.Y, feet.Z)
-                && !grid.IsSolid(feet.X, feet.Y + 1, feet.Z)
-                && grid.IsSolid(feet.X, feet.Y - 1, feet.Z)
+                && !grid.BlocksBody(feet.X, feet.Y, feet.Z)
+                && !grid.BlocksBody(feet.X, feet.Y + 1, feet.Z)
+                && grid.CanStandOn(feet.X, feet.Y - 1, feet.Z)
                 && grid.GetBlock(feet.X, feet.Y, feet.Z) != BlockId.Water)
             {
                 return feet;

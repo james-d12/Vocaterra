@@ -54,7 +54,7 @@ public sealed class PhraseSupportFrontendTests
 
         var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default, RouteScene.Shipped.Locale);
 
-        Assert.Equal(178, rows.Count);
+        Assert.Equal(180, rows.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id).Order(StringComparer.Ordinal), rows.Select(static r => r.Id).Order(StringComparer.Ordinal));
         Assert.Equal(["que-necesitas", "pedir-agua", "donde-esta-el-rio", "hola"], rows.Take(4).Select(static r => r.Id)); // the phrases met come first, each group in the sheet's order (S17)
         var water = rows.Single(static r => r.Id == "pedir-agua");
@@ -178,8 +178,9 @@ public sealed class PhraseSupportFrontendTests
         dialogue.Open(session.OpenTalk("villager"), "Aldeano");
         _ = frontend.Pump();
 
-        Assert.Equal([("villager", "Puedes preguntar: «¿Dónde está el río?».", false)], player.Played);
-        Assert.Empty(session.Support.Cards);
+        // PR #48: the villager's prompt also practises the small talk, whose cards (and their model answers) are still up.
+        Assert.Equal([("villager", "Puedes preguntar: «¿Dónde está el río?».", false), ("villager", "¿Qué tal?", false), ("villager", "Muy bien.", false)], player.Played);
+        Assert.DoesNotContain(session.Support.Cards, static c => c.PhraseId == "donde-esta-el-rio");
         Assert.NotEmpty(session.Support.AudioOnly); // the audio-only chip is up: no card, an audio-only phrase
         player.Played.Clear();
         Assert.True(actions.Perform(SpeechAction.Repeat));
@@ -233,7 +234,7 @@ public sealed class PhraseSupportFrontendTests
         }
 
         session.FinishKeyWords();
-        _ = frontend.Pump(o => voice.Say(o.Npc, o.Lines));
+        _ = frontend.Pump(o => o.Lines.ToList().ForEach(line => voice.Append(o.Npc, line, slow: false))); // queued after the key words, as VoxelGame does (#36)
         for (var i = 0; i < 4; i++)
         {
             output.Finish();
@@ -241,7 +242,7 @@ public sealed class PhraseSupportFrontendTests
         }
 
         var played = logs.Where(static l => l.StartsWith("voice: ", StringComparison.Ordinal)).Select(static l => l["voice: ".Length..]).ToList();
-        Assert.Equal(["card.agua", "card.pan", "shop_need.1", "shop_help_ask.1"], played); // the two key words, the question, then the model answer of the card
+        Assert.Equal(["card.agua.shopkeeper", "card.pan.shopkeeper", "shop_need.1", "shop_help_ask.1"], played); // the two key words in his voice (#36), the question, then the model answer of the card
         Assert.Equal((0, 0), (voice.Missing, voice.TextOnly));
     }
 

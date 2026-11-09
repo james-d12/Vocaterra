@@ -525,6 +525,12 @@ public static class PhraseIds
     /// <summary>"Adiós."</summary>
     public const string Goodbye = "adios";
 
+    /// <summary>"¿Qué tal?" (PR #48: small talk, said to anyone at any point of a conversation since #35).</summary>
+    public const string HowAreYou = "que-tal";
+
+    /// <summary>"Muy bien." (PR #48: the answer to ¿qué tal?).</summary>
+    public const string VeryWell = "muy-bien";
+
     /// <summary>"No sé."</summary>
     public const string DontKnow = "no-se";
 
@@ -548,7 +554,7 @@ public static class PhraseIds
 
     /// <summary>Every phrase id the game can log, in ordinal order.</summary>
     public static IReadOnlyList<string> All { get; } =
-        new[] { RequestWater, YesPlease, NoThanks, WhereIsTheRiver, Hello, Thanks, Goodbye, DontKnow, Help, Yes, No, WhatIsThis, AgainPlease, SlowerPlease }.Order(StringComparer.Ordinal).ToList();
+        new[] { RequestWater, YesPlease, NoThanks, WhereIsTheRiver, Hello, Thanks, Goodbye, HowAreYou, VeryWell, DontKnow, Help, Yes, No, WhatIsThis, AgainPlease, SlowerPlease }.Order(StringComparer.Ordinal).ToList();
 
     /// <summary>
     /// The sheet's id of the phrase a communicated turn used, or <see langword="null"/> when the turn is not one of the sheet's phrases (a
@@ -572,6 +578,8 @@ public static class PhraseIds
             "greet" => Hello,
             "thank" => Thanks,
             "farewell" => Goodbye,
+            "ask_wellbeing" => HowAreYou,
+            "state_wellbeing" => VeryWell,
             "dont_know" => DontKnow,
             "ask_help" => Help,
             _ => null,

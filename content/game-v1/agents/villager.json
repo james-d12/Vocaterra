@@ -47,6 +47,7 @@
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_thank", "variantPoolId": "villager_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_bye", "variantPoolId": "villager_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_nice", "variantPoolId": "villager_nice" }] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
@@ -75,6 +76,7 @@
         { "on": {"intent": "dont_know", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_thank", "variantPoolId": "villager_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_bye", "variantPoolId": "villager_bye" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_nice", "variantPoolId": "villager_nice" }] },
         { "on": {"communicated": false}, "to": "pointing", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {

@@ -4,7 +4,7 @@ namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The player box (<see cref="VoxelPhysics.PlayerWidth"/> x <see cref="VoxelPhysics.PlayerHeight"/> x <see cref="VoxelPhysics.PlayerWidth"/>,
-/// given by its minimum corner in units) against the solid blocks of a <see cref="VoxelGrid"/>. A move is resolved one axis at a time and a
+/// given by its minimum corner in units) against the solid blocks of a <see cref="VoxelGrid"/> (<see cref="VoxelGrid.BlocksBody"/>: a fence counts as two blocks high). A move is resolved one axis at a time and a
 /// blocked move snaps the box to the block edge, so it works at any speed (no tunnelling) and leaves no gap.
 /// </summary>
 internal static class VoxelCollider
@@ -28,7 +28,7 @@ internal static class VoxelCollider
             {
                 for (var bx = x0; bx <= x1; bx++)
                 {
-                    if (grid.IsSolid(bx, by, bz))
+                    if (grid.BlocksBody(bx, by, bz))
                     {
                         return false;
                     }
@@ -109,9 +109,9 @@ internal static class VoxelCollider
             {
                 var solid = axis switch
                 {
-                    0 => grid.IsSolid(cell, i, j),
-                    1 => grid.IsSolid(i, cell, j),
-                    _ => grid.IsSolid(i, j, cell),
+                    0 => grid.BlocksBody(cell, i, j),
+                    1 => grid.BlocksBody(i, cell, j),
+                    _ => grid.BlocksBody(i, j, cell),
                 };
                 if (solid)
                 {

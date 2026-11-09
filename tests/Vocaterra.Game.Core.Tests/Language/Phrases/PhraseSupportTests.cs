@@ -37,6 +37,9 @@ public sealed class PhraseSupportTests
 
     private static IEnumerable<PhraseUse> Phrases(VoxelSession session) => session.Events.OfType<PhraseUse>();
 
+    // The river question's card at the villager: since PR #48 his prompt also practises the small talk (¿Qué tal?, Muy bien.), whose cards keep their own rungs.
+    private static List<SupportCard> River(VoxelSession session) => session.Support.Cards.Where(static c => c.PhraseId == "donde-esta-el-rio").ToList();
+
     private static void Reopen(VoxelSession session, string npc, long skipSeconds)
     {
         session.EndTalk();
@@ -88,37 +91,37 @@ public sealed class PhraseSupportTests
     public void TheCardIsShownAtTheFirstTwoRungsTheEnglishOnlyAtTheFirstAndAudioOnlyHasTheReplayHookAndNoCard()
     {
         var session = AtVillager();
-        var first = Assert.Single(session.Support.Cards);
+        var first = Assert.Single(River(session));
         Assert.Equal("donde-esta-el-rio", first.PhraseId);
         Assert.True(first.EnglishShown); // rung 1: English, card and audio
         Assert.True(session.Support.EnglishForLines);
         _ = session.Support.TakeCues();
         _ = session.Say("¿dónde está el río?");
         Assert.Equal(SupportLevel.CardAndAudio, session.PhraseProgress.LevelOf("donde-esta-el-rio"));
-        var second = Assert.Single(session.Support.Cards); // rung 2: the card stays, the English goes to the help key
+        var second = Assert.Single(River(session)); // rung 2: the card stays, the English goes to the help key
         Assert.False(second.EnglishShown);
         Assert.False(session.Support.EnglishUp("donde-esta-el-rio"));
 
         Reopen(session, "villager", 11 * Minute);
 
-        Assert.False(Assert.Single(session.Support.Cards).EnglishShown);
+        Assert.False(Assert.Single(River(session)).EnglishShown);
         Assert.Contains(session.Support.TakeCues(), static c => c is { Reason: "card", LineId: "villager_help.1" }); // the card's audio plays when it appears
         var supported = session.Say("¿dónde está el río?");
         Assert.True(supported.Communicated);
         Assert.Equal(PhraseUseKind.Supported, Phrases(session).Last().Kind); // the card was on offer
         Assert.Equal(SupportLevel.AudioOnly, session.PhraseProgress.LevelOf("donde-esta-el-rio"));
-        Assert.Empty(session.Support.Cards); // the use stepped it down: the card goes with it
+        Assert.Empty(River(session)); // the use stepped it down: the card goes with it
 
         Reopen(session, "villager", 61 * Minute);
 
-        Assert.Empty(session.Support.Cards);
+        Assert.Empty(River(session));
         Assert.Equal(["donde-esta-el-rio"], session.Support.AudioOnly);
         var replay = session.Support.ReplayCue;
         Assert.NotNull(replay);
         Assert.Equal("villager_help.1", replay.LineId);
         var cues = session.Support.TakeCues();
         Assert.Contains(cues, static c => c is { Reason: "audio-only", LineId: "villager_help.1" }); // the sound plays when the prompt appears
-        Assert.DoesNotContain(cues, static c => c.Reason == "card");
+        Assert.DoesNotContain(cues, static c => c is { Reason: "card", LineId: "villager_help.1" });
         Assert.Equal(2, session.PhraseProgress.RecordOf("donde-esta-el-rio").CardShown); // the first card and the second rung's; no card at audio-only
 
         var third = session.Say("¿dónde está el río?");
@@ -127,10 +130,10 @@ public sealed class PhraseSupportTests
         Assert.Equal(SupportLevel.None, session.PhraseProgress.LevelOf("donde-esta-el-rio")); // the gap had passed: the last step down
 
         Reopen(session, "villager", 0);
-        Assert.Empty(session.Support.Cards);
+        Assert.Empty(River(session));
         Assert.Empty(session.Support.AudioOnly);
-        Assert.Null(session.Support.ReplayCue);
-        Assert.DoesNotContain(session.Support.TakeCues(), static c => c.Reason is "card" or "audio-only");
+        Assert.NotEqual("villager_help.1", session.Support.ReplayCue?.LineId); // the river's replay is gone (the small talk's cards keep theirs, PR #48)
+        Assert.DoesNotContain(session.Support.TakeCues(), static c => c is { Reason: "card" or "audio-only", LineId: "villager_help.1" });
         _ = session.Say("¿dónde está el río?");
         Assert.Equal(PhraseUseKind.Unaided, Phrases(session).Last().Kind); // nothing was on offer
     }
@@ -162,18 +165,18 @@ public sealed class PhraseSupportTests
         Reopen(session, "villager", 61 * Minute);
         _ = session.Say("¿dónde está el río?"); // none now
         Reopen(session, "villager", 0);
-        Assert.Empty(session.Support.Cards);
+        Assert.Empty(River(session));
         var shownBefore = session.PhraseProgress.RecordOf("donde-esta-el-rio").CardShown;
 
         _ = session.Say("ayuda");
 
-        Assert.Equal(["donde-esta-el-rio"], session.Support.Cards.Select(static c => c.PhraseId));
+        Assert.Equal(["donde-esta-el-rio"], River(session).Select(static c => c.PhraseId));
         Assert.Equal(shownBefore + 1, session.PhraseProgress.RecordOf("donde-esta-el-rio").CardShown);
         Assert.True(session.Support.HelpGiven);
         Assert.Equal(SupportLevel.AudioOnly, session.PhraseProgress.LevelOf("donde-esta-el-rio")); // asking for help steps the level up
         _ = session.Say("¿dónde está el río?");
         Assert.Equal(PhraseUseKind.Supported, Phrases(session).Last().Kind); // the model was just shown
-        Assert.Empty(session.Support.Cards); // spent
+        Assert.Empty(River(session)); // spent
     }
 
     [Fact]
@@ -187,10 +190,10 @@ public sealed class PhraseSupportTests
 
         var dont = Phrases(session).Last();
         Assert.Equal((PhraseIds.DontKnow, PhraseUseKind.DontKnow), (dont.PhraseId, dont.Kind));
-        Assert.Equal(["donde-esta-el-rio"], dont.InPlay);
+        Assert.Equal(["donde-esta-el-rio", "que-tal", "muy-bien"], dont.InPlay); // PR #48: the villager's small talk is in play too
         var record = session.PhraseProgress.RecordOf("donde-esta-el-rio");
         Assert.Equal((1, SupportLevel.EnglishAndCard), (record.DontKnow, record.Level));
-        var back = Assert.Single(session.Support.Cards);
+        var back = Assert.Single(River(session));
         Assert.Equal("donde-esta-el-rio", back.PhraseId); // the card is back, with its English
     }
 

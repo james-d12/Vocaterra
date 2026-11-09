@@ -2,6 +2,9 @@
 
 > **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
 
+> **Note (2026-10-31):** CI now runs from `.github/workflows/ci.yml`, on Linux x64 only; `.github/workflows-pending/` no longer exists. The
+> cross-platform matrix and the model-gated job this record refers to are not built (`docs/nlp/known-gaps.md`).
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`implementation-plan.md` section 3, rule 5, and the M0/M1 finding in section 5b)

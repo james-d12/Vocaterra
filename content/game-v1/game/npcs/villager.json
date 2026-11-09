@@ -6,7 +6,9 @@
   "figure": "villager",
   "focus": {
     "villager-open": [
-      "donde-esta-el-rio"
+      "donde-esta-el-rio",
+      "que-tal",
+      "muy-bien"
     ]
   },
   "prompts": {

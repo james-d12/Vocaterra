@@ -161,8 +161,11 @@ public sealed partial class NpcService
     /// <summary>The random stream of the line an NPC says when the recognizer was not sure (S7), keyed by the agent's interaction counter and how many such lines it has said.</summary>
     private const string UncertainStream = "guide.uncertain";
 
-    /// <summary>The bundle pool of the line an NPC says when the recognizer was not sure: "No te entendí bien. ¿Lo dices otra vez?".</summary>
-    private const string UncertainPool = "guide.uncertain";
+    /// <summary>
+    /// The bundle pool of the line an NPC says when the recognizer was not sure: "No te entendí bien. ¿Lo dices otra vez?". Every NPC says it, so the speech renderer
+    /// records it in each NPC's own voice too (<see cref="Language.Speech.SpeechKind.NpcCopy"/>, issue #22).
+    /// </summary>
+    public const string UncertainPool = "guide.uncertain";
 
     /// <summary>The skill id prefix of a catalogue noun's learner skill (CR-005): <c>word.árbol</c>.</summary>
     private const string WordSkillPrefix = "word.";

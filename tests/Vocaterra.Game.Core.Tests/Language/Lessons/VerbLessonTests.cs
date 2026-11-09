@@ -206,6 +206,22 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void TheWalkToTheStallPointsTheBeaconAtTheStallNotAtTheNearestRoof()
+    {
+        // Issue #43: the step's point, tienda, is also the noun of every roof block (the stall's awning), so the nearest block of the noun was a house's roof. A word a
+        // label of the scene shows names that place first, as an NPC's directions do (village-plan V02).
+        var session = SessionTwoAtVillager();
+        while (session.Lessons.Current is { } step && step.Id != "p2-walk")
+        {
+            _ = LessonDriver.DoStep(session);
+        }
+
+        Assert.Equal(("stall", "tienda"), (session.Pointer!.Point, session.Pointer.Place));
+        var stall = session.Scene.Point("stall");
+        Assert.Equal((stall.X, stall.Z), (session.Pointer.Target.X, session.Pointer.Target.Z));
+    }
+
+    [Fact]
     public void TheStallsAndTheVillagersOwnPhraseCardsStayDownWhilePersonasRunsAndOnlyARepeatStepShowsItsCard()
     {
         var session = SessionTwoAtVillager();

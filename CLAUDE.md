@@ -5,12 +5,12 @@ one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name
 
 - **The core**: the `Vocaterra.Nlp` engine (one project since M52, `src/Vocaterra.Nlp`, its stages as folders; layering enforced by
   `LayeringTests`, ADR 0012) and the `Vocaterra.Nlp.*` test, tool and language-pack projects (the Spanish pack `src/Vocaterra.Nlp.Es` since M53; hosts register it with `SpanishContent`, ADR 0012) (with `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
-  Its plan is `docs/nlp/implementation-plan.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
+  Its plan is `docs/nlp/implementation-plan.md` (section 5 the milestone table, 7 and 10 the expansion plans; its findings log, "5b", is `docs/nlp/findings.md`), its owner
   decisions `docs/nlp/decisions.md` (D1 to D14), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/api.md`.
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
 - **The game**: `Vocaterra.Game.Core` (the engine-free systems), `Vocaterra.Game` (MonoGame), `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
   `assets/` and `docs/game/`). Its plan is
-  `docs/game/implementation-plan.md` (section 4 status, section 5 findings), its decisions `docs/game/decisions.md` (D-game-1 to D-game-26).
+  `docs/game/implementation-plan.md` (section 4 status; its findings log, "section 5", is `docs/game/findings.md`), its decisions `docs/game/decisions.md` (D-game-1 to D-game-28).
   Licence Apache-2.0 like the core (one `LICENSE` and `NOTICE` at the root; the game was MIT until R01).
 
 The two were separate repositories until 2026-10-21 (game D-game-7); both sets of ids (M-numbers,
@@ -24,7 +24,7 @@ progression, save, content) and reports bugs to `docs/qa-reports/` without fixin
 (`docs/game/village-plan.md`) follows the same size rule since 2026-11-06 (D-game-22; it was Opus 5.5 at xhigh for every V milestone before).
 
 Facts every session needs:
-- **Docs and session state:** the index is `docs/README.md`. To resume work, read the open handovers at the top of `docs/handovers/`
+- **Docs and session state:** the index is `docs/README.md`; what is open (owner decisions, parked and planned work, known gaps) is listed in `docs/open-items.md`. To resume work, read the open handovers at the top of `docs/handovers/`
   (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.

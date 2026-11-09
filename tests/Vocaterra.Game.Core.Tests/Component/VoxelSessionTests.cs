@@ -25,7 +25,7 @@ public sealed class VoxelSessionTests
         scene.Spawn.Yaw);
 
     [Fact]
-    public void TheGuidePointsAtTheNearestRiverBlockFromWhereThePlayerFaces()
+    public void TheGuidePointsAtTheRiversNearestWaterFromWhereThePlayerFaces()
     {
         var scene = RouteScene();
         var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, scene);
@@ -37,9 +37,14 @@ public sealed class VoxelSessionTests
         Assert.Equal("río", turn.Pointer.Place);
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(turn.Pointer.Target.X, turn.Pointer.Target.Y, turn.Pointer.Target.Z));
 
-        // The same answer as the facts give from the spawn: the nearest water block, its distance and its direction.
-        var expected = WorldFacts.Live(scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions).NearestOfNoun(AtSpawn(scene), "río");
-        Assert.NotNull(expected);
+        // The same answer as the scene's places give from the spawn (PR #48, as the villager's directions and a lesson's point since #43): the river is the water its
+        // point lies in, the nearest of it the walk over its blocks reaches (WorldFacts.NearestOfNounJoinedTo), not the nearest water of any body (a well's), with its
+        // distance and its direction.
+        var facts = WorldFacts.Live(scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions);
+        var river = session.Places.Resolve("río", AtSpawn(scene), facts);
+        Assert.NotNull(river);
+        Assert.Equal("river", river.Name);
+        var expected = facts.Toward(AtSpawn(scene), river.Cell);
         Assert.Equal(expected.Cell, turn.Pointer.Target);
         Assert.Equal(expected.Blocks, turn.Pointer.Blocks);
         Assert.Equal(expected.Direction, turn.Pointer.Direction);

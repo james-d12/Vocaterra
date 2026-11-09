@@ -8,7 +8,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | --- | --- | --- | --- |
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
 | D-game-2 | Licence of this repository | superseded by D-game-20 (was MIT, owner, 2026-10-21) | nothing |
-| D-game-3 | Continuous integration | reopened (owner, 2026-10-23): CI planned (full suite with models, LanguageTool required, SonarCloud `personal-james_vocaterra`), on main and feature/experiment; waits for the token's workflow scope | nothing |
+| D-game-3 | Continuous integration | active since 2026-10-31 (`.github/workflows/ci.yml`: build, test, offline grammar replay and the live LanguageTool job, on pushes to `main`, pull requests and manual runs); reopened by the owner on 2026-10-23; SonarCloud and models in CI are not built | nothing |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | superseded (owner, 2026-10-23, R02): there is one bundle; the core's sample is deleted and the core runs on `content/game-v1` | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
 | D-game-7 | One repository for the game and the core | done (owner, 2026-10-21): `nlp/` and `game/` as sibling folders of `james-d12/Vocaterra`, project references, one orchestrator and one gate | nothing |
@@ -59,7 +59,9 @@ notice in `content/game-v1/ATTRIBUTION.md`; the core's packages are Apache-2.0 (
 libraries carry GPL-3.0 code (core D2), so a distributed build that includes them waits on core D2. D-game-5 (CC0 assets only) stays in
 force until the owner changes it.
 
-## D-game-3: continuous integration (deferred)
+## D-game-3: continuous integration (active since 2026-10-31)
+
+**Now:** the token has the `workflow` scope and `.github/workflows/ci.yml` runs (see the table above); the paragraph below is the 2026-10-21 record.
 
 The owner deferred CI on 2026-10-21, with the core's D1. Do not raise it. The parked workflow stays in `.github/workflows-pending/ci.yml`;
 nothing under `.github/workflows/` is written, because the push token lacks the `workflow` scope.
@@ -474,7 +476,7 @@ feature/adaptive_design), with the bread stuff".
    this order, one building agent at a time (the disk holds one milestone worktree above the 10 GB floor): **W07b** (W07's three small
    points), **T8** (the nondeterministic `r30-no-classes` capture), **W02** (tools and materials), **W03** (fail-forward as data),
    **W04** (price lists; its code and tests only, the bakery's real price list and Spanish lines stay W10's, so nothing needs the owner's
-   listening). Still waiting for the owner: W08 (the spoken-lines questions), decision 19, W09, W30.
+   listening). Still waiting for the owner: W08 (the spoken-lines questions; answered and built since, item 5 onward), decision 19, W09, W30.
 5. **Four fixes before PR #40 merges** (owner, 2026-11-07, after the queue was done and the orchestrator listed what it found): "do all
    four on this branch". On `feature/bread-pilot`, models by the size rule: the core's **M83** (the O7 fuzz seed: «ayuda por favor por
    favor» read as `request_item`) and **M84** (a free-talk line the constrained decode forces onto a wrong row with confidence gets the
@@ -670,8 +672,8 @@ of the eight lines, and whether a declined order should come back at the next ta
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
   source (core ADR 0009); a missing call is a core milestone in `docs/nlp/implementation-plan.md`.
-- **Console host until D-game-1 is decided.**
+- **Console host until D-game-1 is decided** (decided for the prototype on 2026-10-21: MonoGame; `Vocaterra.Host` remains the console host).
 - **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind.
 - **The content tool** is the core's ContentBuilder run from source, through the root `scripts/content.sh`.
-- **Model policy:** Haiku 5.5 for delegated work by default; Sonnet 5.5 for design-heavy milestones; Opus only when the owner asks.
+- **Model policy** (the owner, 2026-11-06): Haiku 5.5 for small tasks; Sonnet 5.5 at medium effort for medium tasks, at high for large or design-heavy ones; Opus only when the owner asks or a decision names it.
 - **One orchestrator** for both halves since D-game-7 (before it, one per repository); it never lets a game milestone edit `nlp/`.

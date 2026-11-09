@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -49,6 +50,7 @@ public sealed class ObjectiveTrackerTests
         _ = session.OpenTalk("guide"); // meeting the guide completes the first objective
         session.EndTalk();
         Assert.True(session.Objectives.Single(static o => o.Id == "meet-guide").Complete);
+        _ = session.Simulation.GrantItems(ItemId.Wood, 1);
         _ = session.HostEvent(WorldEvents.ItemPickedUp, "madera"); // the camp's wood moves: the camp line, a checklist, is first
         var tracker = session.ObjectiveTracker(lessonStripShown: false);
         Assert.StartsWith("Campamento", tracker.Lines[0].Pieces[0].Text, StringComparison.Ordinal);

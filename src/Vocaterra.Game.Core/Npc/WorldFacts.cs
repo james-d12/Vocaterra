@@ -299,6 +299,14 @@ public sealed class WorldFacts : IGuideFacts
         return Answer(from, best.X, best.Y, best.Z, bestDistance);
     }
 
+    /// <inheritdoc />
+    public GuideNearest Toward(GuideViewpoint from, GuideCell cell)
+    {
+        var dx = ((long)cell.X * UnitsPerBlock) + HalfBlock - from.CentreX;
+        var dz = ((long)cell.Z * UnitsPerBlock) + HalfBlock - from.CentreZ;
+        return Answer(from, cell.X, cell.Y, cell.Z, (dx * dx) + (dz * dz));
+    }
+
     // The answer for the block found: its distance in blocks and the direction to it from the viewpoint's facing.
     private GuideNearest Answer(GuideViewpoint from, int bestX, int bestY, int bestZ, long bestDistance)
     {

@@ -112,7 +112,7 @@ public sealed class OrdersAndSalesTests
         Assert.Equal(early.Locale.ObjectiveHudLine("meet-guide"), early.ObjectiveHud().Single().Text);
         early.HostEvent(WorldEvents.ItemPickedUp, "madera");
         Assert.Equal(0, early.ObjectiveStep("gated.wood")!.Count); // a gated objective counts nothing before its session
-        Assert.Equal(1, early.ObjectiveStep("camp.wood")!.Count);
+        Assert.Equal(5, early.ObjectiveStep("camp.wood")!.Count); // the camp counts the wood in the bag (#32)
 
         Assert.Equal([Offer], early.OpenTalk("baker").Lines); // met, with the wood: she offers the order first, and takes no goods of an order not given
         Assert.False(early.HandOverOpen);
@@ -132,6 +132,7 @@ public sealed class OrdersAndSalesTests
         _ = due.AcceptOrder();
         Assert.Equal("oven-wood", due.CurrentObjective!.Id);
         Assert.Equal("Bring Luz five wood (madera) for her oven at the bakery", due.ObjectiveHud().Single().Text);
+        _ = due.Simulation.GrantItems(ItemId.Wood, 1);
         due.HostEvent(WorldEvents.ItemPickedUp, "madera");
         Assert.Equal(1, due.ObjectiveStep("gated.wood")!.Count);
     }

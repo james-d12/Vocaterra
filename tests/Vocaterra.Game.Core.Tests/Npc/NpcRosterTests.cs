@@ -149,7 +149,7 @@ public sealed class NpcRosterTests
     {
         Assert.Equal(["pedir-agua"], Npcs.FocusAt("stall-need"));
         Assert.Equal(["si-por-favor", "no-gracias"], Npcs.FocusAt("stall-offer"));
-        Assert.Equal(["donde-esta-el-rio"], Npcs.FocusAt("villager-open"));
+        Assert.Equal(["donde-esta-el-rio", "que-tal", "muy-bien"], Npcs.FocusAt("villager-open")); // PR #48: and the small talk
         Assert.Empty(Npcs.FocusAt("guide-offer"));
         Assert.Empty(Npcs.FocusAt("nowhere"));
 
@@ -160,7 +160,7 @@ public sealed class NpcRosterTests
         Assert.Equal(["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"], Npcs.FocusAt("farmer-open"));
 
         Assert.Equal(
-            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],
+            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],
             Npcs.ScaffoldPhrases.Order(StringComparer.Ordinal));
         Assert.Equal("shopkeeper", Npcs.HomeOf("pedir-agua"));
         Assert.Equal("villager", Npcs.HomeOf("donde-esta-el-rio"));
@@ -190,7 +190,7 @@ public sealed class NpcRosterTests
                 "game/npcs/farmer.json: the prompt 'farmer-open' is the home of quiero-tres-manzanas-rojas, cuanto-es-todo, puedo-pagar-con-fruta (game/phrases.json), and the focus names none of them there.",
             ],
             problems);
-        Assert.Empty(GameDataValidator.Validate(TestGame.Data)); // the shipped seven: the guide's prompts are no row's home, the villager names the river question only
+        Assert.Empty(GameDataValidator.Validate(TestGame.Data)); // the shipped seven: the guide's prompts are no row's home, the villager names the river question and, since PR #48, the small talk
     }
 
     [Fact]
@@ -198,11 +198,12 @@ public sealed class NpcRosterTests
     {
         var rows = TestGame.Data.Phrases.Rows.Where(static r => r.ReviewLine is not null).ToDictionary(static r => r.Id, static r => r.ReviewLine);
 
-        Assert.Equal(11, rows.Count);
+        Assert.Equal(12, rows.Count);
         Assert.Equal("shop_need.1", rows["pedir-agua"]);
         Assert.Equal("guide_offer.1", rows["no-gracias"]);
         Assert.Equal("villager_greet.1", rows["donde-esta-el-rio"]);
         Assert.Equal("guide.lesson.hello.1", rows["hola"]);
+        Assert.Equal("guide.lesson.hello.1", rows["que-tal"]); // PR #48: ¿qué tal? after the greeting (muy bien has its own pool, guide.review.phrase.muy_bien)
         Assert.Equal("guide.lesson.want.1", rows["quiero-madera"]); // X06: the warm-up asks the first lesson's phrases with the guide's own lines
     }
 

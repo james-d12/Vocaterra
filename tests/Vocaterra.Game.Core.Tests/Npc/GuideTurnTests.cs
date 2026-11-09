@@ -57,6 +57,30 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void AskingWhereTheShopIsPointsAtTheStallNotAtTheNearestRoof()
+    {
+        // PR #48 follow-up of #43: tienda is also the noun of every roof block (the stall's awning), so the noun's nearest block was a house's roof. The guide finds the
+        // place as the other NPCs' directions and a lesson's point do (ScenePlaces.Resolve): the label of the scene first, the stall.
+        var session = TestGame.NewSession();
+        Stage.TeleportToNpc(session, "villager"); // in the village, where a house's roof is nearer than the stall
+        var stall = session.Scene.Point("stall");
+        var nearestOfNoun = TestGame.NearestOf(session, "tienda");
+        Assert.Equal(BlockId.Roof, session.Scene.Grid.GetBlock(nearestOfNoun.X, nearestOfNoun.Y, nearestOfNoun.Z)); // what the guide pointed at before
+
+        var turn = session.Say("¿dónde está la tienda?");
+
+        Assert.Equal("ask_directions", turn.Intent);
+        Assert.Equal(["guide.point"], turn.HostEvents);
+        Assert.NotNull(turn.Pointer);
+        Assert.Equal(("tienda", (GuideCell)stall, "stall"), (turn.Pointer.Place, turn.Pointer.Target, turn.Pointer.Point));
+        Assert.Equal(new PointerMarker("tienda", stall, Point: "stall"), session.Pointer); // its arrival is logged as the stall's, as the lesson's walk is
+        Assert.NotNull(turn.WorldLine);
+        Assert.Contains(SpanishNumbers.ToWords(turn.Pointer.Blocks), turn.WorldLine, StringComparison.Ordinal); // the distance said is the stall's
+        var expected = TestGame.FactsOf(session).Toward(TestGame.ViewpointOf(session), stall);
+        Assert.Equal((expected.Blocks, expected.Direction), (turn.Pointer.Blocks, turn.Pointer.Direction));
+    }
+
+    [Fact]
     public void TheWorldLineOnSeedFortyTwoIsPinned()
     {
         // The stored time, the seed, the world and the interaction counter fix the variant the game draws, so this exact line is the

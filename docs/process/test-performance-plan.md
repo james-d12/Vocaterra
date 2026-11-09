@@ -260,7 +260,7 @@ the gate's suite peak 4.5 GB (was 6.0). `RouteSceneCacheTests` pins the cache. R
 - **Call sites:** the 34 game test classes and five calls that dropped their own load, the seven direct scene builds, and the classes and
   methods marked slow
 - **Docs:** this plan, `docs/nlp/building-and-testing.md`, `docs/game/building-and-testing.md`, `scripts/README.md`, `.claude/agents/orchestrator.md`, and the
-  findings logs of both plans (`docs/nlp/implementation-plan.md` 5b and `docs/game/implementation-plan.md` section 5), each for its half
+  findings logs of both plans (`docs/nlp/findings.md` and `docs/game/findings.md`), each for its half
 
 ## Verification
 Every phase:

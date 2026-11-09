@@ -14,7 +14,14 @@ namespace Vocaterra.Game.Core.Session;
 /// <param name="Target">How many matching events make the step done.</param>
 /// <param name="Trigger">The world event the step counts.</param>
 /// <param name="Restore">The code hook that works the step out again from a loaded world (<see cref="ObjectiveBook.RestoreHooks"/>), or <see langword="null"/> for a step the save keeps.</param>
-public sealed record ObjectiveStepSpec(string Id, string Noun, string Label, int Target, Trigger Trigger, string? Restore);
+public sealed record ObjectiveStepSpec(string Id, string Noun, string Label, int Target, Trigger Trigger, string? Restore)
+{
+    /// <summary>
+    /// The noun of the items a step counts in the bag (issue #32): a step whose trigger is a pickup of a noun (<c>item_picked_up</c>, <c>madera</c>) asks for the items
+    /// held, not the pickups made, so crafting, eating, giving or dropping them takes the step back; <see langword="null"/> for a step that counts its events.
+    /// </summary>
+    public string? HeldNoun => Trigger is { Event: WorldEvents.ItemPickedUp, Npc: null, Detail: { } noun } ? noun : null;
+}
 
 /// <summary>Goods an order asks for (village-plan V03): an item and how many.</summary>
 /// <param name="Item">The item.</param>

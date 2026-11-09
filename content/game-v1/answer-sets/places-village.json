@@ -150,6 +150,12 @@
       "canonical": "luz hará pan",
       "aliases": ["mañana Luz hará pan", "hará pan", "ella hará pan", "luz hará pan mañana"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "wellbeing",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "hola, ¿qué tal?", "hola, ¿cómo estás?"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

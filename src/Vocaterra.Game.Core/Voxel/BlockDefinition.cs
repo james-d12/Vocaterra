@@ -41,6 +41,7 @@ public enum Material : byte
 /// <param name="BecomesWhenGathered">The block that is left in the cell after a gather: <see cref="BlockId.Air"/> for a trunk, a plain bush for a berry bush.</param>
 /// <param name="Decor">Whether the block is undergrowth (S14): not solid, never gathered, and invisible to the block ray, so the crosshair looks through it at whatever stands behind it; a block may be placed into its cell.</param>
 /// <param name="Material">What the block is made of (W02): the tools whose <see cref="ItemDefinition.Tool"/> names it gather it faster.</param>
+/// <param name="Tall">Whether a body collides with the block as if it were two blocks high (a fence, issue #33): no step-up lifts a body onto it, a jump does not clear it, and nothing stands on it. The block ray and the renderer still see one block.</param>
 public sealed record BlockDefinition(
     BlockId Id,
     string Name,
@@ -52,7 +53,8 @@ public sealed record BlockDefinition(
     int DropCount,
     BlockId BecomesWhenGathered,
     bool Decor = false,
-    Material Material = Material.None)
+    Material Material = Material.None,
+    bool Tall = false)
 {
     /// <summary>The ticks a trunk takes to gather by hand (one second).</summary>
     public const int TrunkGatherTicks = 60;
@@ -79,7 +81,7 @@ public sealed record BlockDefinition(
         new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.Stall, "stall", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Roof, "roof", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood, Tall: true),
         new(BlockId.Wall, "wall", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.FireRing, "fire-ring", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.Sign, "sign", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
@@ -140,6 +142,13 @@ public sealed record BlockDefinition(
     {
         var index = (int)id;
         return (uint)index >= (uint)Table.Length || Table[index].Solid;
+    }
+
+    /// <summary>Whether a body collides with the block as if it were two blocks high (<see cref="Tall"/>). An id without a definition is not.</summary>
+    public static bool IsTall(BlockId id)
+    {
+        var index = (int)id;
+        return (uint)index < (uint)Table.Length && Table[index].Tall;
     }
 
     /// <summary>Whether the block is a trunk of any species (oak, spruce or birch): the wood a player gathers.</summary>

@@ -47,7 +47,7 @@ public sealed class WeatherAndWellbeingTests
     public void EveryNpcAnswersWhatTheWeatherIsAndHowTheyAre(string npc)
     {
         Assert.Equal(["Hoy hace sol."], Free(NewNpcs(), npc, "¿qué tiempo hace?").Replies);
-        Assert.Equal(["Bien, gracias."], Free(NewNpcs(), npc, "¿cómo estás?").Replies);
+        Assert.Equal([npc == "villager" ? "Bien, gracias. ¿Y tú?" : "Bien, gracias."], Free(NewNpcs(), npc, "¿cómo estás?").Replies); // PR #48: the villager, whose prompt practises «Muy bien.», asks back
     }
 
     [Theory]
@@ -145,6 +145,8 @@ public sealed class WeatherAndWellbeingTests
         public GuideNearest? NearestOfNoun(GuideViewpoint from, string lemma) => null;
 
         public GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body) => null;
+
+        public GuideNearest Toward(GuideViewpoint from, GuideCell cell) => new(cell, 0, string.Empty, 0);
 
         public IReadOnlyList<string> NounsAt(GuideCell cell) => [];
     }

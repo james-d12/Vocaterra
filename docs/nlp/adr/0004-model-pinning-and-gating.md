@@ -4,6 +4,9 @@
 
 > **Note (M19a, 2026-10-20):** this record names the project `Slg.*` (and the `SLG_*` variables). Those names are now `Vocaterra.Nlp.*` and `VOCATERRA_*` (the old variable names are read for one release); see [ADR 0009](0009-core-and-game-boundary.md). The text below is unchanged.
 
+> **Note (2026-10-31):** CI now runs from `.github/workflows/ci.yml`, on Linux x64 only; `.github/workflows-pending/` no longer exists. The
+> cross-platform matrix and the model-gated job this record refers to are not built (`docs/nlp/known-gaps.md`).
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`implementation-plan.md` section 3, rules 7 and 9)

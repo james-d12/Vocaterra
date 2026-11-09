@@ -20,7 +20,7 @@ How the documents under `docs/` are organised, named and moved. Adopted 2026-11-
 | A superseded document | `archive/`, at its original path, plus a row in its README | its original name |
 | A plan for a milestone series | `game/` or `nlp/`, beside the implementation plan | `<SERIES>_PLAN.md`, as the existing plans |
 | Reference or a guide to the game or the core | `game/` or `nlp/`, linked from that half's README | lowercase kebab-case |
-| The owner's design inputs | `game/design/`; the original Word files in `game/design/sources/` | lowercase kebab-case |
+| The owner's design inputs | `game/design/`; the original Word and OpenDocument files in `game/design/sources/` | lowercase kebab-case |
 | How we work on both halves | `process/` | lowercase kebab-case |
 | A document about code or data | beside it (`content/`, `scripts/`, `src/…/README.md`) | `README.md` or as its neighbours |
 

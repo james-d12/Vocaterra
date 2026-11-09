@@ -115,6 +115,12 @@
       "matches": []
     },
     {
+      "key": "0240df88d1fc6068a915011b8deccc2e375c1c46537d9010ae51bae82e455c39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas tardes, ¿qué tal?",
+      "matches": []
+    },
+    {
       "key": "02732dd864eff2bc052c1a9384402a9d09cd2f64c9797715ac69e3af466e8c01",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Adónde van ellas",
@@ -370,9 +376,21 @@
       "matches": []
     },
     {
+      "key": "0a57a28fddef9529edca615383f154920a4858c84293a523f3899e2a87009b37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué tal?",
+      "matches": []
+    },
+    {
       "key": "0a6f81a2383379f5b7d14ccfc813d560676b52cf81bcc8cd03b2ddb171851768",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero harina",
+      "matches": []
+    },
+    {
+      "key": "0a773d3efef7dcc1d0145aa924799c46487a38e4ce975102f6e618103a18b8d1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Muy bien.",
       "matches": []
     },
     {
@@ -1005,6 +1023,12 @@
       "key": "1962c713a49766840c556280131a3cd1b32941c45cf0b5f212dbaae44cc44218",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos quieren agua",
+      "matches": []
+    },
+    {
+      "key": "199a85e5bd8772a32f06492f38b19ea7d7f71a84df4de6c2b8aee412080fc97c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bien, gracias. ¿Y tú?",
       "matches": []
     },
     {
@@ -1932,6 +1956,12 @@
       "key": "30f47eb56f7107c29630a4be9dfb8225118c06a27fc20a028bcdbf637c480669",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luego voy a comprar pan",
+      "matches": []
+    },
+    {
+      "key": "30f7e419bbb7d1d394c795863060c58cfe4bb850ca11309a0a3f08a1b7c09142",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bien, gracias",
       "matches": []
     },
     {
@@ -2907,6 +2937,12 @@
       "matches": []
     },
     {
+      "key": "4823f44d5c764ad14094fd2303aa833fa636cbe361be1e7b87ab6aead1afe55d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Muy bien",
+      "matches": []
+    },
+    {
       "key": "48807fa3607898b85b5c032307815ca2ec5b6ad3cc17a26eb1efc01bb0858a55",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo hambre.",
@@ -3718,6 +3754,12 @@
       "key": "5a9812585b309770a2c51a21b286e73f833e4794cec526b1672d6b5f8af046c5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada sale de la espada.",
+      "matches": []
+    },
+    {
+      "key": "5ab59a6ea93a236e24257366324b81718acc35c1be3e7a97472e0ae877f6e5bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo estoy bien",
       "matches": []
     },
     {
@@ -4691,6 +4733,12 @@
       "matches": []
     },
     {
+      "key": "705ab83e29b8a98e7798f8448fc29449449e0f6566c2b7ff058bfa4c75cf3e35",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Muy bien, gracias, ¿y usted?",
+      "matches": []
+    },
+    {
       "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está espada, a dos espadas.",
@@ -5013,6 +5061,12 @@
       "matches": []
     },
     {
+      "key": "76737e2ec94add9f089604bad47a6aa18531aa87ecd473773b0b4aacadc9f1b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Muy bien, gracias",
+      "matches": []
+    },
+    {
       "key": "76761c1d81332917044a658558920bd67c4fe7b34b70cf2bf96d796949d00e94",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Él trabajo en la herrería",
@@ -5156,6 +5210,12 @@
       "key": "7861b21af10663ffc00fac168bcb8fe0cab8ad8b7e5f2fe5300c3be8f92f4a9a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Toma la madera y las monedas",
+      "matches": []
+    },
+    {
+      "key": "78b74835d4c3b68554cec9b2c5697c6ba513c039ab18a8ead3c358880922d7cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cómo estás?",
       "matches": []
     },
     {
@@ -5826,6 +5886,12 @@
       "key": "8a4a8c359bb696acd2f6cb907ecbeaa2cbdf5105b435201e51890104bd065fc8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vivo en la casa",
+      "matches": []
+    },
+    {
+      "key": "8a4bb6f3bc4d19d0739f7ceda842f7a33005ebb79979cae7f6f127101f02281c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estoy bien",
       "matches": []
     },
     {
@@ -7807,6 +7873,12 @@
       "matches": []
     },
     {
+      "key": "b9d6236c6e967991c5253428d2fc55f0e7b76ceef80f2d31c18937834e9f0ad9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estoy muy bien, gracias",
+      "matches": []
+    },
+    {
       "key": "b9d76ab554f5cbab04eb584017d7d76a8523e16c00a96370554101f36c629968",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Hay pan?",
@@ -8020,6 +8092,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola amigo",
       "matches": []
+    },
+    {
+      "key": "bed170896c6cc310afc9b1e79420acb48832a676b0cf2c6bda2bf5344823c601",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo está muy bien",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «está».",
+          "offset": 3,
+          "length": 4,
+          "replacements": [
+            "estoy"
+          ]
+        }
+      ]
     },
     {
       "key": "beede482275a3e0dd159dae1ff0d83c21f287285695559fc3b412cc40b8a274d",
@@ -8252,6 +8341,12 @@
       "key": "c6ff84f969169a64ade50734c46d1ce3e41549dd6d420ac20926098e740b29ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias.",
+      "matches": []
+    },
+    {
+      "key": "c71aa6f5a6b276db76db98846904dbb51d2dd629615a3b16b181889194247ce0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bien, ¿y tú?",
       "matches": []
     },
     {
@@ -10000,6 +10095,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "efe66486227fdf9a7b56f9c237b407bb1b3c8a84b7532048890f083ef1d5ba78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cómo está usted?",
+      "matches": []
     },
     {
       "key": "efe6c3e01a6a1384af1f3fb864deb8f1434996e59103b41b8ae76431e2763bc0",

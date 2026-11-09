@@ -152,10 +152,10 @@ internal static class VoxelWalker
                     var clear = true;
                     for (var y = next.Y; y <= Math.Max(next.Y + 1, current.Y + 1) && clear; y++)
                     {
-                        clear = !grid.IsSolid(next.X, y, next.Z);
+                        clear = !grid.BlocksBody(next.X, y, next.Z);
                     }
 
-                    if (clear && (dy <= 0 || !grid.IsSolid(current.X, current.Y + 2, current.Z)))
+                    if (clear && (dy <= 0 || !grid.BlocksBody(current.X, current.Y + 2, current.Z)))
                     {
                         previous[next] = current;
                         queue.Enqueue(next);
@@ -184,10 +184,10 @@ internal static class VoxelWalker
                 var clear = true;
                 for (var y = next.Y; y <= Math.Max(next.Y + 1, current.Y + 1) && clear; y++)
                 {
-                    clear = !grid.IsSolid(next.X, y, next.Z);
+                    clear = !grid.BlocksBody(next.X, y, next.Z);
                 }
 
-                if (clear && (dy <= 0 || !grid.IsSolid(current.X, current.Y + 2, current.Z)))
+                if (clear && (dy <= 0 || !grid.BlocksBody(current.X, current.Y + 2, current.Z)))
                 {
                     yield return next;
                     break;
@@ -201,9 +201,9 @@ internal static class VoxelWalker
 
     private static bool Standable(VoxelGrid grid, BlockPos feet) =>
         grid.InBounds(feet.X, feet.Y, feet.Z)
-        && !grid.IsSolid(feet.X, feet.Y, feet.Z)
-        && !grid.IsSolid(feet.X, feet.Y + 1, feet.Z)
-        && grid.IsSolid(feet.X, feet.Y - 1, feet.Z)
+        && !grid.BlocksBody(feet.X, feet.Y, feet.Z)
+        && !grid.BlocksBody(feet.X, feet.Y + 1, feet.Z)
+        && grid.CanStandOn(feet.X, feet.Y - 1, feet.Z)
         && grid.GetBlock(feet.X, feet.Y, feet.Z) != BlockId.Water
         && grid.GetBlock(feet.X, feet.Y - 1, feet.Z) != BlockId.Water;
 }

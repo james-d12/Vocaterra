@@ -368,7 +368,75 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(false, ItemId.Coin)); // village-plan V05: their own pictures
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconApple), HeldItems.For(false, ItemId.Apple));
         Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe), HeldItems.For(false, ItemId.Axe));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBook), HeldItems.For(false, ItemId.Book)); // issue #44: the hand showed nothing
         Assert.Equal(HeldKind.Torch, HeldItems.For(new ItemStack(ItemId.Torch, 1)).Kind);
+    }
+
+    [Fact]
+    public void EveryItemInTheHandHasA3DModel()
+    {
+        // Issue #44: every item the game has is held as a model with depth, not as nothing or a flat card.
+        foreach (var definition in ItemDefinition.All)
+        {
+            var held = HeldItems.For(false, definition.Id);
+            Assert.NotEqual(HeldKind.None, held.Kind);
+            var (body, _) = ArmMeshes.Item(held);
+            Assert.True(body.FaceCount > 0, $"{definition.Id} has no model");
+            var vertices = body.Vertices.ToArray();
+            var depth = vertices.Max(static v => v.Z) - vertices.Min(static v => v.Z);
+            var width = vertices.Max(static v => v.X) - vertices.Min(static v => v.X);
+            var height = vertices.Max(static v => v.Y) - vertices.Min(static v => v.Y);
+            Assert.True(depth > 0.01f && width > 0.05f && height > 0.05f, $"{definition.Id}: {width} x {height} x {depth}");
+            Assert.True(width < 0.5f && height < 0.7f, $"{definition.Id} is too large for the hand: {width} x {height}");
+        }
+    }
+
+    [Theory]
+    [InlineData(BlockCell.IconApple)]
+    [InlineData(BlockCell.IconCoin)]
+    [InlineData(BlockCell.IconBerry)]
+    [InlineData(BlockCell.IconBread)]
+    [InlineData(BlockCell.IconAxe)]
+    [InlineData(BlockCell.IconBook)]
+    [InlineData(BlockCell.IconBottle)]
+    [InlineData(BlockCell.IconFlour)]
+    public void AnExtrudedIconIsOneVoxelPerSolidPixelWithSidesOnlyOnItsOutline(BlockCell cell)
+    {
+        const int Size = BlockAtlasLayout.CellSize;
+        var pixels = BlockArt.Pixels(cell);
+        int solid = 0, edges = 0;
+        for (var y = 0; y < Size; y++)
+        {
+            for (var x = 0; x < Size; x++)
+            {
+                if (!ItemModels.IsSolid(pixels, x, y))
+                {
+                    continue;
+                }
+
+                solid++;
+                edges += new[] { (x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1) }.Count(n => !ItemModels.IsSolid(pixels, n.Item1, n.Item2));
+            }
+        }
+
+        var buffer = new MeshBuffer();
+        var voxels = ItemModels.AppendExtruded(buffer, cell, 0.02f, 0f, -1f);
+        Assert.True(solid >= 12, $"{cell} has only {solid} solid pixels");
+        Assert.Equal(solid, voxels);
+        Assert.Equal((2 * solid) + edges, buffer.FaceCount); // a front and a back per pixel, a side per clear neighbour: no hidden faces
+        var vertices = buffer.Vertices.ToArray();
+        Assert.Equal(0f, vertices.Min(static v => v.Y), 4); // it rests on the base
+        Assert.Equal(-0.99f, vertices.Max(static v => v.Z), 4); // one pixel thick around z
+        Assert.Equal(-1.01f, vertices.Min(static v => v.Z), 4);
+        Assert.Equal(-vertices.Min(static v => v.X), vertices.Max(static v => v.X), 4); // centred
+
+        // Every face samples a texel of the icon's own cell, so the model has the icon's colours.
+        var (cx, cy, w, h) = BlockAtlasLayout.PixelRectangle(cell);
+        Assert.All(vertices, v =>
+        {
+            Assert.InRange(v.U * BlockAtlasLayout.Width, cx, cx + w);
+            Assert.InRange(v.V * BlockAtlasLayout.Height, cy, cy + h);
+        });
     }
 
     [Fact]
