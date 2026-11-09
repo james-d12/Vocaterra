@@ -6369,6 +6369,9 @@
 {"id":"dialogue:baker_no_room.1","stages":{"render":"863ebae1ced5d3a2"}}
 {"id":"dialogue:baker_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:baker_offer_bake.1","stages":{"render":"91ac4f865b1c83fe"}}
+{"id":"dialogue:baker_offer_order.1","stages":{"render":"5d00c184745aa5e7"}}
+{"id":"dialogue:baker_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
+{"id":"dialogue:baker_order_yes.1","stages":{"render":"0c95fc33e2cd60fb"}}
 {"id":"dialogue:baker_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
 {"id":"dialogue:baker_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:baker_receive_help.1","stages":{"render":"da75aef628a264fd"}}
@@ -6403,6 +6406,9 @@
 {"id":"dialogue:farmer_nice.1","stages":{"render":"4ade6819164f7ba9"}}
 {"id":"dialogue:farmer_no_room.1","stages":{"render":"863ebae1ced5d3a2"}}
 {"id":"dialogue:farmer_none_offered.1","stages":{"render":"000894f71bdb78ab"}}
+{"id":"dialogue:farmer_offer_order.1","stages":{"render":"246040aa559d6163"}}
+{"id":"dialogue:farmer_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
+{"id":"dialogue:farmer_order_yes.1","stages":{"render":"03fdb46c7a2275b2"}}
 {"id":"dialogue:farmer_pay.1","stages":{"render":"8ddad20e72818c82"}}
 {"id":"dialogue:farmer_price.1","stages":{"render":"6b4b5ca250311a9c"}}
 {"id":"dialogue:farmer_receive.1","stages":{"render":"2b08c8ca371333f4"}}
@@ -6445,6 +6451,9 @@
 {"id":"dialogue:fisher_help.1","stages":{"render":"854d8ec0b80edc63"}}
 {"id":"dialogue:fisher_near.1","stages":{"render":"2a290fddf97715f5"}}
 {"id":"dialogue:fisher_nice.1","stages":{"render":"4ade6819164f7ba9"}}
+{"id":"dialogue:fisher_offer_order.1","stages":{"render":"760d5d81dce3a49f"}}
+{"id":"dialogue:fisher_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
+{"id":"dialogue:fisher_order_yes.1","stages":{"render":"f14630842224ea8e"}}
 {"id":"dialogue:fisher_point.1","stages":{"render":"054731669e121257"}}
 {"id":"dialogue:fisher_point.2","stages":{"render":"916681fbb8b263a7"}}
 {"id":"dialogue:fisher_receive.1","stages":{"render":"2b08c8ca371333f4"}}
@@ -6737,6 +6746,7 @@
 {"id":"dialogue:smith_none_offered.1","stages":{"render":"d8b773a96530268a"}}
 {"id":"dialogue:smith_offer.1","stages":{"render":"182fe26a7b978365"}}
 {"id":"dialogue:smith_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
+{"id":"dialogue:smith_order_yes.1","stages":{"render":"164efcaface141e3"}}
 {"id":"dialogue:smith_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:smith_receive_help.1","stages":{"render":"d22c8096382e6e96"}}
 {"id":"dialogue:smith_sun.1","stages":{"render":"a931165fb9761165"}}
