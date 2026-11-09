@@ -228,6 +228,40 @@ Stayed in the engine as neutral: `DialectConfig`, `G2pResult`, `PhoneInventory`,
 and its JSON (see ADR 0012), `ErrorTags` and `ErrorTagSet.V1` (the frozen v1 taxonomy that every pack lists), `LexiconProfile.V1` and `LexiconSchema` (the frozen v1 vocabularies),
 `NormalizationOptions` and the new `TextTokenizer`.
 
+### The German pack project (M37)
+
+`src/Vocaterra.Nlp.De` (namespace `Vocaterra.Nlp.De`, folders `Normalization` and `Text`) is the second pack, de-DE with Austrian and Swiss spellings accepted (a Swiss `ss` for `ß` is not an
+error). M37 is its text layer; the morphology (M38), the analysis rules (M39) and the template functions (M40) are placeholders, so a full German bundle does not load yet. The engine does not
+reference it (`LayeringTests`).
+
+```csharp
+LanguagePacks packs = LanguagePacks.Default.WithGerman();          // GermanContent.WithGerman, the counterpart of WithSpanish
+ILanguagePack de = GermanLanguagePack.Instance;                    // LanguageId "de"
+Lexicon lexicon = GermanLexicon.Load(json);                        // the German folding and GermanLanguagePack.Profile
+```
+
+- **`GermanLanguagePack`**: filled: `Normalizer`, `Folding`, `Numbers`, `PhoneticKey`, `Punctuation`, `Recast`, `RepairFallback` (`GermanRepairLines`, `Meinst du „a“, „b“ oder „c“?`), `Orthography`,
+  `GrammarDefaults` (no dropped subject, `bitte` leading, trailing and after the finite verb), `Lint`, `Samples`, `GrammaticalCases` (`nom acc dat gen`), `LexiconProfile`
+  (`GermanLanguagePack.Profile`: genders `m f n`, four cases, the verb forms, declensions, the separable particles and the register `formal`), `ErrorTags` (`GermanLanguagePack.Tags`:
+  the v1 tags then `orth.capital`). Defaulted: `SupportsV2Order` false until M40. Placeholders: `G2p` is null (no pronunciation scoring or phone-fed speech until the German G2P
+  of M43/M93) and `CreateMorphology`, `CreateAnalysisRules` and `CreateTemplateFunctions` throw `NotSupportedException` naming M38, M39 and M40.
+- **`GermanContent`**: `Options`, `WithGerman(this LanguagePacks)`, `Load(dir, options = null)`. **`GermanLexicon`**: `Folding`, `Empty`, `Load`, `FromEntries`.
+- **`GermanNormalizer`** (`Normalization`): NFC and invariant lower case with `Token.Original` as typed (the capitals live there); the German quotes `„…“` `»…«` and every other mark
+  are dropped, hyphens between word characters kept; with `ExpandContractions`, `am im zum zur beim vom ins ans aufs ums durchs fürs übers` become two tokens that both carry the
+  contraction as `Original` (`an dem`, `zu der`, `in das`); number words become digits unless `NumbersToDigits` is off, except the article forms `ein eine einen einem einer eines`
+  (their ending is the gender and case, whatever `ConvertIndefiniteArticles` says; `eins` and every compound convert); the final `?` or `!` is read behind closing quotes.
+- **`GermanFolding`**: `Key` keeps umlauts and `ß` (NFC, lower case); `LenientKey` writes `ä ö ü ß` as `ae oe ue ss`, where `Lexicon.Lookup` goes when the key finds nothing, so typed
+  `Strasse`, `Grüsse` and `schoen` reach the known word and `schon` keeps its own reading; `UnmarkedSpellings` adds the bare vowel (`fur`, `uber`), read only when no form folds to it;
+  `MatchingKey` spells the umlauts out and keeps the case, so the umlaut and spelled-out answers are one phrase. This runs inside the lexicon lookup, before any typo reading (the M79 note).
+- **`GermanNumbers`**: 0 to 999 999 as one word (`einundzwanzig`, `hundertvierzig`, `zweitausenddreihundert`; `ToWords`, `TryParse` for text and tokens, `TryParsePrefix`, `DigitsToWords`) and
+  `Agree(words, gender, case)` for the ending of `ein` (`ein eine einen einem einer eines`; no case means nominative; an unknown case throws). The parser also reads `fuenf`, `funf`,
+  `dreissig`, `zwo`, `eintausend`, and a break before or after a `hundert` or `tausend` (`zwei hundert vierzig`); a break elsewhere is two numbers.
+- **`GermanPhoneticKey`**: the sound-alike key of answer matching (`Fater` for `Vater`, `Schtrasse` for `Straße`; the umlauts stay distinct vowels, so `schön` and `schon` differ).
+- **`GermanRecastPolicy`**: `RestoredSpellings` restores the umlauts from the lexicon and never turns `ss` into `ß`; `RestoredCapitals` capitalizes the first token, the nouns the resolved
+  reading chose (a word with several readings and no resolver choice only when all are nouns), names the grammar bound, and a pronoun reading whose register is `formal` (the
+  analysis rules of M39 must set it for `Sie`); `MissingCapitals(text, analysis, lexicon)` lists the tokens typed without their capital, the input of the typed-input-only
+  `orth.capital` tag that M39 raises (never for recognizer output, which has no capitals). `GermanPunctuation` collapses white space and closes the gap before `, . ; : ? ! …` and quotes.
+
 ### Host-owned files
 
 A bundle may hold files that the loader does not parse, such as the host's own data (`game/nouns.json`). Such a file is hashed in

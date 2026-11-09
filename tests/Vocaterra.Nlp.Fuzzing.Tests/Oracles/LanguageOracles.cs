@@ -19,6 +19,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
@@ -41,9 +42,23 @@ public static class LanguageOracles
     /// <returns>The diagnostics of the run (the lone-surrogate count is always taken).</returns>
     public static FuzzDiagnostics Normalizer(FuzzLanguage language, ITestOutputHelper output, Action<string>? entryPoints = null)
     {
+        ArgumentNullException.ThrowIfNull(language);
+        return Normalizer(language.Pack, language.FreeText, output, entryPoints);
+    }
+
+    /// <summary>
+    /// O1 for a language that has a pack and a text generator but no loadable bundle yet (German from M37 to M40: its morphology is a placeholder, so no bundle loads).
+    /// The body is the one <see cref="Normalizer(FuzzLanguage, ITestOutputHelper, Action{string}?)"/> runs, unchanged.
+    /// </summary>
+    /// <param name="pack">The language's pack.</param>
+    /// <param name="freeText">The text generator: free text the learner might say, benign and adversarial (lone surrogates included).</param>
+    /// <param name="output">The test output.</param>
+    /// <param name="entryPoints">Extra total entry points of the language to call on every input.</param>
+    public static FuzzDiagnostics Normalizer(ILanguagePack pack, Gen<string> freeText, ITestOutputHelper output, Action<string>? entryPoints = null)
+    {
         const string oracle = "O1";
         var gen = Gen.Select(
-            language.FreeText,
+            freeText,
             Gen.Bool,
             Gen.Bool,
             Gen.Bool,
@@ -60,14 +75,14 @@ public static class LanguageOracles
                     diagnostics.Count("input:lone-surrogate");
                 }
 
-                CheckEntryPointsAreTotal(language, text, entryPoints);
-                var first = Normalize(language, text, options);
+                CheckEntryPointsAreTotal(pack, text, entryPoints);
+                var first = Normalize(pack, text, options);
 
                 CheckWellFormed(oracle, first, text, options);
 
                 // Idempotence: feeding the normalized text back changes neither the text nor the token texts and spans. Token.Original
                 // legitimately differs on the second pass (it is the first pass's output), so it is not compared.
-                var second = Normalize(language, first.Text, options);
+                var second = Normalize(pack, first.Text, options);
                 if (!Same(first, second))
                 {
                     throw Determinism.Fail(oracle, $"Normalize is not idempotent: '{first.Text}' became '{second.Text}'.", new { text, options });
@@ -308,12 +323,12 @@ public static class LanguageOracles
     }
 
     // The raw text, lone surrogates included, goes straight to the entry points that call string.Normalize underneath.
-    private static void CheckEntryPointsAreTotal(FuzzLanguage language, string text, Action<string>? entryPoints)
+    private static void CheckEntryPointsAreTotal(ILanguagePack pack, string text, Action<string>? entryPoints)
     {
         try
         {
-            var stripped = language.Pack.Folding.LenientKey(text);
-            var key = language.Pack.PhoneticKey.Compute(text);
+            var stripped = pack.Folding.LenientKey(text);
+            var key = pack.PhoneticKey.Compute(text);
             if (HasLoneSurrogate(stripped))
             {
                 throw Determinism.Fail("O1", "The lenient key left a lone surrogate in its result.", text);
@@ -332,11 +347,11 @@ public static class LanguageOracles
         entryPoints?.Invoke(text);
     }
 
-    private static NormalizedText Normalize(FuzzLanguage language, string text, NormalizationOptions options)
+    private static NormalizedText Normalize(ILanguagePack pack, string text, NormalizationOptions options)
     {
         try
         {
-            return language.Pack.Normalizer.Normalize(text, options);
+            return pack.Normalizer.Normalize(text, options);
         }
         catch (Exception ex)
         {

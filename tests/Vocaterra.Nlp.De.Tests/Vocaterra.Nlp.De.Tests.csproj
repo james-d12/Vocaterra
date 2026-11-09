@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The German pack's unit tests (M37): the normalizer, the folding, the number words, the phonetic key, the recast policy and the pack's surface. They see the pack's
+       internals through InternalsVisibleTo (Directory.Build.props: Vocaterra.Nlp.De.Tests) and the engine's public API only. The German lexicon file
+       (content/game-de-v1/lexicon/wiktionary-de.json, 13 MB) is found by walking up from the test assembly, not copied. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Core.Stages" />
+    <Using Include="Vocaterra.Nlp.Core.Taxonomy" />
+    <Using Include="Vocaterra.Nlp.Core.Verdicts" />
+    <Using Include="Vocaterra.Nlp.De" />
+    <Using Include="Vocaterra.Nlp.De.Normalization" />
+    <Using Include="Vocaterra.Nlp.De.Text" />
+    <Using Include="Vocaterra.Nlp.Language.Lexicon" />
+    <Using Include="Vocaterra.Nlp.Language.Normalization" />
+    <Using Include="Vocaterra.Nlp.Language.Packs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.De/Vocaterra.Nlp.De.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -364,6 +364,11 @@ text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Sp
   directory and loads it with `LanguagePacks.Of(XxLanguagePack.Instance)`, a registry without Spanish. `XxFuzzLanguage` is its record.
   `XxOracleTests` runs O1, O2, O7 and O14 on it, and checks that its results carry no Spanish error tag and no Spanish mark. The toy suite is
   in-process and uses no model. It is not a shipped language.
+- `Languages/De/` is German (M37): `GermanFuzzText` is the text generator (umlauts, `ß`, the Swiss and keyboard spellings, German quotes, contractions, number words, the
+  adversarial corpus) and `GermanOracleTests` runs O1 through `LanguageOracles.Normalizer(pack, generator, ...)` (an overload that takes a pack and a generator, because German has no
+  loadable bundle until M38 to M40; the `FuzzLanguage` overload calls it, so Spanish is unchanged) and O6 as metamorphic relations: a canonical or alias phrase survives case,
+  quotes, spacing, decomposition and the `ae oe ue ss` spelling; a text and its respelled twin match alike; a sound-alike spelling matches at distance 0 with the pronunciation
+  flag. No independent model of the German matching rules is written; O2, O7 and O14 wait for a German bundle.
 - Which oracles run per language: O1, O2 and O7 run on Spanish and on the toy language. The neutral O14 body runs on the toy language; the Spanish O14 is the
   full version (phonemes, two-phase, host turns, envelope mutations) and is not run on the toy language. O3, O4 and O5 (realised grammar sentences, mutation
   sets) run on Spanish only; they need a realiser and a mutation set for the language (German, M36 onward). O6, O8 to O13, O15 and O16 are Spanish or
