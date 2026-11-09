@@ -5306,12 +5306,6 @@
       "matches": []
     },
     {
-      "key": "7caae64f98b130b4bebcc1e2a64fdb9c7669956e6117fa66e69c80ce1aa09282",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "¡Hola! ¿Qué tienes?",
-      "matches": []
-    },
-    {
       "key": "7cd1a2ed2d2fbd621b6732b280e0492191702c2933792396200c38e8dcd50ab9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Estás en tu campamento.",
