@@ -1950,6 +1950,21 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   thorsten 4.2% (1.13.8), kerstin 24.2%, Kokoro patched 5.3%; RTF 0.08 Piper, 0.7 Kokoro. **Moving the pin to 2.x silences Spanish
   Kokoro** (`Generate` returns empty audio, logs "No lexicon available"). Outcome recorded in D-game-27 item 7: Piper thorsten on 1.13.8
   under D2; M93 is the GPL-free path. Not checked: the data licence of the English checkpoints Piper's German voices were fine-tuned from.
+- **M37, the German text layer and the German pack started (2026-11-09, Sonnet 5.5 medium, relaunched once from a WIP commit after the
+  owner stopped the first agent; gated at `69c38efe` on `feature/german`, 11093 passed, 0 failed).** New projects `src/Vocaterra.Nlp.De`
+  and `tests/Vocaterra.Nlp.De.Tests` (510 tests). `GermanLanguagePack` (`de`): normalizer (contractions with case, final marks, German
+  quotes), folding (`ä ö ü ß` ↔ `ae oe ue ss`; `schon` vs `schön` decided by the lexicon), numbers (0 to 999,999 both ways, `Agree` with
+  case for `ein`; lenient `einsundzwanzig` = 21), phonetic key, punctuation, repair lines ("Wie bitte?"), recast policy
+  (`RestoredCapitals`: nouns, formal `Sie` when the reading's register is `formal`, sentence start; umlauts; Swiss `ss` accepted), plain
+  orthography notes, `GrammarDefaults` (no dropped subject, `bitte` trailing, leading and after the finite verb), `GrammaticalCases`
+  `nom acc dat gen`, `LexiconProfile` (`m f n`, four cases, verb forms, declensions, 64 separable particles, register `formal`),
+  `ErrorTagSet` V1 plus `orth.capital`. `SupportsV2Order` false until M40; `G2p` null; `CreateMorphology`, `CreateAnalysisRules` and
+  `CreateTemplateFunctions` throw `NotSupported` naming M38, M39, M40, so a German bundle does not load yet. Fuzz: O1 on German through a
+  new `LanguageOracles.Normalizer(ILanguagePack, Gen<string>, …)` overload (Spanish delegates to it, unchanged); O6 on German metamorphic
+  only (3,000 iterations: case, quotes, spacing, NFD, `ae/oe/ue/ss` respellings, sound-alikes); O2, O7 and O14 wait for a German bundle;
+  `GermanFuzzText` generator. No engine or Spanish file changed. **For M39:** set `Register=formal` on `Sie`; raise `orth.capital` from
+  `GermanRecastPolicy.MissingCapitals` on typed input only (never from `Token.Original` of ASR output); `AnalysisSlotFinder` still knows
+  only the trailing polite phrase.
 
 ## 6. Definition of done (every milestone)
 
@@ -2257,7 +2272,7 @@ The research lists seven places that would break silently when a second language
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
 | M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | done (merged to `feature/language-packs` `dd8eaa7`, 2026-10-27) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | done (2026-11-09, gated at `cc5a06a3` on `feature/german`; section 5b): kaikki's deprecated German extract pinned, `de_50k`, top 8000, 13.4 MB, load 240 to 250 ms |
-| M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | authorised (2026-11-08); the folding runs before M79's typo slip and the slip never fires when the folded form is a known word |
+| M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | done (2026-11-09, gated at `69c38efe` on `feature/german`, 11093 passed; section 5b) |
 | M38 | German morphology | M36 | S | authorised (2026-11-08); after M88 |
 | M39 | German A1 analyzer: chunk-based case, gender and number; V2 and verb-bracket order; separable and modal verbs. A false-positive gate runs on a corpus of correct sentences | M37, M38 | S | authorised (2026-11-08); after M88; spike R5 (does the shared resolver fit, or a pre-resolution chunker hook) first; the corpus of correct sentences is the German phrase sheet's model answers (R6) |
 | M40 | German grammar DSL options and template filters | M38 | S | authorised (2026-11-08); after M88 |
