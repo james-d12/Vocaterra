@@ -1,4 +1,3 @@
-using Vocaterra.Nlp.Language.Packs;
 using System.Text;
 using CsCheck;
 using Vocaterra.Nlp.Asr;
@@ -20,6 +19,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
