@@ -35,6 +35,37 @@ public static class GermanNumbers
 
     private static readonly Dictionary<string, int> UnitValues = BuildUnits();
 
+    /// <summary>
+    /// Makes a spelled-out number agree with the noun that follows it: a number that ends in <c>ein</c> or <c>eins</c> (<c>ein</c>, <c>hunderteins</c>) takes the ending
+    /// of the indefinite article for the gender and the case (<c>ein</c>, <c>eine</c>, <c>einen</c>, <c>einem</c>, <c>einer</c>, <c>eines</c>); every other number is
+    /// returned as it is. No case means the nominative. Only the number one has the ending, as <c>zwei</c> and above do not decline in this range.
+    /// </summary>
+    /// <param name="words">The number in words.</param>
+    /// <param name="gender"><c>m</c>, <c>f</c> or <c>n</c>.</param>
+    /// <param name="grammaticalCase"><c>nom</c>, <c>acc</c>, <c>dat</c>, <c>gen</c> or null.</param>
+    /// <exception cref="NotSupportedException">The case is not one of the four.</exception>
+    public static string Agree(string words, string gender, string? grammaticalCase = null)
+    {
+        ArgumentNullException.ThrowIfNull(words);
+        ArgumentNullException.ThrowIfNull(gender);
+        var ending = (grammaticalCase ?? "nom", gender) switch
+        {
+            ("nom", "f") or ("acc", "f") => "e",
+            ("dat", "f") or ("gen", "f") => "er",
+            ("nom", _) or ("acc", "n") => string.Empty,
+            ("acc", _) => "en",
+            ("dat", _) => "em",
+            ("gen", _) => "es",
+            _ => throw new NotSupportedException($"German has no case '{grammaticalCase}'; the cases are nom, acc, dat and gen."),
+        };
+        if (words.EndsWith("eins", StringComparison.Ordinal))
+        {
+            return string.Concat(words.AsSpan(0, words.Length - 1), ending);
+        }
+
+        return words.EndsWith("ein", StringComparison.Ordinal) ? words + ending : words;
+    }
+
     /// <summary>Spells an integer from 0 to <see cref="MaxValue"/> in words.</summary>
     /// <param name="value">The number.</param>
     /// <exception cref="ArgumentOutOfRangeException">The value is below 0 or above <see cref="MaxValue"/>.</exception>
