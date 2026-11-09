@@ -31,6 +31,7 @@ Last checked against `main`: 2026-11-09 (after pull requests #46, #47, #48 and #
 | German | Seven decisions: bundle shape, saves, register, voices, scope | T01 to T10 (part 1 is pull request #51) | [German in the game](research/2026-11-04-german-in-the-game.md) |
 | Mobile | Six questions, in no decision register | Nothing planned | [mobile feasibility](research/2026-10-30-mobile-feasibility.md) section 6 |
 | Core systems | Items as data, instructions as content, the learner signal; the cast's size; specialist words against the A2 gate | W12 onward | [core systems review](research/2026-11-01-core-systems-review.md) section 5 |
+| Settlement proposal | Review inn accommodation, first land purchase, free site selection, interiors and village/map expansion; proposed defaults in section 7 | Milestone registration and implementation | [settlement plan](game/settlement-plan.md) |
 | Playtest | Sessions 7 to 10: a late-start profile, the battery's size, testers with A1 Spanish | "Not planned" | [playtest](game/playtest.md) section 14 |
 | Content | Should `content/PHRASES.md` be generated from data? | Nothing | [content plan](game/content-plan.md) |
 
