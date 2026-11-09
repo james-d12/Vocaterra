@@ -82,7 +82,7 @@ public sealed class ScenarioScriptTests
         {
             var opening = Session.OpenTalk(npc);
             Openings.Add(opening);
-            Dialogue.Open(opening, Session.Data.Npcs.LabelOf(npc), Session.Review?.Question);
+            Dialogue.Open(opening, Session.Data.Npcs.CalledOf(npc), Session.Review?.Question);
         }
 
         private void CloseTalk()
@@ -145,7 +145,7 @@ public sealed class ScenarioScriptTests
         run.Go();
 
         Assert.Equal("guide", run.Dialogue.Npc);
-        Assert.Equal("Guía", run.Dialogue.NpcName);
+        Assert.Equal("Luna", run.Dialogue.NpcName);
         Assert.Equal("guide", Assert.Single(run.Openings).Npc);
         Assert.Equal("río", run.Session.Pointer!.Place);
         Assert.Equal("pointing", run.Session.Conversation.GuideState.StateId);

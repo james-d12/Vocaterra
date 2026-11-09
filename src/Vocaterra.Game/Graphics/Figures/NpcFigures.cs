@@ -100,14 +100,14 @@ public static class NpcFigures
     /// <summary>The name of the player's figure for <see cref="PartsOf"/> (the figure drawn over the shoulder).</summary>
     public const string PlayerName = "player";
 
-    /// <summary>The figures of a scene's NPCs, in the scene's order, with their labels and looks from the NPC data (C08).</summary>
+    /// <summary>The figures of a scene's NPCs, in the scene's order, with what each is called (its name, or its label when it has none, #52) and its look from the NPC data (C08).</summary>
     /// <param name="scene">The scene.</param>
     /// <param name="npcs">The NPCs (<c>game/npcs/</c>).</param>
     public static IReadOnlyList<NpcFigure> FromScene(Scene scene, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(npcs);
-        return scene.Npcs.Select(n => new NpcFigure(n.Name, npcs.LabelOf(n.Name), n.Feet, n.Yaw, npcs.Find(n.Name)?.Figure)).ToList();
+        return scene.Npcs.Select(n => new NpcFigure(n.Name, npcs.CalledOf(n.Name), n.Feet, n.Yaw, npcs.Find(n.Name)?.Figure)).ToList();
     }
 
     /// <summary>The parts of a figure by its scene name (or <see cref="PlayerName"/>); an unknown name gets a plain grey figure. The array is shared: do not change it.</summary>

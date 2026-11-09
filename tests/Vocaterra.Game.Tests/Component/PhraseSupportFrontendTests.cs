@@ -329,7 +329,7 @@ public sealed class PhraseSupportFrontendTests
         private void OpenTalk(string npc)
         {
             var opening = Session.OpenTalk(npc, teachKeyWords: true);
-            Dialogue.Open(opening, Session.Data.Npcs.LabelOf(npc), Session.ReviewLine);
+            Dialogue.Open(opening, Session.Data.Npcs.CalledOf(npc), Session.ReviewLine);
         }
 
         private void CloseTalk()

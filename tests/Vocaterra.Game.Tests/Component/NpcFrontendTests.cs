@@ -107,7 +107,7 @@ public sealed class NpcFrontendTests
 
         dialogue.Close();
         dialogue.Open(); // the guide: her own page, her own first line
-        Assert.Equal("Guía", dialogue.NpcName);
+        Assert.Equal("Luna", dialogue.NpcName);
         Assert.Equal([new DialogueLine(DialogueSpeaker.Guide, "¡Hola! Soy la guía.")], dialogue.Lines);
     }
 
@@ -179,7 +179,7 @@ public sealed class NpcFrontendTests
             Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal(["Tendero", "Aldeano", "Guía"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
+        Assert.Equal(["Tendero", "Aldeano", "Luna"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
     }
 
     [Fact]
