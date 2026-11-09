@@ -11,7 +11,7 @@ every heavy command goes through `scripts/limited.sh`; if it waits for a slot, l
 
 ## The rules, environment, resources and gate
 Read `/home/james/Dev/Vocaterra/.claude/worktrees/m89/.claude/briefs/w07-station-view.md`, the sections **Output and context**,
-**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m89/` for your logs, @@COUNT@@ as the count before
+**Resources**, **Environment** and **Gate**: they apply to you, with `/tmp/claude-1000/m89/` for your logs, **10515 passed, 3 skipped** as the count before
 you, and these changes: skip the scripted runs (no game file changes); add `bash scripts/license-scan.sh --offline` (PASSED). Edit only
 `tests/Vocaterra.Nlp.Fuzzing.Tests` and, if it lists the test's known limits, its `README.md` and `docs/nlp/fuzzing-plan.md`. Never weaken
 the oracle; never lower a threshold to make it pass; no `System.Random`, no clock.
