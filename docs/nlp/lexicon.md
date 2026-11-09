@@ -26,6 +26,8 @@ is `content/game-v1/ATTRIBUTION.md`. [ADR 0008](adr/0008-lexicon-sources-and-fre
 | --- | --- | --- | --- |
 | kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL, post-processed), **current pin (M90)** | `https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl` | 1 119 672 965 bytes, `336903d1290968d77bd361c620d7d799ad7a7a9bc6ad353ec35954f2e15fbe6f` | 2026-11-08 (the site's file of 2026-10-30, extracted from the enwiktionary dump of 2026-10-01, wiktextract commits `19f9a30` and `6f96ddf`) |
 | kaikki.org Spanish extract, **earlier pin, the one `content/game-v1/lexicon/` was built from** (wiktextract JSONL, post-processed; 811 049 lines, all Spanish) | `https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl` | 1 054 565 723 bytes, `7b23a5dc004a47b63edc2e79a34b246bbf59d1a3067a1843a5c554c0e252b97c` | 2026-10-20 (the site's file of 2026-10-03, from the enwiktionary dump of 2026-09-02, wiktextract commits `1a05e46` and `e3d6d4e`) || hermitdave/FrequencyWords, OpenSubtitles 2018 counts (50 000 lines) | `https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/es/es_50k.txt` | 658 626 bytes, `dcff3ad4316192f4dc4ff7d26e637c6ff314ef1ca0f3f720c5649018a71056c0` | 2026-10-20 |
+| kaikki.org German extract of English Wiktionary (wiktextract JSONL, post-processed; 371 793 lines, all German; M36) | `https://kaikki.org/dictionary/German/kaikki.org-dictionary-German.jsonl` | 1 095 258 648 bytes, `4fb15662a125085e1eb6b533a210b45edcdffa7b8e72e07634f46e1485e4e715` | 2026-11-08 (the site's file of 2026-10-30, enwiktionary dump of 2026-10-01, wiktextract `19f9a30` and `6f96ddf`) |
+| hermitdave/FrequencyWords, OpenSubtitles 2018 counts, German (50 000 lines; M36) | `https://raw.githubusercontent.com/hermitdave/FrequencyWords/525f9b560de45753a5ea01069454e72e9aa541c6/content/2018/de/de_50k.txt` | 662 497 bytes, `d9e50546fd7e8b6fe6542a2b33c51d1331092b2a3916ec09f80d97856068705b` | 2026-11-08 |
 
 Neither file is committed. `lexicon-sources/` is git-ignored, like `models/`. The kaikki.org URL is not versioned (the publisher replaces the file
 with every extraction, and marks this post-processed download as deprecated), so the SHA-256 is the pin. The frequency URL names a commit and
@@ -67,6 +69,43 @@ committed lexicon does not depend on the download. To move to the new extraction
 run the import, read the report (`lexicon-report`, the skipped-by-reason table in the sidecar), bump `KaikkiImporter.ImporterVersion` if the rules changed,
 and review the diff of the generated file. If the post-processed Spanish file is withdrawn, the raw wiktextract download (all languages, 23.9 GB) is the
 replacement; the importer already filters on `lang_code` `es`, but its entry shape was not checked against the importer.
+
+## The German lexicon (M36, `content/game-de-v1/lexicon/`)
+
+Spike R4 (which source): the German extract above is still published but marked deprecated, like the Spanish one ("will be removed in the near future");
+the raw wiktextract data (`kaikki.org/rawdata.html`) is 3.1 GB compressed (24.8 GB), all languages, also deprecated, with no per-language file; the
+German Wiktionary extract (310 MB) has German glosses and a different entry shape. The per-language German extract won: pinnable by SHA-256, gender,
+plural, case forms and verb forms for the A1 and A2 lemmas, and 1.1 GB. If it is withdrawn, the pinned hash identifies what to keep and the raw file is
+the fallback (the importer filters on `lang_code`, but its entry shape was not checked against the importer).
+
+```bash
+scripts/fetch-lexicon-sources.sh            # now also kaikki-de and frequency-de-50k
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon \
+  lexicon-sources/kaikki.org-dictionary-German.jsonl content/game-de-v1/lexicon/wiktionary-de.json --language de \
+  --frequency lexicon-sources/de_50k.txt --top 8000 \
+  --sidecar content/game-de-v1/lexicon/wiktionary-de.source.json
+```
+
+`--language de` selects the German profile (`GermanKaikkiProfile`, importer version `de-1.0.0`); the default is the Spanish profile, whose output is byte
+for byte what it was before the profiles (M36 proved it on the full Spanish file: the importer before and after, same input, `cmp` identical). The
+German entries use these `LexicalFeatures`: `gender` `m f n`; `case` `nom acc dat gen`; `number`; `declension` (for nouns and adjectives `strong weak mixed`,
+for verbs `strong weak irregular`); `particle` (the separable prefix: `auf` for `aufstehen`, also on the finite forms); `verbForm` (`inf`, `part1`,
+`part2-haben`, `part2-sein`: the Perfekt auxiliary is part of the participle's form). The present, the Präteritum, the Konjunktiv II (as `pret`, mood
+`subj`) and the imperative of a verb are imported. Forms are lower case (the lexicon's key folds the case, and the frequency list is lower case).
+Decisions: a sense that is "form of" another word is an inflected form only when its tags name a case, number, person or tense (so the agent noun `Lehrer`
+and the feminine `Lehrerin` are lemmas); the personal-pronoun table is not read (Wiktionary hangs the whole table on every pronoun and tags `du`, `ihr`
+and `Sie` as unrecognised), so a pronoun is its head word and `mich`, `dir`, `dich` are pronouns of their own with their case.
+
+The file: top 8 000 by frequency (7 707 distinct lemmas in the file: the top N counts lemma spellings, and `Essen` and `essen` become one lemma once lower-cased), 108 539 entries (nouns 4 094 lemmas / 40 116 entries, verbs
+2 399 / 47 124, adjectives 1 012 / 20 389, adverbs 514, interjections 108, pronouns 142 / 151, prepositions 58, conjunctions 52, articles 2 / 21), 13.4 MB
+(the gate is 15 MB), `Lexicon.Load` of the text read beforehand 240 to 250 ms median (Release, one warm-up, five loads; the gate is 300 ms; the top 9 000
+is 15.1 MB and about 270 ms, so 8 000 was chosen). Two imports of the full source give identical bytes (`cmp`); `GermanLexiconImportTests` does it on a
+fixture. `GermanGeneratedLexiconTests` spot-checks 53 nouns and 30 verbs of the committed file. The folder has no manifest: it becomes the German bundle in T06.
+
+Known gaps, all in the source or by design: no forms table for `ein` in the source; no comparatives or superlatives; reflexive verbs are skipped (their head
+word has two words); no Konjunktiv I and no compound tenses; personal pronouns carry no person or number; Wiktionary lists variants the file keeps
+(`Mutter` also has the plural `Muttern` of the nut, `Mann` the unit plural `Mann`, `Tag` a plural `Tags`, `aufstehen` and `fahren` both auxiliaries, `Tee` both
+genders); a mass noun has no nominative plural (`Obst`, `Fleisch`).
 
 ## What the importer keeps and skips (importer version 1.1.0)
 

@@ -69,6 +69,11 @@ internal sealed partial class GermanKaikkiProfile : KaikkiLanguageProfile
     private static readonly ImmutableHashSet<string> UnsuitableSenseTags = ImmutableHashSet.Create(
         StringComparer.Ordinal, "obsolete", "archaic", "dated", "nonstandard", "neologism", "proscribed", "misspelling", "error-misspelling");
 
+    private static readonly ImmutableHashSet<string> InflectionSenseTags = ImmutableHashSet.Create(
+        StringComparer.Ordinal,
+        "nominative", "accusative", "dative", "genitive", "singular", "plural", "participle", "past", "present", "imperative", "subjunctive", "indicative",
+        "infinitive", "first-person", "second-person", "third-person", "comparative", "superlative", "gerund", "inflection", "dependent", "colloquial-form");
+
     private static readonly ImmutableHashSet<string> IgnoredFormTags = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "table-tags", "inflection-template", "class", "romanization", "multiword-construction", "obsolete", "archaic", "dated", "rare", "nonstandard",
@@ -113,7 +118,9 @@ internal sealed partial class GermanKaikkiProfile : KaikkiLanguageProfile
             return $"unsupported part of speech '{rawPos}'";
         }
 
-        if (KaikkiImporter.AllSenses(root, "form_of") || KaikkiImporter.IsInflectedFormPage(root))
+        // A sense that is "form of" another entry is an inflected form only when it says which form (nominative plural, past participle, ...): the agent noun
+        // Lehrer ("agent noun of lehren") and the feminine Lehrerin are lemmas with a form_of link to their base word.
+        if (pos != LexiconSchema.Pronoun && (KaikkiImporter.AllSenses(root, "form_of") && KaikkiImporter.AllSensesTagged(root, InflectionSenseTags) || KaikkiImporter.IsInflectedFormPage(root)))
         {
             return KaikkiImporter.InflectedFormReason;
         }
@@ -154,9 +161,11 @@ internal sealed partial class GermanKaikkiProfile : KaikkiLanguageProfile
             case LexiconSchema.Noun:
                 AddNoun(root, lemma, made);
                 break;
+            case LexiconSchema.Pronoun:
+                AddPronoun(root, lemma, made);
+                break;
             case LexiconSchema.Adjective:
             case LexiconSchema.Article:
-            case LexiconSchema.Pronoun:
                 AddCells(root, lemma, pos, made);
                 break;
             default:
@@ -171,6 +180,30 @@ internal sealed partial class GermanKaikkiProfile : KaikkiLanguageProfile
 
         entries.AddRange(made.Distinct());
         return null;
+    }
+
+    // Wiktionary hangs the whole table of the personal pronouns (ich, du, er, ... with all four cases) on every one of them and tags du, ihr and Sie as
+    // unrecognised, so the table is not read: a pronoun is its head word. The inflected forms (mich, dir, euch) are pages of their own, tagged with their
+    // case, and become pronouns of their own with that case when it is unambiguous.
+    private static void AddPronoun(JsonElement root, string lemma, List<LexiconEntry> made)
+    {
+        string? kase = null;
+        if (root.TryGetProperty("senses", out var senses) && senses.ValueKind == JsonValueKind.Array)
+        {
+            var cases = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var sense in senses.EnumerateArray())
+            {
+                var tags = KaikkiImporter.Tags(sense);
+                if (KaikkiImporter.AllSenses(root, "form_of") && Case(tags, 0) is { } found)
+                {
+                    cases.Add(found);
+                }
+            }
+
+            kase = cases.Count == 1 ? cases.First() : null;
+        }
+
+        made.Add(new LexiconEntry(lemma, lemma, LexiconSchema.Pronoun, kase is null ? EntryFeatures.None : new EntryFeatures(null, null, null, null, null, kase)));
     }
 
     private static bool Usable(string text, ImmutableHashSet<string> tags, bool allowTwoWords)
