@@ -116,7 +116,7 @@ public sealed class DialogueScreen : IScreen
     public void Open(string npc, char? openedBy)
     {
         var opening = _session.OpenTalk(npc, teachKeyWords: true);
-        _dialogue.Open(opening, _session.Data.Npcs.CalledOf(npc), _session.ReviewLine, _session.RetryNote);
+        _dialogue.Open(opening, _session.Data.Npcs.TitleOf(npc), _session.ReviewLine, _session.RetryNote);
         _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {

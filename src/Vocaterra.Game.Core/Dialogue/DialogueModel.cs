@@ -60,7 +60,7 @@ public sealed class DialogueModel
         _words = data.Words;
         _npcs = data.Npcs;
         _ui = data.Locale;
-        NpcName = _npcs.CalledOf(NpcService.GuideAgent);
+        NpcName = _npcs.TitleOf(NpcService.GuideAgent);
         Buttons = SpeechButtons.For(_words.Buttons);
         _focus = focus;
         _openingLine = openingLine;
@@ -265,7 +265,7 @@ public sealed class DialogueModel
             return;
         }
 
-        SwitchTo(NpcService.GuideAgent, _npcs.CalledOf(NpcService.GuideAgent));
+        SwitchTo(NpcService.GuideAgent, _npcs.TitleOf(NpcService.GuideAgent));
         IsOpen = true;
         Mode = PanelMode.Buttons;
         _focus.TextEntryActive = true;

@@ -81,11 +81,11 @@ public sealed class NpcFrontendTests
         var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped);
         var opening = new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false);
 
-        dialogue.Open(opening, "Tendero");
+        dialogue.Open(opening, RouteScene.Shipped.Npcs.TitleOf("shopkeeper"));
 
         Assert.True(dialogue.IsOpen);
         Assert.True(focus.TextEntryActive);
-        Assert.Equal("Tendero", dialogue.NpcName);
+        Assert.Equal("Pablo (Tendero)", dialogue.NpcName);
         Assert.Equal("shopkeeper", dialogue.Npc);
         Assert.Equal([new DialogueLine(DialogueSpeaker.Guide, "¿Qué necesitas?")], dialogue.Lines);
 
@@ -107,7 +107,7 @@ public sealed class NpcFrontendTests
 
         dialogue.Close();
         dialogue.Open(); // the guide: her own page, her own first line
-        Assert.Equal("Luna", dialogue.NpcName);
+        Assert.Equal("Luna (Guía)", dialogue.NpcName);
         Assert.Equal([new DialogueLine(DialogueSpeaker.Guide, "¡Hola! Soy la guía.")], dialogue.Lines);
     }
 
@@ -179,7 +179,7 @@ public sealed class NpcFrontendTests
             Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal(["Tendero", "Aldeano", "Luna"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
+        Assert.Equal(["Pablo (Tendero)", "Tomás (Aldeano)", "Luna (Guía)"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
     }
 
     [Fact]

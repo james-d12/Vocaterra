@@ -3,6 +3,7 @@
   "schemaVersion": 2,
   "id": "shopkeeper",
   "label": "Tendero",
+  "name": "Pablo",
   "figure": "shopkeeper",
   "focus": {
     "stall-need": [

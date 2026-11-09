@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>One NPC as the game's data gives it (content-plan 3.6, C08): only what no other file holds, and since schema 2 (village-plan V01) what it does that was code.</summary>
 /// <param name="Id">The agent id (<c>guide</c>): the core's <c>agents/&lt;id&gt;.json</c> has the same id, the scene places it, and the saves name it.</param>
-/// <param name="Label">The NPC's target-language role (<c>Guía</c>, <c>Tendero</c>); an NPC with no name is called by it (<see cref="Called"/>).</param>
+/// <param name="Label">The NPC's target-language role (<c>Guía</c>, <c>Tendero</c>), shown in brackets after its name (<see cref="Title"/>); an NPC with no name is called by it (<see cref="Called"/>).</param>
 /// <param name="Name">The NPC's own name (<c>Luna</c>), or <see langword="null"/> for an NPC known by its label.</param>
 /// <param name="Figure">The key of the NPC's figure (its colours, its geometry and its face are drawn by the game, keyed by it).</param>
 /// <param name="Focus">The phrases each of the NPC's prompts practises, by prompt (<c>stall-need</c> gives <c>pedir-agua</c>): the phrases that are at home with this NPC.</param>
@@ -18,8 +18,11 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
 
     private readonly string? _poolPrefix;
 
-    /// <summary>What the NPC is called: their name, or their label when they have none (over its head, on the dialogue panel and on the beacon, C08 and #52; <c>{npc:&lt;id&gt;}</c> in the support language, C04).</summary>
+    /// <summary>What the NPC is called: their name, or their label when they have none (the beacon shows it, C08; <c>{npc:&lt;id&gt;}</c> in the support language, C04).</summary>
     public string Called => Name ?? Label;
+
+    /// <summary>What the NPC is shown as, over its head and on the dialogue panel: its name with its role in brackets (<c>Luz (Panadera)</c>), or its label alone when it has no name (#52).</summary>
+    public string Title => Name is null ? Label : $"{Name} ({Label})";
 
     /// <summary>
     /// The prompt the NPC waits on in each state of its agent (<c>idle</c>: <c>stall-need</c>, <c>offering</c>: <c>stall-offer</c>); a state not listed waits on the
@@ -177,12 +180,13 @@ public sealed class NpcRoster
         return All.FirstOrDefault(npc => npc.OwnsPool(poolId));
     }
 
-    /// <summary>
-    /// What an NPC is called (<see cref="NpcEntry.Called"/>: <c>Luz</c>, or <c>Tendero</c> for an NPC with no name), or the id itself for an NPC the data does not have:
-    /// the text over its head and on the dialogue panel, the same as the beacon and the lines say (#52).
-    /// </summary>
+    /// <summary>What an NPC is called (<see cref="NpcEntry.Called"/>: <c>Luz</c>), or the id itself for an NPC the data does not have: the name the English notes use.</summary>
     /// <param name="id">The agent id.</param>
     public string CalledOf(string id) => Find(id)?.Called ?? id;
+
+    /// <summary>What an NPC is shown as (<see cref="NpcEntry.Title"/>: <c>Luz (Panadera)</c>), or the id itself for an NPC the data does not have (#52).</summary>
+    /// <param name="id">The agent id.</param>
+    public string TitleOf(string id) => Find(id)?.Title ?? id;
 
     /// <summary>The phrases a prompt practises (its NPC's focus at it), or none.</summary>
     /// <param name="prompt">The prompt's id.</param>

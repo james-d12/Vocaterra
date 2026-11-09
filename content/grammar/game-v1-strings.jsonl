@@ -3575,9 +3575,11 @@
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
 {"id":"npcs/shopkeeper.json:label","text":"Tendero","kind":"npc"}
+{"id":"npcs/shopkeeper.json:name","text":"Pablo","kind":"npc"}
 {"id":"npcs/shopkeeper.json:keyWords[0]","text":"agua","kind":"npc"}
 {"id":"npcs/shopkeeper.json:keyWords[1]","text":"pan","kind":"npc"}
 {"id":"npcs/villager.json:label","text":"Aldeano","kind":"npc"}
+{"id":"npcs/villager.json:name","text":"Tomás","kind":"npc"}
 {"id":"npcs/fisher.json:label","text":"Pescador","kind":"npc"}
 {"id":"npcs/fisher.json:name","text":"Mar","kind":"npc"}
 {"id":"npcs/baker.json:label","text":"Panadera","kind":"npc"}

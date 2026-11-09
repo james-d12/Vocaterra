@@ -50,7 +50,7 @@ public sealed class FontTests
         };
 
         // C08: the NPCs' labels and names (the panel's title, the label over the head, the beacon).
-        strings.AddRange(RouteScene.Shipped.Npcs.All.SelectMany(static npc => new[] { npc.Label, npc.Called }));
+        strings.AddRange(RouteScene.Shipped.Npcs.All.SelectMany(static npc => new[] { npc.Label, npc.Called, npc.Title }));
 
         // Every template and prompt of the bundle, as written (the slot words are plain nouns the font covers as letters).
         var bundle = Repo.Path("content", "game-v1");

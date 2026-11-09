@@ -30,12 +30,12 @@
     "label": {
       "type": "string",
       "minLength": 1,
-      "description": "The NPC's target-language role (Guía); an NPC with no name is called by it over the head, on the dialogue panel and on the beacon."
+      "description": "The NPC's target-language role (Guía): shown in brackets after the name over the head and on the dialogue panel (Luna (Guía)), and alone for an NPC with no name."
     },
     "name": {
       "type": "string",
       "minLength": 1,
-      "description": "The NPC's own name (Luna): shown over the head, on the dialogue panel and on the beacon, or the label when there is none."
+      "description": "The NPC's own name (Luna): over the head and on the dialogue panel with the label in brackets, on the beacon and in the support language's {npc:<id>}."
     },
     "figure": {
       "type": "string",
