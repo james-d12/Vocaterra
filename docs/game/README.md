@@ -89,6 +89,7 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [Lessons and sessions](lessons.md) | The English guidance, the guide's lesson, verbs and tenses, the village's sessions 4 to 10, sleeping into the next session, the summary card and the second try |
 | [The book](book.md) | The learner's book, its pages, replay, the conjugation tables |
 | [Saves](saves.md) | Saves across content updates, autosave and the crash report |
+| [Inn, land and settlement plan](settlement-plan.md) | Proposal for review: inn accommodation, the first purchased campsite, usable interiors and village/map expansion |
 | [Sound and display](sound-and-display.md) | The audio system and sounds, UI scale and readable text |
 | [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |
 | [content/README.md](../../content/README.md) | Editing the content: the edit loop, lessons and their level |
