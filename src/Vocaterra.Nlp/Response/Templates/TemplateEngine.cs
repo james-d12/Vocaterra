@@ -12,6 +12,9 @@ namespace Vocaterra.Nlp.Response.Templates;
 /// <c>{{</c> or <c>}}</c>. Filters: <c>plural-if(qty)</c> (noun in the number of slot <c>qty</c>), <c>article(def|indef)</c> (article and noun, agreeing),
 /// <c>conj(person,number,tense)</c> (the slot holds a verb lemma), <c>words</c>, <c>words(m|f|slot)</c> (digits as Spanish words, optionally
 /// with <c>un/una</c> agreement) and <c>cap</c> (capitalize the first letter). Output is deterministic and ends with <c>¿ ¡</c> balancing.
+/// M88 (additive): <c>article(def|indef,case)</c> and <c>words(m|f|slot,case)</c> take a grammatical case, and a pack with no
+/// <see cref="ILanguagePack.GrammaticalCases"/> rejects it; <c>decl(gender,number,case[,def|indef])</c> (the slot holds an adjective) and <c>particle</c> (the slot
+/// holds a verb lemma; the separable particle, or nothing) work only for a pack whose template functions support them.
 /// </summary>
 public sealed class TemplateEngine
 {
@@ -102,7 +105,7 @@ public sealed class TemplateEngine
                 {
                     names.Add(filter.Args[0]);
                 }
-                else if (filter.Name == "words" && filter.Args.Count == 1 && filter.Args[0] is not ("m" or "f"))
+                else if (filter.Name == "words" && filter.Args.Count is 1 or 2 && filter.Args[0] is not ("m" or "f"))
                 {
                     names.Add(filter.Args[0]);
                 }
@@ -137,6 +140,7 @@ public sealed class TemplateEngine
                         kinds[placeholder.SlotName] = TemplateSlotKind.Number;
                         break;
                     case "conj":
+                    case "particle":
                         kinds.TryAdd(placeholder.SlotName, TemplateSlotKind.Verb);
                         break;
                 }
@@ -145,7 +149,7 @@ public sealed class TemplateEngine
                 {
                     kinds[filter.Args[0]] = TemplateSlotKind.Number;
                 }
-                else if (filter.Name == "words" && filter.Args.Count == 1 && filter.Args[0] is not ("m" or "f"))
+                else if (filter.Name == "words" && filter.Args.Count is 1 or 2 && filter.Args[0] is not ("m" or "f"))
                 {
                     // The argument names the noun that decides the gender, not a number.
                     kinds.TryAdd(filter.Args[0], TemplateSlotKind.Text);
@@ -210,6 +214,73 @@ public sealed class TemplateEngine
         }
     }
 
+    private static void RequireArgsBetween(TemplateFilter filter, PlaceholderPart placeholder, int least, int most)
+    {
+        if (filter.Args.Count < least || filter.Args.Count > most)
+        {
+            throw new TemplateException(
+                placeholder.Source,
+                $"Filter '{filter.Name}' takes {least} to {most} argument(s) but has {filter.Args.Count} in placeholder '{placeholder.Source}'.");
+        }
+    }
+
+    // The case a filter names, checked against the pack's cases: a pack with none rejects any case argument (Spanish), a pack with some rejects a case it lacks.
+    private string RequireCase(string grammaticalCase, PlaceholderPart placeholder, string filterName)
+    {
+        var cases = _language.GrammaticalCases;
+        if (cases.Count == 0)
+        {
+            throw new TemplateException(placeholder.Source, $"{filterName}() cannot take the case '{grammaticalCase}': this language has no grammatical case, in placeholder '{placeholder.Source}'.");
+        }
+
+        return cases.Contains(grammaticalCase)
+            ? grammaticalCase
+            : throw new TemplateException(placeholder.Source, $"{filterName}() takes a case of this language ({string.Join(", ", cases)}), not '{grammaticalCase}', in placeholder '{placeholder.Source}'.");
+    }
+
+    private string RenderDeclension(PlaceholderPart placeholder, TemplateFilter decl, string value)
+    {
+        if (!_functions.SupportsAdjectiveDeclension)
+        {
+            throw new TemplateException(placeholder.Source, $"decl() is not supported by this language, in placeholder '{placeholder.Source}'.");
+        }
+
+        var grammaticalCase = RequireCase(decl.Args[2], placeholder, "decl");
+        if (decl.Args[1] is not (Singular or Plural))
+        {
+            throw new TemplateException(placeholder.Source, $"decl() takes sg or pl as its number, not '{decl.Args[1]}', in placeholder '{placeholder.Source}'.");
+        }
+
+        Definiteness? kind = null;
+        if (decl.Args.Count == 4)
+        {
+            kind = decl.Args[3] switch
+            {
+                "def" or "definite" => Definiteness.Definite,
+                "indef" or "indefinite" => Definiteness.Indefinite,
+                _ => throw new TemplateException(placeholder.Source, $"decl() takes def or indef as its article kind, not '{decl.Args[3]}', in placeholder '{placeholder.Source}'."),
+            };
+        }
+
+        var adjective = value.Trim();
+        if (adjective.Length == 0 || adjective.Any(char.IsWhiteSpace))
+        {
+            throw new TemplateException(placeholder.Source, $"decl() needs a single adjective but slot '{placeholder.SlotName}' holds '{value}' in placeholder '{placeholder.Source}'.");
+        }
+
+        return _functions.DeclineAdjective(adjective, decl.Args[0], decl.Args[1], grammaticalCase, kind);
+    }
+
+    private string RenderParticle(PlaceholderPart placeholder, string value)
+    {
+        if (!_functions.SupportsSeparableParticle)
+        {
+            throw new TemplateException(placeholder.Source, $"particle() is not supported by this language, in placeholder '{placeholder.Source}'.");
+        }
+
+        return _functions.SeparableParticle(ResolveVerbLemma(placeholder, value.Trim())) ?? string.Empty;
+    }
+
     private string RenderPlaceholder(PlaceholderPart placeholder, SlotMap slots)
     {
         var value = GetSlot(slots, placeholder.SlotName, placeholder);
@@ -219,6 +290,8 @@ public sealed class TemplateEngine
         TemplateFilter? article = null;
         TemplateFilter? conj = null;
         TemplateFilter? words = null;
+        TemplateFilter? decl = null;
+        TemplateFilter? particle = null;
         var capitalize = false;
         foreach (var filter in placeholder.Filters)
         {
@@ -229,8 +302,16 @@ public sealed class TemplateEngine
                     plural = filter;
                     break;
                 case "article":
-                    RequireArgs(filter, placeholder, 1);
+                    RequireArgsBetween(filter, placeholder, 1, 2);
                     article = filter;
+                    break;
+                case "decl":
+                    RequireArgsBetween(filter, placeholder, 3, 4);
+                    decl = filter;
+                    break;
+                case "particle":
+                    RequireArgs(filter, placeholder, 0);
+                    particle = filter;
                     break;
                 case "conj":
                     RequireArgs(filter, placeholder, 3);
@@ -239,7 +320,7 @@ public sealed class TemplateEngine
                 case "words":
                     if (filter.Args.Count > 1)
                     {
-                        RequireArgs(filter, placeholder, 1);
+                        RequireArgsBetween(filter, placeholder, 1, 2);
                     }
 
                     words = filter;
@@ -254,14 +335,22 @@ public sealed class TemplateEngine
         }
 
         var nounFilters = plural is not null || article is not null;
-        var exclusive = (conj is not null ? 1 : 0) + (words is not null ? 1 : 0) + (nounFilters ? 1 : 0);
+        var exclusive = (conj is not null ? 1 : 0) + (words is not null ? 1 : 0) + (nounFilters ? 1 : 0) + (decl is not null ? 1 : 0) + (particle is not null ? 1 : 0);
         if (exclusive > 1)
         {
             throw new TemplateException(placeholder.Source, $"Filters cannot be combined this way in placeholder '{placeholder.Source}'.");
         }
 
         string result;
-        if (conj is not null)
+        if (decl is not null)
+        {
+            result = RenderDeclension(placeholder, decl, value);
+        }
+        else if (particle is not null)
+        {
+            result = RenderParticle(placeholder, value);
+        }
+        else if (conj is not null)
         {
             result = RenderConjugation(placeholder, conj, value);
         }
@@ -333,7 +422,9 @@ public sealed class TemplateEngine
         var gender = argument is "m" or "f"
             ? argument
             : _functions.GenderOf(_functions.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular));
-        return _language.Numbers.Agree(spelled, gender);
+        return words.Args.Count == 2
+            ? _language.Numbers.Agree(spelled, gender, RequireCase(words.Args[1], placeholder, "words"))
+            : _language.Numbers.Agree(spelled, gender);
     }
 
     private string RenderNoun(PlaceholderPart placeholder, TemplateFilter? plural, TemplateFilter? article, string value, SlotMap slots)
@@ -366,7 +457,9 @@ public sealed class TemplateEngine
         }
 
         var gender = _functions.GenderOf(singular);
-        return _functions.Article(definiteness.Value, gender, number, singular) + " " + form;
+        return (article!.Args.Count == 2
+            ? _functions.Article(definiteness.Value, gender, number, singular, RequireCase(article.Args[1], placeholder, "article"))
+            : _functions.Article(definiteness.Value, gender, number, singular)) + " " + form;
     }
 
     private bool IsPluralQuantity(PlaceholderPart placeholder, string slotName, string quantity)

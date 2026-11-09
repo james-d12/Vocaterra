@@ -53,6 +53,7 @@ public static class RecastBuilder
         var text = playerText.Text;
         var edits = ResolveErrorEdits(text, [.. analysis.Errors, .. verdictErrors.Where(e => !analysis.Errors.Any(a => a.Tag == e.Tag && a.Span == e.Span))]);
         AddRestoredSpellings(playerText, language.Recast.RestoredSpellings(playerText, analysis, lexicon), edits);
+        AddRestoredSpellings(playerText, language.Recast.RestoredCapitals(playerText, analysis, lexicon), edits);
         AddNumberEdits(playerText, analysis, language.Numbers, edits);
 
         edits.Sort(static (a, b) => b.Start.CompareTo(a.Start));

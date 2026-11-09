@@ -64,6 +64,12 @@ public sealed class XxLanguagePack : ILanguagePack
     /// <inheritdoc />
     public GrammarDefaults GrammarDefaults { get; } = new(false, [], []);
 
+    /// <summary>The toy language has two cases, so the case paths of the template filters are exercised with no Spanish registered.</summary>
+    public IReadOnlyList<string> GrammaticalCases { get; } = ["nom", "acc"];
+
+    /// <summary>The toy language declares V2 support (the expansion is not implemented), so a grammar file may carry <c>order: "v2"</c>.</summary>
+    public bool SupportsV2Order => true;
+
     /// <inheritdoc />
     public LintVocabulary Lint { get; } = new([], [], []);
 
@@ -220,6 +226,12 @@ public sealed class XxLanguagePack : ILanguagePack
         {
             ArgumentNullException.ThrowIfNull(words);
             return words;
+        }
+
+        public string Agree(string words, string gender, string? grammaticalCase)
+        {
+            ArgumentNullException.ThrowIfNull(words);
+            return grammaticalCase is null ? words : words + "." + grammaticalCase;
         }
 
         private static bool TryWord(string word, out int value)

@@ -1,7 +1,7 @@
 namespace Vocaterra.Nlp.Es.Text;
 
 /// <summary>
-/// Spanish number agreement (the Spanish implementation of <see cref="INumberWords.Agree"/>). Makes a spelled-out number agree with the noun that follows it: <c>uno</c> becomes <c>un</c> or <c>una</c>, <c>veintiuno</c> becomes <c>veintiún</c> or <c>veintiuna</c>.
+/// Spanish number agreement (the Spanish implementation of <see cref="INumberWords.Agree(string, string)"/>). Makes a spelled-out number agree with the noun that follows it: <c>uno</c> becomes <c>un</c> or <c>una</c>, <c>veintiuno</c> becomes <c>veintiún</c> or <c>veintiuna</c>.
 /// </summary>
 internal static class NumberAgreement
 {

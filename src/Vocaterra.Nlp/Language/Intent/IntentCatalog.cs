@@ -30,6 +30,9 @@ public sealed class IntentCatalog
     /// <summary>By convention a slot with this name holds a quantity and is therefore filled from a numeral.</summary>
     public const string QuantitySlot = "qty";
 
+    /// <summary>The value of an intent's <c>order</c> that asks for the verb-second expansion of its grammars (M88; the expansion is M40's).</summary>
+    public const string V2Order = "v2";
+
     private static readonly IReadOnlyList<string> NoSlots = [];
 
     private readonly Dictionary<string, IntentDefinition> _byId;
@@ -67,7 +70,11 @@ public sealed class IntentCatalog
     /// The language's folding, whose <see cref="ILexiconFolding.Key"/> lower-cases the keyword-rule lemmas and the grammar literals (M34, additive); null for the
     /// language-neutral key (Unicode NFC and invariant lower case, which is the Spanish key).
     /// </param>
-    public static IntentCatalog Load(string json, ILexiconFolding? folding = null)
+    /// <param name="supportsV2Order">
+    /// True when the pack declares <see cref="ILanguagePack.SupportsV2Order"/> (M88, additive). An intent that carries <c>"order": "v2"</c> is refused with a
+    /// <see cref="FormatException"/> when this is false; any other <c>order</c> value is refused always.
+    /// </param>
+    public static IntentCatalog Load(string json, ILexiconFolding? folding = null, bool supportsV2Order = false)
     {
         ArgumentNullException.ThrowIfNull(json);
         var file = CanonicalJson.Deserialize<IntentCatalogFile>(json);
@@ -86,7 +93,7 @@ public sealed class IntentCatalog
         var intents = new List<IntentDefinition>(file.Intents.Count);
         foreach (var entry in file.Intents)
         {
-            var definition = Build(entry, folding);
+            var definition = Build(entry, folding, supportsV2Order);
             if (!seen.Add(definition.Id.Value))
             {
                 throw new FormatException($"Duplicate intentId '{definition.Id.Value}'.");
@@ -140,7 +147,8 @@ public sealed class IntentCatalog
                     .Select(static rule => new KeywordRuleEntry(rule.Lemmas, rule.RequiresSlots, rule.SlotFromNoun, rule.SlotFromNumber))
                     .ToArray(),
                 intent.ExampleSpecs,
-                intent.Lint.IsEmpty ? null : intent.Lint));
+                intent.Lint.IsEmpty ? null : intent.Lint,
+                intent.Order));
         }
 
         return CanonicalJson.Serialize(new IntentCatalogFile(CurrentSchemaVersion, entries));
@@ -152,7 +160,7 @@ public sealed class IntentCatalog
         return DeterministicHash.OfText(ToJson());
     }
 
-    private static IntentDefinition Build(IntentEntry? entry, ILexiconFolding? folding)
+    private static IntentDefinition Build(IntentEntry? entry, ILexiconFolding? folding, bool supportsV2Order)
     {
         if ((object?)entry is null)
         {
@@ -170,6 +178,7 @@ public sealed class IntentCatalog
         }
 
         var id = entry.IntentId;
+        var order = BuildOrder(entry.Order, id, supportsV2Order);
         var required = SlotNames(entry.RequiredSlots, id, "requiredSlots");
         var grammars = BuildGrammars(entry.SlotGrammars, id, folding);
         var rules = BuildRules(entry.KeywordRules, id, folding);
@@ -181,7 +190,7 @@ public sealed class IntentCatalog
                 $"Intent '{id}' has no slotGrammars, keywordRules or examples, so nothing can produce it; add at least one slot grammar, keyword rule or example.");
         }
 
-        return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules), BuildLint(entry.Lint, id));
+        return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules), BuildLint(entry.Lint, id), order);
     }
 
     private static string[] SlotNames(IReadOnlyList<string>? names, string intentId, string member)
@@ -193,6 +202,23 @@ public sealed class IntentCatalog
         }
 
         return [.. set];
+    }
+
+    private static string? BuildOrder(string? order, string intentId, bool supportsV2Order)
+    {
+        if (order is null)
+        {
+            return null;
+        }
+
+        if (!string.Equals(order, V2Order, StringComparison.Ordinal))
+        {
+            throw new FormatException($"Intent '{intentId}' has an unknown order '{order}'; the only value is \"{V2Order}\".");
+        }
+
+        return supportsV2Order
+            ? order
+            : throw new FormatException($"Intent '{intentId}' declares order \"{V2Order}\", but the language pack does not support V2 grammars (ILanguagePack.SupportsV2Order is false).");
     }
 
     private static string SlotName(string? name, string intentId, string member)

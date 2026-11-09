@@ -25,6 +25,10 @@ public sealed class XxMorphology : IMorphology
     public string Article(Definiteness definiteness, string gender, string number, string nounLemma) => Article(definiteness, gender, number);
 
     /// <inheritdoc />
+    public string Article(Definiteness definiteness, string gender, string number, string nounLemma, string? grammaticalCase) =>
+        Article(definiteness, gender, number) + (grammaticalCase is null ? string.Empty : "." + grammaticalCase);
+
+    /// <inheritdoc />
     public string AgreeAdjective(string lemma, string gender, string number) => lemma;
 
     /// <inheritdoc />
@@ -134,4 +138,21 @@ public sealed class XxTemplateFunctions : ITemplateFunctions
     /// <inheritdoc />
     public string Article(Definiteness definiteness, string gender, string number, string singular) =>
         definiteness == Definiteness.Definite ? "the" : "a";
+
+    /// <inheritdoc />
+    public string Article(Definiteness definiteness, string gender, string number, string singular, string? grammaticalCase) =>
+        Article(definiteness, gender, number, singular) + (grammaticalCase is null ? string.Empty : "." + grammaticalCase);
+
+    /// <inheritdoc />
+    public bool SupportsAdjectiveDeclension => true;
+
+    /// <inheritdoc />
+    public string DeclineAdjective(string adjective, string gender, string number, string grammaticalCase, Definiteness? articleKind) =>
+        $"{adjective}-{number}.{grammaticalCase}{(articleKind is { } kind ? "." + (kind == Definiteness.Definite ? "def" : "indef") : string.Empty)}";
+
+    /// <inheritdoc />
+    public bool SupportsSeparableParticle => true;
+
+    /// <summary>A lemma written <c>particle+stem</c> has that particle; any other lemma has none.</summary>
+    public string? SeparableParticle(string verbLemma) => verbLemma.IndexOf('+', StringComparison.Ordinal) is var plus and > 0 ? verbLemma[..plus] : null;
 }
