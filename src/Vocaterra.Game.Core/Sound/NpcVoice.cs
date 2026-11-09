@@ -66,7 +66,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     }
 
     /// <summary>Whether the voice is muted (<c>--mute</c>).</summary>
-    public bool Muted { get; }
+    public bool Muted { get; set; }
 
     /// <summary>How many clips started.</summary>
     public int Played { get; private set; }

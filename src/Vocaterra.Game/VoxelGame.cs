@@ -14,6 +14,7 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
@@ -46,6 +47,7 @@ using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Lesson;
+using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
 using Vocaterra.Game.UI.Station;
@@ -119,8 +121,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly GuideGreeting _greeting;
     private readonly SessionEndingFlow _endingFlow;
     private readonly LessonFrontend _lesson;
-    private readonly ControlsHelp _controls;
-    private readonly SettingsPanel _settings;
+    private readonly PlayerSettings _settings;
+    private readonly MenuScreen _menu;
+    private readonly ControlsPageCache _controlLines;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly MicCheckModel? _micCheck;
@@ -171,8 +174,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly WorldInput _worldInput;
 
     // The autosave (X05, R04): the policy decides the frames; the file is the playtest's playtest.save, else autosave.save in the session folder.
-    // A run with --no-autosave has neither.
+    // A run with --no-autosave starts with it off (the menu's Autosave row switches it).
     private readonly AutosaveController? _autosave;
+    private bool _showTips; // the first-time tips are drawn (an interactive run, or --tips; the menu's First-time tips row)
+    private bool _dusk; // --dusk, and the menu's Dusk lighting row
 
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
@@ -183,20 +188,23 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="scene">The built scene.</param>
     /// <param name="voice">The NPCs voices.</param>
     /// <param name="pristine">Builds a fresh scene of the session seed.</param>
-    /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
-    /// <param name="savedTextScale">The interface text size in percent a loaded save holds (X08), or <see langword="null"/>; <c>--text-scale</c> overrides it.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null, SaveSettings? savedSettings = null)
+    /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
+    /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
     {
         _options = options;
-        _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
+        _showTips = options.ShowsTips;
+        _dusk = options.Dusk;
+        // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume));
+        _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
-        session.RelaxedNeeds = options.RelaxedNeeds || savedSettings?.RelaxedNeeds == true; // half the rates, a faint for a death (N05, design decision 17)
-        session.NeedsRate = options.NeedsRate ?? savedSettings?.EffectiveNeedsRate ?? SaveSettings.DefaultNeedsRate; // the drive rate (N09)
-        _underwaterBlur = options.UnderwaterBlur ?? savedSettings?.EffectiveUnderwaterBlur ?? UnderwaterBlurSettings.Default; // H11: a launch option overrides the saved setting for a run
-        _needsHud = new NeedsHud(session) { EffectsOn = options.ViewEffects ?? !(savedSettings?.ViewEffectsOff ?? false) };
+        session.RelaxedNeeds = _settings.RelaxedNeeds; // half the rates, a faint for a death (N05, design decision 17)
+        session.NeedsRate = _settings.NeedsRate; // the drive rate (N09)
+        _needsHud = new NeedsHud(session) { EffectsOn = _settings.ViewEffects };
         foreach (var (meter, value) in options.SetNeeds)
         {
             session.SetNeed(meter, value); // --set-need (N01, a test aid)
@@ -206,12 +214,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
-        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, savedVolumes, layout);
+        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: options.Dev);
+        _dialogue.RestorePages(savedDialogue); // U08: the panel scrolls back over the earlier sessions
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -231,14 +240,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
-        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_underwaterBlur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
+        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
+        _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _reportScreen = new ReportScreen(
             _report,
             session,
             options.ReportKind,
             options.ReportDir,
             () => _sessionDirectory,
-            open => ReportStateBuilder.Build(session, (_look.YawSteps, _look.PitchSteps), open, _drawer.Preset.Name, options.Greyscale, options.NoSpeech, _microphoneFound, options.UsesMicrophone),
+            open => ReportStateBuilder.Build(session, (_look.YawSteps, _look.PitchSteps), open, _drawer.Preset.Name, _drawer.Colours?.Enabled ?? options.Greyscale, options.NoSpeech, _microphoneFound, options.UsesMicrophone),
             () => GraphicsDevice,
             _canvas,
             () => _drawer.View.Fonts.Get(FontProvider.NativeSize),
@@ -283,8 +293,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             },
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
-        _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
-        _settings = new SettingsPanel(() => session.NeedsRate, rate => { session.NeedsRate = rate; Console.WriteLine($"needs rate: {SettingsPanel.RateText(session.NeedsRate)}"); }, () => _needsHud.EffectsOn, on => { _needsHud.EffectsOn = on; Console.WriteLine($"view effects: {(on ? "on" : "off")}"); }, () => session.RelaxedNeeds, on => { session.RelaxedNeeds = on; Console.WriteLine($"relaxed needs: {(on ? "on" : "off")}"); }, () => _underwaterBlur, level => { _underwaterBlur = level; Console.WriteLine($"underwater blur: {level.ToString().ToLowerInvariant()}"); }); // N09, H11
+        _controlLines = new ControlsPageCache(session.Locale, () => _drawer.View.Fonts.Get(FontProvider.NativeSize));
+        var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
+        _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
+        _settings.Changed += ApplySetting;
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         _stationPanel = new StationPanel(
@@ -400,7 +412,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent, !_needsHud.EffectsOn, session.RelaxedNeeds, session.NeedsRate == SaveSettings.DefaultNeedsRate ? 0 : session.NeedsRate, _underwaterBlur == UnderwaterBlurSettings.Default ? null : _underwaterBlur), Console.WriteLine); // the sound volumes (S24), the text size (X08), the view effects and the relaxed needs (N05) ride in the save's settings
+        _saves = new SaveService(session, pristine, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -425,10 +437,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _saves,
             new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
             Console.WriteLine);
-        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message), _settings.Open);
+        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine, (tick, message) => _log?.RunTruncated(tick, message), OpenMenuFromScript);
         _screens = new ScreenStack(
-            [_micScreen, _checks, _dialogueScreen, _controls, _settings, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
-            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel, _controls, _settings]);
+            [_menu, _micScreen, _checks, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
+            [_menu, _checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
         _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell));
         var commands = new GameCommands(
@@ -436,7 +448,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Save: new DelegateCommand(SaveNow),
             CycleTextSize: new DelegateCommand(CycleTextSize),
             ToggleViewEffects: new DelegateCommand(ToggleViewEffects),
-            OpenSettings: new DelegateCommand(_settings.Open),
             EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
             ToggleDebug: new DelegateCommand(() => _dialogue.ShowVerdictNotes = _debug.Visible = !_debug.Visible),
             Listen: new DelegateCommand(() =>
@@ -446,16 +457,21 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }),
             TypeTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 't')),
             TalkTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 'e')),
-            OpenControls: new DelegateCommand(_controls.Open),
             NextTip: new DelegateCommand(() => _session.Tips.Dismiss()),
             OpenBook: openBook,
             OpenCrafting: new DelegateCommand(_craftingPanel.Open),
             OpenStation: new DelegateCommand(OpenStationAimed),
             OpenInventory: new DelegateCommand(_inventoryPanel.Open),
-            ReleaseMouse: new DelegateCommand(() =>
+            OpenMenu: new DelegateCommand(() =>
             {
-                _worldInput.ReleaseMouse();
-                _ending.Dismiss(); // Esc takes the closing card down (S17)
+                if (_ending.Visible(_sim.Tick))
+                {
+                    _ending.Dismiss(); // Esc takes the closing card down first (S17); the next Esc opens the menu
+                }
+                else
+                {
+                    _menu.Open();
+                }
             }),
             Sleep: new DelegateCommand(() => SleepNow("the player")),
             DrinkByHand: new DelegateCommand(() => _session.DrinkByHand()),
@@ -526,7 +542,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         pauses |= _craftingPanel.IsOpen ? PlayPause.Crafting : PlayPause.None;
         pauses |= _stationPanel.IsOpen ? PlayPause.Station : PlayPause.None;
         pauses |= _report.Paused ? PlayPause.Report : PlayPause.None;
-        pauses |= _controls.IsOpen || _settings.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
+        pauses |= _menu.IsOpen || _micScreen.IsOpen ? PlayPause.Menu : PlayPause.None;
         pauses |= _checks.Screen is not null ? PlayPause.CheckBattery : PlayPause.None;
         pauses |= _listen.Listening ? PlayPause.SpeechRecording : PlayPause.None;
         pauses |= _session.PendingTurns > 0 ? PlayPause.SpeechProcessing : PlayPause.None;
@@ -573,6 +589,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Fonts = new FontProvider(AssetPaths.Font),
         Pixel = pixel,
         Seed = _options.Seed,
+        ControlLines = _controlLines,
         Book = _book,
         Recordings = _recordings,
         Toasts = _toasts,
@@ -587,9 +604,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Objective = _session.Objective,
         Cards = _cards,
         MicCheck = _micCheck,
-        ShowTips = _options.ShowsTips,
         Playtest = _playtest,
-        Greyscale = _options.Greyscale,
         Ending = _ending,
     };
 
@@ -726,14 +741,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Check = _checks.Screen;
-        view.SettingsOpen = _settings.IsOpen;
-        view.SettingsSelected = _settings.Selected;
-        view.SettingsRate = _session.NeedsRate;
-        view.SettingsEffectsOn = _needsHud.EffectsOn;
-        view.SettingsRelaxed = _session.RelaxedNeeds;
-        view.SettingsBlur = _underwaterBlur;
-        view.ControlsOpen = _controls.IsOpen;
-        view.ControlsScroll = _controls.Scroll;
+        view.ShowTips = _showTips;
+        view.Greyscale = _drawer.Colours is { } colours ? colours.Enabled && !colours.AssumeAllKnown : _options.Greyscale; // the book's icons follow the world's colours
+        view.Menu = _menu.IsOpen ? _menu : null;
+        _camera.Camera.FieldOfView = (float)_settings.FieldOfView; // the menu's field of view
         view.Report = _report;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text(_session.Locale);
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
@@ -915,9 +926,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
 
             _globalKeys.RunEvery(input); // F10, F5, F6, F9 and F3, wherever the player is
+            var menuWasOpen = _menu.IsOpen;
             if (!_screens.HandleInput(input))
             {
                 _ = _worldKeys.RunFirst(input); // no screen is open: the keys are the world's
+            }
+
+            if (menuWasOpen && !_menu.IsOpen && input.LeftDown)
+            {
+                _worldInput.HoldClickUntilRelease(); // the click on Resume does not gather
             }
         }
 
@@ -942,6 +959,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ClickOnScreens(mouse.X, mouse.Y);
         }
 
+        _worldInput.MouseSensitivity = _settings.MouseSensitivity; // the menu's mouse settings
+        _worldInput.InvertY = _settings.InvertY;
         IsMouseVisible = !_worldInput.Read(input, IsActive, uiOpen, _book.IsOpen, Window); // the pointer is hidden while the mouse is captured
         _devices.Commit(input);
     }
@@ -953,11 +972,203 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
     }
 
-    // F9: the interface text size, 100, 125 and 150 percent (X08); no other F9 binding, and a text box never reads it.
+    // F9: the interface text size, 100, 125 and 150 percent (X08), the same setting as the menu's Font size; no other F9 binding, and a text box never reads it.
     private void CycleTextSize()
     {
-        _ = _canvas.Next();
-        Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
+        var spec = PlayerSettings.Spec(SettingId.TextSize);
+        _settings.Set(SettingId.TextSize, _settings.Get(SettingId.TextSize) >= spec.Max ? spec.Min : _settings.Get(SettingId.TextSize) + 1);
+    }
+
+    // What a changed setting does to the running game (the menu issue): each is applied at once, and the next save keeps it. The simulation hears only the needs' two.
+    private void ApplySetting(SettingId id)
+    {
+        switch (id)
+        {
+            case SettingId.AmbientVolume or SettingId.VoiceVolume or SettingId.SfxVolume or SettingId.UiVolume:
+                _sound.Mixer.SetVolumes(_settings.Volumes);
+                Console.WriteLine($"volume {id}: {_settings.Get(id)} percent");
+                break;
+            case SettingId.Quality or SettingId.ViewDistance:
+                _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance);
+                Console.WriteLine($"graphics quality: {_drawer.Preset.Name}, view distance {_drawer.Preset.ViewDistance} blocks");
+                break;
+            case SettingId.TextSize:
+                _canvas.Set(_settings.TextPercent);
+                Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
+                break;
+            case SettingId.Blur:
+                Console.WriteLine($"underwater blur: {_settings.Blur.ToString().ToLowerInvariant()}");
+                break;
+            case SettingId.ViewEffects:
+                _needsHud.EffectsOn = _settings.ViewEffects;
+                Console.WriteLine($"view effects: {(_needsHud.EffectsOn ? "on" : "off")}");
+                break;
+            case SettingId.NeedsRate:
+                _session.NeedsRate = _settings.NeedsRate;
+                Console.WriteLine($"needs rate: {PlayerSettings.RateText(_session.NeedsRate)}");
+                break;
+            case SettingId.RelaxedNeeds:
+                _session.RelaxedNeeds = _settings.RelaxedNeeds;
+                Console.WriteLine($"relaxed needs: {(_session.RelaxedNeeds ? "on" : "off")}");
+                break;
+            default:
+                Console.WriteLine($"setting {id}: {_settings.Get(id)}"); // the mouse and the field of view are read each frame
+                break;
+        }
+    }
+
+    // The testing section of the settings page (never in a playtest): each row is a thin wrapper over something the game already had as a flag or a key, and none is saved.
+    private TestingHooks TestingHooksNow() => new()
+    {
+        DebugOverlay = () => _debug.Visible,
+        SetDebugOverlay = on =>
+        {
+            _dialogue.ShowVerdictNotes = _debug.Visible = on; // F3, --dev
+            Console.WriteLine($"debug overlay: {(on ? "on" : "off")}");
+        },
+        NeedsRunning = () => _session.NeedsEnabled,
+        SetNeedsRunning = on =>
+        {
+            _session.NeedsEnabled = on; // --needs on|off
+            Console.WriteLine($"needs running: {(on ? "on" : "off")}");
+        },
+        NeedValue = meter => (int)Math.Round(_session.Needs.Value(meter)),
+        SetNeed = (meter, value) =>
+        {
+            _session.SetNeed(meter, value); // --set-need
+            Console.WriteLine($"need {meter.ToString().ToLowerInvariant()}: set to {value}");
+        },
+        RefillNeeds = () =>
+        {
+            foreach (var meter in Enum.GetValues<NeedMeter>())
+            {
+                _session.SetNeed(meter, PlayerNeeds.Full); // --set-need <meter>=100 for each; stamina stops at its maximum
+            }
+
+            Console.WriteLine("needs refilled");
+        },
+        SoundsOff = () => _sound.Mixer.SoundsOff,
+        SetSoundsOff = on =>
+        {
+            _sound.Mixer.SoundsOff = on; // --no-sounds (the voices stay)
+            Console.WriteLine($"sounds off: {(on ? "yes" : "no")}");
+        },
+        VoicesMuted = () => _voice.Muted,
+        SetVoicesMuted = on =>
+        {
+            _voice.Muted = on; // --mute
+            Console.WriteLine($"voices muted: {(on ? "yes" : "no")}");
+        },
+        ShoulderView = () => _viewMode.Mode == CameraMode.ThirdPerson,
+        SetShoulderView = on => _viewMode.Set(on ? CameraMode.ThirdPerson : CameraMode.FirstPerson), // F5, --third-person
+        Dusk = () => _dusk,
+        SetDusk = on =>
+        {
+            _dusk = on; // --dusk: the world is meshed again in the evening light, the sky, the arm and the ambient beds follow
+            _drawer.SetDusk(on);
+            _arm.Dusk = on;
+            _sound.SetDusk(on);
+            Console.WriteLine($"dusk lighting: {(on ? "on" : "off")}");
+        },
+        Greyscale = () => _drawer.Colours?.Enabled ?? _options.Greyscale,
+        SetGreyscale = on =>
+        {
+            if (_drawer.Colours is { } colours)
+            {
+                colours.Enabled = on; // --greyscale
+            }
+
+            Console.WriteLine($"greyscale: {(on ? "on" : "off")}");
+        },
+        AssumeAllKnown = () => _drawer.Colours?.AssumeAllKnown ?? false,
+        SetAssumeAllKnown = on =>
+        {
+            if (_drawer.Colours is { } colours)
+            {
+                colours.AssumeAllKnown = on; // the view only: the learner's words stay as they are
+            }
+
+            Console.WriteLine($"every noun counts as known (view only): {(on ? "on" : "off")}");
+        },
+        TipsShown = () => _showTips,
+        SetTipsShown = on =>
+        {
+            _showTips = on; // --tips
+            Console.WriteLine($"first-time tips: {(on ? "shown" : "hidden")}");
+        },
+        Places = _scene.Points.Keys.Order(StringComparer.Ordinal).ToList(),
+        BeaconPlace = () => _beacon.Beacon.Name,
+        SetBeacon = place =>
+        {
+            if (place is null)
+            {
+                _beacon.Beacon.Clear(); // --beacon none
+                Console.WriteLine("beacon: off");
+            }
+            else if (_beacon.Beacon.SetPoint(_scene, place, _scene.LabelOf(place)))
+            {
+                var at = _beacon.Beacon.Target!.Value;
+                Console.WriteLine($"beacon: {place} at {at.X},{at.Y},{at.Z}"); // --beacon
+            }
+        },
+        TeleportTo = place => TeleportToPoint(place),
+        FullTypedCredit = () => _session.Credit.TypedUnits >= WordProgress.UnitsPerUse,
+        SetFullTypedCredit = on =>
+        {
+            _session.SetCredit(_session.Credit with { TypedUnits = on ? WordProgress.UnitsPerUse : CreditRules.Default.TypedUnits }); // --typed-credit full|half
+            Console.WriteLine($"typed credit: {(on ? "full" : "half")}");
+        },
+        AutosaveOn = () => _autosave is { Enabled: true },
+        SetAutosaveOn = on =>
+        {
+            _autosave?.SetEnabled(on, _sim.Tick, _session.Events.Count); // --no-autosave
+            Console.WriteLine($"autosave: {(on ? "on" : "off")}");
+        },
+        SaveNow = SaveNow,
+    };
+
+    // The teleport of the menu: the player's feet go to the ground of a named point's column, as --teleport puts them.
+    private void TeleportToPoint(string place)
+    {
+        var point = _scene.Point(place);
+        if (GroundFinder.StandingAt(_sim.Grid, point.X, point.Z) is { } feet)
+        {
+            _sim.TeleportTo(feet);
+            Console.WriteLine($"teleport {place}: standing at {feet.X},{feet.Y},{feet.Z}");
+        }
+        else
+        {
+            Console.WriteLine($"teleport {place}: no ground to stand on at {point.X},{point.Z}");
+        }
+    }
+
+    // The menu's Exit: the game is saved as F6 saves it, then the window closes.
+    private void SaveAndExit()
+    {
+        DrainForSave();
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
+        _ = _saves.Write(path, "on Exit from the menu");
+        Console.WriteLine($"menu: Exit: saved to {path}");
+        Exit();
+    }
+
+    // --menu, --settings and --controls open the menu on that page once the script is done, scrolled down by --menu-scroll rows.
+    private void OpenMenuFromScript(MenuPage page, int scroll)
+    {
+        switch (page)
+        {
+            case MenuPage.Settings:
+                _menu.OpenSettings();
+                break;
+            case MenuPage.Controls:
+                _menu.OpenControls();
+                break;
+            default:
+                _menu.Open();
+                break;
+        }
+
+        _menu.ScrollTo(scroll);
     }
 
     // ---- The bug and feature report (S21, D-game-17): local files only, nothing is sent. ----
@@ -1126,7 +1337,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const double DeathHoldSeconds = 4;
     private double _deathHold;
     private readonly NeedsHud _needsHud;
-    private UnderwaterBlur _underwaterBlur;
 
     // The stage lines of the needs (N05): a worse stage shows its line above the hotbar once and plays its soft sound once.
     private void DriveNeedsHud()

@@ -5,4 +5,6 @@ namespace Vocaterra.Game.Core.Sound;
 /// <param name="NoSounds">Whether <c>--no-sounds</c> was given.</param>
 /// <param name="SfxVolume">The <c>--sfx-volume</c>, or <see langword="null"/>.</param>
 /// <param name="AmbientVolume">The <c>--ambient-volume</c>, or <see langword="null"/>.</param>
-public sealed record SoundOptions(bool IsScreenshotRun, bool NoSounds, double? SfxVolume, double? AmbientVolume);
+/// <param name="VoiceVolume">The <c>--voice-volume</c>, or <see langword="null"/>.</param>
+/// <param name="UiVolume">The <c>--ui-volume</c>, or <see langword="null"/>.</param>
+public sealed record SoundOptions(bool IsScreenshotRun, bool NoSounds, double? SfxVolume, double? AmbientVolume, double? VoiceVolume = null, double? UiVolume = null);

@@ -48,6 +48,10 @@ public sealed class UiCanvas
         return TextPercent;
     }
 
+    /// <summary>Takes a text size (the menu's setting).</summary>
+    /// <param name="textPercent">The interface text size in percent (one of the save's levels).</param>
+    public void Set(int textPercent) => TextPercent = textPercent;
+
     /// <summary>A point of the window on the canvas.</summary>
     public Point ToCanvas(Point window)
     {

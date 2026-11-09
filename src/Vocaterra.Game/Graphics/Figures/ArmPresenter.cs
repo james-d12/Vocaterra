@@ -10,7 +10,6 @@ public sealed class ArmPresenter : ITickObserver
 {
     private readonly VoxelSimulation _sim;
     private readonly Func<int, int, int, bool> _isSolid;
-    private readonly bool _dusk;
     private long _lastPlaceTick = long.MinValue / 2;
 
     /// <summary>Creates the arm of the simulation's body.</summary>
@@ -21,8 +20,11 @@ public sealed class ArmPresenter : ITickObserver
     {
         _sim = sim;
         _isSolid = isSolid;
-        _dusk = dusk;
+        Dusk = dusk;
     }
+
+    /// <summary>Whether the scene is at dusk (<c>--dusk</c>; the menu's Dusk lighting row changes it during the run).</summary>
+    public bool Dusk { get; set; }
 
     /// <summary>Once a tick, after the step: a placement in the tick's commands swings the arm once.</summary>
     public void AfterTick(IReadOnlyList<VoxelCommand> commands)
@@ -42,7 +44,7 @@ public sealed class ArmPresenter : ITickObserver
         var held = HeldItems.For(_sim.SelectedStack);
         var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
         var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
-        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, _dusk);
+        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, Dusk);
         return new ArmFrame(held, motion, light);
     }
 }

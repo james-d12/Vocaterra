@@ -1881,6 +1881,16 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M91 (O4 seed 3m67O5Rpuya2): podar takes no infinitive, so a finite form of it right before one (vosotras podáis rastrear) is no sentence a reader takes as
+            // podar's. The analyzer reads it clean as written, but its mutations that land on the regular cell (podo) are read as poder's slip (M69's CallsForSlip), which
+            // is another sentence than the one the mutation was built from, so the draw is re-rolled whatever the form (M69's check above covers only podo, pode, podes).
+            if (item is { Kind: Kind.Verb, Infinitive: false, Lemma: "podar" } && NextContent(i) is var infinitive and >= 0 && _items[infinitive] is { Kind: Kind.Verb, Infinitive: true })
+            {
+                skip = "slip-in-context";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // A verb form that is also a copula (fue, fueron: ir and ser) followed by an adjective is a copula by every reading the analyzer can choose among, since
             // all of them are finite verbs, so a ser/estar mistake could be reported for an ir that happens to be followed by an adjective. That is a homograph between
             // two verbs, not between parts of speech, and the sentence is re-rolled.

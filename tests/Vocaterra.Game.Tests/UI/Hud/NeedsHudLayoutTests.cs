@@ -33,7 +33,7 @@ public sealed class NeedsHudLayoutTests(ITestOutputHelper output)
         return (spanish, english);
     }
 
-    // The tip box and the "F1: controls" line under it, as TipLayer draws them for the needs tip (the longest of the first-time tips).
+    // The tip box and the "Esc: menu" line under it, as TipLayer draws them for the needs tip (the longest of the first-time tips).
     private static PixelBox TipArea(int canvasWidth)
     {
         var text = TestGame.Data.Locale.Text("tip.needs");

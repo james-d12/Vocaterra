@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -16,6 +17,7 @@ using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
+using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
 using Vocaterra.Game.UI.Report;
 using Xunit.Abstractions;
@@ -673,31 +675,10 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheControlsHelpAndTheClosingCardFitTheCanvasOrScrollOrCutAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheClosingCardFitsTheCanvasOrCutsAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-
-        // The controls: 21 rows of one to three lines each.
-        var heights = Enumerable.Range(0, 21).Select(static i => (((i % 3) + 1) * 20) + 6).ToList();
-        for (var scroll = 0; scroll <= heights.Count; scroll++)
-        {
-            var layout = new ControlsLayout(canvas.Width, canvas.Height, heights, scroll);
-            Assert.True(Inside(layout.Panel, window), $"the controls panel {layout.Panel} is outside the canvas");
-            Assert.True(layout.Count >= 1);
-            var used = heights.Skip(layout.First).Take(layout.Count).Sum();
-            Assert.True(ControlsLayout.HeaderHeight + used + ControlsLayout.FooterHeight <= layout.Panel.Height, "the rows shown do not fit the panel");
-            if (layout.MaxScroll == 0)
-            {
-                Assert.Equal(heights.Count, layout.Count);
-            }
-            else
-            {
-                Assert.True(layout.Scrolls);
-                var last = new ControlsLayout(canvas.Width, canvas.Height, heights, layout.MaxScroll);
-                Assert.Equal(heights.Count, last.First + last.Count); // scrolled to the end, the last control is shown
-            }
-        }
 
         // The closing card: the summary gives up its last rows until the card fits; the line offering the sleep (V12c) is a row over the keys and stays.
         var ending = new EndingLayout(canvas.Width, canvas.Height, 2, 2, 9);
@@ -712,48 +693,124 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.True(offering.SummaryShown <= ending.SummaryShown);
         Assert.True(Small(English.Value.Ui("sleepCard", ("session", "2"))) <= offering.Box.Width - (2 * EndingLayout.Side), "the sleep's line is wider than the card");
 
-        output.WriteLine($"{canvas.Width}x{canvas.Height}: controls max scroll {new ControlsLayout(canvas.Width, canvas.Height, heights, 0).MaxScroll}, closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
+        output.WriteLine($"{canvas.Width}x{canvas.Height}: closing card {ending.Box.Height} px tall with {ending.SummaryShown} of 9 summary rows");
     }
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheSettingsPanelFitsTheCanvasAndItsPartsDoNotOverlapAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheMenuPagesFitTheCanvasAndTheirPartsDoNotOverlapAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new SettingsLayout(canvas.Width, canvas.Height, 3);
-        Assert.True(Inside(layout.Panel, window), $"the settings panel {layout.Panel} is outside the canvas");
-        var parts = new List<PixelBox>();
-        for (var i = 0; i < 3; i++)
-        {
-            Assert.True(Inside(layout.Row(i), layout.Panel));
-            Assert.True(Inside(layout.Label(i), layout.Row(i)) && Inside(layout.Value(i), layout.Row(i)));
-            Assert.True(layout.Label(i).Right <= layout.Value(i).X, "a label meets its value");
-            parts.Add(layout.Row(i));
-        }
+        var ui = English.Value;
 
-        Assert.True(Inside(layout.Track, layout.Row(0)) && layout.Track.X >= layout.Label(0).Right && layout.Track.Right <= layout.Value(0).X, "the slider meets the label or the value");
-        Assert.True(layout.Track.Width >= 20);
-        Assert.True(Inside(layout.Hint, layout.Panel));
-        parts.Add(layout.Hint);
-        for (var i = 0; i < parts.Count; i++)
+        var main = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Main);
+        Assert.True(Inside(main.Panel, window), $"the menu panel {main.Panel} is outside the canvas");
+        for (var i = 0; i < 4; i++)
         {
-            for (var j = i + 1; j < parts.Count; j++)
+            Assert.True(Inside(main.Button(i), main.Panel), $"button {i} leaves the panel");
+            if (i > 0)
             {
-                var (a, b) = (parts[i], parts[j]);
-                Assert.False(a.X < b.Right && b.X < a.Right && a.Y < b.Bottom && b.Y < a.Bottom, $"{a} overlaps {b}");
+                Assert.True(main.Button(i).Y >= main.Button(i - 1).Bottom, $"button {i} meets the one above");
             }
         }
 
-        // The texts fit their columns at 6.1 px a character.
-        var ui = English.Value;
-        foreach (var key in new[] { "settingsRate", "settingsEffects", "settingsRelaxed" })
+        foreach (var page in new[] { MenuPage.Settings, MenuPage.Controls })
         {
-            Assert.True(Small(ui.Ui(key)) <= layout.Label(0).Width, $"{key} is wider than the label column");
+            var layout = new MenuLayout(canvas.Width, canvas.Height, page);
+            Assert.True(Inside(layout.Panel, window), $"the {page} panel {layout.Panel} is outside the canvas");
+            Assert.True(Inside(layout.Back, layout.Panel), "the Back button leaves the panel");
+            Assert.True(layout.Capacity >= 1 && layout.LineCapacity >= 1);
+            var last = layout.Row(layout.Capacity - 1);
+            Assert.True(last.Bottom <= layout.Back.Y + 4 && Inside(last, layout.Panel), "the rows run into the footer");
+            Assert.True(layout.ListTop + (layout.LineCapacity * MenuLayout.LineHeight) <= layout.Back.Y + 4, "the controls lines run into the footer");
         }
 
-        Assert.True(Small("\u00D74.00") <= layout.Value(0).Width);
-        Assert.True(Small(ui.Ui("settingsHint")) <= layout.Hint.Width, "the hint is wider than the panel");
+        var settings = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Settings);
+        var row = settings.Row(0);
+        var track = MenuLayout.Track(row);
+        Assert.True(Inside(track, row) && track.X >= row.X + 8 + MenuLayout.LabelWidth(row), "the slider meets the label");
+        Assert.True(track.Right + MenuLayout.NumberWidth <= row.Right, "the slider's number is outside the row");
+        Assert.True(track.Width >= 20);
+
+        // The hints fit the panel's foot beside the Back button at 6.1 px a character.
+        var room = settings.Panel.Width - 32 - 116;
+        Assert.True(Small(ui.Ui("settingsHint")) <= room, "the settings hint is wider than the panel");
+        Assert.True(Small(ui.Ui("controlsClose") + "   " + ui.Ui("controlsScroll")) <= room, "the controls hint is wider than the panel");
+        Assert.True(Small(ui.Ui("menuHint")) <= main.Panel.Width - 32, "the menu hint is wider than the panel");
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheWholeSettingsPageWithItsTestingSectionKeepsEveryLabelNoteAndValueInsideItsRowAtEveryScale(int windowWidth, int windowHeight, int scale)
+    {
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var ui = English.Value;
+        var points = RouteScene.Build().Points.Keys.Append("waterfall.top.lookout").Order(StringComparer.Ordinal).ToList();
+        var hooks = new TestingHooks
+        {
+            DebugOverlay = () => false,
+            SetDebugOverlay = static _ => { },
+            NeedsRunning = static () => true,
+            SetNeedsRunning = static _ => { },
+            NeedValue = static _ => 100,
+            SetNeed = static (_, _) => { },
+            RefillNeeds = static () => { },
+            SoundsOff = static () => false,
+            SetSoundsOff = static _ => { },
+            VoicesMuted = static () => false,
+            SetVoicesMuted = static _ => { },
+            ShoulderView = static () => false,
+            SetShoulderView = static _ => { },
+            Dusk = static () => false,
+            SetDusk = static _ => { },
+            Greyscale = static () => false,
+            SetGreyscale = static _ => { },
+            AssumeAllKnown = static () => false,
+            SetAssumeAllKnown = static _ => { },
+            TipsShown = static () => true,
+            SetTipsShown = static _ => { },
+            Places = points,
+            BeaconPlace = static () => null,
+            SetBeacon = static _ => { },
+            TeleportTo = static _ => { },
+            FullTypedCredit = static () => false,
+            SetFullTypedCredit = static _ => { },
+            AutosaveOn = static () => true,
+            SetAutosaveOn = static _ => { },
+            SaveNow = static () => { },
+        };
+        var rows = MenuRows.Settings(new PlayerSettings(), hooks);
+        var layout = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Settings);
+        var row = layout.Row(0);
+        Assert.True(rows.Count > layout.Capacity, "the page is meant to scroll");
+        var maxScroll = rows.Count - layout.Capacity;
+        Assert.True(maxScroll >= 1 && (maxScroll + layout.Capacity) == rows.Count, "the last row can be scrolled to");
+
+        // The menu's font runs to about 7.3 px a character on the canvas (measured on an 800 x 600 window at 150 percent); a label or note that fits at 7.4 is not cut with an ellipsis.
+        static double Width(string text) => text.Length * 7.4;
+        foreach (var item in rows)
+        {
+            switch (item.Kind)
+            {
+                case MenuRowKind.Heading or MenuRowKind.Subheading:
+                    break;
+                case MenuRowKind.Note:
+                    Assert.True(Width(ui.Ui(item.LabelKey)) <= row.Width - 16, $"the note '{item.LabelKey}' is cut at {canvas.Width}x{canvas.Height}");
+                    break;
+                default:
+                    Assert.True(Width(ui.Ui(item.LabelKey)) <= MenuLayout.LabelWidth(row), $"the label '{item.LabelKey}' is cut at {canvas.Width}x{canvas.Height}");
+                    if (item.Kind is MenuRowKind.Choice or MenuRowKind.Toggle)
+                    {
+                        var longest = item.ChoiceKeys.Count > 0
+                            ? item.ChoiceKeys.Select(key => ui.Ui(key)).Max(static v => v.Length)
+                            : points.Max(static p => p.Length);
+                        Assert.True(Width("< " + new string('x', longest) + " >") <= MenuLayout.ControlWidth(row), $"the values of '{item.LabelKey}' are cut at {canvas.Width}x{canvas.Height}");
+                    }
+
+                    break;
+            }
+        }
     }
 
     // ---- The checklist, the toast and the labels.
@@ -855,16 +912,15 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheLessonsPagesLinesOfWhenAndWhereFitTheNarrowLeftPage(int windowWidth, int windowHeight, int scale)
+    public void TheLessonsPagesRowsKeepTheirTitleWholeAndTheWaitFitsAsMuchAsTheRowAllowsAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
-        // V12c: the line under a lesson not begun is its own indented row, whole on the left page at every scale (r16-text-scale: 800 x 600 at 150 %), for every lesson
-        // in each of its four waits: the next, another unlocked, its session to come, the lesson before it not done. A row of the list is cut with "...", never wrapped, so it is measured
-        // with the book's own font (PixelOperator at its native size; the stand-in of the other checks is wider than it) against the row's room: the page less the
-        // indent and the gutter.
+        // U07: a lesson's state is the aside of its own row (V12c's line under the title became one row). A row of the list is cut with "...", never wrapped, so it is measured with the
+        // book's own font (PixelOperator at its native size) against the row's room: the page less the mark and the gutter. The short title must always fit the row; a row with a button
+        // keeps what the button leaves of it for its text and is cut with an ellipsis there, as a heading was before.
         var font = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize);
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var g = new BookGeometry(canvas.Width, canvas.Height);
-        var room = g.ContentRight - g.ContentLeft - BookLayer.IndentWidth - BookLayer.Gutter;
+        var room = g.ContentRight - g.ContentLeft - 11 - BookLayer.Gutter;
         var session = RouteScene.NewSessionWithShippedLessons(TestGame.Bundle, TestGame.Nouns);
         var record = session.Lessons.Record;
         var widest = (Text: string.Empty, Width: 0f);
@@ -879,14 +935,38 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             foreach (var wait in waits)
             {
                 var lines = BookPages.Lessons(English.Value, record, session.Phrases, null, new Dictionary<string, LessonWait> { [lesson.Id] = wait });
-                var why = lines[lines.ToList().FindIndex(l => l.Text == lesson.Title) + 1];
-                var width = Vocaterra.Game.Graphics.DrawHelpers.Width(font, why.Text);
-                Assert.True(width <= room, $"“{why.Text}” ({width} px) is wider than the left page's {room} px at {canvas.Width}x{canvas.Height}");
-                widest = width > widest.Width ? (why.Text, width) : widest;
+                var row = lines.First(l => l.Kind == BookLineKind.Entry && l.Text == LessonDefinition.ShortOf(lesson.Title));
+                var title = Vocaterra.Game.Graphics.DrawHelpers.Width(font, row.Text);
+                var button = row.Practise is null ? 0 : BookPractise.ButtonWidth + BookSpeakers.Gap;
+                Assert.True(title <= room, $"the title “{row.Text}” ({title} px) is wider than the row's {room} px at {canvas.Width}x{canvas.Height}");
+                Assert.True(room - button >= 40, $"a row with a button keeps {room - button} px for its text at {canvas.Width}x{canvas.Height}: the layer keeps at least 40 px, cut with an ellipsis (as the heading was before U07)");
+                var whole = title + BookLayer.Gutter + Vocaterra.Game.Graphics.DrawHelpers.Width(font, row.Aside!) + button;
+                widest = whole > widest.Width ? ($"{row.Text}  {row.Aside}", whole) : widest;
             }
         }
 
-        output.WriteLine($"{canvas.Width}x{canvas.Height}: the widest line, “{widest.Text}”, is {widest.Width} px of the row's {room} px");
+        output.WriteLine($"{canvas.Width}x{canvas.Height}: the widest row, “{widest.Text}”, is {widest.Width} px of the row's {room} px");
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void TheThirtyTwoPixelTitlesFitTheirPagesAtEveryScaleAndTheLeftOneIsOneLine(int windowWidth, int windowHeight, int scale)
+    {
+        // U07: the page's name at 32 px on the left page and the numbers of the right page. The longest name ("What I said") is one line of the left page, and a big number
+        // ("12", "100") sits in its column; the font at twice its native size is measured with the book's own font.
+        var big = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize * 2);
+        var canvas = Canvas(windowWidth, windowHeight, scale);
+        var g = new BookGeometry(canvas.Width, canvas.Height);
+        var room = g.ContentRight - g.ContentLeft;
+        foreach (var page in Enum.GetValues<BookPage>())
+        {
+            var label = BookTabs.LabelOf(RouteScene.Shipped.Locale, page);
+            var width = Vocaterra.Game.Graphics.DrawHelpers.Width(big, label);
+            Assert.True(width <= room, $"“{label}” at 32 px is {width} px, the page's room {room} px, at {canvas.Width}x{canvas.Height}");
+        }
+
+        Assert.True(g.RuleTop - g.TitleTop >= 36);
+        Assert.True(g.LinesVisible >= 8, $"{g.LinesVisible} lines visible");
     }
 
     [Fact]
@@ -900,6 +980,37 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         }
 
         Assert.Equal(BookTabs.Labels(RouteScene.Shipped.Locale).Count, UiPalette.Ribbons.Count);
+    }
+
+    [Fact]
+    public void TheBooksNewInksBandsAndMarksAreMeasuredOnThePaperAndTheSelectionAtTheirSpecifiedRatios()
+    {
+        // U07: InkMeta (it replaces InkHint) 5.25 to 1 on the paper and 4.87 on the selection; the muted band 5.41 with white text; the outcome marks 3 to 1 on both; the bands and
+        // the page titles in each ribbon's colour read with white and on the paper.
+        var names = UiPalette.TextPairs.Select(static p => p.Name).ToList();
+        foreach (var name in new[] { "book ink meta", "book ink meta on selection", "book ink on selection", "book ink seen on selection", "book band muted", "book mark good", "book mark slip", "book mark miss", "book mark good on selection", "book mark slip on selection", "book mark miss on selection" })
+        {
+            Assert.Contains(name, names);
+        }
+
+        for (var i = 0; i < UiPalette.Ribbons.Count; i++)
+        {
+            Assert.Contains($"book band {i}", names);
+            Assert.Contains($"book title {i}", names);
+            Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.Ribbons[i]) >= 6.0, $"white on band {i}");
+            Assert.True(UiPalette.Ribbons[i].ContrastWith(UiPalette.Paper.Colour) >= 4.5, $"title {i} on the paper");
+        }
+
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.Paper.Colour) >= 5.2);
+        Assert.True(UiPalette.InkMeta.ContrastWith(UiPalette.PaperSelect.Colour) >= 4.8);
+        Assert.True(UiPalette.RibbonLabel.ContrastWith(UiPalette.BandMuted) >= 5.4);
+        foreach (var mark in new[] { UiPalette.MarkGood, UiPalette.MarkSlip, UiPalette.MarkMiss })
+        {
+            Assert.True(mark.ContrastWith(UiPalette.Paper.Colour) >= 3.0, $"{mark} on the paper");
+            Assert.True(mark.ContrastWith(UiPalette.PaperSelect.Colour) >= 3.0, $"{mark} on the selection");
+        }
+
+        Assert.NotEqual(UiPalette.InkMeta, UiPalette.InkUnseen); // the hue tells the meta ink from the not-met ink
     }
 
     [Fact]

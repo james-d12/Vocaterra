@@ -201,44 +201,44 @@ public sealed class StationPanel : IScreen
             }
         }
 
-        if (input.Pressed(GameKey.PageUp))
+        if (input.Pressed(ControlTable.Key("stationPage", 0)))
         {
             Page(-1);
         }
-        else if (input.Pressed(GameKey.PageDown))
+        else if (input.Pressed(ControlTable.Key("stationPage", 1)))
         {
             Page(1);
         }
-        else if (input.Pressed(GameKey.Tab))
+        else if (input.Pressed(ControlTable.Key("stationTarget")))
         {
             MoveTarget(input.Shift ? -1 : 1);
         }
-        else if (input.Pressed(GameKey.Enter))
+        else if (input.Pressed(ControlTable.Key("stationUse")))
         {
             Use();
         }
-        else if (input.Pressed(GameKey.H))
+        else if (input.Pressed(ControlTable.Key("stationHelp")))
         {
             Help();
         }
-        else if (input.Pressed(GameKey.R))
+        else if (input.Pressed(ControlTable.Key("stationRepeat")))
         {
             Replay(slow: false);
         }
-        else if (input.Pressed(GameKey.S))
+        else if (input.Pressed(ControlTable.Key("stationSlower")))
         {
             Replay(slow: true);
         }
-        else if (input.Pressed(GameKey.B))
+        else if (input.Pressed(ControlTable.Key("stationBake")))
         {
             BakeAtOnce();
         }
-        else if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
+        else if (input.Pressed(ControlTable.Key("stationTalk", 0)) || input.Pressed(ControlTable.Key("stationTalk", 1)))
         {
-            _ = Talk?.Speak(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
+            _ = Talk?.Speak(input.Pressed(ControlTable.Key("stationTalk", 0)) ? ControlTable.Key("stationTalk", 0) : ControlTable.Key("stationTalk", 1));
             OnTalk?.Invoke(StationTalk.Speak);
         }
-        else if (input.Pressed(GameKey.W))
+        else if (input.Pressed(ControlTable.Key("stationType")))
         {
             _ = Talk?.BeginTyping();
             OnTalk?.Invoke(StationTalk.Type);

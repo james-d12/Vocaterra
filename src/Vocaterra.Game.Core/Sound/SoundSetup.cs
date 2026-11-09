@@ -16,13 +16,13 @@ public static class SoundSetup
         return options.IsScreenshotRun || options.NoSounds;
     }
 
-    /// <summary>The volumes of the run: the save's (or the defaults), then <c>--sfx-volume</c> and <c>--ambient-volume</c> over them, all limited to 0 to 1.</summary>
+    /// <summary>The volumes of the run: the save's (or the defaults), then <c>--voice-volume</c>, <c>--sfx-volume</c>, <c>--ui-volume</c> and <c>--ambient-volume</c> over them, all limited to 0 to 1.</summary>
     /// <param name="options">The command line's sound options.</param>
     /// <param name="saved">The volumes in the loaded save, or <see langword="null"/>.</param>
     public static SoundVolumes VolumesFor(SoundOptions options, SoundVolumes? saved)
     {
         ArgumentNullException.ThrowIfNull(options);
         var volumes = saved ?? SoundVolumes.Default;
-        return (volumes with { Sfx = options.SfxVolume ?? volumes.Sfx, Ambient = options.AmbientVolume ?? volumes.Ambient }).Clamped();
+        return (volumes with { Voice = options.VoiceVolume ?? volumes.Voice, Sfx = options.SfxVolume ?? volumes.Sfx, Ui = options.UiVolume ?? volumes.Ui, Ambient = options.AmbientVolume ?? volumes.Ambient }).Clamped();
     }
 }

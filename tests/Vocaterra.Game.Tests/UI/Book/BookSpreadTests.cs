@@ -63,14 +63,30 @@ public sealed class BookSpreadTests
     }
 
     [Theory]
-    [InlineData(1280, 720, 25)]
-    [InlineData(800, 600, 20)]
-    public void TheListHoldsEnoughLinesAtBothSizes(int width, int height, int least)
+    [InlineData(1280, 720, 28)]
+    [InlineData(1200, 720, 28)]
+    [InlineData(800, 600, 22)]
+    public void TheListHoldsTwentyEightRowsAtTheDefaultSizeAndTwentyTwoAt800By600(int width, int height, int rows)
+    {
+        // U07: the 32 px title and its rule take 80 px at the top of the paper (the content began at 68), so the list lost a row at each size (29 and 23 before).
+        var g = new BookGeometry(width, height);
+
+        Assert.Equal(rows, g.LinesVisible);
+        Assert.Equal(g.Paper.Y + 80, g.ContentTop);
+        Assert.Equal(g.Paper.Y + 36, g.TitleTop);
+        Assert.Equal(g.Paper.Y + 72, g.RuleTop);
+        Assert.True(g.ContentTop + (g.LinesVisible * BookGeometry.LineHeight) <= g.ContentBottom);
+    }
+
+    [Theory]
+    [MemberData(nameof(WindowSizes))]
+    public void TheThirtyTwoPixelTitleFitsBetweenTheRibbonsAndTheRuleAndTheDetailsFirstRowStartsUnderTheRule(int width, int height)
     {
         var g = new BookGeometry(width, height);
 
-        Assert.True(g.LinesVisible >= least, $"{g.LinesVisible} lines");
-        Assert.True(g.ContentTop + (g.LinesVisible * BookGeometry.LineHeight) <= g.ContentBottom);
+        Assert.True(g.RuleTop - g.TitleTop >= 32 + 4, "a 32 px line of text and a gap above the rule");
+        Assert.True(g.ContentTop - g.RuleTop >= 8, "the first row is under the rule");
+        Assert.True(g.TitleTop >= Enum.GetValues<BookPage>().Select(g.TabRect).Max(static r => r.Bottom + 6), "under the lit ribbon, which hangs 6 px lower");
     }
 
     [Theory]
@@ -90,7 +106,7 @@ public sealed class BookSpreadTests
         }
 
         // They hang from the top edge: they begin above the paper and end above the title (the lit one hangs a little lower still).
-        Assert.All(ribbons, ribbon => Assert.True(ribbon.Y < g.Paper.Y && ribbon.Bottom + 6 < g.TitleTop));
+        Assert.All(ribbons, ribbon => Assert.True(ribbon.Y < g.Paper.Y && ribbon.Bottom + 6 <= g.TitleTop));
         Assert.True(ribbons.Max(static r => r.Right) <= g.Panel.Right - BookGeometry.Padding);
 
         // "What I said" is the longest label; at the font's 16 px a character is under 9 px wide.
@@ -230,7 +246,7 @@ public sealed class BookSpreadTests
     {
         var g = new BookGeometry(width, height);
         var detailWidth = g.DetailRight - g.DetailLeft;
-        var top = g.ContentTop + 34 + BookGeometry.LineHeight + 6; // under the verb and its English (the layer's own offsets)
+        var top = g.ContentTop + 38 + BookGeometry.LineHeight + 10; // under the verb at 32 px and its English (the layer's own offsets)
         var area = new BookRect(g.DetailLeft, g.ContentTop, detailWidth, g.ContentBottom - g.ContentTop);
         for (var tenses = 1; tenses <= ConjugationTable.AllColumns.Count; tenses++)
         {
@@ -266,8 +282,9 @@ public sealed class BookSpreadTests
         Assert.Empty(BookPages.ListFor(session, BookPage.Verbs, recordings)); // no verbs met yet: an empty list, and the layer says so
 
         var full = BookPages.Verbs(RouteScene.Shipped.Locale, VerbsOfAFixedRecord(), TestGame.Data.Glosses, TestGame.Data.Phrases, TestGame.Bundle.SpanishMorphology());
-        var list = full.Where(static l => l.Verb is not null).ToList();
-        Assert.Equal(["beber", "ir"], list.Select(static l => l.Verb));
+        var list = BookPages.InListOnly(full);
+        Assert.Equal(["beber", "ir"], list.Where(static l => l.Verb is not null).Select(static l => l.Verb));
+        Assert.Equal([BookLineKind.Entry, BookLineKind.Entry, BookLineKind.Gap, BookLineKind.Meta], list.Select(static l => l.Kind)); // the verbs, a gap and the quiet note
         Assert.True(full.Count > list.Count, "the page's own lines (the forms and their last sentences) are still built, for the right page");
         Assert.All(list, static l => Assert.Null(l.Speak));
         Assert.Equal([0, 1], BookSpeakers.Selectable(list));
@@ -282,7 +299,7 @@ public sealed class BookSpreadTests
 
         foreach (var page in new[] { BookPage.Nouns, BookPage.Phrases, BookPage.Lessons, BookPage.Said })
         {
-            Assert.Equal(BookPages.ForPage(session, page, recordings).Count, BookPages.ListFor(session, page, recordings).Count);
+            Assert.Equal(BookPages.ForPage(session, page, recordings).Count(static l => l.InList), BookPages.ListFor(session, page, recordings).Count); // the list is the page less its details
         }
 
         Assert.Null(BookPages.VerbTable(session, "querer")); // not met: no table
@@ -290,24 +307,56 @@ public sealed class BookSpreadTests
     }
 
     [Fact]
-    public void ABlockIsAnItemsHeadingWithTheLinesIndentedUnderItUpToTheGap()
+    public void ABlockIsAnEntryWithItsDetailLinesAndTheListNeverHoldsADetail()
     {
         var lines = new List<BookLine>
         {
+            new(BookTone.Known, "Known", Kind: BookLineKind.Section),
             new(BookTone.Known, "el agua"),
-            new(BookTone.Hint, "heard 1", Indent: true),
-            new(BookTone.Hint, "last: x", Indent: true),
+            new(BookTone.Hint, "heard 1", Kind: BookLineKind.Detail),
+            new(BookTone.Hint, "last: x", Kind: BookLineKind.Detail),
             BookLine.Gap,
             new(BookTone.Known, "la fruta"),
-            new(BookTone.Hint, "heard 2", Indent: true),
+            new(BookTone.Hint, "heard 2", Kind: BookLineKind.Detail),
         };
 
-        Assert.Equal(["el agua", "heard 1", "last: x"], BookPages.BlockOf(lines, 0).Select(static l => l.Text));
-        Assert.Equal(["el agua", "heard 1", "last: x"], BookPages.BlockOf(lines, 2).Select(static l => l.Text)); // any line of the item finds the whole item
-        Assert.Empty(BookPages.BlockOf(lines, 3)); // a gap is no item
+        Assert.Equal(["el agua", "heard 1", "last: x"], BookPages.BlockOf(lines, 1).Select(static l => l.Text));
+        Assert.Equal(["el agua", "heard 1", "last: x"], BookPages.BlockOf(lines, 3).Select(static l => l.Text)); // any line of the item finds the whole item
+        Assert.Empty(BookPages.BlockOf(lines, 0)); // a section is no item
+        Assert.Empty(BookPages.BlockOf(lines, 4)); // a gap is no item
         Assert.Equal(["la fruta", "heard 2"], BookPages.BlockOf(lines, 5).Select(static l => l.Text));
         Assert.Empty(BookPages.BlockOf(lines, 99));
         Assert.Empty(BookPages.BlockOf(lines, -1));
+
+        // The list drops the details, so a row's index is not a line's: BlockOfRow counts the rows of the list.
+        var list = BookPages.InListOnly(lines);
+        Assert.Equal(["Known", "el agua", string.Empty, "la fruta"], list.Select(static l => l.Text));
+        Assert.Equal(["la fruta", "heard 2"], BookPages.BlockOfRow(lines, 3).Select(static l => l.Text));
+        Assert.Equal(["el agua", "heard 1", "last: x"], BookPages.BlockOfRow(lines, 1).Select(static l => l.Text));
+        Assert.Empty(BookPages.BlockOfRow(lines, 2));
+        Assert.Equal([1, 3], BookSpeakers.Selectable(list)); // only the entries are selected: the section and the gap are not rows to choose
+    }
+
+    [Fact]
+    public void ASectionIsOneRowSoTheButtonsOfTheEntriesAfterItStayWhereTheirRowsAre()
+    {
+        // The list's index is the row's: a section band is one row, and the scroll and the speaker buttons count rows exactly as the layer draws them.
+        var g = new BookGeometry(1280, 720);
+        var list = new List<BookLine>
+        {
+            new(BookTone.Learning, "Learning", Kind: BookLineKind.Section),
+            new(BookTone.Seen, "la fruta", Speak: "card.fruta"),
+            BookLine.Gap,
+            new(BookTone.Unseen, "Not met yet", Kind: BookLineKind.Section),
+            new(BookTone.Seen, "la madera", Speak: "card.madera"),
+        };
+        var fruta = BookSpeakers.ButtonRect(g, g.ContentTop + BookGeometry.LineHeight);
+        var madera = BookSpeakers.ButtonRect(g, g.ContentTop + (4 * BookGeometry.LineHeight));
+        Assert.Equal(0, BookSpeakers.At(g, list, 0, fruta.X + 2, fruta.Y + 2));
+        Assert.Equal(1, BookSpeakers.At(g, list, 0, madera.X + 2, madera.Y + 2));
+        Assert.Null(BookSpeakers.At(g, list, 0, fruta.X + 2, g.ContentTop + 2)); // the band above it has no button
+        Assert.Equal([1, 4], BookSpeakers.Speakable(list));
+        Assert.Equal([1, 4], BookSpeakers.Selectable(list));
     }
 
     [Fact]

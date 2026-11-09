@@ -70,6 +70,26 @@ public sealed class AutosaveControllerTests : IDisposable
         Assert.Contains("written at dialogue closed", lines[1], StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AnAutosaveSwitchedOffWritesNothingAndOneSwitchedOnStartsItsPolicyFromNow()
+    {
+        var (autosave, lines, toasts) = Make(Path.Combine(_folder, "autosave.save"));
+        Assert.True(autosave.Enabled);
+        autosave.SetEnabled(false, 0, 0);
+        autosave.Run(Due, [], atRest: true);
+        autosave.WriteNow(Due, 0, "sleep");
+        Assert.False(File.Exists(autosave.Path));
+        Assert.Empty(lines);
+        Assert.Empty(toasts);
+
+        autosave.SetEnabled(true, Due, 0); // a long time had passed, but the policy begins again here
+        autosave.Run(Due + 10, [], atRest: true);
+        Assert.False(File.Exists(autosave.Path));
+        autosave.Run(Due + Due, [], atRest: true);
+        Assert.True(File.Exists(autosave.Path));
+        Assert.Single(toasts);
+    }
+
     private (AutosaveController Autosave, List<string> Lines, List<string> Toasts) Make(string path)
     {
         Directory.CreateDirectory(_folder);

@@ -18,7 +18,6 @@ public sealed class AmbientSound
 
     private readonly SoundMixer _mixer;
     private readonly AmbientPlaces _places;
-    private readonly bool _dusk;
     private readonly List<(long Tick, double Pan)> _chirps = [];
     private long _nextChirpCluster = -1;
     private long _nextCrackle = -1;
@@ -33,13 +32,16 @@ public sealed class AmbientSound
     {
         _mixer = mixer ?? throw new ArgumentNullException(nameof(mixer));
         _places = places ?? throw new ArgumentNullException(nameof(places));
-        _dusk = dusk;
+        Dusk = dusk;
     }
+
+    /// <summary>Whether it is dusk: the birds stop and the insects start (<c>--dusk</c>; the menu's Dusk lighting row changes it during the run).</summary>
+    public bool Dusk { get; set; }
 
     /// <summary>The beds' weights for a listener (the same as <see cref="AmbientBeds.At"/>).</summary>
     /// <param name="listener">The listener.</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public IReadOnlyList<BedInput> WeightsAt(Listener listener, bool fireLit) => AmbientBeds.At(_places, listener, _dusk, fireLit);
+    public IReadOnlyList<BedInput> WeightsAt(Listener listener, bool fireLit) => AmbientBeds.At(_places, listener, Dusk, fireLit);
 
     /// <summary>
     /// One tick: the beds' targets are set for the listener, a line is logged when the place or its weights change (rounded to a tenth), and the chirps and crackles

@@ -133,52 +133,52 @@ public sealed class BookScreen : IScreen
     /// </summary>
     public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.J))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(InputKeys.Of("book")))
         {
             Close();
             return;
         }
 
-        if (input.Pressed(GameKey.Tab))
+        if (input.Pressed(ControlTable.Key("bookTurn", 0)))
         {
             _book.Turn(forward: !input.Shift);
         }
-        else if (input.Pressed(GameKey.Left))
+        else if (input.Pressed(ControlTable.Key("bookTurn", 1)))
         {
             _book.Turn(forward: false);
         }
-        else if (input.Pressed(GameKey.Right))
+        else if (input.Pressed(ControlTable.Key("bookTurn", 2)))
         {
             _book.Turn(forward: true);
         }
 
         var geometry = _geometry();
-        if (input.Shift && (input.Pressed(GameKey.Down) || input.Pressed(GameKey.Up)))
+        if (input.Shift && (input.Pressed(ControlTable.Key("bookSelect", 1)) || input.Pressed(ControlTable.Key("bookSelect", 0))))
         {
             // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
-            _book.ScrollDetail(input.Pressed(GameKey.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
+            _book.ScrollDetail(input.Pressed(ControlTable.Key("bookSelect", 1)) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
         }
-        else if (input.Shift && (input.Pressed(GameKey.PageDown) || input.Pressed(GameKey.PageUp)))
+        else if (input.Shift && (input.Pressed(ControlTable.Key("bookScroll", 1)) || input.Pressed(ControlTable.Key("bookScroll", 0))))
         {
-            _book.ScrollDetail(input.Pressed(GameKey.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
+            _book.ScrollDetail(input.Pressed(ControlTable.Key("bookScroll", 1)) ? geometry.DetailHeight : -geometry.DetailHeight);
         }
-        else if (input.Pressed(GameKey.PageDown))
+        else if (input.Pressed(ControlTable.Key("bookScroll", 1)))
         {
             _book.Scroll(geometry.LinesVisible);
         }
-        else if (input.Pressed(GameKey.PageUp))
+        else if (input.Pressed(ControlTable.Key("bookScroll", 0)))
         {
             _book.Scroll(-geometry.LinesVisible);
         }
-        else if (input.Pressed(GameKey.Down) || input.Pressed(GameKey.Up))
+        else if (input.Pressed(ControlTable.Key("bookSelect", 1)) || input.Pressed(ControlTable.Key("bookSelect", 0)))
         {
-            _controls.Move(input.Pressed(GameKey.Down) ? 1 : -1, geometry.LinesVisible);
+            _controls.Move(input.Pressed(ControlTable.Key("bookSelect", 1)) ? 1 : -1, geometry.LinesVisible);
         }
-        else if (input.Pressed(GameKey.Enter))
+        else if (input.Pressed(ControlTable.Key("bookPlay")))
         {
             _ = _controls.Enter(input.Shift);
         }
-        else if (input.Pressed(GameKey.P) && _controls.PractiseFirst(geometry) is { } practise)
+        else if (input.Pressed(ControlTable.Key("bookPractise")) && _controls.PractiseFirst(geometry) is { } practise)
         {
             PractiseAgain(practise);
         }
@@ -186,7 +186,7 @@ public sealed class BookScreen : IScreen
 
     /// <summary>
     /// The book's mouse: the wheel scrolls the right page when the pointer is over it (X03) and the list otherwise (three lines a notch, up for a
-    /// turn up); a click on a tab turns to that page, and a click on a row's speaker, a verb or a practise button presses it.
+    /// turn up); a click on a tab turns to that page, and a click on a row's speaker or a practise button presses it, and a click on a row selects it.
     /// </summary>
     public void HandleMouse(IInputFrame input)
     {
@@ -215,7 +215,7 @@ public sealed class BookScreen : IScreen
             _book.Show(tab);
             _sound.QueueClick(SoundCue.UiTab);
         }
-        else if (_controls.Click(geometry, x, y, input.Shift) || _controls.ClickVerb(geometry, x, y))
+        else if (_controls.Click(geometry, x, y, input.Shift))
         {
             _sound.QueueClick(SoundCue.UiClick);
         }
@@ -223,6 +223,10 @@ public sealed class BookScreen : IScreen
         {
             _sound.QueueClick(SoundCue.UiClick);
             PractiseAgain(practise);
+        }
+        else if (_controls.ClickRow(geometry, x, y))
+        {
+            _sound.QueueClick(SoundCue.UiClick);
         }
     }
 

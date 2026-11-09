@@ -62,6 +62,8 @@ public sealed class DialoguePanel : IFrameLayer
     public static readonly Color NameColor = new(255, 204, 110);
     private static readonly Color Frame = new(255, 214, 64);
     private static readonly Color PlayerColor = new(150, 205, 255);
+    private const int ScrollbarWidth = 4;
+    private static readonly Color ScrollTrack = new(44, 46, 64);
     private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color CorrectionColor = new(255, 190, 110);
     private static readonly Color GuideColor = new(255, 242, 180);
@@ -109,10 +111,13 @@ public sealed class DialoguePanel : IFrameLayer
 
         var textLeft = panel.Left + DialogueLayout.Padding;
         var textWidth = layout.InnerWidth;
-        DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), NameColor);
-        spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + 8 + DialogueLayout.LineHeight, textWidth, 1), new Color(255, 204, 110, 90));
+        // U05: the NPC's name is the panel's title, at twice the native size (sharp at whole multiples); a compact panel keeps the native size and its rows.
+        var nameFont = NameFontFor(layout, view.Fonts);
+        var nameTop = panel.Top + NameTop(layout);
+        DrawHelpers.Text(spriteBatch, nameFont, dialogue.NpcName, new Vector2(textLeft, nameTop), NameColor);
+        spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + layout.Header - 6, textWidth, 1), new Color(255, 204, 110, 90));
         DrawStatus(spriteBatch, view, font, dialogue, panel);
-        DrawLessonHeading(spriteBatch, view, font, dialogue, textLeft, panel);
+        DrawLessonHeading(spriteBatch, view, font, nameFont, dialogue, textLeft, panel, nameTop + (layout.Compact ? 0 : FontProvider.NativeSize));
         DrawLines(spriteBatch, view, font, dialogue, textLeft, textWidth, layout.LinesTop, layout.LinesBottom);
 
         if (dialogue.Heard is { } heard)
@@ -154,7 +159,7 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="ui">The support language.</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
-    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, F1).</param>
+    /// <param name="speakHintShown">Whether the speak tip has been shown (U01): the footer then stops repeating how to speak (the keys stay in the controls help, on the menu's Controls page).</param>
     public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable, bool speakHintShown = false) => (typing, speechUnavailable) switch
     {
         (true, false) when speakHintShown => Ui(ui).Ui("dialogueKeyHintsShort"),
@@ -163,6 +168,29 @@ public sealed class DialoguePanel : IFrameLayer
         (true, true) => SpeechOffKeyHints(ui),
         (false, false) => ButtonHints(ui),
         _ => SpeechOffButtonHints(ui),
+    };
+
+    /// <summary>The size the NPC's name is drawn at: twice the native size, or the native size on a compact panel (U05).</summary>
+    /// <param name="layout">The panel's layout.</param>
+    public static int NameSize(DialogueLayout layout) => layout.Compact ? FontProvider.NativeSize : FontProvider.NativeSize * 2;
+
+    private static FontStashSharp.SpriteFontBase NameFontFor(DialogueLayout layout, FontProvider fonts) => fonts.Get(NameSize(layout));
+
+    // The name's top under the panel's top: the 16 px name keeps its old place, the 32 px one sits two pixels higher so the rule has room under it.
+    private static int NameTop(DialogueLayout layout) => layout.Compact ? 8 : 6;
+
+    /// <summary>
+    /// The prefix of a conversation line. The NPC's lines (the guide, the world facts, the correction) carry none since U05: the name is the panel's title
+    /// and their colours set them apart. The learner's lines and the English lines keep theirs.
+    /// </summary>
+    /// <param name="speaker">Who the line is from.</param>
+    /// <param name="ui">The support language.</param>
+    public static string LinePrefix(DialogueSpeaker speaker, LocaleText ui) => speaker switch
+    {
+        DialogueSpeaker.Player => Ui(ui).Ui("dialogueYou"),
+        DialogueSpeaker.PlayerSpoken => SpokenPrefix(ui),
+        DialogueSpeaker.English => SupportPrefix(ui),
+        _ => string.Empty,
     };
 
     private static LocaleText Ui(LocaleText ui) => ui ?? throw new ArgumentNullException(nameof(ui));
@@ -221,16 +249,16 @@ public sealed class DialoguePanel : IFrameLayer
     }
 
     // U02: the lesson's heading in the header, between the NPC's name and the status; the title is shortened first so the step and its kind stay (U02b).
-    private static void DrawLessonHeading(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, DialogueModel dialogue, int textLeft, Rectangle panel)
+    private static void DrawLessonHeading(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, FontStashSharp.SpriteFontBase nameFont, DialogueModel dialogue, int textLeft, Rectangle panel, int y)
     {
         if (view.LessonHeading is not { } heading)
         {
             return;
         }
 
-        var x = textLeft + DrawHelpers.Width(font, dialogue.NpcName) + 24;
+        var x = textLeft + DrawHelpers.Width(nameFont, dialogue.NpcName) + 24;
         var room = panel.Right - DialogueLayout.Padding - HeaderStatusRoom - x;
-        DrawHelpers.Text(spriteBatch, font, heading.FitTo(room, t => DrawHelpers.Width(font, t)), new Vector2(x, panel.Top + 8), HintColor);
+        DrawHelpers.Text(spriteBatch, font, heading.FitTo(room, t => DrawHelpers.Width(font, t)), new Vector2(x, y), NoteColor);
     }
 
     // One wrapped row of the log: its text, its colour and whether it is the line a repeat or slow reply showed again (drawn on a gold plate).
@@ -254,14 +282,7 @@ public sealed class DialoguePanel : IFrameLayer
         {
             var index = panelRow.Index;
             var line = panelRow.Line;
-            var prefix = line.Speaker switch
-            {
-                DialogueSpeaker.Player => view.Session.Locale.Ui("dialogueYou"),
-                DialogueSpeaker.PlayerSpoken => SpokenPrefix(view.Session.Locale),
-                DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => dialogue.NpcName + ": ",
-                DialogueSpeaker.English => SupportPrefix(view.Session.Locale),
-                _ => string.Empty,
-            };
+            var prefix = LinePrefix(line.Speaker, view.Session.Locale);
             var color = line.Speaker switch
             {
                 DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken => PlayerColor,
@@ -298,6 +319,14 @@ public sealed class DialoguePanel : IFrameLayer
         }
 
         var fit = PanelFitter.Fit(blocks, capacity, dialogue.Expanded, dialogue.ScrollBack, dialogue.HiddenLineCount);
+        if (PanelScrollbar.For(blocks, fit, dialogue.HiddenLineCount, bottom - top) is { } bar)
+        {
+            // U06: a thin bar in the panel's right padding, in the muted colours; it shows even when the fit dropped the "earlier" and "below" rows.
+            var x = left + width + 4;
+            spriteBatch.Draw(view.Pixel, new Rectangle(x, top, ScrollbarWidth, bottom - top), ScrollTrack);
+            spriteBatch.Draw(view.Pixel, new Rectangle(x, top + bar.ThumbTop, ScrollbarWidth, bar.ThumbHeight), NoteColor);
+        }
+
         var rows = new List<PanelText>();
         if (fit.ShowEarlier)
         {

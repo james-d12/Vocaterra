@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.World;
 
@@ -14,6 +15,7 @@ public sealed class SaveService
     private readonly Func<Scene> _buildPristine;
     private readonly Func<SaveSettings> _settings;
     private readonly Action<string> _log;
+    private readonly DialogueModel? _dialogue;
     private Scene? _pristine;
 
     /// <summary>Creates the saves of a session.</summary>
@@ -21,8 +23,10 @@ public sealed class SaveService
     /// <param name="buildPristine">Builds a fresh scene of the session's seed.</param>
     /// <param name="settings">The settings that ride in the save: the sound volumes (S24) and the text size (X08).</param>
     /// <param name="log">Where a line about a save goes (the console).</param>
-    public SaveService(VoxelSession session, Func<Scene> buildPristine, Func<SaveSettings> settings, Action<string> log)
+    /// <param name="dialogue">The dialogue panel whose NPC pages ride in the save (U08), or <see langword="null"/> for none.</param>
+    public SaveService(VoxelSession session, Func<Scene> buildPristine, Func<SaveSettings> settings, Action<string> log, DialogueModel? dialogue = null)
     {
+        _dialogue = dialogue;
         _session = session;
         _buildPristine = buildPristine;
         _settings = settings;
@@ -30,7 +34,7 @@ public sealed class SaveService
     }
 
     /// <summary>The save of the session as it is now. The session must be at rest (<see cref="GuideSession.CanSave"/>).</summary>
-    public SaveDocument Capture() => SaveGame.Capture(_session, _pristine ??= _buildPristine(), _settings());
+    public SaveDocument Capture() => SaveGame.Capture(_session, _pristine ??= _buildPristine(), _settings(), _dialogue is null ? null : DialoguePageSave.Capture(_dialogue.Pages));
 
     /// <summary>
     /// Writes the save of the session to <paramref name="path"/>, or says why not: a session that is not at rest is not saved, and that is said,

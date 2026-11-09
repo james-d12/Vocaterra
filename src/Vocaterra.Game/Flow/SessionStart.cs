@@ -45,15 +45,16 @@ public static class SessionStart
 
         session.Applied += applied;
         playtest.Prepare(directory);
-        AutosaveController? autosave = null;
+        // The controller always exists so that the menu's Autosave row can switch it on; --no-autosave starts it off.
+        var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
+        var autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
         if (!options.NoAutosave)
         {
-            var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
-            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
             console($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
         else
         {
+            autosave.SetEnabled(false, session.Simulation.Tick, session.Events.Count);
             console("autosave: off (--no-autosave)");
         }
 
@@ -79,7 +80,7 @@ public static class SessionStart
             Muted: options.Muted,
             NoSpeech: options.NoSpeech,
             Greyscale: options.Greyscale,
-            TypedCredit: options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
+            TypedCredit: session.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
             Check: check && options.Check is { } kind ? CheckKinds.Of(kind) : null,
             Scripted: options.IsScreenshotRun,
             Playtest: options.Playtest);
