@@ -2291,3 +2291,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     at the fair cover) at no measurable frame time.
   - *Weak:* a full cover is still scattered slabs over a grey dome, not a ceiling (one cloud per 96-block cell); the overcast reads through the
     dome and the fog. The sun's colour is not desaturated under cover. The baked lantern glow is scaled by the weather's tint too (E02a).
+- **E02a, the lanterns' glow as its own layer (2026-11-10, Sonnet 5.5 high; gated at `89ee19fb` on `feature/weather`, 10993 passed, 3 skipped).**
+  The fix of E02's open defect. The base meshes bake no glow in any band; `ChunkMeshes.GlowMesh` holds, for every cube face a lantern or post
+  torch reaches, the opaque quad itself with the reach as its vertex colour, and `VoxelRenderer.DrawGlow` draws it once after the opaque and
+  plant passes: additive, depth read, the same `AlphaTestEffect`, black fog, `DiffuseColor` the amber times the look's `LanternStrength` (0.5 by
+  day, 1 at dusk and night, smooth between; no band and no weather in it). `Graphics/World/LanternGlow`.
+  - *No step:* across the Night and Dusk edge the lit wall's mean red moved 128.6 to 89.7 before (30 percent down while the sun rose 15) and
+    108.9 to 117.7 after; across the Dusk and Day edge 189.0 to 162.6 before and 177.2 to 177.2 after. A test walks a whole cycle tick by tick.
+    Rain no longer dims the glow (the wall's red at night in the heaviest kind: 51.2 before, 80.2 after, 98.5 in clear weather).
+  - *The look changed a little:* an additive pass cannot cool the lit face, so the amber moved from (0.55, 0.30, 0.08) to (0.55, 0.27, 0.02);
+    midnight is within 4 of 255 of the old colour, noon and dusk are about 5 percent brighter beside a lantern. The default camp view is
+    pixel-identical except the far village's lanterns.
+  - *Cost:* 13 380 vertices (0.4 percent of the world's), no measurable frame time.
+  - *Not checked:* that identical-vertex draws match bit for bit under `LessEqual` on a real GPU (it holds on software GL; a small depth bias on
+    the pass is the fix if a GPU speckles); the glow under water. Fences, doors, undergrowth and water take no glow, as before.
+  - *Seen by the orchestrator in its night screenshot in the heaviest kind, not from this change:* the cloud slabs stay light grey against a
+    near-black covered sky (E05's cloud colours at night under cover want a darker floor).
