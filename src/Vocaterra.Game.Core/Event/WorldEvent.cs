@@ -205,6 +205,9 @@ public static class WorldEvents
     /// <summary>The day clock crossed into another phase (E01; the detail is the new phase: <c>dawn</c>, <c>day</c>, <c>dusk</c> or <c>night</c>). Not raised for a sleep's jump to the morning or a load.</summary>
     public const string DayPhase = "day_phase";
 
+    /// <summary>The weather changed kind (E04; the detail is the new kind's id, a row of <c>game/weather.json</c>). Not raised for a load.</summary>
+    public const string WeatherChanged = "weather_changed";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -217,6 +220,6 @@ public static class WorldEvents
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,
-        DayPhase,
+        DayPhase, WeatherChanged,
     ];
 }

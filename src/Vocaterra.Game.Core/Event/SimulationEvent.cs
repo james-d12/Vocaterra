@@ -50,6 +50,9 @@ public enum SimulationEventKind
 
     /// <summary>(Atmosphere, E01) The day clock crossed into another phase: <see cref="SimulationEvent.Detail"/> is the new phase (a cast <c>DayPhase</c>). Raised once at each boundary of the running clock, not for a jump (a sleep, a held hour, a load).</summary>
     DayPhaseChanged = 13,
+
+    /// <summary>(Atmosphere, E04) The weather changed kind (a spell's end, a morning roll, a forced kind): <see cref="SimulationEvent.Detail"/> is the new kind's index in the weather data. Raised once per change, not for a load.</summary>
+    WeatherChanged = 14,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

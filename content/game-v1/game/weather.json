@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schema/weather.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The weather (E04, D-game-31). Each kind is a row of numeric channels (cloudCover, sunlight, fog, wind from 0 to 1; precipitation { kind, intensity }); the sky, the light, the fog, the rain and the sound read the blended channels and never a kind's id, so a new weather that reuses the channels is one more row here. minSeconds and maxSeconds bound a spell of the kind; next lists the kinds that may follow it with a whole-number weight; morningWeight is the kind's weight in the draw made when the player wakes (0 for never). start is the kind of a new game; transitionSeconds is how long a change takes to blend. The draws come from the world seed, so a seed has one weather.",
+  "start": "sunny",
+  "transitionSeconds": 45,
+  "kinds": [
+    {
+      "id": "sunny",
+      "cloudCover": 0.42,
+      "sunlight": 1,
+      "fog": 0,
+      "wind": 0.2,
+      "minSeconds": 240,
+      "maxSeconds": 600,
+      "next": { "cloudy": 1 },
+      "morningWeight": 6
+    },
+    {
+      "id": "cloudy",
+      "cloudCover": 0.9,
+      "sunlight": 0.7,
+      "fog": 0.25,
+      "wind": 0.4,
+      "minSeconds": 180,
+      "maxSeconds": 420,
+      "next": { "sunny": 3, "rain": 2 },
+      "morningWeight": 3
+    },
+    {
+      "id": "rain",
+      "cloudCover": 1,
+      "sunlight": 0.5,
+      "fog": 0.5,
+      "wind": 0.6,
+      "precipitation": { "kind": "rain", "intensity": 0.8 },
+      "minSeconds": 120,
+      "maxSeconds": 300,
+      "next": { "cloudy": 3, "sunny": 1 },
+      "morningWeight": 1
+    }
+  ]
+}

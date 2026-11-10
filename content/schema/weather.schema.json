@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/weather.json",
+  "description": "The weather (E04): its kinds as rows of channels, the kind a new game starts in and the time a change takes. Loaded by WeatherData (Vocaterra.Game.Core); GameDataValidator checks the values (ids unique, a precipitation kind exactly when the intensity is above zero, every next known, a transition no longer than the shortest spell).",
+  "type": "object",
+  "required": ["schemaVersion", "start", "transitionSeconds", "kinds"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "start": { "type": "string", "description": "The id of the kind a new game starts in." },
+    "transitionSeconds": { "type": "number", "minimum": 0, "description": "How long a change from one kind to the next takes to blend the channels; not above the shortest spell." },
+    "kinds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "cloudCover", "sunlight", "fog", "wind", "minSeconds", "maxSeconds", "morningWeight"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "Lowercase kebab-case, unique." },
+          "cloudCover": { "type": "number", "minimum": 0, "maximum": 1 },
+          "sunlight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "fog": { "type": "number", "minimum": 0, "maximum": 1 },
+          "wind": { "type": "number", "minimum": 0, "maximum": 1 },
+          "precipitation": {
+            "type": "object",
+            "required": ["kind", "intensity"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "type": "string", "description": "The style of what falls (a consumer's table knows it); empty for none." },
+              "intensity": { "type": "number", "minimum": 0, "maximum": 1, "description": "Above zero exactly when kind is set." }
+            }
+          },
+          "minSeconds": { "type": "number", "exclusiveMinimum": 0, "description": "The shortest a spell of this kind lasts." },
+          "maxSeconds": { "type": "number", "exclusiveMinimum": 0, "description": "The longest a spell lasts; not below minSeconds." },
+          "next": {
+            "type": "object",
+            "description": "The kinds that may follow, id to a positive whole-number weight. Required unless this is the only kind.",
+            "additionalProperties": { "type": "integer", "minimum": 1 }
+          },
+          "morningWeight": { "type": "integer", "minimum": 0, "description": "The weight in the draw made on waking; 0 for never. At least one kind needs one above zero." },
+          "say": {
+            "type": "object",
+            "required": ["day", "night"],
+            "additionalProperties": false,
+            "description": "The dialogue keys of the NPCs' answer (E07 fills and validates them).",
+            "properties": {
+              "day": { "type": "string" },
+              "night": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
