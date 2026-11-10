@@ -2243,3 +2243,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `save-v4.json`, which were saves of old code that could not be made again. Gate: 10,719 tests passed, 3 skipped. Checked on the merged
   build: a sleep at the fire with the skip aid writes `"sleep": {"last": {"id": "camp.fire"}}`, the save loads with it, and a version 7
   save is refused with the line above. Not fixed: the console's sleep line says "at the fire" wherever the player slept (Y08's strings).
+- **Y03, the bed and bedroll blocks (2026-11-10, on `feature/settlement`).** `Bed` (52) and `Bedroll` (53) follow `PostTorch`: not
+  solid, not decor (the crosshair's ray stops on them and nothing is placed into their cell), never gathered. Both are drawn with the pile
+  shape, whose height is now per block (`ChunkMesher.PileHeight`: the bed 0.5, the bedroll 0.3, the goods 0.42). **The atlas was full**
+  (96 colour cells for 97 kinds): `ColourRows` went from 12 to 13. A cell that holds a bed is not free ground to wake on. The shipped
+  scene has neither block, so its digest and the goldens did not move; `VillageTests`' check of the kinds in the village leaves the two
+  out until Y04 places a bed. Gate: 10,734 tests passed, 3 skipped. **How they look** (`artifacts/y03/` in the feature branch's
+  worktree): the bed reads as a low red box with a faint pillow, the bedroll as a flat striped mat; Y04 improves the bed where the
+  guest room shows it, the bedroll waits for Y12.

@@ -278,13 +278,13 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | done, 2026-11-10 (documents only: section 9) |
 | Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,714 tests) |
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,719 tests) |
-| Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | in progress, launched 2026-11-10 |
+| Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | done, gated 2026-11-10 (10,734 tests) |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | todo |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
 | Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
-| Y09 | Land rules and protection | Y00, Y02 | M/L | Sonnet 5.5, high | todo |
+| Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | todo |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
@@ -401,8 +401,9 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 
 ### 8.4 Order, and the series beside it
 
-At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), (Y04, Y09), (Y05, Y10), Y06, (Y07, Y11),
-Y08, Y12, Y13. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
+At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), (Y07, Y11),
+Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
+time, in that order. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
 
 **The day, night and weather series (E, `feature/weather`, D-game-31) is being built at the same time**, from the same `main`.

@@ -50,6 +50,11 @@ Deliverables:
    `crate`, `lamp.inn` in place of `lamp.house3`, and the points `bed.inn` and `npc.innkeeper` at 9.1's cells. Improve the inside
    where it reads badly in a screenshot (it is a first draft), but keep the door, the counter, the keeper's cell and the bed's cell
    where they are, or say exactly what moved.
+   **The bed must read as a bed.** Y03's block is a low red box with a faint pillow (see `bed.png` in
+   /home/james/Dev/Vocaterra/.claude/worktrees/settlement/artifacts/y03/). Improve its picture, and its box if that takes it
+   (`Graphics/Blocks/BlockArtVillage.cs`, `ChunkMesher.PileHeight`), so that from the guest room's door it is plainly a bed: a
+   clearly lighter pillow end towards the wall, a blanket with a fold. One block per bed stays, and Y03's tests
+   (`BedBlocksTests`, `BedArtTests`, `ChunkMesherBedTests`) keep passing or follow the new picture. The bedroll waits for Y12.
 2. **Three houses stay.** The fisher's lesson says the village has «una tienda, una panadería y tres casas», and the inn stands where
    `house3` is. Move `house3` (5 x 5, its name and its label `casa` kept) to a free place inside the village's levelled disc where
    it clears every other prop, the paving and the road, and where a walker can reach its door. Prove the place by a build and a
@@ -69,7 +74,8 @@ Deliverables:
    from the street through the door and the partition's gap to the bed's stand cell; the keeper's cell gives a valid standing cell
    for an NPC; the crosshair's line from the talk cell to the keeper's cell is clear and from the street it is not; on seeds 42, 7,
    1234 and 2025 no trunk and no leaves stand within 20 blocks of either meadow's centre; the village still has three houses
-   labelled `casa`; `inn.bed` is listed, resolves to its point and is not usable.
+   labelled `casa`; `VillageTests`' check of the block kinds in the village takes `Bed` back in (Y03 left it out because no bed
+   stood anywhere); `inn.bed` is listed, resolves to its point and is not usable.
 7. **The scripted runs and the goldens.** Capture the whole set before your first change and after your last
    (`scripts/scripted-runs.sh <out>`), compare (`scripts/compare-runs.py`) and list every run that differs with the reason: a view
    that now shows the inn, the moved house or a cleared meadow is expected; anything else is a finding. Record the end-to-end goldens
@@ -88,12 +94,12 @@ Not in this milestone: the innkeeper (Y06; only the cell is named now), lodging 
 any land rule (Y09), any other word than `posada`, any change to a lesson, a line or a recording.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count; the feature branch had 10,719 passing and 3 skipped after Y02); scripts/limited.sh dotnet format Vocaterra.sln
---verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes, and the content gate of CLAUDE.md is clean; the scripted runs compared as deliverable 7 says. Two things you may meet in the full run that are not yours, and that you report and do not fix: the fuzz
-test `CorrectSentenceFuzzTests` fails at random on a known core bug (the seed `0ybc3kyw33r3`, «nosotras vemos»), and the timing test
-`LoadingTheBundleIsFastEnough` can go over its limit when the machine is loaded; run a failed test class again alone before you
-conclude anything. Do not
-commit bin/, obj/ or artifacts/.
+(report the count; the feature branch had 10,734 passing and 3 skipped after Y03); scripts/limited.sh dotnet format Vocaterra.sln
+--verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes, and the content gate of CLAUDE.md is clean; the
+scripted runs compared as deliverable 7 says. Two things you may meet in the full run that are not yours, and that you report and do
+not fix: the fuzz test `CorrectSentenceFuzzTests` fails at random on a known core bug (the seed `0ybc3kyw33r3`, «nosotras vemos»),
+and the timing test `LoadingTheBundleIsFastEnough` can go over its limit when the machine is loaded; run a failed test class again
+alone before you conclude anything. Do not commit bin/, obj/ or artifacts/.
 
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
