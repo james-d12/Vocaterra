@@ -704,7 +704,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 - **D-game-24, point 1:** the player "wakes at the last fire they slept at" becomes the last place slept, a bed or a fire.
   Before any sleep that place is Luna's fire.
 - **D-game-25:** day one's ending is the introduction, the camp task and a room at the inn. From day 2 the player sleeps at any
-  rest place they may use (the inn's bed, later their own bedroll or lit fire) whenever the sleep drive is below 75. Lessons
+  sleep place they may use (the inn's bed, later their own bedroll or lit fire) whenever the sleep drive is below 75. Lessons
   stay optional.
 - **The village plan's principle 1** ("the world grows inward"): the village is rearranged to take the inn, and land outside
   its disc can be owned. The map and the disc do not grow in this slice, so D-game-22's "avoid making the map larger" holds.

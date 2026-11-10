@@ -507,8 +507,8 @@ the statuses below follow its table in section 8.3.
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
-| Y01 | Rest places: authored and run-time places in `needs.json` and `RestPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
-| Y02 | Save version 8 and the `rest` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | todo |
+| Y01 | Sleep places: the authored ones in `needs.json` and the run-time ones in `SleepPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
+| Y02 | Save version 8 and the `sleep` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | todo |
 | Y04 | The inn building (a `house` and an interior stamp in place of `house3`) and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
 | Y05 | Lodging: the `grant_lodging` action, `lodging_granted`, the bed's access and prompt | Y02, Y04 | M | Sonnet 5.5, medium | todo |
@@ -518,7 +518,7 @@ the statuses below follow its table in section 8.3.
 | Y09 | Land rules and protection: `land.json`, `LandRules`, placing refused on protected columns, planks taken back on owned land, `systems.land` | Y00, Y02 | M/L | Sonnet 5.5, high | todo |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
 | Y11 | Buying the plot from the mayor: `sell_plot`, the mayor's title and lines, the «Mi terreno» checklist | Y10 | M/L | Sonnet 5.5, high | todo |
-| Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as rest places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | todo |
+| Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as sleep places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | todo |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
 
 ## 5. Findings log

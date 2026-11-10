@@ -247,7 +247,7 @@ owner (a decision or a milestone).
 | 8 | The fire-ring finder reads the rings once (and there are two of it), and "my fire is lit" is a latch: a ring placed while the game runs is invisible to rest, cooking and waking | `Needs/FireRings.cs`, `VoxelSession.Eat.cs`, `VoxelSimulation.cs` | One shared finder with a rescan (Y01) |
 | 9 | No NPC has stood indoors, and a named point has no height of its own | `SceneBuilder.AddPoint`, `FeetCell` | A ground-floor guest room; no stairs in this slice |
 | 10 | The proposal's "selected recovery location" needs a way to choose; D-game-24 already says the player "wakes at the last fire they slept at" | [decisions](decisions.md), D-game-24 point 1 | Recovery is the last place slept; before any sleep, Luna's fire (Y01, Y02) |
-| 11 | `needs.json`'s `death.wakeAt` is read and validated and then never used | `Needs/NeedsData.cs`, `VoxelSession.Death.cs` | Y01 replaces it with the rest places |
+| 11 | `needs.json`'s `death.wakeAt` is read and validated and then never used | `Needs/NeedsData.cs`, `VoxelSession.Death.cs` | Y01 makes it real: it names the sleep place the player wakes at before any sleep |
 | 12 | A new NPC against "new NPCs only after a voice trial"; the three Spanish voices are all in use | `activities-plan.md` decision (e), `game/npcs/` | Y00's voice trial; a provisional voice, as D-game-22 (d) |
 | 13 | The lodging and land words must pass the A2 gate and need lexicon readings, and the core may not read the requests («¿Tienes…?» reads as `state_have` today) | [open items](../open-items.md) section 4, the merge gate's content step | Y00's probe; a core gap becomes a core milestone before Y06 or Y11 |
 | 14 | The valley phase's 512 × 512 candidate has 1.78 times the chunks, and the build-time test is already near its three seconds under load | `building-and-testing.md`, `docs/process/test-performance-plan.md` | Outside this slice; the budget is reviewed before that phase is registered |
@@ -271,8 +271,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
-| Y01 | Rest places, with behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
-| Y02 | Save version 8 and the rest entry | Y01 | M | Sonnet 5.5, medium | todo |
+| Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
+| Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | todo |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | todo |
@@ -293,21 +293,22 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
   lexicon (posada, hostal or hotel; habitación; cama; terreno; alcalde; estaca). A core gap is written up as a proposed M milestone.
 - Three candidate voices for the innkeeper, rendered for the owner.
 
-**Y01 Rest places.** The mountain fire becomes one authored rest place, so nothing changes for the player and no save changes.
-- `needs.json` gains a `rest` section in place of the unused `death.wakeAt`: for each place an id, a scene point, a kind (`fire`
-  or `bed`), a radius and an access (`always` or `lodging`), and the fallback place (`firering`, Luna's). `Needs/NeedsData.cs`,
-  `Needs/NeedsValidator.cs`, the schema.
-- A `RestPlaces` class the session owns, for the authored places and the ones made while the game runs. A fire is usable when it
+**Y01 Sleep places.** The mountain fire becomes one authored sleep place, so nothing changes for the player and no save changes.
+(The name is "sleep place" because `needs.json`'s `rest` is already the rule for resting by a lit fire.)
+- `needs.json` gains a `sleepPlaces` list: for each place an id, a scene point, a kind (`fire` or `bed`), a radius and an access
+  (`always` or `lodging`). `death.wakeAt`, unused until now, names the place the player wakes at before any sleep is recorded
+  (the mountain fire until Y08, then Luna's `firering`). `Needs/NeedsData.cs`, `Needs/NeedsValidator.cs`, the schema.
+- A `SleepPlaces` class the session owns, for the authored places and the ones made while the game runs. A fire is usable when it
   is lit (read live), a bed when its access is met. `CanSleep` means "a usable place exists", so the `--sleep` aid still works;
-  `AtOwnFire` becomes `AtRestPlace`.
+  `AtOwnFire` becomes `AtSleepPlace`.
 - What changes: `Session/VoxelSession.Sleep.cs` (all of it); `Session/SleepOffer.cs` (the card needs the player at a usable
-  place and otherwise points at the bed); `VoxelSession.Death.cs` (`WakeAtFire` becomes `WakeAtRest` and keeps
+  place and otherwise points at the bed); `VoxelSession.Death.cs` (`WakeAtFire` becomes `WakeAtSleepPlace` and keeps
   `NearestFreeGround`); `VoxelSession.cs` (the `_fireLit` latch and `_playerFireRing`); the front end's prompt, card and
   `SleepNow` in `VoxelGame.cs`; `Input/KeyBindings.cs`.
 - One `FireRings` shared by the session and the simulation, with a `Rescan()`.
 
 **Y02 Save version 8.** The current and the oldest readable version both become 8 in `Save/SaveGame.cs`, and the branches for
-old versions go. `SystemsSave` gains `Rest` (the lodging given, the last place slept, the places made in play). "Last slept" is
+old versions go. `SystemsSave` gains `Sleep` (the lodging given, the last place slept, the places made in play). "Last slept" is
 written after `RestoreParts` inside `SaveGame.Sleep`, because a sleep restores the save taken just before it; a collapse writes
 none. One version 8 fixture replaces `save-v1.json` and `save-v4.json`, and the tests that read them change with it.
 [saves](saves.md) is updated.
@@ -320,12 +321,12 @@ decor, so the crosshair finds them), the pile shape in `Graphics/World/ChunkMesh
 - `game/scene.json`: a `house` for the inn, then a `stamp` for its inside (beds, a counter, a partition with a door gap, window
   gaps through an `air` entry in the legend), the points `bed.inn` and `npc.innkeeper`, a lamp; `house3` goes; `trees.clearings`
   for the meadows.
-- `game/needs.json`: the rest place `inn.bed`, with the access `lodging` (so no one can use it before Y05).
+- `game/needs.json`: the sleep place `inn.bed`, with the access `lodging` (so no one can use it before Y05).
 - A walk test from the door to the bed, and screenshots of the inside and of the meadows for the owner.
 
 **Y05 Lodging.** A `grant_lodging` action kind (`Npc/HostEventTable.cs`, the dispatch in `VoxelSession.cs`,
 `content/schema/host-events.schema.json`); giving it twice changes nothing. The world event `lodging_granted`, which is also an
-autosave reason. The grant kept in `systems.rest`. The bed's prompt. Tested on a test bundle: given, saved, loaded; a night in
+autosave reason. The grant kept in `systems.sleep`. The bed's prompt. Tested on a test bundle: given, saved, loaded; a night in
 the bed is the same night as one at the fire; a death after it wakes at the inn.
 
 **Y06 The innkeeper.** The seven steps of `content/README.md` ("Adding an NPC"): the agent, the prompts, the dialogue pools (the
@@ -342,7 +343,7 @@ role and glosses, the figure in `Graphics/Figures/NpcFigures.cs`, the entry in `
   sends the player to the inn, with its speech.
 
 **Y08 The mountain, the strings and the rebaseline.** The tent, the chest, the crate and `firering.player` leave `scene.json`,
-and `camp.player` loses the label "mi campamento"; the mountain's rest place goes. The locale's `tips.json`, `ui.json` and
+and `camp.player` loses the label "mi campamento"; the mountain's sleep place goes, and `death.wakeAt` names Luna's fire. The locale's `tips.json`, `ui.json` and
 `controls.json`, `words.json`'s `hud.camp`, `Sound/AmbientBeds.cs`. The tests that name `firering.player` (seven files, with
 `AmbientBedsTests` and `TestingRowsTests`). The digest pinned again. The scripted runs r01, r10, r20 to r24, r26, r27 and r30
 captured again after their differences are read. [lessons](lessons.md), [running](running.md), [playtest](playtest.md).
@@ -375,11 +376,11 @@ line, with a HUD line that gives the size and the price (never by colour alone).
 - The item `camp-kit` and one camp shape (the `tent` stamp that exists, a bedroll, a fire ring). The stamp's rotation moves out
   of `SceneBuilder.BuildStamp` into a helper, so the scene's build and the placing in play put blocks down the same way.
 - Placing checks every cell first (inside the owned plot, free, on level ground, clear of the player, a free cell to wake on),
-  then sets the blocks, takes the kit, scans the fire rings again and makes the bedroll and the ring rest places.
+  then sets the blocks, takes the kit, scans the fire rings again and makes the bedroll and the ring sleep places.
 - The torch hook in `VoxelSession.cs` is widened to the ring that was placed; planting is allowed inside the plot
   (`VoxelSession.Planting.cs`); `my-land` gains the steps `camp` and `fire`.
 - Gathering a camp block on owned land packs the whole camp back into the kit (the first thing to cut if the milestone runs
-  large). A load drops a rest place whose blocks are gone and gives the kit back.
+  large). A load drops a sleep place whose blocks are gone and gives the kit back.
 
 **Y13 Close-out.** The scripted runs `r40-inn`, `r41-land` and `r42-camp`; the documents ([saves](saves.md),
 [architecture](architecture.md), [running](running.md), `content/README.md`, the fixture's line in `CLAUDE.md`, the list of
