@@ -34,7 +34,7 @@ docs/game/speech-checklist.md or content/game-v1/manifest.json. Heavy output goe
 
 Rules: a game milestone edits only the game projects, their tests, content/game-v1, assets/ and docs/game/ and takes the core as it
 is (a missing core call stops that part: report it, do not copy core source or edit a Vocaterra.Nlp project); a regression check is a
-C# test, never a script with text baselines; tests are named Given_When_Then in folders that mirror the source; do not edit either
+C# test, never a script with text baselines; tests are named Given_When_Then in folders that mirror the source; do not edit CLAUDE.md, either
 implementation-plan.md, either decisions.md or docs/game/settlement-plan.md (the orchestrator does); engine code only in
 src/Vocaterra.Game; assets CC0 only; nothing under .github/workflows/. This is the one milestone before Y08 that edits the scene: put
 every scene change of this brief in it, and none beside.
@@ -60,7 +60,8 @@ Deliverables:
    the model content/README.md gives for such words (the owner decided this: D-game-32 (e)). Check through the core's CLI that
    «¿Dónde está la posada?» at the villager's prompt is read as a question about a place and names it, and in the game that the
    villager's answer points at the inn (`--talk villager --say "¿Dónde está la posada?"`).
-5. **The bed as a sleep place.** In `needs.json`'s `sleepPlaces`: `inn.bed`, the point `bed.inn`, the kind `bed`, a reach of 2 across
+5. **The bed as a sleep place.** (Y01 built `Session/SleepPlaces`; Y02 saves the lodging flag `VoxelSession.LodgingGiven`.) In
+   `needs.json`'s `sleepPlaces`: `inn.bed`, the point `bed.inn`, the kind `bed`, a reach of 2 across
    and 2 in height, the access `lodging`. With that access nobody can use it yet, and the game plays as before.
 6. **Tests.** The tests that name `house3` or pin the scene (section 9.1's list) follow the move; `SceneTests`' golden digest is
    pinned again after you have looked at what changed (say what did); `SceneBuildTimeTests` stays under its three seconds (report
@@ -87,9 +88,12 @@ Not in this milestone: the innkeeper (Y06; only the cell is named now), lodging 
 any land rule (Y09), any other word than `posada`, any change to a lesson, a line or a recording.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean; scripts/limited.sh scripts/content.sh
-validate passes, and the content gate of CLAUDE.md is clean; the scripted runs compared as deliverable 7 says. Do not commit bin/,
-obj/ or artifacts/.
+(report the count; the feature branch had 10,719 passing and 3 skipped after Y02); scripts/limited.sh dotnet format Vocaterra.sln
+--verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes, and the content gate of CLAUDE.md is clean; the scripted runs compared as deliverable 7 says. Two things you may meet in the full run that are not yours, and that you report and do not fix: the fuzz
+test `CorrectSentenceFuzzTests` fails at random on a known core bug (the seed `0ybc3kyw33r3`, «nosotras vemos»), and the timing test
+`LoadingTheBundleIsFastEnough` can go over its limit when the machine is loaded; run a failed test class again alone before you
+conclude anything. Do not
+commit bin/, obj/ or artifacts/.
 
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>

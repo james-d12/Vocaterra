@@ -298,7 +298,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   hears `a dónde está la árbol` for the synthesized `dónde está la árbol` and expects the latter. It fails identically on the pre-move
   commit `e0ab15a`; model-gated tests are skipped in agent runs without `VOCATERRA_MODELS_DIR`, so it went unnoticed. To be fixed in its
   own game milestone (the constrained grammar now offers `a dónde`; decide whether the test or the recognizer's phrase set is wrong).
-- `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
+- `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
   tests fail.
 - `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths (left untouched; the CI milestone rewrites it).
 
@@ -508,8 +508,8 @@ the statuses below follow its table in section 8.3.
 | --- | --- | --- | --- | --- | --- |
 | Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | done, 2026-11-10 |
 | Y01 | Sleep places: the authored ones in `needs.json` and the run-time ones in `SleepPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | done, gated 2026-11-10 |
-| Y02 | Save version 8 and the `sleep` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
-| Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | todo |
+| Y02 | Save version 8 and the `sleep` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 |
+| Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | in progress, launched 2026-11-10 |
 | Y04 | The inn building (a `house` and an interior stamp where `house3` stands; `house3` moves) and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
 | Y05 | Lodging: the `grant_lodging` action, `lodging_granted`, the bed's access and prompt | Y02, Y04 | M | Sonnet 5.5, medium | todo |
 | Y06 | The innkeeper: the NPC, the lines, the phrases, the voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |

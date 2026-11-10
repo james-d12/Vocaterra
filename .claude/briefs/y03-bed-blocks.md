@@ -14,10 +14,11 @@ scripts/test.sh calls it itself: run it directly. Never start two heavy commands
 test runs), and write no shell wait loop on `pgrep -f`. Other agents build on this machine too, so a heavy command will often wait for
 a free slot: that is normal, let it wait, and build and test in few, well-chosen runs. While iterating run `scripts/test.sh fast` or
 `scripts/test.sh project <test project>`; run `scripts/test.sh full` once before reporting. Exit 137 means the 6 GB cap killed it:
-lower the parallelism, do not work round the cap.
+lower the parallelism (`-m:1`), do not work round the cap.
 
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
-reject a bare `export`).
+reject a bare `export`). A screenshot run needs DISPLAY (use `DISPLAY="${DISPLAY:-:0}"`) and
+VOCATERRA_MODELS_DIR=$HOME/.local/share/vocaterra/models.
 
 Read first: CLAUDE.md; docs/process/code-guidelines.md; in docs/game/settlement-plan.md the paragraph "Y03" of section 8.3 and, in
 section 9.1, the interior stamp (it shows where a bed will stand: the `crate` cells). Then the code:
@@ -30,8 +31,8 @@ section 9.1, the interior stamp (it shows where a bed will stand: the `crate` ce
 Read the parts named, never whole long files. Heavy output goes to log files; print at most 30 lines.
 
 Rules: a game milestone edits only the game projects, their tests and docs/game/ and takes the core as it is; a regression check is a
-C# test, never a script with text baselines; tests are named Given_When_Then in folders that mirror the source; do not edit either
-implementation-plan.md, either decisions.md or docs/game/settlement-plan.md (the orchestrator does); engine code only in
+C# test, never a script with text baselines; tests are named Given_When_Then in folders that mirror the source; do not edit CLAUDE.md,
+either implementation-plan.md, either decisions.md or docs/game/settlement-plan.md (the orchestrator does); engine code only in
 src/Vocaterra.Game; Vocaterra.Game.Core references no package (`ArchitectureRulesTests`); art is drawn in code as the other blocks'
 is, or CC0; nothing under .github/workflows/. The weather series is editing ChunkMesher.cs's light and `MeshOptions` on another
 branch: touch only the shape of the two new blocks there.
@@ -64,7 +65,11 @@ Not in this milestone: sleeping, any item, any change to the shipped scene (`con
 save. The shipped world has neither block, so the scene's digest and the goldens must not move: if one moves, stop and say why.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean. Do not commit bin/, obj/ or artifacts/.
+(report the count; the feature branch has 10,719 passing and 3 skipped today); scripts/limited.sh dotnet format Vocaterra.sln
+--verify-no-changes clean. Two things you may meet in the full run that are not yours, and that you report and do not fix: the fuzz
+test `CorrectSentenceFuzzTests` fails at random on a known core bug (the seed `0ybc3kyw33r3`, «nosotras vemos»), and the timing test
+`LoadingTheBundleIsFastEnough` can go over its limit when the machine is loaded; run a failed test class again alone before you
+conclude anything. Do not commit bin/, obj/ or artifacts/.
 
 Commit messages end with
 Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>

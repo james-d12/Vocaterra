@@ -2230,3 +2230,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     completes, no spare torch is given, `--place antorcha@153,74,105` is refused and `--sleep` answers "the player's own fire is not lit".
     The two captures were the same before and after Y01 because both stop there. No scripted run exercises a sleep until Y08 captures
     these runs again for the new opening; until then the sleep is covered by `SleepTests`, `SleepPlacesTests` and the skip aid.
+- **Y02, save version 8 and the sleep entry (2026-11-10, on `feature/settlement`; D-game-32 (d)).** The save's version is 8 and nothing
+  older loads: «The save is format version 7; the oldest this game loads is 8 (it writes 8), and older saves are not migrated.» The code
+  that only served older versions went with it (the objective keys before version 5, `LearnerWords.FromVersion2` with `Uncount` and
+  `Repoint`, `LessonRunner.SplitIntroduction`); the defaults of optional fields stay. `systems.sleep` is optional and written only when
+  something is set: the lodging flag (`VoxelSession.LodgingGiven`, which Y05 sets), the last place slept (its id, and its cell for a place
+  made in play) and the places made in play. **The last place is written after `RestoreParts` inside `SaveGame.Sleep`** (`NoteSleptAt`),
+  because a sleep restores the save taken just before it; a sleep at no place (the `--sleep` aid away from one) and a collapse leave it
+  as it was. A death wakes at the last place while `SleepPlaces` still has it, otherwise at `death.wakeAt`. A cross-bundle load keeps the
+  entry and lets go of a place outside the new grid and of a last place the new bundle no longer has. **One fixture:**
+  `Fixtures/save-v8.json`, a recorded run of the current game (the command is in [saves](saves.md)), replaces `save-v1.json` and
+  `save-v4.json`, which were saves of old code that could not be made again. Gate: 10,719 tests passed, 3 skipped. Checked on the merged
+  build: a sleep at the fire with the skip aid writes `"sleep": {"last": {"id": "camp.fire"}}`, the save loads with it, and a version 7
+  save is refused with the line above. Not fixed: the console's sleep line says "at the fire" wherever the player slept (Y08's strings).

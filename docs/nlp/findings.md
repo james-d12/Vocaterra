@@ -1398,3 +1398,13 @@ this file. What is still open is collected in [open-items](../open-items.md).
   (`slip-in-context`, the seed in the comment). **The analyzer is unchanged and right:** «vosotras podo rastrear» gives `conj.person` →
   `podéis` and `conj.irregular` → `puedo`, two faults on one word, as `ellos quero pan` gives `quieren` and `quiero`; accepted behaviour.
   O4's assertion unchanged; the stream digest, goldens and replays did not move. 5 test cases in `HomographRerollTests`.
+- **A new fuzz seed: «nosotras vemos» is flagged off the prompt (found 2026-11-10 beside the game's Y02; not fixed, no milestone yet).**
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, oracle O3
+  (`CheckAtAPromptThatDoesNotTakeIt`): the correct sentence «nosotras vemos» (recipe `[[PRON] [VERB] [ADV]?]`, recipe seed 2850, a tab for
+  the space), graded at `farmer-open`, which takes none of its intents, gets `vocab.wrong` at 0+8, expected `nos`, actual `nosotras`.
+  CsCheck seed `0ybc3kyw33r3` (2,000 samples, 0 shrinks); **it replays every time** (`-e CsCheck_Seed=0ybc3kyw33r3`, on
+  `feature/settlement` at `2cb53da5`, whose core is `main`'s). It met a milestone agent's full run once and not the two merge gates of
+  that evening, so a gate can meet it at random. It stands beside the known `nos veo` gap ([known gaps](known-gaps.md)): something
+  proposes the reflexive reading for a subject pronoun before `ver`. Proposed: a core milestone that finds which rule answers `nos`
+  here, fixes it at the source with a regression test in the owning module, and records the seed in the fuzz suite's README; the
+  oracle is not narrowed.

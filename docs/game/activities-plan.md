@@ -205,7 +205,7 @@ adds W17–W21. W12 needs W02. U03 and U04 follow the final recall. Gate each mi
 Every milestone meets the definition of done (`docs/game/implementation-plan.md` section 6) and, while iterating, the fast tier
 (`scripts/test.sh fast`, through `scripts/limited.sh`), with the whole suite once before the report. A milestone that edits `content/game-v1`
 runs the content loop (`scripts/content-loop.sh --grammar --speech`, V18), re-records goldens that moved, puts the new bundle hash into
-`tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`, and re-baselines the scripted runs it moved. New tests mirror the sources
+`tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, and re-baselines the scripted runs it moved. New tests mirror the sources
 (`tests/Vocaterra.Game.Core.Tests/Activities/`, `tests/Vocaterra.Game.Tests/UI/Station/`).
 
 ### Stage 1: foundations
