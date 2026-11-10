@@ -103,8 +103,7 @@ Everything the game says, shows and builds its world from, outside the code. The
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
-   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixtures `save-v1.json` and
-      `save-v4.json`); an edit of `locale/` alone moves none;
+   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v8.json`); an edit of `locale/` alone moves none;
    5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
       to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
       that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of

@@ -283,13 +283,13 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   `firering.player`. The list is `needs.json`'s `sleepPlaces` (id, scene point, kind `fire` or `bed`, reach across and in height, access `always` or `lodging`) resolved against
   the scene's points, plus places added and removed while the game runs. A fire is usable while a lit ring stands at it (read from the world when asked), a bed when its access
   is met (`VoxelSession.LodgingGiven`); `CanSleep` means any place is usable, `AtSleepPlace` that the player stands at a usable one, and the closing card offers the sleep only
-  there. A death wakes the player at the place `death.wakeAt` names (`WakeAtSleepPlace`, on the nearest free ground two to five blocks from it). The world's fire rings are one
+  there. A death wakes the player at the place last slept at while it is still in `SleepPlaces`, else at the place `death.wakeAt` names (`WakeAtSleepPlace`, on the nearest free ground two to five blocks from it). The save keeps the last place, the lodging flag and the places made in play (the `sleep` entry of `systems`, version 8; see `docs/game/saves.md`). The world's fire rings are one
   `FireRings` (`VoxelSimulation.Fires`, shared by the session), found by shape when it is made and again on `Rescan()`. (`rest` in `needs.json` is the rule for resting by a lit fire,
   not this list.) The `light-fire` objective and its hooks still use the latch `FireLit`; they leave in Y07.
 
 ## The learner's record (S19, D-game-16)
 
-The record of what the learner said and which lessons they finished, for the book (S20). It is game state on the player's machine: the save (version 2) and
+The record of what the learner said and which lessons they finished, for the book (S20). It is game state on the player's machine: the save and
 the session log; nothing is sent. Everything is plain values, with no clock and no random number.
 
 - **The history** (`LearnerRecord.History`, entries `InputEntry` in `Learner/InputEntry.cs`). One entry per line the game took and evaluated: every dialogue
@@ -310,16 +310,10 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
 - **The lesson record** (`LessonRunner.Record`, rows `LessonRecordRow`, units `LessonUnitRow`). Written by the runner's own events: the step outcomes (`Units`,
   done, skipped or moved on), `Status`, `CompletedSession` (the session of the last completion), `Turns` (turns that reached a repeat or answer step),
   `HelpUses` (the help path, the English shown), `DontKnowUses` ("no sé" said at a turn step or pressed), `RepeatUses` ("Otra vez" and "Más despacio" asked of
-  the lesson's NPC) and `Phrases`. The counts are over every run of the lesson. A version 1 save has none of the counts and no completion session: they load as
-  zero and null, and the units and status come from the saved runner state.
-- **Save version 2.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows) and `LessonProgressSave` gets `Turns`,
-  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. A version 1 save loads with an empty history and an empty word record (its readings were
-  never kept). The fixture `Fixtures/save-v1.json` (in `tests/Vocaterra.Game.Tests`) is a real version 1 save of the S18 code, for `LearnerRecordTests`.
-- **Save version 3 (S19b).** `SaveGame.CurrentVersion` is 3; versions 1 to 3 load. Version 2 counted the check answers in its word rows. On a version 2 load,
-  `LearnerWords.FromVersion2` takes them out: when the saved history holds every entry (none trimmed by the bound), the rows are folded from it again; otherwise
-  the check answers the history still holds are subtracted from the saved rows, and a first or last use that was one is replaced by the row's last non-check use
-  in the history. A check answer older than the bound cannot be taken out (the history no longer holds it). The version bump keeps the migration from running
-  twice: a version 3 save's rows are loaded as they are. The fixture stays version 1 (its format did not change).
+  the lesson's NPC) and `Phrases`. The counts are over every run of the lesson.
+- **The save's learner part.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows); `LessonProgressSave` keeps `Turns`,
+  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. The word rows do not count the check answers (S19b). Only version 8 saves load (Y02): the older
+  versions' loading code is gone, and the fixture is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`.
 
 **The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
 
@@ -332,7 +326,7 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
   `Units`, `CompletedSession`, `Turns`, `HelpUses`, `DontKnowUses`, `RepeatUses`, `Phrases`.
 - `LearnerSummary.Lines(learner, lessons, session, storedTime)`: the console summary the front-end prints at exit (`book: summary at exit`), as text.
 - **What the book (S20) adds to the record.** `FormRow.Question` (a form used in a question is a form of its own: `¿quieres?`) and `FormRow.Last` (the
-  form's last use, a `WordUse`); a version 2 save keeps both. `LessonDefinition.Summary` and `LessonRecordRow.Summary` (the English line of a completed lesson,
+  form's last use, a `WordUse`); both are saved. `LessonDefinition.Summary` and `LessonRecordRow.Summary` (the English line of a completed lesson,
   from the optional `summary` in `game/lessons.json`), `LessonRecordRow.StepIds` (the steps in order; the book groups them into units by their prefix).
 - **`game/glosses.json` (S20)**, `VerbGlosses` (`Load(bundle)`, `ForLemma`, `All`; `session.Glosses`): the English of a verb (`to want`), with optional
   `third` and `past` for the irregular ones. The lexicon has no gloss, so a verb not in the file is shown by its infinitive alone. Read by the file's
