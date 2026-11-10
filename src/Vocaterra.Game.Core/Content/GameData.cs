@@ -1,5 +1,6 @@
 using System.Text;
 using Vocaterra.Game.Core.Activities;
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Checks;
@@ -55,6 +56,7 @@ public sealed class GameData
         HostEventTable hostEvents,
         ObjectiveBook objectives,
         NeedsData needs,
+        DayData day,
         ProcedureBook procedures,
         StationBook stations,
         ActionTable actions)
@@ -64,6 +66,7 @@ public sealed class GameData
         Stations = stations;
         Actions = actions;
         Needs = needs;
+        Day = day;
         Objectives = objectives;
         Words = words;
         Npcs = npcs;
@@ -144,6 +147,9 @@ public sealed class GameData
     /// <summary>The player's needs: the drives, health and stamina with their stages and links, the foods and the death rules (<c>game/needs.json</c>, N01).</summary>
     public NeedsData Needs { get; }
 
+    /// <summary>The day and night cycle: its length, the hours each phase begins, the start hour and the wake hour (<c>game/day.json</c>, E01).</summary>
+    public DayData Day { get; }
+
     /// <summary>The procedures (<c>game/procedures.json</c> and <c>game/procedures/&lt;id&gt;.json</c>, W05): the steps of the jobs done at the stations.</summary>
     public ProcedureBook Procedures { get; }
 
@@ -207,6 +213,7 @@ public sealed class GameData
             HostEventTable.Load(bundle),
             ObjectiveBook.Load(bundle, nouns),
             NeedsData.Load(bundle),
+            DayData.Load(bundle),
             ProcedureBook.Load(bundle),
             StationBook.Load(bundle),
             ActionTable.Load(bundle));
@@ -244,60 +251,64 @@ public sealed class GameData
     public GameData WithLessons(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
     }
 
     /// <summary>The same parts with another phrase sheet (the validator's tests).</summary>
     /// <param name="phrases">The sheet.</param>
-    internal GameData WithPhrases(PhraseSheet phrases) => new(Bundle, Locale, Nouns, Recipes, phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithPhrases(PhraseSheet phrases) => new(Bundle, Locale, Nouns, Recipes, phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
-    internal GameData WithChecks(CheckBank checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithChecks(CheckBank checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with another support language (the validator's tests).</summary>
     /// <param name="locale">The locale.</param>
-    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with another scene layout (the validator's tests).</summary>
     /// <param name="scene">The layout.</param>
-    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other target-language words (the validator's tests).</summary>
     /// <param name="words">The words.</param>
-    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other NPCs (the validator's tests).</summary>
     /// <param name="npcs">The NPCs.</param>
-    internal GameData WithNpcs(NpcRoster npcs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithNpcs(NpcRoster npcs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with another host-event table (the validator's tests).</summary>
     /// <param name="hostEvents">The table.</param>
-    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other objectives (the validator's tests).</summary>
     /// <param name="objectives">The objectives.</param>
-    internal GameData WithObjectives(ObjectiveBook objectives) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithObjectives(ObjectiveBook objectives) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other tips (the validator's tests).</summary>
     /// <param name="tips">The tips.</param>
-    internal GameData WithTips(IReadOnlyList<TipSpec> tips) => new(Bundle, Locale, Nouns, Recipes, Phrases, tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, Actions);
+    internal GameData WithTips(IReadOnlyList<TipSpec> tips) => new(Bundle, Locale, Nouns, Recipes, Phrases, tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, Actions);
 
     /// <summary>The same parts with other procedures (the validator's tests).</summary>
     /// <param name="procedures">The procedures.</param>
-    internal GameData WithProcedures(ProcedureBook procedures) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, procedures, Stations, Actions);
+    internal GameData WithProcedures(ProcedureBook procedures) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, procedures, Stations, Actions);
 
     /// <summary>The same parts with other stations (the validator's tests).</summary>
     /// <param name="stations">The stations.</param>
-    internal GameData WithStations(StationBook stations) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, stations, Actions);
+    internal GameData WithStations(StationBook stations) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, stations, Actions);
 
     /// <summary>The same parts with another action table (the validator's tests).</summary>
     /// <param name="actions">The table.</param>
-    internal GameData WithActions(ActionTable actions) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Procedures, Stations, actions);
+    internal GameData WithActions(ActionTable actions) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Procedures, Stations, actions);
 
     /// <summary>The same parts with other needs (the validator's tests).</summary>
     /// <param name="needs">The needs.</param>
-    internal GameData WithNeeds(NeedsData needs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, needs, Procedures, Stations, Actions);
+    internal GameData WithNeeds(NeedsData needs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, needs, Day, Procedures, Stations, Actions);
+
+    /// <summary>The same parts with another day cycle (the validator's tests).</summary>
+    /// <param name="day">The cycle.</param>
+    internal GameData WithDay(DayData day) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, day, Procedures, Stations, Actions);
 
     /// <summary>The text of one of the bundle's verified host files.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>

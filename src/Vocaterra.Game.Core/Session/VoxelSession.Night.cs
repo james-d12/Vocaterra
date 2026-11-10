@@ -34,6 +34,7 @@ public sealed partial class VoxelSession
             SettleNeedStages();
         }
 
+        Simulation.WakeUp(); // E01: a sleep, like a collapse, wakes in the morning; the stored time, the day and the sitting are not touched
         RunDayResets();
         if (collapse)
         {

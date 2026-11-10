@@ -335,6 +335,18 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
 - **The book item (S20).** `ItemId.Book` (29, stack 1) is given by `VoxelSession` at a new game (`Simulation.GrantItems`); a loaded save puts its own slots back.
   `btnHold` is gone from `english.json` and `EnglishText.UiKeys`.
 
+## The day and night clock (E01, `Atmosphere/`)
+
+The first piece of the day, night and weather series (`docs/game/weather-plan.md`, D-game-31). The folder is `Atmosphere`, not `Environment`, so the namespace does not shadow `System.Environment`.
+
+| Type | Role |
+| --- | --- |
+| `DayData` | `game/day.json` (`Load(bundle)`, `Parse(json)`; `DayData.Default` when a simulation is built without game data): `cycleSeconds` (2400, 40 minutes at 60 ticks a second), the hours of a 24-hour dial at which `dawnHour` (4), `dayHour` (6), `duskHour` (20) and `nightHour` (22) begin, `startHour` (8, tick 0 of a new game) and `wakeHour` (7, where a sleep or a collapse wakes). A bundle with no `game/day.json` does not load, as one with no `needs.json` does not. `DayValidator` checks the values with the other files (the cycle positive, every hour on the dial, the four in ascending order, start and wake below 24). |
+| `DayClock` | The time of day as a pure function of the tick: `(startTicks + tick + offset) mod cycleTicks`, in integer ticks, so nothing is accumulated. `HourAt(tick)` (0 to 24), `PhaseAt(tick)` (`DayPhase`: Dawn, Day, Dusk, Night) and `DaylightAt(tick)` (0 through the night, rising across dawn, 1 through the day, falling across dusk). `WakeUp(tick)` sets the offset so the hour is `wakeHour` at that tick; `Freeze(hour)` and `Unfreeze(tick)` hold the clock for tests and screenshots. Its state, `DayClockState` (the offset and the held hour), is all that is saved and digested. |
+| `DayPhaseNames` | The words a trigger uses for a phase: `dawn`, `day`, `dusk`, `night`. |
+
+`VoxelSimulation.Atmosphere.cs` (after the water system's partial) owns the clock (`Clock`, `Phase`), is started with the bundle's `DayData` (`VoxelSimulation.Create(scene, day)`), and is stepped from `Step` only to notice a change of phase: it appends a `SimulationEventKind.DayPhaseChanged` event (the new phase in `Detail`) at the tick of the boundary, once. A jump (`WakeUp()`, `FreezeClock`, `UnfreezeClock`, a restore) raises none. `VoxelSession` turns the event into the world event `day_phase` (`WorldEvents.DayPhase`, the detail `dawn`, `day`, `dusk` or `night`), which a tip, a lesson step or an objective step may wait for with a `Trigger`. `VoxelSession.ApplyNight` (a sleep and a collapse) calls `WakeUp()`; the stored time, `Day` and `Sitting` are not touched. The digest follows the flow's rule: a clock with no offset that is not held adds nothing, so a run that never slept has the digest it had before the clock; the save's `systems.atmosphere` entry (`docs/game/saves.md`) is written only when it is not that state. The clock runs on its own whether or not the player sleeps. Tests: `Atmosphere/`, `Simulation/AtmosphereSimulationTests`, `Session/DayClockSessionTests` and `Save/AtmosphereSaveTests`.
+
 ## The voxel world (S1; the route in S3; the generated valley in S13)
 
 The prototype's world (docs/game/scenario-plan.md): a generated 384 x 384 x 128 block valley (S13), a first-person body, gathering and placing, all

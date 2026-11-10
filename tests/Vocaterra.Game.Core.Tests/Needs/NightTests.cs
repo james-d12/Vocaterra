@@ -190,7 +190,9 @@ public sealed class NightTests
 
         Assert.Equal(feet, session.Simulation.Player.FeetBlock);
         Assert.Equal(tick, session.Simulation.Tick);
-        Assert.Equal(digest, session.Simulation.ComputeStateDigest());
+        Assert.NotEqual(digest, session.Simulation.ComputeStateDigest()); // E01: the collapse wakes in the morning, so the clock's offset is in the digest
+        session.Simulation.Clock.Restore(null);
+        Assert.Equal(digest, session.Simulation.ComputeStateDigest()); // and nothing else of the state moved
     }
 
     [Fact]

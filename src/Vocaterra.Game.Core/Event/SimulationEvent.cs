@@ -47,6 +47,9 @@ public enum SimulationEventKind
 
     /// <summary>(Water, H03) The air became full again after the player came up.</summary>
     BreathRestored = 12,
+
+    /// <summary>(Atmosphere, E01) The day clock crossed into another phase: <see cref="SimulationEvent.Detail"/> is the new phase (a cast <c>DayPhase</c>). Raised once at each boundary of the running clock, not for a jump (a sleep, a held hour, a load).</summary>
+    DayPhaseChanged = 13,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

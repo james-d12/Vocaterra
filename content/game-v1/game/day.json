@@ -1,0 +1,13 @@
+{
+  "$schema": "../../schema/day.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The day and night cycle (E01, D-game-31). cycleSeconds is the real-time length of one full day and night at 60 ticks a second (2400 is 40 minutes). The four hours are on a 24-hour dial and say where each phase begins: dawn, then day, dusk and night, in that order, so the light rises across dawn, holds through the day, falls across dusk and is out through the night. 4 to 22 is about 30 minutes of light and 10 of night. startHour is the hour at tick 0 of a new game; wakeHour is the hour a sleep or a collapse wakes at. The cycle runs on its own whether or not the player sleeps.",
+  "cycleSeconds": 2400,
+  "dawnHour": 4,
+  "dayHour": 6,
+  "duskHour": 20,
+  "nightHour": 22,
+  "startHour": 8,
+  "wakeHour": 7
+}
