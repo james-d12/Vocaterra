@@ -431,8 +431,10 @@ public sealed class BookSpeechTests
 
         public List<string> Log { get; }
 
-        // The line ids the voice started, from its log ("voice: <id>").
-        public List<string> Played() => _voiceLog.Where(static l => l.StartsWith("voice: ", StringComparison.Ordinal)).Select(static l => l["voice: ".Length..]).ToList();
+        // The line ids the voice started, from its log ("voice: <id>"; a clip cut off and a line with no recording are not clips).
+        public List<string> Played() => _voiceLog
+            .Where(static l => l.StartsWith("voice: ", StringComparison.Ordinal) && !l.StartsWith("voice: cut off", StringComparison.Ordinal) && !l.StartsWith("voice: text only", StringComparison.Ordinal))
+            .Select(static l => l["voice: ".Length..]).ToList();
 
         private sealed class ListLog(List<string> lines) : ISoundLog
         {
