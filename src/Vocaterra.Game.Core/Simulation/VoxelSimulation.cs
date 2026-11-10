@@ -271,8 +271,8 @@ public sealed partial class VoxelSimulation
         return false;
     }
 
-    /// <summary>The fire rings of the world (N07): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
-    private FireRings Fires => _fires ??= new FireRings(Grid);
+    /// <summary>The fire rings of the world, the one finder the session shares (N07, Y01): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
+    public FireRings Fires => _fires ??= new FireRings(Grid);
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)

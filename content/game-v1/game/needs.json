@@ -82,8 +82,11 @@
     "radiusBlocks": 8,
     "maxBushes": 6
   },
+  "sleepPlaces": [
+    { "id": "camp.fire", "point": "firering.player", "kind": "fire", "radiusBlocks": 5, "heightBlocks": 6, "access": "always" }
+  ],
   "death": {
-    "wakeAt": "firering.player",
+    "wakeAt": "camp.fire",
     "wake": { "health": 50, "hunger": 50, "thirst": 50, "sleep": 50 },
     "keepInBag": "stacksOfOne",
     "chestLastsUntil": "night"

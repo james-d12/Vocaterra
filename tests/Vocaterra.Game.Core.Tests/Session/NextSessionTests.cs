@@ -42,7 +42,7 @@ public sealed class NextSessionTests
         Assert.Equal("Session complete: sleep at your fire to start session 2", line.Text);
         Assert.Equal(ObjectivePieceKind.Support, line.Kind);
         Assert.True(line.Done);
-        Assert.True(session.AtOwnFire);
+        Assert.True(session.AtSleepPlace);
         Assert.True(session.CanSleep);
         Assert.True(SleepOffer.AtFire(session, free: true));
         Assert.False(SleepOffer.AtFire(session, free: false)); // a panel, a screen or an NPC under the crosshair comes first
@@ -64,9 +64,9 @@ public sealed class NextSessionTests
         var session = SleepTests.EndedFirstSession();
         Stage.TeleportToNpc(session, "guide");
 
-        Assert.False(session.AtOwnFire);
+        Assert.False(session.AtSleepPlace);
         Assert.False(SleepOffer.AtFire(session, free: true));
-        Assert.True(SleepOffer.OnCard(session, cardUp: true, free: true)); // the card offers it wherever the player stands
+        Assert.False(SleepOffer.OnCard(session, cardUp: true, free: true)); // Y01: away from a usable sleep place the card offers no sleep (the arrow says where to go)
 
         Sleep(session);
 
@@ -89,7 +89,7 @@ public sealed class NextSessionTests
         Sleep(session);
         session.SetNeed(NeedMeter.Sleep, sleep);
 
-        Assert.True(session.AtOwnFire);
+        Assert.True(session.AtSleepPlace);
         Assert.True(session.CanSleep); // nothing holds it back: the drive alone says whether the player wants it
         Assert.Equal(tired, session.SleepWanted);
         Assert.Equal(tired, SleepOffer.AtFire(session, free: true));

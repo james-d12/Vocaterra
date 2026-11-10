@@ -133,7 +133,7 @@ public sealed class DeathTests
         var feet = session.Simulation.Player.FeetBlock;
         var apart = Math.Sqrt((((long)ring.X - feet.X) * ((long)ring.X - feet.X)) + (((long)ring.Z - feet.Z) * ((long)ring.Z - feet.Z)));
         Assert.InRange(apart, 2, 5);
-        Assert.True(session.AtOwnFire);
+        Assert.True(SleepPlaces.IsWithinReach(session.SleepPlaces.WakeAt!, feet)); // Y01: the fire's reach, whether or not its torch is on (AtSleepPlace asks for a usable place)
         Assert.True(VoxelWalker.IsStandable(session.Scene.Grid, feet));
         Assert.Equal(0, session.Needs.ExhaustionSeconds);
     }

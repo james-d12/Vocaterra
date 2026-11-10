@@ -81,6 +81,7 @@ public static class GameDataValidator
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        CheckSleepPlaces(data, problems);
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);
@@ -966,6 +967,16 @@ public static class GameDataValidator
                     problems.Add(string.Create(CultureInfo.InvariantCulture, $"game/lessons.json: the lesson '{lesson.Id}' is said at '{npc}', whom the scene does not place."));
                 }
             }
+        }
+    }
+
+    // Y01: where a sleep place's point is not in the scene the session leaves the place out, so the bundle must not name one.
+    private static void CheckSleepPlaces(GameData data, List<string> problems)
+    {
+        var points = data.Scene.PointNames.ToHashSet(StringComparer.Ordinal);
+        foreach (var place in data.Needs.SleepPlaces.Where(place => !points.Contains(place.Point)))
+        {
+            problems.Add($"{NeedsData.RelativePath}: the sleep place '{place.Id}' stands at '{place.Point}', which is not a point of game/scene.json.");
         }
     }
 

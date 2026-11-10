@@ -101,12 +101,46 @@ internal static class NeedsValidator
 
         var death = needs.Death;
         Text(problems, "death's wakeAt", death.WakeAt);
+        SleepPlaces(problems, needs);
         if (death.Health is <= 0 or > 100 || new[] { death.Hunger, death.Thirst, death.Sleep }.Any(static v => v is < 0 or > 100))
         {
             problems.Add($"{File}: the waking values must be 0 to 100 and the waking health above 0.");
         }
 
         return problems;
+    }
+
+    // Y01: each sleep place has a unique id, a known kind and access, a point, and reach that is not negative; death's wakeAt names one of them.
+    private static void SleepPlaces(List<string> problems, NeedsData needs)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var place in needs.SleepPlaces)
+        {
+            if (!ids.Add(place.Id))
+            {
+                problems.Add($"{File}: the sleep place '{place.Id}' is listed twice.");
+            }
+
+            if (!SleepPlaceSpec.Kinds.Contains(place.Kind, StringComparer.Ordinal))
+            {
+                problems.Add($"{File}: the sleep place '{place.Id}' has the kind '{place.Kind}' (one of {string.Join(", ", SleepPlaceSpec.Kinds)}).");
+            }
+
+            if (!SleepPlaceSpec.Accesses.Contains(place.Access, StringComparer.Ordinal))
+            {
+                problems.Add($"{File}: the sleep place '{place.Id}' has the access '{place.Access}' (one of {string.Join(", ", SleepPlaceSpec.Accesses)}).");
+            }
+
+            if (place.RadiusBlocks < 0 || place.HeightBlocks < 0)
+            {
+                problems.Add($"{File}: the sleep place '{place.Id}' must not have a negative radiusBlocks or heightBlocks.");
+            }
+        }
+
+        if (!ids.Contains(needs.Death.WakeAt))
+        {
+            problems.Add($"{File}: death's wakeAt '{needs.Death.WakeAt}' is not a listed sleep place (one of {string.Join(", ", needs.SleepPlaces.Select(static p => p.Id))}).");
+        }
     }
 
     private static void Stages(List<string> problems, string name, IReadOnlyList<NeedStageSpec> stages, int expected, bool requireZeroEnd)
