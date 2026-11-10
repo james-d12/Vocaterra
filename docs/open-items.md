@@ -32,7 +32,7 @@ Last checked against `main`: 2026-11-09 (after pull requests #46, #47, #48 and #
 | German | Seven decisions: bundle shape, saves, register, voices, scope | T01 to T10 (part 1 is pull request #51) | [German in the game](research/2026-11-04-german-in-the-game.md) |
 | Mobile | Six questions, in no decision register | Nothing planned | [mobile feasibility](research/2026-10-30-mobile-feasibility.md) section 6 |
 | Core systems | Items as data, instructions as content, the learner signal; the cast's size; specialist words against the A2 gate | W12 onward | [core systems review](research/2026-11-01-core-systems-review.md) section 5 |
-| Settlement proposal | Review inn accommodation, first land purchase, free site selection, interiors and village/map expansion; proposed defaults in section 7 | Milestone registration and implementation | [settlement plan](game/settlement-plan.md) |
+| Settlement, after the first slice | The larger village with more interiors and the larger valley (the proposal's phases 6 and 7): register them or not, after a playtest of the first slice. The first slice's own choices were answered on 2026-11-10 (D-game-32) | Those phases' milestones | [settlement plan](game/settlement-plan.md) sections 7 and 8.6 |
 | Playtest | Sessions 7 to 10: a late-start profile, the battery's size, testers with A1 Spanish | "Not planned" | [playtest](game/playtest.md) section 14 |
 | Content | Should `content/PHRASES.md` be generated from data? | Nothing | [content plan](game/content-plan.md) |
 
@@ -61,7 +61,8 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Core | M36 to M48, German | recorded only on `main`; in progress on `feature/german` | [core plan](nlp/implementation-plan.md) §11 |
 | Core | M68, CI timing budgets | only if a timed test fails on CI | [core plan](nlp/implementation-plan.md) §5 |
 | Game W | W12 to W21: items as data, durability, the axe handle, dishes, the beacon, farming, the notice board, prices | planned | [activities plan](game/activities-plan.md) |
-| Game W | W22 to W29 | held until the pilot's data | [activities plan](game/activities-plan.md) |
+| Game W | W22 to W29 | held until the pilot's data; the first bought plot and the stake moved to the Y series (D-game-32) | [activities plan](game/activities-plan.md) |
+| Game Y | Y00 to Y13: the inn and its bed, the first night there, land bought from the mayor, the campsite | registered 2026-11-10 (D-game-32); in progress on `feature/settlement` | [settlement plan](game/settlement-plan.md) section 8 |
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |

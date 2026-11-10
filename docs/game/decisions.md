@@ -33,6 +33,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met (amended by D-game-30, proposed: the NPC offers its order and «sí» takes it on); Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
 | D-game-27 | Handing an order over in Spanish (issue #42) | decided (owner, 2026-11-08): the learner says what they give; the item must be named, the count is optional; «no sé» or two misses hand the goods over anyway | nothing |
 | D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
+| D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -667,6 +668,52 @@ owner's review:
 How it is built: `GuideSession.OrderOffer.cs`, the objectives' `lessonStep` (`content/schema/objective.schema.json`), an `offering_order` state and an
 `<npc>-order-offer` prompt for each order NPC, ten new NPC lines with their recordings, and the validator's `CheckOrderOffer`. Open for the owner: the wording
 of the eight lines, and whether a declined order should come back at the next talk rather than the next day.
+
+## D-game-32: the inn, bought land and the campsite (decided, 2026-11-10)
+
+*Numbered D-game-32 because `feature/weather` holds D-game-31 (day, night and weather) and `merge-main-into-german` holds D-game-29.*
+
+The owner asked for a review of [the settlement plan](settlement-plan.md) (the proposal of 2026-11-09: an inn with a bed, land
+bought from the mayor, a campsite on it, then a larger village and valley), the decisions it needed, and an implementation plan.
+The review's findings are in that plan's section 8.1. The questions and the answers:
+
+1. **(a) When it is built:** "Build now on a branch". The first slice (the inn, the first night, the land purchase, the
+   campsite) is built on `feature/settlement`; `main` moves only by the owner's merge, so the bread pilot (W11) can run from
+   `main` or a tag at any time. On the plan itself: "Do the work on a new git worktree from main" (`.claude/worktrees/settlement`).
+2. **(b) The inn's bed:** "Free bed, coins for other things". Asking the innkeeper for a room gives lodging for good: no fee, no
+   expiry, no bunk. The proposal's fee bought nothing, since every bed gives the same night. Coins go to the land now and to
+   meals at the inn later.
+3. **(c) Where the player may build:** "Protect village, own land adds rights". Placing stays allowed in the wild, so a plank
+   dam in the river still works; it is refused inside protected regions (the village, the roads). Only owned land takes the camp
+   kit, and only there can the player take back planks they placed.
+4. **(d) Old saves:** "Saves break". The save version becomes 8, older saves are refused and the fixtures are recorded again.
+   No "legacy mountain home" and no migration work, as the owner's rule of 2026-11-04 already said.
+
+**The defaults the owner accepted with the plan** (each can be changed by a word): Tomás the villager becomes the mayor
+(alcalde) and keeps his id, his lessons and his services, as W22 foresaw; one innkeeper, whose voice is provisional and heard
+afterwards (the rule of D-game-22 (d)); no one is locked out of sleep by Spanish (the innkeeper offers the room, and «no sé» or
+two misses give it anyway, as D-game-27 does for a hand-over); one plot, a fixed rectangle marked with a stake the mayor gives
+for free, its size and price set as data from measured earnings; the purchase includes one camp kit (a tent, a bedroll, a fire
+ring and a torch, placed as one piece); the land's steps are one checklist, «Mi terreno», shown from day 2, which never holds
+sleep back; the inn stands inside the village's present disc, in place of `house3`; the models follow the size rule of
+2026-11-06.
+
+**What it changes:**
+- **D-game-15:** the player still wakes alone on the cliff ledge, but the ledge is only where they arrive. The camp there goes,
+  and the first day no longer ends by lighting a fire at it.
+- **D-game-24, point 1:** the player "wakes at the last fire they slept at" becomes the last place slept, a bed or a fire.
+  Before any sleep that place is Luna's fire.
+- **D-game-25:** day one's ending is the introduction, the camp task and a room at the inn. From day 2 the player sleeps at any
+  rest place they may use (the inn's bed, later their own bedroll or lit fire) whenever the sleep drive is below 75. Lessons
+  stay optional.
+- **The village plan's principle 1** ("the world grows inward"): the village is rearranged to take the inn, and land outside
+  its disc can be owned. The map and the disc do not grow in this slice, so D-game-22's "avoid making the map larger" holds.
+- **The activities plan's decision (f)** and its stage 5: W22's first lot and W23's stake are built by Y09 to Y12, before the
+  pilot's data. W24 onward (storage, trust, gear, the healer, tenants, fishing) stay held. W23's spoken claim by direction and
+  landmark is not part of this slice.
+
+**Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
+the first slice; a fee, meals or comfort at the inn; more than one plot.
 
 ## Already decided
 

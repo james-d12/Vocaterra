@@ -6,7 +6,7 @@ section 9 covers player needs, section 10 the bread procedure, section 15 the de
 This plan provides milestone briefs and the later activity roadmap.
 
 **Status (2026-11-09):** stages 1 and 2 are built and in `main` (W01 to W08, W04b, W07b and W10; PR #40). Open: W11 (the pilot, waits for
-testers and the owner), W09 and W30 (each needs the owner's word), W12 to W21 (planned) and W22 to W29 (held until the pilot's data); the
+testers and the owner), W09 and W30 (each needs the owner's word), W12 to W21 (planned) and W22 to W29 (held until the pilot's data, but for the first lot and the stake, which the Y series builds: D-game-32); the
 table in section 4 has each row. The original order was: the queued language follow-ups, then N01–N07
 and the needs playtest before the bread pilot. W01 supplies `item_crafted` before N07. N01 owns save version 6 and its `systems`
 map; W06 adds procedure state; W15 adds cooked dishes and buffs to the needs system. Register milestones in
@@ -85,7 +85,7 @@ The plan is written on the review's recommendations. Each is in section 12 for t
 | Combat | none; gear is for places | stage 5 gains combat milestones; W26 changes |
 | Tool tiers | hands, stone, iron (from the smith) | W02's table grows; ores need terrain work |
 | Cast | the seven NPCs; new ones only after a voice trial | stage 5 adds NPC milestones earlier |
-| Land, storage, trust | after the pilot (stage 5) | W22 to W25 move up |
+| Land, storage, trust | after the pilot (stage 5); the first bought plot moved up on 2026-11-10 (D-game-32, the Y series) | W22 to W25 move up |
 | Items as data | at W12, before stage 3 (not now) | W12 moves to stage 1, or never (new items then go into the enum, as V03 did) |
 | The tú imperative | comprehension only; session 11 at `a2` | teaching production is a later W09 decision |
 | First activity lessons | new sessions 11 to 13; sessions 1 to 10 untouched | weaving activities into earlier sessions moves their goldens and runs |
@@ -395,6 +395,12 @@ seller, about 30 lines for three sellers at 1 to 10) or text-only (a template, a
 
 Designed in the review (section 2.2); each needs its own brief after the pilot.
 
+**Taken out of the hold (owner, 2026-11-10, D-game-32):** W22's first lot from the villager, now the mayor, and W23's stake are
+built before the pilot's data by the Y series ([the settlement plan](settlement-plan.md) section 8, Y09 to Y12), with some
+differences: the first land is bought, not a starter plot at the camp; the stake marks a fixed rectangle and nothing is said
+about where it is; the ownership check refuses placing only in protected regions. What stays here: W22's further lots,
+`game/plots.json` beyond the one plot and the new gatherable blocks; W23's spoken claim by direction and landmark; W24 onward.
+
 - **W22 Land and plots.** The camp is the starter plot; the first lot from the villager, named and made alcalde (numbers, prices and places
   from sessions 4, 5 and 10); `game/plots.json`; an ownership check in `VoxelSimulation.TryPlace`; more gatherable and placeable blocks
   (stone with a stone tool, W02's materials).
@@ -538,7 +544,7 @@ through its final recall.
 - (c) **No combat**; gear for places (W26).
 - (d) **Tool tiers**: hands, stone and iron from the smith; no copper, steel or reforging (W02).
 - (e) **The cast**: the seven NPCs take the design plan's roles; new NPCs only after a voice trial, in stage 5.
-- (f) **Land, storage and trust in stage 5**, after the pilot.
+- (f) **Land, storage and trust in stage 5**, after the pilot. Amended 2026-11-10 (D-game-32): the first bought plot and its campsite are built now, by the Y series.
 - (g) **Items as data at W12**, before stage 3: requires approval under D-game-21.
 - (j) **Order (confirmed):** queued language follow-ups, needs and the needs playtest, then the W pilot.
 - (l) **Models**: Haiku and Sonnet as the table says, with the content milestones (W10, W14, the content of W15 and W18) by Opus 5.5 at xhigh

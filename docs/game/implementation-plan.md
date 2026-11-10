@@ -498,6 +498,29 @@ the findings (the Menu entry of section 5).
 | Menu | The menu: `Game.Core/Menu/` (`MenuScreen`, `PlayerSettings`, `MenuRows`, `ControlsListing`), `Game.Core/Input/ControlTable` (every control and its keys in one table that the bindings, the panels and the controls page read), `UI/Menu/` (`MenuLayer`, `MenuLayout`, `MenuMetrics`); the settings in `SaveSettings` (quality, mouse sensitivity, invert Y, field of view added), applied at run time (the mixer, the canvas, the renderer's preset, the camera, the look); the testing section; Esc opens the menu; its Controls page lists the keys (F1 was removed at the owner's request on 2026-11-09); `--menu`, `--settings`, `--controls`, `--menu-scroll`; the old F8 settings panel and F1 help retired | N09, X08, H11 | L | Sonnet 5.5 | done: merged into `main` by PR #46 (2026-11-09) |
 | Menu-2 | Every launch-flag setting that can change while the game runs moved into the menu: the draw distance (a saved slider with an Auto position) and `--voice-volume`, `--ui-volume`, `--fov`, `--mouse-sensitivity`, `--invert-y` so each menu setting also has a flag; the Testing section grown and grouped (the five needs as sliders, teleport and beacon over the scene's named points, dusk, greyscale, all-nouns-known view, tips, autosave, typed credit) | Menu | M | Sonnet 5.5 | done: merged into `main` by PR #46 (2026-11-09) |
 
+### 4.13 The inn, bought land and the campsite (the Y series; owner, 2026-11-10, D-game-32)
+
+Branch `feature/settlement`, commit prefix `Y<nn>:`. (Section 4.12 is the E series, day, night and weather, on `feature/weather`.)
+The review, the owner's answers, each milestone's scope and the checks are in [the settlement plan](settlement-plan.md) section 8;
+the statuses below follow its table in section 8.3.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | todo |
+| Y01 | Rest places: authored and run-time places in `needs.json` and `RestPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
+| Y02 | Save version 8 and the `rest` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | todo |
+| Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | todo |
+| Y04 | The inn building (a `house` and an interior stamp in place of `house3`) and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
+| Y05 | Lodging: the `grant_lodging` action, `lodging_granted`, the bed's access and prompt | Y02, Y04 | M | Sonnet 5.5, medium | todo |
+| Y06 | The innkeeper: the NPC, the lines, the phrases, the voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
+| Y07 | The opening's logic: `inn-room` ends day one, `light-fire` and its hooks leave, the ending's voice and timing, the skip aid | Y06 | M | Sonnet 5.5, medium | todo |
+| Y08 | The mountain camp removed, the strings, the tests and scripted runs captured again | Y07 | M | Sonnet 5.5, medium | todo |
+| Y09 | Land rules and protection: `land.json`, `LandRules`, placing refused on protected columns, planks taken back on owned land, `systems.land` | Y00, Y02 | M/L | Sonnet 5.5, high | todo |
+| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
+| Y11 | Buying the plot from the mayor: `sell_plot`, the mayor's title and lines, the «Mi terreno» checklist | Y10 | M/L | Sonnet 5.5, high | todo |
+| Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as rest places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | todo |
+| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
+
 ## 5. Findings log
 
 The findings log is in [findings.md](findings.md) (moved out on 2026-11-09; "section 5" in other documents means that file). Record a
