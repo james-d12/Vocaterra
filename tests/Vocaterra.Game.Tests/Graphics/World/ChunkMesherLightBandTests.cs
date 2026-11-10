@@ -70,22 +70,16 @@ public sealed class ChunkMesherLightBandTests
     }
 
     [Fact]
-    public void Given_ALanternAndTheBands_When_TheFaceNextToItIsRead_Then_ItIsWarmedMoreAtDuskAndNightThanByDay()
+    public void Given_ALanternAndTheBands_When_TheFaceNextToItIsRead_Then_TheBandBakesNothingOfTheGlow()
     {
+        // E02a: the glow left the baked light. The opaque mesh of a band is the same with a lantern beside the floor and without one, and the glow is in the glow mesh in every band.
         var floor = new MapBlocks().Fill(0, 4, 0, 15, 5, 15, BlockId.Stone);
         var lights = new[] { new BlockPos(8, 6, 8) };
 
-        // How much redder than blue the floor beside the lantern is, over the same floor with no lantern in the same band (a lantern's glow adds red and takes blue away).
-        double Warming(LightBand band)
+        foreach (var band in Enum.GetValues<LightBand>())
         {
-            double Warmth(IReadOnlyList<BlockPos>? l) => Build(floor, band, l).Opaque.Vertices.ToArray().Where(static v => v.Y == 6f && v.X is >= 8f and <= 9f && v.Z is >= 8f and <= 9f)
-                .Average(static v => (double)(v.Color & 0xFF) / Math.Max(1, (v.Color >> 16) & 0xFF));
-            return Warmth(lights) - Warmth(null);
+            Assert.Equal(Build(floor, band).Opaque.Vertices.ToArray(), Build(floor, band, lights).Opaque.Vertices.ToArray());
+            Assert.NotEqual(0, Build(floor, band, lights).GlowMesh.FaceCount);
         }
-
-        double day = Warming(LightBand.Day), dusk = Warming(LightBand.Dusk), night = Warming(LightBand.Night);
-        Assert.True(day > 0, $"day {day}");
-        Assert.True(dusk > day, $"day {day}, dusk {dusk}");
-        Assert.True(night >= dusk, $"dusk {dusk}, night {night}");
     }
 }

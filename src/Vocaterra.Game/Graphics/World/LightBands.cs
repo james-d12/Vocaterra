@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Atmosphere;
 namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
-/// What each <see cref="LightBand"/> bakes into a mesh and when a band is the one to be in (E02). Plain values, no engine type, so the rules are tested without a device.
+/// What each <see cref="LightBand"/> bakes into a mesh (the sun's multiplier) and when a band is the one to be in (E02). Plain values, no engine type, so the rules are tested without a device.
 /// </summary>
 public static class LightBands
 {
@@ -25,7 +25,7 @@ public static class LightBands
         _ => (1f, 1f, 1f),
     };
 
-    /// <summary>How strongly the lanterns glow in the vertices of a band: half by day, fully at dusk and by night.</summary>
+    /// <summary>How strongly the lanterns glow at the keyframe of a band: half by day, fully at dusk and by night. Nothing is baked with it (E02a): <see cref="Sky.SkyKeyframe"/> blends these into the look's continuous <see cref="Sky.SkyLook.LanternStrength"/>, which the glow pass is drawn with.</summary>
     /// <param name="band">The band.</param>
     public static float LanternStrength(LightBand band) => band == LightBand.Day ? 0.5f : 1f;
 

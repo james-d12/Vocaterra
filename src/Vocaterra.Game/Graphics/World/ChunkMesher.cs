@@ -86,8 +86,8 @@ public enum BlockShape
 /// </summary>
 /// <param name="AmbientOcclusion">Whether every cube vertex is darkened by the solid blocks round it (per-vertex ambient occlusion).</param>
 /// <param name="PlantKeepPercent">The percent of the undergrowth that is put in the plant mesh (a stable pick by position), 100 for all of it.</param>
-/// <param name="Lights">The lanterns of the world (S15): the faces within <see cref="ChunkMesher.GlowRadius"/> blocks of one take a warm light colour; <see langword="null"/> for none.</param>
-/// <param name="Band">The light band to bake (S15, E02): Day, the sun at full strength and the lanterns at half; Dusk, a lower, warmer sun and the lanterns at full strength; Night, a low blue sun and the lanterns at full strength (<see cref="LightBands"/>).</param>
+/// <param name="Lights">The lanterns of the world (S15): the faces within <see cref="ChunkMesher.GlowRadius"/> blocks of one get a quad in the glow mesh (E02a, <see cref="ChunkMeshes.GlowMesh"/>); <see langword="null"/> for none.</param>
+/// <param name="Band">The light band to bake (S15, E02): the sun's multiplier in the vertex colours, Day at full strength, Dusk lower and warmer, Night low and blue (<see cref="LightBands"/>). The glow mesh does not depend on it.</param>
 public readonly record struct MeshOptions(bool AmbientOcclusion = true, int PlantKeepPercent = 100, IReadOnlyList<BlockPos>? Lights = null, LightBand Band = LightBand.Day)
 {
     /// <summary>The default: ambient occlusion on, every plant, no lanterns.</summary>
@@ -354,6 +354,7 @@ public static class ChunkMesher
         var opaque = new MeshBuffer();
         var alpha = new MeshBuffer();
         var plants = new MeshBuffer();
+        var glowMesh = new MeshBuffer(); // the lanterns' light on the faces they reach (E02a): the cube faces again, drawn additively, whatever the band
         var lit = new MeshBuffer(); // the pieces that are their own light (a lantern's glass, a torch's flame): drawn with no light tint, so the day cycle never dims them (E02)
         var kinds = 0UL;
         var x0 = chunkX * Size;
@@ -383,7 +384,7 @@ public static class ChunkMesher
                     switch (ShapeOf(id))
                     {
                         case BlockShape.Cube:
-                            AddCube(opaque, near, id, lx, ly, lz, x, y, z, grey, settings.AmbientOcclusion, glow);
+                            AddCube(opaque, glowMesh, near, id, lx, ly, lz, x, y, z, grey, settings.AmbientOcclusion, glow, bakedSun);
                             break;
                         case BlockShape.Liquid:
                             AddLiquid(alpha, near, blocks, id, lx, ly, lz, x, y, z, grey, bakedSun);
@@ -417,7 +418,7 @@ public static class ChunkMesher
             }
         }
 
-        return new ChunkMeshes(opaque, alpha, kinds, plants, lit);
+        return new ChunkMeshes(opaque, alpha, kinds, plants, lit, glowMesh);
     }
 
     /// <summary>Appends one face of a box to a mesh, optionally moved and turned about the vertical axis (for the figures).</summary>
@@ -489,17 +490,15 @@ public static class ChunkMesher
         }
     }
 
-    private static uint Light(BlockFace face, int ao, (float R, float G, float B) baseTint, Glow glow, float vx, float vy, float vz)
+    // The colour of a cube vertex: the face's shade, the rock's tint, the ambient occlusion and the band's sun multiplier. The lanterns' glow is not in it (E02a): it is its own mesh.
+    private static uint Light(BlockFace face, int ao, (float R, float G, float B) baseTint, (float R, float G, float B) sun)
     {
         var (r, g, b) = FaceTint(face);
         var keep = AoKeep[ao];
-        var k = glow.At(vx, vy, vz, face);
-
-        // A lantern both warms the face (less green, much less blue: it shows even on a face the sun already lights in full) and brightens it.
         return MeshVertex.Pack(
-            (byte)Math.Min(255f, 255f * ((r * keep * baseTint.R * glow.Evening.R) + (GlowAdd.R * k))),
-            (byte)Math.Min(255f, 255f * (((g * keep * baseTint.G * glow.Evening.G) * (1f - (GlowCool.G * k))) + (GlowAdd.G * k))),
-            (byte)Math.Min(255f, 255f * (((b * keep * baseTint.B * glow.Evening.B) * (1f - (GlowCool.B * k))) + (GlowAdd.B * k))));
+            (byte)Math.Min(255f, 255f * (r * keep * baseTint.R * sun.R)),
+            (byte)Math.Min(255f, 255f * (g * keep * baseTint.G * sun.G)),
+            (byte)Math.Min(255f, 255f * (b * keep * baseTint.B * sun.B)));
     }
 
     /// <summary>How far a lantern's light reaches, in blocks.</summary>
@@ -514,32 +513,22 @@ public static class ChunkMesher
     /// <summary>The colour a lantern adds to a face it lights, at full strength (a warm amber).</summary>
     public static readonly (float R, float G, float B) GlowColour = (0.95f, 0.55f, 0.20f);
 
-    private static readonly (float R, float G, float B) GlowAdd = (0.55f, 0.30f, 0.08f);
-    private static readonly (float R, float G, float B) GlowCool = (0f, 0.16f, 0.42f);
-
     // The lanterns near one chunk, ready to light its vertices (S15). The light falls off with the square of the distance and is strongest on faces
-    // that look at the lantern. Nothing here reads a clock or a random number: the same blocks give the same colours.
+    // that look at the lantern. The strength of the moment is not here (E02a): the renderer draws the glow mesh with it, so a mesh never depends on the hour.
+    // Nothing here reads a clock or a random number: the same blocks give the same colours.
     private sealed class Glow
     {
         private readonly (float X, float Y, float Z)[] _lights;
-        private readonly float _strength;
 
-        private Glow((float X, float Y, float Z)[] lights, float strength, (float R, float G, float B) evening)
-        {
-            _lights = lights;
-            _strength = strength;
-            Evening = evening;
-        }
+        private Glow((float X, float Y, float Z)[] lights) => _lights = lights;
 
-        /// <summary>What the sun's light is multiplied by in this band: nothing by day, a dimmer, warmer light at dusk, a low blue one at night.</summary>
-        public (float R, float G, float B) Evening { get; }
+        public bool IsEmpty => _lights.Length == 0;
 
         public static Glow For(MeshOptions options, int x0, int y0, int z0)
         {
-            var evening = LightBands.BakedSun(options.Band);
             if (options.Lights is not { Count: > 0 } all)
             {
-                return new Glow([], 0f, evening);
+                return new Glow([]);
             }
 
             List<(float X, float Y, float Z)>? near = null;
@@ -553,10 +542,10 @@ public static class ChunkMesher
                 }
             }
 
-            return new Glow(near?.ToArray() ?? [], LightBands.LanternStrength(options.Band), evening);
+            return new Glow(near?.ToArray() ?? []);
         }
 
-        // How much a lantern lights a corner of a face, from 0 (none in reach) to the strength (1 at dusk and by night, one half by day).
+        // How much the lanterns light a corner of a face, from 0 (none in reach) to 1 (at full strength: the renderer scales it by the moment's strength).
         public float At(float vx, float vy, float vz, BlockFace face)
         {
             if (_lights.Length == 0)
@@ -581,7 +570,7 @@ public static class ChunkMesher
                 sum += 1.6f * fall * fall * (0.3f + (0.7f * facing));
             }
 
-            return Math.Min(sum, 1f) * _strength;
+            return Math.Min(sum, 1f);
         }
     }
 
@@ -607,7 +596,7 @@ public static class ChunkMesher
     // Whether the block at the (relative) position shuts light out: any cube (leaves too, so a forest floor is dim under the crowns).
     private static int Occludes(Neighbourhood near, int x, int y, int z) => IsCubeKind(near.Get(x, y, z)) ? 1 : 0;
 
-    private static void AddCube(MeshBuffer buffer, Neighbourhood near, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey, bool occlusion, Glow glow)
+    private static void AddCube(MeshBuffer buffer, MeshBuffer glowBuffer, Neighbourhood near, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey, bool occlusion, Glow glow, (float R, float G, float B) sun)
     {
         Span<int> ao = stackalloc int[4];
         var baseTint = RockTint(id, y);
@@ -657,11 +646,12 @@ public static class ChunkMesher
                 ao[k] = s1 == 1 && s2 == 1 ? 0 : 3 - (s1 + s2 + c);
             }
 
-            var bl = new MeshVertex(x + corners[0], y + corners[1], z + corners[2], Light(face, ao[0], baseTint, glow, x + corners[0], y + corners[1], z + corners[2]), u0, v1);
-            var br = new MeshVertex(x + corners[3], y + corners[4], z + corners[5], Light(face, ao[1], baseTint, glow, x + corners[3], y + corners[4], z + corners[5]), u1, v1);
-            var tr = new MeshVertex(x + corners[6], y + corners[7], z + corners[8], Light(face, ao[2], baseTint, glow, x + corners[6], y + corners[7], z + corners[8]), u1, v0);
-            var tl = new MeshVertex(x + corners[9], y + corners[10], z + corners[11], Light(face, ao[3], baseTint, glow, x + corners[9], y + corners[10], z + corners[11]), u0, v0);
-            if (ao[0] + ao[2] > ao[1] + ao[3])
+            var bl = new MeshVertex(x + corners[0], y + corners[1], z + corners[2], Light(face, ao[0], baseTint, sun), u0, v1);
+            var br = new MeshVertex(x + corners[3], y + corners[4], z + corners[5], Light(face, ao[1], baseTint, sun), u1, v1);
+            var tr = new MeshVertex(x + corners[6], y + corners[7], z + corners[8], Light(face, ao[2], baseTint, sun), u1, v0);
+            var tl = new MeshVertex(x + corners[9], y + corners[10], z + corners[11], Light(face, ao[3], baseTint, sun), u0, v0);
+            var flip = ao[0] + ao[2] > ao[1] + ao[3];
+            if (flip)
             {
                 buffer.AddQuad(br, tr, tl, bl); // the other diagonal, so the shade does not break along the darker corners
             }
@@ -669,6 +659,34 @@ public static class ChunkMesher
             {
                 buffer.AddQuad(bl, br, tr, tl);
             }
+
+            if (!glow.IsEmpty)
+            {
+                AddGlowQuad(glowBuffer, glow, face, flip, bl, br, tr, tl);
+            }
+        }
+    }
+
+    // The glow of a face: the very quad of the base mesh (the same four positions in the same order, so it covers the same pixels at the same depth and the glow pass cannot
+    // fight with the face) with the glow at each corner as its colour and the same picture. Nothing is added for a face no lantern reaches.
+    private static void AddGlowQuad(MeshBuffer glowBuffer, Glow glow, BlockFace face, bool flip, in MeshVertex bl, in MeshVertex br, in MeshVertex tr, in MeshVertex tl)
+    {
+        var gbl = bl with { Color = LanternGlow.VertexColour(glow.At(bl.X, bl.Y, bl.Z, face)) };
+        var gbr = br with { Color = LanternGlow.VertexColour(glow.At(br.X, br.Y, br.Z, face)) };
+        var gtr = tr with { Color = LanternGlow.VertexColour(glow.At(tr.X, tr.Y, tr.Z, face)) };
+        var gtl = tl with { Color = LanternGlow.VertexColour(glow.At(tl.X, tl.Y, tl.Z, face)) };
+        if (gbl.Color == LanternGlow.None && gbr.Color == LanternGlow.None && gtr.Color == LanternGlow.None && gtl.Color == LanternGlow.None)
+        {
+            return;
+        }
+
+        if (flip)
+        {
+            glowBuffer.AddQuad(gbr, gtr, gtl, gbl);
+        }
+        else
+        {
+            glowBuffer.AddQuad(gbl, gbr, gtr, gtl);
         }
     }
 
@@ -993,8 +1011,12 @@ public readonly struct Turn
 /// <param name="Kinds">The block kinds the chunk holds (<see cref="ChunkMesher.KindBit"/>): a change in the grey set of one of them makes the chunk due.</param>
 /// <param name="Plants">The crossed quads of the undergrowth (drawn without culling, only near the eye), or <see langword="null"/> when there are none.</param>
 /// <param name="Lit">The self-lit pieces (E02): a lantern's glass and a torch's flame, which the renderer draws with no light tint (drawn with the opaque pass), or <see langword="null"/> when there are none.</param>
-public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0, MeshBuffer? Plants = null, MeshBuffer? Lit = null)
+/// <param name="Glow">The lanterns' light on the faces they reach (E02a): the same quads as the opaque mesh's, in the same order, with the glow at each corner as the colour; the renderer draws it additively over the opaque pass with the strength of the moment (<see cref="LanternGlow"/>), or <see langword="null"/> when no lantern reaches the chunk.</param>
+public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0, MeshBuffer? Plants = null, MeshBuffer? Lit = null, MeshBuffer? Glow = null)
 {
+    /// <summary>The glow quads (empty when no lantern reaches the chunk).</summary>
+    public MeshBuffer GlowMesh { get; } = Glow ?? new MeshBuffer();
+
     /// <summary>The self-lit quads (empty when the chunk has none).</summary>
     public MeshBuffer LitMesh { get; } = Lit ?? new MeshBuffer();
 
@@ -1002,5 +1024,5 @@ public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kind
     public MeshBuffer PlantMesh { get; } = Plants ?? new MeshBuffer();
 
     /// <summary>The number of quads in all the meshes.</summary>
-    public int FaceCount => Opaque.FaceCount + Alpha.FaceCount + PlantMesh.FaceCount + LitMesh.FaceCount;
+    public int FaceCount => Opaque.FaceCount + Alpha.FaceCount + PlantMesh.FaceCount + LitMesh.FaceCount + GlowMesh.FaceCount;
 }
