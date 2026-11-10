@@ -83,6 +83,7 @@ public static class GameDataValidator
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
+        problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);

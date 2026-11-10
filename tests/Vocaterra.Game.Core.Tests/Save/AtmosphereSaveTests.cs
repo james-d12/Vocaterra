@@ -103,7 +103,7 @@ public sealed class AtmosphereSaveTests
     {
         var session = TestGame.NewSession();
         var document = SaveGame.Capture(session, Pristine());
-        var broken = document with { Systems = document.Systems! with { Atmosphere = new DayClockState(0, 40) } };
+        var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, 40) } };
 
         Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(broken), TestGame.Data, Pristine, credit: session.Credit));
     }

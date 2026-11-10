@@ -120,11 +120,13 @@ public sealed partial class VoxelSimulation
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
     /// <param name="scene">The scene.</param>
     /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
-    public static VoxelSimulation Create(Scene scene, DayData? day = null)
+    /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
+    /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
+    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
     {
         ArgumentNullException.ThrowIfNull(scene);
         var simulation = new VoxelSimulation(scene);
-        simulation.StartClock(day);
+        simulation.StartAtmosphere(day, weather, worldSeed);
         return simulation;
     }
 
@@ -318,7 +320,7 @@ public sealed partial class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), _clock.State.IsDefault ? null : _clock.State);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null);
     }
 
     /// <summary>
@@ -350,8 +352,7 @@ public sealed partial class VoxelSimulation
         Player.Restore(state.Player);
         _breath.Restore(state.Air);
         _flow.Queue.Restore(state.Flow ?? []);
-        _clock.Restore(state.Clock);
-        _noticedPhase = Phase; // a load raises no phase event
+        RestoreAtmosphere(state.Atmosphere);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             Inventory.SetSlot(i, state.Slots[i]);
@@ -404,7 +405,7 @@ public sealed partial class VoxelSimulation
         }
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
-        AppendAtmosphereDigest(hash); // a clock that was never moved by a sleep or held adds nothing
+        AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }

@@ -41,6 +41,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`) | `HostEventTable` |
   | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the death rules; the stage lines' keys, not their text) | `NeedsData` |
   | `game/day.json` | `day.schema.json` (the day and night cycle, E01: its length in seconds, the hours dawn, day, dusk and night begin, the start hour and the wake hour) | `DayData` |
+  | `game/weather.json` | `weather.schema.json` (the weather, E04: its kinds as rows of channels (cloud cover, sunlight, fog, wind, precipitation), the range of a spell, the weighted next kinds, a morning weight; the kind a new game starts in and the transition time) | `WeatherData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
   | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
   | `game/procedures/<id>.json` | `procedure.schema.json` (one procedure each: its station, teacher, level, what it makes and uses, its steps, chunks and goal; W05) | `ProcedureBook` |
@@ -143,7 +144,8 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
   session log shows each one with its NPC and detail. Since V02: `beacon_reached` (the player reached the beacon; the detail is the scene's name of the place,
   `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`). Since E01: `day_phase` (the day clock crossed into
-  another phase; the detail is `dawn`, `day`, `dusk` or `night`; a sleep's jump to the morning and a load raise none).
+  another phase; the detail is `dawn`, `day`, `dusk` or `night`; a sleep's jump to the morning and a load raise none) and, since E04, `weather_changed` (the weather
+  changed kind: a spell's end, a morning's roll; the detail is the new kind's id, a row of `game/weather.json`; a load raises none).
 - **A lesson.** Add a file `game-v1/game/lessons/<id>.json` (`lesson.schema.json` lists each step type's fields), its id to `game-v1/game/lessons.json`
   where it should come, a provenance item, and its text to
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of

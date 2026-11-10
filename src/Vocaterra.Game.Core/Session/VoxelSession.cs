@@ -66,7 +66,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Day);
+        Simulation = VoxelSimulation.Create(scene, data.Day, data.Weather, worldSeed);
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
@@ -451,6 +451,9 @@ public sealed partial class VoxelSession : GuideSession
                     break;
                 case SimulationEventKind.DayPhaseChanged:
                     LogWorld(WorldEvents.DayPhase, null, DayPhaseNames.Of((DayPhase)e.Detail));
+                    break;
+                case SimulationEventKind.WeatherChanged:
+                    LogWorld(WorldEvents.WeatherChanged, null, Simulation.Weather.Data.Kinds[e.Detail].Id);
                     break;
                 case SimulationEventKind.WaterWithoutBottle:
                     LogWorld(WorldEvents.WaterWithoutBottle, null, null);

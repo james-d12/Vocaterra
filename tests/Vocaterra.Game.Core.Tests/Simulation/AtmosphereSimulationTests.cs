@@ -105,7 +105,7 @@ public sealed class AtmosphereSimulationTests
         VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
         restored.Restore(state);
 
-        Assert.NotNull(state.Clock);
+        Assert.NotNull(state.Atmosphere);
         Assert.Equal(sim.Clock.HourAt(sim.Tick), restored.Clock.HourAt(restored.Tick));
         Assert.Equal(sim.ComputeStateDigest(), restored.ComputeStateDigest());
         var a = PhaseEvents(sim, 1500);
@@ -121,11 +121,11 @@ public sealed class AtmosphereSimulationTests
         var sim = VoxelSimulation.Create(Route());
         VoxelTestSupport.Run(sim, 30);
 
-        Assert.Null(sim.CaptureState().Clock);
+        Assert.Null(sim.CaptureState().Atmosphere);
         sim.WakeUp();
         var moved = sim.CaptureState();
-        Assert.NotNull(moved.Clock);
-        sim.Restore(moved with { Clock = null });
+        Assert.NotNull(moved.Atmosphere);
+        sim.Restore(moved with { Atmosphere = null });
         Assert.True(sim.Clock.State.IsDefault);
     }
 
@@ -157,6 +157,7 @@ public sealed class AtmosphereSimulationTests
         Assert.NotEqual(before, woken);
         Assert.NotEqual(held, woken);
         sim.Clock.Restore(null);
+        sim.Weather.Restore(null); // E04: the wake rolled the morning's weather too
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 

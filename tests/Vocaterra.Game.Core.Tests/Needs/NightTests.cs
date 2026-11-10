@@ -192,6 +192,7 @@ public sealed class NightTests
         Assert.Equal(tick, session.Simulation.Tick);
         Assert.NotEqual(digest, session.Simulation.ComputeStateDigest()); // E01: the collapse wakes in the morning, so the clock's offset is in the digest
         session.Simulation.Clock.Restore(null);
+        session.Simulation.Weather.Restore(null); // E04: the morning roll is in the digest too
         Assert.Equal(digest, session.Simulation.ComputeStateDigest()); // and nothing else of the state moved
     }
 
