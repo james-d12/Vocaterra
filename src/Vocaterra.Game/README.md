@@ -148,6 +148,19 @@ at the horizon) and the colour of the sun's light on the world (white by day, `C
 `SkyRenderer.SetLook` colours the dome again in place when its three colours move; `VoxelRenderer.SetAtmosphere(look)` moves the clear colour and the fog every frame and composes with `SetUnderwater` (under water the
 water's colour and fog win, dimmed by the light's luminance so the water is dark at night).
 
+**Weather (E05).** `VoxelGame` builds the `SkyLookInput` from `Simulation.Atmosphere` (the snapshot), so the look follows the cloud cover, the sunlight and the fog beside the hour; no file here names a kind's id, and
+`--weather <id>` takes whatever ids the bundle has. Each channel moves the look continuously (`SkyWeather`), so the 45-second blend between two kinds shows no step; with the first kind's values (cover 0.42,
+sunlight 1, fog 0) every value is exactly what the day cycle gives (`SkyWeatherLookTests`, and a camp screenshot at tick 300 that is pixel-identical to the build before). `Gloom` joins the cover past the fair 0.42 (weight
+0.5) and the sunlight lost (weight 0.7) into 0 to 1: the dome's three colours go that far to the grey of their own brightness, darkened to 0.8 of it by day and to 0.55 by night (an overcast night has no blue glow, and a
+dusk or a dawn loses its amber), and the clouds' top, sides and underside go to 0.65, 0.58 and 0.48 of theirs. The sun's disc and halo, the moon and the stars are multiplied by `BodyVisibility` (1 at the fair cover, a
+smoothstep to 0 at a full cover). The colour of the sun's light on the world is multiplied by the sunlight channel, through E02's tint, so weather never rebuilds a mesh and never changes the band (the band follows the
+daylight alone); the tint over a whole day runs 0.507 to 1.48 in clear weather (E02's range) and 0.253 to 0.74 at the data's lowest sunlight (0.5), never above E02's top. The fog keeps the horizon's colour (it greys with the
+sky) and comes nearer with the fog channel: `VoxelRenderer.FogEndFor(viewDistance, fog)` is the clear distance times `SkyWeather.FogReach` (1 at no fog, 1/3 at full fog, straight between) and the start keeps
+`FogStartFraction` of the end; it is read again when the look changes and when the preset or the view distance does, and composes with `SetUnderwater` as before. `CloudField.Generate(x, z, tick, boxes, cover)`
+ranks every cell by its hash: at 0.42 the boxes are today's exactly; a higher cover only adds clouds (none moves or goes), and a cell near the threshold fades in by `CloudBox.Alpha` over 6 percent of cover
+(`CellAlpha`, monotonic in the cover), so no cloud pops during a blend; at a full cover the field holds 467 boxes, 14 010 vertices (5 850 at the fair cover). A full cover is still scattered slabs over a grey dome, not a
+solid ceiling. The lanterns' glow is baked and does not follow the weather.
+
 **Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1, lanterns at half), Dusk (`DuskLight`, lanterns at full) and
 Night (`NightLight`, lanterns at full). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
 in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.24,
