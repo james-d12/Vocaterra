@@ -2222,3 +2222,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - *A core fuzz failure seen once, not from this change:* the agent's full run failed `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`
     on "oh hundan" (a silent h; `CsCheck_Seed=9MOxzRBVGLK4`); the gate's run drew other seeds and passed. It looks like M86's family (O9's silent h),
     which is open; that is not verified.
+- **E04, weather in Core (2026-11-10, Sonnet 5.5 medium; gated at `0d73dba9` on `feature/weather`, 10837 passed, 3 skipped).** `Atmosphere/`:
+  `WeatherChannels` (cloud cover, sunlight, fog, wind, a precipitation kind and its intensity), `WeatherKind` and `WeatherData`
+  (`game/weather.json`: `sunny`, `cloudy`, `rain`; `start` sunny; a 45 s transition), `WeatherSystem`, `AtmosphereSnapshot` and `AtmosphereModel`.
+  - *Kinds are data.* No file under `src/` names a kind's id outside `WeatherData.Default` (`NoWeatherKindIdsInSourceTests`), and a fourth kind
+    (`mist`, with a drizzle) defined only in a test's data runs through the system and the snapshot.
+  - *The sequence.* A spell's next kind and length come from `WorldRng` keyed by the world seed, a pass name and the spell counter; a new spell
+    starts at the tick it is drawn, so a game restored long after a spell's end changes once. `sunny` goes only to `cloudy`, so rain never
+    follows sun directly. `WakeUp()` (a night, a collapse) also rolls the morning by the morning weights (6, 3, 1) as a cut.
+  - *Digest and save.* In its first spell the weather adds nothing to the digest and is not written, so new games' digests, both fixtures and every
+    golden are as they were, and the save version stays 7. `systems.atmosphere` gains an optional `weather` field. Any `WakeUp` moves the digest
+    from then on (the morning counter).
+  - *Events.* `weather_changed` (detail: the kind's id), once per change; a change made by a host action between steps (`WakeUp`, `ForceWeather`)
+    is raised at the next step. `Force` is a cut and holds through a sleep; `Release` keeps the kind and draws a new spell.

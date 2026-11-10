@@ -65,7 +65,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |
-| Game E | E02 to E08 (E01, the clock, is done): a day and night cycle, then weather (sunny, cloudy, rain) and the NPCs' weather answer | planned 2026-11-10 (D-game-31); in progress on `feature/weather` | [weather plan](game/weather-plan.md) |
+| Game E | E02, E03 and E05 to E08 (E01, the clock, and E04, the weather in Core, are done): a day and night cycle, then weather (sunny, cloudy, rain) and the NPCs' weather answer | planned 2026-11-10 (D-game-31); in progress on `feature/weather` | [weather plan](game/weather-plan.md) |
 | Game U | U03, U04; any visual redesign | after the pilot; a redesign is not planned | [game plan](game/implementation-plan.md) section 4.9 |
 | Tests | T6's follow-ups (a) to (h) | open, judged on the numbers | [test performance](process/test-performance-plan.md) |
 | CI | SonarCloud, speech models in CI, the scripted runs as CI tests, the cross-platform matrix | not planned | [game plan](game/implementation-plan.md) section 4.6, [known gaps](nlp/known-gaps.md) |
