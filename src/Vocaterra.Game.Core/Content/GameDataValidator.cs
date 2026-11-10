@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Activities;
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
@@ -81,6 +82,7 @@ public static class GameDataValidator
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);

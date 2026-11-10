@@ -103,6 +103,7 @@
     { "path": "game/tips.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/controls.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/needs.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/day.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/words.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/npcs.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/npcs/guide.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },

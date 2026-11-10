@@ -444,13 +444,15 @@ public sealed record RepeatSave(string Tag, int Count);
 /// <param name="Gifts">The gifts given today (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), which the next night makes available again; <see langword="null"/> for none.</param>
 /// <param name="Planted">The berry bushes planted at the camp that stand (N08): each is also in <paramref name="Bushes"/> until a night grows it; <see langword="null"/> for none.</param>
 /// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> in a save made before W06 or with none, which starts with none.</param>
+/// <param name="Atmosphere">The day clock's offset and held hour (E01, <c>systems.atmosphere</c>): <c>{"offset", "frozenHour"}</c>, written only when it is not a new game's (the offset is 0 and no hour is held); <see langword="null"/> starts the clock as a new game has it.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Bushes = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? Gifts = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Planted = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Atmosphere.DayClockState? Atmosphere = null);
 
 /// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
 /// <param name="X">The cell's X.</param>

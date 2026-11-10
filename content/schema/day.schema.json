@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/day.json",
+  "description": "The day and night cycle (E01): its real-time length, the hours of a 24-hour dial at which dawn, day, dusk and night begin, the hour a new game starts at and the hour a sleep wakes at. Loaded by DayData (Vocaterra.Game.Core); GameDataValidator checks the values (the hours in ascending order).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "cycleSeconds",
+    "dawnHour",
+    "dayHour",
+    "duskHour",
+    "nightHour",
+    "startHour",
+    "wakeHour"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "cycleSeconds": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "The real-time length of one full day and night at 60 ticks a second."
+    },
+    "dawnHour": { "type": "number", "minimum": 0, "maximum": 24, "description": "The hour dawn begins (the light starts to rise)." },
+    "dayHour": { "type": "number", "minimum": 0, "maximum": 24, "description": "The hour full day begins; after dawnHour." },
+    "duskHour": { "type": "number", "minimum": 0, "maximum": 24, "description": "The hour dusk begins (the light starts to fall); after dayHour." },
+    "nightHour": { "type": "number", "minimum": 0, "maximum": 24, "description": "The hour night begins; after duskHour." },
+    "startHour": { "type": "number", "minimum": 0, "exclusiveMaximum": 24, "description": "The hour at tick 0 of a new game." },
+    "wakeHour": { "type": "number", "minimum": 0, "exclusiveMaximum": 24, "description": "The hour a sleep or a collapse wakes at." }
+  }
+}
