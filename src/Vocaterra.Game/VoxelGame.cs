@@ -1437,7 +1437,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
-        : !_session.SleepPlaces.AnyUsable ? "no sleep place is usable (the player's own fire is not lit)"
+        : !_session.SleepPlaces.AnyUsable ? "the player's own fire is not lit"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 
