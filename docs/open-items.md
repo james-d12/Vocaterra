@@ -82,5 +82,6 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Core robustness | The replay envelope's copies are not cross-checked; the WAV sample-rate range; silent content defaults; the ONNX Runtime native collision | [known gaps](nlp/known-gaps.md) |
 | Fuzz | The seed family `2tpLGUOSqj41`, kept recorded by the owner's choice; it can fail a gate | [village plan](game/village-plan.md) section 5 |
 | Game, "not fixed" | The session card on an early quit; saves on the game loop; no `crash.save` inside a dialogue; colour-only signals; the unread `controls.json` | [game findings](game/findings.md) (X04, X05, X08, Menu) |
+| Scripted runs | `r20-sleep` and `r30-no-classes` stop before the sleep (the camp checklist's wood step falls back when the torch is crafted, so no spare torch is given); captured again for the new opening in Y08 | [game findings](game/findings.md) (the Y series' first two milestones) |
 | Village | The open points after the follow-ups | [village plan](game/village-plan.md) section 5 |
 | Water | The open points after H12 | [water plan](game/water-plan.md) section 8 |

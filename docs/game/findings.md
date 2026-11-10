@@ -2209,3 +2209,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     (`UiScaleLayoutTests.TheWholeSettingsPage...` measures every label, note and value of the full page at each window size and text scale).
   - *Tests (Menu-2).* Core: `TestingRowsTests`, `PlayerSettingsTests` (draw distance, the new flags over the save), `AutosaveControllerTests`, `TypedCreditSettingTests`, `GroundFinderTests`; Game:
     `GreyscaleTests` (runtime switch, all-known view), `VoxelLaunchOptionsTests`, `SoundLaunchOptionsTests`, `UiScaleLayoutTests`.
+- **The Y series' first two milestones (the settlement plan's section 8; 2026-11-10, on `feature/settlement`).**
+  - *Y00, the brief and the probes* (documents only). Its measurements are [the settlement plan](settlement-plan.md) section 9: the inn is a
+    9 x 7 house at the village's dx -16, dz 8 with a stamp for its inside; the plot is 10 x 10 on ground that varies by at most one block, and
+    two meadows cleared of trees each take three such plots on four seeds; the price is 10 coins (the two paying orders give 6). **The
+    fisher's lesson counts the houses** («una tienda, una panadería y tres casas»), so Y04 moves `house3` instead of dropping it. The core
+    reads «Quiero una habitación, por favor.», «¿Hay una habitación?», «Quiero un terreno, por favor.» and «¿Cuánto cuesta el terreno?»
+    today; it does not read «¿Tiene una habitación?» as a question (`state_have`), «Quiero dormir aquí.» or «Quiero este terreno.», and it
+    loses the verb of «Quiero comprar un terreno.» (the plan's section 9.4; none blocks the slice).
+  - *Y01, sleep places.* `needs.json` lists the places the player sleeps at (`sleepPlaces`; one for now, the mountain fire) and
+    `death.wakeAt`, read by nothing before, names the one the player wakes at. `Session/SleepPlaces` answers whether a place is usable (a
+    fire while a lit ring stands at it, read from the world; a bed when its access is met), which one the player stands at and where the
+    arrow goes; sleeping, the E prompt, the closing card, the arrow and the waking after a death ask it and no longer read
+    `firering.player` or the "fire lit" latch. One `FireRings` is shared by the session and the simulation and has a `Rescan()`. **One
+    intended change:** the closing card's Enter sleeps only at a usable place (it slept wherever the player stood). Gate: 10,714 tests
+    passed, 3 skipped, the content gate, the grammar check and the licence scan clean; `r26-death` wakes at the same cell (152, 73, 106);
+    with the skip aid `--sleep` moves play session 2 to 3 to 4.
+  - **Found while checking Y01: `r20-sleep` and `r30-no-classes` no longer reach a sleep, on `main` too.** Their camp steps craft the torch
+    from the wood the checklist is counting, the wood step falls back to 3 of 5 (the bag is counted since issue #32), the checklist never
+    completes, no spare torch is given, `--place antorcha@153,74,105` is refused and `--sleep` answers "the player's own fire is not lit".
+    The two captures were the same before and after Y01 because both stop there. No scripted run exercises a sleep until Y08 captures
+    these runs again for the new opening; until then the sleep is covered by `SleepTests`, `SleepPlacesTests` and the skip aid.
