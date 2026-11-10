@@ -2258,3 +2258,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - *Known limits:* the faces keep their fixed north-west sun direction, so the drawn sun and the shading agree only near 10:20 and 15:40; held
     `--dusk` now has the sun on the western horizon; under-water screenshots are written with alpha near 0.5 (older than this change;
     `ScreenshotWriter` could force 255).
+- **E07, the NPCs' answer (2026-11-10, Sonnet 5.5 medium; gated at `84033e02` on `feature/weather`, 10936 passed, 3 skipped).** Asked «¿Qué tiempo
+  hace?», each of the seven NPCs answers with the weather the world has: «Hoy hace sol.» (the existing `<npc>_sun`), «Hoy está nublado.»
+  (`_cloudy`), «Hoy llueve.» (`_rain`) and, on a clear night, «Hace buen tiempo.» (`_fair`). The three new sentences were fixed by the orchestrator;
+  the A2 lint, the level check and the grammar check raised nothing. 42 clips recorded (21 lines, normal and slow); none has been listened to.
+  - *The mechanism, with no core change.* An NPC's file lists the intents it answers by the weather (`weatherAnswers: ["ask_weather"]`). Its agent
+    keeps the one `ask_weather` transition per state and gets one transition per key on a host event that is never fired (`baker.cloudy`), which
+    names the pool, as V29's `<npc>.weather` does (the lint's `reach.pool` wants every pool named by a transition). The session passes the
+    snapshot's `say` key into the turn (`GuideScene.WeatherKey`), and `NpcTurnRules.Compose` swaps the reply for that key's pool
+    (`WeatherReplyOf`), drawn by the same seeded pick. With no key or no pool the transition's «Hoy hace sol.» stands; `Vocaterra.Host` has no
+    weather and still says it.
+  - *The data.* `weather.json`'s kinds carry `say` (`sunny`: `sun` by day, `fair` at night; `cloudy`; `rain`). The validator requires a `say` on
+    every kind and a pool for every key at every NPC that has `weatherAnswers`, so a kind added later cannot ship without its line. No file in
+    `src/` names a kind or a key; a fourth kind defined only in a test's bundle is answered with no code change (`WeatherAnswerBundleTests`).
+  - *Unchanged:* the reply to the learner's own statement (`state_weather`).
+  - *Not run:* the answer in the running game, since no option held the weather when E07 ran (`--weather` is E05's); the session tests stand in.
+  - *A core fuzz counter seen one under its minimum, once:* E07's own full run failed `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings`
+    with `fallback:second-chosen` at 4 against a minimum of 5 in 300 draws (no seed kept); it passed alone and in the gate. Its generator draws
+    prompts and transcripts, which E07 did not change, so this looks like a thin margin in the core's test and not an effect of the new pools;
+    that was read from the test, not measured.
