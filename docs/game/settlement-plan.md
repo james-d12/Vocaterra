@@ -270,7 +270,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
+| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | done, 2026-11-10 (documents only: section 9) |
 | Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | todo |
@@ -286,8 +286,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
 
 **Y00 Brief and probes.** No gameplay code. Its results are written into this document as section 9, "Layout and numbers".
-- The inn: a ground-floor building of about 9 × 7 at the road's entrance, in place of `house3` (no lesson names the houses),
-  proved by a scene build. The meadows north and south of the village: at least three valid plots on seed 42 and on three others.
+- The inn: a ground-floor building of about 9 × 7 at the road's entrance, in place of `house3`, proved by a scene build. (No
+  lesson names the houses, but Y00 found that the fisher's lesson counts them: «…y tres casas».) The meadows north and south of the village: at least three valid plots on seed 42 and on three others.
 - The plot's size and price, from the coins a player holds on day 2 and day 3 (the orders and the sales).
 - The language: the lodging and land lines through `tools/Vocaterra.Nlp.Cli -- eval`, and the words through `cefr-check` and the
   lexicon (posada, hostal or hotel; habitación; cama; terreno; alcalde; estaca). A core gap is written up as a proposed M milestone.
@@ -318,6 +318,10 @@ decor, so the crosshair finds them), the pile shape in `Graphics/World/ChunkMesh
 `Graphics/Blocks/BlockAtlasLayout.cs` and `BlockArt.cs`.
 
 **Y04 The inn building and the meadows.** Every scene edit before Y08 lands here, so the world's digest is pinned again once.
+The prop, the stamp, the cells, the meadows' sites and the tests that name `house3` are in section 9.1 and 9.2.
+- **The village keeps three houses.** The fisher's lesson says «una tienda, una panadería y tres casas», so `house3` is not
+  dropped but moved to a free place inside the disc. Only if no place takes it does the line change, with its recordings and
+  its check, and then in Y08, not here.
 - `game/scene.json`: a `house` for the inn, then a `stamp` for its inside (beds, a counter, a partition with a door gap, window
   gaps through an `air` entry in the legend), the points `bed.inn` and `npc.innkeeper`, a lamp; `house3` goes; `trees.clearings`
   for the meadows.
@@ -479,7 +483,7 @@ the guest room in rows 4 and 5 with a `crate` per bed, six one-block windows at 
 (`BlockDefinition.FromName("air")` exists: no parser change); the NPC gets a valid cell; the ray from (280, 227) to the keeper is clear (the counter is one block
 high) and is blocked from the street, the bed and the gap's far side, so no one talks through a wall; the keeper's cell cannot be entered; `--walk-to` goes from (280, 221)
 through the door and the gap to (278, 231) (77, 28 and 46 ticks), and a column search gives 7.4 blocks from the street to the bed. Screenshots (scratch scene, the shopkeeper
-stands in for the keeper), in `/tmp/claude-1000/-home-james-Dev-Vocaterra/f44b9f5a-b0f6-474f-ba9b-15e4b5c8d56d/scratchpad/shots/`: `inn-outside.png`, `inn-inside-counter.png`
+stands in for the keeper), kept in `artifacts/y00/` of the feature branch's worktree (git-ignored): `inn-outside.png`, `inn-inside-counter.png`
 (the "E: talk" prompt on the keeper), `inn-inside-beds.png`.
 
 ### 9.2 The meadows and the plot
