@@ -712,6 +712,18 @@ sleep back; the inn stands inside the village's present disc, in place of `house
   pilot's data. W24 onward (storage, trust, gear, the healer, tenants, fishing) stay held. W23's spoken claim by direction and
   landmark is not part of this slice.
 
+**After Y00's probes (the plan's section 9), the same evening,** the owner answered three more questions:
+
+5. **(e) The words:** "Add the four words". `posada` (the inn), `terreno` (the plot), `alcalde` (the mayor) and `estaca` (the
+   stake) join the A2 list and the lexicon, each in the milestone that first uses it. They are not on the lists the content gate
+   checks today, and `posada` and `estaca` had no lexicon entry; `hotel` and `tierra` would have passed as they stand.
+6. **(f) The innkeeper's voice:** "pf_dora, provisional". A woman's voice, the nearest to native Spanish of the three unused
+   ones, and probably close to Luna's. Recorded with it now; the owner listens afterwards and may change it (the rule of
+   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree.
+7. **(g) A third building agent:** "Launch Y01 now". The weather session held both of the machine's two building agents, so
+   Y01 was launched as a third: one agent of this series beside the weather session's two, with every heavy command still
+   queued through `scripts/limited.sh`. The answer was given for Y01.
+
 **Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
 the first slice; a fee, meals or comfort at the inn; more than one plot.
 

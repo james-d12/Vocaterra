@@ -265,13 +265,18 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 - **One plot:** a fixed rectangle, its sides along the world's axes, marked with a stake. Marking again costs nothing.
 - **The camp kit** is one item that places the tent, a bedroll and a fire ring as one piece, with a torch to light it.
 - **The land steps** are one checklist, «Mi terreno», shown from day 2; it never holds sleep back.
+- **The words** (decided after Y00, D-game-32 (e)): the inn is the `posada`, the plot the `terreno`, the mayor the `alcalde`,
+  the stake the `estaca`. Each joins the level list and the bundle's lexicon (`lexicon/game.json`; the rule for such words is
+  in `content/README.md`) in the milestone that first uses it: `posada` in Y04, `estaca` in Y10, `terreno` and `alcalde` in
+  Y11, or in Y06 if the innkeeper's lines need one sooner.
+- **The innkeeper's voice** (D-game-32 (f)): `pf_dora`, provisional; the owner listens after Y06 and may change it.
 
 ### 8.3 Milestones
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | done, 2026-11-10 (documents only: section 9) |
-| Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
+| Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | todo |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | todo |
@@ -322,6 +327,7 @@ The prop, the stamp, the cells, the meadows' sites and the tests that name `hous
 - **The village keeps three houses.** The fisher's lesson says «una tienda, una panadería y tres casas», so `house3` is not
   dropped but moved to a free place inside the disc. Only if no place takes it does the line change, with its recordings and
   its check, and then in Y08, not here.
+- The word `posada` joins the level list and the lexicon, so that «¿Dónde está la posada?» finds the inn.
 - `game/scene.json`: a `house` for the inn, then a `stamp` for its inside (beds, a counter, a partition with a door gap, window
   gaps through an `air` entry in the legend), the points `bed.inn` and `npc.innkeeper`, a lamp; `house3` goes; `trees.clearings`
   for the meadows.
