@@ -107,7 +107,7 @@ public sealed partial class VoxelSession
 
         Needs.Wake();
         SettleNeedStages();
-        WakeAtFire();
+        WakeAtSleepPlace();
         LogWorld(WorldEvents.PlayerWoke, null, relaxed ? "faint" : "death");
         DeathLine = Locale.Ui(drowned ? (relaxed ? FaintedDrownedHint : DiedDrownedHint)
             : relaxed ? (drive == Drive.Thirst ? FaintedThirstHint : FaintedHungerHint) : (drive == Drive.Thirst ? DiedThirstHint : DiedHungerHint));
@@ -177,16 +177,16 @@ public sealed partial class VoxelSession
         _chest = null;
     }
 
-    // The player is by their own fire at the camp (the point firering.player; the ring is built and cold until its torch is put on): the nearest free ground two to three blocks
-    // from the ring's middle, which is within the rest radius. A scene without the point leaves the player where they are.
-    private void WakeAtFire()
+    // The player wakes at the sleep place death.wakeAt names (the mountain fire's camp; the ring is built and cold until its torch is put on): the nearest free ground two to five blocks
+    // from the place's cell (WakeNearSquared, WakeFarSquared), which is within the rest radius of a ring's middle. A scene without the place leaves the player where they are.
+    private void WakeAtSleepPlace()
     {
-        if (!Scene.Points.TryGetValue(PlayerFireRing, out var ring))
+        if (SleepPlaces.WakeAt is not { } place)
         {
             return;
         }
 
-        var cell = NearestFreeGround(ring, WakeFarSquared, WakeNearSquared, 3, _chest?.Cell);
+        var cell = NearestFreeGround(place.Cell, WakeFarSquared, WakeNearSquared, 3, _chest?.Cell);
         if (cell is { } stand)
         {
             Simulation.TeleportTo(stand);

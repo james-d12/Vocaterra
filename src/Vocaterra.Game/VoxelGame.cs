@@ -556,10 +556,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The player is free for the sleep's offer (V12c): the world on screen, no screen, panel or report up, no voice recorded.
     private bool SleepFree => WorldRunning && _screens.Top is null && !_dialogue.IsOpen && !_listen.Listening && !_report.Paused;
 
-    // The player's own lit fire offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
+    // A usable sleep place (today the player's own lit fire) offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
     private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
-    // L01: at the fire and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
+    // L01: at a sleep place and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
     private bool FireNotTired => SleepOffer.AtFireNotTired(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
     // The session's closing card offers the sleep: Enter sleeps while it is up (V12c).
@@ -1437,7 +1437,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
-        : !_session.FireLit ? "the player's own fire is not lit"
+        : !_session.SleepPlaces.AnyUsable ? "no sleep place is usable (the player's own fire is not lit)"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 

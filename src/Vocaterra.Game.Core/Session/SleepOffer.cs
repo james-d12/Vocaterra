@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
-/// Where the game offers the sleep at the player's own fire (V12c): the prompt at the lit fire, in the HUD's hint style (<c>E: sleep until morning (session 3)</c>), and the line
+/// Where the game offers the sleep (V12c, Y01): the prompt at a usable sleep place (today the lit fire), in the HUD's hint style (<c>E: sleep until morning (session 3)</c>), and the line
 /// of the session's closing card (<c>Enter: sleep until morning and start session 2</c>). A sleep is a load in the same run (<see cref="Save.SaveGame.Sleep"/>). Plain functions over
 /// the session and what the front-end knows, so the rules are tested without a window.
 /// </summary>
@@ -11,18 +11,18 @@ public static class SleepOffer
 {
     /// <summary>
     /// Whether the fire's prompt shows, and E sleeps: the player wants to sleep (<see cref="VoxelSession.SleepWanted"/>: day 1's ending, or from day 2 the sleep drive below 75), may sleep
-    /// (<see cref="VoxelSession.CanSleep"/>: a lit fire, the session at rest; no lesson holds it, L01), stands at their own fire, and nothing else has their attention (<paramref name="free"/>).
+    /// (<see cref="VoxelSession.CanSleep"/>: a usable sleep place, the session at rest; no lesson holds it, L01), stands at a usable sleep place, and nothing else has their attention (<paramref name="free"/>).
     /// </summary>
     /// <param name="session">The 3D game.</param>
     /// <param name="free">Whether the player is free: no panel, screen, check or report is open, no voice is recorded, and the crosshair is on no NPC and no workbench (their keys come first).</param>
     public static bool AtFire(VoxelSession session, bool free)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return free && session.SleepWanted && session.CanSleep && session.AtOwnFire;
+        return free && session.SleepWanted && session.CanSleep && session.AtSleepPlace;
     }
 
     /// <summary>
-    /// Whether E at the fire says «No tengo sueño.» (L01, design 9.5): the player is at their own lit fire, free, and the sleep drive is not below 75 (on day 1, before the ending).
+    /// Whether E at the fire says «No tengo sueño.» (L01, design 9.5): the player is at a usable sleep place, free, and the sleep drive is not below 75 (on day 1, before the ending).
     /// The game then shows <see cref="NotSleepyText"/> and sleeps nothing.
     /// </summary>
     /// <param name="session">The 3D game.</param>
@@ -30,7 +30,7 @@ public static class SleepOffer
     public static bool AtFireNotTired(VoxelSession session, bool free)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return free && !session.SleepWanted && session.CanSleep && session.AtOwnFire;
+        return free && !session.SleepWanted && session.CanSleep && session.AtSleepPlace;
     }
 
     /// <summary>The player's line at a fire they are not tired at: the Spanish with the English beside it, text only (the player's words are not voiced, D-game-13).</summary>
@@ -43,14 +43,14 @@ public static class SleepOffer
         return $"“{spanish}” ({session.Locale.Text("line." + id)})";
     }
 
-    /// <summary>Whether the session's closing card offers the sleep, and Enter sleeps: the card is up, the player is free and may sleep.</summary>
+    /// <summary>Whether the session's closing card offers the sleep, and Enter sleeps: the card is up, the player is free, may sleep and stands at a usable sleep place (Y01: away from one the card offers none; the objective's line and the arrow say where to go).</summary>
     /// <param name="session">The 3D game.</param>
     /// <param name="cardUp">Whether the closing card is on screen.</param>
     /// <param name="free">Whether the player is free (see <see cref="AtFire"/>; the crosshair does not matter).</param>
     public static bool OnCard(VoxelSession session, bool cardUp, bool free)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return cardUp && free && session.CanSleep && session.SleepWanted;
+        return cardUp && free && session.CanSleep && session.SleepWanted && session.AtSleepPlace;
     }
 
     /// <summary>The fire's prompt: <c>E: sleep until morning (session 3)</c> (<c>ui.sleepPrompt</c>; <c>ui.sleepPromptDone</c> when no later session has a lesson).</summary>

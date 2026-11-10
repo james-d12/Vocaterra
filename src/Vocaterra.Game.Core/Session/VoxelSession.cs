@@ -75,6 +75,7 @@ public sealed partial class VoxelSession : GuideSession
         Objectives = data.Objectives.Objectives.Select(static spec => new Objective(spec)).ToList();
         Objective = Objectives.First(static o => o.IsChecklist);
         ScanFireRing(scene);
+        SleepPlaces = new SleepPlaces(data.Needs.SleepPlaces, data.Needs.Death.WakeAt, scene, Simulation.Fires, () => LodgingGiven);
         Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
     }
 
@@ -324,9 +325,9 @@ public sealed partial class VoxelSession : GuideSession
     /// </summary>
     public void BeginPlaySession()
     {
-        if (RestDue && !AtOwnFire)
+        if (RestDue && !AtSleepPlace)
         {
-            PointAtFire();
+            PointAtSleepPlace();
         }
 
         SettleRest();

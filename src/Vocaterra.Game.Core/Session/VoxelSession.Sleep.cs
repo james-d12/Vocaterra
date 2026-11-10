@@ -6,17 +6,20 @@ using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Core.Session;
 
-// The sleep at the player's own fire (V12c): when the player may sleep, what the objective says once the play session's work is done, the arrow back to the fire,
+// Sleeping (V12c, Y01): when the player may sleep, what the objective says once the play session's work is done, the arrow to the nearest place to sleep (SleepPlaces),
 // and what a sleep clears before SaveGame.Sleep puts the session's own save back into it as the next play session.
 public sealed partial class VoxelSession
 {
-    /// <summary>How near the player stands to their own fire to sleep there: within this many blocks across of <c>firering.player</c>, and six in height (as the guide's greeting).</summary>
-    public const int FireBlocks = 5;
-
     private bool _restDue;
 
+    /// <summary>The places the player can sleep at (Y01): the mountain fire today; a bed at an inn and a camp made in play later.</summary>
+    public SleepPlaces SleepPlaces { get; }
+
+    /// <summary>Whether the player has been given lodging, which meets a sleep place whose access is <c>lodging</c>. False until a later milestone sets it; the save does not keep it yet.</summary>
+    public bool LodgingGiven { get; set; }
+
     /// <summary>
-    /// Whether the player can sleep at their own fire in this run (V12c): the front-end turns it off for a playtest, which plays one session per run (its post-check follows
+    /// Whether the player can sleep in this run (V12c): the front-end turns it off for a playtest, which plays one session per run (its post-check follows
     /// the ending). Off, the objective never sends the player to sleep and <see cref="CanSleep"/> is false.
     /// </summary>
     public bool SleepOffered { get; set; } = true;
@@ -27,22 +30,11 @@ public sealed partial class VoxelSession
     /// </summary>
     public int? SkippedTo { get; internal set; }
 
-    /// <summary>Whether the player stands at their own fire ring (<c>firering.player</c>): within <see cref="FireBlocks"/> across and six blocks in height.</summary>
-    public bool AtOwnFire
-    {
-        get
-        {
-            if (!Scene.Points.TryGetValue(PlayerFireRing, out var ring))
-            {
-                return false;
-            }
+    /// <summary>The usable sleep place the player stands at (within its reach across and in height), or <see langword="null"/>.</summary>
+    public SleepPlace? CurrentSleepPlace => SleepPlaces.UsableAt(Simulation.Player.FeetBlock);
 
-            var feet = Simulation.Player.FeetBlock;
-            long dx = ring.X - feet.X;
-            long dz = ring.Z - feet.Z;
-            return (dx * dx) + (dz * dz) <= FireBlocks * FireBlocks && Math.Abs(ring.Y - feet.Y) <= 6;
-        }
-    }
+    /// <summary>Whether the player stands at a usable sleep place (<see cref="CurrentSleepPlace"/>).</summary>
+    public bool AtSleepPlace => CurrentSleepPlace is not null;
 
     /// <summary>
     /// Whether the player wants to sleep now (L01, D-game-25, adaptation design 9.5): on day 1 once its ending is reached (the introduction, the camp and the fire,
@@ -52,16 +44,16 @@ public sealed partial class VoxelSession
     public bool SleepWanted => Day <= 1 ? SessionComplete : NeedsEnabled && Needs.StageOf(Drive.Sleep) >= 1;
 
     /// <summary>
-    /// Whether the objective sends the player to their fire to sleep: day 1 only, once its ending is reached (the arrow goes to the fire when this begins away from it). From day 2 the
+    /// Whether the objective sends the player to sleep: day 1 only, once its ending is reached (the arrow goes to the nearest usable sleep place when this begins away from one). From day 2 the
     /// needs say when to sleep.
     /// </summary>
-    public bool RestDue => SleepOffered && FireLit && Day <= 1 && SessionComplete;
+    public bool RestDue => SleepOffered && SleepPlaces.AnyUsable && Day <= 1 && SessionComplete;
 
     /// <summary>
-    /// Whether the player may sleep now: sleep is offered, their own fire is lit and the session is at rest (<see cref="GuideSession.CanSave"/>). A lesson never holds it back: a
+    /// Whether the player may sleep now: sleep is offered, a sleep place is usable (<see cref="SleepPlaces.AnyUsable"/>) and the session is at rest (<see cref="GuideSession.CanSave"/>). A lesson never holds it back: a
     /// class paused or under way pauses (L01). Whether they want to is <see cref="SleepWanted"/>; the front-end adds that no panel is open.
     /// </summary>
-    public bool CanSleep => SleepOffered && FireLit && CanSave;
+    public bool CanSleep => SleepOffered && SleepPlaces.AnyUsable && CanSave;
 
     // What the objective says once day 1's work is done: sleep at the fire. Null otherwise (from day 2 the needs and the tracked objective speak, L01).
     private ObjectivePiece? RestLine() =>
@@ -71,9 +63,9 @@ public sealed partial class VoxelSession
     private void NoteRestDue()
     {
         var due = RestDue;
-        if (due && !_restDue && !AtOwnFire)
+        if (due && !_restDue && !AtSleepPlace)
         {
-            PointAtFire();
+            PointAtSleepPlace();
         }
 
         _restDue = due;
@@ -82,17 +74,18 @@ public sealed partial class VoxelSession
     /// <summary>Takes the objective's state as it is, so the next tick points nowhere for what was already due (a restored session that is not a new play session).</summary>
     internal void SettleRest() => _restDue = RestDue;
 
-    // The arrow goes to the player's own fire, where they sleep (V12c).
-    private void PointAtFire()
+    // The arrow goes to the nearest usable sleep place (V12c, Y01).
+    private void PointAtSleepPlace()
     {
-        if (!Scene.Points.TryGetValue(PlayerFireRing, out var ring))
+        if (SleepPlaces.NearestUsable(Simulation.Player.FeetBlock) is not { } place)
         {
             return;
         }
 
-        var label = Scene.LabelOf(PlayerFireRing);
-        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z), Point: PlayerFireRing);
-        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
+        var label = place.Point is { } point ? Scene.LabelOf(point) : place.Id;
+        var cell = place.Cell;
+        Pointer = new PointerMarker(label, new GuideCell(cell.X, cell.Y, cell.Z), Point: place.Point);
+        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {cell.X},{cell.Y},{cell.Z}");
     }
 
     /// <inheritdoc />

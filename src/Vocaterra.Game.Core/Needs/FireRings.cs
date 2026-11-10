@@ -6,12 +6,12 @@ namespace Vocaterra.Game.Core.Needs;
 /// The fire rings of a world and whether each burns (N02, adaptation design 9.4): a ring is the eight stones round an empty middle cell (<see cref="BlockId.FireRing"/>), and it
 /// is lit while a torch (<see cref="BlockId.Torch"/>) or a scenery torch on a post (<see cref="BlockId.PostTorch"/>) stands in its three-by-three square, on the layer of its stones
 /// or on top of them. So the player's own ring burns once its torch is on the rim, the guide's camp ring likewise, and the forge, whose post torch stands in its middle, always
-/// burns. Resting at a lit fire is standing still within the data's radius of the ring's middle. The rings are found once, from the stones, by shape, never by name.
+/// burns. Resting at a lit fire is standing still within the data's radius of the ring's middle. The rings are found from the stones, by shape, never by name: when the constructor runs and again on <see cref="Rescan"/> (a ring built while the game runs). One finder serves the whole session (the rest rule, the crafting stations, the sleep places and the free ground to wake on).
 /// </summary>
 public sealed class FireRings
 {
     private readonly VoxelGrid _grid;
-    private readonly IReadOnlyList<BlockPos> _middles;
+    private IReadOnlyList<BlockPos> _middles = [];
 
     /// <summary>Finds the rings of a world.</summary>
     /// <param name="grid">The world (read live, so a torch put on or taken off a rim counts at once).</param>
@@ -19,6 +19,13 @@ public sealed class FireRings
     {
         ArgumentNullException.ThrowIfNull(grid);
         _grid = grid;
+        Rescan();
+    }
+
+    /// <summary>Finds the rings again from the stones the world holds now: call it after a ring's blocks are set while the game runs.</summary>
+    public void Rescan()
+    {
+        var grid = _grid;
         var middles = new HashSet<BlockPos>();
         foreach (var stone in grid.BlocksOfKind(BlockId.FireRing))
         {
