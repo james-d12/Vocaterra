@@ -100,7 +100,7 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Clock, _session.Simulation.Tick)), _session.Scene.Currents);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents);
         _renderer.SetFigures(_figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(Preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(Preset.ViewDistance):0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");

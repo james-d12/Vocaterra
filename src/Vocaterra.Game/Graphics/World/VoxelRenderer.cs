@@ -136,12 +136,12 @@ public sealed class VoxelRenderer : IDisposable
         _look = look;
         _band = look.Band;
         ClearColour = new Color(look.FogColour.R, look.FogColour.G, look.FogColour.B);
-        var fogEnd0 = FogEndFor(preset.ViewDistance);
+        var fogEnd0 = FogEndFor(preset.ViewDistance, look.Fog);
         DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
         _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
-        var fogEnd = FogEndFor(preset.ViewDistance);
+        var fogEnd = fogEnd0;
         _effect = new BasicEffect(device)
         {
             TextureEnabled = true,
@@ -273,7 +273,8 @@ public sealed class VoxelRenderer : IDisposable
         }
 
         SetLightTints(look);
-        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, DryFog.Start, DryFog.End);
+        var fogEnd = FogEndFor(Preset.ViewDistance, look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
+        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, fogEnd * FogStartFraction, fogEnd);
         _sky.SetLook(look);
         ApplyFogState();
     }
@@ -329,7 +330,7 @@ public sealed class VoxelRenderer : IDisposable
 
         var remesh = preset.AmbientOcclusion != Preset.AmbientOcclusion || preset.PlantKeepPercent != Preset.PlantKeepPercent;
         Preset = preset;
-        var fogEnd = FogEndFor(preset.ViewDistance);
+        var fogEnd = FogEndFor(preset.ViewDistance, _look.Fog);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
         _view = new ChunkViewSet(_grid, preset.ViewDistance);
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
@@ -358,8 +359,14 @@ public sealed class VoxelRenderer : IDisposable
         }
     }
 
-    /// <summary>Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off.</summary>
-    public static float FogEndFor(int viewDistance) => viewDistance * 0.94f;
+    /// <summary>
+    /// Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off. The weather's <paramref name="fog"/> (0 to 1, E05) brings it
+    /// nearer, straight in the channel (<see cref="SkyWeather.FogReach"/>): at 0 it is the clear-weather distance, at 1 about a third of the view distance. The fog's start keeps its
+    /// proportion to the end (<see cref="FogStartFraction"/>).
+    /// </summary>
+    /// <param name="viewDistance">The view distance in blocks.</param>
+    /// <param name="fog">The weather's fog channel.</param>
+    public static float FogEndFor(int viewDistance, float fog = 0f) => viewDistance * 0.94f * SkyWeather.FogReach(fog);
 
     /// <summary>The far plane of the camera for a view distance: past the fog's end and the last chunk's corner.</summary>
     public static float FarPlaneFor(int viewDistance) => viewDistance + (2f * VoxelChunk.Size);

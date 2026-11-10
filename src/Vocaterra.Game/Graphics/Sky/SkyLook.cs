@@ -26,6 +26,8 @@ namespace Vocaterra.Game.Graphics.Sky;
 /// <param name="SunLight">The colour of the sun's light on the world, as a multiplier: (1, 1, 1) at noon.</param>
 /// <param name="LanternStrength">How strongly the lanterns glow, 0.5 by day up to 1 at dusk and by night.</param>
 /// <param name="Band">The light band meshes are built in at this moment (<see cref="LightBands.For"/>).</param>
+/// <param name="Fog">How thick the fog is, 0 to 1 (the weather's channel): the renderer brings the fog's distances in by it (<see cref="SkyWeather.FogReach"/>).</param>
+/// <param name="CloudCover">The weather's cloud cover, 0 to 1, that <see cref="CloudField"/> is generated at.</param>
 public readonly record struct SkyLook(
     (byte R, byte G, byte B) DomeHorizon,
     (byte R, byte G, byte B) DomeMiddle,
@@ -42,7 +44,9 @@ public readonly record struct SkyLook(
     (byte R, byte G, byte B) FogColour,
     (float R, float G, float B) SunLight,
     float LanternStrength,
-    LightBand Band)
+    LightBand Band,
+    float Fog = 0f,
+    double CloudCover = SkyWeather.FairCover)
 {
     /// <summary>The hour at which the look is the twilight keyframe itself (the middle of a dusk): what <c>--dusk</c> holds the clock at.</summary>
     public const double DuskHour = 21;
@@ -59,30 +63,41 @@ public readonly record struct SkyLook(
         var a = SkyKeyframe.Day;
         var b = SkyKeyframe.Twilight;
         var c = SkyKeyframe.Night;
-        var horizon = Mix(a.DomeHorizon, b.DomeHorizon, c.DomeHorizon, day, twilight, night);
         var sun = SkyArc.SunAt(input.Hour);
         var moon = SkyArc.MoonAt(input.Hour);
         var sunElevation = (float)(Math.Asin(Math.Clamp(sun.Y, -1f, 1f)) * 180 / Math.PI);
         var moonShows = Smooth(0f, 6f, (float)(Math.Asin(Math.Clamp(moon.Y, -1f, 1f)) * 180 / Math.PI));
         var nightness = (float)Math.Clamp((0.6 - input.Daylight) / 0.6, 0, 1);
         var starAmount = (float)Math.Clamp((0.45 - input.Daylight) / 0.45, 0, 1);
+
+        // The weather (E05): a heavy sky greys and darkens the dome (more by night, so an overcast night has no blue glow) and the clouds, hides the sun, the moon and the stars as the
+        // cover closes, and dims the world's light. At fair weather every step below returns what it was given.
+        var gloom = SkyWeather.Gloom(input.CloudCover, input.Sunlight);
+        var showing = SkyWeather.BodyVisibility(input.CloudCover);
+        var sunlight = (float)Math.Clamp(input.Sunlight, 0, 1);
+        var domeDarken = 0.8f - (0.25f * night); // a day sky greys to 0.8 of its brightness, a night sky to 0.55
+        var domeAmount = gloom * 0.9f;
+        var horizon = SkyWeather.Grey(Mix(a.DomeHorizon, b.DomeHorizon, c.DomeHorizon, day, twilight, night), domeAmount, domeDarken);
+        var light = Mix(a.SunLight, b.SunLight, c.SunLight, day, twilight, night);
         return new SkyLook(
             horizon,
-            Mix(a.DomeMiddle, b.DomeMiddle, c.DomeMiddle, day, twilight, night),
-            Mix(a.DomeZenith, b.DomeZenith, c.DomeZenith, day, twilight, night),
-            Mix(a.CloudTop, b.CloudTop, c.CloudTop, day, twilight, night),
-            Mix(a.CloudSide, b.CloudSide, c.CloudSide, day, twilight, night),
-            Mix(a.CloudBottom, b.CloudBottom, c.CloudBottom, day, twilight, night),
+            SkyWeather.Grey(Mix(a.DomeMiddle, b.DomeMiddle, c.DomeMiddle, day, twilight, night), domeAmount, domeDarken),
+            SkyWeather.Grey(Mix(a.DomeZenith, b.DomeZenith, c.DomeZenith, day, twilight, night), domeAmount, domeDarken),
+            SkyWeather.Grey(Mix(a.CloudTop, b.CloudTop, c.CloudTop, day, twilight, night), gloom, 0.65f),
+            SkyWeather.Grey(Mix(a.CloudSide, b.CloudSide, c.CloudSide, day, twilight, night), gloom, 0.58f),
+            SkyWeather.Grey(Mix(a.CloudBottom, b.CloudBottom, c.CloudBottom, day, twilight, night), gloom, 0.48f),
             sun,
-            Smooth(SunFadeLow, SunFadeHigh, sunElevation),
+            Smooth(SunFadeLow, SunFadeHigh, sunElevation) * showing,
             Mix(a.SunColour, b.SunColour, c.SunColour, day, twilight, night),
             moon,
-            moonShows * nightness,
-            starAmount * starAmount,
+            moonShows * nightness * showing,
+            starAmount * starAmount * showing,
             horizon,
-            Mix(a.SunLight, b.SunLight, c.SunLight, day, twilight, night),
+            (light.R * sunlight, light.G * sunlight, light.B * sunlight),
             Mix(a.LanternStrength, b.LanternStrength, c.LanternStrength, day, twilight, night),
-            LightBands.For(input.Phase, input.Daylight));
+            LightBands.For(input.Phase, input.Daylight),
+            (float)Math.Clamp(input.Fog, 0, 1),
+            Math.Clamp(input.CloudCover, 0, 1));
     }
 
     /// <summary>The look the game has always had by day: noon, the day keyframe itself.</summary>
