@@ -2277,3 +2277,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     with `fallback:second-chosen` at 4 against a minimum of 5 in 300 draws (no seed kept); it passed alone and in the gate. Its generator draws
     prompts and transcripts, which E07 did not change, so this looks like a thin margin in the core's test and not an effect of the new pools;
     that was read from the test, not measured.
+- **E05, sky and light by weather (2026-11-10, Sonnet 5.5 medium; gated at `c74ce223` on `feature/weather`, 10978 passed, 3 skipped).** The sky,
+  the clouds, the fog and the world's light read the snapshot's channels. `Graphics/Sky/SkyWeather` (pure functions of the channels: overcast,
+  gloom, the sun's, moon's and stars' visibility, the grey, the fog's reach), `SkyLookInput.At(snapshot)`, `CloudField.Generate(..., cover)`,
+  `VoxelRenderer.FogEndFor(viewDistance, fog)`, and the launch flag `--weather <id>` (checked against the loaded bundle's ids in `Program.cs`).
+  - *The first kind is today's look exactly:* at fair values every function returns its input; the look equals E02's at every hour (tested), and
+    the default run's camp view is pixel-identical to the build before. No existing test changed.
+  - *By weather:* the dome greys and darkens (more at night; a covered night has no blue glow, a covered dusk loses its amber); the sun, the moon
+    and the stars fade to nothing at full cover; the clouds' colours darken; the sun's light is multiplied by the sunlight channel through E02's
+    tint, so weather rebuilds no mesh (the tint is 0.25 to 0.74 at the data's lowest sunlight, never above E02's top); the fog is complete at a
+    third of the view distance at full fog. Every value is continuous along a blend between two kinds (tested in 450 steps at six hours).
+  - *Clouds:* a higher cover only adds clouds, and a cloud near the threshold fades in by alpha. Full cover is 467 boxes (14 010 vertices, 5 850
+    at the fair cover) at no measurable frame time.
+  - *Weak:* a full cover is still scattered slabs over a grey dome, not a ceiling (one cloud per 96-block cell); the overcast reads through the
+    dome and the fog. The sun's colour is not desaturated under cover. The baked lantern glow is scaled by the weather's tint too (E02a).
