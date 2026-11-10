@@ -181,27 +181,24 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFourSaveLoadsWithItsKeysMappedAndTheOutOfOrderEndingStillEnds()
+    public void TheFixtureWithTheFireLitFirstLoadsAndTheOutOfOrderEndingStillEnds()
     {
-        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v4.json was written by the C08 code (format 4): the player lit their own fire first, then gathered five wood
-        // and two fruit. Its keys are the checklist's alone (wood, berry, ...); loading maps them to camp.wood and the rest before anything else reads them.
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
+        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json is a recorded run of the camp (see saves.md): the player lit their own fire (the torch step is done) while the wood and
+        // the fruit were not all in: the ending comes out of the order the checklist lists them in.
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
         var document = SaveGame.Parse(text);
-        Assert.Equal(4, document.Version);
-        Assert.Equal(["wood", "berry", "torch", "water"], document.Objective.Select(static o => o.Key));
+        Assert.Equal(SaveGame.CurrentVersion, document.Version);
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water"], document.Objective.Take(4).Select(static o => o.Key));
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Null(loaded.Migration);
         Assert.True(loaded.FireLit); // worked out again from the torch on the ring
-        Assert.True(loaded.GuideMet); // the checklist has moved
         Assert.Equal("camp", loaded.CurrentObjective?.Id);
-        Assert.Equal("Campamento: madera 5/5 · frutas 2/3 · antorcha 0/1 · agua 0/1", loaded.Objective.Summary);
         Assert.False(loaded.SessionComplete);
 
-        _ = loaded.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the bag (#32), and the fixture's bag is empty: the wood and fruit it counted are put in
+        _ = loaded.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the bag (#32)
         _ = loaded.Simulation.GrantItems(ItemId.Berry, 3);
-        _ = loaded.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = loaded.HostEvent(WorldEvents.BottleFilled);
 
         Assert.True(loaded.SessionComplete);
@@ -213,9 +210,9 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFourSaveOfAnotherBundleKeepsItsStepsThroughTheMigration()
+    public void TheFixtureOfAnotherBundleKeepsItsStepsThroughTheMigration()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
         var node = JsonNode.Parse(text)!;
         node["bundleHash"] = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
         node["objective"]!.AsArray().Add(new JsonObject { ["key"] = "harvest", ["count"] = 1 }); // a step this game does not have
@@ -223,7 +220,8 @@ public sealed class ObjectiveBookTests
         var loaded = SaveGame.Load(SaveGame.Serialize(SaveGame.Parse(node.ToJsonString())), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
 
         Assert.NotNull(loaded.Migration);
-        Assert.Equal(5, loaded.Objective.Step("wood")!.Count); // mapped before the migration, so it is kept
-        Assert.Equal(2, loaded.Objective.Step("berry")!.Count);
+        Assert.Equal(1, loaded.Objective.Step("wood")!.Count);
+        Assert.Equal(3, loaded.Objective.Step("berry")!.Count);
+        Assert.Equal(1, loaded.Objective.Step("torch")!.Count);
     }
 }

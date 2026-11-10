@@ -182,7 +182,7 @@ public sealed class ClassTests
     }
 
     [Fact]
-    public void AnEngagedClassInAnOldSaveLoadsPausedAndAFirstWordsSaveSplitsIntoTheIntroductionAndHerFirstClass()
+    public void AnEngagedClassInASaveLoadsPaused()
     {
         var session = DayTwo();
         _ = session.OpenTalk("villager");
@@ -193,20 +193,5 @@ public sealed class ClassTests
 
         Assert.Equal("personas", loaded.Lessons.Active?.Id);
         Assert.False(loaded.Lessons.Engaged); // loaded paused
-
-        // A save of the old first-words (37 steps): mid-way in the verb unit, the introduction goes on at getting unstuck and the class is not begun...
-        var old = SaveGame.Parse(SaveGame.Save(DayTwo(), TestGame.Route()));
-        var oldLessons = old.Lessons!.Lessons.Where(static l => l.Id != "first-class").Select(static l => l.Id == "first-words"
-            ? l with { Status = LessonStatus.InProgress, Step = 20, EverCompleted = false, Outcomes = [] }
-            : l).ToArray();
-        var midway = SaveGame.Load(SaveGame.Serialize(old with { Lessons = old.Lessons with { Lessons = oldLessons, Active = "first-words" } }), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
-        Assert.Equal(("first-words", 16), (midway.Lessons.Active?.Id, midway.Lessons.StepNumber - 1));
-        Assert.Equal(LessonStatus.NotStarted, midway.Lessons.StatusOf("first-class"));
-
-        // ... and past it, the class counts as done.
-        var past = oldLessons.Select(static l => l.Id == "first-words" ? l with { Step = 30 } : l).ToArray();
-        var after = SaveGame.Load(SaveGame.Serialize(old with { Lessons = old.Lessons with { Lessons = past, Active = "first-words" } }), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
-        Assert.Equal(LessonStatus.Completed, after.Lessons.StatusOf("first-class"));
-        Assert.Equal(18, after.Lessons.StepNumber - 1);
     }
 }

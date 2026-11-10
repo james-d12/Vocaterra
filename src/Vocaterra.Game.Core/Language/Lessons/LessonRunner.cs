@@ -927,7 +927,6 @@ public sealed partial class LessonRunner
 
     internal void Restore(LessonsSave save)
     {
-        save = SplitIntroduction(save);
         var active = 0;
         foreach (var progress in save.Lessons)
         {

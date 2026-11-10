@@ -177,11 +177,12 @@ public sealed partial class VoxelSession
         _chest = null;
     }
 
-    // The player wakes at the sleep place death.wakeAt names (the mountain fire's camp; the ring is built and cold until its torch is put on): the nearest free ground two to five blocks
+    // The player wakes at the place last slept at, or else the sleep place death.wakeAt names (the mountain fire's camp; the ring is built and cold until its torch is put on): the nearest free ground two to five blocks
     // from the place's cell (WakeNearSquared, WakeFarSquared), which is within the rest radius of a ring's middle. A scene without the place leaves the player where they are.
     private void WakeAtSleepPlace()
     {
-        if (SleepPlaces.WakeAt is not { } place)
+        var last = LastSleepPlace is { } slept ? SleepPlaces.Find(slept.Id) : null; // Y02: the place last slept at, while it is still a place; else the one death.wakeAt names
+        if ((last ?? SleepPlaces.WakeAt) is not { } place)
         {
             return;
         }

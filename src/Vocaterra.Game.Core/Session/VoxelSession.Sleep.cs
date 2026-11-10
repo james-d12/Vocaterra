@@ -2,7 +2,9 @@ using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -15,8 +17,44 @@ public sealed partial class VoxelSession
     /// <summary>The places the player can sleep at (Y01): the mountain fire today; a bed at an inn and a camp made in play later.</summary>
     public SleepPlaces SleepPlaces { get; }
 
-    /// <summary>Whether the player has been given lodging, which meets a sleep place whose access is <c>lodging</c>. False until a later milestone sets it; the save does not keep it yet.</summary>
+    /// <summary>Whether the player has been given lodging, which meets a sleep place whose access is <c>lodging</c>. False until a later milestone sets it; the save keeps it (Y02).</summary>
     public bool LodgingGiven { get; set; }
+
+    /// <summary>The place the player last slept at (Y02), or <see langword="null"/> for none: a death wakes them there when it is still in <see cref="SleepPlaces"/>. The save keeps it.</summary>
+    public LastSleepSave? LastSleepPlace { get; internal set; }
+
+    /// <summary>Records a sleep at the usable place the player stands at; a sleep at none leaves the last place as it was (<c>SaveGame.Sleep</c> calls it after the save is restored).</summary>
+    internal void NoteSleptAt()
+    {
+        if (CurrentSleepPlace is { } place)
+        {
+            LastSleepPlace = place.Point is null ? new LastSleepSave(place.Id, place.Cell.X, place.Cell.Y, place.Cell.Z) : new LastSleepSave(place.Id);
+        }
+    }
+
+    /// <summary>The sleep entry of a save (Y02), or <see langword="null"/> when there is no lodging, no last place and no place made in play.</summary>
+    internal SleepSave? CaptureSleep()
+    {
+        var made = SleepPlaces.MadeInPlay;
+        if (!LodgingGiven && LastSleepPlace is null && made.Count == 0)
+        {
+            return null;
+        }
+
+        return new SleepSave(
+            LodgingGiven,
+            LastSleepPlace,
+            made.Count == 0 ? null : [.. made.Select(static p => new SleepPlaceSave(p.Id, p.Cell.X, p.Cell.Y, p.Cell.Z, p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access, p.Point))]);
+    }
+
+    /// <summary>Puts the sleep entry back (Y02); no entry is no lodging, no last place and no places made in play.</summary>
+    /// <param name="save">The entry, or <see langword="null"/>.</param>
+    internal void RestoreSleep(SleepSave? save)
+    {
+        LodgingGiven = save?.LodgingGiven ?? false;
+        LastSleepPlace = save?.Last;
+        SleepPlaces.RestoreMadeInPlay((save?.Places ?? []).Select(static p => new SleepPlace(p.Id, p.Point, new BlockPos(p.X, p.Y, p.Z), p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access)));
+    }
 
     /// <summary>
     /// Whether the player can sleep in this run (V12c): the front-end turns it off for a playtest, which plays one session per run (its post-check follows

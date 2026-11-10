@@ -438,7 +438,6 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
         var old = document with
         {
-            Version = 3,
             Lessons = document.Lessons! with
             {
                 Replay = null,
