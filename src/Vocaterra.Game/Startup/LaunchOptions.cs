@@ -97,7 +97,8 @@ public sealed record LaunchOptions
         + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
-        + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
+        + "  --size <W>x<H>          start in a window of this size (default: borderless full screen, 1280x720 in a scripted run or after F11;\n"
+        + "                          800x600 is the smallest the book is made for)\n"
         + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 150, the largest; 100 in a scripted run; F9 steps through them; X08)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
@@ -378,6 +379,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
+
+    /// <summary>
+    /// Whether the game starts in borderless full screen at the display's size: an interactive run does, unless <c>--size</c> asks for a window; a scripted run
+    /// keeps its window so its pictures have a fixed size. F11 switches between the two while the game runs.
+    /// </summary>
+    public bool StartsFullScreen => !IsScreenshotRun && WindowWidth is null;
 
     /// <summary>
     /// The clock the turn worker times its turns with (the latency the dialogue's developer note shows). A scripted run gives none, so its

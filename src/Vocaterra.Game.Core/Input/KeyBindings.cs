@@ -13,7 +13,7 @@ public sealed class KeyBindings
     /// <summary>The bindings, in the order they are tried.</summary>
     public IReadOnlyList<KeyBinding> Bindings { get; }
 
-    /// <summary>The keys that work wherever the player is (but not in the report panel): F10, F5, F6, F9 and F3.</summary>
+    /// <summary>The keys that work wherever the player is (but not in the report panel): F10, F5, F6, F9, F11 and F3.</summary>
     /// <param name="commands">The commands.</param>
     /// <param name="playtest">Whether the run is a playtest (F3 is off there).</param>
     public static KeyBindings Global(GameCommands commands, bool playtest) => new(
@@ -24,6 +24,7 @@ public sealed class KeyBindings
         new(InputKeys.Of("textSize"), commands.CycleTextSize),
         new(InputKeys.Of("debug"), commands.ToggleDebug, () => !playtest),
         ..(commands.ToggleViewEffects is { } effects ? new[] { new KeyBinding(InputKeys.Of("viewEffects"), effects) } : []),
+        ..(commands.ToggleFullScreen is { } fullScreen ? new[] { new KeyBinding(InputKeys.Of("fullScreen"), fullScreen) } : []),
     ]);
 
     /// <summary>The world's keys when no screen is open, in their order: the first that applies runs.</summary>
