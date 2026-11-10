@@ -108,7 +108,7 @@ Content/          GameData (every game file of the bundle, read once from its ve
 Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
                   or an objective waits for, C06)
 Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
-                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape and which burn) and NeedActionResult (N02)
+                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape, with a `Rescan()`, and which burn; one finder shared by the session and the simulation, Y01), SleepPlaces (Session/: where the player can sleep, Y01) and NeedActionResult (N02)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
@@ -285,7 +285,7 @@ The player's hunger, thirst, sleep, health and stamina (adaptation design sectio
   book, the inventory, crafting, a station, the report (F8), a menu, the check battery, and speech being recorded or processed. The world's ticks go on under most of
   these and the stored time counts them all, so the needs count active ticks themselves. The activity of a tick is read from the simulation (a gather tick, the body
   moved, standing still within the rest radius of a lit fire). `need_stage` is raised when a stage changes. What the stages do to the player: N02 below; sleep, the collapse
-  and death are N03 and N04's.
+  and death are N03 and N04's. Sleeping, the prompt, the closing card, the arrow to bed and the waking after a death ask `SleepPlaces` (Y01: `needs.json`'s `sleepPlaces`, the mountain fire today, a fire usable while its ring is lit, a bed by its access; `death.wakeAt` names the place the player wakes at), not a scene point.
 - **Eating, drinking, sprinting (N02)** are the partial `Session/VoxelSession.Eat.cs`. `EatSelected`/`EatItem` use a food of `needs.json` through `PlayerNeeds.Eat` (the bottle
   comes back empty; at full hunger or thirst the food is kept and the ui line `foodKept` or `drinkKept` is a hint), `DrinkByHand` drinks at the water under the crosshair
   (`AimedAtWater`), and they raise `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago`, the river's noun). The game binds the right click to

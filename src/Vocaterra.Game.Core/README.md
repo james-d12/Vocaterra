@@ -279,6 +279,13 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   fire, complete), the spare torch when the checklist is complete, the arrow to the player's own camp, the lit fire (a torch on the rim of the ring at
   `firering.player`; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
   (`RestoreStage`), so the save has no new field.
+  **Sleep places (Y01):** sleeping, the E prompt, the closing card, the arrow to bed and waking after a death ask `VoxelSession.SleepPlaces` (`Session/SleepPlaces.cs`), not
+  `firering.player`. The list is `needs.json`'s `sleepPlaces` (id, scene point, kind `fire` or `bed`, reach across and in height, access `always` or `lodging`) resolved against
+  the scene's points, plus places added and removed while the game runs. A fire is usable while a lit ring stands at it (read from the world when asked), a bed when its access
+  is met (`VoxelSession.LodgingGiven`); `CanSleep` means any place is usable, `AtSleepPlace` that the player stands at a usable one, and the closing card offers the sleep only
+  there. A death wakes the player at the place `death.wakeAt` names (`WakeAtSleepPlace`, on the nearest free ground two to five blocks from it). The world's fire rings are one
+  `FireRings` (`VoxelSimulation.Fires`, shared by the session), found by shape when it is made and again on `Rescan()`. (`rest` in `needs.json` is the rule for resting by a lit fire,
+  not this list.) The `light-fire` objective and its hooks still use the latch `FireLit`; they leave in Y07.
 
 ## The learner's record (S19, D-game-16)
 
