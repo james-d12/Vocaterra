@@ -4,7 +4,7 @@ A plan written on 2026-11-10 at the owner's request, from a read of `main` at `f
 built or run. Its goal is **a modular atmosphere**: a day and night cycle first, then weather on top of it (sunny, cloudy and rain in the
 first version), built so that later weather is a row of data and not a new system.
 
-**Status (2026-11-10):** in progress; E00 (this registration) is done, E01 is running. The owner's answers are in section 5 and D-game-31,
+**Status (2026-11-10):** in progress; E00 and E01 are done, E02 and E04 are running. The owner's answers are in section 5 and D-game-31,
 progress in section 7. It is built on `feature/weather`, cut from `main` at `24170667`, in the worktree `.claude/worktrees/weather`
 (the owner, 2026-11-10: "Make sure to make a new git worktree from main"). Commit prefix `E<nn>:`. As with every feature branch, nothing
 is pushed to `main`; the owner merges by pull request.
@@ -69,7 +69,7 @@ The folder is `Atmosphere`, not `Environment`, so the namespace does not shadow 
 | `DayClock` | The position in the cycle, driven by the tick. Gives the hour, the `DayPhase` (Dawn, Day, Dusk, Night) and a 0 to 1 daylight curve. `WakeUp()` jumps to the wake hour; `Freeze(hour)` holds it for tests and screenshots. |
 | `WeatherKind`, `WeatherData` | Loads `content/game-v1/game/weather.json`: per kind the channels (`cloudCover`, `sunlight`, `fog`, `wind`, `precipitation { kind, intensity }`), the range of a spell's length, the weighted `next` kinds, a morning weight, and the dialogue key of the NPC's answer (a day and a night variant). Also the transition time. |
 | `WeatherSystem` | State: the current and the previous kind, the spell's start and end tick, a spell counter. At the end of a spell it draws the next kind with `WorldRng.For(seed, "weather", counter)`. `RollMorning()` on a sleep; `Force(id)` for tests. |
-| `Atmosphere` (record struct) | The blended snapshot: hour, phase, daylight, the channels and the current kind's id. Built by `AtmosphereModel.At(clock, weather)`. |
+| `AtmosphereSnapshot` (record struct) | The blended snapshot: hour, phase, daylight, the channels and the current kind's id. Built by `AtmosphereModel.At(clock, weather)`. |
 
 Wiring, after the water system's pattern:
 
@@ -96,7 +96,7 @@ clock to the morning. The day counter stays what it is: it moves only on a sleep
 
 ### 3.4 The sky (`src/Vocaterra.Game/Graphics/Sky/`)
 
-- `SkyLook`, plain values with no engine type: a pure function from `Atmosphere` to the dome's colours, the clouds' colours and cover,
+- `SkyLook`, plain values with no engine type: a pure function from the snapshot to the dome's colours, the clouds' colours and cover,
   the sun's and the moon's position, the amount of stars, the fog's colour and distance, and the colour of the sun's light. Its
   keyframes for night, dawn, day and dusk reuse the day and dusk sets of `SkyPalette`; an overcast sky greys them by `cloudCover` and
   `sunlight`.
@@ -152,10 +152,10 @@ design-heavy ones. At most two building agents at a time. Every milestone: `dotn
 |---|---|---|---|---|
 | E00 | **Register the series** (the orchestrator, documents only): this plan, D-game-31, the rows in `docs/README.md`, the game plan's section 4.12 and `docs/open-items.md`, the handover. | S | orchestrator | none |
 | E01 | **The clock in Core:** `DayData`, `DayClock`, `DayPhase`, `day.json` and its schema, `VoxelSimulation.Atmosphere.cs`, the digest part, the save entry, the `day_phase` event, a sleep wakes in the morning. Tests: the clock's arithmetic, determinism, the save's round trip, the sleep suites unchanged. | M | Sonnet, medium | E00 |
-| E02 | **Drawing the cycle:** `SkyLook`, the dome, the sun's arc, the moon, the stars, fog and clear colour, the light bands with the background remesh and the tint per band, the arm and the figures. Screenshots at six hours. | L | Sonnet, high | E01 |
-| E03 | **Sound and switches for the time:** the beds by phase, `--time`, the menu row, the F3 line, the scripted step, `--dusk` as an alias, `docs/game/running.md`. | S | Haiku | E01 (the row and the flag), E02 (the look) |
+| E02 | **Drawing the cycle:** `SkyLook`, the dome, the sun's arc, the moon, the stars, fog and clear colour, the light bands with the background remesh and the tint per band, the arm and the figures, and the `--time` flag its screenshots need. Screenshots at six hours. | L | Sonnet, high | E01 |
+| E03 | **Sound and switches for the time:** the beds by phase, the menu row, the F3 line, the scripted step, `--dusk` as an alias, `docs/game/running.md`. | S | Haiku | E01 (the row and the flag), E02 (the look) |
 | (merge point) | Gate. Day and night can go to the owner as a pull request of its own. | | | |
-| E04 | **Weather in Core:** `WeatherKind`, `WeatherData`, `weather.json` and its schema, `WeatherSystem`, the `Atmosphere` snapshot, `weather_changed`, the morning roll, the save, the digest. One test defines a fourth kind in test data only, to show that a new kind needs no code. | M | Sonnet, medium | E01 |
+| E04 | **Weather in Core:** `WeatherKind`, `WeatherData`, `weather.json` and its schema, `WeatherSystem`, the `AtmosphereSnapshot`, `weather_changed`, the morning roll, the save, the digest. One test defines a fourth kind in test data only, to show that a new kind needs no code. | M | Sonnet, medium | E01 |
 | E05 | **Sky and light by weather:** the clouds' cover, the overcast colours, the fog's distance, the hidden sun; `--weather`, the menu row, F3, the scripted step. | M | Sonnet, medium | E02, E04 |
 | E06 | **Rain:** `PrecipitationField`, `PrecipitationRenderer`, the cover check, the quality field, the rain bed and the wind. The frame time on the low preset is measured. | M/L | Sonnet, high | E05 |
 | E07 | **The NPCs' answer:** the reply pool by weather, the new lines and their speech clips, the content lint, the bundle hash, the goldens, the fixture's hash, `docs/game/speech-checklist.md`. | M | Sonnet, medium | E04 |
@@ -195,10 +195,10 @@ Recorded as D-game-31.
 | Id | Status | Gate | Notes |
 |---|---|---|---|
 | E00 | done, 2026-11-10 | documents only | This plan, D-game-31 and the index rows. |
-| E01 | in progress, launched 2026-11-10 | | |
-| E02 | todo | | |
+| E01 | done, 2026-11-10 | merged at `1a5a9a07`, 10764 passed, 0 failed, 3 skipped | `Atmosphere/` (`DayData`, `DayClock`, `DayPhase`), `game/day.json` (2400 s cycle; dawn 4, day 6, dusk 20, night 22; start 8, wake 7). The hour is the tick plus a saved offset, so the default state adds nothing to the digest and the save version stays 7. `day_phase` once per boundary. A sleep and a collapse wake at 7. `SleepTests.LoadOf` and `NightTests.ThePlayerWakesWhereTheyFell` changed on purpose (findings, E01). |
+| E02 | in progress, launched 2026-11-10 | | |
 | E03 | todo | | |
-| E04 | todo | | |
+| E04 | in progress, launched 2026-11-10 | | |
 | E05 | todo | | |
 | E06 | todo | | |
 | E07 | todo | | |

@@ -2209,3 +2209,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     (`UiScaleLayoutTests.TheWholeSettingsPage...` measures every label, note and value of the full page at each window size and text scale).
   - *Tests (Menu-2).* Core: `TestingRowsTests`, `PlayerSettingsTests` (draw distance, the new flags over the save), `AutosaveControllerTests`, `TypedCreditSettingTests`, `GroundFinderTests`; Game:
     `GreyscaleTests` (runtime switch, all-known view), `VoxelLaunchOptionsTests`, `SoundLaunchOptionsTests`, `UiScaleLayoutTests`.
+- **E01, the clock in Core (2026-11-10, Sonnet 5.5 medium; gated at `1a5a9a07` on `feature/weather`, 10764 passed, 3 skipped; the E series,
+  `docs/game/weather-plan.md`, D-game-31).** `Atmosphere/`: `DayData` (`game/day.json`: a 2400 s cycle, dawn 4, day 6, dusk 20, night 22, start 8,
+  wake 7), `DayClock`, `DayPhase`. The time of day is a function of the simulation's tick plus a saved offset (`(start + tick + offset) mod cycle`,
+  integer ticks), so nothing is accumulated and the default state adds nothing to the state digest: every digest, fixture and golden is as it was, and
+  the save version stays 7 (`systems.atmosphere` holds the offset and a held hour, written only when not the default).
+  - *A sleep wakes in the morning.* `VoxelSession.ApplyNight` calls `Simulation.WakeUp()`, for a night and a collapse; stored time, `Day` and `Sitting`
+    do not move. Two tests changed on purpose: `SleepTests.LoadOf` wakes the loaded game too (a sleep is a load plus the night), and
+    `NightTests.ThePlayerWakesWhereTheyFell` now shows the collapse moves the digest by the clock alone.
+  - *The event.* `day_phase` (detail `dawn`, `day`, `dusk`, `night`), once per boundary; a wake, a hold and a load raise none. No content waits on it yet.
+  - *A held clock* (`FreezeClock`, for E03's `--time`) stays held through a sleep. A bundle with no `day.json` does not load, as with `needs.json`.
+  - *A core fuzz failure seen once, not from this change:* the agent's full run failed `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`
+    on "oh hundan" (a silent h; `CsCheck_Seed=9MOxzRBVGLK4`); the gate's run drew other seeds and passed. It looks like M86's family (O9's silent h),
+    which is open; that is not verified.
