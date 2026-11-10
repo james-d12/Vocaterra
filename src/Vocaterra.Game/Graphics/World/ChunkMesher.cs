@@ -830,7 +830,7 @@ public static class ChunkMesher
         uint colour;
         if (sheet)
         {
-            colour = MeshVertex.Pack(255, 255, 255, 255);
+            colour = MeshVertex.Pack((byte)(255 * sun.R), (byte)(255 * sun.G), (byte)(255 * sun.B), 255); // no face shading, but the sun's light of the band all the same
         }
         else
         {
