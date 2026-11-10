@@ -2307,3 +2307,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     the pass is the fix if a GPU speckles); the glow under water. Fences, doors, undergrowth and water take no glow, as before.
   - *Seen by the orchestrator in its night screenshot in the heaviest kind, not from this change:* the cloud slabs stay light grey against a
     near-black covered sky (E05's cloud colours at night under cover want a darker floor).
+- **E03, sound and switches (2026-11-10, Haiku 5.5; gated at `ac7facdd` on `feature/weather`, 11030 passed, 3 skipped).** The ambient sound follows
+  the time of day, and the clock and the weather have their testing switches.
+  - *Sound.* `AmbientBeds.At` takes the atmosphere's snapshot in place of the dusk flag: the birds' weight is multiplied by the daylight, the
+    insects' by one minus it. `AmbientSound.Dusk` and `SoundFrontend.SetDusk` are gone; `SoundTickObserver` passes `sim.Atmosphere`. Nothing in
+    Sound writes to the simulation. No weather channel is used yet (E06).
+  - *Menu.* The Dusk lighting row became "Time of day" (a slider: Running, then 0:00 to 23:00) and "Weather" (a picker: Running, then the loaded
+    data's ids). `TestingHooks` has `TimeHeld`, `SetTimeHeld`, `WeatherHeld`, `SetWeatherHeld` and `WeatherIds`. The rows show the simulation's
+    state, so a `--time` or `--weather` launch shows as held. The slider shows whole hours (a hold at 7.5 reads 7:00).
+  - *F3.* One line: the hour, the phase, "held"; the weather's kind, the previous kind and the blend during a transition, "held".
+  - *Scripted steps.* `--set-time <hour>` and `--set-time run`, `--set-weather <id>` and `--set-weather run`; an unknown id is refused at launch
+    once the data is loaded (`LaunchOptions.CheckWeatherTargets`). `--dusk` still holds hour 21.
+  - *The merge.* E03 and E05 both added a weather check and usage lines at the same places (`Program.cs`, `LaunchOptions.cs`, `running.md`); a
+    second Haiku run merged `feature/weather` into the branch keeping both (`CheckWeatherTargets` for the steps, `CheckWeather` for the flag).
+  - *Open:* `TestingHooks`' comment says test aids are not kept in saves, but a held clock or weather is simulation state and is saved, as with
+    `--time`. The comment is to change at the close-out unless the owner wants held values dropped on save.
+  - *Process:* two finished agents left endless shell loops waiting on `pgrep -f "scripts/test.sh"` (which matches the loop itself), although
+    the brief forbids them; the orchestrator stopped them. The series' shared brief already says so; the next briefs repeat it in the prompt.
