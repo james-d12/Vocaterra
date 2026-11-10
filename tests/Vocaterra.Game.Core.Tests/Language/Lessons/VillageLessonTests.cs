@@ -330,7 +330,7 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheFisherPointsAtThePlaceAskedForSaysWhenHeDoesNotKnowItAndSaysItIsNear()
     {
-        var session = TestGame.NewSessionWithShippedLessons(); // session 1: El pueblo is not unlocked, so he talks as himself
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders(); // session 1: El pueblo is not unlocked, so he talks as himself (his order taken, issue #54)
         Stage.TeleportToNpc(session, "fisher");
 
         Assert.Equal(["¡Hola!"], session.OpenTalkForClass("fisher").Lines); // he greets at every talk
@@ -353,15 +353,19 @@ public sealed class VillageLessonTests(ITestOutputHelper output)
     // ---- The order
 
     [Fact]
-    public void TheOrderOfFruitOpensOnMeetingMarAndBringingThreeFruitsPaysTwoCoins()
+    public void TheOrderOfFruitIsOfferedByMarAndBringingThreeFruitsPaysTwoCoins()
     {
         var early = TestGame.NewSessionWithShippedLessons();
         _ = early.Simulation.GrantItems(ItemId.Berry, 3);
         Stage.TeleportToNpc(early, "fisher");
-        _ = early.OpenTalkForClass("fisher"); // L01: an order opens once its NPC is met, whatever the day: the first talk takes the fruit, handed over in Spanish (D-game-27)
+        Assert.Equal(["Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas."], early.OpenTalk("fisher").Lines); // issue #54: Mar offers the order, whatever the day
+        Assert.Equal(["¡Gracias! Hay fruta en el campamento de Luna."], early.AcceptOrder()!.GuideLines);
+        Assert.Equal(3, early.Simulation.Inventory.Count(ItemId.Berry)); // the fruit stays until the next talk asks for it
+        early.EndTalk();
+        _ = early.OpenTalkForClass("fisher"); // the fruit is handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Berry));
 
-        var session = TestGame.NewSessionWithShippedLessons();
+        var session = TestGame.NewSessionWithShippedLessons().TakeOrders("fruit-for-mar");
         session.Day = 4;
         session.Sitting = 4;
         _ = session.Simulation.GrantItems(ItemId.Berry, 4);

@@ -31,6 +31,21 @@ public sealed partial class LessonRunner
     /// <param name="npc">The NPC's agent id.</param>
     public string? OfferStandingAt(string npc) => _offerId is not null && string.Equals(_offerNpc, npc, StringComparison.Ordinal) ? _offerId : null;
 
+    /// <summary>
+    /// The class a teacher would offer at a talk opening now (L01), or <see langword="null"/>: none while a lesson is engaged, none at a teacher the learner said no to today.
+    /// An order whose lesson this is is not offered on its own (issue #54): the class gives it at its step.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    internal string? ClassOfferedAt(string npc)
+    {
+        if (Engaged || (_declinedDay == _session.Day && _declined.Contains(npc)))
+        {
+            return null;
+        }
+
+        return ClassAt(npc)?.Id;
+    }
+
     // The panel opened on a teacher: when a class is open there, one line offers it (once a day, and not after a No). A paused class is offered again.
     private void MakeOffer(string npc)
     {

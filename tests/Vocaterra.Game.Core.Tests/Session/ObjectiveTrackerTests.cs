@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Session;
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class ObjectiveTrackerTests
 {
-    // Play session 7 on the shipped bundle with no lessons (a lesson would take a line): the three orders of sessions 4 to 6 are taken on by meeting their NPCs.
+    // Play session 7 on the shipped bundle with no lessons (a lesson would take a line): the three orders of sessions 4 to 6 are taken on with «sí» to their NPCs' offers (issue #54).
     private static VoxelSession FourObjectives()
     {
         var data = TestGame.Data;
@@ -19,6 +19,7 @@ public sealed class ObjectiveTrackerTests
         foreach (var npc in new[] { "fisher", "baker", "smith" })
         {
             _ = session.OpenTalk(npc);
+            Assert.NotNull(session.AcceptOrder());
             session.EndTalk();
         }
 

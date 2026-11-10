@@ -25,9 +25,16 @@ L01 supersedes every rule below that says a lesson "starts by itself", "unlocks 
 - **Sleep.** Day 1 keeps its ending (the introduction, the camp, the fire; `SessionComplete`). From day 2 the lit fire offers sleep whenever the sleep drive is below 75
   (`VoxelSession.SleepWanted`); above it E there shows the player's line «No tengo sueño.» with "I'm not sleepy." beside it, text only. No lesson, class, objective or order holds sleep back
   (`CanSleep` is a lit fire and a session at rest). The test aids `--sleep` and the scripted sleep step sleep whatever the drive says (`--needs off` keeps it full).
-- **Orders** show once their NPC is met (`VoxelSession.Shown`), not on a day; no lesson holds a delivery (`HoldsOrder` is gone, and the oven order no longer waits for `n4-back`: a learner
-  who carries the wood is paid at the first talk, and a class taken late finds the order done: its `do` step ends "delivered before"). The order's `session` field now only says
-  when `--skip-to-session` delivers it.
+- **Orders** are tasks the player takes on (issue #54, D-game-30; before, they showed once their NPC was met). An order shows, counts and can be delivered only once given
+  (`VoxelSession.Shown`, `GuideSession.HasOrder`, saved as `givenOrders`). The NPC offers it when the talk opens, a yes-or-no question in its agent's `offering_order` state
+  (Mar «Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas.», Luz «¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas.», Domingo «¿Quieres un hacha?
+  Necesito dos bloques de madera y dos monedas.», León «Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas.»), with the English note "… asks you for a
+  favour. It is up to you". «Sí» gives it (the NPC thanks and says where the goods are); «No» costs nothing and the NPC asks again from the next day; another line or walking away
+  leaves the offer for the next talk. Goods carried before the order is given stay in the bag: the next talk asks for them (D-game-27). A class at the same NPC waits for the
+  answer and is offered right after it in the same talk. A class that tells an order gives it at its step (`lessonStep`: `numeros-y-pan` at `n3-oven`, `gente-del-pueblo` at
+  `g4-offer`, `como-es` at `c3-plan`), and while the teacher would offer that class, the order is not offered on its own; a «no» to the class lets the order be offered at the
+  next talk. So the goods of a class's order are handed over at the step that waits for them. No lesson holds a delivery (`HoldsOrder` is gone). The order's `session` field
+  only says when `--skip-to-session` delivers it (the skip gives the orders it delivers).
 - **Cards:** every scaffold phrase has its card from rung 1, whether or not a class taught it.
 - **The beacon and the objective line** follow the tracked objective; neither names a class or its teacher. The Lessons page lists every class with who teaches it
   (`open: ask Luna for a class`), what it needs (`meet Luna first`, `after “Personas”`) and the **Ask for a class** button; it never shows a next required lesson, except the

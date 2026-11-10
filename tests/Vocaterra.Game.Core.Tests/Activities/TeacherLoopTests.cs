@@ -303,6 +303,7 @@ public sealed class TeacherLoopTests
     {
         var closed = new SaveGameProcedures("pan", granted: true);
         var session = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.Lessons(BakeClass));
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker"); // the class starts by itself, its first step waits for procedure_done
         session.EndTalk();
@@ -314,6 +315,7 @@ public sealed class TeacherLoopTests
         Assert.Equal(["pan"], session.GrantsGivenToday);
 
         var plain = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
+        _ = plain.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         plain.RestoreProcedures(closed.Save);
         Assert.Equal(StartOutcome.Started, plain.StartProcedure("pan", "horno", true));
         Assert.False(plain.PlanGrant()!.Open); // the same state with no class: closed
@@ -347,6 +349,7 @@ public sealed class TeacherLoopTests
     private static VoxelSession NewSession()
     {
         var session = new VoxelSession(ProcedureRig.Data(), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.Simulation.Inventory.Add(ItemId.Wood, 1);
         _ = session.Simulation.Inventory.Add(ItemId.WaterBottle, 1);
         return session;
@@ -446,6 +449,7 @@ public sealed class TeacherLoopTests
             asked.Add((stationId, procedureId));
             Assert.True(station.Panel.Open(stationId, teacherPresent: true)); // what the game does: the dialogue closes and the station opens
         };
+        _ = station.Session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = station.Session.OpenTalk("baker");
         var yes = station.Session.Say("Sí, por favor.");
         Assert.Equal("confirm", yes.Intent);
@@ -474,6 +478,7 @@ public sealed class TeacherLoopTests
     public void WithNoProcedureInTheBundleLuzOffersNothingAndTheGameIsAsItWas()
     {
         var session = new VoxelSession(TestGame.Data, TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Assert.Empty(TestGame.Data.Procedures.Procedures);
         Assert.Null(session.BakeOfferOf("baker", asked: false));
         Assert.Null(session.BakeOfferOf("baker", asked: true));
@@ -498,6 +503,7 @@ public sealed class TeacherLoopTests
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.Null(loaded.TeachingNpc);
         Assert.Equal("teaching", loaded.Conversation.StateOf("baker")); // her state was saved with the others
+        _ = loaded.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         var opening = loaded.OpenTalk("baker");
         Assert.Equal("idle", loaded.Conversation.StateOf("baker"));
         Assert.Equal("baker-open", opening.Prompt);

@@ -382,7 +382,7 @@ public abstract partial class GuideSession : IDisposable
         _keyWordsTaught.UnionWith(npcs);
     }
 
-    /// <summary>The NPCs the player has met (L01): the panel opened on them once. A class opens on having met its teacher, an order on having met its NPC.</summary>
+    /// <summary>The NPCs the player has met (L01): the panel opened on them once. A class opens on having met its teacher; an order is offered by its NPC at a talk (issue #54).</summary>
     public IReadOnlyList<string> MetNpcs => [.. _met];
 
     /// <summary>Whether the player has met the NPC (L01): talked to them.</summary>
@@ -572,7 +572,7 @@ public abstract partial class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
-        _met.Add(npc); // L01: a class opens on having met its teacher, an order on having met its NPC
+        _met.Add(npc); // L01: a class opens on having met its teacher
         _deckClaim = Deck.Claims(npc);
         if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
@@ -586,9 +586,9 @@ public abstract partial class GuideSession : IDisposable
         }
 
         var opening = OpenNow(npc, logOpened: true);
-        if (HandOverOpen)
+        if (HandOverOpen || _orderOffer is not null)
         {
-            _classAfterHandOver = true; // issue #42: no class starts, resumes or is offered while the NPC waits for the goods; it follows the hand-over in this talk
+            _classAfterHandOver = true; // issues #42 and #54: no class starts, resumes or is offered while the NPC waits for the goods or for the answer to its offer; it follows in this talk
         }
         else
         {
@@ -605,7 +605,7 @@ public abstract partial class GuideSession : IDisposable
     // the lesson's prompt (see RetryQueue). A phrase taken here is never queued again in this session.
     private void OfferSecondTry(string npc)
     {
-        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen
+        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen || _orderOffer is not null
             || !Retries.Pending.Any(item => string.Equals(item.Npc, npc, StringComparison.Ordinal)))
         {
             return;
@@ -836,9 +836,15 @@ public abstract partial class GuideSession : IDisposable
             else
             {
                 EndStaleHandOver(npc);
-                var offer = order is null ? BakeOfferOf(npc, asked: false) : null; // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                EndStaleOrderOffer(npc);
+                var orderOffer = order is null ? OrderOfferOf(npc) : null; // issue #54: an order not yet given is offered when the talk opens, and taken with «sí»
+                var offer = orderOffer?.HostEvent ?? (order is null ? BakeOfferOf(npc, asked: false) : null); // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
                 opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
-                if (offer is not null)
+                if (orderOffer is { } made && string.Equals(_npcs.StateOf(npc), NpcHostEvents.OrderOfferState, StringComparison.Ordinal))
+                {
+                    NoteOrderOffer(npc, made.Order);
+                }
+                else if (offer is not null)
                 {
                     NoteOffer(npc);
                 }
@@ -916,6 +922,7 @@ public abstract partial class GuideSession : IDisposable
         _delayedOpening = null;
         _handOver = null; // the next talk asks again
         _classAfterHandOver = false;
+        _orderOffer = null; // issue #54: an offer left unanswered is made again at the next talk
         Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }
@@ -1277,6 +1284,16 @@ public abstract partial class GuideSession : IDisposable
             Lessons.OnEvent(world); // a lesson's do step waits for a world event (S16)
             OnWorldEvent(world);
         }
+        else if (gameEvent is LessonEvent { Kind: LessonEventKind.StepStarted } step)
+        {
+            OnLessonStepStarted(step); // issue #54: the step of a lesson that tells an order gives it
+        }
+    }
+
+    /// <summary>A lesson step began (issue #54): the 3D scene gives the order whose lesson tells it at this step (<c>lessonStep</c>). The base game has no orders.</summary>
+    /// <param name="step">The lesson event.</param>
+    protected virtual void OnLessonStepStarted(LessonEvent step)
+    {
     }
 
     /// <summary>
@@ -1439,6 +1456,7 @@ public abstract partial class GuideSession : IDisposable
 
         var waited = HandOverOpen;
         shown = HandOverAfter(turn, shown); // issue #42: the line that hands an order over, or a miss at the NPC's receiving prompt
+        OrderOfferAfter(turn); // issue #54: «sí» to the NPC's offer gives the order, «no» puts it off until the next day (after the lesson's turn: a class offered now waits for the next line)
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
             // The prompt may have moved on (the bread offer, a hand-over done), and a level may have changed.

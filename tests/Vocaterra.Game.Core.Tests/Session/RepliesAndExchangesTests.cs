@@ -18,6 +18,7 @@ public sealed class RepliesAndExchangesTests
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         foreach (var (item, count) in held)
         {
             Assert.Equal(0, session.Simulation.GrantItems(item, count));

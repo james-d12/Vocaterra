@@ -20,6 +20,7 @@
     "idle": "baker-open",
     "offering_bake": "baker-offer",
     "teaching": "baker-proc",
+    "offering_order": "baker-order-offer",
     "receiving": "baker-receive"
   },
   "opening": {

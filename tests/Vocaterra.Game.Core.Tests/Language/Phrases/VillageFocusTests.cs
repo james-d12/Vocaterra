@@ -23,6 +23,7 @@ public sealed class VillageFocusTests
         var session = data is null
             ? TestGame.NewSession()
             : new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.Simulation.GrantItems(ItemId.Coin, 10); // the baker sells: a request she can fill
         Stage.TeleportToNpc(session, npc);
         _ = session.OpenTalkForClass(npc);

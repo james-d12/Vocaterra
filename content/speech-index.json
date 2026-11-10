@@ -530,6 +530,78 @@
       "Bytes": 65262,
       "Gain": 0.32
     },
+    "speech/baker/baker_offer_order.1.slow.wav": {
+      "Text": "\u00BFMe traes cinco bloques de madera para el horno? Te pago cuatro monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "9dd0b02075f524bcfcab0145a06e6cdbfde206339298bbbf38799ecb7e1f3c1e",
+      "Bytes": 276558,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_offer_order.1.wav": {
+      "Text": "\u00BFMe traes cinco bloques de madera para el horno? Te pago cuatro monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "36826b1621b095afb8bd90d780bf42825f1973f0b9d6185e47d21fb10609a46e",
+      "Bytes": 211362,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_ok.1.slow.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "d5a759e5059310a73d4a81d0a2c73caabe77cc9a428cb12f7a458931ba36f558",
+      "Bytes": 64648,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_ok.1.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "4c59ae153b37abcd168cf7cef5da3f536c86204de29550ed65f7270856aabe90",
+      "Bytes": 51208,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_order_yes.1.slow.wav": {
+      "Text": "\u00A1Gracias! Hay \u00E1rboles cerca del pueblo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "6681ca73801b41add2fc16a07ee00593f58791f0741a1e88da5cfcbad31e3e2e",
+      "Bytes": 182986,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_order_yes.1.wav": {
+      "Text": "\u00A1Gracias! Hay \u00E1rboles cerca del pueblo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "dba4c5f3667503d533980c2f20e2279d08ac6a5403f4d351180620ffa5074a50",
+      "Bytes": 138542,
+      "Gain": 0.32
+    },
     "speech/baker/baker_price.1.slow.wav": {
       "Text": "El pan cuesta dos monedas.",
       "Speaker": "baker",
@@ -2210,6 +2282,30 @@
       "Bytes": 48482,
       "Gain": 0.32
     },
+    "speech/baker/prompt.baker-order-offer.slow.wav": {
+      "Text": "\u00BFMe traes cinco bloques de madera para el horno? Te pago cuatro monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "9dd0b02075f524bcfcab0145a06e6cdbfde206339298bbbf38799ecb7e1f3c1e",
+      "Bytes": 276558,
+      "Gain": 0.32
+    },
+    "speech/baker/prompt.baker-order-offer.wav": {
+      "Text": "\u00BFMe traes cinco bloques de madera para el horno? Te pago cuatro monedas.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "36826b1621b095afb8bd90d780bf42825f1973f0b9d6185e47d21fb10609a46e",
+      "Bytes": 211362,
+      "Gain": 0.32
+    },
     "speech/baker/prompt.baker-proc.slow.wav": {
       "Text": "\u00BFQu\u00E9 quieres?",
       "Speaker": "baker",
@@ -3462,6 +3558,72 @@
       "Sha256": "89658ff11eda599d3d0dbe9d41b7eaf0788759b42521f802ca81cfdc5bd3a0e9",
       "Bytes": 91640
     },
+    "speech/farmer/farmer_offer_order.1.slow.wav": {
+      "Text": "Mis plantas necesitan agua. \u00BFMe traes agua del r\u00EDo? Te doy tres manzanas.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "af8f73605c77eefbe18b3adf435bfd00b2e8ee4c66244ad33a0e644c691eeb5b",
+      "Bytes": 330988
+    },
+    "speech/farmer/farmer_offer_order.1.wav": {
+      "Text": "Mis plantas necesitan agua. \u00BFMe traes agua del r\u00EDo? Te doy tres manzanas.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "537efe7c8ca1d485d8cd5f1787e440b670f5b225d1c27b78652681f214ad778f",
+      "Bytes": 260738
+    },
+    "speech/farmer/farmer_ok.1.slow.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "3ec792e69adf1c0f621c0b9da7318c762476236cf03efe6ac27445e30c6ef85d",
+      "Bytes": 57786
+    },
+    "speech/farmer/farmer_ok.1.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "55b9827748a02e74a21e23cb12601e5a69c311ab1a89b78e82ec45536326c84e",
+      "Bytes": 61244
+    },
+    "speech/farmer/farmer_order_yes.1.slow.wav": {
+      "Text": "\u00A1Gracias! El r\u00EDo est\u00E1 cerca.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "9d4aa440c570dd34b15a80690c8383fb1bd4e9a878f19039145f5d6fd6ac49d7",
+      "Bytes": 156790
+    },
+    "speech/farmer/farmer_order_yes.1.wav": {
+      "Text": "\u00A1Gracias! El r\u00EDo est\u00E1 cerca.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "0d1041cfd03542148abd82c2804c39402257075d424b42cfe1e13bb826798099",
+      "Bytes": 133244
+    },
     "speech/farmer/farmer_pay.1.slow.wav": {
       "Text": "Aqu\u00ED se paga con monedas. Pero yo te compro fruta.",
       "Speaker": "farmer",
@@ -4650,6 +4812,28 @@
       "Sha256": "3077228854e031ccc673fbbe0c14438b1771eb4d892ccf43563fc5f309ed8579",
       "Bytes": 112072
     },
+    "speech/farmer/prompt.farmer-order-offer.slow.wav": {
+      "Text": "Mis plantas necesitan agua. \u00BFMe traes agua del r\u00EDo? Te doy tres manzanas.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "af8f73605c77eefbe18b3adf435bfd00b2e8ee4c66244ad33a0e644c691eeb5b",
+      "Bytes": 330988
+    },
+    "speech/farmer/prompt.farmer-order-offer.wav": {
+      "Text": "Mis plantas necesitan agua. \u00BFMe traes agua del r\u00EDo? Te doy tres manzanas.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "537efe7c8ca1d485d8cd5f1787e440b670f5b225d1c27b78652681f214ad778f",
+      "Bytes": 260738
+    },
     "speech/farmer/prompt.farmer-receive.slow.wav": {
       "Text": "\u00A1Hola! \u00BFQu\u00E9 tienes para m\u00ED?",
       "Speaker": "farmer",
@@ -5243,6 +5427,72 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "9bfaa68ef474bda6f49a4f9d60126c73ebb01d2e5034bf2d98ca1d076ce36b34",
       "Bytes": 43526
+    },
+    "speech/fisher/fisher_offer_order.1.slow.wav": {
+      "Text": "Tengo hambre. \u00BFMe traes tres frutas? Te doy dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "9f8745d015b8633b28c77de4842fdbba0a2b59be347f89c305d370921fb508fa",
+      "Bytes": 268894
+    },
+    "speech/fisher/fisher_offer_order.1.wav": {
+      "Text": "Tengo hambre. \u00BFMe traes tres frutas? Te doy dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "8146a03a7b2dbb172aae3743365b53d8b866e7a5fe0f2c6d137aa04f7ed9351c",
+      "Bytes": 223552
+    },
+    "speech/fisher/fisher_ok.1.slow.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "75aee63e46cb71ec34edc554a0ae4297e933ac22db1fc266214c6b47db5b2333",
+      "Bytes": 66444
+    },
+    "speech/fisher/fisher_ok.1.wav": {
+      "Text": "Est\u00E1 bien.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "c93869a1ced73ff649f231c99cca77e76f7ceff566c754bdcc4439e2ed0f6566",
+      "Bytes": 60044
+    },
+    "speech/fisher/fisher_order_yes.1.slow.wav": {
+      "Text": "\u00A1Gracias! Hay fruta en el campamento de Luna.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "40aa7cfbae2e687a2804b6abd4404e3286d584ffc064adef516256a896a93652",
+      "Bytes": 212026
+    },
+    "speech/fisher/fisher_order_yes.1.wav": {
+      "Text": "\u00A1Gracias! Hay fruta en el campamento de Luna.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "717e98ee8eb3172741b226f361c89fbc9cac85be422a2d86cad21147c4243031",
+      "Bytes": 159646
     },
     "speech/fisher/fisher_point.1.slow.wav": {
       "Text": "Mira, est\u00E1 all\u00ED.",
@@ -6233,6 +6483,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "d88d74a4377f16eed37e8d1f19c340af64f39e3713577b1e649e0a6db9fa0d65",
       "Bytes": 61244
+    },
+    "speech/fisher/prompt.fisher-order-offer.slow.wav": {
+      "Text": "Tengo hambre. \u00BFMe traes tres frutas? Te doy dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "9f8745d015b8633b28c77de4842fdbba0a2b59be347f89c305d370921fb508fa",
+      "Bytes": 268894
+    },
+    "speech/fisher/prompt.fisher-order-offer.wav": {
+      "Text": "Tengo hambre. \u00BFMe traes tres frutas? Te doy dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "8146a03a7b2dbb172aae3743365b53d8b866e7a5fe0f2c6d137aa04f7ed9351c",
+      "Bytes": 223552
     },
     "speech/fisher/prompt.fisher-receive.slow.wav": {
       "Text": "\u00A1Hola! \u00BFQu\u00E9 tienes para m\u00ED?",
@@ -13430,6 +13702,30 @@
       "Bytes": 103266,
       "Gain": 0.6
     },
+    "speech/smith/prompt.smith-order-offer.slow.wav": {
+      "Text": "\u00BFQuieres un hacha? Necesito dos bloques de madera y dos monedas.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "b44c6fbcda6f3d44203ac8e344d413ba142a4b7e63ab0f6e8d319b07a052c7f6",
+      "Bytes": 266020,
+      "Gain": 0.6
+    },
+    "speech/smith/prompt.smith-order-offer.wav": {
+      "Text": "\u00BFQuieres un hacha? Necesito dos bloques de madera y dos monedas.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "cdfaebf4264fe77c8d0477bb8e8613693a1f96af125de15ccc87f0d2bf52a615",
+      "Bytes": 197698,
+      "Gain": 0.6
+    },
     "speech/smith/prompt.smith-receive.slow.wav": {
       "Text": "\u00A1Hola! \u00BFQu\u00E9 tienes para m\u00ED?",
       "Speaker": "smith",
@@ -13812,6 +14108,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "50e365a8d78039a82a4b6b0ccd1edec3a7d5130c38e2add4aba05bf688ab15bf",
       "Bytes": 47812,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_order_yes.1.slow.wav": {
+      "Text": "\u00A1Muy bien! Te hago un hacha.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "2bf08fd494e2d3c020a8c1dd4bbe1caa5d0dbf43706f5c4c745e7d37fa82e5b4",
+      "Bytes": 128032,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_order_yes.1.wav": {
+      "Text": "\u00A1Muy bien! Te hago un hacha.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "06af95e803316f4367dab9b4ebc26d1449e344f0e6c880b3dcd83119097826bd",
+      "Bytes": 109770,
       "Gain": 0.6
     },
     "speech/smith/smith_receive.1.slow.wav": {

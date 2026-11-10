@@ -29,12 +29,16 @@ public sealed class OrdersAndSalesTests
 
     private static GameData Baker => TestGame.Data;
 
-    // A session on the bundle's route, in a play session; without lessons unless asked (a lesson would take the HUD's line and the baker's talk).
-    private static VoxelSession NewSession(int playSession = 1, GameData? data = null, bool shippedLessons = false)
+    private const string Offer = "¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas.";
+
+    // A session on the bundle's route, in a play session; without lessons unless asked (a lesson would take the HUD's line and the baker's talk). Its orders are taken
+    // (issue #54) unless asked: these tests are about the sale and the delivery, not the offer (OrderOfferTests).
+    private static VoxelSession NewSession(int playSession = 1, GameData? data = null, bool shippedLessons = false, bool ordersTaken = true)
     {
         data ??= Baker;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
-        return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: shippedLessons ? null : noLessons) { Day = playSession };
+        var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: shippedLessons ? null : noLessons) { Day = playSession };
+        return ordersTaken ? session.TakeOrders() : session;
     }
 
     private static IEnumerable<WorldEvent> WorldEventsOf(VoxelSession session, string name) => session.Events.OfType<WorldEvent>().Where(e => e.Name == name);
@@ -98,26 +102,34 @@ public sealed class OrdersAndSalesTests
     }
 
     [Fact]
-    public void AnOrderIsHiddenAndCountsNothingUntilItsNpcIsMetWhateverTheDay()
+    public void AnOrderIsHiddenAndCountsNothingUntilItsNpcOffersItAndThePlayerSaysSiWhateverTheDay()
     {
         var data = WithOrderFirst(Baker);
-        var early = NewSession(playSession: 4, data);
+        var early = NewSession(playSession: 4, data, ordersTaken: false);
         _ = early.Simulation.GrantItems(ItemId.Wood, 5);
 
-        Assert.Equal("meet-guide", early.CurrentObjective!.Id); // the order and the gated objective come first in this HUD's order, and are hidden until Luz is met (L01)
+        Assert.Equal("meet-guide", early.CurrentObjective!.Id); // the order and the gated objective come first in this HUD's order, and are hidden until the order is taken (issue #54)
         Assert.Equal(early.Locale.ObjectiveHudLine("meet-guide"), early.ObjectiveHud().Single().Text);
         early.HostEvent(WorldEvents.ItemPickedUp, "madera");
         Assert.Equal(0, early.ObjectiveStep("gated.wood")!.Count); // a gated objective counts nothing before its session
         Assert.Equal(5, early.ObjectiveStep("camp.wood")!.Count); // the camp counts the wood in the bag (#32)
 
-        _ = early.OpenTalk("baker"); // met: the order shows, and Luz asks for the goods the player carries, on a day before its old session
+        Assert.Equal([Offer], early.OpenTalk("baker").Lines); // met, with the wood: she offers the order first, and takes no goods of an order not given
+        Assert.False(early.HandOverOpen);
+        Assert.Equal("camp", early.CurrentObjective!.Id); // the camp's wood moved, which also met the guide; the order is not shown yet
+        _ = early.AcceptOrder(); // «sí», on a day before its old session
+        Assert.Equal("oven-wood", early.CurrentObjective!.Id);
+        early.EndTalk();
+        _ = early.OpenTalk("baker"); // now she asks for the goods the player carries
         Assert.True(early.HandOverOpen);
         _ = early.HandOverGoods(); // handed over in Spanish (D-game-27)
         Assert.Equal(0, early.Simulation.Inventory.Count(ItemId.Wood));
 
-        var due = NewSession(playSession: 5, data);
+        var due = NewSession(playSession: 5, data, ordersTaken: false);
         Assert.Equal("gated", due.CurrentObjective!.Id); // nor does the day show it: this gated objective is not an order
         _ = due.OpenTalk("baker");
+        Assert.Equal("gated", due.CurrentObjective!.Id); // meeting her is not enough
+        _ = due.AcceptOrder();
         Assert.Equal("oven-wood", due.CurrentObjective!.Id);
         Assert.Equal("Bring Luz five wood (madera) for her oven at the bakery", due.ObjectiveHud().Single().Text);
         _ = due.Simulation.GrantItems(ItemId.Wood, 1);

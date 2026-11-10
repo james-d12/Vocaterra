@@ -2,7 +2,7 @@
   "$schema": "../../../schema/objective.schema.json",
   "schemaVersion": 1,
   "id": "fruit-for-mar",
-  "about": "The fisher's order (VILLAGE_PLAN 3.4, V10): from play session 4, three fruits brought to Mar at the bridge (the bushes at the guide's camp); he pays two coins (fisher.delivered, then fisher.pay in game/host-events.json). Asking in Spanish is the lesson's; since D-game-27 (issue #42, handOver) the learner hands the goods over in Spanish when the NPC asks for them, and «no sé» or two missed lines hand them over anyway.",
+  "about": "The fisher's order (VILLAGE_PLAN 3.4, V10): from play session 4, three fruits brought to Mar at the bridge (the bushes at the guide's camp); he pays two coins (fisher.delivered, then fisher.pay in game/host-events.json). Asking in Spanish is the lesson's; since D-game-27 (issue #42, handOver) the learner hands the goods over in Spanish when the NPC asks for them, and «no sé» or two missed lines hand them over anyway. Since issue #54 the order is a task the player takes on: until it is given it is not shown, counted or delivered. When the talk opens, Mar offers it (fisher_offer_order, a yes-or-no question at fisher-order-offer); «sí» gives it, «no» puts it off until the next day.",
   "session": 4,
   "deliverTo": "fisher",
   "deliver": [

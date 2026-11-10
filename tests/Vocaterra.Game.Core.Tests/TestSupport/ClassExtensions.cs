@@ -13,12 +13,13 @@ internal static class ClassExtensions
 
     /// <summary>
     /// Opens the panel on an NPC and takes the class on offer there whose session the test's day has reached, as saying Sí to the teacher does (L01: before, every lesson started by itself
-    /// at the first talk of its day). A talk that has no such class is only a talk.
+    /// at the first talk of its day). An order the NPC offers first is taken with «sí» (issue #54). A talk that has no such class is only a talk.
     /// </summary>
     public static NpcOpening OpenTalkForClass(this VoxelSession session, string npc)
     {
         var opening = session.OpenTalk(npc);
         _ = session.HandOverGoods(); // the goods of an order the NPC asks for are handed over first, as a learner who answers right does (issue #42)
+        _ = session.AcceptOrder(); // an order the NPC offers is taken with «sí», and its class follows in the same talk (issue #54)
         if (!session.Lessons.Engaged && session.Lessons.OfferFor(npc) is not null)
         {
             // The class of the day the test sets (the newest whose session has come, as the day used to pick it), else the one on offer.

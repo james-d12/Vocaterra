@@ -2,12 +2,13 @@
   "$schema": "../../../schema/objective.schema.json",
   "schemaVersion": 1,
   "id": "oven-wood",
-  "about": "The baker's order (VILLAGE_PLAN 3.4, V11): from play session 5, five wood brought to Luz at the bakery (the trees at the forest's edge); she pays four coins (baker.delivered, then baker.pay in game/host-events.json), which buy two of her loaves (bread is two coins, baker.sell_bread). Told by the lesson numeros-y-pan (voy a buscar madera, then the wood, then the delivery): a learner who carries five wood already is paid only once the lesson reaches its step that waits for the delivery (lesson, V14). Asking in Spanish is the lesson's; since D-game-27 (issue #42, handOver) the learner hands the goods over in Spanish when the NPC asks for them, and «no sé» or two missed lines hand them over anyway.",
+  "about": "The baker's order (VILLAGE_PLAN 3.4, V11): from play session 5, five wood brought to Luz at the bakery (the trees at the forest's edge); she pays four coins (baker.delivered, then baker.pay in game/host-events.json), which buy two of her loaves (bread is two coins, baker.sell_bread). Told by the lesson numeros-y-pan (voy a buscar madera, then the wood, then the delivery): a learner who carries five wood already is paid only once the lesson reaches its step that waits for the delivery (lesson, V14). Asking in Spanish is the lesson's; since D-game-27 (issue #42, handOver) the learner hands the goods over in Spanish when the NPC asks for them, and «no sé» or two missed lines hand them over anyway. Since issue #54 the order is a task the player takes on: until it is given it is not shown, counted or delivered. When the talk opens, Luz offers it (baker_offer_order, a yes-or-no question at baker-order-offer); «sí» gives it, «no» puts it off until the next day. Its lesson gives it at n3-oven, where Luz asks for the goods (lessonStep).",
   "session": 5,
   "deliverTo": "baker",
   "deliver": [
     { "item": "wood", "count": 5 }
   ],
   "handOver": { "nouns": ["madera"] },
-  "lesson": "numeros-y-pan"
+  "lesson": "numeros-y-pan",
+  "lessonStep": "n3-oven"
 }

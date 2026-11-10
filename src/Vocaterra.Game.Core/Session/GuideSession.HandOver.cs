@@ -21,7 +21,8 @@ public abstract partial class GuideSession
     // A hand-over decided while another turn was still on the worker: it is done once that turn is in (Collect), and its thanks follow as an opening.
     private (HandOverWait Wait, bool FailForward)? _handOverDue;
 
-    // The talk opened on an NPC waiting for the goods, so its class was held back (OpenTalk): it is offered, resumed or started once the goods are handed over.
+    // The talk opened on an NPC waiting for the goods (or, issue #54, for the answer to its offer of an order), so its class was held back (OpenTalk): it is offered, resumed
+    // or started once the goods are handed over or the offer is answered.
     private bool _classAfterHandOver;
 
     /// <summary>
@@ -164,7 +165,7 @@ public abstract partial class GuideSession
         return thanks;
     }
 
-    // The class held back at the opening (OpenTalk) comes now, after the thanks, in the same talk: offered, resumed or started as at an opening.
+    // The class held back at the opening (OpenTalk) comes now, after the thanks (or the answer to an order's offer), in the same talk: offered, resumed or started as at an opening.
     private void ReleaseClass(string npc)
     {
         if (_classAfterHandOver && TalkOpenOn(npc))

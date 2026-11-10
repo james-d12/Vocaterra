@@ -30,8 +30,9 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-22 | The village and the lessons (the V series, `docs/game/village-plan.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held (started 2026-10-31 on the owner's word); the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort; 2026-10-31: V18 and the core's M56, M59 (before V14), M58 and M62 (before V15) join phase B; 2026-11-01, the follow-ups: models mixed (Opus for M65 to M67, M69 and V20, Sonnet for V21 to V23 and M68, Haiku for V24), M65's narrowings (a) to (c), name plates of the faced NPC depth-tested; 2026-11-02: V24's bugs first (V26), the off-prompt lines (M72, V27), the small points (M73, V28) and the speech folder by speaker; after the pull request: weather and `¿cómo estás?` intents (M74, V29), the near-miss rule (M75), a study of spoken off-prompt lines (`docs/handovers/done/2026-11-02-after-followups.md`) | the V series |
 | D-game-23 | Activities and the adaptation (the W series, `docs/game/activities-plan.md`; the owner's Adaptation Design Document, `docs/game/design/sources/Vocaterra_Adaptation_Design_Document.docx`) | open, decided in part (owner, 2026-11-03; 2026-11-04: the design built on `feature/adaptive_design`, section 18.2's recommendations adopted provisionally, for the owner's confirmation): the queued follow-ups first, then player needs (D-game-24), then the W series; an overlay station; the stall buys bread for one coin; the pilot's instructions heard only, no imperative taught; the rest proposed (activities-plan section 12, the design document's section 18) | the W series |
 | D-game-24 | Player needs: hunger, thirst, sleep, health and stamina (the adaptation design's section 9; the N series, proposed ids) | decided (owner, 2026-11-03): five needs, hunger, thirst and sleep in stages whose effects grow worse, pushing health and stamina; built after the queued follow-ups and before every other system, from session 1; real death with a cost; the meters pause in conversations, lessons, the book and every panel; stamina spent by gathering and a new sprint; amends D-game-8's guardrail and replaces D-game-23 (b) | the N and W series |
-| D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met; Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
+| D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met (amended by D-game-30, proposed: the NPC offers its order and «sí» takes it on); Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
 | D-game-27 | Handing an order over in Spanish (issue #42) | decided (owner, 2026-11-08): the learner says what they give; the item must be named, the count is optional; «no sé» or two misses hand the goods over anyway | nothing |
+| D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -637,6 +638,35 @@ plan section 4.10): "Go with the recommendations." The three questions and the a
    the speaker buttons' hit tests; the keys still reach every recording from the Phrases page.
 3. **The Phrases page is grouped by help** (Without help, With help, Not met yet), not by lesson: a phrase row carries no lesson, and the
    Lessons page's right page already lists each lesson's phrases.
+
+## D-game-30: orders are offered and taken on (proposed, 2026-11-09)
+
+*Numbered D-game-30 because `merge-main-into-german` renumbers the hand-over (D-game-27 here) as D-game-29.*
+
+Issue #54: "These should act as optional quests we can accept. Currently there is no giving of these quests, they just magically appear after first
+talking to the NPCs that ask. Like Mar for fruit, Luz for wood, etc. We should review all quests and ensure they are given." Since L01 (D-game-25) an
+order showed, counted and could be delivered as soon as its NPC was met, with nothing said about it. The answer, built on `fix/quest-giving` for the
+owner's review:
+
+1. **The NPC offers its order** when the talk opens (`<npc>.offer_order` into the agent's `offering_order` state): Mar «Tengo hambre. ¿Me traes tres
+   frutas? Te doy dos monedas.», Luz «¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas.», Domingo his existing «¿Quieres un hacha?
+   Necesito dos bloques de madera y dos monedas.», León «Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas.». An English note says it
+   is the player's choice.
+2. **«Sí» gives it**, and the NPC thanks the player and says where the goods are (Mar «¡Gracias! Hay fruta en el campamento de Luna.», Luz «¡Gracias! Hay
+   árboles cerca del pueblo.», Domingo «¡Muy bien! Te hago un hacha.», León «¡Gracias! El río está cerca.»). Only a given order is shown, counted, asked for
+   and delivered; the save keeps the list (`givenOrders`).
+3. **Optional, at no cost:** «no» («Está bien.») puts the order off until the next day, as a class's «no» does (L01); any other line is answered as at the
+   NPC's open prompt and leaves the offer for the next talk, as walking away does. Goods carried before the order is given stay in the bag.
+4. **The classes that tell an order give it at their step** (`lessonStep` in the order's file: `numeros-y-pan` at `n3-oven`, `gente-del-pueblo` at `g4-offer`,
+   `como-es` at `c3-plan`, the steps where the NPC asks for the goods), with no offer of the NPC's own; while the teacher would offer that class, the order
+   is not offered beside it, and a «no» to the class lets the order be offered at the next talk. The goods of such an order are handed over at the class's
+   step that waits for them, so the NPC's ask comes before its thanks (what V14 meant; under L01 a learner who carried the goods was paid at the first talk
+   and the class found the order done). A class that does not tell the order (Mar's `el-pueblo`) is offered right after the order's question is answered.
+5. **The skip aid** (`--skip-to-session`) gives the orders it delivers; the target session's orders wait for their offers.
+
+How it is built: `GuideSession.OrderOffer.cs`, the objectives' `lessonStep` (`content/schema/objective.schema.json`), an `offering_order` state and an
+`<npc>-order-offer` prompt for each order NPC, ten new NPC lines with their recordings, and the validator's `CheckOrderOffer`. Open for the owner: the wording
+of the eight lines, and whether a declined order should come back at the next talk rather than the next day.
 
 ## Already decided
 

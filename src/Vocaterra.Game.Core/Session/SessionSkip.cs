@@ -87,7 +87,8 @@ public static class SessionSkip
 
             foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == played && !o.Complete))
             {
-                session.MarkMet(order.Spec.DeliverTo!); // an order shows once its NPC is met (L01); its session only says when the skip delivers it
+                session.MarkMet(order.Spec.DeliverTo!);
+                session.GiveOrder(order.Spec.DeliverTo!, order.Id, "skip"); // an order counts once taken on (issue #54); its session only says when the skip delivers it
                 session.SkipDeliver(order);
             }
 

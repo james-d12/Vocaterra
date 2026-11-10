@@ -27,7 +27,8 @@
     { "id": "smith_job", "count": 1 },
     { "id": "smith_name", "count": 1 },
     { "id": "smith_offer", "count": 1 },
-    { "id": "smith_thank", "count": 2 }
+    { "id": "smith_thank", "count": 2 },
+    { "id": "smith_order_yes", "count": 1 }
   ],
   "states": [
     {
@@ -42,6 +43,7 @@
         { "onHostEvent": "smith.greet", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
         { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
         { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
+        { "onHostEvent": "smith.offer_order", "to": "offering_order", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
         { "onHostEvent": "smith.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "smith_cant_sell", "variantPoolId": "smith_cant_sell" }] },
         { "onHostEvent": "smith.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "smith_wont_buy", "variantPoolId": "smith_wont_buy" }] },
         { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },
@@ -80,6 +82,44 @@
         { "on": {"intent": "thank", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "receiving", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
         { "on": {"communicated": false}, "to": "receiving", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "offering_order",
+      "transitions": [
+        { "on": {"intent": "confirm", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_order_yes", "hostEvent": "smith.accept_order", "variantPoolId": "smith_order_yes" }] },
+        { "on": {"intent": "deny", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_ok", "hostEvent": "smith.decline_order", "variantPoolId": "smith_ok" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "offering_order", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "offering_order", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "onHostEvent": "smith.offer_order", "to": "offering_order", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "onHostEvent": "smith.offer_gone", "to": "idle", "actions": [{ "dialogueIntent": "smith_hello", "variantPoolId": "smith_hello" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_well", "variantPoolId": "smith_well" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_sun", "variantPoolId": "smith_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_yes", "variantPoolId": "smith_yes" }] },
+        { "onHostEvent": "smith.weather", "to": "idle", "actions": [{ "dialogueIntent": "smith_weather", "variantPoolId": "smith_weather" }] },
+        { "onHostEvent": "smith.understood", "to": "idle", "actions": [{ "dialogueIntent": "smith_understood", "variantPoolId": "smith_understood" }] },
+        { "onHostEvent": "smith.true", "to": "idle", "actions": [{ "dialogueIntent": "smith_true", "variantPoolId": "smith_true" }] },
+        { "onHostEvent": "smith.delivered", "to": "idle", "actions": [{ "dialogueIntent": "smith_delivered", "hostEvent": "smith.give_axe", "variantPoolId": "smith_delivered" }] },
+        { "onHostEvent": "smith.order_ready", "to": "receiving", "actions": [{ "dialogueIntent": "smith_receive", "variantPoolId": "smith_receive" }] },
+        { "onHostEvent": "smith.cant_sell", "to": "idle", "actions": [{ "dialogueIntent": "smith_cant_sell", "variantPoolId": "smith_cant_sell" }] },
+        { "onHostEvent": "smith.wont_buy", "to": "idle", "actions": [{ "dialogueIntent": "smith_wont_buy", "variantPoolId": "smith_wont_buy" }] },
+        { "onHostEvent": "smith.none_offered", "to": "idle", "actions": [{ "dialogueIntent": "smith_none_offered", "variantPoolId": "smith_none_offered" }] },
+        { "onHostEvent": "smith.no_room", "to": "idle", "actions": [{ "dialogueIntent": "smith_no_room", "variantPoolId": "smith_no_room" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_greet", "variantPoolId": "smith_greet" }] },
+        { "on": {"intent": "ask_name", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_name", "variantPoolId": "smith_name" }] },
+        { "on": {"intent": "ask_activity", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_job", "variantPoolId": "smith_job" }] },
+        { "on": {"intent": "state_have", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "on": {"intent": "state_want", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_offer", "variantPoolId": "smith_offer" }] },
+        { "on": {"intent": "offer_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_buy", "hostEvent": "smith.buy_wood", "variantPoolId": "smith_buy" }] },
+        { "on": {"intent": "state_action", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
+        { "on": {"intent": "state_obligation", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_ok", "variantPoolId": "smith_ok" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_nice", "variantPoolId": "smith_nice" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_thank", "variantPoolId": "smith_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "smith_bye", "variantPoolId": "smith_bye" }] },
+        { "on": {"communicated": false}, "to": "offering_order", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
       ],
       "fallback": {
         "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]

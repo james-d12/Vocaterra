@@ -1620,6 +1620,12 @@
       "matches": []
     },
     {
+      "key": "28b91fb82a91b1c1cc4ad6edeb075bed3abc02fb1b4105cf209b1e3c4aeb5021",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Te hago un hacha.",
+      "matches": []
+    },
+    {
       "key": "28c4fc5dd2e6f3e01a0e8ee97aa82ded4e3adbbe43da49a53d229fbc859f236e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí es roja",
@@ -2020,6 +2026,12 @@
       "key": "328bcf5495b96dcb58dca3c3f08b6338b8d94284501612242a6c9ff5d4e1ecbf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Se dice así: «tengo».",
+      "matches": []
+    },
+    {
+      "key": "32dfe310579ddbf7e4df2cda427c83720388639fa04498c969d9031338a36144",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! El río está cerca.",
       "matches": []
     },
     {
@@ -3252,6 +3264,12 @@
       ]
     },
     {
+      "key": "4f03650b1b477329949c6119a821f99f7127f224aa38ad964d3ffeefe243d702",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Hay árboles cerca del pueblo.",
+      "matches": []
+    },
+    {
       "key": "4f59d1cd8073e7670bb107f35c5444214e3cc4bdf314d5965df5ce9cd01ddf94",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Guía",
@@ -3580,6 +3598,12 @@
       "matches": []
     },
     {
+      "key": "56ef9b61282b85d58f065842e155b3a385a3fd95578b053c33df11d1ecbf5d6a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas.",
+      "matches": []
+    },
+    {
       "key": "570171345d3488db60c5eb292a4bed0d62b885d56fc10b8098e8ecd5d0bafebb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hace buen tiempo",
@@ -3820,6 +3844,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "5d1dce0f1cfcbc043eb5d5f5cee164742425baceae20aa4b04ba26b0c1a1d87b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Gracias! Hay fruta en el campamento de Luna.",
+      "matches": []
     },
     {
       "key": "5d296eea6b03fe89610d22a2b110d0aac22ab2a7de29317cc935b4e1c6b97837",
@@ -6672,6 +6702,12 @@
       "key": "9d68d9a441750abff8af6a1ae72deb86b8ec3c6d92bd06e15156bd17d7f3ad3b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compré dos panes hoy",
+      "matches": []
+    },
+    {
+      "key": "9d9730e4a1d3ecd257af1ad1faa2672c279f30c48c7be3f2939cf7947e0d61f6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo hambre. ¿Me traes tres frutas? Te doy dos monedas.",
       "matches": []
     },
     {
@@ -10183,6 +10219,12 @@
       "key": "f1a9cb51f6c0c707739fa066cc2ef40c7f63d76ac246682db1bd130e86e3fc6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo fui al río",
+      "matches": []
+    },
+    {
+      "key": "f1f83389b8488c0ce97d7a2d6fc3ad6c7f80f7ca6d60f7c849eefb42ab9abb30",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Me traes cinco bloques de madera para el horno? Te pago cuatro monedas.",
       "matches": []
     },
     {

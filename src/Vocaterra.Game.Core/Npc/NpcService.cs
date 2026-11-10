@@ -385,7 +385,10 @@ public sealed partial class NpcService
     /// <param name="objectiveComplete">Whether the camp objective is complete (the guide then makes her transfer offer, once).</param>
     /// <param name="now">The stored time.</param>
     /// <param name="hostStateHash">The simulation's state digest.</param>
-    /// <param name="offer">The host event of a teacher's offer to bake (W08, <c>&lt;npc&gt;.offer_bake</c>), or <see langword="null"/>: when the NPC is in its initial state and its agent takes the event, the talk opens with the offer instead of the NPC's greeting.</param>
+    /// <param name="offer">
+    /// The host event of an offer the NPC opens the talk with (W08, a teacher's <c>&lt;npc&gt;.offer_bake</c>; issue #54, an order's <c>&lt;npc&gt;.offer_order</c>), or <see langword="null"/>: when the
+    /// state the NPC is in takes the event, the talk opens with the offer instead of the NPC's greeting; when it does not, the talk opens as usual.
+    /// </param>
     /// <param name="delivered">
     /// The host event of an order the player has brought the goods of (village-plan V03, <c>&lt;npc&gt;.delivered</c>), or <see langword="null"/>: when the NPC's state
     /// takes it, it is the opening instead of the NPC's own (<see cref="NpcOpening.Delivered"/>); when it does not, the talk opens as usual.
@@ -408,9 +411,13 @@ public sealed partial class NpcService
             }
         }
 
-        var hostEvent = offer is not null && string.Equals(agent.Context.AgentState.StateId, agent.InitialState, StringComparison.Ordinal) ? offer : OpeningEvent(agent, objectiveComplete);
-        if (hostEvent is not null)
+        foreach (var hostEvent in new[] { offer, OpeningEvent(agent, objectiveComplete) })
         {
+            if (hostEvent is null)
+            {
+                continue;
+            }
+
             var before = agent.Context with { Now = now, HostStateHash = hostStateHash };
             var turn = _typed.Advance(hostEvent, before);
             if (turn is not null)

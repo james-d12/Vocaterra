@@ -63,6 +63,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
     {
         // At the villager's open prompt (open recognition, no answer set to steer it), each number said in a quantity: the recognizer hears the number word.
         using var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalkForClass("villager");
         Assert.True(session.StartWorker().WaitUntilReady(60000));
@@ -89,6 +90,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
@@ -110,6 +112,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
@@ -131,6 +134,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         var data = TestGame.Data;
         var noLessons = LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", data.Phrases, data.Speech, data.Bundle.Prompts, data.Locale, data.Npcs.Ids);
         using var session = new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: noLessons) { Day = 10 };
+        _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.Simulation.GrantItems(ItemId.Wood, 4); // four: five would deliver the oven order as the talk opens
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");

@@ -16,6 +16,7 @@
   },
   "prompts": {
     "idle": "fisher-open",
+    "offering_order": "fisher-order-offer",
     "receiving": "fisher-receive"
   },
   "opening": {
