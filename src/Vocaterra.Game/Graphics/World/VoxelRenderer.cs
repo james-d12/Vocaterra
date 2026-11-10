@@ -11,6 +11,7 @@ using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
+using Vocaterra.Game.Graphics.Weather;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -108,6 +109,8 @@ public sealed class VoxelRenderer : IDisposable
     private IReadOnlyList<NpcFigure> _figures = [];
     private readonly MeshBuffer _figureBuffer = new();
     private SkyLook _look;
+    private PrecipitationState _precipitation = PrecipitationState.None;
+    private readonly PrecipitationRenderer _rain;
     private LightBand _band;
     private Vector3 _sunLight = Vector3.One;
     private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
@@ -125,7 +128,8 @@ public sealed class VoxelRenderer : IDisposable
     private int _pending;
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null)
+    /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -165,6 +169,7 @@ public sealed class VoxelRenderer : IDisposable
             ReferenceAlpha = 110,
         };
         _sky = new SkyRenderer(device, look);
+        _rain = new PrecipitationRenderer(device, grid, log);
         Lights = FindLights(grid);
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
         SetLightTints(look);
@@ -225,6 +230,15 @@ public sealed class VoxelRenderer : IDisposable
 
     /// <summary>The fog above water (the look's haze colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
     public FogParameters DryFog { get; private set; }
+
+    /// <summary>How many vertices the rain sent in the last <see cref="DrawWorld"/> (E06; four to a drop, 0 when it does not rain or the eye is under water).</summary>
+    public int DrawnRainVertices => _rain.DrawnVertices;
+
+    /// <summary>
+    /// Takes what falls this frame (E06), from the weather's channels: the precipitation pass of <see cref="DrawWorld"/> draws it after the water, with the quality's drop budget.
+    /// </summary>
+    /// <param name="state">The kind, the intensity and the wind.</param>
+    public void SetPrecipitation(in PrecipitationState state) => _precipitation = state;
 
     /// <summary>The look the renderer draws in now (<see cref="SetAtmosphere"/>).</summary>
     public SkyLook Look => _look;
@@ -674,6 +688,11 @@ public sealed class VoxelRenderer : IDisposable
             DrawChunk(chunk.Alpha, chunk.AlphaQuads);
         }
 
+        // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
+        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, _underwaterAmount);
+        _device.RasterizerState = RasterizerState.CullClockwise;
+        _device.Indices = _indices;
+
         _device.SamplerStates[0] = AtlasSampler;
         _effect.Texture = _atlas.Texture;
         _effect.DiffuseColor = Vector3.One;
@@ -803,6 +822,7 @@ public sealed class VoxelRenderer : IDisposable
         _effect.Dispose();
         _solid.Dispose();
         _sky.Dispose();
+        _rain.Dispose();
     }
 
     private void BuildChunk(int index)

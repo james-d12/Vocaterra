@@ -137,7 +137,8 @@ public sealed class SoundFrontend
     /// <param name="blockAt">Reads the block at a cell.</param>
     /// <param name="atmosphere">The atmosphere now (E03: the birds and the insects follow its daylight).</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, AtmosphereSnapshot atmosphere, bool fireLit)
+    /// <param name="highestBlock">Reads the highest block of a column of the world (E06: the rain is lower under cover), or <see langword="null"/> for open ground.</param>
+    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
     {
         ArgumentNullException.ThrowIfNull(events);
         ArgumentNullException.ThrowIfNull(player);
@@ -153,7 +154,7 @@ public sealed class SoundFrontend
         }
 
         _frame.AddRange(steps);
-        _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), atmosphere, fireLit);
+        _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), atmosphere, fireLit, highestBlock);
     }
 
     /// <summary>Once per tick (H10): a bubble for each bubble the breath loses under water (<see cref="BreathBubbles"/>).</summary>

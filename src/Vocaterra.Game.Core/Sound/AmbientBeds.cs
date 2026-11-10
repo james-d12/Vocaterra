@@ -109,6 +109,8 @@ public sealed class AmbientPlaces
 /// The beds: <c>wind</c> on the cliff and the heights; <c>birds</c> in the lowland forest by day (scheduled chirps); <c>river</c> along the river's path and at the
 /// lake; <c>waterfall</c>, louder near its lip; <c>village</c> by the houses and the stall; <c>fire</c> (scheduled crackles) by the lit fire ring and the lamps;
 /// <c>insects</c> in the lowland as the daylight falls (E03: the birds scale with the daylight, the insects with its rest, so they swap across dawn and dusk). Distances fall off smoothly. Pan is the bearing of the source from the way the player faces: simple stereo, not 3D.
+/// E06: <c>rain</c> follows the precipitation channel's intensity, lower under a roof or a tree (<see cref="ListenerShelter"/>); the wind also rises with the weather's wind channel (above
+/// <see cref="WindCalm"/>), and the birds are quieter in the rain.
 /// </remarks>
 public static class AmbientBeds
 {
@@ -133,8 +135,14 @@ public static class AmbientBeds
     /// <summary>The insects of the evening and the night (the lowland, as the daylight falls).</summary>
     public const string Insects = "insects";
 
+    /// <summary>
+    /// The rain on the ground and the leaves (E06). The bed is the sound of whatever falls: its weight is the precipitation's intensity, whatever the style's id, so a later kind that
+    /// falls (snow) brings its own bed and its own row in the weight.
+    /// </summary>
+    public const string Rain = "rain";
+
     /// <summary>Every bed, in a fixed order.</summary>
-    public static IReadOnlyList<string> All { get; } = [Wind, Birds, River, Waterfall, Village, Fire, Insects];
+    public static IReadOnlyList<string> All { get; } = [Wind, Birds, River, Waterfall, Village, Fire, Insects, Rain];
 
     /// <summary>The level of a bed's loop, before the ambient volume (the scheduled beds, birds and fire, scale their own chirps and crackles).</summary>
     /// <param name="bed">The bed.</param>
@@ -145,6 +153,7 @@ public static class AmbientBeds
         Waterfall => 0.6,
         Village => 0.35,
         Insects => 0.3,
+        Rain => 0.3,
         _ => 1.0,
     };
 
@@ -156,6 +165,18 @@ public static class AmbientBeds
 
     /// <summary>The height below which the wind is silent.</summary>
     public const double WindLow = 58;
+
+    /// <summary>
+    /// The wind channel at and below which the weather adds nothing to the wind bed (E06): a breeze of the first data's fair weather (0.2) is not a sound of its own, so the bed there is
+    /// what the height alone gave. Above it the bed rises with the channel (<see cref="WindChannelReach"/>).
+    /// </summary>
+    public const double WindCalm = 0.25;
+
+    /// <summary>How much weight the wind channel adds at its full strength, on top of the height's: a strong wind is heard in the lowland too (0.5 at a channel of 1).</summary>
+    public const double WindChannelReach = 0.5;
+
+    /// <summary>How much of the rain's weight a listener fully under cover loses (0.75: the rain on a roof is still heard, at a quarter).</summary>
+    public const double RainCoverCut = 0.75;
 
     /// <summary>The weight of a distance: 1 within <paramref name="full"/> blocks, 0 beyond <paramref name="silent"/>, a smooth step between.</summary>
     /// <param name="distance">The distance in blocks.</param>
@@ -241,7 +262,11 @@ public static class AmbientBeds
     /// <param name="listener">The listener.</param>
     /// <param name="atmosphere">The atmosphere now: its daylight sets the birds (by day) and the insects (by night).</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit)
+    /// <param name="highestBlock">
+    /// Reads the highest block of a column of the world (<c>VoxelGrid.HighestBlock</c>, the query the rain's drops use), or <see langword="null"/> for open ground everywhere: the rain is
+    /// lower where the listener stands under cover. Only read when it rains, and never written.
+    /// </param>
+    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
     {
         ArgumentNullException.ThrowIfNull(places);
         var here = new Point2(listener.X, listener.Z);
@@ -275,10 +300,13 @@ public static class AmbientBeds
             }
         }
 
-        var windWeight = Ramp(listener.Y, WindLow, WindHigh);
+        var channels = atmosphere.Channels;
+        var windWeight = Math.Clamp(Ramp(listener.Y, WindLow, WindHigh) + (WindChannelReach * Ramp(channels.Wind, WindCalm, 1)), 0, 1);
+        var intensity = string.IsNullOrEmpty(channels.PrecipitationKind) ? 0 : Math.Clamp(channels.PrecipitationIntensity, 0, 1);
+        var rainWeight = intensity <= 0 ? 0 : intensity * (1 - (RainCoverCut * ListenerShelter.CoveredShare(highestBlock, listener)));
         var lowland = 1 - Ramp(listener.Y, 50, 64);
         var daylight = Math.Clamp(atmosphere.Daylight, 0, 1);
-        var birdsWeight = lowland * (1 - villageWeight) * daylight;
+        var birdsWeight = lowland * (1 - villageWeight) * daylight * (1 - intensity);
         var insectsWeight = lowland * (1 - daylight);
 
         var fireWeight = 0.0;
@@ -308,6 +336,7 @@ public static class AmbientBeds
             new BedInput(Village, villageWeight, places.Village is { } v ? Pan(listener, v) : 0),
             new BedInput(Fire, fireWeight, firePan),
             new BedInput(Insects, insectsWeight),
+            new BedInput(Rain, rainWeight),
         ];
     }
 

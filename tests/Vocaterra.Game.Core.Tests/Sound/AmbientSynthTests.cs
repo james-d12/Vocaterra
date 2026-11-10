@@ -23,6 +23,7 @@ public sealed class AmbientSynthTests
     [InlineData("waterfall")]
     [InlineData("village")]
     [InlineData("insects")]
+    [InlineData("rain")]
     public void EveryBedLoopsSeamlesslyWithoutAClick(string bed)
     {
         var loop = AmbientLoops.Render(bed);
@@ -47,6 +48,7 @@ public sealed class AmbientSynthTests
     [InlineData("waterfall")]
     [InlineData("village")]
     [InlineData("insects")]
+    [InlineData("rain")]
     public void EveryBedIsAudibleAndWithinItsPeak(string bed)
     {
         var loop = AmbientLoops.Render(bed);
