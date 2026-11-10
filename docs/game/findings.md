@@ -2324,3 +2324,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `--time`. The comment is to change at the close-out unless the owner wants held values dropped on save.
   - *Process:* two finished agents left endless shell loops waiting on `pgrep -f "scripts/test.sh"` (which matches the loop itself), although
     the brief forbids them; the orchestrator stopped them. The series' shared brief already says so; the next briefs repeat it in the prompt.
+- **E06, rain (2026-11-10, Sonnet 5.5 high; gated at `09e83885` on `feature/weather`, 11089 passed, 3 skipped).** The precipitation of the
+  snapshot is drawn and heard. `Graphics/Weather/`: `PrecipitationField` (a wrapping box of 36 x 24 blocks round the camera, drops by
+  `PresentationRng`, leaning with the wind, the number alive scaling with the intensity), `ColumnCover` (`VoxelGrid.HighestBlock` per column,
+  cached by chunk versions: no rain under a roof, a tree or an overhang), `PrecipitationStyles` (one row per precipitation kind; a test over
+  `weather.json` requires a row for each), `PrecipitationRenderer` (camera-facing quads from one reused buffer, after the water pass, fogged,
+  lit by the look, off under water). `QualityPreset.RainDrops` 2200, 3400, 5400.
+  - *Sound.* A synthesised `rain` bed (gain 0.2, the lowest bed: about 9 dB under an NPC's voice before the duck, by measurement of the
+    files, not by ear), a quarter of its weight under cover (`Sound/ListenerShelter`, `Voxel/OverheadCover`); the wind rises with the wind
+    channel above 0.25, so the first kind sounds as before; the birds are multiplied by one minus the intensity. Sound writes nothing to the
+    simulation.
+  - *Cost.* 0.4 to 1.1 ms a frame on a real GPU by preset; under software GL only the low preset is usable, as before. The default run's camp
+    view is pixel-identical to the build before.
+  - *Known:* on flat open ground the rain looks sparse (the box is 36 blocks wide; farther rain is left to the fog); the wind has one fixed
+    heading; drops step at 60 Hz; no splashes, puddles or thunder (out of scope).

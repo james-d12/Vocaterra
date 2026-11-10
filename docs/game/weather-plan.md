@@ -4,7 +4,7 @@ A plan written on 2026-11-10 at the owner's request, from a read of `main` at `f
 built or run. Its goal is **a modular atmosphere**: a day and night cycle first, then weather on top of it (sunny, cloudy and rain in the
 first version), built so that later weather is a row of data and not a new system.
 
-**Status (2026-11-10):** in progress; E00 to E05, E02a and E07 are done; E06 (rain) is running; E08 (the close-out) is last. The owner's answers are in section 5 and D-game-31,
+**Status (2026-11-10):** in progress; E00 to E07 and E02a are done; only E08 (the close-out and the pull request) is left, and it is not launched. The owner's answers are in section 5 and D-game-31,
 progress in section 7. It is built on `feature/weather`, cut from `main` at `24170667`, in the worktree `.claude/worktrees/weather`
 (the owner, 2026-11-10: "Make sure to make a new git worktree from main"). Commit prefix `E<nn>:`. As with every feature branch, nothing
 is pushed to `main`; the owner merges by pull request.
@@ -202,6 +202,6 @@ Recorded as D-game-31.
 | E03 | done, 2026-11-10 | merged at `ac7facdd`, 11030 passed, 0 failed, 3 skipped | Birds by the daylight and insects as it falls; the menu's Time of day and Weather rows; the F3 line; the `--set-time` and `--set-weather` steps. Merged with E05 by a second run (both sides' weather checks kept). Findings, E03. |
 | E04 | done, 2026-11-10 | merged at `0d73dba9`, 10837 passed, 0 failed, 3 skipped | `WeatherChannels`, `WeatherKind`, `WeatherData` (`game/weather.json`: sunny, cloudy, rain; a 45 s transition), `WeatherSystem` (spells seeded by the world seed and a counter; the morning roll on `WakeUp`), `AtmosphereSnapshot`, `weather_changed`. No kind's id in `src/` outside the default data, and a fourth kind defined only in test data runs with no code. The first spell adds nothing to the digest; the save version stays 7 (findings, E04). |
 | E05 | done, 2026-11-10 | merged at `c74ce223`, 10978 passed, 0 failed, 3 skipped | `SkyWeather`, the look from the snapshot, the clouds' cover with a fade, the fog's reach, the sun's light times the sunlight channel (no remesh), `--weather <id>`. The first kind's look is today's exactly (pixel-identical). Weak: a full cover is scattered slabs, not a ceiling. Findings, E05. |
-| E06 | in progress, launched 2026-11-10 | | |
+| E06 | done, 2026-11-10 | merged at `09e83885`, 11089 passed, 0 failed, 3 skipped | Rain as streaks in a wrapping box, cut at each column's cover; a style table per precipitation kind; a rain bed, the wind and quieter birds. Findings, E06. |
 | E07 | done, 2026-11-10 | merged at `84033e02`, 10936 passed, 0 failed, 3 skipped | The NPCs answer «¿Qué tiempo hace?» by the weather: `weatherAnswers` in an NPC's file, the snapshot's `say` key into the turn, the pool swapped in `NpcTurnRules.Compose`; no core change. 21 new pools and 42 clips (not listened to). The validator requires a line for every kind. Findings, E07. |
 | E08 | todo | | |

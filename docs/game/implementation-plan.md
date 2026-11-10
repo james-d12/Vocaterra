@@ -512,7 +512,7 @@ Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answer
 | E03 | Sound and switches for the time: beds by phase, `--time`, the menu row, F3, the scripted step | E01, E02 | S | Haiku 5.5 | done: gated at `ac7facdd` on `feature/weather` (2026-11-10), 11030 passed |
 | E04 | Weather in Core: `weather.json`, `WeatherSystem`, the `Atmosphere` snapshot, `weather_changed`, the morning roll | E01 | M | Sonnet 5.5, medium | done: gated at `0d73dba9` on `feature/weather` (2026-11-10), 10837 passed |
 | E05 | Sky and light by weather; `--weather` and its switches | E02, E04 | M | Sonnet 5.5, medium | done: gated at `c74ce223` on `feature/weather` (2026-11-10), 10978 passed |
-| E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | in progress |
+| E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | done: gated at `09e83885` on `feature/weather` (2026-11-10), 11089 passed |
 | E07 | The NPCs' answer to «¿Qué tiempo hace?» by weather: lines, speech clips, the content loop | E04 | M | Sonnet 5.5, medium | done: gated at `84033e02` on `feature/weather` (2026-11-10), 10936 passed |
 | E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | todo |
 
