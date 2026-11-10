@@ -11,7 +11,8 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="Z">The block row (south) of a walk, interact or place.</param>
 /// <param name="Item">For <see cref="VoxelStepKind.Place"/>: the item as typed (a Spanish noun such as <c>madera</c>, or the item's key such as <c>wood</c>).</param>
 /// <param name="Slot">For <see cref="VoxelStepKind.Select"/>: the hotbar slot, 1 to 10 as the number keys give them.</param>
-public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch = 0, int X = 0, int Y = 0, int Z = 0, string Item = "", int Slot = 0)
+/// <param name="Hour">For <see cref="VoxelStepKind.SetTime"/>: the hour the clock is held at, 0 to 24.</param>
+public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch = 0, int X = 0, int Y = 0, int Z = 0, string Item = "", int Slot = 0, double Hour = 0)
 {
     /// <summary>A step that faces a direction.</summary>
     public static VoxelStep Look(double yawDegrees, double pitchDegrees) => new(VoxelStepKind.Look, Yaw: yawDegrees, Pitch: pitchDegrees);
@@ -36,6 +37,18 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
 
     /// <summary>A step that pours a water source into a cell (a debug step).</summary>
     public static VoxelStep Pour(int x, int y, int z) => new(VoxelStepKind.Pour, X: x, Y: y, Z: z);
+
+    /// <summary>A step that holds the clock at an hour (0 to 24).</summary>
+    public static VoxelStep SetTime(double hour) => new(VoxelStepKind.SetTime, Hour: hour);
+
+    /// <summary>A step that lets a held clock run on.</summary>
+    public static VoxelStep RunTime() => new(VoxelStepKind.RunTime);
+
+    /// <summary>A step that holds a weather kind by its id.</summary>
+    public static VoxelStep SetWeather(string id) => new(VoxelStepKind.SetWeather, Item: id);
+
+    /// <summary>A step that lets a held weather run on.</summary>
+    public static VoxelStep RunWeather() => new(VoxelStepKind.RunWeather);
 
     /// <summary>Reads <c>x,z</c> (two non-negative integers).</summary>
     public static bool TryParseColumn(string value, out int x, out int z)

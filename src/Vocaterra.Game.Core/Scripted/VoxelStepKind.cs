@@ -28,4 +28,16 @@ public enum VoxelStepKind
 
     /// <summary>Put a water source in a cell, which then flows (<c>--pour x,y,z</c>, a debug step for scripted runs and screenshots, water-plan H06).</summary>
     Pour,
+
+    /// <summary>Hold the clock at an hour, 0 to 24, until <see cref="RunTime"/> (<c>--set-time &lt;hour&gt;</c>, E03).</summary>
+    SetTime,
+
+    /// <summary>Let a held clock run on from its held hour (<c>--set-time run</c>, E03).</summary>
+    RunTime,
+
+    /// <summary>Hold a weather kind by its id, until <see cref="RunWeather"/> (<c>--set-weather &lt;id&gt;</c>, E03).</summary>
+    SetWeather,
+
+    /// <summary>Let a held weather run on (<c>--set-weather run</c>, E03).</summary>
+    RunWeather,
 }
