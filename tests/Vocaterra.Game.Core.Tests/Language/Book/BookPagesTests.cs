@@ -363,7 +363,7 @@ public sealed class BookPagesTests
         Assert.Equal("meet Luna first", LessonLines(session, "first-class").Why.Aside); // her first class: Luna is not met yet
 
         (title, why) = LessonLines(session, "personas");
-        Assert.Equal("meet Aldeano first", why.Aside); // the villager has no name: his label; the day opens nothing (L01)
+        Assert.Equal("meet Tomás first", why.Aside); // the villager by his name (#52); the day opens nothing (L01)
         Assert.Equal(BookTone.Unseen, title.Tone);
         Assert.Equal(BookMark.Wait, title.Mark);
         Assert.Equal("meet Mar first", LessonLines(session, "el-pueblo").Why.Aside);
@@ -372,7 +372,7 @@ public sealed class BookPagesTests
         _ = session.OpenTalk("villager");
         _ = session.OpenTalk("fisher");
         (title, why) = LessonLines(session, "personas");
-        Assert.Equal("open: ask Aldeano", why.Aside);
+        Assert.Equal("open: ask Tomás", why.Aside);
         Assert.Equal(BookTone.Seen, title.Tone);
         Assert.Equal("personas", title.Practise); // the "Ask for a class" button
         Assert.True(title.Ask);
@@ -388,7 +388,7 @@ public sealed class BookPagesTests
         SessionSkip.Apply(session, 8);
 
         var (title, why) = LessonLines(session, "ayer-en-el-pueblo");
-        Assert.Equal("open: ask Aldeano", why.Aside);
+        Assert.Equal("open: ask Tomás", why.Aside);
         Assert.Equal(BookTone.Seen, title.Tone);
         Assert.Equal("completed in session 7", LessonLines(session, "como-es").Title.Aside);
         Assert.Equal("ayer-en-el-pueblo", title.Practise);

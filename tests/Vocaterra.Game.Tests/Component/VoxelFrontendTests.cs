@@ -350,13 +350,13 @@ public sealed class VoxelFrontendTests
     {
         var figures = NpcFigures.FromScene(RouteScene(), Shipped.Npcs);
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Name).ToList());
-        Assert.Equal(["Guía", "Tendero", "Aldeano"], figures.Select(static f => f.Label).ToList());
+        Assert.Equal(["Luna (Guía)", "Pablo (Tendero)", "Tomás (Aldeano)"], figures.Select(static f => f.Label).ToList());
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Look).ToList()); // C08: game/npcs/<id>.json's figure
         var bodies = figures.Select(static f => NpcFigures.PartsOf(f.Look)[2].Colour).ToList(); // the body is the third part
         Assert.Equal(3, bodies.Distinct().Count());
         var heads = figures.Select(static f => NpcFigures.PartsOf(f.Look).Last().Colour).ToList();
         Assert.Equal(3, heads.Distinct().Count());
-        Assert.Equal("Otro", Shipped.Npcs.LabelOf("Otro"));
+        Assert.Equal("Otro", Shipped.Npcs.TitleOf("Otro"));
     }
 
     [Fact]

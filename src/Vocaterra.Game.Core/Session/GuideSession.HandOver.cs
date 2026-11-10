@@ -199,7 +199,7 @@ public abstract partial class GuideSession
     private string ModelOf(HandOverWait wait) =>
         Data.Npcs.FocusAt(wait.Prompt).Select(Phrases.Find).OfType<PhraseRow>().FirstOrDefault()?.Spanish ?? string.Join(", ", wait.Nouns);
 
-    private string NameOf(string npc) => Data.Npcs.Find(npc)?.Name ?? Data.Npcs.LabelOf(npc);
+    private string NameOf(string npc) => Data.Npcs.CalledOf(npc);
 
     // An order an NPC waits to be handed: its NPC, its id, the nouns that name its goods, the prompt the answer is evaluated at, and the lines missed so far.
     private sealed class HandOverWait(string npc, string order, IReadOnlyList<string> nouns, string prompt)

@@ -1,5 +1,8 @@
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
@@ -65,6 +68,7 @@ public sealed class NpcVoiceTests
 
         Assert.Equal(["shop_need.1", "shop_offer.1"], Played(logs));
         Assert.Equal(1, output.Stops);
+        Assert.Contains("voice: cut off shop_need.1", logs);
     }
 
     [Fact]
@@ -128,13 +132,15 @@ public sealed class NpcVoiceTests
     public void AShownLineWithNoSpeakableIdIsTextOnlyNotMissing()
     {
         var output = new FakeOutput();
-        var voice = Voice(output, [], muted: false);
+        var logs = new List<string>();
+        var voice = Voice(output, logs, muted: false);
 
         voice.Say(SpeechSpeakers.Guide, ["El río está allí, a la izquierda, a sesenta bloques."]);
 
         Assert.Equal(1, voice.TextOnly);
         Assert.Equal(0, voice.Missing);
         Assert.Empty(output.Clips);
+        Assert.Equal(["voice: text only (guide) El río está allí, a la izquierda, a sesenta bloques."], logs);
     }
 
     [Fact]
@@ -209,10 +215,44 @@ public sealed class NpcVoiceTests
         Assert.False(voice.Busy);
     }
 
+    [Fact]
+    public void TheCardOfAnItemAnNpcHandsOverWaitsForHisWholeTurn()
+    {
+        // #53: «Quiero agua» -> «Toma la botella. El agua está en el río.» and «¿Quieres pan?», and the bottle's first card in the same frame. The card replaced
+        // the queue, so the first line was cut off and the question never played; it now follows the turn.
+        var session = TestGame.NewSession();
+        Stage.TeleportToNpc(session, NpcService.ShopkeeperAgent);
+        _ = session.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
+        session.FinishKeyWords();
+        var output = new FakeOutput();
+        var logs = new List<string>();
+        var voice = Voice(output, logs, muted: false);
+        var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
+
+        var turn = session.Say("quiero agua, por favor");
+        voice.Say(turn.Npc, turn.GuideLines);
+        new WordCardPresenter(session, new WordCardQueue(), sound, voice).AfterTick([]);
+        for (var i = 0; i < 3; i++)
+        {
+            output.Finish();
+            voice.Update();
+        }
+
+        Assert.Equal(2, turn.GuideLines.Count);
+        var played = Played(logs);
+        Assert.Equal(3, played.Length);
+        Assert.StartsWith("shop_give.", played[0], StringComparison.Ordinal);
+        Assert.Equal(["shop_offer.1", "card.botella"], played[1..]);
+        Assert.Equal(0, output.Stops);
+        Assert.DoesNotContain(logs, static line => line.StartsWith("voice: cut off", StringComparison.Ordinal));
+        Assert.False(voice.Busy);
+    }
+
     /// <summary>The ids the voice started, read from its log (the missing and no-device lines are not clips).</summary>
     private static string[] Played(List<string> logs) =>
         logs.Where(static line => line.StartsWith("voice: ", StringComparison.Ordinal) && !line.StartsWith("voice: missing", StringComparison.Ordinal)
-            && !line.StartsWith("voice: no audio device", StringComparison.Ordinal) && !line.StartsWith("voice: fallback", StringComparison.Ordinal))
+            && !line.StartsWith("voice: no audio device", StringComparison.Ordinal) && !line.StartsWith("voice: fallback", StringComparison.Ordinal)
+            && !line.StartsWith("voice: text only", StringComparison.Ordinal) && !line.StartsWith("voice: cut off", StringComparison.Ordinal))
             .Select(static line => line["voice: ".Length..])
             .ToArray();
 

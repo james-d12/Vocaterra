@@ -47,6 +47,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     private readonly Action<string> _log;
     private readonly Queue<(string Id, AudioBuffer Clip)> _queue = new();
     private bool _playing;
+    private string? _current;
     private bool _noDeviceLogged;
 
     /// <summary>Creates the voice over a speech folder.</summary>
@@ -54,7 +55,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
     /// <param name="index">The text-to-line index of the bundle's speakable lines.</param>
     /// <param name="output">Where the clips go.</param>
     /// <param name="muted">Whether <c>--mute</c> was given: nothing plays.</param>
-    /// <param name="log">Where the one-line reports go (each line played, the no-device notice, missing files).</param>
+    /// <param name="log">Where the one-line reports go (each line played, the no-device notice, missing files, lines with no recording).</param>
     public NpcVoice(string speechDirectory, SpeechIndex index, IAudioOutput output, bool muted, Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(speechDirectory);
@@ -186,14 +187,20 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
         }
     }
 
-    /// <summary>Stops the clip that plays and drops the queue.</summary>
+    /// <summary>Stops the clip that plays and drops the queue. A clip cut off before its end, or lines dropped before they played, are logged (#53).</summary>
     public void Stop()
     {
+        var dropped = _queue.Count;
         _queue.Clear();
         if (_playing)
         {
+            var heard = _output.IsPlaying;
             _output.Stop();
             _playing = false;
+            if (heard || dropped > 0)
+            {
+                _log($"voice: cut off {(heard ? _current : "after " + _current)}{(dropped > 0 ? $", {dropped} queued dropped" : string.Empty)}");
+            }
         }
     }
 
@@ -215,6 +222,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
         if (line is null)
         {
             TextOnly++;
+            _log($"voice: text only ({speaker}) {text}");
             return;
         }
 
@@ -266,6 +274,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
             if (_output.Start(clip))
             {
                 _playing = true;
+                _current = id;
                 Played++;
                 _log($"voice: {id}");
                 return;

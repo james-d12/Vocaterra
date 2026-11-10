@@ -666,7 +666,7 @@ public sealed class SpeechUxFrontendTests
         var look = new LookControl();
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);
         var hooks = new ScenarioHooks(
-            npc => dialogue.Open(session.OpenTalk(npc), session.Data.Npcs.LabelOf(npc)),
+            npc => dialogue.Open(session.OpenTalk(npc), session.Data.Npcs.TitleOf(npc)),
             () =>
             {
                 dialogue.Close();

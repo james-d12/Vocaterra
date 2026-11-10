@@ -3,6 +3,7 @@
   "schemaVersion": 2,
   "id": "villager",
   "label": "Aldeano",
+  "name": "Tomás",
   "figure": "villager",
   "focus": {
     "villager-open": [
