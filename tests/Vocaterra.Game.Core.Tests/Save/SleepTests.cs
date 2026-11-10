@@ -29,6 +29,7 @@ public sealed class SleepTests
         loaded.Needs.Sleep(); // N03: a night moves the needs, which a load does not; everything else is a load's
         loaded.SettleNeedStages();
         loaded.BeginPlaySession();
+        loaded.NoteSleptAt(); // Y02: the one thing a sleep adds to a load, the place the player slept at (none away from one)
         return loaded;
     }
 

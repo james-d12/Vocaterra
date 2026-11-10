@@ -156,7 +156,7 @@ public sealed class SaveGameTests
 
         var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = SaveGame.CurrentVersion + 1 })));
         Assert.Contains($"version {SaveGame.CurrentVersion + 1}", version.Message, StringComparison.Ordinal);
-        Assert.Contains($"versions 1 to {SaveGame.CurrentVersion}", version.Message, StringComparison.Ordinal);
+        Assert.Contains($"oldest this game loads is {SaveGame.OldestReadableVersion}", version.Message, StringComparison.Ordinal);
 
         var format = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"something-else\",\"version\":1}"));
         Assert.Contains("not a vocaterra-save", format.Message, StringComparison.Ordinal);

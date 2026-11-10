@@ -140,12 +140,12 @@ public sealed class DialoguePagesSaveTests : IDisposable
     }
 
     [Fact]
-    public void TheExistingSaveFixturesStillLoad()
+    public void TheSaveFixtureHoldsTheShopkeepersPage()
     {
-        foreach (var name in new[] { "save-v1.json", "save-v4.json" })
-        {
-            var document = SaveGame.Parse(File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", name)));
-            Assert.Null(document.DialoguePages);
-        }
+        var document = SaveGame.Parse(File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json")));
+
+        var page = Assert.Single(document.DialoguePages!);
+        Assert.Equal("shopkeeper", page.Npc);
+        Assert.Contains(page.Lines, static l => l.Speaker == "player");
     }
 }

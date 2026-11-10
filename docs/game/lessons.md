@@ -18,7 +18,7 @@ L01 supersedes every rule below that says a lesson "starts by itself", "unlocks 
   the conversation only once accepted.
 - **Esc pauses.** Closing the panel on a class at a talk step pauses it and frees its NPC; a class at a `do` step (walk to the bush, the stall) stays engaged until the world event it waits for,
   and holds nothing back. A paused class holds back no sleep, trade, order or delivery; the teacher offers it again, or the Lessons page asks for it, and it resumes where it stopped.
-  A save never keeps a lesson engaged: a loaded class is paused (versions 1 to 6).
+  A save never keeps a lesson engaged: a loaded class is paused.
 - **What opens a class:** having met its teacher (`GuideSession.HasMet`: the panel opened on them once; saved as `metNpcs`, and for a save from before L01 every NPC counts as met from
   day 2) and its `after` lesson done where the grammar needs it (the preterite before session 8's retelling). Never the day: a lesson's `session` only orders the Lessons page and the
   skip aid. A teacher with several classes open offers the first of the series that is not done.

@@ -36,21 +36,43 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
-## Format version 7: the `systems` map, the needs (N01) and the water
+## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
-The current version is 7. Two branches each wrote a different version 6 (the needs and the `systems` map on one, the water on the other); they met in the water merge
-(PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
-migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
-in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
-2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter.
+The current version is 8, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;
+the oldest this game loads is 8 (it writes 8), and older saves are not migrated.") and nothing migrates it: the code that read versions 1 to 7 is gone (the branches on the
+version number, the version 2 word rows, the first-words split). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, is the version 8 save the tests read.
 
-Version 6 (in the merged format) adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
+**How the fixture is made:** a scripted game run, not by hand, so it is the game's own output. From the repository root, after a build (the camp route of `scripts/scripted-runs.sh`'s
+`CAMP`, then a talk, then the player's own fire):
+
+```bash
+dotnet run --project src/Vocaterra.Game -- --session-dir <scratch> --needs off --seed 42 --mute --walk-to 176,186 <CAMP steps> --walk-to 177,185 --craft antorcha \
+  --talk shopkeeper --say "quiero agua, por favor" --leave --teleport 153,109 --place antorcha@153,74,105 --wait 1 --screenshot <png> --frames 30 --save <file>
+```
+
+The save has the player standing at the lit mountain fire, one conversation page, no lodging and no sleep recorded (so no `sleep` entry). `scripts/content-loop.sh` writes a new
+bundle hash into it as into any file under `tests/`.
+
+**The `sleep` entry (Y02).** `systems.sleep` keeps what a sleep (a save restored in the same run) and a load must not lose, all optional, the entry absent when nothing is set:
+`lodgingGiven` (the innkeeper has given the room; left out when false), `last` (the place last slept at: `{"id"}` and, for a place made in play, its cell `x`, `y`, `z`) and
+`places` (the places made in play, `SleepPlaces.Add`: `id`, `x`, `y`, `z`, `kind`, `radiusBlocks`, `heightBlocks`, `access` and `point` when it has one). The authored places are the bundle's
+and are not saved. `RestoreParts` puts the places made in play back first, before the objective's sleep line and the arrow ask `SleepPlaces`.
+
+- **The last place slept** is written by `SaveGame.Sleep` after `RestoreParts` (the save a sleep restores was taken before the sleep): a sleep at a usable place records it; a sleep at
+  none (the `--sleep` aid away from a place) and a collapse leave it as it was. A death wakes the player at the last place while `SleepPlaces` still has it, else at the place
+  `death.wakeAt` names.
+- **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
+  is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
+
+Version 6 added the optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 added `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
-`exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones add the regrowth, gift and
-chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data.
+`exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones added the regrowth, gift and
+chest state as optional fields of the entry. Stages and their effects are never saved: they are worked out from the meters and the data. Water's fields are optional like the others:
+`air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source in the scene diff and the cells waiting to flow, H06). The underwater blur setting
+(H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off, 2 medium, 3 high; no field is the default, low). Drowning leaves no state of its own.
 
-- **Versions 1 to 5 load** with full needs (no `systems`).
-- **The needs are not in the world's digest.** A load and a night compare the digest, and an older save has none; the needs are checked by range instead: a value out of range
+- **A save without `systems`** loads with full needs.
+- **The needs are not in the world's digest.** A load and a night compare the digest; the needs are checked by range instead: a value out of range
   (a drive or health outside 0 to 100, stamina over its maximum, a timer below 0) is **clamped** into it, and a value that is not a number **refuses** the save.
 - **A night is a load in the same run** with the night's changes on the needs (N03): `SaveGame.Sleep` restores the needs as a load does, then `VoxelSession.ApplyNight` applies
   `PlayerNeeds.Sleep` (sleep to 100, health +20, hunger -15 and thirst -20 never below 10; with `--needs off` nothing). A **collapse** is the same night with `collapse: true`
@@ -58,12 +80,11 @@ chest state as optional fields of the entry. Stages and their effects are never 
   and run the day's resets (`RunDayResets`, `DayResetCount`; a load runs none).
 - **The belongings chest (N04)** is the `chest` entry of `systems`: `{"x","y","z","stacks":[{"item","count"}]}`, the cell of the Chest block and one total per item kind, absent when
   no chest stands. The Chest block itself is in the world's block edits (`chunks`), as any placed block; a load restores both and never removes a chest, a night does
-  (`RunDayResets`), with its contents. No version change: an older save has no chest.
-- **The NPCs met and the split first lesson (L01)** need no format change (the version stays 6): `metNpcs` is an optional list of the NPC ids the player has talked to (a class opens on
+  (`RunDayResets`), with its contents.
+- **The NPCs met (L01)**: `metNpcs` is an optional list of the NPC ids the player has talked to (a class opens on
   having met its teacher); a save without it takes every NPC as met from day 2 on and only the guide before. A lesson is never saved engaged: a load
-  restores the active class paused. A save of the old `first-words` (37 steps) holds the introduction and Luna's first class in one entry; the load splits it (`LessonRunner.SplitIntroduction`):
-  the introduction keeps its id and its first 16 steps, then the steps that follow u4 and u4v, and `first-class` is completed when the old lesson was past them, not begun otherwise.
-- **The orders taken on (issue #54, D-game-30)** need no format change: `givenOrders` is an optional list of the order ids the player said «sí» to (or whose class reached
+  restores the active class paused.
+- **The orders taken on (issue #54, D-game-30)**: `givenOrders` is an optional list of the order ids the player said «sí» to (or whose class reached
   its `lessonStep`), left out while empty; a save without it has taken on none, and the NPCs offer their orders again. An NPC saved while it waited on its offer
   (`offering_order`) is put back in its usual state at the next talk, which offers again. The orders the player said no to today are not saved: a load offers them again.
 - **Picked bushes and the day's gifts (N06)** are the `bushes` and `gifts` entries of `systems`, both absent when empty. `bushes` is `[{"x","y","z"}]`, the cells of the berry bushes
@@ -72,14 +93,13 @@ chest state as optional fields of the entry. Stages and their effects are never 
   a cell the player built on meanwhile is let go. `gifts` is the keys (`shopkeeper:bread`, `villager:bread`, `guide:water-bottle`; `gifts` in `game/needs.json`) given since the last night.
   A gift a lesson step requires (a `do` step on `item_given` at that NPC) is never closed and never counted. With `--needs off` nothing is recorded, nothing grows back and every gift is
   given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
-- **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save from before N08 has none and loads with none; the save version stays 6.
-  No version change; a save before N06 has neither entry (a bush picked in it stays picked).
+- **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save with none loads with none.
+ 
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## The conversation pages (U08)
 
-Each NPC's page of conversation lines (U06) rides in the save, so the panel scrolls back over earlier sessions. `dialoguePages` is an **optional** top-level field (no format
-version: the version stays 7, and every older save and fixture loads with empty pages): a list of `{"npc", "lines": [{"speaker", "text"}]}`, one entry per NPC that has lines, in NPC id
+Each NPC's page of conversation lines (U06) rides in the save, so the panel scrolls back over earlier sessions. `dialoguePages` is an **optional** top-level field (an optional field, no format version of its own: a save without it loads with empty pages): a list of `{"npc", "lines": [{"speaker", "text"}]}`, one entry per NPC that has lines, in NPC id
 order, each page at most 200 lines (`DialogueModel.MaxLines`, the newest kept). The field is left out of the file while no NPC has a line. `speaker` is a stable name: `player`,
 `player-spoken`, `note`, `correction`, `accent`, `guide` (the NPC's own reply), `world`, `hint`, `english`; the coaching line is made by the panel and never stored, and a name a build
 does not know is skipped on load. Every write of a save (F6, the end of a run, the autosave, the crash's last-chance save, a night) captures the pages through `SaveService`;

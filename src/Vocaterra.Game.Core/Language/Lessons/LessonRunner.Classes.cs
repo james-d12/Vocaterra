@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Save;
 
 namespace Vocaterra.Game.Core.Language.Lessons;
 
@@ -127,30 +126,5 @@ public sealed partial class LessonRunner
         }
 
         return false;
-    }
-
-    // A save from before L01 holds the introduction with its second half (units u4 and u4v, steps 16 to 27 of the old lesson) inside. The introduction takes the steps
-    // that remain; the class is done when the old lesson was past them, and is not begun otherwise.
-    private LessonsSave SplitIntroduction(LessonsSave save)
-    {
-        if (_book.Find(IntroductionId) is not { } intro || _book.Find(FirstClassId) is not { } firstClass
-            || save.Lessons.Any(l => string.Equals(l.Id, FirstClassId, StringComparison.Ordinal))
-            || save.Lessons.FirstOrDefault(l => string.Equals(l.Id, IntroductionId, StringComparison.Ordinal)) is not { } old)
-        {
-            return save;
-        }
-
-        const int classFirst = 16;
-        const int classCount = 12;
-        var classIds = firstClass.Steps.Select(static s => s.Id).ToHashSet(StringComparer.Ordinal);
-        var introIds = intro.Steps.Select(static s => s.Id).ToHashSet(StringComparer.Ordinal);
-        var passed = old.Status == LessonStatus.Completed || old.EverCompleted == true || old.Step >= classFirst + classCount;
-        var step = old.Step < classFirst ? old.Step : old.Step < classFirst + classCount ? classFirst : old.Step - classCount;
-        step = Math.Clamp(step, 0, intro.Steps.Count - 1);
-        var introduction = old with { Step = step, Outcomes = old.Outcomes.Where(o => introIds.Contains(o.StepId)).ToArray() };
-        var firstClassProgress = passed
-            ? new LessonProgressSave(FirstClassId, LessonStatus.Completed, firstClass.Steps.Count - 1, old.Outcomes.Where(o => classIds.Contains(o.StepId)).ToArray(), 0, false, CompletedSession: old.CompletedSession, EverCompleted: true)
-            : new LessonProgressSave(FirstClassId, LessonStatus.NotStarted, 0, [], 0, false);
-        return save with { Lessons = [.. save.Lessons.Select(l => ReferenceEquals(l, old) ? introduction : l), firstClassProgress] };
     }
 }

@@ -313,65 +313,6 @@ public sealed class LearnerRecordTests
     }
 
     [Fact]
-    public void AVersionTwoSaveThatCountedTheCheckAnswersLoadsWithoutThemAndKeepsThemInTheHistory()
-    {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
-        session.Learner.Append(Entry(1, "quiero dos aguas", [Noun("aguas", "agua", 9, 5), Verb("quiero", "querer", 0, 6)]));
-        session.Learner.Append(CheckEntry(2, "quiero agua", [Noun("agua", "agua", 7, 4), Verb("quiero", "querer", 0, 6)]));
-        session.Learner.Append(CheckEntry(3, "agua", [Noun("agua", "agua", 0, 4)]));
-        var before = Show(session.Learner.Rows);
-
-        // The save as version 2 wrote it: the rows counted every line, the check answers too.
-        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
-        var old = current with
-        {
-            Version = 2,
-            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
-        };
-        Assert.Equal(3, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
-
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-
-        Assert.Equal(before, Show(loaded.Learner.Rows));
-        Assert.Equal(1, Assert.Single(loaded.Learner.Nouns).Times);
-        Assert.Equal(3, loaded.Learner.History.Count);
-        Assert.Equal(InputPlace.Check, loaded.Learner.History[^1].Place);
-
-        // Saved again (version 3) and loaded again, the record is the same: the check answers are not taken out twice.
-        var resaved = SaveGame.Save(loaded, TestGame.Route());
-        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(resaved).Version);
-        var again = SaveGame.Load(resaved, TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-        Assert.Equal(before, Show(again.Learner.Rows));
-    }
-
-    [Fact]
-    public void AVersionTwoSaveWhoseHistoryWasTrimmedTakesOutOnlyTheChecksItStillHolds()
-    {
-        var session = TestGame.NewSession(credit: CreditRules.Default);
-        for (var id = 1; id <= 510; id++)
-        {
-            // Entry 10 is a check answer the bound trims away from the save; entry 11 is one the saved history still holds.
-            var entry = Entry(session.Learner.NextId, $"agua {id}", [Noun("agua", "agua", 0, 4)]);
-            session.Learner.Append(id is 10 or 11 ? entry with { Place = InputPlace.Check, Unit = "say.pedir-agua", Npc = null } : entry);
-        }
-
-        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
-        var old = current with
-        {
-            Version = 2,
-            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
-        };
-        Assert.Equal(510, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
-        Assert.Equal(11, old.Learner.History[0].Id);
-
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
-
-        // The history holds 500 entries of 510: it can take out entry 11 only. Entry 10 was counted, is not held, and stays counted.
-        Assert.Equal(509, Assert.Single(loaded.Learner.Nouns).Times);
-        Assert.Equal(511, loaded.Learner.NextId);
-    }
-
-    [Fact]
     public void ReplayingAHistoryWithCheckAnswersGivesTheSameRecordAfterASaveAndALoad()
     {
         var session = TestGame.NewSession(credit: CreditRules.Default);
@@ -384,36 +325,6 @@ public sealed class LearnerRecordTests
         var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(Show(replayed), Show(loaded.Learner.Rows));
         Assert.Equal(Show(replayed), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
-    }
-
-    [Fact]
-    public void AVersionOneSaveLoadsWithAnEmptyHistoryAndTheLessonRecordAsFarAsTheSaveAllows()
-    {
-        var text = File.ReadAllText(FixturePath("save-v1.json"));
-        var document = SaveGame.Parse(text);
-        Assert.Equal(1, document.Version);
-        Assert.Null(document.Learner);
-
-        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
-
-        Assert.Empty(loaded.Learner.History);
-        Assert.Empty(loaded.Learner.Rows);
-        Assert.Equal(1, loaded.Learner.NextId);
-        Assert.Equal(1, loaded.Day); // the day as saved (V25)
-        var lesson = Assert.Single(loaded.Lessons.Record, static r => r.LessonId == "first-words");
-        Assert.Equal(LessonStatus.Completed, lesson.Status);
-        Assert.Equal(25, lesson.Units.Count); // the introduction as the version 1 save recorded it, without the steps that became Luna's first class (L01)
-        Assert.All(lesson.Units, static u => Assert.Equal(StepOutcome.Done, u.Outcome));
-        Assert.Null(lesson.CompletedSession); // the version 1 save does not say the session it was completed in
-        Assert.Equal(0, lesson.Turns);
-        Assert.Equal(0, lesson.HelpUses);
-        Assert.Equal(0, lesson.DontKnowUses);
-
-        // Saved again it is the current version with the (empty) learner's record.
-        var again = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
-        Assert.Equal(SaveGame.CurrentVersion, again.Version);
-        Assert.NotNull(again.Learner);
-        Assert.Empty(again.Learner!.History);
     }
 
     [Fact]
@@ -507,20 +418,5 @@ public sealed class LearnerRecordTests
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalkForClass("guide");
         return session;
-    }
-
-    // The version 1 save written by the S18 code (tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json): a camp scene with the guide's whole lesson done.
-    private static string FixturePath(string name)
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "tests", "Vocaterra.Game.Core.Tests", "Fixtures", name);
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new FileNotFoundException($"The fixture {name} was not found above the test output folder.");
     }
 }

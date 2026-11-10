@@ -25,6 +25,7 @@ public sealed class SleepPlaces
     private readonly Func<bool> _lodgingGiven;
     private readonly string _wakeAt;
     private readonly List<SleepPlace> _places = [];
+    private readonly HashSet<string> _madeInPlay = new(StringComparer.Ordinal);
 
     /// <summary>Resolves the authored places against a scene.</summary>
     /// <param name="specs">The authored places.</param>
@@ -60,11 +61,35 @@ public sealed class SleepPlaces
         ArgumentNullException.ThrowIfNull(place);
         Remove(place.Id);
         _places.Add(place);
+        _madeInPlay.Add(place.Id);
+    }
+
+    /// <summary>The places made in play (<see cref="Add"/>), in the order made: what the save keeps, since the authored ones are the bundle's.</summary>
+    public IReadOnlyList<SleepPlace> MadeInPlay => _places.Where(p => _madeInPlay.Contains(p.Id)).ToArray();
+
+    /// <summary>Replaces the places made in play with these (a load): the authored places stay, and a place whose id an authored place has is left out.</summary>
+    /// <param name="places">The places.</param>
+    public void RestoreMadeInPlay(IEnumerable<SleepPlace> places)
+    {
+        ArgumentNullException.ThrowIfNull(places);
+        _places.RemoveAll(p => _madeInPlay.Contains(p.Id));
+        _madeInPlay.Clear();
+        foreach (var place in places)
+        {
+            if (Find(place.Id) is null)
+            {
+                Add(place);
+            }
+        }
     }
 
     /// <summary>Takes a place away; false when there is none with this id.</summary>
     /// <param name="id">The place's id.</param>
-    public bool Remove(string id) => _places.RemoveAll(p => string.Equals(p.Id, id, StringComparison.Ordinal)) > 0;
+    public bool Remove(string id)
+    {
+        _madeInPlay.Remove(id);
+        return _places.RemoveAll(p => string.Equals(p.Id, id, StringComparison.Ordinal)) > 0;
+    }
 
     /// <summary>The place with this id, or <see langword="null"/>.</summary>
     /// <param name="id">The place's id.</param>

@@ -103,29 +103,15 @@ public sealed class ProcedureSessionTests
         Assert.Equal(55, loaded.Needs.Value(NeedMeter.Thirst), 3);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(4)]
-    [InlineData(5)]
-    [InlineData(6)]
-    public void EveryReadableVersionLoadsWithNoProcedures(int version)
+    [Fact]
+    public void ASaveWithoutAProceduresEntryLoadsWithNoProcedures()
     {
         var session = NewSession();
         _ = session.StartProcedure("pan", "horno", true);
         var current = SaveGame.Capture(session, Pristine());
-        var older = version switch
-        {
-            1 => current with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Systems = null },
-            2 => current with { Version = 2, Settings = null, World = null, BookGranted = false, Systems = null },
-            3 => current with { Version = 3, Settings = null, World = null, Systems = null },
-            4 => current with { Version = 4, Systems = null },
-            5 => current with { Version = 5, Systems = null }, // the migration from version 5: full needs, empty procedure state
-            _ => current with { Systems = current.Systems! with { Procedures = null } }, // a version-6 save made before W06
-        };
+        var older = current with { Systems = current.Systems! with { Procedures = null } };
 
-        var loaded = SaveGame.Load(SaveGame.Serialize(older), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false, migrate: version < 6);
+        var loaded = SaveGame.Load(SaveGame.Serialize(older), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(ProcedureState.NotStarted, loaded.Procedures.State);
         Assert.True(loaded.Procedures.Progress.IsEmpty);
