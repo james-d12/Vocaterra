@@ -11,6 +11,7 @@ using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
@@ -44,7 +45,7 @@ public sealed class SceneDrawer : IDisposable
     private double _lastDrawMilliseconds = double.NaN;
 
     /// <summary>Creates the drawer of a run (nothing is made until <see cref="Load"/>).</summary>
-    /// <param name="options">The run's options: the quality, the dusk, the greyscale and the nouns assumed known.</param>
+    /// <param name="options">The run's options: the quality, the greyscale and the nouns assumed known.</param>
     /// <param name="session">The session whose world is drawn.</param>
     /// <param name="toasts">Where a noun that became known is toasted in greyscale.</param>
     /// <param name="figures">The NPCs' figures.</param>
@@ -75,10 +76,6 @@ public sealed class SceneDrawer : IDisposable
         _renderer?.SetPreset(Preset);
     }
 
-    /// <summary>Changes between day and dusk lighting during the run (the menu); before <see cref="Load"/> there is no renderer and the launch option stands.</summary>
-    /// <param name="dusk">Whether it is dusk.</param>
-    public void SetDusk(bool dusk) => _renderer?.SetDusk(dusk);
-
     /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
     public GreyscaleWorld? Colours => _colours;
 
@@ -103,7 +100,7 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, _options.Dusk, _session.Scene.Currents);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Clock, _session.Simulation.Tick)), _session.Scene.Currents);
         _renderer.SetFigures(_figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(Preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(Preset.ViewDistance):0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
@@ -127,11 +124,12 @@ public sealed class SceneDrawer : IDisposable
     /// <summary>
     /// Draws the world: the grey set follows the learner's words, the chunks are meshed (a scripted run builds every mesh it needs before its
     /// picture; a live one spends its budget a frame, more while the world is still loading in), and the world, the target block, the beacon and
-    /// the player's figure or arm are drawn.
+    /// the player's figure or arm are drawn. The sky, the fog and the world's light follow the look of the moment (E02).
     /// </summary>
-    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm)
+    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look)
     {
         var renderer = Renderer;
+        renderer.SetAtmosphere(look); // before the meshing: a change of light band is noticed by this frame's Remesh
         _colours!.Refresh();
         renderer.Remesh(camera.Eye, camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
         AdvanceUnderwater(camera);
@@ -140,7 +138,7 @@ public sealed class SceneDrawer : IDisposable
         _underwaterPass!.Begin(amount, BlurLevel());
         device.Clear(renderer.ClearColour);
         renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera));
-        _underwaterPass.End(amount, _underwater.TintOpacity);
+        _underwaterPass.End(amount, _underwater.TintOpacity, renderer.WaterLight);
     }
 
     // The view under water eases by the frame's time (presentation, not simulation); a scripted run counts one tick of time a frame, as its clock does.

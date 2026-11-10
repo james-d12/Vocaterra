@@ -110,8 +110,8 @@ public static class ArmLight
     /// <summary>The share of light that stays under cover.</summary>
     public const float CoveredShare = 0.62f;
 
-    /// <summary>How warmly the lanterns light a point, 0 to 1 (a lantern close by is nearly 1 at dusk and about half of that by day).</summary>
-    public static float Warmth(IReadOnlyList<BlockPos> lights, float x, float y, float z, bool dusk)
+    /// <summary>How warmly the lanterns light a point, 0 to 1 (a lantern close by is nearly <paramref name="lanternStrength"/>: 1 at dusk and by night, about half of that by day).</summary>
+    public static float Warmth(IReadOnlyList<BlockPos> lights, float x, float y, float z, float lanternStrength)
     {
         ArgumentNullException.ThrowIfNull(lights);
         var warm = 0f;
@@ -123,7 +123,7 @@ public static class ArmLight
             if (d2 < ChunkMesher.GlowRadius * ChunkMesher.GlowRadius)
             {
                 var fall = 1f - (MathF.Sqrt(d2) / ChunkMesher.GlowRadius);
-                warm += fall * fall * (dusk ? 1f : 0.5f);
+                warm += fall * fall * lanternStrength;
             }
         }
 
@@ -135,8 +135,9 @@ public static class ArmLight
     /// <param name="eye">The eye in blocks.</param>
     /// <param name="lights">The lanterns of the world.</param>
     /// <param name="holdingTorch">Whether the hand holds a torch (its flame lights the arm).</param>
-    /// <param name="dusk">Whether it is dusk (the sun is dimmer and the lanterns brighter).</param>
-    public static (float R, float G, float B) At(Func<int, int, int, bool> isSolid, (float X, float Y, float Z) eye, IReadOnlyList<BlockPos> lights, bool holdingTorch, bool dusk)
+    /// <param name="sunLight">The sun's light on the world at this moment (<see cref="Sky.SkyLook.SunLight"/>: white by day, warm at dusk, blue by night).</param>
+    /// <param name="lanternStrength">How strongly the lanterns glow at this moment (<see cref="Sky.SkyLook.LanternStrength"/>).</param>
+    public static (float R, float G, float B) At(Func<int, int, int, bool> isSolid, (float X, float Y, float Z) eye, IReadOnlyList<BlockPos> lights, bool holdingTorch, (float R, float G, float B) sunLight, float lanternStrength)
     {
         ArgumentNullException.ThrowIfNull(isSolid);
         ArgumentNullException.ThrowIfNull(lights);
@@ -150,8 +151,8 @@ public static class ArmLight
         }
 
         var sun = covered ? CoveredShare : 1f;
-        float r = sun * (dusk ? ChunkMesher.DuskLight.R : 1f), g = sun * (dusk ? ChunkMesher.DuskLight.G : 1f), b = sun * (dusk ? ChunkMesher.DuskLight.B : 1f);
-        var warm = Warmth(lights, eye.X, eye.Y, eye.Z, dusk);
+        float r = sun * sunLight.R, g = sun * sunLight.G, b = sun * sunLight.B;
+        var warm = Warmth(lights, eye.X, eye.Y, eye.Z, lanternStrength);
         if (holdingTorch)
         {
             warm += 0.45f;

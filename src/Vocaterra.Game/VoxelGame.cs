@@ -36,6 +36,7 @@ using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Scripted;
@@ -214,6 +215,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
+        HoldTheClock(options);
         (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
@@ -239,7 +241,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
-        _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
+        _arm = new ArmPresenter(_sim, _isSolid);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _reportScreen = new ReportScreen(
@@ -493,6 +495,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).
+    // The held clock of the launch options (E02): --time holds the day clock at an hour, and --dusk, with no --time, at the dusk hour, so a screenshot run shows the hour it names. The clock's
+    // held hour is part of the simulation's state (E01): a save written during such a run keeps it.
+    private void HoldTheClock(LaunchOptions options)
+    {
+        if (options.TimeHour is { } hour)
+        {
+            _sim.FreezeClock(hour);
+        }
+        else if (options.Dusk)
+        {
+            _sim.FreezeClock(SkyLook.DuskHour);
+        }
+    }
+
     private void ClosePanels()
     {
         if (_dialogue.IsOpen)
@@ -763,7 +779,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
+        var look = SkyLook.At(SkyLookInput.At(_sim.Clock, _sim.Tick)); // the day clock's hour, daylight and phase for this frame (E02)
+        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 
@@ -1064,10 +1081,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Dusk = () => _dusk,
         SetDusk = on =>
         {
-            _dusk = on; // --dusk: the world is meshed again in the evening light, the sky, the arm and the ambient beds follow
-            _drawer.SetDusk(on);
-            _arm.Dusk = on;
-            _sound.SetDusk(on);
+            _dusk = on; // --dusk holds the clock at the dusk hour (the sky, the fog, the light and the arm follow the clock); switched off, the clock runs on from there
+            if (on)
+            {
+                _sim.FreezeClock(SkyLook.DuskHour);
+            }
+            else
+            {
+                _sim.UnfreezeClock();
+            }
+
+            _sound.SetDusk(on); // the beds still follow the flag until the sound moves to the phase (E03)
             Console.WriteLine($"dusk lighting: {(on ? "on" : "off")}");
         },
         Greyscale = () => _drawer.Colours?.Enabled ?? _options.Greyscale,

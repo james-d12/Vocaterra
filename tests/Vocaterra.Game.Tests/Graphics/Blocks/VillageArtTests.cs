@@ -180,7 +180,10 @@ public sealed class VillageArtTests
     [Fact]
     public void ALanternIsASmallGlowingBoxAndAPileIsALowBoxWithItsTopAndSidesDrawn()
     {
-        var lantern = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Lantern), 0, 0, 0).Opaque;
+        // The glass is its own light: it is in the self-lit mesh, which the renderer draws with no light tint (E02), not in the opaque one.
+        var lanternMeshes = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Lantern), 0, 0, 0);
+        Assert.Equal(0, lanternMeshes.Opaque.FaceCount);
+        var lantern = lanternMeshes.LitMesh;
         Assert.Equal(6, lantern.FaceCount);
         Assert.All(lantern.Vertices.ToArray(), static v =>
         {
@@ -194,8 +197,8 @@ public sealed class VillageArtTests
         var wheat = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Wheat), 0, 0, 0);
         Assert.Equal(0, wheat.Opaque.FaceCount);
         Assert.Equal(2, wheat.PlantMesh.FaceCount); // crossed quads, with the plants
-        var torch = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.PostTorch), 0, 0, 0).Opaque;
-        Assert.Equal(12, torch.FaceCount); // a stick and a flame, like the torch the player places
+        var torch = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.PostTorch), 0, 0, 0);
+        Assert.Equal(12, torch.Opaque.FaceCount + torch.LitMesh.FaceCount); // a stick (opaque) and a flame (self-lit), like the torch the player places
     }
 
     [Fact]
@@ -215,7 +218,7 @@ public sealed class VillageArtTests
         var lights = new[] { new BlockPos(8, 6, 8) };
         var plain = Warmth(MeshOptions.Full, 8);
         var day = Warmth(new MeshOptions(true, 100, lights), 8);
-        var dusk = Warmth(new MeshOptions(true, 100, lights, true), 8);
+        var dusk = Warmth(new MeshOptions(true, 100, lights, LightBand.Dusk), 8);
         var far = Warmth(new MeshOptions(true, 100, lights), 23);
         Assert.True(day > plain, "the lantern tints the floor beside it warm by day");
         Assert.True(dusk > day, "and more at dusk");
@@ -226,7 +229,7 @@ public sealed class VillageArtTests
     public void TheGlowIsADeterministicFunctionOfTheBlocksAndTheLights()
     {
         var floor = new MapBlocks().Fill(0, 4, 0, 15, 5, 15, BlockId.Stone);
-        var options = new MeshOptions(true, 100, [new BlockPos(3, 6, 3), new BlockPos(10, 6, 9)], true);
+        var options = new MeshOptions(true, 100, [new BlockPos(3, 6, 3), new BlockPos(10, 6, 9)], LightBand.Dusk);
         var a = ChunkMesher.Build(floor, 0, 0, 0, 0, options).Opaque.Vertices.ToArray();
         var b = ChunkMesher.Build(floor, 0, 0, 0, 0, options).Opaque.Vertices.ToArray();
         Assert.Equal(a, b);

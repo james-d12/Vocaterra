@@ -50,7 +50,12 @@ public static class SkyPalette
     /// <summary>The colour of the dusk sky at an elevation in degrees (S15).</summary>
     public static (byte R, byte G, byte B) AtDusk(float elevationDegrees) => At(elevationDegrees, DuskHorizon, DuskMiddle, DuskZenith);
 
-    private static (byte R, byte G, byte B) At(float elevationDegrees, (byte R, byte G, byte B) horizon, (byte R, byte G, byte B) middle, (byte R, byte G, byte B) zenith)
+    /// <summary>The colour of a sky with the given three colours at an elevation in degrees (E02: the day, dusk and night looks all use the one gradient).</summary>
+    /// <param name="elevationDegrees">The elevation above the horizon.</param>
+    /// <param name="horizon">The colour at and below the horizon.</param>
+    /// <param name="middle">The colour half way up.</param>
+    /// <param name="zenith">The colour overhead.</param>
+    public static (byte R, byte G, byte B) At(float elevationDegrees, (byte R, byte G, byte B) horizon, (byte R, byte G, byte B) middle, (byte R, byte G, byte B) zenith)
     {
         if (elevationDegrees <= 0f)
         {

@@ -71,7 +71,8 @@ public sealed class UnderwaterPass : IDisposable
     /// </summary>
     /// <param name="amount">How far under water, 0 to 1.</param>
     /// <param name="tintOpacity">The tint's opacity now (<see cref="UnderwaterView.TintOpacity"/>).</param>
-    public void End(float amount, float tintOpacity)
+    /// <param name="light">How much of the water's own colour the light of the moment leaves, 0 to 1 (E02: 1 by day, less at dusk, least at night, so the water is dark at night).</param>
+    public void End(float amount, float tintOpacity, float light = 1f)
     {
         if (amount <= 0f)
         {
@@ -86,7 +87,7 @@ public sealed class UnderwaterPass : IDisposable
             _redirected = false;
         }
 
-        DrawTint(width, height, tintOpacity);
+        DrawTint(width, height, tintOpacity, light);
     }
 
     /// <inheritdoc />
@@ -158,7 +159,7 @@ public sealed class UnderwaterPass : IDisposable
         _spriteBatch.End();
     }
 
-    private void DrawTint(int width, int height, float opacity)
+    private void DrawTint(int width, int height, float opacity, float light)
     {
         if (opacity <= 0f)
         {
@@ -166,7 +167,7 @@ public sealed class UnderwaterPass : IDisposable
         }
 
         var water = UnderwaterView.WaterFog;
-        var colour = new Color(water.Red, water.Green, water.Blue, opacity);
+        var colour = new Color(water.Red * light, water.Green * light, water.Blue * light, opacity);
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
         _spriteBatch.Draw(_pixel, new Rectangle(0, 0, width, height), colour);
         _spriteBatch.End();

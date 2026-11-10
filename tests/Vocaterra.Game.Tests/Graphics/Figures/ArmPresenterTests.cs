@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Sky;
 
 namespace Vocaterra.Game.Tests.Graphics.Figures;
 
@@ -13,8 +14,8 @@ public sealed class ArmPresenterTests
     public void APlacementSwingsTheArmAndOtherCommandsDoNot()
     {
         var sim = VoxelSimulation.Create(RouteScene.Clearing());
-        var placed = new ArmPresenter(sim, sim.Grid.IsSolid, dusk: false);
-        var still = new ArmPresenter(sim, sim.Grid.IsSolid, dusk: false);
+        var placed = new ArmPresenter(sim, sim.Grid.IsSolid);
+        var still = new ArmPresenter(sim, sim.Grid.IsSolid);
         sim.Step([]);
         placed.AfterTick([VoxelCommand.SelectSlot(0), VoxelCommand.Place(ItemId.Torch, 1, 2, 3)]);
         still.AfterTick([VoxelCommand.SelectSlot(0)]);
@@ -22,7 +23,7 @@ public sealed class ArmPresenterTests
         sim.Step([]);
 
         var eye = new Vector3(10.5f, 20f, 10.5f);
-        Assert.True(placed.Frame(eye, []).Motion.Pitch < 0, "two ticks after the placement the arm dips");
-        Assert.Equal(0f, still.Frame(eye, []).Motion.Pitch);
+        Assert.True(placed.Frame(eye, [], SkyLook.Noon).Motion.Pitch < 0, "two ticks after the placement the arm dips");
+        Assert.Equal(0f, still.Frame(eye, [], SkyLook.Noon).Motion.Pitch);
     }
 }
