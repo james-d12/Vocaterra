@@ -50,12 +50,12 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | A jump, a landing | `jump`, `land` (sfx; a landing in water is a `foot_water` splash) | Kenney Impact Sounds |
 | The birds over the forest by day | `bird_chirp` (ambient; scheduled in clusters by the presentation generator, louder the nearer the forest) | synthesized |
 | The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
-| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur, the evening insects with `--dusk` | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
+| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur; the birds by day and the insects as the daylight falls (E03) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
 
 **Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
 function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
 weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; birds sing in the lowland forest by day and the insects
-take over at `--dusk`; the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
+take over as the daylight falls (E03: the weights are the atmosphere's daylight, so `--time` or `--dusk` gives the mix of that hour, and halfway through dusk the two share the forest equally); the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
 looping beds are made in code (`AmbientLoops.cs`): 10 seconds each, the tail faded into the head with an equal-power curve, so no click at the seam. The
 scheduled birds and crackles (`AmbientSound.cs`) draw their times from the presentation generator, in ticks, and follow the bed's weight. Pan is the bearing
 of the source from the way the player faces (simple stereo, not 3D). The footsteps (`Footsteps.cs`) read the block under the feet: every solid block kind

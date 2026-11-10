@@ -68,10 +68,18 @@ try
         return 2;
     }
 
-    if (!options.CheckWeather([.. data.Weather.Kinds.Select(static kind => kind.Id)], out var weatherError))
+    if (!options.CheckWeatherTargets(data.Weather.Kinds.Select(static kind => kind.Id).ToList(), out var weatherError))
+    {
+        // The kinds --set-weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others (E03).
+        Console.Error.WriteLine(weatherError);
+        Console.Error.Write(LaunchOptions.Usage);
+        return 2;
+    }
+
+    if (!options.CheckWeather([.. data.Weather.Kinds.Select(static kind => kind.Id)], out var weatherIdError))
     {
         // The weather kinds --weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others.
-        Console.Error.WriteLine(weatherError);
+        Console.Error.WriteLine(weatherIdError);
         Console.Error.Write(LaunchOptions.Usage);
         return 2;
     }

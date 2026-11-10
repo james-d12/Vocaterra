@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
@@ -39,7 +40,37 @@ public static class VoxelDebugText
         [
             string.Create(inv, $"3D   FPS {fps:0}   tick {sim.Tick}   seed {seed}   Session {playSession}"),
             string.Create(inv, $"pos ({body.CenterX / U:0.0}, {body.FeetY / U:0.0}, {body.CenterZ / U:0.0})   yaw {yaw:0}   pitch {pitch:0}"),
+            Atmosphere(sim.Atmosphere, sim.Weather.Previous.Id, sim.Weather.BlendAt(sim.Tick), sim.Clock.IsFrozen, sim.Weather.IsHeld),
             "target: " + target,
         ];
+    }
+
+    /// <summary>
+    /// The clock and weather line (E03): the hour as hh:mm, the phase, and <c>held</c> when the clock is held; the weather's kind and, during a change of kind, the kind it
+    /// comes from and the blend in percent; <c>held</c> when the weather is held.
+    /// </summary>
+    /// <param name="atmosphere">The sky and weather now.</param>
+    /// <param name="previousKind">The id of the kind the weather is leaving (the current one when nothing changes).</param>
+    /// <param name="blend">How far the change has gone, 0 to 1 (1 when nothing is changing).</param>
+    /// <param name="clockHeld">Whether the clock is held.</param>
+    /// <param name="weatherHeld">Whether the weather is held.</param>
+    public static string Atmosphere(AtmosphereSnapshot atmosphere, string previousKind, double blend, bool clockHeld, bool weatherHeld)
+    {
+        ArgumentNullException.ThrowIfNull(previousKind);
+        var inv = CultureInfo.InvariantCulture;
+        var minutes = (int)Math.Round(atmosphere.Hour * 60) % (24 * 60);
+        var time = string.Create(inv, $"time {minutes / 60:00}:{minutes % 60:00} {DayPhaseNames.Of(atmosphere.Phase)}") + (clockHeld ? " held" : string.Empty);
+        var weather = "weather " + atmosphere.KindId;
+        if (blend < 1)
+        {
+            weather += string.Create(inv, $" from {previousKind} {Math.Clamp(blend, 0, 1) * 100:0}%");
+        }
+
+        if (weatherHeld)
+        {
+            weather += " held";
+        }
+
+        return time + "   " + weather;
     }
 }

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
@@ -23,6 +24,12 @@ public sealed class AmbientBedsTests
 
     private static double W(IReadOnlyList<BedInput> inputs, string bed) => inputs.Single(b => b.Bed == bed).Weight;
 
+    // The atmosphere at a daylight: noon is the full day, midnight none of it (the weather is not read by the beds).
+    private static AtmosphereSnapshot Sky(double daylight) => new(daylight * 12, DayPhase.Day, daylight, default, string.Empty, null);
+
+    private static readonly AtmosphereSnapshot Noon = Sky(1);
+    private static readonly AtmosphereSnapshot Night = Sky(0);
+
     private static double P(IReadOnlyList<BedInput> inputs, string bed) => inputs.Single(b => b.Bed == bed).Pan;
 
     [Fact]
@@ -31,61 +38,112 @@ public sealed class AmbientBedsTests
         // The player's camp: the brink of the ledge at y 72, the fire ring behind it (lit at the end of the session).
         var camp = At(155.5, 72, 115.5);
 
-        var unlit = AmbientBeds.At(Real.Value, camp, dusk: false, fireLit: false);
+        var unlit = AmbientBeds.At(Real.Value, camp, Noon, fireLit: false);
         Assert.Equal(1.0, W(unlit, AmbientBeds.Wind));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Birds));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Village));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Waterfall));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Fire)); // the ring is cold until the fire is lit
 
-        var lit = AmbientBeds.At(Real.Value, camp, dusk: false, fireLit: true);
+        var lit = AmbientBeds.At(Real.Value, camp, Noon, fireLit: true);
         Assert.InRange(W(lit, AmbientBeds.Fire), 0.5, 1.0);
         Assert.Equal("camp.player", AmbientBeds.PlaceOf(Real.Value, camp));
     }
 
     [Fact]
-    public void TheForestByTheGuidesCampHearsTheBirdsByDayAndTheInsectsAtDusk()
+    public void TheForestByTheGuidesCampHearsTheBirdsByDayAndTheInsectsAtNight()
     {
         // The guide's camp: in the lowland forest at y 42, far from the village and the river.
         var forest = At(176.5, 42, 186.5);
 
-        var day = AmbientBeds.At(Real.Value, forest, dusk: false, fireLit: false);
+        var day = AmbientBeds.At(Real.Value, forest, Noon, fireLit: false);
         Assert.Equal(1.0, W(day, AmbientBeds.Birds));
         Assert.Equal(0.0, W(day, AmbientBeds.Insects));
         Assert.Equal(0.0, W(day, AmbientBeds.Wind));
         Assert.Equal(0.0, W(day, AmbientBeds.River));
         Assert.Equal(0.0, W(day, AmbientBeds.Village));
 
-        var dusk = AmbientBeds.At(Real.Value, forest, dusk: true, fireLit: false);
-        Assert.Equal(0.0, W(dusk, AmbientBeds.Birds));
-        Assert.Equal(1.0, W(dusk, AmbientBeds.Insects));
+        var night = AmbientBeds.At(Real.Value, forest, Night, fireLit: false);
+        Assert.Equal(0.0, W(night, AmbientBeds.Birds));
+        Assert.Equal(1.0, W(night, AmbientBeds.Insects));
 
         Assert.Equal("camp.guide", AmbientBeds.PlaceOf(Real.Value, forest));
+    }
+
+    [Fact]
+    public void HalfWayThroughDuskTheForestsBirdsAndInsectsShareTheSound()
+    {
+        var forest = At(176.5, 42, 186.5);
+
+        var dusk = AmbientBeds.At(Real.Value, forest, Sky(0.5), fireLit: false);
+        Assert.Equal(0.5, W(dusk, AmbientBeds.Birds), 6);
+        Assert.Equal(0.5, W(dusk, AmbientBeds.Insects), 6);
+    }
+
+    [Fact]
+    public void TheBirdsAndInsectsFollowTheDaylightAcrossTheDay()
+    {
+        var forest = At(176.5, 42, 186.5);
+
+        var birds = new List<double>();
+        var insects = new List<double>();
+        foreach (var daylight in new[] { 0.0, 0.25, 0.5, 0.75, 1.0 })
+        {
+            var inputs = AmbientBeds.At(Real.Value, forest, Sky(daylight), fireLit: false);
+            birds.Add(W(inputs, AmbientBeds.Birds));
+            insects.Add(W(inputs, AmbientBeds.Insects));
+        }
+
+        Assert.Equal([0.0, 0.25, 0.5, 0.75, 1.0], birds);
+        Assert.Equal([1.0, 0.75, 0.5, 0.25, 0.0], insects);
+    }
+
+    [Fact]
+    public void TheTimeOfDayChangesOnlyTheBirdsAndTheInsects()
+    {
+        // Noon and midnight at places where every other bed sounds: the river's path, the village, the waterfall's lip, the camp with the fire lit, the cliff.
+        Listener[] places = [At(230.5, 37, 222.5), At(292.5, 37, 218.5), At(258.5, 100, 112.5), At(155.5, 72, 115.5), At(0, 90, 0)];
+        foreach (var place in places)
+        {
+            var day = AmbientBeds.At(Real.Value, place, Noon, fireLit: true);
+            var night = AmbientBeds.At(Real.Value, place, Night, fireLit: true);
+            Assert.Equal(day.Select(static b => b.Bed), night.Select(static b => b.Bed));
+            foreach (var (dayBed, nightBed) in day.Zip(night))
+            {
+                if (dayBed.Bed is AmbientBeds.Birds or AmbientBeds.Insects)
+                {
+                    continue;
+                }
+
+                Assert.Equal(dayBed.Weight, nightBed.Weight);
+                Assert.Equal(dayBed.Pan, nightBed.Pan);
+            }
+        }
     }
 
     [Fact]
     public void TheRiverBedIsFullAtTheRiverAndSilentByTheCampAndPansToTheSideItRuns()
     {
         var river = At(230.5, 37, 222.5);
-        var weights = AmbientBeds.At(Real.Value, river, dusk: false, fireLit: false);
+        var weights = AmbientBeds.At(Real.Value, river, Noon, fireLit: false);
         Assert.Equal(1.0, W(weights, AmbientBeds.River));
         Assert.Equal(0.0, W(weights, AmbientBeds.Waterfall));
         Assert.Equal(0.0, W(weights, AmbientBeds.Wind));
 
         // Facing north, the river lies straight ahead; facing east it lies on the left (the river is to the east at the bridge): the pan follows the bearing.
         var eastOfTheRiver = At(226.5, 37, 222.5, North);
-        Assert.True(P(AmbientBeds.At(Real.Value, eastOfTheRiver, false, false), AmbientBeds.River) > 0.5, "the river is to the east: on the right when facing north");
+        Assert.True(P(AmbientBeds.At(Real.Value, eastOfTheRiver, Noon, false), AmbientBeds.River) > 0.5, "the river is to the east: on the right when facing north");
         var facingEast = At(226.5, 37, 222.5, East);
-        Assert.True(Math.Abs(P(AmbientBeds.At(Real.Value, facingEast, false, false), AmbientBeds.River)) < 0.2, "the river ahead when facing east: centred");
+        Assert.True(Math.Abs(P(AmbientBeds.At(Real.Value, facingEast, Noon, false), AmbientBeds.River)) < 0.2, "the river ahead when facing east: centred");
         var facingSouth = At(226.5, 37, 222.5, South);
-        Assert.True(P(AmbientBeds.At(Real.Value, facingSouth, false, false), AmbientBeds.River) < -0.5, "the river is to the east: on the left when facing south");
+        Assert.True(P(AmbientBeds.At(Real.Value, facingSouth, Noon, false), AmbientBeds.River) < -0.5, "the river is to the east: on the left when facing south");
     }
 
     [Fact]
     public void TheVillageBedIsFullInTheVillageAndTheForestBirdsFadeOut()
     {
         var village = At(292.5, 37, 218.5);
-        var weights = AmbientBeds.At(Real.Value, village, dusk: false, fireLit: false);
+        var weights = AmbientBeds.At(Real.Value, village, Noon, fireLit: false);
         Assert.Equal(1.0, W(weights, AmbientBeds.Village));
         Assert.Equal(0.0, W(weights, AmbientBeds.Birds), 6);
         Assert.Equal(0.0, W(weights, AmbientBeds.River));
@@ -93,42 +151,42 @@ public sealed class AmbientBedsTests
 
         // The stall stands on the square's west side, inside the village's reach.
         var stall = At(286.5, 37, 209.5);
-        Assert.InRange(W(AmbientBeds.At(Real.Value, stall, false, false), AmbientBeds.Village), 0.9, 1.0);
+        Assert.InRange(W(AmbientBeds.At(Real.Value, stall, Noon, false), AmbientBeds.Village), 0.9, 1.0);
     }
 
     [Fact]
     public void TheWaterfallIsLouderTheNearerItIsAndFallsAwayWithDistance()
     {
         var lip = At(258.5, 100, 112.5);
-        var nearWaterfall = AmbientBeds.At(Real.Value, lip, false, false);
+        var nearWaterfall = AmbientBeds.At(Real.Value, lip, Noon, false);
         Assert.Equal(1.0, W(nearWaterfall, AmbientBeds.Waterfall), 6);
         Assert.Equal("waterfall", AmbientBeds.PlaceOf(Real.Value, lip));
 
         var previous = 2.0;
         foreach (var distance in new[] { 2.0, 8.0, 16.0, 24.0, 32.0, 40.0 })
         {
-            var weight = W(AmbientBeds.At(Real.Value, At(258.5 - distance, 100, 112.5), false, false), AmbientBeds.Waterfall);
+            var weight = W(AmbientBeds.At(Real.Value, At(258.5 - distance, 100, 112.5), Noon, false), AmbientBeds.Waterfall);
             Assert.True(weight <= previous, $"the waterfall weight falls with distance (at {distance})");
             previous = weight;
         }
 
-        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(258.5 - 40, 100, 112.5), false, false), AmbientBeds.Waterfall));
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(258.5 - 40, 100, 112.5), Noon, false), AmbientBeds.Waterfall));
     }
 
     [Fact]
     public void TheWindRisesOnTheHeightsAndIsSilentInTheValley()
     {
-        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(176.5, 42, 186.5), false, false), AmbientBeds.Wind));
-        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(292.5, 37, 218.5), false, false), AmbientBeds.Wind));
-        var middle = W(AmbientBeds.At(Real.Value, At(0, 63, 0), false, false), AmbientBeds.Wind);
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(176.5, 42, 186.5), Noon, false), AmbientBeds.Wind));
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(292.5, 37, 218.5), Noon, false), AmbientBeds.Wind));
+        var middle = W(AmbientBeds.At(Real.Value, At(0, 63, 0), Noon, false), AmbientBeds.Wind);
         Assert.InRange(middle, 0.1, 0.9);
-        Assert.Equal(1.0, W(AmbientBeds.At(Real.Value, At(0, 90, 0), false, false), AmbientBeds.Wind));
+        Assert.Equal(1.0, W(AmbientBeds.At(Real.Value, At(0, 90, 0), Noon, false), AmbientBeds.Wind));
     }
 
     [Fact]
     public void EveryBedIsListedInTheSameOrderAndWeightsStayInRange()
     {
-        var inputs = AmbientBeds.At(Real.Value, At(200.5, 50, 200.5), dusk: false, fireLit: false);
+        var inputs = AmbientBeds.At(Real.Value, At(200.5, 50, 200.5), Noon, fireLit: false);
         Assert.Equal(AmbientBeds.All, inputs.Select(static b => b.Bed).ToList());
         foreach (var input in inputs)
         {
@@ -163,8 +221,8 @@ public sealed class AmbientBedsTests
     {
         var output = new RecordingOutput();
         var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(3), null);
-        var camp = AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), false, false);
-        var village = AmbientBeds.At(Real.Value, At(292.5, 37, 218.5), false, false);
+        var camp = AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), Noon, false);
+        var village = AmbientBeds.At(Real.Value, At(292.5, 37, 218.5), Noon, false);
 
         mixer.SetBeds(camp);
         for (var i = 0; i < 180; i++)
@@ -202,7 +260,7 @@ public sealed class AmbientBedsTests
     {
         var output = new RecordingOutput();
         var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(5), null);
-        mixer.SetBeds(AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), false, false));
+        mixer.SetBeds(AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), Noon, false));
         Run(mixer, 2);
         Assert.True(output.Beds.Single(static b => b.Bed == AmbientBeds.Wind).Level > 0.3);
 
@@ -219,7 +277,7 @@ public sealed class AmbientBedsTests
     {
         var output = new RecordingOutput();
         var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(9), null);
-        mixer.SetBeds(AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), false, false));
+        mixer.SetBeds(AmbientBeds.At(Real.Value, At(155.5, 72, 115.5), Noon, false));
         Run(mixer, 2);
         var free = output.Beds.Single(static b => b.Bed == AmbientBeds.Wind).Level;
 

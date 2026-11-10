@@ -141,6 +141,8 @@ public sealed record LaunchOptions
         + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
         + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
+        + "  --set-time <hour|run>   a step: hold the clock at an hour from 0 to 24 from this step on, or 'run' to let it run on (E03)\n"
+        + "  --set-weather <id|run>  a step: hold a weather kind by its id (the ids of game/weather.json) from this step on, or 'run' to let it run on (E03)\n"
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
@@ -240,6 +242,20 @@ public sealed record LaunchOptions
         ArgumentNullException.ThrowIfNull(npcs);
         var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Talk && !npcs.Contains(step.Value, StringComparer.Ordinal));
         error = unknown is null ? string.Empty : $"--talk needs an NPC ({string.Join(", ", npcs)}), got '{unknown.Value}'.";
+        return unknown is null;
+    }
+
+    /// <summary>
+    /// Checks the <c>--set-weather</c> steps against the weather kinds the bundle has (E03). The check waits for the data, as <see cref="CheckTalkTargets"/> does for the NPCs.
+    /// </summary>
+    /// <param name="kinds">The ids of the bundle's weather kinds, in the data's order.</param>
+    /// <param name="error">The message for the first unknown id, or empty.</param>
+    /// <returns>Whether every <c>--set-weather</c> names one of the kinds (or <c>run</c>).</returns>
+    public bool CheckWeatherTargets(IReadOnlyList<string> kinds, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(kinds);
+        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
+        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({string.Join(", ", kinds)}) or 'run', got '{unknown.Step!.Item}'.";
         return unknown is null;
     }
 
@@ -616,7 +632,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
@@ -1182,6 +1198,35 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--set-time":
+                    if (value.Trim() == "run")
+                    {
+                        steps.Add(VoxelStep.RunTime());
+                    }
+                    else if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var setHour) && double.IsFinite(setHour) && setHour is >= 0 and <= 24)
+                    {
+                        steps.Add(VoxelStep.SetTime(setHour));
+                    }
+                    else
+                    {
+                        error = $"--set-time needs an hour from 0 to 24 (fractions allowed) or 'run', got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
+                case "--set-weather":
+                    // Which kinds there are is the bundle's (game/weather.json): CheckWeatherTargets refuses an unknown one once the data has loaded.
+                    if (value.Trim().Length == 0)
+                    {
+                        error = $"--set-weather needs a weather kind's id or 'run', got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(value.Trim() == "run" ? VoxelStep.RunWeather() : VoxelStep.SetWeather(value.Trim()));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 case "--select":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var slot) || slot < 1 || slot > 10)
                     {
@@ -1265,7 +1310,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

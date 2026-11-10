@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.World.Layout;
 
@@ -102,12 +103,12 @@ public sealed class AmbientPlaces
 
 /// <summary>
 /// Where the ambient beds sit for a listener (S25): the weight of each bed, 0 to 1, and its pan. It is a pure function of the listener's place and facing, the
-/// scene's places, <c>--dusk</c> and whether the player's fire is lit, so the same route gives the same weights at the same tick.
+/// scene's places, the atmosphere's daylight and whether the player's fire is lit, so the same route gives the same weights at the same tick.
 /// </summary>
 /// <remarks>
 /// The beds: <c>wind</c> on the cliff and the heights; <c>birds</c> in the lowland forest by day (scheduled chirps); <c>river</c> along the river's path and at the
 /// lake; <c>waterfall</c>, louder near its lip; <c>village</c> by the houses and the stall; <c>fire</c> (scheduled crackles) by the lit fire ring and the lamps;
-/// <c>insects</c> in the lowland at dusk. Distances fall off smoothly. Pan is the bearing of the source from the way the player faces: simple stereo, not 3D.
+/// <c>insects</c> in the lowland as the daylight falls (E03: the birds scale with the daylight, the insects with its rest, so they swap across dawn and dusk). Distances fall off smoothly. Pan is the bearing of the source from the way the player faces: simple stereo, not 3D.
 /// </remarks>
 public static class AmbientBeds
 {
@@ -129,7 +130,7 @@ public static class AmbientBeds
     /// <summary>The fire: the lit fire ring and the lamps (scheduled crackles).</summary>
     public const string Fire = "fire";
 
-    /// <summary>The evening insects (with <c>--dusk</c>).</summary>
+    /// <summary>The insects of the evening and the night (the lowland, as the daylight falls).</summary>
     public const string Insects = "insects";
 
     /// <summary>Every bed, in a fixed order.</summary>
@@ -238,9 +239,9 @@ public static class AmbientBeds
     /// <summary>The weights of every bed for a listener, in <see cref="All"/> order (each bed is listed, weight 0 when it is not heard).</summary>
     /// <param name="places">The scene's places.</param>
     /// <param name="listener">The listener.</param>
-    /// <param name="dusk">Whether <c>--dusk</c> is on: the birds stop and the insects start.</param>
+    /// <param name="atmosphere">The atmosphere now: its daylight sets the birds (by day) and the insects (by night).</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, bool dusk, bool fireLit)
+    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit)
     {
         ArgumentNullException.ThrowIfNull(places);
         var here = new Point2(listener.X, listener.Z);
@@ -276,8 +277,9 @@ public static class AmbientBeds
 
         var windWeight = Ramp(listener.Y, WindLow, WindHigh);
         var lowland = 1 - Ramp(listener.Y, 50, 64);
-        var birdsWeight = dusk ? 0 : lowland * (1 - villageWeight);
-        var insectsWeight = dusk ? lowland : 0;
+        var daylight = Math.Clamp(atmosphere.Daylight, 0, 1);
+        var birdsWeight = lowland * (1 - villageWeight) * daylight;
+        var insectsWeight = lowland * (1 - daylight);
 
         var fireWeight = 0.0;
         var firePan = 0.0;

@@ -55,7 +55,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --
 **The day cycle (E02).** The sky, the fog and the light of the world follow the day clock (`Simulation.Clock`, `content/game-v1/game/day.json`: a 40-minute cycle, dawn at 4, day at 6, dusk at 20, night at 22, the game
 starting at 8). `--time <hour>` holds the clock at an hour from 0 to 24 (fractions allowed: `--time 7.5` is half past seven), so a screenshot run shows any hour; `--dusk` holds it at 21, the middle of the dusk (the
 amber sky, the low warm light, the lanterns at full strength: what `--dusk` always showed, except that the sun now stands on the horizon in the west), and with both `--time` wins. The held hour is the simulation's state
-(E01: it is in the digest and in a save written during the run, which loads held). The menu's Dusk lighting row holds the clock at 21 and, switched off, lets it run on from there. The hours worth a picture: 0 (night), 5 (dawn),
+(E01: it is in the digest and in a save written during the run, which loads held). The menu's Time of day row holds the clock at any hour (its first position, Running, lets it run on from there; see E03 below). The hours worth a picture: 0 (night), 5 (dawn),
 7 (morning), 13 (noon), 21 (dusk), 23 (night); the light changes bands at about 4.24, 5.7, 20.3 and 21.76 (the meshes are built again in the background for the new band, a few seconds, and show no step in the sun's light):
 
 ```bash
@@ -63,6 +63,8 @@ for h in 0 5 7 13 21 23; do
   DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --time $h --screenshot /tmp/e02-$h.png --frames 30
 done
 ```
+
+**Time and weather switches (E03).** Two scripted steps, in the order given with the others: `--set-time <hour>` holds the clock at an hour from 0 to 24 (fractions allowed) from that step on, and `--set-time run` lets it run on; `--set-weather <id>` holds a kind of the bundle's weather (`content/game-v1/game/weather.json`, by its id, no transition), and `--set-weather run` releases it. An hour outside 0 to 24 is a usage error, and an id the bundle lacks is refused at launch with the ids it has. The testing menu's **Time of day** row (Running, then 0:00 to 23:00) and **Weather** row (Running, then the ids) hold and release the same things and show what the simulation holds (a clock held by `--time` or `--dusk` shows its hour). The F3 overlay has a line after the position: the hour as `hh:mm` and the phase, `held` when the clock is held; the weather's kind, and during a change the kind it leaves and the blend in percent; `held` when the weather is held. A held clock or weather is the simulation's state, so a save written during the run keeps it, as `--time` always has.
 
 `--weather <id>` holds the weather at one kind of the loaded bundle (E05; `sunny`, `cloudy` and `rain` in `game-v1`, the ids of `game/weather.json`, no code names them): the game forces it from the first frame (no blend, as `Simulation.ForceWeather`),
 so the sky, the clouds, the fog and the light show its channels. An unknown id is refused with the list of ids. It combines with `--time`:
