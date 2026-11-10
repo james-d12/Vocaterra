@@ -270,7 +270,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | todo |
+| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the voice trial | none | S/M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
 | Y01 | Rest places, with behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
 | Y02 | Save version 8 and the rest entry | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | todo |

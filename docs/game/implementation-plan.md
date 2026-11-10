@@ -506,7 +506,7 @@ the statuses below follow its table in section 8.3.
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | todo |
+| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | in progress, launched 2026-11-10 |
 | Y01 | Rest places: authored and run-time places in `needs.json` and `RestPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | todo |
 | Y02 | Save version 8 and the `rest` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | todo |
 | Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | todo |
