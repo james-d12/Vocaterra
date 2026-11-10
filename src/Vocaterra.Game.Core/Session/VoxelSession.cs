@@ -381,6 +381,9 @@ public sealed partial class VoxelSession : GuideSession
     /// <inheritdoc />
     protected override string StateDigest() => Simulation.ComputeStateDigest();
 
+    /// <inheritdoc />
+    protected override string? WeatherKey => Simulation.Atmosphere.Say;
+
     /// <summary>
     /// Advances the simulation one tick with the body's commands, then feeds the objective and the word cards from the tick's events, and takes
     /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target, which logs <see cref="WorldEvents.BeaconReached"/> with the

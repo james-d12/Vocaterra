@@ -922,6 +922,24 @@ public static class GameDataValidator
             problems.Add($"{file}: the acknowledgement pool '{pool}' is not a dialogue pool of the bundle.");
         }
 
+        // E07: an NPC that answers the weather has a pool for every dialogue key the weather's kinds carry, so a kind added later cannot ship without its line.
+        if (npc.WeatherAnswers.Count > 0)
+        {
+            foreach (var kind in data.Weather.Kinds)
+            {
+                if (kind.Say is not { } say)
+                {
+                    problems.Add($"game/weather.json: the kind '{kind.Id}' has no 'say', and {file} answers the weather ({string.Join(", ", npc.WeatherAnswers)}).");
+                    continue;
+                }
+
+                foreach (var key in new[] { say.Day, say.Night }.Distinct(StringComparer.Ordinal).Where(key => NpcTurnRules.PoolSaidOn(data.Bundle, npc.Id, NpcTurnRules.WeatherEvent(npc.Id, key)) is not { } pool || !data.Bundle.Dialogue.Pools.ContainsKey(pool)))
+                {
+                    problems.Add($"{file}: the weather kind '{kind.Id}' says '{key}', but no transition of agents/{npc.Id}.json on the host event '{NpcTurnRules.WeatherEvent(npc.Id, key)}' names a dialogue pool for the NPC's answer.");
+                }
+            }
+        }
+
         foreach (var (intent, reply) in npc.SlotReplies)
         {
             var pool = NpcTurnRules.PoolSaidOn(data.Bundle, npc.Id, reply.Event);

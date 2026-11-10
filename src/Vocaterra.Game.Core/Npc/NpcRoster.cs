@@ -61,6 +61,12 @@ public sealed record NpcEntry(string Id, string Label, string? Name, string Figu
     /// </summary>
     public IReadOnlyDictionary<string, SlotReply> SlotReplies { get; init; } = new Dictionary<string, SlotReply>(StringComparer.Ordinal);
 
+    /// <summary>
+    /// The intents whose plain reply is the weather's own answer (E07: <c>ask_weather</c>): the NPC says the pool its agent names on the host event <c>&lt;id&gt;.&lt;key&gt;</c> (<see cref="NpcTurnRules.WeatherEvent"/>), the key being the dialogue key of the
+    /// weather now (<see cref="GuideScene.WeatherKey"/>), in place of the reply its transition names. Empty for an NPC that has no such answer.
+    /// </summary>
+    public IReadOnlyList<string> WeatherAnswers { get; init; } = [];
+
     /// <summary>The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's <c>agua</c>, <c>pan</c>); empty for most.</summary>
     public IReadOnlyList<string> KeyWords { get; init; } = [];
 
@@ -323,6 +329,7 @@ public sealed class NpcRoster
                 FreeTalkPools = root.TryGetProperty("freeTalkPools", out var freeTalk) ? freeTalk.EnumerateObject().ToDictionary(static p => p.Name, static p => p.Value.GetString() ?? string.Empty, StringComparer.Ordinal) : new Dictionary<string, string>(StringComparer.Ordinal),
                 AcknowledgementPools = root.TryGetProperty("acknowledgementPools", out var acknowledgements) ? acknowledgements.EnumerateArray().Select(static p => p.GetString() ?? string.Empty).ToList() : [],
                 SlotReplies = root.TryGetProperty("slotReplies", out var slotReplies) ? slotReplies.EnumerateObject().ToDictionary(static p => p.Name, p => SlotReplyOf(p.Value, path), StringComparer.Ordinal) : new Dictionary<string, SlotReply>(StringComparer.Ordinal),
+                WeatherAnswers = root.TryGetProperty("weatherAnswers", out var weatherAnswers) ? weatherAnswers.EnumerateArray().Select(static p => p.GetString() ?? string.Empty).ToList() : [],
                 KeyWords = root.TryGetProperty("keyWords", out var keyWords) ? keyWords.EnumerateArray().Select(static w => w.GetString() ?? string.Empty).ToList() : [],
             };
             return string.IsNullOrWhiteSpace(pools) ? entry : entry with { PoolPrefix = pools };

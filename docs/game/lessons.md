@@ -311,6 +311,10 @@ ticks (the open points below): sessions 4 to 7 and 7 to 9 by a sleep at the fire
 - **Free talk, untaught lines:** 6 of 11 were understood and 5 were not. `Hoy hace sol.` is understood at the villager, the smith and the fisher, `Hace calor.`
   at Luz and `Hoy compro fruta.` at Luz; `Me gusta el río.` gets «No te entendí» at the villager and at the smith, `Tengo un hacha.` at León (twice),
   `Tengo dos manzanas.` at Mar. A true sentence of a kind the NPC takes is understood whether or not it was taught; the rest is not.
+- **Free talk, the weather question (E07):** «¿Qué tiempo hace?» (`ask_weather`) is answered by every NPC with the weather the world has, not V29's fixed
+  «Hoy hace sol.»: «Hoy hace sol.» in sunny weather by day, «Hace buen tiempo.» on a clear night, «Hoy está nublado.» and «Hoy llueve.» (the line follows the
+  weather kind's `say` key, `game/weather.json`; the pool is the NPC's `<npc>_<key>`). The learner's own statement (`hace sol`, `llueve`) is answered as V29 made
+  it (echoed or «¡Sí!»), whatever the weather: the NPC does not yet agree or disagree.
 - **What a learner would find wrong or stuck:** nothing blocks the route. Two things are not right. A request the stall or Luz cannot fill is refused
   correctly (`Quiero dos manzanas.` at Luz: «Solo vendo pan.»), but the book logs it as a use of `quiero-dos-panes` (the noun `manzana`); and an untaught line
   gets «No te entendí» and then «¿Cómo?» at the same NPC, two replies for one line. No game

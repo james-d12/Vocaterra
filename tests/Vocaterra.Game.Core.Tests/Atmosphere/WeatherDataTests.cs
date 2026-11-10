@@ -53,7 +53,7 @@ public sealed class WeatherDataTests
         Assert.Equal((240, 600, 6), (sunny.MinSeconds, sunny.MaxSeconds, sunny.MorningWeight));
         Assert.Equal([new WeightedKind("sunny", 3), new WeightedKind("rain", 2)], Shipped.Kind("cloudy").Next);
         Assert.Equal(new WeatherChannels(1, 0.5, 0.5, 0.6, "rain", 0.8), Shipped.Kind("rain").Channels);
-        Assert.All(Shipped.Kinds, static k => Assert.Null(k.Say));
+        Assert.Equal([new WeatherSay("sun", "fair"), new WeatherSay("cloudy", "cloudy"), new WeatherSay("rain", "rain")], Shipped.Kinds.Select(static k => k.Say)); // E07 gave the kinds their dialogue keys
     }
 
     [Fact]

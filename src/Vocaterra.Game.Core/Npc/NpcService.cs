@@ -755,7 +755,8 @@ public sealed partial class NpcService
             _bundle,
             agent.Npc,
             utterance.WorldSeed,
-            utterance.AgentState.InteractionCounter);
+            utterance.AgentState.InteractionCounter,
+            scene.WeatherKey);
         var feedback = offPrompt ? null : composed.Feedback;
         var replies = offPrompt
             ? [NpcTurnRules.OffPromptReply(_bundle, offPromptPool!, utterance.WorldSeed, utterance.AgentState.InteractionCounter)]
