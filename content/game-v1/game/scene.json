@@ -150,12 +150,12 @@
     },
 
     // The inn's inside (Y04, SETTLEMENT_PLAN 9.1), placed after the house at its corner, facing north (col 0 is the west wall's column, row 0 the north wall's).
-    // Reception in rows 1 and 2: the counter (a table) at col 5 with the keeper's cell behind it at cols 6 and 7, enclosed by the counter, the east wall and the
+    // Reception in rows 1 and 2: the counter (a crate, one block high: a table would be a workbench and a stall block a market stall) at col 5 with the keeper's cell behind it at cols 6 and 7, enclosed by the counter, the east wall and the
     // partition; a partition on row 3 with a gap at col 4, on the door's axis, three high with a lintel; the guest room in rows 4 and 5 with a bed against the
     // west wall and one against the east wall (the head of a bed lies against the wall beside it); and six one-block windows at eye height, cut through
     // the walls with the legend's "air".
     "inn_rooms": {
-      "legend": { "W": "wall", "T": "table", "B": "bed", "a": "air" },
+      "legend": { "W": "wall", "T": "crate", "B": "bed", "a": "air" },
       "layers": [
         ["         ", "     T   ", "     T   ", " WWW WWW ", "         ", " B     B ", "         "],
         ["  a   a  ", "         ", "a       a", " WWW WWW ", "a       a", "         ", "   a a   "],
@@ -199,7 +199,7 @@
     {"type": "stall", "site": "village", "dx": -6, "dz": -9, "width": 2, "depth": 5, "facing": "west", "name": "stall", "label": "tienda"},
     {"type": "house", "site": "village", "dx": 9, "dz": -9, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1", "label": "casa"},
     {"type": "house", "site": "village", "dx": 9, "dz": 5, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2", "label": "casa"},
-    {"type": "house", "site": "village", "dx": 9, "dz": 12, "width": 5, "depth": 5, "height": 3, "facing": "north", "name": "house3", "label": "casa"},
+    {"type": "house", "site": "village", "dx": 9, "dz": 13, "width": 5, "depth": 5, "height": 3, "facing": "north", "name": "house3", "label": "casa"},
     // The inn (Y04; it stands where house3 stood, which moved to the south-east corner): nine by seven, its door in the north wall facing the road, then its inside.
     {"type": "house", "site": "village", "dx": -16, "dz": 8, "width": 9, "depth": 7, "height": 3, "facing": "north", "name": "inn", "label": "posada"},
     {"type": "stamp", "stamp": "inn_rooms", "site": "village", "dx": -16, "dz": 8, "facing": "north", "name": "inn.rooms"},

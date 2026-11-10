@@ -18,7 +18,7 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "a03be5dc938ea1d6"; // V10: the well's rim one block high
+    private const string VillageStructureDigest = "1349a7e570ce5167"; // Y04: the inn, its inside and the moved house3; V10: the well's rim one block high
     private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
 
     // The village's levelled disc, whose structure the digest covers: 24 since village-plan V04 (the bakery, the smithy, the well), 19 of the 20 before.
@@ -125,7 +125,7 @@ public sealed class VillageTests(ITestOutputHelper output)
 
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X, floor + 4, centre.Z)); // the first layer is the whole footprint
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X + 2, floor + 4, centre.Z + 2));
-            Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X + 1, floor + 5, centre.Z + 1)); // the second is 3 x 3
+            Assert.Contains(grid.GetBlock(centre.X + 1, floor + 5, centre.Z + 1), new[] { BlockId.Roof, BlockId.Cobble }); // the second is 3 x 3 (the chimney, by the house's place, takes one of its corners)
             Assert.NotEqual(BlockId.Roof, grid.GetBlock(centre.X + 2, floor + 5, centre.Z)); // so the outer ring of the second layer is not roof
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X, floor + 6, centre.Z)); // the ridge cap
             var chimneys = Count(grid, centre.X - 2, centre.X + 2, floor + 5, floor + 9, centre.Z - 2, centre.Z + 2, BlockId.Cobble);

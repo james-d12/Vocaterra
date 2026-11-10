@@ -71,7 +71,7 @@ public sealed class SleepEntrySaveTests
         Assert.False(loaded.LodgingGiven);
         Assert.Null(loaded.LastSleepPlace);
         Assert.Empty(loaded.SleepPlaces.MadeInPlay);
-        Assert.Single(loaded.SleepPlaces.All);
+        Assert.Equal(["camp.fire", "inn.bed"], loaded.SleepPlaces.All.Select(static p => p.Id)); // the shipped places (Y04: the inn's bed too)
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class SleepEntrySaveTests
 
         Assert.Equal(made, Assert.Single(loaded.SleepPlaces.MadeInPlay));
         Assert.Equal(made, loaded.SleepPlaces.Find("camp.1"));
-        Assert.Equal(2, loaded.SleepPlaces.All.Count);
+        Assert.Equal(3, loaded.SleepPlaces.All.Count); // the fire, the inn's bed and the place made
         Assert.Null(loaded.LastSleepPlace);
     }
 

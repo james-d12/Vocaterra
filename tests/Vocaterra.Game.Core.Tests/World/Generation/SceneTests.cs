@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "b699324f68f071a65b8fcc715fc593f3ea91a4945a0ed49d6ac1b208869c7d3a"; // village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "213e63701b1d392ec308c222584056135b2e2975253420100152f925c09b20ca"; // Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -246,8 +246,8 @@ public sealed class SceneTests(ITestOutputHelper output)
 
         var counts = CountBlocks(grid);
         Assert.True(counts[BlockId.BerryBush] >= 3, "the camp needs at least three berry bushes for the objective");
-        Assert.Equal((3 * 5 * 5) + (6 * 5) + (5 * 5), counts[BlockId.Planks]); // three 5 x 5 house floors, the bakery's 6 x 5 and the smithy's 5 x 5 (V04)
-        Assert.Equal(5 * 2, counts[BlockId.Door]); // a two-block doorway each
+        Assert.Equal((3 * 5 * 5) + (6 * 5) + (5 * 5) + (9 * 7), counts[BlockId.Planks]); // three 5 x 5 house floors, the bakery's 6 x 5, the smithy's 5 x 5 (V04) and the inn's 9 x 7 (Y04)
+        Assert.Equal(6 * 2, counts[BlockId.Door]); // a two-block doorway each (the five houses and the inn, Y04)
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
         Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells

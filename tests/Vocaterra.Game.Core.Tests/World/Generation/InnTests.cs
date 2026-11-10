@@ -44,7 +44,7 @@ public sealed class InnTests
 
         foreach (var z in new[] { z0 + 1, z0 + 2 })
         {
-            Assert.Equal(BlockId.Table, At(scene, x0 + 5, floor + 1, z)); // the counter, one block high
+            Assert.Equal(BlockId.Crate, At(scene, x0 + 5, floor + 1, z)); // the counter, one block high (a crate: a table within reach would be a workbench)
             Assert.Equal(BlockId.Air, At(scene, x0 + 5, floor + 2, z));
         }
 
@@ -156,8 +156,8 @@ public sealed class InnTests
         var layout = VoxelTestSupport.RouteDraft;
         var scene = VoxelTestSupport.BuildRoute(Seed);
 
-        Assert.Equal(["house1", "house2", "house3"], layout.Props.Where(static p => p.Type == "house" && p.Label == "casa").Select(static p => p.Name));
-        Assert.Equal("posada", layout.Props.Single(static p => p.Name == "inn").Label);
+        Assert.Equal(["house1", "house2", "house3"], layout.Props.Where(p => p.Type == "house" && scene.LabelOf(p.Name!) == "casa").Select(static p => p.Name));
+        Assert.Equal("posada", scene.LabelOf("inn"));
 
         // house3's door is reached from the street: a path from the village's square to the cell in front of it.
         var house3 = scene.Point("house3");
