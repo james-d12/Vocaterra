@@ -24,14 +24,17 @@ public sealed class BedArtTests
     }
 
     [Fact]
-    public void Given_ABed_When_ItsTopIsDrawn_Then_ThePillowIsAtTheHeadAndTheBlanketCoversTheRest()
+    public void Given_ABed_When_ItsTopIsDrawn_Then_ThePillowIsAtTheHeadTheSheetIsFoldedAndTheBlanketCoversTheRest()
     {
         var pillow = Texel(BlockCell.Bed, 8, 3);
         Assert.Equal(255, pillow.A);
         Assert.True(pillow.R > 230 && pillow.G > 220 && pillow.B > 210, "the pillow is cream");
-        var blanket = Texel(BlockCell.Bed, 8, 12);
+        var blanket = Texel(BlockCell.Bed, 8, 11);
         Assert.Equal(255, blanket.A);
         Assert.True(blanket.R > 140 && blanket.G < 100, "the blanket is red");
+        var sheet = Texel(BlockCell.Bed, 8, 8);
+        Assert.True(sheet.R > 220 && sheet.G > 210, "the sheet turned down over the blanket is light");
+        Assert.True(Texel(BlockCell.Bed, 8, 13).R < Texel(BlockCell.Bed, 8, 12).R - 60, "the blanket's fold has a lit ridge over a dark crease");
     }
 
     [Fact]

@@ -397,19 +397,37 @@ public static class BlockArtVillage
 
     private static Rgba BedPixel(int x, int y, uint n)
     {
-        // The bed from above, its head at the top of the picture: a dark wooden frame round the edge, a cream pillow under the head, and a red blanket
-        // with a lighter fold across it. The sides of the box show the same picture under the frame's band.
+        // The bed from above, its head at the top of the picture (the headboard hides the first rows): a dark wooden frame round the edge, a plump cream
+        // pillow with a shadow under it, the sheet turned down over the blanket's top edge, and a red blanket with a darker crease and a lighter ridge
+        // across it (Y04: the first picture, a pillow strip on a red slab, read as a red box from the door).
         if (x is 0 or 15 || y is 0 or 15)
         {
             return Jit(118, 74, 38, n, 2);
         }
 
-        if (x is >= 2 and <= 13 && y is >= 2 and <= 5)
+        if (x is >= 2 and <= 13 && y is >= 3 and <= 6)
         {
-            return Jit(246, 242, 232, n, 2);
+            // light on the pillow's top, a little shade at its lower edge
+            return y == 6 || x is 2 or 13 ? Jit(214, 208, 196, n, 2) : Jit(252, 250, 242, n, 2);
         }
 
-        return y == 7 ? Jit(232, 196, 120, n, 2) : Jit(180, 52, 50, n, 3);
+        if (y == 7)
+        {
+            return Jit(120, 70, 66, n, 2); // the pillow's shadow on the sheet
+        }
+
+        if (y is 8 or 9)
+        {
+            return y == 8 ? Jit(240, 234, 214, n, 2) : Jit(206, 198, 176, n, 2); // the sheet turned down, with its own fold
+        }
+
+        return y switch
+        {
+            10 or 11 => Jit(188, 56, 52, n, 3),
+            12 => Jit(226, 96, 88, n, 2), // the ridge of the fold, lit
+            13 => Jit(112, 28, 30, n, 2), // the crease under it, in shade
+            _ => Jit(172, 46, 46, n, 3),
+        };
     }
 
     private static Rgba BedrollPixel(int x, int y, uint n)

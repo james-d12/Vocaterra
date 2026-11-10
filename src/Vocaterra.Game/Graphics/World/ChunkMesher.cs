@@ -398,6 +398,9 @@ public static class ChunkMesher
                         case BlockShape.Lantern:
                             AddAllFaces(opaque, x, y, z, new Box(x + 0.3125f, y + 0.1875f, z + 0.3125f, x + 0.6875f, y + 0.8125f, z + 0.6875f), BlockId.Lantern, BlockCell.Lantern, grey, true);
                             break;
+                        case BlockShape.Pile when id == BlockId.Bed:
+                            AddBed(opaque, near, lx, ly, lz, x, y, z, grey);
+                            break;
                         case BlockShape.Pile:
                             AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + PileHeight(id), z + 0.9f), id, null, grey);
                             break;
@@ -897,10 +900,42 @@ public static class ChunkMesher
     /// </summary>
     public static float PileHeight(BlockId id) => id switch
     {
-        BlockId.Bed => 0.5f,
+        BlockId.Bed => 0.5f, // the mattress; the headboard stands higher (BedHeadboardHeight)
         BlockId.Bedroll => 0.3f,
         _ => 0.42f,
     };
+
+    /// <summary>The height of a bed's headboard in blocks (Y04): it stands over the mattress, so the block reads as a bed and not as a red box.</summary>
+    public const float BedHeadboardHeight = 0.85f;
+
+    /// <summary>
+    /// A bed (Y04): a mattress whose top is the bed's picture (the pillow at the head, a blanket with a turned-down sheet) and, at the head, a headboard
+    /// of planks standing above it. The head lies against a wall when one stands beside the cell (north, west, east, then south); a bed in the open
+    /// has its head to the north.
+    /// </summary>
+    private static void AddBed(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey)
+    {
+        var turnDegrees = IsOpaqueCube(near.Get(lx, ly, lz - 1)) ? 0
+            : IsOpaqueCube(near.Get(lx - 1, ly, lz)) ? 270
+            : IsOpaqueCube(near.Get(lx + 1, ly, lz)) ? 90
+            : IsOpaqueCube(near.Get(lx, ly, lz + 1)) ? 180
+            : 0;
+        var turn = Turn.None;
+        if (turnDegrees != 0)
+        {
+            var yaw = turnDegrees * MathF.PI / 180f;
+            var (rx, rz) = new Turn(yaw, 0, 0, 0).Rotate(x + 0.5f, z + 0.5f);
+            turn = new Turn(yaw, x + 0.5f - rx, 0, z + 0.5f - rz);
+        }
+
+        var mattress = new Box(x + 0.06f, y, z + 0.06f, x + 0.94f, y + PileHeight(BlockId.Bed), z + 0.94f);
+        var headboard = new Box(x + 0.03f, y, z + 0.03f, x + 0.97f, y + BedHeadboardHeight, z + 0.19f);
+        foreach (var face in Faces)
+        {
+            AddFace(buffer, face, mattress, (x, y, z), BlockAtlasLayout.CellFor(BlockId.Bed, face), White, turn, grey);
+            AddFace(buffer, face, headboard, (x, y, z), BlockCell.Planks, White, turn, grey);
+        }
+    }
 
     private static void AddDoor(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey)
     {
