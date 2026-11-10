@@ -76,7 +76,7 @@ public readonly record struct SkyLook(
         var showing = SkyWeather.BodyVisibility(input.CloudCover);
         var sunlight = (float)Math.Clamp(input.Sunlight, 0, 1);
         var domeDarken = 0.8f - (0.25f * night); // a day sky greys to 0.8 of its brightness, a night sky to 0.55
-        var domeAmount = gloom * 0.9f;
+        var domeAmount = gloom;
         var horizon = SkyWeather.Grey(Mix(a.DomeHorizon, b.DomeHorizon, c.DomeHorizon, day, twilight, night), domeAmount, domeDarken);
         var light = Mix(a.SunLight, b.SunLight, c.SunLight, day, twilight, night);
         return new SkyLook(
