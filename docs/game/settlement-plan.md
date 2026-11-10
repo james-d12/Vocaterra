@@ -429,3 +429,154 @@ sleep's rule alone and gives the weather no effect on play. What that means here
 
 Phases 6 and 7 of section 4 (the larger village with more interiors, the larger valley) are registered after the first-slice
 playtest. The valley phase begins with the 512 × 512 benchmark and a review of the three-second build budget.
+
+## 9. Layout and numbers (Y00, measured 2026-11-10)
+
+Measured on `feature/settlement` at `e3e62ee7` with probes kept outside the repository (a console project over `SceneLayout.Parse` and `SceneBuilder.Build`;
+the core's `eval` through a wrapper; the game with `--scene`), seeds 42, 7, 1234 and 2025. Blocks: x east, z south; "village" is (292, 218).
+
+### 9.1 The inn
+
+**9 x 7 fits** at village dx -16, dz 8 (x 276 to 284, z 226 to 232), the door in the north wall facing the road: the corners are 17.9, 11.3, 21.3 and 16.1 blocks
+from the village centre (the disc is 24). x 275 to 283 was refused (the west wall would stand on the road block (275, 226)). Replaces "about 9 x 7".
+
+| Clears | Measured on the built scene (dump of layers y 37 to 40) |
+| --- | --- |
+| prop `{"type":"house","site":"village","dx":-16,"dz":8,"width":9,"depth":7,"height":3,"facing":"north","name":"inn","label":"posada"}` | the stamp below goes after it |
+| road | via points (270, 226) and (284, 222) are 6 and 4 blocks off; road blocks run at z 224 (x 272 to 282) and z 225 (x 268 to 278) |
+| signpost (278, 221), paving (x 284 to 299, z 212 to 223), well (295 to 297, 228 to 230), fences (z 225, x 284 to 290 and 293 to 299) | 5, 3 and 11 blocks away; the fence touches the north-east corner diagonally only |
+| `lamp.house3` at (284, 226) | stands on the corner: becomes `lamp.inn`, dx -10, dz 7 |
+
+**What names `house3` or stands on its place** (x 279 to 283, z 225 to 229):
+
+| Where | If it goes |
+| --- | --- |
+| `scene.json` lines 185 and 198 (the house, `lamp.house3`) | replaced by the inn and `lamp.inn` |
+| `SceneTests.cs` 201 and 272, `VillageTests.cs` 113 (a 5 x 5 timber test), `ScenePlacesTests.cs` 27 (nearest "casa"); `src/Vocaterra.Game/README.md` 40 and `LaunchOptions.cs` 94 (`--beacon` help) | each names `house3`: edit them |
+| `SceneTests.GoldenDigest` (`b699324f...`; the scratch scene builds to `b16b1788...`) and the end-to-end goldens | pinned again, once, in Y04 |
+| the fisher's line «...una tienda, una panadería y tres casas.» (`dialogue.json` 921, `prompts.json` 320, `phrases.json` 60, `checks.json` 399, `PHRASES.md` 164, three locale files, four `speech-index.json` rows) | **becomes false** (two houses): "no lesson names the houses" is right about names, wrong about the count; Y04 or Y08 changes the line, its WAVs and the check |
+| `scripts/scripted-runs.sh`, `scripted-runs.md`, `clearing-route.json` | nothing falls on or beside the inn (nearest: r19, r20 and r30 at (282 to 283, 206 to 212), 15 blocks north) |
+
+**Interior**, a stamp placed after the house (same corner, facing north; cell = (col, row) from the north-west corner, col 0 = x 276):
+
+```json
+"inn_rooms": { "legend": { "W": "wall", "T": "table", "C": "crate", "a": "air" }, "layers": [
+  ["         ", "     T   ", "     T   ", " WWW WWW ", "         ", " C     C ", "         "],
+  ["  a   a  ", "         ", "a       a", " WWW WWW ", "a       a", "         ", "   a a   "],
+  ["         ", "         ", "         ", " WWWWWWW ", "         ", "         ", "         "] ] }
+```
+
+Reception in rows 1 and 2 (the door (280, 226) is not solid; the counter `T` at col 5; the keeper's cell is cols 6 and 7), a partition on row 3 with a gap at col 4 on the door's axis (3 high, lintel),
+the guest room in rows 4 and 5 with a `crate` per bed, six one-block windows at eye height; interior 7 x 5 under a 3-high ceiling.
+
+| Cell (x, z) | Note |
+| --- | --- |
+| the player talks from (280, 227), facing east | 2.04 blocks to the keeper's body; `NpcAim` reaches 8 and 0.8 round the body (feet + 1.2) |
+| innkeeper (282, 227), `"dx":-10,"dz":9,"facing":"west"` | feet y 38, behind the counter, enclosed by counter, wall and partition |
+| the bed the player sleeps at: crate (277, 231); `bed.inn` = stand cell (278, 231) | a `point` has no height; second bed (283, 231), stand (282, 231); the point `inn` (280, 229) is the gap |
+
+**Proved in scratch copies** (talk is `FigureDirector.Aimed`: the crosshair within `NpcAim.ReachBlocks` and `LineOfSight.Blocked` finding no solid block eye to body): the scene builds; a stamp inside a house's footprint builds (`FlatHeight` accepts it, later puts overwrite the house); the legend `"air"` clears wall cells
+(`BlockDefinition.FromName("air")` exists: no parser change); the NPC gets a valid cell; the ray from (280, 227) to the keeper is clear (the counter is one block
+high) and is blocked from the street, the bed and the gap's far side, so no one talks through a wall; the keeper's cell cannot be entered; `--walk-to` goes from (280, 221)
+through the door and the gap to (278, 231) (77, 28 and 46 ticks), and a column search gives 7.4 blocks from the street to the bed. Screenshots (scratch scene, the shopkeeper
+stands in for the keeper), in `/tmp/claude-1000/-home-james-Dev-Vocaterra/f44b9f5a-b0f6-474f-ba9b-15e4b5c8d56d/scratchpad/shots/`: `inn-outside.png`, `inn-inside-counter.png`
+(the "E: talk" prompt on the keeper), `inn-inside-beds.png`.
+
+### 9.2 The meadows and the plot
+
+**Probe.** An origin is valid when every footprint column has grass or dirt on top, no water, no trunk or leaves in the 24 blocks above, heights within the slope, and lies outside
+the village's disc 24 + blend 8 + 2 = 34, every `path` and `bridge` block + 2, Luna's disc 12 + 2. A region counts origins whose centre is within 20 blocks of its centre; "fit" is
+the most non-overlapping plots a greedy pick in six orders finds (a lower bound). **Clearings.** `trees.clearings` takes `site` (a name in `sites`; a `points` entry is refused), `radius` (required), `fade` (default 16), `keep` (percent kept, default 0).
+A new named site is needed, and **a site with no radius levels nothing** (the terrain pass skips radius 0): `"meadow.north": {"x":270,"z":180}` is enough.
+
+Origins / fit, slope at most 1, north · south, cleared = two clearings of radius 22, fade 12:
+
+| Footprint | Scene | 42 | 7 | 1234 | 2025 |
+| --- | --- | --- | --- | --- | --- |
+| 10 x 10 | as is | 0/0 · 24/1 | 10/1 · 7/1 | 11/1 · 20/1 | 0/0 · 5/1 |
+| 10 x 10 | cleared, keep 0 | 600/9 · 550/9 | 469/8 · 201/5 | 656/9 · 160/4 | 529/8 · 410/8 |
+| 10 x 10 | cleared, keep 5 | 120/5 · 363/7 | 150/5 · 171/4 | 341/7 · 36/3 | 60/2 · 133/5 |
+| 12 x 12 | cleared, keep 0 | 463/6 · 436/5 | 336/6 · 107/3 | 547/6 · 79/2 | 406/5 · 281/4 |
+
+As is, 12 x 12 and 16 x 16 have none (whole map: 185 to 294 origins of 10 x 10, 25 to 54 of 12 x 12, none near the village). At slope 2 (keep 0): 12 x 12 fits 6, 6, 6, 5
+north and 5, 3, 3, 4 south; 16 x 16 fits 3, 2, 3, 3 and 3, 1, 1, 2 (slope 1: 2, 2, 3, 3 and 2, 1, 0, 2).
+
+**Recommendation.** Plot **10 x 10, slope at most 1, `keep` 0** (three plots fit in both meadows on all four seeds; 12 x 12 needs slope 2 in the south, 16 x 16 never fits).
+Meadows: **north** dx -22, dz -38 = (270, 180); **south** dx -28, dz 40 = (264, 258); radius 22, fade 12 (a scan for the most plots; the south is poorer, the ground rises east of
+x 304). Margins 34, 2 and 14 as probed. Replaces "meadows north and south" (no centres) and "a fixed rectangle" (no size). Walking from the inn's door (280, 225), a column search
+(steps of 1, diagonals 1.41; the same on every seed): north centre **49** blocks, south centre **43**, Tomás at (293, 221) **15**.
+
+### 9.3 The price
+
+From `host-events.json`, `objectives/*.json`, `ItemDefinition.cs`. No coins at the start; an order opens at the first talk with its NPC (D-game-25), once.
+
+| Way | NPC | Coins | The learner says | Limit |
+| --- | --- | --- | --- | --- |
+| order `fruit-for-mar` | Mar | +2 | «sí»; 3 berries | once |
+| order `oven-wood` | Luz | +4 | «sí»; 5 wood | once |
+| order `axe-handle` | Domingo | -2 and 2 wood (the axe); `water-for-plants` pays 3 apples, 0 coins | «sí»; wood and coins | once |
+| sell wood | Luz, Domingo | +1 each | «vendo madera» (all in the bag), «vendo diez maderas» | none |
+| sell berries, bread; buy bread 2, flour 1, apples 1 | León, Pablo; Luz, Pablo, León | +1 each; -2, -1, -1 | «vendo frutas», «quiero dos panes» | none; 5 berry bushes |
+
+«no sé» or two misses also hand a good over (D-game-27). A coin stack holds 99 (40 slots). A trunk by hand takes 60 ticks (1 s); a tree has 4, the orchard 3 trees. Assumed: the
+orders are taken and delivered on day 2 (day 1's camp task already carries 5 wood and 3 berries); nothing bought but the axe.
+Coins held: the orders only, **6** at the end of day 2 and of day 3 (4 with the axe); the orders and ten wood sold, **16** (14 with the axe), and **26** on day 3 if ten more are sold.
+**Recommendation: 10 coins** («diez monedas», A1): the two orders and 4 wood in one «vendo madera» (6 if the axe was taken), about a minute of cutting, on day 2. Orders alone
+(6) fall short and the axe order would lock them out; the stake is free. Replaces "tune against measured earnings".
+
+### 9.4 The language probe
+
+`eval --transcript <line> --prompt <id>` on `content/game-v1`: the shopkeeper's `stall-need`, the baker's `baker-open` (same results), the villager's `villager-open`, `stall-offer` for
+yes or no. `errors` were empty and correctness 1 unless noted; `u` = `unknown`, not communicated.
+
+| Line | `stall-need`, `baker-open` | `villager-open` |
+| --- | --- | --- |
+| Quiero una habitación, por favor. / Una habitación, por favor. / Quiero una cama. | `request_item` {habitación}, {cama} | same |
+| ¿Tiene / ¿Tienes una habitación? | `state_have` {habitación} (a statement) | u |
+| ¿Hay una habitación? | `ask_availability` | u |
+| Quiero dormir aquí. / ¿Puedo dormir aquí? | u | u |
+| ¿Cuánto cuesta? / ¿Cuánto cuesta el terreno? | `ask_price` / {terreno} | u |
+| Quiero comprar un terreno / esta tierra | `state_action` {terreno} / {tierra} | same |
+| Quiero este terreno. | u | u |
+| Quiero un terreno, por favor. / Quiero la tierra. | `request_item` {terreno} / {tierra} | not run |
+| ¿Me das una estaca? / Quiero una parcela. | u, `vocab.unknown` (correctness 0.6) | same |
+| sí / no sé | u, `confirm` at `stall-offer`; `dont_know` | u; `dont_know` |
+| Buenas noches. / ¿Dónde está el hotel? / ¿Dónde está la posada? | `greet`; not run | not run; `ask_directions` {hotel}; u, `vocab.unknown` |
+
+| Word | Gate (`cefr-check --level a2`) and lexicon | Word | Gate and lexicon |
+| --- | --- | --- | --- |
+| hotel, habitación, cama, llave, noche, dormir, campamento, comprar, vender, precio | A1; hotel m, habitación f, cama f, llave f, noche f | tierra, cuarto | A2; f, m |
+| terreno | **not listed**; m (and adj) | alcalde | **not listed**; m and f (no `alcaldesa`) |
+| posada, hostal, pensión, parcela, estaca | **not listed; no lexicon entry** | tienda de campaña, saco de dormir | `campaña` **not listed**, f (`tienda` is the stall's label); `saco` reads as `sacar`, passes |
+
+**Recommendation.** Inn **posada** (A2 list entry and lexicon entry, f; Y06) with **habitación** and **cama** (`hotel` passes today); plot **terreno** (list entry; lexicon m) or
+**tierra** (passes now); mayor **alcalde** (list entry). Player lines, all read today: «Quiero una habitación, por favor.», «¿Hay una habitación?» (lodging); «Quiero un terreno, por
+favor.», «¿Cuánto cuesta el terreno?» (land). Section 8's "posada, hostal or hotel" becomes posada. **Content alone**, after the shopkeeper and the baker: the agent (an idle state and an offer state on a yes-or-no prompt like `stall-offer`), prompts, pools, `game/npcs` file with
+`patience` (the shopkeeper's block) for «no sé» or two misses, the voice, the cell. Code: the `grant_lodging` and `sell_plot` host kinds (Y05, Y11) and the figure `innkeeper` (grey until drawn).
+
+**Core gaps** (none patched; an M milestone only if the owner wants the wording).
+- «¿Tiene / Tienes una habitación?»: the core answers `state_have` {habitación}, the agent «¡Qué bien!»; missing: `tener` in a question read as `ask_availability`, as «¿Hay…?» is. Y06 can use «¿Hay…?».
+- «Quiero dormir aquí.», «¿Puedo dormir aquí?»: `unknown`, no tag, at every prompt tried; missing: `state_want` with an infinitive (today an item only: «Quiero una habitación para una noche.» at `smith-open`) and a «¿Puedo…?» intent. Y06 does not wait.
+- «Quiero comprar un terreno.»: `state_action` {terreno}, the verb `comprar` is in no slot; «Quiero este terreno.» is `unknown`; missing: a verb slot or a purchase intent, `este`/`esta` in `request_item`. Y11 uses `request_item` and `ask_price`. «¿Me das una estaca?» fails only for want of a lexicon entry (content, Y06 and Y10).
+
+### 9.5 The voice trial
+
+In use (`game/npcs/<id>.json`, `voice` {`speaker`, `name`, `speed`, `gain`}): `ef_dora` 28 Luna, `em_alex` 29 Pablo, `em_santa` 53 Tomás and Mar, `if_sara` 35 Luz, `pm_santa` 44 León,
+`im_nicola` 36 Domingo: five of seven are men by voice. Unused: `pf_dora` 42, `ff_siwis` 30, `pm_alex` 43 (the old trial: git `a53aa866`).
+
+| Candidate | Sex | Why | RMS |
+| --- | --- | --- | --- |
+| `pf_dora` 42 | woman | nearest to native Spanish of the unused; probably Luna's timbre, so the two may sound alike | 1800 |
+| `ff_siwis` 30 | woman | a timbre no one has; French accent; louder (gain about 0.6) | 3200 |
+| `pm_alex` 43 | man | probably Pablo's timbre; a sixth man | 2000 |
+
+Propose **a woman** (two of seven today): `ff_siwis` to be distinct, `pf_dora` to be nearer Spanish. Rendered with `SpeechRender --trial` at 24 kHz mono (the speech folder's rate) into
+`/home/james/Dev/Vocaterra/.claude/worktrees/settlement/artifacts/voice-trial/innkeeper/`: `<speaker>-hola.wav` («¡Hola! ¿Quieres una habitación?») and `<speaker>-buenas-noches.wav`, with `trial.json`.
+
+### 9.6 What Y04, Y06, Y09 and Y11 take from this
+
+- **Y04:** the prop, stamp and `lamp.inn` of 9.1 (drop `house3`); points `bed.inn` (278, 231) and `npc.innkeeper`; sites `meadow.north` and `meadow.south` with clearings radius 22, fade 12, keep 0;
+  the «tres casas» line, the tests and the digest of 9.1; screenshots as in 9.1.
+- **Y06:** the word posada with list and lexicon entries (also alcalde, terreno, estaca); «Quiero una habitación, por favor.», «¿Hay una habitación?»; `patience`; a voice from 9.5; the figure.
+- **Y09:** `land.json`: 10 x 10, slope 1, price 10; protected 34 round the village, 2 round paths and bridges, 14 round Luna's camp; regions the two discs of radius 22 (a tree in the footprint refuses it).
+- **Y11:** price 10 (the orders alone give 6); `terreno` or `tierra`, `alcalde`; `request_item`, `ask_price`, `confirm` read, the verb of «Quiero comprar…» is lost and «Quiero este terreno» unread; `sell_plot` is code.
