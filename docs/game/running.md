@@ -64,6 +64,15 @@ for h in 0 5 7 13 21 23; do
 done
 ```
 
+`--weather <id>` holds the weather at one kind of the loaded bundle (E05; `sunny`, `cloudy` and `rain` in `game-v1`, the ids of `game/weather.json`, no code names them): the game forces it from the first frame (no blend, as `Simulation.ForceWeather`),
+so the sky, the clouds, the fog and the light show its channels. An unknown id is refused with the list of ids. It combines with `--time`:
+
+```bash
+for k in sunny cloudy rain; do
+  DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --time 13 --weather $k --look 128,-13 --screenshot /tmp/e05-$k.png --frames 30
+done
+```
+
 **Clean defaults (U01).** Ordinary play starts with no debug text: `--dev` starts the debug overlay and the dialogue's developer note on, F3 toggles both. The "Heard / Expected" line under a spoken turn is not the developer note and always stays. The first-time tip box stands under the overlay when F3 shows it. The speak hint is one: the tip `tip.speak` at the first conversation; once it was shown the dialogue footer keeps only its other keys (the speak key stays in the controls help on the menu's Controls page). The objective tracker (top right) is one line per objective, three at most, the one that advanced last first, the rest as "+n"; a lesson's `do` step shows in the lesson strip while the strip is up, not also in the tracker. The scripted runs pass `--dev` (all but the playtest) so their captures keep the overlay and the note.
 
 **The needs (N01).** Hunger, thirst and sleep fall in active play and push health and stamina (design section 9). `--needs off` freezes them full (the scripted runs pass it, so
