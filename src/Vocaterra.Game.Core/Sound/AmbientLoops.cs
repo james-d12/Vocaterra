@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Mathematics;
 namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
-/// The looping ambient beds of S25 (wind, the river, the waterfall, the village, the evening insects), made in code at load: no file, no licence, the same
+/// The looping ambient beds of S25 (wind, the river, the waterfall, the village, the evening insects, the rain), made in code at load: no file, no licence, the same
 /// samples every time. Each loop is <see cref="LoopSeconds"/> long and seamless: the sound is generated for <see cref="CrossfadeSeconds"/> more than the loop, and
 /// that tail is faded into the head with an equal-power curve, so the last sample of the loop is followed by the very next sample the process would make.
 /// </summary>
@@ -21,7 +21,7 @@ public static class AmbientLoops
     private const int Rate = SoundSynth.SampleRate;
 
     /// <summary>The beds that loop (the others are scheduled one-shots over a weight).</summary>
-    public static IReadOnlyList<string> Looping { get; } = [AmbientBeds.Wind, AmbientBeds.River, AmbientBeds.Waterfall, AmbientBeds.Village, AmbientBeds.Insects];
+    public static IReadOnlyList<string> Looping { get; } = [AmbientBeds.Wind, AmbientBeds.River, AmbientBeds.Waterfall, AmbientBeds.Village, AmbientBeds.Insects, AmbientBeds.Rain];
 
     /// <summary>Renders the loop of a bed as 16-bit mono samples of <see cref="LoopSeconds"/> at <see cref="SoundSynth.SampleRate"/>.</summary>
     /// <param name="bed">The bed's id.</param>
@@ -37,6 +37,7 @@ public static class AmbientLoops
             AmbientBeds.Waterfall => Waterfall(length + tail),
             AmbientBeds.Village => Village(length + tail),
             AmbientBeds.Insects => Insects(length + tail),
+            AmbientBeds.Rain => Rain(length + tail),
             _ => throw new ArgumentException($"The bed '{bed}' does not loop.", nameof(bed)),
         };
         return Seamless(raw, length, tail);
@@ -175,6 +176,44 @@ public static class AmbientLoops
             var lower = Math.Sin((2 * Math.PI * 3900 * t) + 0.5) * Math.Pow(0.5 + (0.5 * Math.Cos((2 * Math.PI * 23 * t) + 1.0)), 4);
             var grass = ((rng.NextDouble() * 2) - 1) * 0.03;
             body[i] = (float)((high * 0.4) + (lower * 0.25) + grass);
+        }
+
+        return body;
+    }
+
+    // The rain (E06): a hiss of noise between about 900 and 6500 hertz (the sheet of falling water), with a patter of single drops on top (a sparse run of clicks, each a short bright
+    // ring, ten to eighty a second as the sheet thickens and thins) and a slow swell in the whole. No tone: the rain has no pitch, and it must not stand out against the wind.
+    private static float[] Rain(int n)
+    {
+        var rng = new PresentationRng(SoundSynth.Seed ^ 0x2A_17_0006UL);
+        var body = new float[n];
+        var low = 0.0;
+        var high = 0.0;
+        var ring = 0.0;
+        var ringPrevious = 0.0;
+        var lowAlpha = 1 - Math.Exp(-2 * Math.PI * 900 / Rate);
+        var highAlpha = 1 - Math.Exp(-2 * Math.PI * 6500 / Rate);
+        var ringFrequency = 3200.0;
+        for (var i = 0; i < n; i++)
+        {
+            var t = i / (double)Rate;
+            var noise = (rng.NextDouble() * 2) - 1;
+            low += lowAlpha * (noise - low);
+            high += highAlpha * (noise - high);
+            var swell = 0.8 + (0.12 * Math.Sin((2 * Math.PI * 0.13 * t) + 0.9)) + (0.08 * Math.Sin((2 * Math.PI * 0.41 * t) + 2.3));
+            var density = 45 + (35 * Math.Sin((2 * Math.PI * 0.29 * t) + 1.7)); // drops a second, from ten to eighty
+            if (rng.NextDouble() < density / Rate)
+            {
+                ringFrequency = 2200 + (2600 * rng.NextDouble());
+                ring += 0.5 + (0.5 * rng.NextDouble());
+            }
+
+            // A two-pole ring at the last drop's pitch, dying in about two milliseconds.
+            var w = 2 * Math.PI * ringFrequency / Rate;
+            var next = (2 * 0.9 * Math.Cos(w) * ring) - (0.81 * ringPrevious);
+            ringPrevious = ring;
+            ring = next;
+            body[i] = (float)(((high - low) * 1.6 * swell) + (ring * 0.55));
         }
 
         return body;
