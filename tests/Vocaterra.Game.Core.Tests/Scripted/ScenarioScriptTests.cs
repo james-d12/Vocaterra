@@ -82,7 +82,7 @@ public sealed class ScenarioScriptTests
         {
             var opening = Session.OpenTalk(npc);
             Openings.Add(opening);
-            Dialogue.Open(opening, Session.Data.Npcs.LabelOf(npc), Session.Review?.Question);
+            Dialogue.Open(opening, Session.Data.Npcs.TitleOf(npc), Session.Review?.Question);
         }
 
         private void CloseTalk()
@@ -109,7 +109,7 @@ public sealed class ScenarioScriptTests
 
         Assert.True(run.Dialogue.IsOpen);
         Assert.Equal("shopkeeper", run.Dialogue.Npc);
-        Assert.Equal("Tendero", run.Dialogue.NpcName);
+        Assert.Equal("Pablo (Tendero)", run.Dialogue.NpcName);
         Assert.Equal("shopkeeper", run.Session.CurrentNpc);
         var body = run.Session.Simulation.Player;
         const double U = VoxelPhysics.UnitsPerBlock;
@@ -145,7 +145,7 @@ public sealed class ScenarioScriptTests
         run.Go();
 
         Assert.Equal("guide", run.Dialogue.Npc);
-        Assert.Equal("Guía", run.Dialogue.NpcName);
+        Assert.Equal("Luna (Guía)", run.Dialogue.NpcName);
         Assert.Equal("guide", Assert.Single(run.Openings).Npc);
         Assert.Equal("río", run.Session.Pointer!.Place);
         Assert.Equal("pointing", run.Session.Conversation.GuideState.StateId);
@@ -169,7 +169,7 @@ public sealed class ScenarioScriptTests
 
         Assert.Equal(1, run.Closes); // the walk closed the shopkeeper's panel, as Esc would; the second talk found it closed
         Assert.Equal("villager", run.Dialogue.Npc);
-        Assert.Equal("Aldeano", run.Dialogue.NpcName);
+        Assert.Equal("Tomás (Aldeano)", run.Dialogue.NpcName);
         Assert.Equal("Hola.", Assert.Single(run.Dialogue.Lines).Text); // the shopkeeper's page is gone
         Assert.Single(run.Shots);
         Assert.StartsWith("villager.png@", run.Shots[0], StringComparison.Ordinal);

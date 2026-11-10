@@ -132,7 +132,7 @@ public sealed class LessonFrontendTests
         private void OpenTalk(string npc)
         {
             var opening = Session.OpenTalk(npc, teachKeyWords: true);
-            Dialogue.Open(opening, Session.Data.Npcs.LabelOf(npc), Session.ReviewLine);
+            Dialogue.Open(opening, Session.Data.Npcs.TitleOf(npc), Session.ReviewLine);
         }
 
         private void CloseTalk()
@@ -563,7 +563,7 @@ public sealed class LessonFrontendTests
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
-        dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
+        dialogue.Open(session.OpenTalk("shopkeeper"), session.Data.Npcs.TitleOf("shopkeeper"));
         _ = dialogue.Entry.Insert("yo quieres agua, por favor");
 
         _ = dialogue.Submit(line => session.Say(line));
@@ -573,7 +573,7 @@ public sealed class LessonFrontendTests
         Assert.Contains(english, static l => l.StartsWith("The verb ending must match who is speaking", StringComparison.Ordinal));
         var last = dialogue.Lines[^1];
         Assert.Equal(DialogueSpeaker.English, last.Speaker); // after the NPC's lines
-        Assert.Equal("Tendero", dialogue.NpcName);
+        Assert.Equal("Pablo (Tendero)", dialogue.NpcName);
         Assert.True(dialogue.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide) >= 1);
         Assert.NotNull(session.SupportForNpcLine("shopkeeper", "¿Qué necesitas?"));
     }

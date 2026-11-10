@@ -105,9 +105,9 @@
 {"path":"game/npcs/farmer.json","sha256":"9a9ad4b62c0f58a1e45a7d08fd9048ba33b8ec24846acde6aebb996a3d46f50e","bytes":1112},
 {"path":"game/npcs/fisher.json","sha256":"1bc42887a1a4b39de71a369637360386a273986509494f51a97c4e2fe953f3d9","bytes":985},
 {"path":"game/npcs/guide.json","sha256":"5f170576caa61df97c5cdea40c46597e30c942617e936bd8869966810d968ee7","bytes":798},
-{"path":"game/npcs/shopkeeper.json","sha256":"8ab84dc989a8e25dd2c066dd2d6c5e5e2fe2702d7c09c6f1d83aba5ebb7dd592","bytes":1134},
+{"path":"game/npcs/shopkeeper.json","sha256":"aed2c79b8858511b8963ae4eadab1a9b5ee4f1469e22c9b50001fa7a713d2915","bytes":1153},
 {"path":"game/npcs/smith.json","sha256":"dd7f6935fe199ff0691c4029719a7c3e094d8a5ad5631d551ad6e8a9395af22b","bytes":987},
-{"path":"game/npcs/villager.json","sha256":"182cb68a2e3ffa61ea15c476e6f946354dcb56473ed0f8275a4dd5542d525172","bytes":880},
+{"path":"game/npcs/villager.json","sha256":"98a9f167f88cda3215f2115c4555a791c6f81ec263e976d3f42960241bf0fb2d","bytes":900},
 {"path":"game/objectives/axe-handle.json","sha256":"57fc3faf783f28613f6d1c087a694bcf31185e3950594f144a34e6fe0e8cf0ad","bytes":1213},
 {"path":"game/objectives/camp.json","sha256":"9d7c288525549385473a8e2781c6cd4936aad5a8501bec3eaf95b70cffb6b18a","bytes":873},
 {"path":"game/objectives/fruit-for-mar.json","sha256":"7ca7c29053d5663e6d982c6e5a2f4625bf2ed0a7686075f99257aa13513af09f","bytes":677},
@@ -1581,4 +1581,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"ef69e9499099b847865647628287cc3868e68f622a87eae675b37e8e9edc276d"}
+],"bundleHash":"e3e3de060ff9ae253fd6aadb052a09497de74c0343afb77efb6c97e1ec0555e0"}

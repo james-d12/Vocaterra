@@ -37,9 +37,11 @@ public sealed class NpcRosterTests
         // keep the NPCs in this order).
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], Npcs.Ids);
         Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera", "Herrero", "Granjero"], Npcs.All.Select(static n => n.Label));
-        Assert.Equal(["Luna", "Tendero", "Aldeano", "Mar", "Luz", "Domingo", "León"], Npcs.All.Select(static n => n.Called));
+        Assert.Equal(["Luna", "Pablo", "Tomás", "Mar", "Luz", "Domingo", "León"], Npcs.All.Select(static n => n.Called));
+        Assert.Equal(["Luna (Guía)", "Pablo (Tendero)", "Tomás (Aldeano)", "Mar (Pescador)", "Luz (Panadera)", "Domingo (Herrero)", "León (Granjero)"], Npcs.All.Select(static n => n.Title));
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], Npcs.All.Select(static n => n.Figure));
-        Assert.Equal("otro", Npcs.LabelOf("otro"));
+        Assert.Equal("otro", Npcs.CalledOf("otro"));
+        Assert.Equal("otro", Npcs.TitleOf("otro"));
     }
 
     [Fact]
