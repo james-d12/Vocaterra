@@ -22,6 +22,7 @@ share a default work folder with other sessions: set `VOCATERRA_RUNS_WORK` to a 
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
 reject a bare `export`, and it refuses a command line containing the shell builtin words `eval` or `hash`: for `scripts/content.sh hash`
 or a CLI `eval` run use a wrapper script outside the repository). Model-gated tests need VOCATERRA_MODELS_DIR=$HOME/.local/share/vocaterra/models.
+A game or screenshot run needs DISPLAY (use `DISPLAY="${DISPLAY:-:0}"`).
 
 Read first: CLAUDE.md; docs/process/code-guidelines.md; content/README.md ("The edit loop", and the rule for a word the content uses
 that is on no level list: grep `cefr/a1.txt`); in docs/game/settlement-plan.md section 8.2, the paragraph "Y04" of 8.3, and sections
@@ -79,9 +80,12 @@ Deliverables:
 7. **The scripted runs and the goldens.** Capture the whole set before your first change and after your last
    (`scripts/scripted-runs.sh <out>`), compare (`scripts/compare-runs.py`) and list every run that differs with the reason: a view
    that now shows the inn, the moved house or a cleared meadow is expected; anything else is a finding. Record the end-to-end goldens
-   again only if the content loop says they moved, and say which.
+   again only if the content loop says they moved, and say which. (`r20-sleep` and `r30-no-classes` are known to stop before their
+   sleep today; that is not yours to fix.)
 8. **The bundle.** After each content edit `scripts/content-loop.sh --grammar --speech` (run directly), `--tier full` once before
-   the report. No line is spoken yet, so no recording is made.
+   the report. No line is spoken yet, so no recording is made. The save fixture is tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json
+   (the loop writes the new bundle hash into it); if the scene change makes that recorded save stop loading under its tests, say so
+   and record it again by the command in docs/game/saves.md.
 9. **Screenshots for the owner**, from the built game, into
    /home/james/Dev/Vocaterra/.claude/worktrees/settlement/artifacts/y04/ (git-ignored; the one write outside your worktree that is
    asked for): the inn from the road, the counter from the talk cell, the guest room with its beds, `house3` in its new place, each
