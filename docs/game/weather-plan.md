@@ -4,7 +4,7 @@ A plan written on 2026-11-10 at the owner's request, from a read of `main` at `f
 built or run. Its goal is **a modular atmosphere**: a day and night cycle first, then weather on top of it (sunny, cloudy and rain in the
 first version), built so that later weather is a row of data and not a new system.
 
-**Status (2026-11-10):** planned; E00 (this registration) is done, E01 is next. The owner's answers are in section 5 and D-game-31,
+**Status (2026-11-10):** in progress; E00 (this registration) is done, E01 is running. The owner's answers are in section 5 and D-game-31,
 progress in section 7. It is built on `feature/weather`, cut from `main` at `24170667`, in the worktree `.claude/worktrees/weather`
 (the owner, 2026-11-10: "Make sure to make a new git worktree from main"). Commit prefix `E<nn>:`. As with every feature branch, nothing
 is pushed to `main`; the owner merges by pull request.
@@ -195,7 +195,7 @@ Recorded as D-game-31.
 | Id | Status | Gate | Notes |
 |---|---|---|---|
 | E00 | done, 2026-11-10 | documents only | This plan, D-game-31 and the index rows. |
-| E01 | todo | | |
+| E01 | in progress, launched 2026-11-10 | | |
 | E02 | todo | | |
 | E03 | todo | | |
 | E04 | todo | | |
