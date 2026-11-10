@@ -116,6 +116,8 @@ public sealed record BlockDefinition(
         new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Bed, "bed", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Bedroll, "bedroll", false, true, false, 0, null, 0, BlockId.Air),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

@@ -77,7 +77,7 @@ public enum BlockShape
     /// <summary>A lantern (S15): a small glass box that glows (drawn without shading), and lights the faces near it.</summary>
     Lantern,
 
-    /// <summary>A pile of goods (S15): a low box on the floor of the cell, the stall's bread, apples or bottles.</summary>
+    /// <summary>A pile of goods (S15): a low box on the floor of the cell, the stall's bread, apples or bottles. The bed and the bedroll (Y03) are piles of their own heights (<see cref="PileHeight"/>).</summary>
     Pile,
 }
 
@@ -179,7 +179,7 @@ public static class ChunkMesher
         BlockId.TallGrass or BlockId.Fern or BlockId.Reeds or BlockId.YellowFlower or BlockId.WhiteFlower => BlockShape.Cross,
         BlockId.Torch or BlockId.PostTorch => BlockShape.Torch,
         BlockId.Lantern => BlockShape.Lantern,
-        BlockId.Loaves or BlockId.Apples or BlockId.Bottles => BlockShape.Pile,
+        BlockId.Loaves or BlockId.Apples or BlockId.Bottles or BlockId.Bed or BlockId.Bedroll => BlockShape.Pile,
         BlockId.Wheat => BlockShape.Cross,
         BlockId.Door => BlockShape.Door,
         BlockId.Fence => BlockShape.Fence,
@@ -399,7 +399,7 @@ public static class ChunkMesher
                             AddAllFaces(opaque, x, y, z, new Box(x + 0.3125f, y + 0.1875f, z + 0.3125f, x + 0.6875f, y + 0.8125f, z + 0.6875f), BlockId.Lantern, BlockCell.Lantern, grey, true);
                             break;
                         case BlockShape.Pile:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + 0.42f, z + 0.9f), id, null, grey);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + PileHeight(id), z + 0.9f), id, null, grey);
                             break;
                         case BlockShape.Door:
                             AddDoor(opaque, near, lx, ly, lz, x, y, z, grey);
@@ -890,6 +890,17 @@ public static class ChunkMesher
             AddFace(buffer, face, box, (x, y, z), cell ?? BlockAtlasLayout.CellFor(id, face), White, Turn.None, grey, unshaded);
         }
     }
+
+    /// <summary>
+    /// The height of a pile's box in blocks. The goods of the stall are 0.42 high. The bed is taller, 0.5, so its blanket reads from eye height as a bed
+    /// and not as a crate, and the bedroll is lower, 0.3, a roll of cloth on the ground (Y03).
+    /// </summary>
+    public static float PileHeight(BlockId id) => id switch
+    {
+        BlockId.Bed => 0.5f,
+        BlockId.Bedroll => 0.3f,
+        _ => 0.42f,
+    };
 
     private static void AddDoor(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey)
     {

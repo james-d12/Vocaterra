@@ -121,6 +121,8 @@ public sealed class Footsteps
         BlockId.SignMontanaA => Surface.Wood,
         BlockId.SignMontanaB => Surface.Wood,
         BlockId.PostTorch => Surface.Wood,
+        BlockId.Bed => Surface.Wood, // Y03: the bed's frame
+        BlockId.Bedroll => Surface.Grass, // Y03: a roll of cloth on the ground
         _ => throw new ArgumentOutOfRangeException(nameof(id), id, "A block kind with no footstep surface: place it in SurfaceOf."),
     };
 

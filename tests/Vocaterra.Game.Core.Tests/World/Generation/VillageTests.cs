@@ -439,7 +439,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     {
         var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
         var total = 0;
-        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber))
+        // Y03's bed and bedroll are not placed by the scene until Y04, so they are not among the S15 kinds that must be there.
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k < BlockId.Bed))
         {
             var count = grid.BlocksOfKind(kind).Count;
             total += count;
