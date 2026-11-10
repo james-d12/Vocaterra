@@ -13,10 +13,10 @@ public static class PrecipitationStyles
         new PrecipitationStyle(
             Id: "rain",
             Length: 1.4f,
-            Width: 0.03f,
+            Width: 0.045f,
             FallSpeed: 15f,
             Colour: (196, 210, 230),
-            Opacity: 0.7f,
+            Opacity: 0.8f,
             WindSlant: 0.6f,
             CountShare: 1f),
     ];

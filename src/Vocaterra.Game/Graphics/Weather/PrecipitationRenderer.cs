@@ -14,7 +14,12 @@ namespace Vocaterra.Game.Graphics.Weather;
 public sealed class PrecipitationRenderer : IDisposable
 {
     /// <summary>The share of the sun's light the rain keeps at the least: even by night the streaks are not black.</summary>
-    public const float LightFloor = 0.22f;
+    public const float LightFloor = 0.3f;
+
+    private const float LightCurve = 0.7f; // the light's power: 1 would follow the world's light, which leaves the rain dark against a dark village
+
+    private const float NarrowRange = 6f; // the distance from the eye (blocks) from which a streak has the style's full width
+    private const float NarrowestShare = 0.3f; // the share of its width a streak at the lens keeps
 
     private const float TailAlpha = 0.12f; // the share of its head's opacity a streak's tail keeps: the streak fades out up its line
 
@@ -92,9 +97,9 @@ public sealed class PrecipitationRenderer : IDisposable
         }
 
         var tint = new Vector3(
-            style.Colour.R / 255f * Math.Max(sunLight.X, LightFloor),
-            style.Colour.G / 255f * Math.Max(sunLight.Y, LightFloor),
-            style.Colour.B / 255f * Math.Max(sunLight.Z, LightFloor));
+            style.Colour.R / 255f * Lit(sunLight.X),
+            style.Colour.G / 255f * Lit(sunLight.Y),
+            style.Colour.B / 255f * Lit(sunLight.Z));
         var half = style.Width / 2f;
         var quads = 0;
         for (var i = 0; i < count; i++)
@@ -110,7 +115,8 @@ public sealed class PrecipitationRenderer : IDisposable
                 continue; // looking straight down the streak: it is a point
             }
 
-            side *= half / length;
+            // A streak near the lens is narrowed (a drop a metre away would be a bar across the picture); from six blocks out it has the style's width.
+            side *= half * Math.Clamp(Vector3.Distance(head, eye) / NarrowRange, NarrowestShare, 1f) / length;
             var headAlpha = s.Alpha * visible;
             var headColour = new Color(tint.X, tint.Y, tint.Z, headAlpha);
             var tailColour = new Color(tint.X, tint.Y, tint.Z, headAlpha * TailAlpha);
@@ -141,6 +147,9 @@ public sealed class PrecipitationRenderer : IDisposable
         _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, quads * 2);
         DrawnVertices = quads * 4;
     }
+
+    // The share of the style's colour a channel of the sun's light leaves: dimmer with the light but not in step with it (a streak is seen against the haze, which the same light dims), and never under the floor.
+    private static float Lit(float sun) => MathF.Pow(Math.Max(sun, LightFloor), LightCurve);
 
     /// <inheritdoc />
     public void Dispose()

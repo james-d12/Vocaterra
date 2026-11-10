@@ -153,7 +153,7 @@ public static class AmbientBeds
         Waterfall => 0.6,
         Village => 0.35,
         Insects => 0.3,
-        Rain => 0.3,
+        Rain => 0.2, // E06: the loop is the loudest of the beds (its RMS is 0.22 of full scale, the others' about 0.15) and its hiss sits where speech's consonants are, so its gain is the lowest: see docs/game/sound-and-display.md
         _ => 1.0,
     };
 

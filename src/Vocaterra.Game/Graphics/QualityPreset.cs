@@ -31,9 +31,9 @@ public sealed record QualityPreset(
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 1600),
-        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 2800),
-        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 4800),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200),
+        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400),
+        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400),
     };
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>

@@ -34,8 +34,8 @@ public sealed class PrecipitationField
     // How near the box's wall the drops fade out (a share of the half width / half height), and how near the eye they fade (blocks): a drop pops neither at the wrap nor in the face (a streak a block from the lens would be a bar across the picture).
     private const float EdgeFade = 0.3f;
     private const float RoofFade = 0.2f;
-    private const float NearFadeFrom = 1.0f;
-    private const float NearFadeTo = 4.5f;
+    private const float NearFadeFrom = 0.8f;
+    private const float NearFadeTo = 3.2f;
 
     private readonly ColumnCover _cover;
     private readonly Action<string>? _log;
