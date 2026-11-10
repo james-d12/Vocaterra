@@ -76,6 +76,14 @@ try
         return 2;
     }
 
+    if (!options.CheckWeather([.. data.Weather.Kinds.Select(static kind => kind.Id)], out var weatherIdError))
+    {
+        // The weather kinds --weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others.
+        Console.Error.WriteLine(weatherIdError);
+        Console.Error.Write(LaunchOptions.Usage);
+        return 2;
+    }
+
     Console.WriteLine($"locale: {data.Locale.Code}, bundle {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))} shipped)");
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);

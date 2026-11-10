@@ -323,7 +323,7 @@ public sealed class SkyRenderer : IDisposable
 
     private void DrawClouds(FirstPersonCamera camera, Matrix projection, long tick)
     {
-        CloudField.Generate(camera.Eye.X, camera.Eye.Z, tick, _boxes);
+        CloudField.Generate(camera.Eye.X, camera.Eye.Z, tick, _boxes, _look.CloudCover);
         var needed = _boxes.Count * 5 * 6;
         if (_clouds.Length < needed)
         {
@@ -338,7 +338,7 @@ public sealed class SkyRenderer : IDisposable
             var distance = Vector3.Distance(centre, eye);
             // Far clouds melt into the haze: colour towards the fog's, and fainter at the very edge of the field.
             var haze = Math.Clamp((distance - 150f) / 520f, 0f, 0.85f);
-            var fade = (byte)(255f * Math.Clamp(1.6f - (distance / (CloudField.Reach * CloudField.CellSize)), 0f, 1f));
+            var fade = (byte)(255f * Math.Clamp(1.6f - (distance / (CloudField.Reach * CloudField.CellSize)), 0f, 1f) * box.Alpha); // a cloud the cover is only passing is fainter (E05)
             var horizon = _look.FogColour;
             var top = ToColor(SkyPalette.Blend(_look.CloudTop, horizon, haze), fade);
             var side = ToColor(SkyPalette.Blend(_look.CloudSide, horizon, haze), fade);

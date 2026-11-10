@@ -497,6 +497,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // held hour is part of the simulation's state (E01): a save written during such a run keeps it.
     private void HoldTheClock(LaunchOptions options)
     {
+        if (options.WeatherId is { } weather)
+        {
+            _sim.ForceWeather(weather); // --weather holds the kind (E05); the program has checked the id against the bundle
+        }
+
         if (options.TimeHour is { } hour)
         {
             _sim.FreezeClock(hour);
@@ -777,7 +782,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        var look = SkyLook.At(SkyLookInput.At(_sim.Clock, _sim.Tick)); // the day clock's hour, daylight and phase for this frame (E02)
+        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
