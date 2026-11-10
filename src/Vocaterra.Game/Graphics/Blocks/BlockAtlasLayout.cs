@@ -205,6 +205,12 @@ public enum BlockCell
     /// <summary>A group of blue glass bottles.</summary>
     Bottles,
 
+    /// <summary>The inn's bed from above: a wooden frame, a cream pillow at the head and a red blanket (Y03). Every face of the bed shows it.</summary>
+    Bed,
+
+    /// <summary>The camp's bedroll: a roll of cloth with its end showing the spiral of the cloth (Y03).</summary>
+    Bedroll,
+
     /// <summary>The shop's board, first half: an arrow and TIE.</summary>
     SignTiendaA,
 
@@ -307,7 +313,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 12;
+    public const int ColourRows = 13; // Y03: 13 rows, so the bed and the bedroll fit (97 cells); 12 rows held 96
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -379,6 +385,8 @@ public static class BlockAtlasLayout
             BlockId.Loaves => BlockCell.Loaves,
             BlockId.Apples => BlockCell.Apples,
             BlockId.Bottles => BlockCell.Bottles,
+            BlockId.Bed => BlockCell.Bed,
+            BlockId.Bedroll => BlockCell.Bedroll,
             BlockId.SignTiendaA => Reads(face, BlockCell.SignTiendaA),
             BlockId.SignTiendaB => Reads(face, BlockCell.SignTiendaB),
             BlockId.SignRio => Reads(face, BlockCell.SignRio),

@@ -22,7 +22,7 @@ public static class BlockArtVillage
     {
         BlockCell.TimberSide or BlockCell.TimberEnd or BlockCell.Lantern or BlockCell.CrateSide or BlockCell.CrateTop or BlockCell.AwningRed
             or BlockCell.AwningWhite or BlockCell.Canvas or BlockCell.ChestSide or BlockCell.ChestTop or BlockCell.FarmlandTop or BlockCell.Wheat
-            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
+            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.Bed or BlockCell.Bedroll or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
             or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer => true,
@@ -195,6 +195,10 @@ public static class BlockArtVillage
                 return ApplesPixel(x, y, n);
             case BlockCell.Bottles:
                 return BottlesPixel(x, y, n);
+            case BlockCell.Bed:
+                return BedPixel(x, y, n);
+            case BlockCell.Bedroll:
+                return BedrollPixel(x, y, n);
             case BlockCell.SignBoard:
                 {
                     // The post column of the signpost: the post runs through the middle, the board's plank is cut at its top and bottom.
@@ -389,6 +393,43 @@ public static class BlockArtVillage
         }
 
         return y < 4 ? Clear : Jit(104, 66, 34, n, 2);
+    }
+
+    private static Rgba BedPixel(int x, int y, uint n)
+    {
+        // The bed from above, its head at the top of the picture: a dark wooden frame round the edge, a cream pillow under the head, and a red blanket
+        // with a lighter fold across it. The sides of the box show the same picture under the frame's band.
+        if (x is 0 or 15 || y is 0 or 15)
+        {
+            return Jit(118, 74, 38, n, 2);
+        }
+
+        if (x is >= 2 and <= 13 && y is >= 2 and <= 5)
+        {
+            return Jit(246, 242, 232, n, 2);
+        }
+
+        return y == 7 ? Jit(232, 196, 120, n, 2) : Jit(180, 52, 50, n, 3);
+    }
+
+    private static Rgba BedrollPixel(int x, int y, uint n)
+    {
+        // A roll of cloth lying along the picture: its end at the right is a disc of the cloth's spiral, and the roll's body has stripes along it.
+        var dx = x - 12.5f;
+        var dy = y - 7.5f;
+        var d2 = (dx * dx) + (dy * dy);
+        if (d2 <= 12.25f)
+        {
+            var ring = (int)(MathF.Sqrt(d2) * 1.5f) % 2;
+            return ring == 0 ? Jit(232, 214, 160, n, 2) : Jit(150, 124, 76, n, 2);
+        }
+
+        if (y is < 4 or > 11)
+        {
+            return Clear;
+        }
+
+        return y % 3 == 0 ? Jit(118, 96, 56, n, 2) : Jit(168, 146, 92, n, 2);
     }
 
     private static Rgba BottlesPixel(int x, int y, uint n)
