@@ -25,7 +25,7 @@ public sealed class AtmosphereModelTests
         Assert.Equal(clock.DaylightAt(600), snapshot.Daylight);
         Assert.Equal("sunny", snapshot.KindId);
         Assert.Equal(weather.Current.Channels, snapshot.Channels);
-        Assert.Null(snapshot.Say);
+        Assert.Equal("sun", snapshot.Say); // the shipped sunny kind says «sun» by day (E07 filled the keys)
     }
 
     [Fact]

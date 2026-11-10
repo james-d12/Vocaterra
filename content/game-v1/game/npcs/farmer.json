@@ -33,6 +33,9 @@
     "answer_accepted",
     "farmer_nice"
   ],
+  "weatherAnswers": [
+    "ask_weather"
+  ],
   "slotReplies": {
     "state_weather": {
       "slot": "weather",

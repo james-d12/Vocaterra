@@ -213,7 +213,8 @@ public static class NpcTurnRules
     /// <param name="npc">The NPC, whose <c>&lt;id&gt;.true</c> transition names the pool of «Sí, es verdad.» and whose file declares its acknowledgement pools (<see cref="NpcEntry.AcknowledgementPools"/>) and its slot replies (<see cref="NpcEntry.SlotReplies"/>, V29).</param>
     /// <param name="worldSeed">The world seed, for the draw among the variants of the NPC's replies (V29).</param>
     /// <param name="counter">The agent's interaction counter before the turn, for the same draw.</param>
-    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, NpcEntry? npc = null, ulong worldSeed = 0, long counter = 0)
+    /// <param name="weatherKey">The dialogue key of the weather now (E07, <see cref="GuideScene.WeatherKey"/>): the answer of an intent in <see cref="NpcEntry.WeatherAnswers"/> is the NPC's pool for it (<see cref="WeatherReplyOf"/>).</param>
+    public static ComposedReply Compose(PipelineResult result, bool understood, IReadOnlyList<string> unsaid, IEnumerable<string> names, Func<string, bool>? skip = null, IReadOnlyDictionary<string, string>? freeTalkPools = null, bool freeTalk = true, ContentBundle? bundle = null, NpcEntry? npc = null, ulong worldSeed = 0, long counter = 0, string? weatherKey = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         var listenerPool = freeTalk && bundle is not null && npc is not null && AboutListener(result) ? PoolSaidOn(bundle, npc.Id, TrueEvent(npc.Id)) : null;
@@ -269,6 +270,10 @@ public static class NpcTurnRules
         {
             replies[0] = echo;
         }
+        else if (bundle is not null && npc is not null && replies.Count > 0 && WeatherReplyOf(bundle, npc, result.Verdict, weatherKey, worldSeed, counter) is { } weather)
+        {
+            replies[0] = weather;
+        }
 
         return new ComposedReply(feedback, replies);
     }
@@ -306,6 +311,35 @@ public static class NpcTurnRules
         }
 
         return bundle.TemplateEngine.Render(Pick(found, worldSeed, counter), SlotMap.From(new Dictionary<string, string>(StringComparer.Ordinal) { [reply.Slot] = value }));
+    }
+
+    /// <summary>The host event whose transition names the NPC's pool for a weather's dialogue key (<c>baker.cloudy</c>): the game never fires it (E07).</summary>
+    /// <param name="npc">The NPC's id.</param>
+    /// <param name="key">The dialogue key (a kind's <c>say</c>).</param>
+    public static string WeatherEvent(string npc, string key) => npc + "." + key;
+
+    /// <summary>
+    /// The NPC's answer to «¿Qué tiempo hace?» (E07, <see cref="NpcEntry.WeatherAnswers"/>): the line of the pool its agent names on <see cref="WeatherEvent"/> for the weather's dialogue key,
+    /// drawn from the interaction's seed; <see langword="null"/> when the verdict's intent is not one of the NPC's, the world has no key or the NPC has no such pool (the plain reply then stands).
+    /// </summary>
+    /// <param name="bundle">The content bundle.</param>
+    /// <param name="npc">The NPC.</param>
+    /// <param name="verdict">The turn's verdict.</param>
+    /// <param name="weatherKey">The dialogue key of the weather now, or <see langword="null"/>.</param>
+    /// <param name="worldSeed">The world seed.</param>
+    /// <param name="counter">The agent's interaction counter before the turn.</param>
+    public static string? WeatherReplyOf(ContentBundle bundle, NpcEntry npc, Verdict verdict, string? weatherKey, ulong worldSeed, long counter)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(npc);
+        ArgumentNullException.ThrowIfNull(verdict);
+        if (weatherKey is null || !verdict.Communicated || !npc.WeatherAnswers.Contains(verdict.Intent.Value, StringComparer.Ordinal)
+            || PoolSaidOn(bundle, npc.Id, WeatherEvent(npc.Id, weatherKey)) is not { } pool || !bundle.Dialogue.TryGetPool(pool, out var found) || found.Variants.Count == 0)
+        {
+            return null;
+        }
+
+        return bundle.TemplateEngine.Render(Pick(found, worldSeed, counter), SlotMap.Empty);
     }
 
     /// <summary>

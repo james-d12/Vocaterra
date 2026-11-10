@@ -194,6 +194,30 @@
       "Bytes": 68666,
       "Gain": 0.32
     },
+    "speech/baker/baker_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "ac8927c6fa14c6173e5ec5a466a9bd32d313efcd199ece52bc79c7c9a78d98a8",
+      "Bytes": 91788,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "cfb6bf91682755281989ad4129947c6d61264f65e38adf631be8ee8ef6c23f29",
+      "Bytes": 67750,
+      "Gain": 0.32
+    },
     "speech/baker/baker_delivered.1.slow.wav": {
       "Text": "\u00A1Gracias! Toma cuatro monedas.",
       "Speaker": "baker",
@@ -216,6 +240,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "4418076adde356ff011e8d214e6f844d338b2338e03beafebe4f00ce1e2fb0e3",
       "Bytes": 114850,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "a6d975a52bd92b04efc40e085c3e5191d26fc2ceb6f9cff34769c25013c26577",
+      "Bytes": 85760,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "c9a148c3a1e1f8d96ceaa807fc5e0947c6f316b9a91f318537df1d4e95596512",
+      "Bytes": 67642,
       "Gain": 0.32
     },
     "speech/baker/baker_gift_used.1.slow.wav": {
@@ -624,6 +672,30 @@
       "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
       "Sha256": "92a529520cdbfc9eedf0b717cca730dbea8fec797a23c7c4ab47b2177636f5d9",
       "Bytes": 92114,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "9140d1478ad48263d2b912017af018b4c8b8fec2bcd5b88b748976795c8fc13f",
+      "Sha256": "1d4c54695c4dc1dff39c3e5532fe8d8cb6719b9df525d2a2ac338faafd50abe2",
+      "Bytes": 68462,
+      "Gain": 0.32
+    },
+    "speech/baker/baker_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "baker",
+      "SpeakerId": 35,
+      "Voice": "if_sara",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "ce3d7fb69c43ef0a458050a76c0bf00f907d77058bc4df177194bf1973857dfc",
+      "Sha256": "b0ccfa392a6d4c8956e0ac1904a8282692aa3da8e7f524a9508af8c8ac23814e",
+      "Bytes": 52512,
       "Gain": 0.32
     },
     "speech/baker/baker_receive.1.slow.wav": {
@@ -3360,6 +3432,28 @@
       "Sha256": "fdacbba04bd59ae4bc680cbe7e5dd366e6eda3a36ad1d4c7b42909562eff8454",
       "Bytes": 74444
     },
+    "speech/farmer/farmer_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "d56939b1a01a5dd40f8138e65a42bcf8fb3ede60f32f98527591f9bae26baf31",
+      "Bytes": 78384
+    },
+    "speech/farmer/farmer_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "af0b1f90ddbaf70fc929196c5ce5fba8cb6d0430afb76dea9352830233962d1b",
+      "Bytes": 70068
+    },
     "speech/farmer/farmer_delivered.1.slow.wav": {
       "Text": "\u00A1Gracias! Toma tres manzanas.",
       "Speaker": "farmer",
@@ -3381,6 +3475,28 @@
       "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
       "Sha256": "a543cf136baf30a9233d56cc8b6d56f2af2adffd2f3c4bfe35872f2e27dbcc56",
       "Bytes": 133422
+    },
+    "speech/farmer/farmer_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "a9bf04beb4b4ad2ef9a0f65acfc10497519404892fe485e0352171c4af6f375f",
+      "Bytes": 82046
+    },
+    "speech/farmer/farmer_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "72505ec4d2dbe342dd836405b681e0801163838d0fd158a4d968953a43637cb3",
+      "Bytes": 70048
     },
     "speech/farmer/farmer_greet.1.slow.wav": {
       "Text": "\u00A1Hola! Este es mi campo.",
@@ -3667,6 +3783,28 @@
       "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
       "Sha256": "82c753b39f95a1d0e6a61208d85a1b19b57cbc32155c6c925281693614f1b509",
       "Bytes": 96844
+    },
+    "speech/farmer/farmer_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "99324140e895378c24c51a36d4c9f56ae9491ae112c393bff07f5f85b9656cf5",
+      "Sha256": "b25529a7b5814579cc78cdc7eeadbffd8eb1b1c6be202e9c6462063910a000f4",
+      "Bytes": 67638
+    },
+    "speech/farmer/farmer_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "farmer",
+      "SpeakerId": 44,
+      "Voice": "pm_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9b21535b15c9c2b30c726fc985eb38a563c9bf9e48aad254c6809beae3fab923",
+      "Sha256": "5ae890a71fc9b2d93b151cad621f264cf6994a93c6294ce7b90b710f603b9e0f",
+      "Bytes": 52326
     },
     "speech/farmer/farmer_receive.1.slow.wav": {
       "Text": "\u00A1Hola! \u00BFQu\u00E9 tienes para m\u00ED?",
@@ -5274,6 +5412,28 @@
       "Sha256": "06a749a228d1a827dda3e76259f8828dea3cb5cb9a87295d419e0a67cfac24f6",
       "Bytes": 55794
     },
+    "speech/fisher/fisher_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "a5e09bd1dc0bab4ad0a53aa5e9cd34773518447ff29fbc01477f7c32bdd1e730",
+      "Bytes": 84586
+    },
+    "speech/fisher/fisher_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "e17ddeb0b4664732e0ed27d32bd8f8d0de3a4bf72853a9e6e462f4f634ce0970",
+      "Bytes": 65174
+    },
     "speech/fisher/fisher_delivered.1.slow.wav": {
       "Text": "\u00A1Gracias! Toma dos monedas.",
       "Speaker": "fisher",
@@ -5295,6 +5455,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "913f593eae85ee85a6158d236aaceb8e134c1d8648e23061e6e046c54512fd84",
       "Bytes": 119012
+    },
+    "speech/fisher/fisher_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "cefbfa354bc11c45b049784ab223e7c4fd9e26d41bafb1750fa2acc1d6c3db20",
+      "Bytes": 87600
+    },
+    "speech/fisher/fisher_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "affc1a21ddde2b227dbdaa9a3a88fc35590f73b2f0abbb9225f916b782d788b9",
+      "Bytes": 70048
     },
     "speech/fisher/fisher_far.1.slow.wav": {
       "Text": "\u00BFLejos? \u00BFQu\u00E9 buscas?",
@@ -5537,6 +5719,28 @@
       "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
       "Sha256": "5f9f5898ba3c0c36193b23ad0a2086c92d3784e37a1478de29b60d3be74adcc6",
       "Bytes": 77286
+    },
+    "speech/fisher/fisher_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "516e79bce4e3fe299407d48d20f1a315c0335baeedab77b68892f25ae4a762c6",
+      "Bytes": 60304
+    },
+    "speech/fisher/fisher_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "6546bae4179fdce9dc1ade5a24f61b34da0777f8d7807626cc0afed59330d529",
+      "Bytes": 53154
     },
     "speech/fisher/fisher_receive.1.slow.wav": {
       "Text": "\u00A1Hola! \u00BFQu\u00E9 tienes para m\u00ED?",
@@ -7980,6 +8184,28 @@
       "Sha256": "5d4741378fd42653d08df90db0d501e4c0985a2eae2900f3dc68808792dcf011",
       "Bytes": 104786
     },
+    "speech/guide/guide_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "526cf6e88283727c8ee5d06f5a90dadbb2c3387ec9b1c226b605288ffb105312",
+      "Bytes": 75360
+    },
+    "speech/guide/guide_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "ca2fb7ca7aa47b8bd3b8a8b40737d782ee0b09815dc671ef52e922d9de80103f",
+      "Bytes": 68444
+    },
     "speech/guide/guide_craft.1.slow.wav": {
       "Text": "\u00A1Claro! Mira.",
       "Speaker": "guide",
@@ -8045,6 +8271,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "dd44fdcdea6334ffb893aff6cdcd0671befed5b0868e71835ea457f9fa72e1ca",
       "Bytes": 56444
+    },
+    "speech/guide/guide_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "3a5dc06f6e33df8bca4348dc9fcd5fc208115d2a37c6765fc4b0494e8b0d63f0",
+      "Bytes": 78472
+    },
+    "speech/guide/guide_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "4d850d9862bf7b3393778ef4a8f1527c4412ece0d86c3656ef0c44163c2e9a10",
+      "Bytes": 67244
     },
     "speech/guide/guide_find.1.slow.wav": {
       "Text": "A ver, busco.",
@@ -8639,6 +8887,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "48c687fae4c89c368acb83d21cd6679da19d49f408d6f04cf55516541b7b43ba",
       "Bytes": 55244
+    },
+    "speech/guide/guide_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "da8973d4e24a36313432d103a1fca960376d13d49bc9320fe4620bdb2347129c",
+      "Bytes": 66044
+    },
+    "speech/guide/guide_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "e82c1d780ac2261d4e996d6fb066555cc44a92ec3742e1f1b9c8985502e48e3c",
+      "Bytes": 54044
     },
     "speech/guide/guide_slower.1.slow.wav": {
       "Text": "Claro. M\u00E1s despacio.",
@@ -12270,6 +12540,28 @@
       "Sha256": "789a2e0cb14b722016e746405eb46492bb0ec2f3660176d8ea0ec0ba0e30c72a",
       "Bytes": 62444
     },
+    "speech/shopkeeper/shop_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "91c6fa9a07ae977d0b0286bcd9c973d5d45a366129054cb13281f2b462271944",
+      "Bytes": 77814
+    },
+    "speech/shopkeeper/shop_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "32f5bf3c190a4ea3d7f97f2493714428c330ff82d475657dfd032cc86231f05c",
+      "Bytes": 73244
+    },
     "speech/shopkeeper/shop_deny.1.slow.wav": {
       "Text": "Est\u00E1 bien.",
       "Speaker": "shopkeeper",
@@ -12357,6 +12649,28 @@
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
       "Sha256": "f71c37fcc04def45cf78489a2b6b7a1253ead3029b915a7c7275de9f24e58a24",
       "Bytes": 48044
+    },
+    "speech/shopkeeper/shop_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "92dbc33c94b9876e484d6dc66e1913b65a261164d5ffabcbd080370007ac2dd0",
+      "Bytes": 84448
+    },
+    "speech/shopkeeper/shop_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "f18443df3994bc2c6de9d344c7aa1211e900f1001ee75322e2fd777ed4128595",
+      "Bytes": 73244
     },
     "speech/shopkeeper/shop_gift_used.1.slow.wav": {
       "Text": "Hoy no tengo m\u00E1s pan.",
@@ -12687,6 +13001,28 @@
       "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
       "Sha256": "7ea70764889bf103d04ee2bdba62b4fa8ec416dc686274def157188c58669190",
       "Bytes": 98444
+    },
+    "speech/shopkeeper/shop_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "fb8e2a935145ab41ed0f66e30299d072f0fd5bb2fee4e2b8e31a5177726f9137",
+      "Sha256": "427170b717207753188e540e1e44c0b26f61ec0629ff300d60f5d8dc7c40a53a",
+      "Bytes": 61664
+    },
+    "speech/shopkeeper/shop_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "shopkeeper",
+      "SpeakerId": 29,
+      "Voice": "em_alex",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "9de64ed1c7eacc5ecc8f8f38f7a9cce2241101cd989f2ea8d9ec44965df5b4d5",
+      "Sha256": "71ffb6187bb2a1ba521b74d8ae57558869b1411f0c38c67d16b650c4af46dc28",
+      "Bytes": 56444
     },
     "speech/shopkeeper/shop_sell_flour.1.slow.wav": {
       "Text": "Aqu\u00ED tienes la harina.",
@@ -13846,6 +14182,30 @@
       "Bytes": 70086,
       "Gain": 0.6
     },
+    "speech/smith/smith_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "91c87bddb328c3d1ba8f80cbfc6c7b06549fbac59dc445f1c7dc5025c51058be",
+      "Bytes": 87744,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "64aa52f864a4ab6cf3ad133eb492cf7ce2d8aacf60c06bc1b8c615b619337676",
+      "Bytes": 65952,
+      "Gain": 0.6
+    },
     "speech/smith/smith_delivered.1.slow.wav": {
       "Text": "\u00A1Gracias! Toma el hacha.",
       "Speaker": "smith",
@@ -13868,6 +14228,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "8f9af4b6c609fe30d2b075074126ba86ff5fcc73bc8db04bdf7fb6e8496d81ac",
       "Bytes": 89214,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "afbb5db9aba1a21a57ec525d8d5c31b25458c7557a9c4ba4c5fcf0123dd34455",
+      "Bytes": 82840,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "a573ad87ec2607eb76a83574a749e79df03ab555c29bf7fc2384afd977531084",
+      "Bytes": 67676,
       "Gain": 0.6
     },
     "speech/smith/smith_greet.1.slow.wav": {
@@ -14132,6 +14516,30 @@
       "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
       "Sha256": "06af95e803316f4367dab9b4ebc26d1449e344f0e6c880b3dcd83119097826bd",
       "Bytes": 109770,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "74ccefe450428c0d43b4a93003662c032b03f1b394c0c577da5163eb3bee5afe",
+      "Sha256": "6b80da74fe79bbc31a8fc774513544458bad525fc75da590d525f82ec7342e59",
+      "Bytes": 60380,
+      "Gain": 0.6
+    },
+    "speech/smith/smith_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "smith",
+      "SpeakerId": 36,
+      "Voice": "im_nicola",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "60e203d81e4d4b832632e4addeb9ea70c99e1a5fdede504c8c044d6f8f6ef8b0",
+      "Sha256": "4202610b5c41312e18ad19b82955636a04b22ab845e251f27a88b38c9b6a86e4",
+      "Bytes": 45512,
       "Gain": 0.6
     },
     "speech/smith/smith_receive.1.slow.wav": {
@@ -15936,6 +16344,50 @@
       "Sha256": "82e14a884df3b08e5546b0687715d0af56217d5d6a79d23b1745c7ac7480322a",
       "Bytes": 58844
     },
+    "speech/villager/villager_cloudy.1.slow.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "e0ecc8e082ca4ad1edf63a1633c0797f1ccd4a7ef632b32169b4420ce028af91",
+      "Bytes": 78936
+    },
+    "speech/villager/villager_cloudy.1.wav": {
+      "Text": "Hoy est\u00E1 nublado.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "5e41e7f46da9af4524a945db36d764c5d6c2c721c68d17580a28de30c75c75e9",
+      "Bytes": 73244
+    },
+    "speech/villager/villager_fair.1.slow.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "8d8451a9c826916be09fdc188234734c7eae3a57bd20b1a7ea1b1867d1b89152",
+      "Bytes": 78790
+    },
+    "speech/villager/villager_fair.1.wav": {
+      "Text": "Hace buen tiempo.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "727c9757c51b479b3c07abacdd68a936b532d627b79ce5ba606ed5cc39126774",
+      "Bytes": 73244
+    },
     "speech/villager/villager_gift_used.1.slow.wav": {
       "Text": "Hoy no tengo m\u00E1s pan.",
       "Speaker": "villager",
@@ -16133,6 +16585,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "ff9dc914d6481f18f9a36314785bdd6b8b90ec8b606a1801e874c0e79ffe076b",
       "Bytes": 68444
+    },
+    "speech/villager/villager_rain.1.slow.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "51a06f7ce5b3cfefff8afb26650ca31caca78188f6ebb843caeb6b0a31de27f6",
+      "Bytes": 64044
+    },
+    "speech/villager/villager_rain.1.wav": {
+      "Text": "Hoy llueve.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "c1e36926657d6e5d75b13281cec75086e202dbbab7c0473557f76f49f6add02f",
+      "Bytes": 57644
     },
     "speech/villager/villager_sun.1.slow.wav": {
       "Text": "Hoy hace sol.",

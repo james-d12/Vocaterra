@@ -46,8 +46,75 @@ public sealed class WeatherAndWellbeingTests
     [MemberData(nameof(Npcs))]
     public void EveryNpcAnswersWhatTheWeatherIsAndHowTheyAre(string npc)
     {
-        Assert.Equal(["Hoy hace sol."], Free(NewNpcs(), npc, "¿qué tiempo hace?").Replies);
+        Assert.Equal(["Hoy hace sol."], Free(NewNpcs(), npc, "¿qué tiempo hace?").Replies); // a world with no weather (E07: no key in the scene) keeps the plain answer of the transition
         Assert.Equal([npc == "villager" ? "Bien, gracias. ¿Y tú?" : "Bien, gracias."], Free(NewNpcs(), npc, "¿cómo estás?").Replies); // PR #48: the villager, whose prompt practises «Muy bien.», asks back
+    }
+
+    /// <summary>E07: the held weather, the hour that makes it day or night, and the line every NPC answers with (the first kind by day and its night key, then the other two).</summary>
+    public static TheoryData<string, double, string> HeldWeathers => new()
+    {
+        { "sunny", 12, "Hoy hace sol." },
+        { "sunny", 23, "Hace buen tiempo." },
+        { "cloudy", 12, "Hoy está nublado." },
+        { "cloudy", 23, "Hoy está nublado." },
+        { "rain", 12, "Hoy llueve." },
+        { "rain", 23, "Hoy llueve." },
+    };
+
+    [Theory]
+    [MemberData(nameof(HeldWeathers))]
+    public void EveryNpcAnswersWhatTheWeatherIsWithTheWeatherTheWorldHasByDayAndAtNight(string kind, double hour, string line)
+    {
+        foreach (var npc in TestGame.Data.Npcs.Ids)
+        {
+            var session = TestGame.NewSession();
+            session.Simulation.ForceWeather(kind);
+            session.Simulation.FreezeClock(hour);
+            Stage.TeleportToNpc(session, npc);
+            _ = session.OpenTalk(npc);
+
+            var turn = session.Say("¿qué tiempo hace?");
+
+            Assert.Equal("ask_weather", turn.Intent);
+            Assert.Equal([line], turn.Replies);
+            Assert.Empty(turn.HostEvents);
+        }
+    }
+
+    [Fact]
+    public void TheAnswerChangesWhenTheWeatherChangesBetweenTwoTurnsOfOneConversation()
+    {
+        var session = TestGame.NewSession();
+        session.Simulation.FreezeClock(12);
+        Stage.TeleportToNpc(session, "baker");
+        _ = session.OpenTalk("baker");
+
+        session.Simulation.ForceWeather("sunny");
+        var first = session.Say("¿qué tiempo hace?");
+        session.Simulation.ForceWeather("rain");
+        var second = session.Say("¿qué tiempo hace?");
+        session.Simulation.FreezeClock(23);
+        session.Simulation.ForceWeather("sunny");
+        var third = session.Say("¿qué tiempo hace?");
+
+        Assert.Equal(["Hoy hace sol."], first.Replies);
+        Assert.Equal(["Hoy llueve."], second.Replies);
+        Assert.Equal(["Hace buen tiempo."], third.Replies);
+    }
+
+    [Fact]
+    public void ANeighbourOfTheQuestionIsAnsweredAsItWasWhateverTheWeather()
+    {
+        var session = TestGame.NewSession();
+        session.Simulation.ForceWeather("rain");
+        session.Simulation.FreezeClock(12);
+        Stage.TeleportToNpc(session, "baker");
+        _ = session.OpenTalk("baker");
+
+        Assert.Equal(["Sí, hace sol."], session.Say("hace sol").Replies); // the statement is echoed, not checked against the weather (state_weather stays as V29 made it)
+        Assert.Equal(["¡Sí!"], session.Say("llueve").Replies);
+        Assert.Equal(["Bien, gracias."], session.Say("¿cómo estás?").Replies);
+        Assert.Equal(["Hoy llueve."], session.Say("¿qué tiempo hace hoy?").Replies);
     }
 
     [Theory]

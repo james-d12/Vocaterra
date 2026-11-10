@@ -15,7 +15,8 @@
       "minSeconds": 240,
       "maxSeconds": 600,
       "next": { "cloudy": 1 },
-      "morningWeight": 6
+      "morningWeight": 6,
+      "say": { "day": "sun", "night": "fair" }
     },
     {
       "id": "cloudy",
@@ -26,7 +27,8 @@
       "minSeconds": 180,
       "maxSeconds": 420,
       "next": { "sunny": 3, "rain": 2 },
-      "morningWeight": 3
+      "morningWeight": 3,
+      "say": { "day": "cloudy", "night": "cloudy" }
     },
     {
       "id": "rain",
@@ -38,7 +40,8 @@
       "minSeconds": 120,
       "maxSeconds": 300,
       "next": { "cloudy": 3, "sunny": 1 },
-      "morningWeight": 1
+      "morningWeight": 1,
+      "say": { "day": "rain", "night": "rain" }
     }
   ]
 }

@@ -146,6 +146,9 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`). Since E01: `day_phase` (the day clock crossed into
   another phase; the detail is `dawn`, `day`, `dusk` or `night`; a sleep's jump to the morning and a load raise none) and, since E04, `weather_changed` (the weather
   changed kind: a spell's end, a morning's roll; the detail is the new kind's id, a row of `game/weather.json`; a load raises none).
+  An NPC's file may list `weatherAnswers` (`["ask_weather"]`, E07): that intent is then answered with the pool its agent names on the host event `<id>.<key>`
+  (a transition the game never fires, as `<id>.weather`), the key being the `say` of the weather kind now (`game/weather.json`; `day` and `night` keys); the
+  validator needs a `say` on every kind and that transition and its pool for every key.
 - **A lesson.** Add a file `game-v1/game/lessons/<id>.json` (`lesson.schema.json` lists each step type's fields), its id to `game-v1/game/lessons.json`
   where it should come, a provenance item, and its text to
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
