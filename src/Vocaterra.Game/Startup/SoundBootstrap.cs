@@ -41,7 +41,7 @@ public static class SoundBootstrap
         }
 
         var places = layout is null ? new AmbientPlaces(null, null, null, [], null, [], []) : AmbientPlaces.From(layout);
-        var ambient = new AmbientSound(mixer, places, options.Dusk);
+        var ambient = new AmbientSound(mixer, places);
         var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book), ambient);
         sound.SkipEvents(session.Events.Count);
         return new SoundParts(sound, output, log);

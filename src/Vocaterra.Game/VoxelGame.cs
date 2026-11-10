@@ -1091,7 +1091,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _sim.UnfreezeClock();
             }
 
-            _sound.SetDusk(on); // the beds still follow the flag until the sound moves to the phase (E03)
             Console.WriteLine($"dusk lighting: {(on ? "on" : "off")}");
         },
         Greyscale = () => _drawer.Colours?.Enabled ?? _options.Greyscale,

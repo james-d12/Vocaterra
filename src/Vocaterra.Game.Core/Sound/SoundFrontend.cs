@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
@@ -92,16 +93,6 @@ public sealed class SoundFrontend
     /// <summary>The event-to-cue mapping.</summary>
     public SoundEventMapper Mapper { get; }
 
-    /// <summary>Switches the ambient beds to dusk (the insects) or back to day (the birds), as <c>--dusk</c> starts them; does nothing without ambient beds.</summary>
-    /// <param name="on">Whether it is dusk.</param>
-    public void SetDusk(bool on)
-    {
-        if (_ambient is not null)
-        {
-            _ambient.Dusk = on;
-        }
-    }
-
     /// <summary>The scripted recording window (a scripted spoken line, the scripted mic check).</summary>
     public ScriptedRecording Scripted { get; }
 
@@ -144,8 +135,9 @@ public sealed class SoundFrontend
     /// <param name="events">The events of the tick.</param>
     /// <param name="player">The player's body.</param>
     /// <param name="blockAt">Reads the block at a cell.</param>
+    /// <param name="atmosphere">The atmosphere now (E03: the birds and the insects follow its daylight).</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, bool fireLit)
+    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, AtmosphereSnapshot atmosphere, bool fireLit)
     {
         ArgumentNullException.ThrowIfNull(events);
         ArgumentNullException.ThrowIfNull(player);
@@ -161,7 +153,7 @@ public sealed class SoundFrontend
         }
 
         _frame.AddRange(steps);
-        _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), fireLit);
+        _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), atmosphere, fireLit);
     }
 
     /// <summary>Once per tick (H10): a bubble for each bubble the breath loses under water (<see cref="BreathBubbles"/>).</summary>
