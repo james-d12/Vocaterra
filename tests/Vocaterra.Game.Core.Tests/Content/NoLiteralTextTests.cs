@@ -66,6 +66,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Scripted/CheckScript.cs"] = "the scripted runs' console",
         ["src/Vocaterra.Game/Scripted/ScriptedRunEnd.cs"] = "the scripted runs' console and session log line when a run is cut short (V26)",
         ["src/Vocaterra.Game.Core/Scripted/VoxelScript.cs"] = "the scripted runs' console",
+        ["src/Vocaterra.Game/Graphics/Weather/PrecipitationField.cs"] = "the console line that says a precipitation kind has no style (E06)",
         ["src/Vocaterra.Game.Core/Sound/SoundMixer.cs"] = "the sound's console lines",
         ["src/Vocaterra.Game.Core/Sound/AmbientSound.cs"] = "the sound's console lines",
         ["src/Vocaterra.Game.Core/World/Generation/SceneBuilder.cs"] = "the scene's build stats on the console",

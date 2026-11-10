@@ -1,6 +1,6 @@
+using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Graphics.Weather;
 
 namespace Vocaterra.Game.Tests.Graphics.Weather;

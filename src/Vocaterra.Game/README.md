@@ -182,6 +182,44 @@ What changed in the look: the old mix also cooled the lit face (less green, much
 cooling is gone; and the old vertex colour was cut at 1 before the picture, where the glow now adds on top of a face in full sun (a little brighter beside a lantern at noon). Measured at midnight, beside a lantern, the wall's mean colour went from
 (92, 42, 24) to (92, 43, 28) and the grass's from (56, 88, 19) to (56, 90, 24); at noon the wall from (169, 86, 44) to (177, 89, 48). Away from any lantern noon is pixel for pixel what it was. The glow of a village is 13 380 vertices (3 345 quads, 0.4 percent of the world's).
 
+### Rain (E06)
+
+The first particle effect: the precipitation the weather's snapshot carries is drawn after the water. `Graphics/Weather/` holds it, and nothing in it names a kind's id but the style table.
+
+**The world's draw order** (`VoxelRenderer.DrawWorld`): the sky, the opaque chunks by light band, the self-lit pieces, the undergrowth, the lanterns' glow, the NPC figures and the avatar, the block frame, the
+translucent water (alpha blend, depth read only, from the farthest chunk), **the rain** (the same blend and depth states, both faces), the beacon, the name plates, the held arm (depth cleared). The rain reads the depth the
+opaque world wrote and writes none, so a drop behind a wall or a hill is hidden and a drop in front of the water shows over it.
+
+**The field** (`PrecipitationField`, no engine type). The drops live in a box that wraps round the camera: 36 blocks wide both ways and 24 high (`BoxWidth`, `BoxHeight`), reaching 3 blocks further below the eye than above it
+(`BoxLowering`), because most of the rain is seen below the horizon, on the ground in front. Each drop has a fixed place in a pattern from `PresentationRng` (seeded by a constant; no clock, no `System.Random`) that repeats
+every box width east-west and north-south, so the field never ends and costs the same anywhere, and a camera moved by the box's size sees the same pattern (`PrecipitationFieldTests`). A drop falls at the style's speed
+(the tick over 60, with a little spread per drop) and leans with the wind along a fixed heading (east and a little south, the way the clouds drift): its lateral drift is the style's slant times the wind channel times the
+height, so its line is straight. The streak runs from the head (the drop) up its own line for the style's length. The drops alive are the style's share of the quality's budget times the intensity, one after another: the
+last one alive fades in by the fraction, so a transition thickens and thins the rain with no pop, and the count is monotonic in the intensity and zero at zero. A drop also fades towards the box's walls, roof and floor
+(where it wraps) and in front of the eye.
+
+**The cover** (`ColumnCover`). Each column's cover is `VoxelGrid.HighestBlock` (trees, roofs and plants count), read by chunk column (256 columns a tile) and cached with the sum of the chunks' versions: a block placed or
+removed in a chunk column makes that tile again at the next frame (`Refresh`, once a frame, for the tiles the box overlaps), and a quiet world makes none. A drop is not drawn below the top face of its column's cover
+(`OverheadCover.Top`, in Core, so the sound uses the same rule): the rain stops at the eaves and under a tree, and a drop that reaches a roof or the ground is cut short into it, so no streak sinks into a surface. There
+are no splashes, puddles or wet blocks.
+
+**The style table** (`PrecipitationStyles.Table`, rows of `PrecipitationStyle`): per precipitation kind, keyed by the string of the snapshot's `PrecipitationKind`, the streak's length and width, the fall speed, the colour
+and opacity, how much the wind slants it and the share of the budget at full intensity. It has one row, for the kind `game/weather.json` names; it is the one place the precipitation's id is written (`NoWeatherKindIdsInSourceTests`
+allows that file, and `AmbientBeds.cs`, whose bed of the same word is a bed's id and not a decision on a kind). A test over the bundle's data holds that every precipitation kind of the weather has a row, so a kind added
+later (snow) without a style fails there: it is a new row, a new loop and a bed, and a consumer of the channels. An id the table lacks draws nothing and is reported once in the console.
+
+**The pass** (`PrecipitationRenderer`): the streaks as camera-facing quads (the side vector is the streak's direction crossed with the way to the eye) in one `DynamicVertexBuffer` with a fixed index buffer and a fixed
+vertex array, so a frame allocates nothing; `BasicEffect` with vertex colour, no lighting, alpha blend (`NonPremultiplied`), depth read and not written. The colour is the style's times the look's sun light (a power of 0.7
+with a floor of 0.3, so night rain is dim but shows, and a village's rain is not dark against its dark houses); the head has the style's opacity and the tail a little of it, so a streak fades up its line. A streak is
+narrowed near the lens (to 0.3 of its width at the eye, full from six blocks out). It is fogged like the world: the pass takes the world's fog colour, start and end (the under-water blend included). The pass fades with
+the under-water amount and is not drawn at 1, so nothing is blurred wrongly by the under-water view; a draw at 0 intensity, an unknown kind or a budget of 0 sends nothing. `VoxelRenderer.SetPrecipitation` takes the kind,
+intensity and wind from `SceneDrawer` (which reads the snapshot's channels), and `DrawnRainVertices` is what the last frame sent (a scripted run's closing console line adds it when it rained).
+
+**The quality field.** `QualityPreset.RainDrops` is the most drops at full intensity (a style takes its share): 2200 on low, 3400 on medium, 5400 on high (four vertices a drop: 3 772, 5 788 and 9 124 vertices drawn
+in the camp view in the data's rain, which holds 0.8). The field's pattern is made for 6000 (`MaxDrops`). On the heaviest kind the camp view's frame time (scripted, real GPU) went from 2.7, 3.2 and 3.4 ms to 3.1, 3.9 and
+4.5 ms on low, medium and high; on a software GL (llvmpipe) the low preset's 34.5 ms went to 35.1 ms (the run varies between two modes, 35 and 48 ms, with or without the rain). The cost is the managed work of
+filling and building the quads, not the GL work.
+
 **The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
 `DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use
 `DrawHelpers.RoundedPanel` (pixel-art rounded corners).

@@ -50,7 +50,7 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | A jump, a landing | `jump`, `land` (sfx; a landing in water is a `foot_water` splash) | Kenney Impact Sounds |
 | The birds over the forest by day | `bird_chirp` (ambient; scheduled in clusters by the presentation generator, louder the nearer the forest) | synthesized |
 | The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
-| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur; the birds by day and the insects as the daylight falls (E03) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
+| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur; the birds by day and the insects as the daylight falls (E03); the rain, lower under cover, the wind with the weather's wind channel, the birds quieter in rain (E06) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
 
 **Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
 function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
@@ -62,6 +62,15 @@ of the source from the way the player faces (simple stereo, not 3D). The footste
 has a surface, and a step is every 2 blocks walked on the ground (about two a second at the walking speed); the take of a step never repeats twice in a
 row. In water the steps splash. The beds and the scheduled sounds are silent while the microphone records and duck under a voice, like the other sounds.
 The sound log writes a `mark` line when the place or its weights change (`bed at village: village=1.0`).
+
+**Rain, wind and birds in the weather (E06).** The `rain` bed's weight is the precipitation channel's intensity (0 when no precipitation is named), reduced by up to three quarters under cover: nine columns round the feet, a
+block apart, count as covered when their highest block is over the head, and the share covered sets the cut, so the rain on a roof is still heard, at a quarter, and eases as the player walks out from under an eave. The cover query is
+`VoxelGrid.HighestBlock`, the one the drops stop at; Sound reads it and writes nothing to the simulation. The wind bed rises with the wind channel above 0.25 (by up to 0.5 at a channel of 1) on top of its rise with
+height, so the first data's breeze (0.2) leaves the sunny kind's sound as it was and a strong wind is heard in the lowland too; the birds' weight is multiplied by one minus the intensity. Every other bed is unchanged. The loop is
+synthesised (a 900 to 6500 hertz hiss with a patter of single drops, seamless, 441 kB in memory like the other loops). **The gain** is 0.2, the lowest of the beds (wind 0.5, river 0.45, waterfall 0.6, village 0.35,
+insects 0.3): the loop is the loudest of them (RMS 0.22 of full scale against about 0.15) and its hiss lies where the consonants of speech are, so it must not mask an NPC. At the data's intensity of 0.8 and the default
+ambient volume of 0.6 the rain's level is 0.8 x 0.22 x 0.2 x 0.6 = 0.021 of full scale, against 0.060 for the NPCs' clips (the median RMS of 60 of them): about 9 dB under the voice before the duck, and about 18 dB
+under it while it ducks (0.35); at a gain of 0.3 it would have been 5.6 dB under. It is cross-faded by the mixer over 1.5 s, silent while the microphone records, dulled under water with the others.
 
 ```bash
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
