@@ -135,8 +135,8 @@ person it draws the arm last, over a cleared depth buffer so it never sinks into
 outline) and the item the hand holds (`HeldItems.For`: a log, a torch with its flame drawn unlit; a bottle, a berry, a loaf, a coin, an apple, the axe, the book and every other item is its 16 x 16 icon extruded into voxels by `ItemModels`, one pixel thick, issue #44); the world matrix places it at the bottom right and applies
 `ArmMotion` (a sway while walking, a chop while `GatherProgress` grows, a dip for `ArmMotion.PlaceTicks` after a place command), and `ArmLight` tints it by the cover above the head and the lanterns and torch
 near it (the `DiffuseColor` of the alpha-test effect). Lanterns glow because `VoxelRenderer.FindLights` collects the lantern blocks (only the chunks whose kind mask holds one are searched) and
-`ChunkMesher` warms and brightens the vertices within `GlowRadius` (9 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; the dusk and the
-night give the glow full strength and dim the sun (half strength by day). A lantern is a small unlit glass box (`BlockShape.Lantern`; with a torch's flame it is in the chunk's self-lit mesh, which no light tint touches) and the stall's goods are low boxes (`BlockShape.Pile`).
+`ChunkMesher` builds, for the cube faces within `GlowRadius` (9 blocks) of one, a quad in the chunk's glow mesh (below), with a falloff by the square of the distance and the most on faces that look at the lantern; the dusk and the
+night give the glow full strength (half strength by day). A lantern is a small unlit glass box (`BlockShape.Lantern`; with a torch's flame it is in the chunk's self-lit mesh, which no light tint touches) and the stall's goods are low boxes (`BlockShape.Pile`).
 
 ### The day cycle: the sky and the light (E02)
 
@@ -159,17 +159,28 @@ sky) and comes nearer with the fog channel: `VoxelRenderer.FogEndFor(viewDistanc
 `FogStartFraction` of the end; it is read again when the look changes and when the preset or the view distance does, and composes with `SetUnderwater` as before. `CloudField.Generate(x, z, tick, boxes, cover)`
 ranks every cell by its hash: at 0.42 the boxes are today's exactly; a higher cover only adds clouds (none moves or goes), and a cell near the threshold fades in by `CloudBox.Alpha` over 6 percent of cover
 (`CellAlpha`, monotonic in the cover), so no cloud pops during a blend; at a full cover the field holds 467 boxes, 14 010 vertices (5 850 at the fair cover). A full cover is still scattered slabs over a grey dome, not a
-solid ceiling. The lanterns' glow is baked and does not follow the weather.
+solid ceiling. The lanterns' glow is its own layer (below) and is not dimmed by the weather.
 
-**Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1, lanterns at half), Dusk (`DuskLight`, lanterns at full) and
-Night (`NightLight`, lanterns at full). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
+**Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1), Dusk (`DuskLight`) and
+Night (`NightLight`); the bands bake the sun's light only, the lanterns' glow is its own layer (E02a). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
 in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.24,
 5.7, 20.3 and 21.76 o'clock. A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
 frame's budget, the old mesh staying on screen until its replacement is built. Chunks are drawn grouped by band, each group with `DiffuseColor = the look's sun light / the band's baked sun light`
 (`LightBands.Tint`), so every chunk shows the same sun light during the swap and the light moves smoothly through the day with no step at a band's edge. The same `DiffuseColor` carries the light to the figures and the
-avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). A lantern's glow is baked and scaled by the band's tint, so on the faces near a lantern
-there is a step in brightness where a mesh of the old band meets one of the new band: the sun's light shows none (known limit). Measured on this VM (software GL, `--quality low`/default): a whole band change takes about 6.5 s
+avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). The glow is not in the bands (E02a, below), so it shows no step.
+Measured on this VM (software GL, `--quality low`/default): a whole band change takes about 6.5 s
 (low) and 14 s (default) of building behind the frame budget, the worst frame about 20 ms (low) and 11 ms (default). The faces keep the fixed sun direction of the mesher: no shadows move with the sun.
+
+**The lanterns' glow as its own layer (E02a).** The light a lantern or a post torch throws on the faces near it is not baked with the sun's: the base meshes (opaque, undergrowth, water) hold the face tint, the ambient occlusion and the band's sun
+multiplier only, and `ChunkMeshes.GlowMesh` holds, for every cube face a light reaches (leaves too), the very same quad (the same four positions in the same order, the same texture coordinates), its vertex colour the reach of
+the glow at that corner as a grey level, 0 at `GlowRadius` to 1 (`LanternGlow.VertexColour`; the falloff and the facing are as before). It is built with the chunk and does not depend on the band, so a band change builds it again
+unchanged. `VoxelRenderer.DrawGlow` draws it after the opaque and the undergrowth passes: additive blending (the picture times the glow is added to what is there, the alpha is left alone), depth tested and not written, with the
+same alpha test as the opaque pass (a leaf's clear pixels neither draw nor glow), and `DiffuseColor = LanternGlow.Amber x the look's LanternStrength` (0.5 by day, 1 at dusk and by night, a smooth blend through dawn and dusk, whatever the
+band and not touched by the weather's sunlight). Because the quads are the opaque mesh's own, drawn with the same effect and transform, every pixel is at the depth the face wrote and the "less or equal" test passes it: no z-fighting
+(`ChunkMesherGlowTests` checks the quads are the opaque mesh's own; a close screenshot at night shows a clean wall). The fog's colour is black for this pass, so the glow fades out with distance in the same range as the fog instead of adding haze.
+What changed in the look: the old mix also cooled the lit face (less green, much less blue) before adding, and an additive pass cannot multiply, so `Amber` is (0.55, 0.27, 0.02) in place of the old add colour (0.55, 0.30, 0.08) and the
+cooling is gone; and the old vertex colour was cut at 1 before the picture, where the glow now adds on top of a face in full sun (a little brighter beside a lantern at noon). Measured at midnight, beside a lantern, the wall's mean colour went from
+(92, 42, 24) to (92, 43, 28) and the grass's from (56, 88, 19) to (56, 90, 24); at noon the wall from (169, 86, 44) to (177, 89, 48). Away from any lantern noon is pixel for pixel what it was. The glow of a village is 13 380 vertices (3 345 quads, 0.4 percent of the world's).
 
 **The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
 `DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use

@@ -394,8 +394,8 @@ public sealed class VoxelRenderer : IDisposable
             foreach (var index in _resident)
             {
                 var chunk = _chunks[index];
-                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads) * 4;
-                quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads;
+                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads) * 4;
+                quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads;
             }
 
             return new MeshStats(
@@ -614,6 +614,7 @@ public sealed class VoxelRenderer : IDisposable
 
         _solid.DiffuseColor = Vector3.One;
         _device.RasterizerState = RasterizerState.CullClockwise;
+        DrawGlow();
 
         // The figures and the player's avatar are lit by the look's sun light directly (their colours are not baked in a band) and, as before, warmed near a lantern.
         _effect.DiffuseColor = _sunLight;
@@ -697,6 +698,54 @@ public sealed class VoxelRenderer : IDisposable
         _device.BlendState = BlendState.Opaque;
     }
 
+    // The lanterns' glow (E02a): the quads of the faces a lantern reaches, drawn again over the opaque pass and added to it, with the depth tested and not written. They are the very
+    // quads of the opaque mesh (the same positions, in the same order, through the same transform and the same effect), so every pixel they cover is at the very depth the face wrote and
+    // the "less or equal" test lets it through: no fighting. The strength is the look's (continuous over the day, untouched by the weather), and the fog fades the glow out to nothing
+    // (the fog colour is black for this pass: the colour added at a distance is none) instead of adding haze.
+    private void DrawGlow()
+    {
+        var any = false;
+        foreach (var chunk in _visible)
+        {
+            if (chunk.GlowQuads > 0)
+            {
+                any = true;
+                break;
+            }
+        }
+
+        if (!any)
+        {
+            return;
+        }
+
+        var fogColour = _solid.FogColor;
+        _device.BlendState = GlowBlend;
+        _device.DepthStencilState = DepthStencilState.DepthRead;
+        var (r, g, b) = LanternGlow.PassColour(_look.LanternStrength);
+        _solid.DiffuseColor = new Vector3(r, g, b);
+        _solid.FogColor = Vector3.Zero;
+        _solid.CurrentTechnique.Passes[0].Apply();
+        foreach (var chunk in _visible)
+        {
+            DrawChunk(chunk.Glow, chunk.GlowQuads);
+        }
+
+        _solid.FogColor = fogColour;
+        _solid.DiffuseColor = Vector3.One;
+        _device.BlendState = BlendState.Opaque;
+        _device.DepthStencilState = DepthStencilState.Default;
+    }
+
+    /// <summary>The blend of the glow pass: the colour is added to what is there (the picture times the glow times the strength), and the alpha is left as it is.</summary>
+    private static readonly BlendState GlowBlend = new()
+    {
+        ColorSourceBlend = Blend.One,
+        ColorDestinationBlend = Blend.One,
+        AlphaSourceBlend = Blend.Zero,
+        AlphaDestinationBlend = Blend.One,
+    };
+
     // The colour a lantern's warmth gives a figure on top of the sun: amber added to the three channels.
     private static (float R, float G, float B) FigureLight(float warm) =>
         (1f + (ChunkMesher.GlowColour.R * warm * 0.45f), 1f + (ChunkMesher.GlowColour.G * warm * 0.45f), 1f + (ChunkMesher.GlowColour.B * warm * 0.45f));
@@ -747,6 +796,7 @@ public sealed class VoxelRenderer : IDisposable
             chunk.Alpha?.Dispose();
             chunk.Plants?.Dispose();
             chunk.Lit?.Dispose();
+            chunk.Glow?.Dispose();
         }
 
         _indices.Dispose();
@@ -775,6 +825,7 @@ public sealed class VoxelRenderer : IDisposable
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
         (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
         (gpu.Lit, gpu.LitQuads) = Upload(meshes.LitMesh);
+        (gpu.Glow, gpu.GlowQuads) = Upload(meshes.GlowMesh);
         _tracker.MarkMeshed(coord, meshes.Kinds, _band);
         gpu.Band = _band;
         if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
@@ -912,6 +963,8 @@ public sealed class VoxelRenderer : IDisposable
         public int PlantQuads;
         public VertexBuffer? Lit;
         public int LitQuads;
+        public VertexBuffer? Glow;
+        public int GlowQuads;
         public LightBand Band;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
@@ -924,14 +977,17 @@ public sealed class VoxelRenderer : IDisposable
             Alpha?.Dispose();
             Plants?.Dispose();
             Lit?.Dispose();
+            Glow?.Dispose();
             Opaque = null;
             Alpha = null;
             Plants = null;
             Lit = null;
+            Glow = null;
             OpaqueQuads = 0;
             AlphaQuads = 0;
             PlantQuads = 0;
             LitQuads = 0;
+            GlowQuads = 0;
         }
     }
 }
