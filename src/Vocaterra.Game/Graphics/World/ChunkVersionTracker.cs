@@ -27,6 +27,7 @@ public sealed class ChunkVersionTracker
     private readonly VoxelGrid _grid;
     private readonly ChunkKey?[] _meshed;
     private readonly ulong[] _kinds; // the block kinds each chunk was meshed with (ChunkMeshes.Kinds)
+    private readonly LightBand[] _bands; // the light band each chunk was meshed in (E02)
     private readonly ulong[] _signatures; // six per chunk, in the order of BlockFace
     private readonly long[] _signedAt; // the chunk version the signatures belong to, or -1
 
@@ -37,6 +38,7 @@ public sealed class ChunkVersionTracker
         _grid = grid;
         _meshed = new ChunkKey?[grid.Chunks.Count];
         _kinds = new ulong[grid.Chunks.Count];
+        _bands = new LightBand[grid.Chunks.Count];
         _signatures = new ulong[grid.Chunks.Count * 6];
         _signedAt = new long[grid.Chunks.Count];
         Array.Fill(_signedAt, -1L);
@@ -85,12 +87,28 @@ public sealed class ChunkVersionTracker
     /// <summary>Forgets a chunk's mesh (the renderer let it go because the chunk is out of view): it is due again if it comes back.</summary>
     public void Discard(VoxelChunkCoord coord) => _meshed[IndexOf(coord)] = null;
 
-    /// <summary>Records that a chunk was meshed from the blocks as they are now, with the given block kinds (<see cref="ChunkMeshes.Kinds"/>).</summary>
-    public void MarkMeshed(VoxelChunkCoord coord, ulong kinds = 0)
+    /// <summary>Records that a chunk was meshed from the blocks as they are now, with the given block kinds (<see cref="ChunkMeshes.Kinds"/>) and in the given light band.</summary>
+    public void MarkMeshed(VoxelChunkCoord coord, ulong kinds = 0, LightBand band = LightBand.Day)
     {
         var index = IndexOf(coord);
         _meshed[index] = KeyOf(coord);
         _kinds[index] = kinds;
+        _bands[index] = band;
+    }
+
+    /// <summary>The light band a chunk's mesh was built in (<see cref="LightBand.Day"/> for a chunk never meshed).</summary>
+    public LightBand BandOf(VoxelChunkCoord coord) => _bands[IndexOf(coord)];
+
+    /// <summary>
+    /// Whether a chunk has a mesh that was built in another light band than <paramref name="band"/> (E02): the mesh is still right for the blocks and is drawn with a tint
+    /// until it is built again, so it is stale, not due. A chunk with no mesh is never stale (it is due).
+    /// </summary>
+    /// <param name="coord">The chunk.</param>
+    /// <param name="band">The band in force now.</param>
+    public bool IsBandStale(VoxelChunkCoord coord, LightBand band)
+    {
+        var index = IndexOf(coord);
+        return _meshed[index] is not null && _bands[index] != band;
     }
 
     /// <summary>

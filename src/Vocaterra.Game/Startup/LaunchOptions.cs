@@ -75,7 +75,8 @@ public sealed record LaunchOptions
         + "                          begin it (the fire must be lit; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
-        + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
+        + "  --dusk                  hold the day clock at the dusk hour (21): the low orange sun, the warm light and lanterns that glow at full strength (S15, E02)\n"
+        + "  --time <hour>           hold the day clock at an hour from 0 to 24 (fractions allowed: 7.5 is half past seven) so the sky, the fog and the light show it: 0 midnight, 5 dawn, 13 noon, 21 dusk (E02)\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
@@ -343,8 +344,11 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--third-person</c> was given: the run starts in the behind-the-shoulder view (S15; F5 flips it in an interactive run).</summary>
     public bool ThirdPerson { get; init; }
 
-    /// <summary>Whether <c>--dusk</c> was given (S15): the sun is lower and dimmer and the lanterns glow at full strength.</summary>
+    /// <summary>Whether <c>--dusk</c> was given (S15): the day clock is held at the dusk hour (<c>SkyLook.DuskHour</c>), the sun is low and warm and the lanterns glow at full strength.</summary>
     public bool Dusk { get; init; }
+
+    /// <summary>The hour <c>--time</c> holds the day clock at (E02), 0 to 24, or <see langword="null"/> when the clock runs (or <c>--dusk</c> holds it).</summary>
+    public double? TimeHour { get; init; }
 
     /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
     public bool ShowsTips => !IsScreenshotRun || Tips;
@@ -595,7 +599,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--check" or "--pick" or "--time" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -620,6 +624,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Seed = seed, SeedGiven = true };
+                    break;
+                case "--time":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var hour) || !double.IsFinite(hour) || hour < 0 || hour > 24)
+                    {
+                        error = $"--time needs an hour from 0 to 24 (fractions allowed, 7.5 is half past seven), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { TimeHour = hour };
                     break;
                 case "--session":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var playSession) || playSession is < 1 or > 99)

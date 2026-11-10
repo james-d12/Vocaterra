@@ -87,8 +87,8 @@ public enum BlockShape
 /// <param name="AmbientOcclusion">Whether every cube vertex is darkened by the solid blocks round it (per-vertex ambient occlusion).</param>
 /// <param name="PlantKeepPercent">The percent of the undergrowth that is put in the plant mesh (a stable pick by position), 100 for all of it.</param>
 /// <param name="Lights">The lanterns of the world (S15): the faces within <see cref="ChunkMesher.GlowRadius"/> blocks of one take a warm light colour; <see langword="null"/> for none.</param>
-/// <param name="Dusk">Whether it is dusk (S15): the sun is lower and dimmer, and the lanterns glow at full strength (by day their glow is about half).</param>
-public readonly record struct MeshOptions(bool AmbientOcclusion = true, int PlantKeepPercent = 100, IReadOnlyList<BlockPos>? Lights = null, bool Dusk = false)
+/// <param name="Band">The light band to bake (S15, E02): Day, the sun at full strength and the lanterns at half; Dusk, a lower, warmer sun and the lanterns at full strength; Night, a low blue sun and the lanterns at full strength (<see cref="LightBands"/>).</param>
+public readonly record struct MeshOptions(bool AmbientOcclusion = true, int PlantKeepPercent = 100, IReadOnlyList<BlockPos>? Lights = null, LightBand Band = LightBand.Day)
 {
     /// <summary>The default: ambient occlusion on, every plant, no lanterns.</summary>
     public static MeshOptions Full => new(true, 100);
@@ -354,12 +354,15 @@ public static class ChunkMesher
         var opaque = new MeshBuffer();
         var alpha = new MeshBuffer();
         var plants = new MeshBuffer();
+        var lit = new MeshBuffer(); // the pieces that are their own light (a lantern's glass, a torch's flame): drawn with no light tint, so the day cycle never dims them (E02)
         var kinds = 0UL;
         var x0 = chunkX * Size;
         var y0 = chunkY * Size;
         var z0 = chunkZ * Size;
         var near = new Neighbourhood(blocks, x0, y0, z0);
         var glow = Glow.For(settings, x0, y0, z0);
+        var bakedSun = LightBands.BakedSun(settings.Band); // the sun's multiplier of the band, in every colour that takes the sun's light (E02)
+        var sunTint = ((byte)Math.Round(255f * bakedSun.R), (byte)Math.Round(255f * bakedSun.G), (byte)Math.Round(255f * bakedSun.B), (byte)255);
         for (var ly = 0; ly < Size; ly++)
         {
             for (var lz = 0; lz < Size; lz++)
@@ -383,29 +386,29 @@ public static class ChunkMesher
                             AddCube(opaque, near, id, lx, ly, lz, x, y, z, grey, settings.AmbientOcclusion, glow);
                             break;
                         case BlockShape.Liquid:
-                            AddLiquid(alpha, near, blocks, id, lx, ly, lz, x, y, z, grey);
+                            AddLiquid(alpha, near, blocks, id, lx, ly, lz, x, y, z, grey, bakedSun);
                             break;
                         case BlockShape.Cross:
-                            AddCross(plants, id, x, y, z, grey, settings.PlantKeepPercent);
+                            AddCross(plants, id, x, y, z, grey, settings.PlantKeepPercent, bakedSun);
                             break;
                         case BlockShape.Plant:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.125f, y, z + 0.125f, x + 0.875f, y + 0.75f, z + 0.875f), id, null, grey);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.125f, y, z + 0.125f, x + 0.875f, y + 0.75f, z + 0.875f), id, null, grey, sunTint);
                             break;
                         case BlockShape.Torch:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.4375f, y, z + 0.4375f, x + 0.5625f, y + 0.625f, z + 0.5625f), BlockId.Torch, BlockCell.TorchStick, grey);
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.375f, y + 0.625f, z + 0.375f, x + 0.625f, y + 0.8125f, z + 0.625f), BlockId.Torch, BlockCell.TorchFlame, grey);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.4375f, y, z + 0.4375f, x + 0.5625f, y + 0.625f, z + 0.5625f), BlockId.Torch, BlockCell.TorchStick, grey, sunTint);
+                            AddAllFaces(lit, x, y, z, new Box(x + 0.375f, y + 0.625f, z + 0.375f, x + 0.625f, y + 0.8125f, z + 0.625f), BlockId.Torch, BlockCell.TorchFlame, grey, White);
                             break;
                         case BlockShape.Lantern:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.3125f, y + 0.1875f, z + 0.3125f, x + 0.6875f, y + 0.8125f, z + 0.6875f), BlockId.Lantern, BlockCell.Lantern, grey, true);
+                            AddAllFaces(lit, x, y, z, new Box(x + 0.3125f, y + 0.1875f, z + 0.3125f, x + 0.6875f, y + 0.8125f, z + 0.6875f), BlockId.Lantern, BlockCell.Lantern, grey, White, true);
                             break;
                         case BlockShape.Pile:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + 0.42f, z + 0.9f), id, null, grey);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + 0.42f, z + 0.9f), id, null, grey, sunTint);
                             break;
                         case BlockShape.Door:
-                            AddDoor(opaque, near, lx, ly, lz, x, y, z, grey);
+                            AddDoor(opaque, near, lx, ly, lz, x, y, z, grey, sunTint);
                             break;
                         case BlockShape.Fence:
-                            AddFence(opaque, near, lx, ly, lz, x, y, z, grey);
+                            AddFence(opaque, near, lx, ly, lz, x, y, z, grey, sunTint);
                             break;
                         default:
                             break;
@@ -414,7 +417,7 @@ public static class ChunkMesher
             }
         }
 
-        return new ChunkMeshes(opaque, alpha, kinds, plants);
+        return new ChunkMeshes(opaque, alpha, kinds, plants, lit);
     }
 
     /// <summary>Appends one face of a box to a mesh, optionally moved and turned about the vertical axis (for the figures).</summary>
@@ -505,6 +508,9 @@ public static class ChunkMesher
     /// <summary>What the sun's light is multiplied by at dusk (S15): lower and redder.</summary>
     public static readonly (float R, float G, float B) DuskLight = (0.84f, 0.66f, 0.6f);
 
+    /// <summary>What the sun's light is multiplied by at night (E02): low and blue, the light of a clear night sky (dark, but the ground and the figures can be seen).</summary>
+    public static readonly (float R, float G, float B) NightLight = (0.28f, 0.36f, 0.58f);
+
     /// <summary>The colour a lantern adds to a face it lights, at full strength (a warm amber).</summary>
     public static readonly (float R, float G, float B) GlowColour = (0.95f, 0.55f, 0.20f);
 
@@ -525,12 +531,12 @@ public static class ChunkMesher
             Evening = evening;
         }
 
-        /// <summary>What the sun's light is multiplied by at this hour: nothing by day, a dimmer, warmer light at dusk.</summary>
+        /// <summary>What the sun's light is multiplied by in this band: nothing by day, a dimmer, warmer light at dusk, a low blue one at night.</summary>
         public (float R, float G, float B) Evening { get; }
 
         public static Glow For(MeshOptions options, int x0, int y0, int z0)
         {
-            var evening = options.Dusk ? DuskLight : (1f, 1f, 1f);
+            var evening = LightBands.BakedSun(options.Band);
             if (options.Lights is not { Count: > 0 } all)
             {
                 return new Glow([], 0f, evening);
@@ -547,10 +553,10 @@ public static class ChunkMesher
                 }
             }
 
-            return new Glow(near?.ToArray() ?? [], options.Dusk ? 1f : 0.5f, evening);
+            return new Glow(near?.ToArray() ?? [], LightBands.LanternStrength(options.Band), evening);
         }
 
-        // How much a lantern lights a corner of a face, from 0 (none in reach) to the strength (1 at dusk, one half by day).
+        // How much a lantern lights a corner of a face, from 0 (none in reach) to the strength (1 at dusk and by night, one half by day).
         public float At(float vx, float vy, float vz, BlockFace face)
         {
             if (_lights.Length == 0)
@@ -684,7 +690,7 @@ public static class ChunkMesher
         return depth;
     }
 
-    private static void AddLiquid(MeshBuffer buffer, Neighbourhood near, IBlockSource source, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey)
+    private static void AddLiquid(MeshBuffer buffer, Neighbourhood near, IBlockSource source, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey, (float R, float G, float B) sun)
     {
         var aboveIsWater = near.Get(lx, ly + 1, lz) == BlockId.Water;
         var level = near.Level(lx, ly, lz);
@@ -710,19 +716,19 @@ public static class ChunkMesher
             if (face == BlockFace.Up)
             {
                 var flow = source.FlowAt(x, y, z);
-                AddWaterSurface(buffer, near, lx, ly, lz, x, y, z, heights, depth, flow, grey);
+                AddWaterSurface(buffer, near, lx, ly, lz, x, y, z, heights, depth, flow, grey, sun);
                 continue;
             }
 
             if (face == BlockFace.Down)
             {
-                AddWaterBottom(buffer, x, y, z, deep, grey);
+                AddWaterBottom(buffer, x, y, z, deep, grey, sun);
                 continue;
             }
 
             // The side of a column of water that falls: the waterfall's sheet, with its own streaky picture.
             var falling = (aboveIsWater || level.Falling) && neighbour == BlockId.Air;
-            AddWaterSide(buffer, face, x, y, z, heights, falling ? WaterTile.Falling : WaterTileLayout.For(deep, false), falling, grey);
+            AddWaterSide(buffer, face, x, y, z, heights, falling ? WaterTile.Falling : WaterTileLayout.For(deep, false), falling, grey, sun);
         }
     }
 
@@ -759,7 +765,7 @@ public static class ChunkMesher
 
     // The water's top face: the picture by depth (pale and clear over the shallow bed, deeper blue over deep water), turned so its ripples run downstream, and the
     // transparency of each corner, clearer where a solid block touches it, so the bed shows through and the shore reads lighter.
-    private static void AddWaterSurface(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, ReadOnlySpan<float> heights, int depth, FlowVector flow, bool grey)
+    private static void AddWaterSurface(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, ReadOnlySpan<float> heights, int depth, FlowVector flow, bool grey, (float R, float G, float B) sun)
     {
         var tile = WaterTileLayout.For(depth > 1, flow.IsHorizontal);
         var corners = FaceCorners[2];
@@ -787,7 +793,7 @@ public static class ChunkMesher
             }
 
             var (u, w) = WaterTileLayout.Uv(tile, grey, p, q);
-            v[k] = new MeshVertex(x + corners[k * 3], y + heights[k], z + corners[(k * 3) + 2], MeshVertex.Pack(255, 255, 255, alpha), u, w);
+            v[k] = new MeshVertex(x + corners[k * 3], y + heights[k], z + corners[(k * 3) + 2], MeshVertex.Pack((byte)(255 * sun.R), (byte)(255 * sun.G), (byte)(255 * sun.B), alpha), u, w);
         }
 
         buffer.AddQuad(v[0], v[1], v[2], v[3]);
@@ -799,12 +805,12 @@ public static class ChunkMesher
     }
 
     // The underside of a water cell that has air (or a plant) below it: flat, at the floor of the cell.
-    private static void AddWaterBottom(MeshBuffer buffer, int x, int y, int z, bool deep, bool grey)
+    private static void AddWaterBottom(MeshBuffer buffer, int x, int y, int z, bool deep, bool grey, (float R, float G, float B) sun)
     {
         var tile = WaterTileLayout.For(deep, false);
         var corners = FaceCorners[3];
         var (r, g, b) = FaceTint(BlockFace.Down);
-        var colour = MeshVertex.Pack((byte)(255 * r), (byte)(255 * g), (byte)(255 * b), 235);
+        var colour = MeshVertex.Pack((byte)(255 * r * sun.R), (byte)(255 * g * sun.G), (byte)(255 * b * sun.B), 235);
         MeshVertex V(int k)
         {
             var (u, w) = WaterTileLayout.Uv(tile, grey, corners[k * 3], corners[(k * 3) + 2]);
@@ -816,7 +822,7 @@ public static class ChunkMesher
 
     // A side of a water cell that borders air: the bottom edge is the floor of the cell, the top edge follows the surface's corners so the sides close the
     // surface at any slope. The picture hangs from the cell's top, so it is continuous down a column; the sheet of a waterfall takes no shading.
-    private static void AddWaterSide(MeshBuffer buffer, BlockFace face, int x, int y, int z, ReadOnlySpan<float> heights, WaterTile tile, bool sheet, bool grey)
+    private static void AddWaterSide(MeshBuffer buffer, BlockFace face, int x, int y, int z, ReadOnlySpan<float> heights, WaterTile tile, bool sheet, bool grey, (float R, float G, float B) sun)
     {
         var corners = FaceCorners[Array.IndexOf(Faces, face)];
         var topRight = heights[CornerIndex(corners[6], corners[8])];
@@ -824,12 +830,12 @@ public static class ChunkMesher
         uint colour;
         if (sheet)
         {
-            colour = MeshVertex.Pack(255, 255, 255, 255);
+            colour = MeshVertex.Pack((byte)(255 * sun.R), (byte)(255 * sun.G), (byte)(255 * sun.B), 255); // no face shading, but the sun's light of the band all the same
         }
         else
         {
             var (r, g, b) = FaceTint(face);
-            colour = MeshVertex.Pack((byte)(255 * r), (byte)(255 * g), (byte)(255 * b), 235);
+            colour = MeshVertex.Pack((byte)(255 * r * sun.R), (byte)(255 * g * sun.G), (byte)(255 * b * sun.B), 235);
         }
 
         MeshVertex V(int k, float height, float p, float down)
@@ -843,8 +849,8 @@ public static class ChunkMesher
 
 
     // Undergrowth: two quads crossing on the diagonals of the cell, a little off centre, a little different in height from plant to plant (a stable
-    // pick from the position), brighter at the tip than at the root. Drawn with no back-face culling, so one quad of each pair is enough.
-    private static void AddCross(MeshBuffer buffer, BlockId id, int x, int y, int z, bool grey, int keepPercent)
+    // pick from the position), brighter at the tip than at the root, in the sun's light of the mesh's band. Drawn with no back-face culling, so one quad of each pair is enough.
+    private static void AddCross(MeshBuffer buffer, BlockId id, int x, int y, int z, bool grey, int keepPercent, (float R, float G, float B) sun)
     {
         var h = BlockArtNature.Mix((uint)x, (uint)y, (uint)z + 0x5151);
         if (keepPercent < 100 && (h >> 24) % 100 >= (uint)keepPercent)
@@ -867,8 +873,9 @@ public static class ChunkMesher
         var half = id == BlockId.Fern ? 0.62f : 0.5f;
         var cx = x + 0.5f + jitterX;
         var cz = z + 0.5f + jitterZ;
-        var root = MeshVertex.Pack(184, 206, 196);
-        var tip = MeshVertex.Pack(255, 252, 240);
+        // The sun's multiplier of the band is in the plants' colours as it is in the faces' (E02), so the tint of the band brings them to the light of the moment too.
+        var root = MeshVertex.Pack((byte)(184 * sun.R), (byte)(206 * sun.G), (byte)(196 * sun.B));
+        var tip = MeshVertex.Pack((byte)(255 * sun.R), (byte)(252 * sun.G), (byte)(240 * sun.B));
         for (var plane = 0; plane < 2; plane++)
         {
             float ax = plane == 0 ? -half : half;
@@ -883,15 +890,15 @@ public static class ChunkMesher
         }
     }
 
-    private static void AddAllFaces(MeshBuffer buffer, int x, int y, int z, in Box box, BlockId id, BlockCell? cell, bool grey, bool unshaded = false)
+    private static void AddAllFaces(MeshBuffer buffer, int x, int y, int z, in Box box, BlockId id, BlockCell? cell, bool grey, (byte R, byte G, byte B, byte A) tint, bool unshaded = false)
     {
         foreach (var face in Faces)
         {
-            AddFace(buffer, face, box, (x, y, z), cell ?? BlockAtlasLayout.CellFor(id, face), White, Turn.None, grey, unshaded);
+            AddFace(buffer, face, box, (x, y, z), cell ?? BlockAtlasLayout.CellFor(id, face), tint, Turn.None, grey, unshaded);
         }
     }
 
-    private static void AddDoor(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey)
+    private static void AddDoor(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey, (byte R, byte G, byte B, byte A) tint)
     {
         // An open door hangs against the side of the doorway, at right angles to the wall: if the wall runs east-west (solid blocks to the
         // east or west) the panel lies along the north-south axis at the west edge; otherwise it lies along the east-west axis at the north edge.
@@ -899,12 +906,12 @@ public static class ChunkMesher
         var box = wallRunsEastWest
             ? new Box(x, y, z, x + 0.1875f, y + 1, z + 1)
             : new Box(x, y, z, x + 1, y + 1, z + 0.1875f);
-        AddAllFaces(buffer, x, y, z, box, BlockId.Door, null, grey);
+        AddAllFaces(buffer, x, y, z, box, BlockId.Door, null, grey, tint);
     }
 
-    private static void AddFence(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey)
+    private static void AddFence(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey, (byte R, byte G, byte B, byte A) tint)
     {
-        AddAllFaces(buffer, x, y, z, new Box(x + 0.375f, y, z + 0.375f, x + 0.625f, y + 1, z + 0.625f), BlockId.Fence, null, grey);
+        AddAllFaces(buffer, x, y, z, new Box(x + 0.375f, y, z + 0.375f, x + 0.625f, y + 1, z + 0.625f), BlockId.Fence, null, grey, tint);
         foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
         {
             if (near.Get(lx + dx, ly, lz + dz) != BlockId.Fence)
@@ -917,7 +924,7 @@ public static class ChunkMesher
                 var box = dx != 0
                     ? new Box(dx > 0 ? x + 0.625f : x, y + low, z + 0.4375f, dx > 0 ? x + 1 : x + 0.375f, y + high, z + 0.5625f)
                     : new Box(x + 0.4375f, y + low, dz > 0 ? z + 0.625f : z, x + 0.5625f, y + high, dz > 0 ? z + 1 : z + 0.375f);
-                AddAllFaces(buffer, x, y, z, box, BlockId.Fence, null, grey);
+                AddAllFaces(buffer, x, y, z, box, BlockId.Fence, null, grey, tint);
             }
         }
     }
@@ -985,11 +992,15 @@ public readonly struct Turn
 /// <param name="Alpha">The translucent quads (drawn after, back to front by chunk, without depth writes).</param>
 /// <param name="Kinds">The block kinds the chunk holds (<see cref="ChunkMesher.KindBit"/>): a change in the grey set of one of them makes the chunk due.</param>
 /// <param name="Plants">The crossed quads of the undergrowth (drawn without culling, only near the eye), or <see langword="null"/> when there are none.</param>
-public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0, MeshBuffer? Plants = null)
+/// <param name="Lit">The self-lit pieces (E02): a lantern's glass and a torch's flame, which the renderer draws with no light tint (drawn with the opaque pass), or <see langword="null"/> when there are none.</param>
+public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0, MeshBuffer? Plants = null, MeshBuffer? Lit = null)
 {
+    /// <summary>The self-lit quads (empty when the chunk has none).</summary>
+    public MeshBuffer LitMesh { get; } = Lit ?? new MeshBuffer();
+
     /// <summary>The undergrowth's quads (empty when the chunk has none).</summary>
     public MeshBuffer PlantMesh { get; } = Plants ?? new MeshBuffer();
 
     /// <summary>The number of quads in all the meshes.</summary>
-    public int FaceCount => Opaque.FaceCount + Alpha.FaceCount + PlantMesh.FaceCount;
+    public int FaceCount => Opaque.FaceCount + Alpha.FaceCount + PlantMesh.FaceCount + LitMesh.FaceCount;
 }

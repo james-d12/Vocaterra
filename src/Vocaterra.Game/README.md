@@ -43,7 +43,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
 | `--third-person` | start in the behind-the-shoulder view (S15); **F5** switches between it and first person in an interactive run (first person is the default). The player's own figure is drawn with its backpack, and the arm is not |
-| `--dusk` | an evening (S15): an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
+| `--dusk` | an evening (S15, E02): holds the day clock at 21, the middle of a dusk: an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
+| `--time <hour>` | holds the day clock at an hour from 0 to 24, fractions allowed (E02): the sky, the fog, the sun and the moon, the stars and the light of the world show that hour; `--time` wins over `--dusk` for the clock |
 | `--greyscale` | the playtest A/B switch (D-game-6 as amended): blocks whose noun is not known yet are grey, known ones in colour (`GreyscaleWorld`, `WordColours`; blocks no noun names, the figures, the sky and the UI stay in colour); a noun that becomes known during play regains its colour and toasts. Default: full colour |
 | `--assume-known <nouns>` | a test aid: the comma-separated catalogue nouns count as known from the start (`--assume-known árbol` colours the trunks for an A/B shot); not a play path |
 | `--voxel` | accepted and ignored (the 3D world is the only one since S4) |
@@ -65,7 +66,8 @@ one tick; the camera holds the old height and lets it go over 8 ticks).
 
 `ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque
 cube (or the same kind of transparent block: leaves against leaves, of any tree; water against water), so a block shut in on all sides has no face. **The light (S14)
-is in the vertex colours**: each face is shaded by the sun, which stands high in the north-west (`ChunkMesher.SunDirection`; the sky's square sun is drawn there),
+is in the vertex colours**: each face is shaded by a sun that stands high in the north-west (`ChunkMesher.SunDirection`; the faces keep this direction all day, so the shaded side of a block does not move
+with the sun, a known limit of E02; the sky's sun is on its own arc, see "The day cycle" below),
 so the top is full and warm (a tint of 1.0, 0.98, 0.92), the west and north faces about two thirds of the way to it, and the east, south and bottom faces dark and
 blue (the shade fills with sky); and every cube vertex is darkened by its **ambient occlusion** (0 to 3 of the three blocks that touch the corner: a vertex keeps 1.0, 0.82,
 0.66 or 0.5 of its light), the quad's diagonal turned to follow the darker corners. Stone is also tinted by height (`RockTint`: warm and earthy at the foot of the
@@ -83,8 +85,8 @@ cells (the stall, the houses, the signpost, the workbench) and the item icons we
 level averaged cell by cell so no level ever mixes one cell with the next, and with the colours weighted by alpha so the leaves do not darken) and sampled with `PointMipLinear`: crisp
 pixels close up, smooth and in the right colours far away, no shimmer. `VoxelRenderer` uploads one vertex buffer per chunk and mesh and draws with MonoGame's own effects (no custom shader:
 `mgfxc` needs Wine on Linux): `AlphaTestEffect` for the opaque faces and the plants (texture times vertex colour, the cut-out pixels dropped at alpha 110, fog in the haze colour) and `BasicEffect`
-for the water and the small overlays. The order is the sky (`SkyRenderer`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
-fade into haze instead of ending in a wall; a square sun with a stepped glow; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
+for the water and the small overlays. The order is the sky (`SkyRenderer`, drawn from a `SkyLook`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
+fade into haze instead of ending in a wall; square stars at hashed places that fade in with the night; a square sun with a stepped glow on its arc over the day; a square moon at night; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
 with distance), then the opaque chunks, the plants of the chunks near the eye with no back-face culling, the figures and the highlight, the water and the beacon. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
 the chunks within the quality preset's view distance of the eye (`ChunkViewSet`, nearest first, rebuilt when the eye changes chunk or a block is edited): a chunk of air is never in the set,
 a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
@@ -133,8 +135,28 @@ person it draws the arm last, over a cleared depth buffer so it never sinks into
 outline) and the item the hand holds (`HeldItems.For`: a log, a torch with its flame drawn unlit; a bottle, a berry, a loaf, a coin, an apple, the axe, the book and every other item is its 16 x 16 icon extruded into voxels by `ItemModels`, one pixel thick, issue #44); the world matrix places it at the bottom right and applies
 `ArmMotion` (a sway while walking, a chop while `GatherProgress` grows, a dip for `ArmMotion.PlaceTicks` after a place command), and `ArmLight` tints it by the cover above the head and the lanterns and torch
 near it (the `DiffuseColor` of the alpha-test effect). Lanterns glow because `VoxelRenderer.FindLights` collects the lantern blocks (only the chunks whose kind mask holds one are searched) and
-`ChunkMesher` warms and brightens the vertices within `GlowRadius` (7 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; `--dusk` gives
-the glow full strength and dims the sun. A lantern is a small unlit glass box (`BlockShape.Lantern`) and the stall's goods are low boxes (`BlockShape.Pile`).
+`ChunkMesher` warms and brightens the vertices within `GlowRadius` (9 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; the dusk and the
+night give the glow full strength and dim the sun (half strength by day). A lantern is a small unlit glass box (`BlockShape.Lantern`; with a torch's flame it is in the chunk's self-lit mesh, which no light tint touches) and the stall's goods are low boxes (`BlockShape.Pile`).
+
+### The day cycle: the sky and the light (E02)
+
+`Simulation.Clock` (E01) gives the hour, the daylight (0 at night, rising across dawn, 1 by day, falling across dusk) and the phase; `VoxelGame` turns them into a `SkyLook` every frame and hands it to `SceneDrawer.DrawWorld`.
+`SkyLook.At(SkyLookInput)` is a pure function with no engine type (the input is a record that the weather milestones add to): three keyframes, `SkyKeyframe.Day` (`SkyPalette`'s day set, so noon is the sky the
+game always had), `Twilight` (`SkyPalette`'s dusk set; a dawn mirrors a dusk) and `Night` (a dark readable blue), blended by the phase and the daylight, give the dome's three colours, the clouds' three, the sun's and the moon's
+direction (`SkyArc`: the sun rises in the east at 5, is highest at 13 and sets in the west at 21 on a path tilted to the north, the moon from 18 to 6) and strength, the stars' amount, the fog's colour (the dome's colour
+at the horizon) and the colour of the sun's light on the world (white by day, `ChunkMesher.DuskLight` at the middle of a dusk, `ChunkMesher.NightLight` at night), and how strongly the lanterns glow.
+`SkyRenderer.SetLook` colours the dome again in place when its three colours move; `VoxelRenderer.SetAtmosphere(look)` moves the clear colour and the fog every frame and composes with `SetUnderwater` (under water the
+water's colour and fog win, dimmed by the light's luminance so the water is dark at night).
+
+**Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1, lanterns at half), Dusk (`DuskLight`, lanterns at full) and
+Night (`NightLight`, lanterns at full). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
+in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.24,
+5.7, 20.3 and 21.76 o'clock. A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
+frame's budget, the old mesh staying on screen until its replacement is built. Chunks are drawn grouped by band, each group with `DiffuseColor = the look's sun light / the band's baked sun light`
+(`LightBands.Tint`), so every chunk shows the same sun light during the swap and the light moves smoothly through the day with no step at a band's edge. The same `DiffuseColor` carries the light to the figures and the
+avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). A lantern's glow is baked and scaled by the band's tint, so on the faces near a lantern
+there is a step in brightness where a mesh of the old band meets one of the new band: the sun's light shows none (known limit). Measured on this VM (software GL, `--quality low`/default): a whole band change takes about 6.5 s
+(low) and 14 s (default) of building behind the frame budget, the worst frame about 20 ms (low) and 11 ms (default). The faces keep the fixed sun direction of the mesher: no shadows move with the sun.
 
 **The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
 `DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use
