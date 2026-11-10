@@ -46,13 +46,14 @@ public sealed class DeathTests
         return session;
     }
 
-    private static VoxelSession Dying()
+    private static VoxelSession Dying(Action<VoxelSession>? beforeDeath = null)
     {
         var session = Playing(thirst: 0, health: 0.25);
         session.Simulation.Inventory.Add(ItemId.Wood, 12);
         session.Simulation.Inventory.Add(ItemId.Berry, 3);
         session.Simulation.Inventory.Add(ItemId.Book, 1);
         session.Simulation.Inventory.Add(ItemId.Axe, 1);
+        beforeDeath?.Invoke(session);
         Tick(session, Tps); // a quarter of a point a second at thirst's last stage
         return session;
     }
@@ -136,6 +137,21 @@ public sealed class DeathTests
         Assert.True(SleepPlaces.IsWithinReach(session.SleepPlaces.WakeAt!, feet)); // Y01: the fire's reach, whether or not its torch is on (AtSleepPlace asks for a usable place)
         Assert.True(VoxelWalker.IsStandable(session.Scene.Grid, feet));
         Assert.Equal(0, session.Needs.ExhaustionSeconds);
+    }
+
+    [Fact]
+    public void Given_ABedOnTheSpotThePlayerWouldWakeAt_When_ThePlayerDies_Then_TheWakeIsSomewhereElse()
+    {
+        // Y03: a bed is not free ground (the search takes air with a solid floor), so the wake moves to the nearest other cell.
+        var wake = Dying().Simulation.Player.FeetBlock;
+
+        var session = Dying(s => s.Scene.Grid.SetBlock(wake.X, wake.Y, wake.Z, BlockId.Bed));
+
+        Assert.Equal(BlockId.Bed, session.Scene.Grid.GetBlock(wake.X, wake.Y, wake.Z));
+        var feet = session.Simulation.Player.FeetBlock;
+        Assert.NotEqual(wake, feet);
+        Assert.True(VoxelWalker.IsStandable(session.Scene.Grid, feet));
+        Assert.True(SleepPlaces.IsWithinReach(session.SleepPlaces.WakeAt!, feet));
     }
 
     [Theory]

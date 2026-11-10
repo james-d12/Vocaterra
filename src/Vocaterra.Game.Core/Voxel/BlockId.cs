@@ -161,4 +161,10 @@ public enum BlockId : ushort
 
     /// <summary>A torch fixed to a post as scenery (the guide's pergola): drawn like <see cref="Torch"/> and lights its surroundings like a lantern, but it is not the item's torch (not gathered, not a noun, never found by "where is the torch"). Appended in S15.</summary>
     PostTorch = 51,
+
+    /// <summary>A bed of the inn (Y03): a low box with a pillow at one end and a blanket. Not solid (a body walks through it), not decor (the crosshair stops on it, and nothing is placed into its cell). Appended in Y03.</summary>
+    Bed = 52,
+
+    /// <summary>A bedroll of the camp (Y03): a low roll of cloth on the ground, with the bed's rules. Appended in Y03.</summary>
+    Bedroll = 53,
 }
