@@ -105,12 +105,13 @@ public sealed class MenuRow
     /// <param name="get">The value now.</param>
     /// <param name="set">Sets it.</param>
     /// <param name="suffix">What follows the number.</param>
-    public static MenuRow Slider(string id, string labelKey, int min, int max, int step, Func<int> get, Action<int> set, string suffix = "")
+    /// <param name="minKey">The locale's key of the text shown at the lowest value instead of its number (a "Running" position), or <see langword="null"/> for none.</param>
+    public static MenuRow Slider(string id, string labelKey, int min, int max, int step, Func<int> get, Action<int> set, string suffix = "", string? minKey = null)
     {
         ArgumentNullException.ThrowIfNull(get);
         ArgumentNullException.ThrowIfNull(set);
         var spec = new SettingSpec(default, SettingKind.Slider, min, max, step, min, labelKey, suffix);
-        return new(id, MenuRowKind.Slider, labelKey, min, max, step, suffix, null, get, value => set(spec.Snap(value)), null);
+        return new(id, MenuRowKind.Slider, labelKey, min, max, step, suffix, null, get, value => set(spec.Snap(value)), null, minKey);
     }
 
     /// <summary>

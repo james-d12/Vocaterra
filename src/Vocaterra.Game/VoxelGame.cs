@@ -178,7 +178,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // A run with --no-autosave starts with it off (the menu's Autosave row switches it).
     private readonly AutosaveController? _autosave;
     private bool _showTips; // the first-time tips are drawn (an interactive run, or --tips; the menu's First-time tips row)
-    private bool _dusk; // --dusk, and the menu's Dusk lighting row
 
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
@@ -196,7 +195,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         _options = options;
         _showTips = options.ShowsTips;
-        _dusk = options.Dusk;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
         _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
@@ -1078,20 +1076,34 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         },
         ShoulderView = () => _viewMode.Mode == CameraMode.ThirdPerson,
         SetShoulderView = on => _viewMode.Set(on ? CameraMode.ThirdPerson : CameraMode.FirstPerson), // F5, --third-person
-        Dusk = () => _dusk,
-        SetDusk = on =>
+        TimeHeld = () => _sim.Clock.State.FrozenHour, // the held hour (--time, --dusk, the Time of day row or a scripted step); null while the clock runs
+        SetTimeHeld = hour =>
         {
-            _dusk = on; // --dusk holds the clock at the dusk hour (the sky, the fog, the light and the arm follow the clock); switched off, the clock runs on from there
-            if (on)
+            if (hour is { } held)
             {
-                _sim.FreezeClock(SkyLook.DuskHour);
+                _sim.FreezeClock(held); // the sky, the fog, the light, the arm and the sound follow the clock
             }
             else
             {
-                _sim.UnfreezeClock();
+                _sim.UnfreezeClock(); // the clock runs on from its held hour
             }
 
-            Console.WriteLine($"dusk lighting: {(on ? "on" : "off")}");
+            Console.WriteLine(hour is { } shown ? $"time of day: held at {shown:0.##}" : "time of day: running");
+        },
+        WeatherIds = [.. _sim.Weather.Data.Kinds.Select(static kind => kind.Id)],
+        WeatherHeld = () => _sim.Weather.IsHeld ? _sim.Weather.Current.Id : null,
+        SetWeatherHeld = id =>
+        {
+            if (id is { } kind)
+            {
+                _sim.ForceWeather(kind); // held: no transition, until Running
+            }
+            else
+            {
+                _sim.ReleaseWeather();
+            }
+
+            Console.WriteLine(id is { } shownKind ? $"weather: held at {shownKind}" : "weather: running");
         },
         Greyscale = () => _drawer.Colours?.Enabled ?? _options.Greyscale,
         SetGreyscale = on =>

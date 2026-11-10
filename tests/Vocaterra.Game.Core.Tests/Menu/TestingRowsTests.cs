@@ -10,11 +10,15 @@ public sealed class TestingRowsTests
 {
     private static readonly string[] Points = ["bridge", "camp.guide", "camp.player", "stall"];
 
+    private static readonly string[] Kinds = ["first", "second", "third"];
+
     private sealed class State
     {
         public Dictionary<NeedMeter, int> Needs { get; } = new() { [NeedMeter.Hunger] = 100, [NeedMeter.Thirst] = 80, [NeedMeter.Sleep] = 60, [NeedMeter.Health] = 100, [NeedMeter.Stamina] = 100 };
 
-        public bool Dusk { get; set; }
+        public double? Hour { get; set; }
+
+        public string? Weather { get; set; }
 
         public bool Greyscale { get; set; }
 
@@ -47,8 +51,11 @@ public sealed class TestingRowsTests
         SaveNow = () => state.Saves++,
         NeedValue = everything ? meter => state.Needs[meter] : null,
         SetNeed = everything ? (meter, value) => state.Needs[meter] = value : null,
-        Dusk = everything ? () => state.Dusk : null,
-        SetDusk = everything ? on => state.Dusk = on : null,
+        TimeHeld = everything ? () => state.Hour : null,
+        SetTimeHeld = everything ? hour => state.Hour = hour : null,
+        WeatherHeld = everything ? () => state.Weather : null,
+        SetWeatherHeld = everything ? id => state.Weather = id : null,
+        WeatherIds = everything ? Kinds : null,
         Greyscale = everything ? () => state.Greyscale : null,
         SetGreyscale = everything ? on => state.Greyscale = on : null,
         AssumeAllKnown = everything ? () => state.Assume : null,
@@ -86,7 +93,8 @@ public sealed class TestingRowsTests
     {
         var rows = Rows(new State(), everything: false);
         var ids = rows.Select(static r => r.Id).ToList();
-        Assert.DoesNotContain("dusk", ids);
+        Assert.DoesNotContain("timeOfDay", ids);
+        Assert.DoesNotContain("weather", ids);
         Assert.DoesNotContain("beacon", ids);
         Assert.DoesNotContain("teleportGo", ids);
         Assert.DoesNotContain("typedCredit", ids);
@@ -124,17 +132,87 @@ public sealed class TestingRowsTests
     {
         var state = new State();
         var rows = Rows(state);
-        Row(rows, "dusk").Activate();
         Row(rows, "greyscale").Activate();
         Row(rows, "assumeAllKnown").Activate();
         Row(rows, "tips").Activate();
-        Assert.True(state.Dusk);
         Assert.True(state.Greyscale);
         Assert.True(state.Assume);
         Assert.False(state.Tips);
-        Row(rows, "dusk").Change(-1);
-        Assert.False(state.Dusk);
         Assert.Equal("settingsOn", Row(rows, "greyscale").ValueText(static key => key));
+        Assert.Null(state.Hour); // no other row moves the clock or the weather
+        Assert.Null(state.Weather);
+    }
+
+    [Fact]
+    public void Given_TheTimeOfDaySlider_When_Moved_Then_RunningIsTheLowestPositionAndEachHourHoldsTheClock()
+    {
+        var state = new State();
+        var rows = Rows(state);
+        var time = Row(rows, "timeOfDay");
+        Assert.Equal(MenuRowKind.Slider, time.Kind);
+        Assert.Equal("testTimeOfDay", time.LabelKey);
+        Assert.Equal("testRunning", time.ValueText(static key => key)); // the clock runs: the first position
+        Assert.Null(state.Hour);
+
+        time.Change(1);
+        Assert.Equal(0, state.Hour); // the hours 0 to 23 follow Running
+        Assert.Equal("0:00", time.ValueText(static key => key));
+        time.Change(-1);
+        Assert.Null(state.Hour); // back to Running
+        time.Change(-1);
+        Assert.Null(state.Hour); // Running is the end of the track
+
+        time.SetFraction(1);
+        Assert.Equal(23, state.Hour);
+        Assert.Equal("23:00", time.ValueText(static key => key));
+    }
+
+    [Fact]
+    public void Given_AClockHeldElsewhere_When_TheRowIsShown_Then_ItShowsTheHeldHour()
+    {
+        var state = new State { Hour = 21 };
+        var time = Row(Rows(state), "timeOfDay");
+        Assert.Equal(21, time.Value);
+        Assert.Equal("21:00", time.ValueText(static key => key));
+        state.Hour = 7.5; // a fraction shows its whole hour
+        Assert.Equal("7:00", time.ValueText(static key => key));
+    }
+
+    [Fact]
+    public void Given_TheWeatherPicker_When_Cycled_Then_RunningIsFirstThenEachLoadedKindByItsId()
+    {
+        var state = new State();
+        var rows = Rows(state);
+        var weather = Row(rows, "weather");
+        Assert.Equal("testWeather", weather.LabelKey);
+        Assert.Equal("testRunning", weather.ValueText(static key => key));
+        weather.Change(1);
+        Assert.Equal("first", state.Weather);
+        Assert.Equal("first", weather.ValueText(static key => key));
+        weather.Change(1);
+        weather.Change(1);
+        Assert.Equal("third", state.Weather);
+        weather.Change(1);
+        Assert.Null(state.Weather); // Running, then the cycle goes on from the first
+        weather.Change(-1);
+        Assert.Equal("third", state.Weather);
+    }
+
+    [Fact]
+    public void Given_AWeatherHeldElsewhere_When_TheRowIsShown_Then_ItShowsTheKind()
+    {
+        var state = new State { Weather = "second" };
+        var weather = Row(Rows(state), "weather");
+        Assert.Equal(2, weather.Value);
+        Assert.Equal("second", weather.ValueText(static key => key));
+    }
+
+    [Fact]
+    public void Given_NoWeatherKinds_When_TheRowsAreBuilt_Then_ThereIsNoWeatherRow()
+    {
+        var rows = MenuRows.Settings(new PlayerSettings(), Hooks(new State()) with { WeatherIds = [] });
+        Assert.DoesNotContain(rows, static r => r.Id == "weather");
+        Assert.Contains(rows, static r => r.Id == "timeOfDay");
     }
 
     [Fact]
