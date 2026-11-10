@@ -2235,3 +2235,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     from then on (the morning counter).
   - *Events.* `weather_changed` (detail: the kind's id), once per change; a change made by a host action between steps (`WakeUp`, `ForceWeather`)
     is raised at the next step. `Force` is a cut and holds through a sleep; `Release` keeps the kind and draws a new spell.
+- **E02, drawing the cycle (2026-11-10, Sonnet 5.5 high; gated at `920233f9` on `feature/weather`, 10925 passed, 3 skipped).** The sky, the fog
+  and the world's light follow the day clock. `Graphics/Sky/`: `SkyLookInput`, `SkyLook` (a pure function), `SkyKeyframe` (day and twilight reuse
+  `SkyPalette`'s two sets, a new night; dawn mirrors dusk), `SkyArc` (the sun rises in the east at 5, is highest at 13 and sets in the west at 21;
+  the moon from 18 to 6); `SkyRenderer` draws from the look (the dome coloured again in place, 150 hashed stars, a square moon).
+  `Graphics/World/`: `LightBand`, `LightBands`, `VoxelRenderer.SetAtmosphere` in place of `SetDusk`.
+  - *The check the design rests on holds:* `DiffuseColor` tints the opaque pass (`AlphaTestEffect`) and the translucent pass (`BasicEffect`).
+  - *Light bands.* A mesh bakes one of three bands; a change of band marks meshes stale, and they are rebuilt in view and nearest first within the
+    mesh budget while the old mesh stays. Chunks are drawn grouped by band with a tint of the look's light over the band's baked light. The band
+    follows the daylight as well as the phase (the Dusk band only for daylight 0.12 to 0.85), which keeps the tint within 0.4 to 1.6; bands
+    change at about 4.24, 5.7, 20.3 and 21.76 h. A full change takes 6 to 7 s on the low preset (about 1300 meshes) and 14 to 15 s on the default
+    (about 1760), worst frame 21 ms; the steady cost is 0.1 to 0.2 ms a frame.
+  - *What else now takes the light:* plants, water, bushes, fences, doors, piles and torch sticks baked no sun multiplier before (only cubes did)
+    and now bake the band's, so at dusk they dim as the blocks do; at the Day band every vertex equals the old one (tested), and the default run's
+    camp view is pixel-identical to the build before. Lantern glass and torch flames are a self-lit mesh (`ChunkMeshes.LitMesh`) drawn with no
+    tint. Under water the water's colour and fog are dimmed by the light, so a night dive is dark.
+  - *`--time <hour>`* holds the clock (`FreezeClock`); `--dusk` and the menu's Dusk row hold hour 21. A held clock is part of the state, so a save
+    written in such a run loads held. No scripted run pins a digest or an event log of a `--dusk` run.
+  - *Not fixed (E02a):* the lanterns' glow on nearby faces is baked and scaled by the band's tint, so it steps at a band's edge (the lantern
+    area's mean red 136 against 88 across the Night and Dusk edge) and shows as a patchwork round lanterns while a band change runs. The fix is
+    the glow as its own additive mesh with a continuous strength.
+  - *Known limits:* the faces keep their fixed north-west sun direction, so the drawn sun and the shading agree only near 10:20 and 15:40; held
+    `--dusk` now has the sun on the western horizon; under-water screenshots are written with alpha near 0.5 (older than this change;
+    `ScreenshotWriter` could force 255).

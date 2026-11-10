@@ -507,10 +507,11 @@ Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answer
 | --- | --- | --- | --- | --- | --- |
 | E00 | The series registered: the plan, D-game-31, the index rows, the handover | none | S | orchestrator | done, 2026-11-10 |
 | E01 | The clock in Core: `Atmosphere/DayClock`, `day.json`, the simulation's part, digest, save, the `day_phase` event, a sleep wakes in the morning | E00 | M | Sonnet 5.5, medium | done: gated at `1a5a9a07` on `feature/weather` (2026-11-10), 10764 passed |
-| E02 | Drawing the cycle: `SkyLook`, the dome, sun, moon and stars, fog, the light bands and their tint | E01 | L | Sonnet 5.5, high | in progress |
+| E02 | Drawing the cycle: `SkyLook`, the dome, sun, moon and stars, fog, the light bands and their tint | E01 | L | Sonnet 5.5, high | done: gated at `920233f9` on `feature/weather` (2026-11-10), 10925 passed |
+| E02a | The lanterns' glow as its own additive layer, so it does not step at a light band's edge (found by E02) | E05 | M | Sonnet 5.5, high | todo |
 | E03 | Sound and switches for the time: beds by phase, `--time`, the menu row, F3, the scripted step | E01, E02 | S | Haiku 5.5 | todo |
 | E04 | Weather in Core: `weather.json`, `WeatherSystem`, the `Atmosphere` snapshot, `weather_changed`, the morning roll | E01 | M | Sonnet 5.5, medium | done: gated at `0d73dba9` on `feature/weather` (2026-11-10), 10837 passed |
-| E05 | Sky and light by weather; `--weather` and its switches | E02, E04 | M | Sonnet 5.5, medium | todo |
+| E05 | Sky and light by weather; `--weather` and its switches | E02, E04 | M | Sonnet 5.5, medium | in progress |
 | E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | todo |
 | E07 | The NPCs' answer to «¿Qué tiempo hace?» by weather: lines, speech clips, the content loop | E04 | M | Sonnet 5.5, medium | in progress |
 | E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | todo |
