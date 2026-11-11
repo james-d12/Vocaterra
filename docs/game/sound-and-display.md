@@ -72,6 +72,8 @@ insects 0.3): the loop is the loudest of them (RMS 0.22 of full scale against ab
 ambient volume of 0.6 the rain's level is 0.8 x 0.22 x 0.2 x 0.6 = 0.021 of full scale, against 0.060 for the NPCs' clips (the median RMS of 60 of them): about 9 dB under the voice before the duck, and about 18 dB
 under it while it ducks (0.35); at a gain of 0.3 it would have been 5.6 dB under. It is cross-faded by the mixer over 1.5 s, silent while the microphone records, dulled under water with the others.
 
+**The insects (E10).** The first loop was two pure tones (4700 and 3900 Hz) pulsed without a rest, a constant high ringing that played on every walk down into the valley at dusk. It is now six crickets: each voice has its own carrier (2.8 to 4.2 kHz, wandering a few hertz from chirp to chirp) and its own level (its distance), and chirps one to two times a second in a jittered rhythm, a chirp being three or four soft pulses of 10 to 25 ms with silence between chirps, over a very quiet low-passed noise. The loop's RMS is 3.8 dB under the old one's (0.077 against 0.119 of full scale), so the bed's gain went from 0.3 to 0.46 to keep the level; `InsectsBedTests` guard against a steady tone (at least 40 percent of the 20 ms windows quiet, no 50 Hz band holding a third of the energy between 2 and 6 kHz).
+
 ```bash
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
