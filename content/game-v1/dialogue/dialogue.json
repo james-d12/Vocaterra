@@ -2276,6 +2276,30 @@
         { "lineId": "innkeeper_nice.1", "text": "¡Qué bien!" }
       ]
     },
+    "innkeeper_understood": {
+      "poolId": "innkeeper_understood",
+      "variants": [
+        { "lineId": "innkeeper_understood.1", "text": "Te entiendo. La habitación es gratis." }
+      ]
+    },
+    "innkeeper_yes": {
+      "poolId": "innkeeper_yes",
+      "variants": [
+        { "lineId": "innkeeper_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "innkeeper_weather": {
+      "poolId": "innkeeper_weather",
+      "variants": [
+        { "lineId": "innkeeper_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "innkeeper_sun": {
+      "poolId": "innkeeper_sun",
+      "variants": [
+        { "lineId": "innkeeper_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
     "innkeeper_thank": {
       "poolId": "innkeeper_thank",
       "variants": [

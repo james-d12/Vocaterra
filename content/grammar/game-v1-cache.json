@@ -2353,6 +2353,12 @@
       ]
     },
     {
+      "key": "389b36aa5a841292535d3e853b2857e57170d4f4830360cde3eaf94bbcf5c4e4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. La habitación es gratis.",
+      "matches": []
+    },
+    {
       "key": "389b5b80c9dc73b9d43884f5dfc6eb2d05479ab7986371c2c46653a53ba6f1e4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesito pan",

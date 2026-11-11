@@ -11874,6 +11874,28 @@
       "Sha256": "526e8844ff17435eb2580c336788770822a4ac8c8a3de45d72d8846937b54634",
       "Bytes": 222500
     },
+    "speech/innkeeper/innkeeper_sun.1.slow.wav": {
+      "Text": "Hoy hace sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "0a8ceca924c17afc1aa4b7b7359c51e278bfa908d7e17b0934d4c48fd111efac",
+      "Bytes": 71292
+    },
+    "speech/innkeeper/innkeeper_sun.1.wav": {
+      "Text": "Hoy hace sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "c010ffcf5ab079590c9232f9a3b39427a53e068cf9c87c61e709855bfc60cd84",
+      "Bytes": 61244
+    },
     "speech/innkeeper/innkeeper_thank.1.slow.wav": {
       "Text": "De nada.",
       "Speaker": "innkeeper",
@@ -11918,6 +11940,270 @@
       "Sha256": "ac7b4f63bd99be99d4da2aca0cf4c6e8a0b9fc21a5f34d650843031a6c2c0b2b",
       "Bytes": 56444
     },
+    "speech/innkeeper/innkeeper_understood.1.slow.wav": {
+      "Text": "Te entiendo. La habitaci\u00F3n es gratis.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "82dc3dfa8cd0b9814a4155f8f333ecedf1d5b07f54f5b555dec0315060dd7ca2",
+      "Bytes": 179440
+    },
+    "speech/innkeeper/innkeeper_understood.1.wav": {
+      "Text": "Te entiendo. La habitaci\u00F3n es gratis.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "f12f3d0ab20cd7ea9c60c3c97d22ce1daabf55a6ca07a1e3d1646daa318cf305",
+      "Bytes": 156044
+    },
+    "speech/innkeeper/innkeeper_weather.1.buen-tiempo.slow.wav": {
+      "Text": "S\u00ED, hace buen tiempo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "bebff66e121c21d448484aa12658637d8a3642e2a1b88577f612a38fb1ca7e17",
+      "Bytes": 88948
+    },
+    "speech/innkeeper/innkeeper_weather.1.buen-tiempo.wav": {
+      "Text": "S\u00ED, hace buen tiempo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "6c4e3b64393a4099e07176f5f75b75e5e2a64d6fbfc53f7dd0976551601f47c4",
+      "Bytes": 82844
+    },
+    "speech/innkeeper/innkeeper_weather.1.calor.slow.wav": {
+      "Text": "S\u00ED, hace calor.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "ca8d984af27e85fb2eb5b2da7507dc79e8f8e18207d71f0f8c4c35c9f74c373f",
+      "Bytes": 79598
+    },
+    "speech/innkeeper/innkeeper_weather.1.calor.wav": {
+      "Text": "S\u00ED, hace calor.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "91f726989f660648e2a98f4bfdb3f5ab0c86fb67602a464dee6acec6a90f1512",
+      "Bytes": 69644
+    },
+    "speech/innkeeper/innkeeper_weather.1.fresco.slow.wav": {
+      "Text": "S\u00ED, hace fresco.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "84053db8472b9730342a2bc5a5b4f8395984c59d6f3d67a7c1a8a0b1f555f1c8",
+      "Bytes": 83280
+    },
+    "speech/innkeeper/innkeeper_weather.1.fresco.wav": {
+      "Text": "S\u00ED, hace fresco.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "f49cb5aac43145a06b902488be50490a3c81ce124ac527072715e83747c88139",
+      "Bytes": 70844
+    },
+    "speech/innkeeper/innkeeper_weather.1.frio.slow.wav": {
+      "Text": "S\u00ED, hace fr\u00EDo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "18ada4fc3c549bc66d83a257c706d34fa06e9ea7f9e028a88c271e51e4c63ee4",
+      "Bytes": 82844
+    },
+    "speech/innkeeper/innkeeper_weather.1.frio.wav": {
+      "Text": "S\u00ED, hace fr\u00EDo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "6147927d3e78818b61291b8deb6e62fe3b6ba666a38aec1555ccdd51a6282865",
+      "Bytes": 68444
+    },
+    "speech/innkeeper/innkeeper_weather.1.mal-tiempo.slow.wav": {
+      "Text": "S\u00ED, hace mal tiempo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "df3b5388cc25ea8c484646523d67e5b3318d07d3c95f86c2a2cf5024254650ca",
+      "Bytes": 89612
+    },
+    "speech/innkeeper/innkeeper_weather.1.mal-tiempo.wav": {
+      "Text": "S\u00ED, hace mal tiempo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "b230f8ca1c0ba0ec724822c7e13803cd1cd05d4d0800266e90a0d9f3608e34a5",
+      "Bytes": 82844
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-calor.slow.wav": {
+      "Text": "S\u00ED, hace mucho calor.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "7336fdaa94ff8cf33c6ec6c585a447105b3b2f2d2b8c2122fd431640afab1d1d",
+      "Bytes": 95404
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-calor.wav": {
+      "Text": "S\u00ED, hace mucho calor.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "40b098a0518f9c164b1a00b3a97e3ae31c735075ba5ba1d114763fbd3feaef3a",
+      "Bytes": 85244
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-frio.slow.wav": {
+      "Text": "S\u00ED, hace mucho fr\u00EDo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "c65488b913942f0baea6ad4a15f59230f8a2169bece1fca592816847c5da8439",
+      "Bytes": 94954
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-frio.wav": {
+      "Text": "S\u00ED, hace mucho fr\u00EDo.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "6aca5f10834d638ec36cb74e3d2a4bc50ed0aea6a26d39a157d450f55fb79732",
+      "Bytes": 85244
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-sol.slow.wav": {
+      "Text": "S\u00ED, hace mucho sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "95a167a5aab044e9cc33845e3796d9d231fba2977c9a382ba1512b251d4773c4",
+      "Bytes": 92148
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-sol.wav": {
+      "Text": "S\u00ED, hace mucho sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "18c03a325bcd525002f77715e1a196b18c820d6667675a3378b686c5634a9363",
+      "Bytes": 81644
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-viento.slow.wav": {
+      "Text": "S\u00ED, hace mucho viento.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "2b45a847cee27a85a9712e31f4999df81871bab7453777b73178b59596d84163",
+      "Bytes": 99428
+    },
+    "speech/innkeeper/innkeeper_weather.1.mucho-viento.wav": {
+      "Text": "S\u00ED, hace mucho viento.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "1d0f641f809c7d322e0f660984c0daf264b37d9f4b58035dfc14e58e206072c5",
+      "Bytes": 87644
+    },
+    "speech/innkeeper/innkeeper_weather.1.sol.slow.wav": {
+      "Text": "S\u00ED, hace sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "c6b39851dd5ee4397c435c930bf3538b8a2611053cc713a776147a9984f3e69f",
+      "Bytes": 80444
+    },
+    "speech/innkeeper/innkeeper_weather.1.sol.wav": {
+      "Text": "S\u00ED, hace sol.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "f804cfc26f3f08d9a35a09c144625df69c4e0df9bfa4deb116f30400c78d1949",
+      "Bytes": 63644
+    },
+    "speech/innkeeper/innkeeper_weather.1.viento.slow.wav": {
+      "Text": "S\u00ED, hace viento.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "d2c43108d18778a0b4e9e9c1aa8c0afb70dc5a1f6d7bdbe60b436bbf71a2e5f1",
+      "Bytes": 77176
+    },
+    "speech/innkeeper/innkeeper_weather.1.viento.wav": {
+      "Text": "S\u00ED, hace viento.",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "af841bbcfb9d57c11b2290b37eaf437a82907eb4ba774ff2242aedd16db17565",
+      "Bytes": 72044
+    },
     "speech/innkeeper/innkeeper_well.1.slow.wav": {
       "Text": "Bien, gracias.",
       "Speaker": "innkeeper",
@@ -11939,6 +12225,28 @@
       "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
       "Sha256": "f20086badde47f859e6caacec470b2a77981ade5caeca2e97345153c4ee1ef92",
       "Bytes": 60480
+    },
+    "speech/innkeeper/innkeeper_yes.1.slow.wav": {
+      "Text": "\u00A1S\u00ED!",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "db1ea168d62d795911437e1dad8632d87752b0845b6713556d973d5d01f76516",
+      "Sha256": "4b783de3ea2206a985c47f16d68a849f7480617672f8b1de2048fef475210fb9",
+      "Bytes": 40844
+    },
+    "speech/innkeeper/innkeeper_yes.1.wav": {
+      "Text": "\u00A1S\u00ED!",
+      "Speaker": "innkeeper",
+      "SpeakerId": 42,
+      "Voice": "pf_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "e453eec007af94fb913b74007f1c8f0b40406f4244356ab8bd951b2977b34cef",
+      "Sha256": "297955a53dbdb93561fe3ae19326f35fe4b6d6648429942e70757e30cfa6f0c7",
+      "Bytes": 31244
     },
     "speech/innkeeper/not_understood.1.innkeeper.slow.wav": {
       "Text": "No te entend\u00ED. \u00BFMe lo dices otra vez?",

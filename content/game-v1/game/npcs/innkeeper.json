@@ -28,6 +28,28 @@
     "prompt": "inn-offer",
     "once": true
   },
+  "acknowledgementPools": [
+    "innkeeper_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "innkeeper.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
   "voice": {
     "speaker": 42,
     "name": "pf_dora",

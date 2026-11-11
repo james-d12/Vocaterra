@@ -49,7 +49,7 @@ public sealed class PhraseSheetLookupTests
                 "tienes-veinte-panes", "quiero-vender-madera", "vendo-madera", "cuanto-es-todo", "es-muy-caro", "mas-barato-que", "puedo-pagar-con-fruta", "manana-vendere-fruta", "compre-tres-manzanas",
                 "once-a-quince", "dieciseis-a-veinte", "cuantos-panes-tengo", "te-pago-una-moneda", "tengo-quince-manzanas", "quince-monedas", "es-caro-o-barato", "que-es-mas-barato", "te-compro-fruta", "que-venderas-manana", "que-compraste-en-el-mercado",
         "pon-la-harina", "echa-el-agua", "mezcla", "pon-la-madera", "pon-la-masa", "saca-el-pan", "haz-la-masa", "haz-el-pan-horno", "haz-pan", "voy-a-hacer-pan", "hice-pan", "quiero-harina", "vendo-pan", "hoy-vamos-a-hacer-pan", "que-hiciste", "todavia-no", "toma-aqui-tienes", "quieres-hacer-pan",
-                "que-tienes-para-mi", "aqui-tienes-tres-frutas", "aqui-tienes-cinco-bloques", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-el-agua"],
+                "que-tienes-para-mi", "aqui-tienes-tres-frutas", "aqui-tienes-cinco-bloques", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-el-agua", "quiero-una-habitacion", "hay-una-habitacion"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

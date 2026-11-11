@@ -570,6 +570,20 @@
     "line.innkeeper_thank.1": "You are welcome.",
     "line.innkeeper_thank.2": "My pleasure!",
     "line.innkeeper_bye.1": "See you later!",
-    "line.innkeeper_bye.2": "See you!"
+    "line.innkeeper_bye.2": "See you!",
+    "line.innkeeper_understood.1": "I understand. The room is free.",
+    "line.innkeeper_yes.1": "Yes!",
+    "line.innkeeper_sun.1": "It is sunny today.",
+    "line.innkeeper_weather.1.mucho-frio": "Yes, it is very cold.",
+    "line.innkeeper_weather.1.mucho-calor": "Yes, it is very hot.",
+    "line.innkeeper_weather.1.mucho-sol": "Yes, it is very sunny.",
+    "line.innkeeper_weather.1.mucho-viento": "Yes, it is very windy.",
+    "line.innkeeper_weather.1.frio": "Yes, it is cold.",
+    "line.innkeeper_weather.1.calor": "Yes, it is hot.",
+    "line.innkeeper_weather.1.sol": "Yes, it is sunny.",
+    "line.innkeeper_weather.1.viento": "Yes, it is windy.",
+    "line.innkeeper_weather.1.fresco": "Yes, it is cool.",
+    "line.innkeeper_weather.1.buen-tiempo": "Yes, the weather is nice.",
+    "line.innkeeper_weather.1.mal-tiempo": "Yes, the weather is bad."
   }
 }

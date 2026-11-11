@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1542 of the 1542 files have no mark (guide 480, baker 212, villager 176, farmer 170, shopkeeper 168, fisher 150, smith 124, innkeeper 62). Two files a line: the normal speed and the slow one.
+**To hear:** 1570 of the 1570 files have no mark (guide 480, baker 212, villager 176, farmer 170, shopkeeper 168, fisher 150, smith 124, innkeeper 90). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -961,12 +961,40 @@ whose text changed or whose file was recorded again differently is listed again 
 | innkeeper_room.1 | speech/innkeeper/innkeeper_room.1.wav | innkeeper | 1.0 | ¡Claro! La habitación es gratis. Tu cama está allí. |  |
 | innkeeper_room.2 | speech/innkeeper/innkeeper_room.2.slow.wav | innkeeper | 0.8 | ¡Muy bien! La habitación es gratis. Tu cama está allí. |  |
 | innkeeper_room.2 | speech/innkeeper/innkeeper_room.2.wav | innkeeper | 1.0 | ¡Muy bien! La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_sun.1 | speech/innkeeper/innkeeper_sun.1.slow.wav | innkeeper | 0.8 | Hoy hace sol. |  |
+| innkeeper_sun.1 | speech/innkeeper/innkeeper_sun.1.wav | innkeeper | 1.0 | Hoy hace sol. |  |
 | innkeeper_thank.1 | speech/innkeeper/innkeeper_thank.1.slow.wav | innkeeper | 0.8 | De nada. |  |
 | innkeeper_thank.1 | speech/innkeeper/innkeeper_thank.1.wav | innkeeper | 1.0 | De nada. |  |
 | innkeeper_thank.2 | speech/innkeeper/innkeeper_thank.2.slow.wav | innkeeper | 0.8 | ¡Con gusto! |  |
 | innkeeper_thank.2 | speech/innkeeper/innkeeper_thank.2.wav | innkeeper | 1.0 | ¡Con gusto! |  |
+| innkeeper_understood.1 | speech/innkeeper/innkeeper_understood.1.slow.wav | innkeeper | 0.8 | Te entiendo. La habitación es gratis. |  |
+| innkeeper_understood.1 | speech/innkeeper/innkeeper_understood.1.wav | innkeeper | 1.0 | Te entiendo. La habitación es gratis. |  |
+| innkeeper_weather.1.buen-tiempo | speech/innkeeper/innkeeper_weather.1.buen-tiempo.slow.wav | innkeeper | 0.8 | Sí, hace buen tiempo. |  |
+| innkeeper_weather.1.buen-tiempo | speech/innkeeper/innkeeper_weather.1.buen-tiempo.wav | innkeeper | 1.0 | Sí, hace buen tiempo. |  |
+| innkeeper_weather.1.calor | speech/innkeeper/innkeeper_weather.1.calor.slow.wav | innkeeper | 0.8 | Sí, hace calor. |  |
+| innkeeper_weather.1.calor | speech/innkeeper/innkeeper_weather.1.calor.wav | innkeeper | 1.0 | Sí, hace calor. |  |
+| innkeeper_weather.1.fresco | speech/innkeeper/innkeeper_weather.1.fresco.slow.wav | innkeeper | 0.8 | Sí, hace fresco. |  |
+| innkeeper_weather.1.fresco | speech/innkeeper/innkeeper_weather.1.fresco.wav | innkeeper | 1.0 | Sí, hace fresco. |  |
+| innkeeper_weather.1.frio | speech/innkeeper/innkeeper_weather.1.frio.slow.wav | innkeeper | 0.8 | Sí, hace frío. |  |
+| innkeeper_weather.1.frio | speech/innkeeper/innkeeper_weather.1.frio.wav | innkeeper | 1.0 | Sí, hace frío. |  |
+| innkeeper_weather.1.mal-tiempo | speech/innkeeper/innkeeper_weather.1.mal-tiempo.slow.wav | innkeeper | 0.8 | Sí, hace mal tiempo. |  |
+| innkeeper_weather.1.mal-tiempo | speech/innkeeper/innkeeper_weather.1.mal-tiempo.wav | innkeeper | 1.0 | Sí, hace mal tiempo. |  |
+| innkeeper_weather.1.mucho-calor | speech/innkeeper/innkeeper_weather.1.mucho-calor.slow.wav | innkeeper | 0.8 | Sí, hace mucho calor. |  |
+| innkeeper_weather.1.mucho-calor | speech/innkeeper/innkeeper_weather.1.mucho-calor.wav | innkeeper | 1.0 | Sí, hace mucho calor. |  |
+| innkeeper_weather.1.mucho-frio | speech/innkeeper/innkeeper_weather.1.mucho-frio.slow.wav | innkeeper | 0.8 | Sí, hace mucho frío. |  |
+| innkeeper_weather.1.mucho-frio | speech/innkeeper/innkeeper_weather.1.mucho-frio.wav | innkeeper | 1.0 | Sí, hace mucho frío. |  |
+| innkeeper_weather.1.mucho-sol | speech/innkeeper/innkeeper_weather.1.mucho-sol.slow.wav | innkeeper | 0.8 | Sí, hace mucho sol. |  |
+| innkeeper_weather.1.mucho-sol | speech/innkeeper/innkeeper_weather.1.mucho-sol.wav | innkeeper | 1.0 | Sí, hace mucho sol. |  |
+| innkeeper_weather.1.mucho-viento | speech/innkeeper/innkeeper_weather.1.mucho-viento.slow.wav | innkeeper | 0.8 | Sí, hace mucho viento. |  |
+| innkeeper_weather.1.mucho-viento | speech/innkeeper/innkeeper_weather.1.mucho-viento.wav | innkeeper | 1.0 | Sí, hace mucho viento. |  |
+| innkeeper_weather.1.sol | speech/innkeeper/innkeeper_weather.1.sol.slow.wav | innkeeper | 0.8 | Sí, hace sol. |  |
+| innkeeper_weather.1.sol | speech/innkeeper/innkeeper_weather.1.sol.wav | innkeeper | 1.0 | Sí, hace sol. |  |
+| innkeeper_weather.1.viento | speech/innkeeper/innkeeper_weather.1.viento.slow.wav | innkeeper | 0.8 | Sí, hace viento. |  |
+| innkeeper_weather.1.viento | speech/innkeeper/innkeeper_weather.1.viento.wav | innkeeper | 1.0 | Sí, hace viento. |  |
 | innkeeper_well.1 | speech/innkeeper/innkeeper_well.1.slow.wav | innkeeper | 0.8 | Bien, gracias. |  |
 | innkeeper_well.1 | speech/innkeeper/innkeeper_well.1.wav | innkeeper | 1.0 | Bien, gracias. |  |
+| innkeeper_yes.1 | speech/innkeeper/innkeeper_yes.1.slow.wav | innkeeper | 0.8 | ¡Sí! |  |
+| innkeeper_yes.1 | speech/innkeeper/innkeeper_yes.1.wav | innkeeper | 1.0 | ¡Sí! |  |
 | not_understood.1 | speech/guide/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/guide/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.baker | speech/baker/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
