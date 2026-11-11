@@ -726,6 +726,8 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 7. **(g) A third building agent:** "Launch Y01 now". The weather session held both of the machine's two building agents, so
    Y01 was launched as a third: one agent of this series beside the weather session's two, with every heavy command still
    queued through `scripts/limited.sh`. The answer was given for Y01.
+   *Lifted (owner, 2026-11-11):* "you can run two agents at once now": the weather series is merged (PR #64) and no other
+   session builds on the machine, so two agents of this series may run at once (the machine's limit of two).
 
 **Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
 the first slice; a fee, meals or comfort at the inn; more than one plot.
