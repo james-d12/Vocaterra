@@ -22,6 +22,7 @@ public sealed record SleepPlace(string Id, string? Point, BlockPos Cell, string 
 public sealed class SleepPlaces
 {
     private readonly FireRings _fires;
+    private readonly VoxelGrid _grid;
     private readonly Func<bool> _lodgingGiven;
     private readonly string _wakeAt;
     private readonly List<SleepPlace> _places = [];
@@ -40,6 +41,7 @@ public sealed class SleepPlaces
         ArgumentNullException.ThrowIfNull(fires);
         ArgumentNullException.ThrowIfNull(lodgingGiven);
         _fires = fires;
+        _grid = scene.Grid;
         _lodgingGiven = lodgingGiven;
         _wakeAt = wakeAt;
         foreach (var spec in specs)
@@ -109,12 +111,12 @@ public sealed class SleepPlaces
     /// <summary>The usable place the player stands at (within its reach across and in height), the nearest when several, or <see langword="null"/>.</summary>
     /// <param name="feet">The block the player's feet are in.</param>
     public SleepPlace? UsableAt(BlockPos feet) =>
-        _places.Where(p => IsUsable(p) && Within(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
+        _places.Where(p => IsUsable(p) && IsAt(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
 
     /// <summary>The bed the player stands at whose access is not met (Y05: the inn's bed before lodging), the nearest when several, or <see langword="null"/>. A fire is never locked, only unlit.</summary>
     /// <param name="feet">The block the player's feet are in.</param>
     public SleepPlace? LockedBedAt(BlockPos feet) =>
-        _places.Where(p => p.Kind != SleepPlaceSpec.KindFire && !IsUsable(p) && Within(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
+        _places.Where(p => p.Kind != SleepPlaceSpec.KindFire && !IsUsable(p) && IsAt(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
 
     /// <summary>The usable place nearest the feet (across, then in height), or <see langword="null"/> when none is usable: where the arrow goes.</summary>
     /// <param name="feet">The block the player's feet are in.</param>
@@ -131,6 +133,31 @@ public sealed class SleepPlaces
     {
         ArgumentNullException.ThrowIfNull(place);
         return Within(place, feet);
+    }
+
+    /// <summary>The most steps on foot from a place's cell at which the player still counts as at it: the reach across and a few blocks over (a wall is longer than that).</summary>
+    /// <param name="place">The place.</param>
+    public static int WalkStepsOf(SleepPlace place)
+    {
+        ArgumentNullException.ThrowIfNull(place);
+        return place.RadiusBlocks + 3;
+    }
+
+    /// <summary>
+    /// Whether the player is at the place: within its reach across and in height (a radius test, first and cheap) and then reachable on foot from the place's cell within
+    /// <see cref="WalkStepsOf"/> steps, so a wall between them says no. A place whose cell has no standing room in its column keeps the radius test alone.
+    /// </summary>
+    /// <param name="place">The place.</param>
+    /// <param name="feet">The block the player's feet are in.</param>
+    public bool IsAt(SleepPlace place, BlockPos feet)
+    {
+        ArgumentNullException.ThrowIfNull(place);
+        if (!Within(place, feet))
+        {
+            return false;
+        }
+
+        return SleepWalk.StartFor(_grid, place.Cell) is not { } start || SleepWalk.Reaches(_grid, start, feet, WalkStepsOf(place));
     }
 
     private static bool Within(SleepPlace place, BlockPos feet) =>

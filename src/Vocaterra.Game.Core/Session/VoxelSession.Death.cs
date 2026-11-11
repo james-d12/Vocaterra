@@ -47,6 +47,7 @@ public sealed partial class VoxelSession
     private const int ChestSearchHeight = 4;
     private const int WakeNearSquared = 4;
     private const int WakeFarSquared = 25;
+    private const int WakeWalkSteps = 12;
 
     private BelongingsChest? _chest;
 
@@ -143,7 +144,7 @@ public sealed partial class VoxelSession
 
         var old = _chest;
         RemoveChestBlock();
-        var cell = NearestFreeGround(feet, ChestSearchBlocks * ChestSearchBlocks, 0, ChestSearchHeight, avoid: null) ?? feet;
+        var cell = NearestFreeGround(feet, ChestSearchBlocks * ChestSearchBlocks, 0, ChestSearchHeight, avoid: null, reach: null) ?? feet;
         Scene.Grid.SetBlock(cell.X, cell.Y, cell.Z, BlockId.Chest);
         var chest = new BelongingsChest(cell);
         if (old is not null)
@@ -178,7 +179,7 @@ public sealed partial class VoxelSession
     }
 
     // The player wakes at the place last slept at, or else the sleep place death.wakeAt names (the mountain fire's camp; the ring is built and cold until its torch is put on): the nearest free ground two to five blocks
-    // from the place's cell (WakeNearSquared, WakeFarSquared), which is within the rest radius of a ring's middle. A scene without the place leaves the player where they are.
+    // from the place's cell (WakeNearSquared, WakeFarSquared) that is reached on foot from it (Y05a), which is within the rest radius of a ring's middle. A scene without the place leaves the player where they are.
     private void WakeAtSleepPlace()
     {
         var last = LastSleepPlace is { } slept ? SleepPlaces.Find(slept.Id) : null; // Y02: the place last slept at, while it is still a place; else the one death.wakeAt names
@@ -187,7 +188,11 @@ public sealed partial class VoxelSession
             return;
         }
 
-        var cell = NearestFreeGround(place.Cell, WakeFarSquared, WakeNearSquared, 3, _chest?.Cell);
+        // Y05a: the cell is one the player walks to from the place (a bounded walk, so not through a wall), two to five blocks across from it as before (a fire's ring, a bed's side).
+        // No standing room at the place, or no cell reached, falls back to the straight search.
+        var reach = SleepWalk.StartFor(Scene.Grid, place.Cell) is { } start ? SleepWalk.ReachFrom(Scene.Grid, start, WakeWalkSteps) : null;
+        var cell = (reach is null ? null : NearestFreeGround(place.Cell, WakeFarSquared, WakeNearSquared, 3, _chest?.Cell, reach))
+            ?? NearestFreeGround(place.Cell, WakeFarSquared, WakeNearSquared, 3, _chest?.Cell, null);
         if (cell is { } stand)
         {
             Simulation.TeleportTo(stand);
@@ -231,7 +236,7 @@ public sealed partial class VoxelSession
 
     // The nearest cell to a middle (by distance across, then height, then x, then z) between two squared distances across that is free ground: air with a solid, dry, bare block
     // under it (not leaves, not a fire ring's stone or a torch) and room for a body (a second cell free over it). Never the avoided cell and never a ring's middle.
-    private BlockPos? NearestFreeGround(BlockPos middle, int maxSquared, int minSquared, int height, BlockPos? avoid)
+    private BlockPos? NearestFreeGround(BlockPos middle, int maxSquared, int minSquared, int height, BlockPos? avoid, Dictionary<BlockPos, int>? reach)
     {
         var grid = Scene.Grid;
         var radius = (int)Math.Ceiling(Math.Sqrt(maxSquared));
@@ -253,7 +258,7 @@ public sealed partial class VoxelSession
                 for (var y = middle.Y - height; y <= middle.Y + height; y++)
                 {
                     var cell = new BlockPos(x, y, z);
-                    if (!IsFreeGround(grid, cell) || cell == avoid || middles.Contains(cell))
+                    if (!IsFreeGround(grid, cell) || cell == avoid || middles.Contains(cell) || (reach is not null && !reach.ContainsKey(cell)))
                     {
                         continue;
                     }
