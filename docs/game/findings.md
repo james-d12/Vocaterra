@@ -2391,6 +2391,6 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     middle of dawn and dusk.
   - *Not fixed:* 2:00 is as dark as midnight (the plateau of the deep night is wide; the owner, 2026-11-11: "2am is fine for my
     testing", so it stays); the world's light changes less than the sky by day
-    (the Golden light is 0.9 and 0.76 in green and blue); the faces keep a fixed sun direction (out of scope, as before).
+    (the Golden light is 0.9 and 0.76 in green and blue; the owner, 2026-11-11: fine, so it stays); the faces keep a fixed sun direction (out of scope, as before).
   - *Process:* the agent's report never reached the orchestrator (its session ended after the commit); the gate and the pictures were run
     by the next session.
