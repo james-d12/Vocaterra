@@ -202,6 +202,9 @@ public static class WorldEvents
     /// <summary>A teacher taught the learner a procedure (W08, <c>teach_recipe</c>; the detail is the procedure's id).</summary>
     public const string RecipeTaught = "recipe_taught";
 
+    /// <summary>The player was first given lodging (Y05, <c>grant_lodging</c>): the inn's bed is theirs. Raised once; no NPC, no detail.</summary>
+    public const string LodgingGranted = "lodging_granted";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -214,5 +217,6 @@ public static class WorldEvents
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,
+        LodgingGranted,
     ];
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy; W08: the teacher's kinds procedure_repeat, procedure_slower, procedure_help, give_missing, teach_recipe and start_procedure). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot; V03: take_item and sell; V15: buy; W08: the teacher's kinds procedure_repeat, procedure_slower, procedure_help, give_missing, teach_recipe and start_procedure; Y05: grant_lodging). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -339,6 +339,21 @@
                   }
                 },
                 "description": "teach_recipe adds the procedure to the procedures the learner knows (W08); start_procedure opens the station for it and puts the teacher in its teaching state (the accepted offer to bake)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "grant_lodging"
+                    ]
+                  }
+                },
+                "description": "Y05: the player is given lodging, for good: the inn's bed (a sleep place whose access is lodging) can be slept at from then on. No fee, no expiry. The first time raises the world event lodging_granted; a second grant changes nothing."
               }
             ]
           }

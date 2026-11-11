@@ -125,6 +125,12 @@ try
         Console.WriteLine($"session: {SessionSkip.Line(skipTo)}");
     }
 
+    if (options.Lodging)
+    {
+        session.GrantLodging(); // a dev aid (Y05): the inn's bed is usable from the start
+        Console.WriteLine("lodging: given (--lodging)");
+    }
+
     if (options.Session is { } playSession)
     {
         // A run started at a given session (S26, --session): the lessons of that session are unlocked, and the objective names the new one.

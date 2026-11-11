@@ -108,6 +108,7 @@ public sealed class AutosavePolicy
             WorldEvent { Name: WorldEvents.ObjectiveStep } => "objective step done",
             WorldEvent { Name: WorldEvents.SessionComplete } => "session complete",
             WorldEvent { Name: WorldEvents.TalkClosed } => "dialogue closed",
+            WorldEvent { Name: WorldEvents.LodgingGranted } => "lodging granted",
             _ => null,
         };
     }

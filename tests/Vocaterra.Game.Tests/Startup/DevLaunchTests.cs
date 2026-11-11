@@ -22,6 +22,18 @@ public sealed class DevLaunchTests
     }
 
     [Fact]
+    public void Given_TheLodgingFlag_When_ItIsParsed_Then_ItNeedsDevAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--lodging"], out var given, out _));
+        Assert.True(given.Lodging);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.False(none.Lodging);
+        Assert.False(LaunchOptions.TryParse(["--lodging"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.Contains("--lodging", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheOverlayIsOffUntilItIsSwitchedOnAndTheNoteFollowsTheSameSwitch()
     {
         Assert.False(new VoxelDebugOverlay().Visible);

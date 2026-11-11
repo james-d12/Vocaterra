@@ -559,6 +559,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // A usable sleep place (today the player's own lit fire) offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
     private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
+    // Y05: at a bed that is not the player's yet, the prompt says a room must be asked for; E does nothing (SleepNow refuses, nothing is usable).
+    private bool BedLocked => SleepOffer.AtLockedBed(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
+
     // L01: at a sleep place and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
     private bool FireNotTired => SleepOffer.AtFireNotTired(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
@@ -761,6 +764,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var (headingStep, headingOffer) = _lesson.State();
         view.LessonHeading = headingStep is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingStep) : headingOffer is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingOffer) : null; // the panel's header (U02)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
+        view.SleepPrompt ??= BedLocked && !_ending.Visible(_sim.Tick) ? SleepOffer.LockedBedText(_session) : null; // Y05: at the inn's bed before lodging, the bed says it is the inn's
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
         view.FadeAlpha = (float)_collapseFade;
         view.Needs = _needsHud;
@@ -1437,6 +1441,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
+        : _session.AtLockedBed ? "the bed is the inn's: lodging is not given yet"
         : !_session.SleepPlaces.AnyUsable ? "the player's own fire is not lit"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";

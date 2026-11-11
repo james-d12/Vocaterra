@@ -20,6 +20,18 @@ public sealed partial class VoxelSession
     /// <summary>Whether the player has been given lodging, which meets a sleep place whose access is <c>lodging</c>. False until a later milestone sets it; the save keeps it (Y02).</summary>
     public bool LodgingGiven { get; set; }
 
+    /// <summary>Gives the player lodging (Y05, <c>grant_lodging</c>): the inn's bed becomes usable for good. The first time raises <c>lodging_granted</c>; a second grant changes nothing.</summary>
+    public void GrantLodging()
+    {
+        if (LodgingGiven)
+        {
+            return;
+        }
+
+        LodgingGiven = true;
+        LogWorld(WorldEvents.LodgingGranted, null, null);
+    }
+
     /// <summary>The place the player last slept at (Y02), or <see langword="null"/> for none: a death wakes them there when it is still in <see cref="SleepPlaces"/>. The save keeps it.</summary>
     public LastSleepSave? LastSleepPlace { get; internal set; }
 
@@ -70,6 +82,9 @@ public sealed partial class VoxelSession
 
     /// <summary>The usable sleep place the player stands at (within its reach across and in height), or <see langword="null"/>.</summary>
     public SleepPlace? CurrentSleepPlace => SleepPlaces.UsableAt(Simulation.Player.FeetBlock);
+
+    /// <summary>Whether the player stands at a bed that is not theirs yet (Y05: the inn's bed, access <c>lodging</c>, before lodging is given).</summary>
+    public bool AtLockedBed => SleepPlaces.LockedBedAt(Simulation.Player.FeetBlock) is not null;
 
     /// <summary>Whether the player stands at a usable sleep place (<see cref="CurrentSleepPlace"/>).</summary>
     public bool AtSleepPlace => CurrentSleepPlace is not null;
