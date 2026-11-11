@@ -25,7 +25,7 @@ public static class BlockArtVillage
             or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.Bed or BlockCell.Bedroll or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
-            or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer => true,
+            or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer or BlockCell.FaceInnkeeper => true,
         _ => false,
     };
 
@@ -238,6 +238,8 @@ public static class BlockArtVillage
                 return FacePixel(x, y, n, hair: new Rgba(34, 28, 26), longHair: false, beard: false, cheeks: false, eyes: new Rgba(44, 34, 30), moustache: true);
             case BlockCell.FaceFarmer:
                 return FacePixel(x, y, n, hair: new Rgba(212, 174, 92), longHair: false, beard: false, cheeks: true, eyes: new Rgba(96, 112, 48), freckles: true);
+            case BlockCell.FaceInnkeeper:
+                return FacePixel(x, y, n, hair: new Rgba(188, 184, 190), longHair: false, beard: false, cheeks: true, eyes: new Rgba(96, 64, 48));
             case BlockCell.Cloth:
                 {
                     var weave = (x + y) % 2 == 0 ? 0 : -9;

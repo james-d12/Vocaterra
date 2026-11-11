@@ -1,0 +1,58 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 2,
+  "id": "innkeeper",
+  "label": "Posadera",
+  "name": "Rosa",
+  "figure": "innkeeper",
+  "focus": {
+    "inn-offer": [
+      "quiero-una-habitacion",
+      "hay-una-habitacion",
+      "si-por-favor",
+      "no-gracias"
+    ]
+  },
+  "prompts": {
+    "idle": "inn-offer",
+    "given": "inn-given"
+  },
+  "opening": {
+    "event": "innkeeper.offer",
+    "when": "first"
+  },
+  "patience": {
+    "misses": 2,
+    "afterHelp": 1,
+    "event": "innkeeper.give",
+    "prompt": "inn-offer",
+    "once": true
+  },
+  "acknowledgementPools": [
+    "innkeeper_nice"
+  ],
+  "slotReplies": {
+    "state_weather": {
+      "slot": "weather",
+      "event": "innkeeper.weather",
+      "values": [
+        "mucho frío",
+        "mucho calor",
+        "mucho sol",
+        "mucho viento",
+        "frío",
+        "calor",
+        "sol",
+        "viento",
+        "fresco",
+        "buen tiempo",
+        "mal tiempo"
+      ]
+    }
+  },
+  "voice": {
+    "speaker": 42,
+    "name": "pf_dora",
+    "speed": 1.0
+  }
+}

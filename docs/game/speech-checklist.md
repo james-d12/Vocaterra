@@ -11,14 +11,15 @@ whose text changed or whose file was recorded again differently is listed again 
 | Speaker | Voice | Kokoro speaker | Speed (slow) | Says |
 | --- | --- | --- | --- | --- |
 | guide (Luna) | `ef_dora` | 28 | 1.0 (0.8) | every pool no other NPC has, its prompts, the word cards and the model answers |
-| shopkeeper (Tendero) | `em_alex` | 29 | 1.0 (0.8) | the pools `shop_*` and `guide.lesson.shop.*`, and its prompts |
-| villager (Aldeano) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
+| shopkeeper (Pablo) | `em_alex` | 29 | 1.0 (0.8) | the pools `shop_*` and `guide.lesson.shop.*`, and its prompts |
+| villager (Tomás) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
 | fisher (Mar) | `em_santa` | 53 | 0.9 (0.72) | the pools `fisher_*` and `guide.lesson.fisher.*`, and its prompts |
 | baker (Luz) | `if_sara`, gain 0.32 | 35 | 1.0 (0.8) | the pools `baker_*` and `guide.lesson.baker.*`, and its prompts |
 | smith (Domingo) | `im_nicola`, gain 0.6 | 36 | 1.0 (0.8) | the pools `smith_*` and `guide.lesson.smith.*`, and its prompts |
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
+| innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1476 of the 1476 files have no mark (guide 476, baker 212, villager 176, farmer 170, shopkeeper 168, fisher 150, smith 124). Two files a line: the normal speed and the slow one.
+**To hear:** 1570 of the 1570 files have no mark (guide 480, baker 212, villager 176, farmer 170, shopkeeper 168, fisher 150, smith 124, innkeeper 90). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -32,6 +33,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | answer_accepted.1.farmer | speech/farmer/answer_accepted.1.farmer.wav | farmer | 1.0 | ¡Muy bien! |  |
 | answer_accepted.1.fisher | speech/fisher/answer_accepted.1.fisher.slow.wav | fisher | 0.72 | ¡Muy bien! |  |
 | answer_accepted.1.fisher | speech/fisher/answer_accepted.1.fisher.wav | fisher | 0.9 | ¡Muy bien! |  |
+| answer_accepted.1.innkeeper | speech/innkeeper/answer_accepted.1.innkeeper.slow.wav | innkeeper | 0.8 | ¡Muy bien! |  |
+| answer_accepted.1.innkeeper | speech/innkeeper/answer_accepted.1.innkeeper.wav | innkeeper | 1.0 | ¡Muy bien! |  |
 | answer_accepted.1.shopkeeper | speech/shopkeeper/answer_accepted.1.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Muy bien! |  |
 | answer_accepted.1.shopkeeper | speech/shopkeeper/answer_accepted.1.shopkeeper.wav | shopkeeper | 1.0 | ¡Muy bien! |  |
 | answer_accepted.1.smith | speech/smith/answer_accepted.1.smith.slow.wav | smith | 0.8 | ¡Muy bien! |  |
@@ -46,6 +49,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | answer_accepted.2.farmer | speech/farmer/answer_accepted.2.farmer.wav | farmer | 1.0 | ¡Bien! |  |
 | answer_accepted.2.fisher | speech/fisher/answer_accepted.2.fisher.slow.wav | fisher | 0.72 | ¡Bien! |  |
 | answer_accepted.2.fisher | speech/fisher/answer_accepted.2.fisher.wav | fisher | 0.9 | ¡Bien! |  |
+| answer_accepted.2.innkeeper | speech/innkeeper/answer_accepted.2.innkeeper.slow.wav | innkeeper | 0.8 | ¡Bien! |  |
+| answer_accepted.2.innkeeper | speech/innkeeper/answer_accepted.2.innkeeper.wav | innkeeper | 1.0 | ¡Bien! |  |
 | answer_accepted.2.shopkeeper | speech/shopkeeper/answer_accepted.2.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Bien! |  |
 | answer_accepted.2.shopkeeper | speech/shopkeeper/answer_accepted.2.shopkeeper.wav | shopkeeper | 1.0 | ¡Bien! |  |
 | answer_accepted.2.smith | speech/smith/answer_accepted.2.smith.slow.wav | smith | 0.8 | ¡Bien! |  |
@@ -60,6 +65,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | answer_accepted.3.farmer | speech/farmer/answer_accepted.3.farmer.wav | farmer | 1.0 | ¡Eso es! |  |
 | answer_accepted.3.fisher | speech/fisher/answer_accepted.3.fisher.slow.wav | fisher | 0.72 | ¡Eso es! |  |
 | answer_accepted.3.fisher | speech/fisher/answer_accepted.3.fisher.wav | fisher | 0.9 | ¡Eso es! |  |
+| answer_accepted.3.innkeeper | speech/innkeeper/answer_accepted.3.innkeeper.slow.wav | innkeeper | 0.8 | ¡Eso es! |  |
+| answer_accepted.3.innkeeper | speech/innkeeper/answer_accepted.3.innkeeper.wav | innkeeper | 1.0 | ¡Eso es! |  |
 | answer_accepted.3.shopkeeper | speech/shopkeeper/answer_accepted.3.shopkeeper.slow.wav | shopkeeper | 0.8 | ¡Eso es! |  |
 | answer_accepted.3.shopkeeper | speech/shopkeeper/answer_accepted.3.shopkeeper.wav | shopkeeper | 1.0 | ¡Eso es! |  |
 | answer_accepted.3.smith | speech/smith/answer_accepted.3.smith.slow.wav | smith | 0.8 | ¡Eso es! |  |
@@ -330,6 +337,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | feedback.hint.1.farmer | speech/farmer/feedback.hint.1.farmer.wav | farmer | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.fisher | speech/fisher/feedback.hint.1.fisher.slow.wav | fisher | 0.72 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.fisher | speech/fisher/feedback.hint.1.fisher.wav | fisher | 0.9 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.innkeeper | speech/innkeeper/feedback.hint.1.innkeeper.slow.wav | innkeeper | 0.8 | Casi. Piensa otra vez. |  |
+| feedback.hint.1.innkeeper | speech/innkeeper/feedback.hint.1.innkeeper.wav | innkeeper | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.shopkeeper | speech/shopkeeper/feedback.hint.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.shopkeeper | speech/shopkeeper/feedback.hint.1.shopkeeper.wav | shopkeeper | 1.0 | Casi. Piensa otra vez. |  |
 | feedback.hint.1.smith | speech/smith/feedback.hint.1.smith.slow.wav | smith | 0.8 | Casi. Piensa otra vez. |  |
@@ -344,6 +353,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | feedback.hint.2.farmer | speech/farmer/feedback.hint.2.farmer.wav | farmer | 1.0 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2.fisher | speech/fisher/feedback.hint.2.fisher.slow.wav | fisher | 0.72 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2.fisher | speech/fisher/feedback.hint.2.fisher.wav | fisher | 0.9 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.innkeeper | speech/innkeeper/feedback.hint.2.innkeeper.slow.wav | innkeeper | 0.8 | ¿Seguro? Dilo otra vez. |  |
+| feedback.hint.2.innkeeper | speech/innkeeper/feedback.hint.2.innkeeper.wav | innkeeper | 1.0 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2.shopkeeper | speech/shopkeeper/feedback.hint.2.shopkeeper.slow.wav | shopkeeper | 0.8 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2.shopkeeper | speech/shopkeeper/feedback.hint.2.shopkeeper.wav | shopkeeper | 1.0 | ¿Seguro? Dilo otra vez. |  |
 | feedback.hint.2.smith | speech/smith/feedback.hint.2.smith.slow.wav | smith | 0.8 | ¿Seguro? Dilo otra vez. |  |
@@ -358,6 +369,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | feedback.hint.gender.agree.1.farmer | speech/farmer/feedback.hint.gender.agree.1.farmer.wav | farmer | 1.0 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1.fisher | speech/fisher/feedback.hint.gender.agree.1.fisher.slow.wav | fisher | 0.72 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1.fisher | speech/fisher/feedback.hint.gender.agree.1.fisher.wav | fisher | 0.9 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.innkeeper | speech/innkeeper/feedback.hint.gender.agree.1.innkeeper.slow.wav | innkeeper | 0.8 | Piensa otra vez: ¿el o la? |  |
+| feedback.hint.gender.agree.1.innkeeper | speech/innkeeper/feedback.hint.gender.agree.1.innkeeper.wav | innkeeper | 1.0 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1.shopkeeper | speech/shopkeeper/feedback.hint.gender.agree.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1.shopkeeper | speech/shopkeeper/feedback.hint.gender.agree.1.shopkeeper.wav | shopkeeper | 1.0 | Piensa otra vez: ¿el o la? |  |
 | feedback.hint.gender.agree.1.smith | speech/smith/feedback.hint.gender.agree.1.smith.slow.wav | smith | 0.8 | Piensa otra vez: ¿el o la? |  |
@@ -372,6 +385,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | feedback.slow_repeat.1.farmer | speech/farmer/feedback.slow_repeat.1.farmer.wav | farmer | 1.0 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1.fisher | speech/fisher/feedback.slow_repeat.1.fisher.slow.wav | fisher | 0.72 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1.fisher | speech/fisher/feedback.slow_repeat.1.fisher.wav | fisher | 0.9 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.innkeeper | speech/innkeeper/feedback.slow_repeat.1.innkeeper.slow.wav | innkeeper | 0.8 | Di «ayuda» y te ayudo. |  |
+| feedback.slow_repeat.1.innkeeper | speech/innkeeper/feedback.slow_repeat.1.innkeeper.wav | innkeeper | 1.0 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1.shopkeeper | speech/shopkeeper/feedback.slow_repeat.1.shopkeeper.slow.wav | shopkeeper | 0.8 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1.shopkeeper | speech/shopkeeper/feedback.slow_repeat.1.shopkeeper.wav | shopkeeper | 1.0 | Di «ayuda» y te ayudo. |  |
 | feedback.slow_repeat.1.smith | speech/smith/feedback.slow_repeat.1.smith.slow.wav | smith | 0.8 | Di «ayuda» y te ayudo. |  |
@@ -386,6 +401,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | feedback.slow_repeat.2.farmer | speech/farmer/feedback.slow_repeat.2.farmer.wav | farmer | 1.0 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2.fisher | speech/fisher/feedback.slow_repeat.2.fisher.slow.wav | fisher | 0.72 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2.fisher | speech/fisher/feedback.slow_repeat.2.fisher.wav | fisher | 0.9 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.innkeeper | speech/innkeeper/feedback.slow_repeat.2.innkeeper.slow.wav | innkeeper | 0.8 | Si necesitas ayuda, di «ayuda». |  |
+| feedback.slow_repeat.2.innkeeper | speech/innkeeper/feedback.slow_repeat.2.innkeeper.wav | innkeeper | 1.0 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2.shopkeeper | speech/shopkeeper/feedback.slow_repeat.2.shopkeeper.slow.wav | shopkeeper | 0.8 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2.shopkeeper | speech/shopkeeper/feedback.slow_repeat.2.shopkeeper.wav | shopkeeper | 1.0 | Si necesitas ayuda, di «ayuda». |  |
 | feedback.slow_repeat.2.smith | speech/smith/feedback.slow_repeat.2.smith.slow.wav | smith | 0.8 | Si necesitas ayuda, di «ayuda». |  |
@@ -788,6 +805,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.uncertain.1.farmer | speech/farmer/guide.uncertain.1.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1.fisher | speech/fisher/guide.uncertain.1.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.innkeeper | speech/innkeeper/guide.uncertain.1.innkeeper.slow.wav | innkeeper | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
+| guide.uncertain.1.innkeeper | speech/innkeeper/guide.uncertain.1.innkeeper.wav | innkeeper | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1.shopkeeper | speech/shopkeeper/guide.uncertain.1.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.1.smith | speech/smith/guide.uncertain.1.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |
@@ -802,6 +821,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.uncertain.2.farmer | speech/farmer/guide.uncertain.2.farmer.wav | farmer | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.slow.wav | fisher | 0.72 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2.fisher | speech/fisher/guide.uncertain.2.fisher.wav | fisher | 0.9 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.innkeeper | speech/innkeeper/guide.uncertain.2.innkeeper.slow.wav | innkeeper | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide.uncertain.2.innkeeper | speech/innkeeper/guide.uncertain.2.innkeeper.wav | innkeeper | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2.shopkeeper | speech/shopkeeper/guide.uncertain.2.shopkeeper.wav | shopkeeper | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2.smith | speech/smith/guide.uncertain.2.smith.slow.wav | smith | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
@@ -912,6 +933,68 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_well.1 | speech/guide/guide_well.1.wav | guide | 1.0 | Bien, gracias. |  |
 | guide_yes.1 | speech/guide/guide_yes.1.slow.wav | guide | 0.8 | ¡Sí! |  |
 | guide_yes.1 | speech/guide/guide_yes.1.wav | guide | 1.0 | ¡Sí! |  |
+| innkeeper_bye.1 | speech/innkeeper/innkeeper_bye.1.slow.wav | innkeeper | 0.8 | ¡Hasta luego! |  |
+| innkeeper_bye.1 | speech/innkeeper/innkeeper_bye.1.wav | innkeeper | 1.0 | ¡Hasta luego! |  |
+| innkeeper_bye.2 | speech/innkeeper/innkeeper_bye.2.slow.wav | innkeeper | 0.8 | ¡Nos vemos! |  |
+| innkeeper_bye.2 | speech/innkeeper/innkeeper_bye.2.wav | innkeeper | 1.0 | ¡Nos vemos! |  |
+| innkeeper_free.1 | speech/innkeeper/innkeeper_free.1.slow.wav | innkeeper | 0.8 | La habitación es gratis. ¿Quieres una habitación? |  |
+| innkeeper_free.1 | speech/innkeeper/innkeeper_free.1.wav | innkeeper | 1.0 | La habitación es gratis. ¿Quieres una habitación? |  |
+| innkeeper_give.1 | speech/innkeeper/innkeeper_give.1.slow.wav | innkeeper | 0.8 | Está bien. La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_give.1 | speech/innkeeper/innkeeper_give.1.wav | innkeeper | 1.0 | Está bien. La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_help.1 | speech/innkeeper/innkeeper_help.1.slow.wav | innkeeper | 0.8 | Puedes decir: «Quiero una habitación, por favor». |  |
+| innkeeper_help.1 | speech/innkeeper/innkeeper_help.1.wav | innkeeper | 1.0 | Puedes decir: «Quiero una habitación, por favor». |  |
+| innkeeper_help_given.1 | speech/innkeeper/innkeeper_help_given.1.slow.wav | innkeeper | 0.8 | Puedes decir: «Buenas noches» o «Gracias». |  |
+| innkeeper_help_given.1 | speech/innkeeper/innkeeper_help_given.1.wav | innkeeper | 1.0 | Puedes decir: «Buenas noches» o «Gracias». |  |
+| innkeeper_nice.1 | speech/innkeeper/innkeeper_nice.1.slow.wav | innkeeper | 0.8 | ¡Qué bien! |  |
+| innkeeper_nice.1 | speech/innkeeper/innkeeper_nice.1.wav | innkeeper | 1.0 | ¡Qué bien! |  |
+| innkeeper_night.1 | speech/innkeeper/innkeeper_night.1.slow.wav | innkeeper | 0.8 | Buenas noches. Tu cama está allí. |  |
+| innkeeper_night.1 | speech/innkeeper/innkeeper_night.1.wav | innkeeper | 1.0 | Buenas noches. Tu cama está allí. |  |
+| innkeeper_night.2 | speech/innkeeper/innkeeper_night.2.slow.wav | innkeeper | 0.8 | ¡Buenas noches! |  |
+| innkeeper_night.2 | speech/innkeeper/innkeeper_night.2.wav | innkeeper | 1.0 | ¡Buenas noches! |  |
+| innkeeper_no.1 | speech/innkeeper/innkeeper_no.1.slow.wav | innkeeper | 0.8 | Está bien. La habitación es gratis. |  |
+| innkeeper_no.1 | speech/innkeeper/innkeeper_no.1.wav | innkeeper | 1.0 | Está bien. La habitación es gratis. |  |
+| innkeeper_no.2 | speech/innkeeper/innkeeper_no.2.slow.wav | innkeeper | 0.8 | Bueno. La habitación es gratis. |  |
+| innkeeper_no.2 | speech/innkeeper/innkeeper_no.2.wav | innkeeper | 1.0 | Bueno. La habitación es gratis. |  |
+| innkeeper_offer.1 | speech/innkeeper/innkeeper_offer.1.slow.wav | innkeeper | 0.8 | ¡Hola! ¿Quieres una habitación? |  |
+| innkeeper_offer.1 | speech/innkeeper/innkeeper_offer.1.wav | innkeeper | 1.0 | ¡Hola! ¿Quieres una habitación? |  |
+| innkeeper_room.1 | speech/innkeeper/innkeeper_room.1.slow.wav | innkeeper | 0.8 | ¡Claro! La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_room.1 | speech/innkeeper/innkeeper_room.1.wav | innkeeper | 1.0 | ¡Claro! La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_room.2 | speech/innkeeper/innkeeper_room.2.slow.wav | innkeeper | 0.8 | ¡Muy bien! La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_room.2 | speech/innkeeper/innkeeper_room.2.wav | innkeeper | 1.0 | ¡Muy bien! La habitación es gratis. Tu cama está allí. |  |
+| innkeeper_sun.1 | speech/innkeeper/innkeeper_sun.1.slow.wav | innkeeper | 0.8 | Hoy hace sol. |  |
+| innkeeper_sun.1 | speech/innkeeper/innkeeper_sun.1.wav | innkeeper | 1.0 | Hoy hace sol. |  |
+| innkeeper_thank.1 | speech/innkeeper/innkeeper_thank.1.slow.wav | innkeeper | 0.8 | De nada. |  |
+| innkeeper_thank.1 | speech/innkeeper/innkeeper_thank.1.wav | innkeeper | 1.0 | De nada. |  |
+| innkeeper_thank.2 | speech/innkeeper/innkeeper_thank.2.slow.wav | innkeeper | 0.8 | ¡Con gusto! |  |
+| innkeeper_thank.2 | speech/innkeeper/innkeeper_thank.2.wav | innkeeper | 1.0 | ¡Con gusto! |  |
+| innkeeper_understood.1 | speech/innkeeper/innkeeper_understood.1.slow.wav | innkeeper | 0.8 | Te entiendo. La habitación es gratis. |  |
+| innkeeper_understood.1 | speech/innkeeper/innkeeper_understood.1.wav | innkeeper | 1.0 | Te entiendo. La habitación es gratis. |  |
+| innkeeper_weather.1.buen-tiempo | speech/innkeeper/innkeeper_weather.1.buen-tiempo.slow.wav | innkeeper | 0.8 | Sí, hace buen tiempo. |  |
+| innkeeper_weather.1.buen-tiempo | speech/innkeeper/innkeeper_weather.1.buen-tiempo.wav | innkeeper | 1.0 | Sí, hace buen tiempo. |  |
+| innkeeper_weather.1.calor | speech/innkeeper/innkeeper_weather.1.calor.slow.wav | innkeeper | 0.8 | Sí, hace calor. |  |
+| innkeeper_weather.1.calor | speech/innkeeper/innkeeper_weather.1.calor.wav | innkeeper | 1.0 | Sí, hace calor. |  |
+| innkeeper_weather.1.fresco | speech/innkeeper/innkeeper_weather.1.fresco.slow.wav | innkeeper | 0.8 | Sí, hace fresco. |  |
+| innkeeper_weather.1.fresco | speech/innkeeper/innkeeper_weather.1.fresco.wav | innkeeper | 1.0 | Sí, hace fresco. |  |
+| innkeeper_weather.1.frio | speech/innkeeper/innkeeper_weather.1.frio.slow.wav | innkeeper | 0.8 | Sí, hace frío. |  |
+| innkeeper_weather.1.frio | speech/innkeeper/innkeeper_weather.1.frio.wav | innkeeper | 1.0 | Sí, hace frío. |  |
+| innkeeper_weather.1.mal-tiempo | speech/innkeeper/innkeeper_weather.1.mal-tiempo.slow.wav | innkeeper | 0.8 | Sí, hace mal tiempo. |  |
+| innkeeper_weather.1.mal-tiempo | speech/innkeeper/innkeeper_weather.1.mal-tiempo.wav | innkeeper | 1.0 | Sí, hace mal tiempo. |  |
+| innkeeper_weather.1.mucho-calor | speech/innkeeper/innkeeper_weather.1.mucho-calor.slow.wav | innkeeper | 0.8 | Sí, hace mucho calor. |  |
+| innkeeper_weather.1.mucho-calor | speech/innkeeper/innkeeper_weather.1.mucho-calor.wav | innkeeper | 1.0 | Sí, hace mucho calor. |  |
+| innkeeper_weather.1.mucho-frio | speech/innkeeper/innkeeper_weather.1.mucho-frio.slow.wav | innkeeper | 0.8 | Sí, hace mucho frío. |  |
+| innkeeper_weather.1.mucho-frio | speech/innkeeper/innkeeper_weather.1.mucho-frio.wav | innkeeper | 1.0 | Sí, hace mucho frío. |  |
+| innkeeper_weather.1.mucho-sol | speech/innkeeper/innkeeper_weather.1.mucho-sol.slow.wav | innkeeper | 0.8 | Sí, hace mucho sol. |  |
+| innkeeper_weather.1.mucho-sol | speech/innkeeper/innkeeper_weather.1.mucho-sol.wav | innkeeper | 1.0 | Sí, hace mucho sol. |  |
+| innkeeper_weather.1.mucho-viento | speech/innkeeper/innkeeper_weather.1.mucho-viento.slow.wav | innkeeper | 0.8 | Sí, hace mucho viento. |  |
+| innkeeper_weather.1.mucho-viento | speech/innkeeper/innkeeper_weather.1.mucho-viento.wav | innkeeper | 1.0 | Sí, hace mucho viento. |  |
+| innkeeper_weather.1.sol | speech/innkeeper/innkeeper_weather.1.sol.slow.wav | innkeeper | 0.8 | Sí, hace sol. |  |
+| innkeeper_weather.1.sol | speech/innkeeper/innkeeper_weather.1.sol.wav | innkeeper | 1.0 | Sí, hace sol. |  |
+| innkeeper_weather.1.viento | speech/innkeeper/innkeeper_weather.1.viento.slow.wav | innkeeper | 0.8 | Sí, hace viento. |  |
+| innkeeper_weather.1.viento | speech/innkeeper/innkeeper_weather.1.viento.wav | innkeeper | 1.0 | Sí, hace viento. |  |
+| innkeeper_well.1 | speech/innkeeper/innkeeper_well.1.slow.wav | innkeeper | 0.8 | Bien, gracias. |  |
+| innkeeper_well.1 | speech/innkeeper/innkeeper_well.1.wav | innkeeper | 1.0 | Bien, gracias. |  |
+| innkeeper_yes.1 | speech/innkeeper/innkeeper_yes.1.slow.wav | innkeeper | 0.8 | ¡Sí! |  |
+| innkeeper_yes.1 | speech/innkeeper/innkeeper_yes.1.wav | innkeeper | 1.0 | ¡Sí! |  |
 | not_understood.1 | speech/guide/not_understood.1.slow.wav | guide | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1 | speech/guide/not_understood.1.wav | guide | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.baker | speech/baker/not_understood.1.baker.slow.wav | baker | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
@@ -920,6 +1003,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | not_understood.1.farmer | speech/farmer/not_understood.1.farmer.wav | farmer | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.fisher | speech/fisher/not_understood.1.fisher.slow.wav | fisher | 0.72 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.fisher | speech/fisher/not_understood.1.fisher.wav | fisher | 0.9 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.innkeeper | speech/innkeeper/not_understood.1.innkeeper.slow.wav | innkeeper | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
+| not_understood.1.innkeeper | speech/innkeeper/not_understood.1.innkeeper.wav | innkeeper | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.shopkeeper | speech/shopkeeper/not_understood.1.shopkeeper.slow.wav | shopkeeper | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.shopkeeper | speech/shopkeeper/not_understood.1.shopkeeper.wav | shopkeeper | 1.0 | No te entendí. ¿Me lo dices otra vez? |  |
 | not_understood.1.smith | speech/smith/not_understood.1.smith.slow.wav | smith | 0.8 | No te entendí. ¿Me lo dices otra vez? |  |
@@ -934,6 +1019,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | not_understood.2.farmer | speech/farmer/not_understood.2.farmer.wav | farmer | 1.0 | Perdón, ¿qué dices? |  |
 | not_understood.2.fisher | speech/fisher/not_understood.2.fisher.slow.wav | fisher | 0.72 | Perdón, ¿qué dices? |  |
 | not_understood.2.fisher | speech/fisher/not_understood.2.fisher.wav | fisher | 0.9 | Perdón, ¿qué dices? |  |
+| not_understood.2.innkeeper | speech/innkeeper/not_understood.2.innkeeper.slow.wav | innkeeper | 0.8 | Perdón, ¿qué dices? |  |
+| not_understood.2.innkeeper | speech/innkeeper/not_understood.2.innkeeper.wav | innkeeper | 1.0 | Perdón, ¿qué dices? |  |
 | not_understood.2.shopkeeper | speech/shopkeeper/not_understood.2.shopkeeper.slow.wav | shopkeeper | 0.8 | Perdón, ¿qué dices? |  |
 | not_understood.2.shopkeeper | speech/shopkeeper/not_understood.2.shopkeeper.wav | shopkeeper | 1.0 | Perdón, ¿qué dices? |  |
 | not_understood.2.smith | speech/smith/not_understood.2.smith.slow.wav | smith | 0.8 | Perdón, ¿qué dices? |  |
@@ -1000,6 +1087,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.hay-pan | speech/guide/phrase.hay-pan.wav | guide | 1.0 | ¿Hay pan? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.slow.wav | guide | 0.8 | ¿Hay un pozo en el pueblo? |  |
 | phrase.hay-un-pozo | speech/guide/phrase.hay-un-pozo.wav | guide | 1.0 | ¿Hay un pozo en el pueblo? |  |
+| phrase.hay-una-habitacion | speech/guide/phrase.hay-una-habitacion.slow.wav | guide | 0.8 | ¿Hay una habitación? |  |
+| phrase.hay-una-habitacion | speech/guide/phrase.hay-una-habitacion.wav | guide | 1.0 | ¿Hay una habitación? |  |
 | phrase.hice-pan | speech/guide/phrase.hice-pan.slow.wav | guide | 0.8 | Hice pan. |  |
 | phrase.hice-pan | speech/guide/phrase.hice-pan.wav | guide | 1.0 | Hice pan. |  |
 | phrase.hizo-un-hacha | speech/guide/phrase.hizo-un-hacha.slow.wav | guide | 0.8 | Domingo hizo un hacha. |  |
@@ -1068,6 +1157,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.slow.wav | guide | 0.8 | Quiero tres manzanas rojas. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.wav | guide | 1.0 | Quiero tres manzanas rojas. |  |
+| phrase.quiero-una-habitacion | speech/guide/phrase.quiero-una-habitacion.slow.wav | guide | 0.8 | Quiero una habitación, por favor. |  |
+| phrase.quiero-una-habitacion | speech/guide/phrase.quiero-una-habitacion.wav | guide | 1.0 | Quiero una habitación, por favor. |  |
 | phrase.quiero-vender-madera | speech/guide/phrase.quiero-vender-madera.slow.wav | guide | 0.8 | Quiero vender madera. |  |
 | phrase.quiero-vender-madera | speech/guide/phrase.quiero-vender-madera.wav | guide | 1.0 | Quiero vender madera. |  |
 | phrase.si | speech/guide/phrase.si.slow.wav | guide | 0.8 | Sí. |  |
@@ -1138,6 +1229,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.guide-open | speech/guide/prompt.guide-open.wav | guide | 1.0 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
 | prompt.guide-review | speech/guide/prompt.guide-review.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
 | prompt.guide-review | speech/guide/prompt.guide-review.wav | guide | 1.0 | ¿Qué es esto? |  |
+| prompt.inn-given | speech/innkeeper/prompt.inn-given.slow.wav | innkeeper | 0.8 | Buenas noches. |  |
+| prompt.inn-given | speech/innkeeper/prompt.inn-given.wav | innkeeper | 1.0 | Buenas noches. |  |
+| prompt.inn-offer | speech/innkeeper/prompt.inn-offer.slow.wav | innkeeper | 0.8 | ¿Quieres una habitación? |  |
+| prompt.inn-offer | speech/innkeeper/prompt.inn-offer.wav | innkeeper | 1.0 | ¿Quieres una habitación? |  |
 | prompt.lesson-apple | speech/farmer/prompt.lesson-apple.slow.wav | farmer | 0.8 | ¿Cómo es la manzana? |  |
 | prompt.lesson-apple | speech/farmer/prompt.lesson-apple.wav | farmer | 1.0 | ¿Cómo es la manzana? |  |
 | prompt.lesson-ate | speech/shopkeeper/prompt.lesson-ate.slow.wav | shopkeeper | 0.8 | ¿Qué comiste ayer? |  |

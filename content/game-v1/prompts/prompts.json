@@ -818,5 +818,25 @@
     "agentId": "farmer",
     "slotGrammarIds": [],
     "text": "Mis plantas necesitan agua. ¿Me traes agua del río? Te doy tres manzanas."
+  },
+  {
+    "promptId": "inn-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "request_item", "ask_availability", "ask_price", "greet", "ask_wellbeing", "state_wellbeing", "state_weather", "ask_weather", "thank", "farewell"],
+    "agentId": "innkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Quieres una habitación?"
+  },
+  {
+    "promptId": "inn-given",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "request_item", "ask_availability", "ask_help", "dont_know", "greet", "ask_wellbeing", "state_wellbeing", "state_weather", "ask_weather", "thank", "farewell"],
+    "agentId": "innkeeper",
+    "slotGrammarIds": [],
+    "text": "Buenas noches."
   }
 ]

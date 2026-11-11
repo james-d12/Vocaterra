@@ -27,10 +27,11 @@ public sealed class NpcPatienceTests
     }
 
     [Fact]
-    public void TheShopkeepersRuleIsTheShippedDataAndNoOtherNpcHasOne()
+    public void TheShopkeepersRuleIsTheShippedDataAndOnlyTheInnkeeperHasAnother()
     {
         Assert.Equal(Shipped, TestGame.Data.Npcs.Find("shopkeeper")!.Patience);
-        Assert.All(TestGame.Data.Npcs.All.Where(static npc => npc.Id != "shopkeeper"), static npc => Assert.Null(npc.Patience));
+        Assert.Equal(new NpcPatienceRule(2, 1, "innkeeper.give", "inn-offer", true), TestGame.Data.Npcs.Find("innkeeper")!.Patience); // Y06
+        Assert.All(TestGame.Data.Npcs.All.Where(static npc => npc.Id is not ("shopkeeper" or "innkeeper")), static npc => Assert.Null(npc.Patience));
     }
 
     [Fact]

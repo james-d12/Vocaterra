@@ -1,0 +1,75 @@
+{
+  "agentId": "innkeeper",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "innkeeper_offer", "count": 1 },
+    { "id": "innkeeper_room", "count": 2 },
+    { "id": "innkeeper_give", "count": 1 },
+    { "id": "innkeeper_night", "count": 2 },
+    { "id": "innkeeper_no", "count": 2 },
+    { "id": "innkeeper_help", "count": 1 },
+    { "id": "innkeeper_help_given", "count": 1 },
+    { "id": "innkeeper_free", "count": 1 },
+    { "id": "innkeeper_well", "count": 1 },
+    { "id": "innkeeper_nice", "count": 1 },
+    { "id": "innkeeper_understood", "count": 1 },
+    { "id": "innkeeper_yes", "count": 1 },
+    { "id": "innkeeper_weather", "count": 1 },
+    { "id": "innkeeper_sun", "count": 1 },
+    { "id": "innkeeper_thank", "count": 2 },
+    { "id": "innkeeper_bye", "count": 2 },
+    { "id": "not_understood", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "innkeeper.offer", "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_offer", "variantPoolId": "innkeeper_offer" }] },
+        { "onHostEvent": "innkeeper.give", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_give", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_give" }] },
+        { "on": {"intent": "confirm", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
+        { "on": {"intent": "ask_availability", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
+        { "on": {"intent": "deny", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_no", "variantPoolId": "innkeeper_no" }] },
+        { "on": {"intent": "ask_price", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_free", "variantPoolId": "innkeeper_free" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_help", "variantPoolId": "innkeeper_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_help", "variantPoolId": "innkeeper_help" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_offer", "variantPoolId": "innkeeper_offer" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_well", "variantPoolId": "innkeeper_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_nice", "variantPoolId": "innkeeper_nice" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_sun", "variantPoolId": "innkeeper_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_yes", "variantPoolId": "innkeeper_yes" }] },
+        { "onHostEvent": "innkeeper.weather", "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_weather", "variantPoolId": "innkeeper_weather" }] },
+        { "onHostEvent": "innkeeper.understood", "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_understood", "variantPoolId": "innkeeper_understood" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_thank", "variantPoolId": "innkeeper_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_bye", "variantPoolId": "innkeeper_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "given",
+      "transitions": [
+        { "on": {"intent": "confirm", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
+        { "on": {"intent": "ask_availability", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_help_given", "variantPoolId": "innkeeper_help_given" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_help_given", "variantPoolId": "innkeeper_help_given" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
+        { "on": {"intent": "ask_wellbeing", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_well", "variantPoolId": "innkeeper_well" }] },
+        { "on": {"intent": "state_wellbeing", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_nice", "variantPoolId": "innkeeper_nice" }] },
+        { "on": {"intent": "ask_weather", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_sun", "variantPoolId": "innkeeper_sun" }] },
+        { "on": {"intent": "state_weather", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_yes", "variantPoolId": "innkeeper_yes" }] },
+        { "onHostEvent": "innkeeper.weather", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_weather", "variantPoolId": "innkeeper_weather" }] },
+        { "onHostEvent": "innkeeper.understood", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_understood", "variantPoolId": "innkeeper_understood" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_thank", "variantPoolId": "innkeeper_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_bye", "variantPoolId": "innkeeper_bye" }] },
+        { "on": {"communicated": false}, "to": "given", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }]
+      }
+    }
+  ]
+}

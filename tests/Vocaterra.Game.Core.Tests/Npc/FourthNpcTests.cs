@@ -65,7 +65,7 @@ public sealed class FourthNpcTests
     {
         var npc = Miller.Value.Npcs.Find("miller")!;
 
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "miller"], Miller.Value.Npcs.Ids);
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper", "miller"], Miller.Value.Npcs.Ids);
         Assert.Equal(new NpcVoiceSpec(53, "em_santa", 0.9f), npc.Voice);
         Assert.Equal(new NpcOpeningRule("miller.greet", OpeningWhen.First), npc.Opening);
 

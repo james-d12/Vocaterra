@@ -170,7 +170,7 @@ dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor"
 
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
 `--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (an id of `game/npcs.json`: `guide`, `shopkeeper`, `villager`,
-`fisher`, `baker`, `smith` or `farmer`; walk up to the figure, stop about two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
+`fisher`, `baker`, `smith`, `farmer` or `innkeeper`; walk up to the figure, stop about two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
 panel open it first talks to the guide, as in S3), `--expand` (show or hide the older lines, U02), `--scroll N` (scroll the expanded page N blocks towards the older lines, or towards the newer for a negative N, U06), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
 <png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.Game/README.md`.
 Spoken input (push-to-talk) works in the interactive game. The scripted spoken path (S7): `--speak "<line>"` synthesizes the line with Kokoro and
@@ -216,7 +216,7 @@ a test pins the village's and the camps' structure.
 **The figures.** The guide Luna (green jacket, yellow scarf, long hair, a pack), the shopkeeper (a white shirt with rolled sleeves, a leather apron, a beard and a
 baker's hat), the villager (a blue tunic and a straw hat), since village-plan V05 the fisher Mar (a blue coat, tall boots, a knitted cap and a grey beard), the
 baker Luz (a rose dress with flour-white sleeves, a white apron and cap), the smith Domingo (a rust shirt, a long dark apron, a moustache) and the farmer León (a
-green shirt and the villager's straw hat in tan), and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
+green shirt and the villager's straw hat in tan), since Y06 the innkeeper Rosa (a plum dress, a mustard shawl, silver hair pinned up and a ring of keys at her belt), and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
 hair pictures with a drawn face on the front of the head, shaded by the same sun table as the blocks. They idle (a breath, swaying arms, a head that looks about);
 **when you talk to one it turns to you** (`FigureFacing`: the shorter way round, at most 80 angle steps a tick) and nods and waves its right arm, and turns back to
 where the scene put it when the talk is over. **F5** shows you from behind your right shoulder (the camera stands three blocks back and never inside a wall), with

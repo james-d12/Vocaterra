@@ -1,4 +1,3 @@
-using System.Reflection;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
@@ -9,7 +8,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Game.Core.Tests.Session;
 
@@ -20,13 +18,20 @@ public sealed class LodgingTests
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    // A session whose host-event table maps innkeeper.room to grant_lodging (game-v1 has no such row until the innkeeper, Y06).
-    private static VoxelSession WithInnkeeper() =>
-        new(TestGame.Data.WithHostEvents(HostEventTable.Parse(Table)), TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), CreditRules.FullTyped, TestGame.NoLessons);
+    // The innkeeper's talk turn is what grants lodging in play (Y06): the player stands at the counter, opens the talk and says yes.
+    private static VoxelSession WithInnkeeper()
+    {
+        var session = TestGame.NewSession();
+        Stage.TeleportToNpc(session, "innkeeper");
+        return session;
+    }
 
-    private static void Apply(VoxelSession session, string hostEvent) =>
-        typeof(VoxelSession).GetMethod("ApplyHostEvents", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(session, ["innkeeper", new[] { hostEvent }, "test", SlotMap.Empty]);
+    private static void Grant(VoxelSession session)
+    {
+        _ = session.OpenTalk("innkeeper");
+        _ = session.Say("sí");
+        session.EndTalk();
+    }
 
     private static BlockPos BedCell(VoxelSession session) => session.SleepPlaces.Find("inn.bed")!.Cell;
 
@@ -42,17 +47,17 @@ public sealed class LodgingTests
         Assert.Equal(NpcEffectKind.GrantLodging, table.Of("innkeeper", "innkeeper.room").Kind);
         Assert.Contains("grant_lodging", HostEventTable.Kinds);
         var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(table)).Where(static p => p.Contains("innkeeper", StringComparison.Ordinal) || p.Contains("grant_lodging", StringComparison.Ordinal)).ToList();
-        Assert.All(problems, static p => Assert.Contains("which is not one of the NPCs", p, StringComparison.Ordinal)); // the NPC is not one of the NPCs yet (Y06 adds the innkeeper); the kind itself is accepted
+        Assert.Empty(problems); // the innkeeper is an NPC since Y06, and the kind is accepted
     }
 
     [Fact]
-    public void Given_NoLodging_When_TheHostEventIsApplied_Then_LodgingIsGivenAndTheEventIsRaisedOnce()
+    public void Given_NoLodging_When_TheInnkeepersTalkGrantsIt_Then_LodgingIsGivenAndTheEventIsRaisedOnce()
     {
         var session = WithInnkeeper();
         Assert.False(session.LodgingGiven);
 
-        Apply(session, "innkeeper.room");
-        Apply(session, "innkeeper.room");
+        Grant(session);
+        Grant(session);
 
         Assert.True(session.LodgingGiven);
         Assert.Equal(1, Granted(session));
@@ -64,7 +69,7 @@ public sealed class LodgingTests
     public void Given_TheLodgingGrantedEvent_When_TheAutosaveAsksWhyItIsDue_Then_ItSaysLodgingGranted()
     {
         var session = WithInnkeeper();
-        Apply(session, "innkeeper.room");
+        Grant(session);
 
         var reasons = session.Events.Select(AutosavePolicy.ReasonOf).Where(static r => r is not null).ToList();
 
@@ -75,7 +80,7 @@ public sealed class LodgingTests
     public void Given_LodgingGivenInPlay_When_ThePlayerSleepsAndTheSaveIsLoadedFromAFile_Then_LodgingIsStillGiven()
     {
         var session = WithInnkeeper();
-        Apply(session, "innkeeper.room");
+        Grant(session);
         session.Simulation.TeleportTo(BedCell(session));
 
         Sleep(session);

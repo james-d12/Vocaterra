@@ -2212,6 +2212,107 @@
       "variants": [
         { "lineId": "farmer_receive_help.1", "text": "Puedes decir: «Aquí tienes el agua»." }
       ]
+    },
+    "innkeeper_offer": {
+      "poolId": "innkeeper_offer",
+      "variants": [
+        { "lineId": "innkeeper_offer.1", "text": "¡Hola! ¿Quieres una habitación?" }
+      ]
+    },
+    "innkeeper_room": {
+      "poolId": "innkeeper_room",
+      "variants": [
+        { "lineId": "innkeeper_room.1", "text": "¡Claro! La habitación es gratis. Tu cama está allí." },
+        { "lineId": "innkeeper_room.2", "text": "¡Muy bien! La habitación es gratis. Tu cama está allí." }
+      ]
+    },
+    "innkeeper_give": {
+      "poolId": "innkeeper_give",
+      "variants": [
+        { "lineId": "innkeeper_give.1", "text": "Está bien. La habitación es gratis. Tu cama está allí." }
+      ]
+    },
+    "innkeeper_night": {
+      "poolId": "innkeeper_night",
+      "variants": [
+        { "lineId": "innkeeper_night.1", "text": "Buenas noches. Tu cama está allí." },
+        { "lineId": "innkeeper_night.2", "text": "¡Buenas noches!" }
+      ]
+    },
+    "innkeeper_no": {
+      "poolId": "innkeeper_no",
+      "variants": [
+        { "lineId": "innkeeper_no.1", "text": "Está bien. La habitación es gratis." },
+        { "lineId": "innkeeper_no.2", "text": "Bueno. La habitación es gratis." }
+      ]
+    },
+    "innkeeper_help": {
+      "poolId": "innkeeper_help",
+      "variants": [
+        { "lineId": "innkeeper_help.1", "text": "Puedes decir: «Quiero una habitación, por favor»." }
+      ]
+    },
+    "innkeeper_help_given": {
+      "poolId": "innkeeper_help_given",
+      "variants": [
+        { "lineId": "innkeeper_help_given.1", "text": "Puedes decir: «Buenas noches» o «Gracias»." }
+      ]
+    },
+    "innkeeper_free": {
+      "poolId": "innkeeper_free",
+      "variants": [
+        { "lineId": "innkeeper_free.1", "text": "La habitación es gratis. ¿Quieres una habitación?" }
+      ]
+    },
+    "innkeeper_well": {
+      "poolId": "innkeeper_well",
+      "variants": [
+        { "lineId": "innkeeper_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "innkeeper_nice": {
+      "poolId": "innkeeper_nice",
+      "variants": [
+        { "lineId": "innkeeper_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "innkeeper_understood": {
+      "poolId": "innkeeper_understood",
+      "variants": [
+        { "lineId": "innkeeper_understood.1", "text": "Te entiendo. La habitación es gratis." }
+      ]
+    },
+    "innkeeper_yes": {
+      "poolId": "innkeeper_yes",
+      "variants": [
+        { "lineId": "innkeeper_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "innkeeper_weather": {
+      "poolId": "innkeeper_weather",
+      "variants": [
+        { "lineId": "innkeeper_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "innkeeper_sun": {
+      "poolId": "innkeeper_sun",
+      "variants": [
+        { "lineId": "innkeeper_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "innkeeper_thank": {
+      "poolId": "innkeeper_thank",
+      "variants": [
+        { "lineId": "innkeeper_thank.1", "text": "De nada." },
+        { "lineId": "innkeeper_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "innkeeper_bye": {
+      "poolId": "innkeeper_bye",
+      "variants": [
+        { "lineId": "innkeeper_bye.1", "text": "¡Hasta luego!" },
+        { "lineId": "innkeeper_bye.2", "text": "¡Nos vemos!" }
+      ]
     }
   }
 }
