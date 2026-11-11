@@ -717,6 +717,9 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 5. **(e) The words:** "Add the four words". `posada` (the inn), `terreno` (the plot), `alcalde` (the mayor) and `estaca` (the
    stake) join the A2 list and the lexicon, each in the milestone that first uses it. They are not on the lists the content gate
    checks today, and `posada` and `estaca` had no lexicon entry; `hotel` and `tierra` would have passed as they stand.
+   *Note (Y04, 2026-11-11):* `posada` went into the marked block of world words at the end of `cefr/a1.txt`, the rule of
+   `content/README.md` for a word of the world, not into the A2 list; the lists are cumulative, so the A2 gate passes it, and an
+   A1 lesson may use it too. The other three words follow the same rule unless the owner says otherwise.
 6. **(f) The innkeeper's voice:** "pf_dora, provisional". A woman's voice, the nearest to native Spanish of the three unused
    ones, and probably close to Luna's. Recorded with it now; the owner listens afterwards and may change it (the rule of
    D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree.

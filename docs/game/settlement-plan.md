@@ -279,7 +279,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y01 | Sleep places, with behaviour unchanged | none | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,714 tests) |
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,719 tests) |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | done, gated 2026-11-10 (10,734 tests) |
-| Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | built, not gated: on the local branch `Y04-inn-building`; the gate is to be run again (the handover) |
+| Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | todo |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
 | Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
@@ -333,6 +333,10 @@ The prop, the stamp, the cells, the meadows' sites and the tests that name `hous
   for the meadows.
 - `game/needs.json`: the sleep place `inn.bed`, with the access `lodging` (so no one can use it before Y05).
 - A walk test from the door to the bed, and screenshots of the inside and of the meadows for the owner.
+- *As built (2026-11-11):* the counter is a row of `crate`, not `table` (a table in reach opens the crafting panel; a player can
+  still step up onto the crate, which Y08 may stop); `house3` stands at dx 9, dz 13; eight windows, not six; `posada` went into
+  the marked block of world words at the end of `cefr/a1.txt` (the A2 gate reads the lists cumulatively). The rest is the
+  game's findings' Y04 entry.
 
 **Y05 Lodging.** A `grant_lodging` action kind (`Npc/HostEventTable.cs`, the dispatch in `VoxelSession.cs`,
 `content/schema/host-events.schema.json`); giving it twice changes nothing. The world event `lodging_granted`, which is also an

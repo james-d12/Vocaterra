@@ -2251,3 +2251,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   out until Y04 places a bed. Gate: 10,734 tests passed, 3 skipped. **How they look** (`artifacts/y03/` in the feature branch's
   worktree): the bed reads as a low red box with a faint pillow, the bedroll as a flat striped mat; Y04 improves the bed where the
   guest room shows it, the bedroll waits for Y12.
+- **Y04, the inn building and the meadows (2026-11-11, on `feature/settlement`).** The inn is a 9 x 7 `house` at the village's dx -16,
+  dz 8 (`name` `inn`, label `posada`) with the stamp `inn_rooms` for its inside: a counter, a partition with a door gap, two beds and
+  eight window gaps; the points `bed.inn` (278, 231) and `npc.innkeeper` (282, 227), the lamp `lamp.inn`. **The counter is a row of
+  `crate`:** a `table` in reach is a workbench and opened the crafting panel inside the inn, and a `stall` draws the market's awning; a
+  player can still step up onto the crate into the keeper's 2 x 2 room (a scene edit for Y08 if it matters). **`house3` moved** to dx 9,
+  dz 13 (three `casa` houses stay, so the fisher's line holds). The meadows are the sites `meadow.north` (270, 180) and `meadow.south`
+  (264, 258), cleared by `trees.clearings` at radius 22 (1,959 trees became 1,906); no trunk or leaves within 20 blocks on seeds 42, 7,
+  1234 and 2025. The bed is drawn with a mattress 0.5 high and a planks headboard against the nearest wall (`ChunkMesher.AddBed`). The
+  sleep place `inn.bed` has the access `lodging`, so nobody can use it before Y05. `posada` is in the lexicon and in the world words of
+  `cefr/a1.txt` (D-game-32 (e)'s note). The scene's digest, `VillageTests`' structure digest and `Fixtures/save-v8.json` were recorded
+  again; the goldens did not move. Gate: the first run failed only on the core's fuzz coverage floor (`OpenFallback…`, 4 of 5; the core's
+  findings), the second passed with 10,749 tests, 3 skipped. Checked on the merged build: `--teleport 280,221 --walk-to 279,230` walks from
+  the road through the door into the guest room, where the bed reads as a bed with its headboard; «¿Dónde está la posada?» at the villager
+  logs `place_asked (inn)` and sets the beacon at 280, 37, 229. `--teleport` lands on a roof at a building and `--walk-to` stops about half
+  a block short, so interior screenshots need a walk from the road.
