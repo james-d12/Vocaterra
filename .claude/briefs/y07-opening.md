@@ -4,7 +4,8 @@ Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This
 content (content/game-v1); the core is taken as it is.
 
 Where to work: /home/james/Dev/Vocaterra/.claude/worktrees/y07, which already exists on the branch `Y07-opening` (cut from
-`feature/settlement` after Y06, the innkeeper, merged). Start every command with `cd /home/james/Dev/Vocaterra/.claude/worktrees/y07 &&` and
+`feature/settlement` after Y06, the innkeeper, and Y06m, the merge of `main` with the weather series, were recorded; the sleep now wakes in
+the morning and the save carries `systems.atmosphere`). Start every command with `cd /home/james/Dev/Vocaterra/.claude/worktrees/y07 &&` and
 use absolute paths for file tools; your shell may start in another checkout, which you must not edit. Commit after each item that builds
 and passes its tests, with the prefix `Y07: `. Do not push your branch. Never push or merge `feature/settlement` or `main`. When you finish,
 leave the worktree on your branch, clean, with no process of yours still running.

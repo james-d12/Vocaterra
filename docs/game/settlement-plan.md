@@ -283,7 +283,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,759 tests) |
 | Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,763 tests) |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | in progress (launched 2026-11-11) |
-| Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
+| Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | todo (registered 2026-11-11) |
+| Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | todo |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
@@ -358,6 +359,20 @@ offer, the room given, the goodnight line), `game/npcs/innkeeper.json`, `game/np
 role and glosses, the figure in `Graphics/Figures/NpcFigures.cs`, the entry in `game/host-events.json`, the rows in
 `content/PHRASES.md` and `game/phrases.json`, the provenance, the speech.
 
+**Y06m Merge `main`** (registered 2026-11-11, at the owner's request). The day, night and weather series reached `main`
+(PR #64), and with it 248 files, about 30 of them edited on this branch too: the save code and its fixtures (`SaveGame.cs`,
+`SaveDocument.cs`, `save-v1.json`, `save-v4.json`, `SleepTests.cs`), `VoxelSession.cs`, `VoxelSimulation.cs`, `WorldEvent.cs`,
+`GameDataValidator.cs`, `ChunkMesher.cs`, `VoxelGame.cs`, `LaunchOptions.cs`, the bundle (the agents, `dialogue.json`, the
+provenance, the speech, `manifest.json`), the locale and the docs. `origin/main` is merged into a branch cut from
+`feature/settlement`; the conflicts are resolved keeping both sides' behaviour (the save stays version 8 and carries `main`'s
+`systems.atmosphere` beside `systems.sleep`; a sleep in a bed wakes in the morning as at the fire; the version 8 fixture replaces
+`main`'s old ones); the bundle is hashed again and the save fixture's bundle hash recorded; the end-to-end goldens and the scene's
+digests are recorded again only where the merge moved them, with the reason. Gated as a milestone. Why here: Y06 is the last
+milestone in flight on the bundle before it, so it merges cleanly first; Y07 rewrites the opening, the ending and the sleep's
+hooks, which `main`'s sleep that wakes in the morning touched, so it should build on the merged code; and Y08's rebaseline of the
+scripted runs and the digest then captures `main`'s changes once, with the mountain's removal. The conflicts only grow while
+Y07 to Y12 edit the same files. The pull request (Y13) merges `main` again if it has moved since.
+
 **Y07 The opening's logic.**
 - The objective `inn-room` (its trigger `lodging_granted`) joins `game/session.json` and `light-fire` leaves it. The hooks
   `spare-torch`, `point-own-camp` and `scan-fire-ring` retire (`ObjectiveBook`, `VoxelSession.cs`, `GameDataValidator`); a
@@ -415,7 +430,7 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 
 ### 8.4 Order, and the series beside it
 
-At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), (Y07, Y11),
+At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), Y06m alone, (Y07, Y11),
 Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
 time, in that order. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
