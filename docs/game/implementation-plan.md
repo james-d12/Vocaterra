@@ -514,7 +514,7 @@ Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answer
 | E05 | Sky and light by weather; `--weather` and its switches | E02, E04 | M | Sonnet 5.5, medium | done: gated at `c74ce223` on `feature/weather` (2026-11-10), 10978 passed |
 | E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | done: gated at `09e83885` on `feature/weather` (2026-11-10), 11089 passed |
 | E07 | The NPCs' answer to «¿Qué tiempo hace?» by weather: lines, speech clips, the content loop | E04 | M | Sonnet 5.5, medium | done: gated at `84033e02` on `feature/weather` (2026-11-10), 10936 passed |
-| E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | todo |
+| E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | in progress |
 
 ## 5. Findings log
 

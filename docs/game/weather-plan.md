@@ -4,7 +4,7 @@ A plan written on 2026-11-10 at the owner's request, from a read of `main` at `f
 built or run. Its goal is **a modular atmosphere**: a day and night cycle first, then weather on top of it (sunny, cloudy and rain in the
 first version), built so that later weather is a row of data and not a new system.
 
-**Status (2026-11-10):** in progress; E00 to E07 and E02a are done; only E08 (the close-out and the pull request) is left, and it is not launched. The owner's answers are in section 5 and D-game-31,
+**Status (2026-11-11):** in progress; E00 to E07 and E02a are done and gated (section 7); E08 (the close-out) is running, and the pull request to `main` follows it. The owner's answers are in section 5 and D-game-31,
 progress in section 7. It is built on `feature/weather`, cut from `main` at `24170667`, in the worktree `.claude/worktrees/weather`
 (the owner, 2026-11-10: "Make sure to make a new git worktree from main"). Commit prefix `E<nn>:`. As with every feature branch, nothing
 is pushed to `main`; the owner merges by pull request.
@@ -142,6 +142,27 @@ NPC for cloudy ("Está nublado."), rain ("Llueve.") and a clear night ("Hace bue
 speech clips are rendered with `tools/Vocaterra.SpeechRender` for the seven NPCs. `Npc/WeatherAndWellbeingTests` changes on purpose.
 The reply to the learner's own statement (`state_weather`) stays as it is.
 
+### 3.10 Where the build differs from this design
+
+The sections above are the design as approved. The findings (E01 to E06) have the detail; these are the differences a reader of the
+design should know.
+
+- **The clock** is not a counter of its own: the hour is the simulation's tick plus a saved offset (`(start + tick + offset) mod
+  cycle`), so a new game's state adds nothing to the state digest and no fixture or golden moved. The weather likewise adds nothing
+  until its first change. The save version stayed 7.
+- **The snapshot** is `AtmosphereSnapshot` (a type named like its namespace is trouble), and it also carries the kind's `say` key.
+- **The light bands** follow the daylight as well as the phase (the Dusk band only for daylight 0.12 to 0.85), which keeps the tint
+  within 0.4 to 1.6. Plants, water, fences and doors now bake the band's sun light too.
+- **The lanterns' glow** is its own additive mesh with a continuous strength (E02a, added to the series after E02 found that a baked
+  glow steps at a band's edge and dims in rain).
+- **The NPCs' answer** needed no new agent rule per weather: an NPC's file lists `weatherAnswers`, the session passes the snapshot's
+  `say` key into the turn, and the reply's pool is swapped there. Each key's pool is named by a host-event transition that is never
+  fired, as V29's slot reply is.
+- **Who built which switch:** `--time` came with E02 and `--weather` with E05 (each needed it for its screenshots); the menu's rows,
+  the F3 line and the scripted steps for both came with E03.
+- **Rain's cover** is one rule shared by the drops and the sound (`Voxel/OverheadCover`), and the rain bed keeps a quarter of its
+  weight under cover.
+
 ## 4. Milestones
 
 Models follow the owner's rule (2026-11-06): Haiku 5.5 for small tasks, Sonnet 5.5 at medium effort for medium ones, at high for large or
@@ -204,4 +225,4 @@ Recorded as D-game-31.
 | E05 | done, 2026-11-10 | merged at `c74ce223`, 10978 passed, 0 failed, 3 skipped | `SkyWeather`, the look from the snapshot, the clouds' cover with a fade, the fog's reach, the sun's light times the sunlight channel (no remesh), `--weather <id>`. The first kind's look is today's exactly (pixel-identical). Weak: a full cover is scattered slabs, not a ceiling. Findings, E05. |
 | E06 | done, 2026-11-10 | merged at `09e83885`, 11089 passed, 0 failed, 3 skipped | Rain as streaks in a wrapping box, cut at each column's cover; a style table per precipitation kind; a rain bed, the wind and quieter birds. Findings, E06. |
 | E07 | done, 2026-11-10 | merged at `84033e02`, 10936 passed, 0 failed, 3 skipped | The NPCs answer «¿Qué tiempo hace?» by the weather: `weatherAnswers` in an NPC's file, the snapshot's `say` key into the turn, the pool swapped in `NpcTurnRules.Compose`; no core change. 21 new pools and 42 clips (not listened to). The validator requires a line for every kind. Findings, E07. |
-| E08 | todo | | |
+| E08 | in progress, launched 2026-11-11 | | |
