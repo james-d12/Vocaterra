@@ -2338,3 +2338,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     view is pixel-identical to the build before.
   - *Known:* on flat open ground the rain looks sparse (the box is 36 blocks wide; farther rain is left to the fog); the wind has one fixed
     heading; drops step at 60 Hz; no splashes, puddles or thunder (out of scope).
+- **E08, the close-out (2026-11-11, Haiku 5.5; gated at `c4c55776` on `feature/weather`, 11094 passed, 3 skipped).** Relaunched after
+  the stop of 2026-11-10, on the branch with `main` (PR #63, borderless full screen) merged in at `920f4144`. The documents: the series in
+  `docs/game/architecture.md` (the stopped agent's lines checked and two corrected: `SkyLook` takes a `SkyLookInput`, the world's light is
+  `VoxelRenderer.SetAtmosphere`); "Adding a weather kind" in `content/README.md`; `saves.md` and `sound-and-display.md` each say a thing once;
+  `running.md` gathers the switches in "Day, night and weather" (its Testing paragraph wrongly said a held clock or weather is not saved).
+  - *Changed on purpose.* Under cover at night a cloud's three colours move up to 0.9 of the way to the dome's middle colour
+    (`SkyWeather.CloudFollow`, `CloudColour`, worked in full precision and rounded once), so an overcast night has dark clouds, not light
+    grey slabs; by day and in the first kind nothing changes, and E05's equality and continuity tests pass untouched; one new test bounds
+    the cloud top at 1.5 times the dome's middle. `TestingHooks`' comment says the held hour and weather are saved; no behaviour changed.
+  - *The tour.* The camp in the three kinds at 5, 13, 21 and 0; the village in rain at 13 and 0; a view from inside a house; the
+    `--set-time` and `--set-weather` steps mid-run; a default run of 300 frames on a sunny morning (08:03 at tick 300). The smith's replies
+    in the running game: «Hoy hace sol.», «Hoy está nublado.», «Hoy llueve.» and, at 23 in the first kind, «Hace buen tiempo.», as E07 meant.
+  - *Known, not fixed:* `PrecipitationStyles`' comment calls the table the one place a precipitation's id is written, but
+    `AmbientBeds.Rain` also names `rain` (a test allows it). The view from under a roof was taken from inside a house; the rain outside the
+    door was not in that frame, so it neither confirms nor refutes the cover at an open eave (E06's awning picture did). No scripted run of
+    `scripts/scripted-runs.sh` pins the hour or the weather yet.

@@ -4,7 +4,7 @@ A plan written on 2026-11-10 at the owner's request, from a read of `main` at `f
 built or run. Its goal is **a modular atmosphere**: a day and night cycle first, then weather on top of it (sunny, cloudy and rain in the
 first version), built so that later weather is a row of data and not a new system.
 
-**Status (2026-11-11):** in progress; E00 to E07 and E02a are done and gated (section 7); E08 (the close-out) was launched and stopped at the day's end, barely begun; it and the pull request to `main` are what is left. The owner's answers are in section 5 and D-game-31,
+**Status (2026-11-11):** built; E00 to E08 and E02a are done and gated (section 7); the pull request to `main` is PR #64, for the owner to review and merge. The owner's answers are in section 5 and D-game-31,
 progress in section 7. It is built on `feature/weather`, cut from `main` at `24170667`, in the worktree `.claude/worktrees/weather`
 (the owner, 2026-11-10: "Make sure to make a new git worktree from main"). Commit prefix `E<nn>:`. As with every feature branch, nothing
 is pushed to `main`; the owner merges by pull request.
@@ -225,4 +225,4 @@ Recorded as D-game-31.
 | E05 | done, 2026-11-10 | merged at `c74ce223`, 10978 passed, 0 failed, 3 skipped | `SkyWeather`, the look from the snapshot, the clouds' cover with a fade, the fog's reach, the sun's light times the sunlight channel (no remesh), `--weather <id>`. The first kind's look is today's exactly (pixel-identical). Weak: a full cover is scattered slabs, not a ceiling. Findings, E05. |
 | E06 | done, 2026-11-10 | merged at `09e83885`, 11089 passed, 0 failed, 3 skipped | Rain as streaks in a wrapping box, cut at each column's cover; a style table per precipitation kind; a rain bed, the wind and quieter birds. Findings, E06. |
 | E07 | done, 2026-11-10 | merged at `84033e02`, 10936 passed, 0 failed, 3 skipped | The NPCs answer «¿Qué tiempo hace?» by the weather: `weatherAnswers` in an NPC's file, the snapshot's `say` key into the turn, the pool swapped in `NpcTurnRules.Compose`; no core change. 21 new pools and 42 clips (not listened to). The validator requires a line for every kind. Findings, E07. |
-| E08 | stopped 2026-11-11 at the day's end, to relaunch | | One WIP commit on the local branch `E08-close-out` (lines in `architecture.md`); the handover's next steps say how to resume. |
+| E08 | done, 2026-11-11 | merged at `c4c55776`, 11094 passed, 0 failed, 3 skipped | Relaunched 2026-11-11 after `main` (PR #63) was merged into the branch at `920f4144`. The documents (`architecture.md`, `content/README.md` "Adding a weather kind", `saves.md`, `sound-and-display.md`, `running.md` "Day, night and weather"); the overcast night's clouds follow the dome; `TestingHooks`' comment; the tour, with the four NPC replies read in the running game. Findings, E08. |
