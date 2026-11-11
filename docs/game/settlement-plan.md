@@ -280,7 +280,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,719 tests) |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | done, gated 2026-11-10 (10,734 tests) |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
-| Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | in progress (launched 2026-11-11) |
+| Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,759 tests) |
+| Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | todo (registered 2026-11-11, a bug found checking Y05) |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
 | Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
@@ -342,6 +343,15 @@ The prop, the stamp, the cells, the meadows' sites and the tests that name `hous
 `content/schema/host-events.schema.json`); giving it twice changes nothing. The world event `lodging_granted`, which is also an
 autosave reason. The grant kept in `systems.sleep`. The bed's prompt. Tested on a test bundle: given, saved, loaded; a night in
 the bed is the same night as one at the fire; a death after it wakes at the inn.
+
+*Y05 as built (2026-11-11):* `VoxelSession.GrantLodging()` applies the kind; a locked bed shows `ui.sleepBedLocked` and E,
+`--sleep` and the card do nothing there; the dev aid `--lodging` (with `--dev`) gives lodging at start and raises the event.
+
+**Y05a Indoor sleep places** (registered 2026-11-11, from the spot check of Y05). After a night in the inn's bed a death woke
+the player at (278, 38, 233), on the grass outside the inn's south wall, and the bed's prompt "E: sleep until morning" showed
+there too: `WakeAtSleepPlace` takes the nearest free ground 2 to 5 blocks from the place's cell by straight distance, and
+`SleepPlaces`' "at the place" test is a radius, so both pass through walls. The fix: both answer only with cells the player can
+walk to from the place's stand cell (a fire in the open is unchanged), with a test on game-v1's inn. Before Y06.
 
 **Y06 The innkeeper.** The seven steps of `content/README.md` ("Adding an NPC"): the agent, the prompts, the dialogue pools (the
 offer, the room given, the goodnight line), `game/npcs/innkeeper.json`, `game/npcs.json`, the place in the scene, the locale's

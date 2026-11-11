@@ -2266,3 +2266,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the road through the door into the guest room, where the bed reads as a bed with its headboard; «¿Dónde está la posada?» at the villager
   logs `place_asked (inn)` and sets the beacon at 280, 37, 229. `--teleport` lands on a roof at a building and `--walk-to` stops about half
   a block short, so interior screenshots need a walk from the road.
+- **Y05, lodging (2026-11-11, on `feature/settlement`).** The host-event kind `grant_lodging` (no fields) sets
+  `VoxelSession.LodgingGiven` through the new `GrantLodging()`; a second grant does nothing. The world event `lodging_granted` is raised
+  once, is in `WorldEvents.All` (so a tip or an objective can name it) and is an autosave reason ("lodging granted"). Y02's
+  `systems.sleep` kept the flag across a sleep, a file load and a migration with no change. **A locked bed** (access not met) shows
+  "This bed is the inn's: ask for a room first" (`ui.sleepBedLocked`), and E, the card and the scripts' `--sleep` do nothing there
+  (`SleepNow` refuses: without it `--sleep` slept from the locked bed whenever the mountain fire was lit). The dev aid `--lodging`
+  (with `--dev`) gives lodging at start. game-v1 has no `grant_lodging` row yet (Y06). Gate: 10,759 tests passed, 3 skipped.
+  Checked on the merged build: `--dev --lodging --skip-to-session 2 --walk-to 278,231 --sleep` sleeps in the bed and saves
+  `{lodgingGiven: true, last: {id: "inn.bed"}}`; without `--lodging` the bed refuses. **Bug found: after a night in the bed, a death
+  woke the player at (278, 38, 233), outside the inn's south wall, where the bed's prompt also showed.** The wake search and the "at the
+  place" radius count straight distance through walls; Y05a is registered to fix both. A test of the session's effects reaches the
+  protected `ApplyHostEvents` by reflection; Y06's real row lets a test go through a talk turn instead.
