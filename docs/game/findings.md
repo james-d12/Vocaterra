@@ -2389,7 +2389,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     measured tint range (0.499 to 1.455, was 0.507 to 1.480); `LightBandsTests` and `LanternGlowTests`' band-edge hours (4.43, 5.51,
     20.49, 21.57, were 4.24, 5.7, 20.3, 21.76): the thresholds (0.12, 0.85) are the same, the eased daylight crosses them nearer the
     middle of dawn and dusk.
-  - *Not fixed:* 2:00 is as dark as midnight (the plateau of the deep night is wide); the world's light changes less than the sky by day
+  - *Not fixed:* 2:00 is as dark as midnight (the plateau of the deep night is wide; the owner, 2026-11-11: "2am is fine for my
+    testing", so it stays); the world's light changes less than the sky by day
     (the Golden light is 0.9 and 0.76 in green and blue); the faces keep a fixed sun direction (out of scope, as before).
   - *Process:* the agent's report never reached the orchestrator (its session ended after the commit); the gate and the pictures were run
     by the next session.
