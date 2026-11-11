@@ -8,6 +8,7 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="AmbientVolume"><c>--ambient-volume</c>, 0 to 1.</param>
 /// <param name="VoiceVolume"><c>--voice-volume</c>, 0 to 1.</param>
 /// <param name="UiVolume"><c>--ui-volume</c>, 0 to 1.</param>
+/// <param name="WeatherVolume"><c>--weather-volume</c>, 0 to 1.</param>
 /// <param name="TextPercent"><c>--text-scale</c>: 100, 125 or 150.</param>
 /// <param name="Quality"><c>--quality</c>.</param>
 /// <param name="Blur"><c>--underwater-blur</c>.</param>
@@ -33,4 +34,5 @@ public sealed record LaunchSettings(
     int? MouseSensitivity = null,
     bool? InvertY = null,
     double? VoiceVolume = null,
-    double? UiVolume = null);
+    double? UiVolume = null,
+    double? WeatherVolume = null);

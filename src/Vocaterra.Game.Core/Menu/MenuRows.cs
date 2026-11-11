@@ -19,6 +19,7 @@ public static class MenuRows
         {
             MenuRow.Heading("headingSound"),
             MenuRow.Of(settings, SettingId.AmbientVolume),
+            MenuRow.Of(settings, SettingId.WeatherVolume),
             MenuRow.Of(settings, SettingId.VoiceVolume),
             MenuRow.Of(settings, SettingId.SfxVolume),
             MenuRow.Of(settings, SettingId.UiVolume),

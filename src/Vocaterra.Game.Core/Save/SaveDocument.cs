@@ -221,19 +221,20 @@ public sealed record SaveSettings(
 
 /// <summary>
 /// The volume of each sound category, 0 to 1 (S24, D-game-18): the NPCs' voices, the effects of the world, the interface and progress sounds, and the ambient beds
-/// (S25). A value outside 0 to 1 is clamped by <see cref="Clamped"/>; a save from a hand-edited file never carries the mixer past full scale.
+/// (S25), and the weather's own beds (E09). A value outside 0 to 1 is clamped by <see cref="Clamped"/>; a save from a hand-edited file never carries the mixer past full scale.
 /// </summary>
 /// <param name="Voice">The NPCs' pre-rendered voices.</param>
 /// <param name="Sfx">The effects: gathering, placing, picking up, crafting, the fire.</param>
 /// <param name="Ui">The interface and progress sounds: panels, buttons, chimes, the push-to-talk beeps.</param>
 /// <param name="Ambient">The ambient beds.</param>
-public sealed record SoundVolumes(double Voice = 1.0, double Sfx = 0.8, double Ui = 0.8, double Ambient = 0.6)
+/// <param name="Weather">The weather's own beds (the rain, E09).</param>
+public sealed record SoundVolumes(double Voice = 1.0, double Sfx = 0.8, double Ui = 0.8, double Ambient = 0.6, double Weather = 0.6)
 {
     /// <summary>The volumes of a new game.</summary>
     public static SoundVolumes Default { get; } = new();
 
     /// <summary>The same volumes with every value limited to 0 to 1 (a value that is not a number counts as 0).</summary>
-    public SoundVolumes Clamped() => new(Limit(Voice), Limit(Sfx), Limit(Ui), Limit(Ambient));
+    public SoundVolumes Clamped() => new(Limit(Voice), Limit(Sfx), Limit(Ui), Limit(Ambient), Limit(Weather));
 
     private static double Limit(double value) => double.IsNaN(value) ? 0 : Math.Clamp(value, 0, 1);
 }

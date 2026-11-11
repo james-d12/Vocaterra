@@ -144,6 +144,13 @@ public static class AmbientBeds
     /// <summary>Every bed, in a fixed order.</summary>
     public static IReadOnlyList<string> All { get; } = [Wind, Birds, River, Waterfall, Village, Fire, Insects, Rain];
 
+    /// <summary>
+    /// The beds of the weather (E09): they follow the weather's own volume, not the ambient one. Rain is the only one now; a later precipitation bed (snow) is added here,
+    /// and the mixer asks this predicate, never a name.
+    /// </summary>
+    /// <param name="bed">The bed.</param>
+    public static bool IsWeather(string bed) => bed == Rain;
+
     /// <summary>The level of a bed's loop, before the ambient volume (the scheduled beds, birds and fire, scale their own chirps and crackles).</summary>
     /// <param name="bed">The bed.</param>
     public static double Gain(string bed) => bed switch

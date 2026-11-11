@@ -131,6 +131,7 @@ public sealed record LaunchOptions
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
         + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the save's (S24)\n"
         + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
+        + "  --weather-volume <0..1> the volume of the weather's own sounds (the rain); default 0.6, or the save's (E09)\n"
         + "  --voice-volume <0..1>   the volume of the NPCs' voices; default 1, or the save's (the menu)\n"
         + "  --ui-volume <0..1>      the volume of the interface and progress sounds; default 0.8, or the save's (the menu)\n"
         + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
@@ -277,6 +278,9 @@ public sealed record LaunchOptions
 
     /// <summary>The volume of the NPCs' voices (<c>--voice-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
     public double? VoiceVolume { get; init; }
+
+    /// <summary>The volume of the weather's own sounds (<c>--weather-volume</c>, the rain), 0 to 1, or <see langword="null"/> to take the save's or the default (E09).</summary>
+    public double? WeatherVolume { get; init; }
 
     /// <summary>The volume of the interface and progress sounds (<c>--ui-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
     public double? UiVolume { get; init; }
@@ -431,7 +435,7 @@ public sealed record LaunchOptions
     public Func<double>? TurnClock => IsScreenshotRun && Script.Count > 0 ? null : MonotonicClock.Milliseconds;
 
     /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
-    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume, VoiceVolume, UiVolume);
+    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume, VoiceVolume, UiVolume, WeatherVolume);
 
     /// <summary>Whether the script has a spoken step (<c>--speak</c> or <c>--wav</c>): it needs Vosk, and Kokoro for <c>--speak</c>.</summary>
     public bool HasSpokenSteps => Script.Any(static step => step.Kind is ScriptStepKind.Speak or ScriptStepKind.Wav);
@@ -641,7 +645,7 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -754,6 +758,7 @@ public sealed record LaunchOptions
                 case "--ambient-volume":
                 case "--voice-volume":
                 case "--ui-volume":
+                case "--weather-volume":
                     if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var volume) || double.IsNaN(volume) || volume < 0 || volume > 1)
                     {
                         error = $"{arg} needs a number from 0 to 1, got '{value}'.";
@@ -765,6 +770,7 @@ public sealed record LaunchOptions
                         "--sfx-volume" => result with { SfxVolume = volume },
                         "--ambient-volume" => result with { AmbientVolume = volume },
                         "--voice-volume" => result with { VoiceVolume = volume },
+                        "--weather-volume" => result with { WeatherVolume = volume },
                         _ => result with { UiVolume = volume },
                     };
                     break;

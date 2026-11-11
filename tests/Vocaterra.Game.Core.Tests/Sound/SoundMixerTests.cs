@@ -93,6 +93,49 @@ public sealed class SoundMixerTests
     }
 
     [Fact]
+    public void Given_TheWeatherBeds_When_TheAmbientVolumeIsZero_Then_TheRainStillPlaysAndTheBirdsDoNot()
+    {
+        var output = new RecordingOutput();
+        var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 0.0, 0.5), new PresentationRng(7), null);
+        mixer.SetBeds([new BedInput(AmbientBeds.Rain, 1.0), new BedInput(AmbientBeds.Birds, 1.0)]);
+        Run(mixer, 3);
+
+        Assert.Equal(AmbientBeds.Gain(AmbientBeds.Rain) * 0.5, output.Beds.Single(static b => b.Bed == AmbientBeds.Rain).Level, 6);
+        Assert.Equal(0.0, output.Beds.Single(static b => b.Bed == AmbientBeds.Birds).Level, 6);
+    }
+
+    [Fact]
+    public void Given_TheWeatherVolumeIsZero_When_TheBedsPlay_Then_OnlyTheRainIsSilenced()
+    {
+        var output = new RecordingOutput();
+        var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 0.6, 0.0), new PresentationRng(7), null);
+        mixer.SetBeds([new BedInput(AmbientBeds.Rain, 1.0), new BedInput(AmbientBeds.Wind, 1.0), new BedInput(AmbientBeds.Birds, 1.0)]);
+        Run(mixer, 3);
+
+        Assert.Equal(0.0, output.Beds.Single(static b => b.Bed == AmbientBeds.Rain).Level, 6);
+        Assert.Equal(AmbientBeds.Gain(AmbientBeds.Wind) * 0.6, output.Beds.Single(static b => b.Bed == AmbientBeds.Wind).Level, 6);
+        Assert.Equal(AmbientBeds.Gain(AmbientBeds.Birds) * 0.6, output.Beds.Single(static b => b.Bed == AmbientBeds.Birds).Level, 6);
+    }
+
+    [Fact]
+    public void Given_TheWeatherCategory_When_AVoiceOrARecordingComes_Then_ItDucksAndIsSilentLikeTheAmbient()
+    {
+        var (mixer, _, _) = Make(volumes: new SoundVolumes(1.0, 1.0, 1.0, 1.0, 0.8));
+        Assert.Equal(0.8, mixer.Gain(SoundCategory.Weather), 6);
+
+        mixer.SetVoice(true);
+        Run(mixer, SoundMixer.DuckAttackSeconds + 0.05);
+        Assert.Equal(0.8 * SoundMixer.DuckLevel, mixer.Gain(SoundCategory.Weather), 6);
+        mixer.SetVoice(false);
+        Run(mixer, SoundMixer.DuckReleaseSeconds + 0.05);
+
+        mixer.Started();
+        Assert.Equal(0, mixer.Gain(SoundCategory.Weather));
+        mixer.Stopped();
+        Assert.Equal(0.8, mixer.Gain(SoundCategory.Weather), 6);
+    }
+
+    [Fact]
     public void WhileRecordingSfxAndUiAreSilentAndTheBeepsPlayOutsideTheWindow()
     {
         var (mixer, output, log) = Make();

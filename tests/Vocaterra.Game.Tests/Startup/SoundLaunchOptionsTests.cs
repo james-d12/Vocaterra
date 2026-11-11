@@ -34,6 +34,22 @@ public sealed class SoundLaunchOptionsTests
     }
 
     [Fact]
+    public void Given_TheWeatherVolumeFlag_When_Parsed_Then_ItIsLimitedToZeroToOneAndWinsOverTheSave()
+    {
+        Assert.True(LaunchOptions.TryParse(["--weather-volume", "0.3"], out var options, out var error), error);
+        Assert.Equal(0.3, options.WeatherVolume);
+        Assert.Equal(0.3, options.Sound.WeatherVolume);
+        Assert.Equal(0.3, SoundSetup.VolumesFor(options.Sound, new SoundVolumes(1, 0.8, 0.8, 0.6, 0.9)).Weather, 6);
+        Assert.Equal(0.9, SoundSetup.VolumesFor(new SoundOptions(false, false, null, null), new SoundVolumes(1, 0.8, 0.8, 0.6, 0.9)).Weather, 6);
+
+        Assert.False(LaunchOptions.TryParse(["--weather-volume", "1.5"], out _, out var tooLoud));
+        Assert.Contains("--weather-volume needs a number from 0 to 1", tooLoud, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--weather-volume", "loud"], out _, out _));
+        Assert.False(LaunchOptions.TryParse(["--weather-volume"], out _, out _));
+        Assert.Contains("--weather-volume", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheVoiceAndInterfaceVolumeFlagsAreParsedLikeTheOthersAndWinOverTheSavedVolumes()
     {
         Assert.True(LaunchOptions.TryParse(["--voice-volume", "0.5", "--ui-volume", "0"], out var options, out var error), error);

@@ -42,7 +42,7 @@ The current version is 7. Two branches each wrote a different version 6 (the nee
 (PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
 migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
 in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
-2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter.
+2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 Version 6 (in the merged format) adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
