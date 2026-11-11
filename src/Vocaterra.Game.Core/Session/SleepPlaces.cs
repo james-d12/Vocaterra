@@ -111,6 +111,11 @@ public sealed class SleepPlaces
     public SleepPlace? UsableAt(BlockPos feet) =>
         _places.Where(p => IsUsable(p) && Within(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
 
+    /// <summary>The bed the player stands at whose access is not met (Y05: the inn's bed before lodging), the nearest when several, or <see langword="null"/>. A fire is never locked, only unlit.</summary>
+    /// <param name="feet">The block the player's feet are in.</param>
+    public SleepPlace? LockedBedAt(BlockPos feet) =>
+        _places.Where(p => p.Kind != SleepPlaceSpec.KindFire && !IsUsable(p) && Within(p, feet)).OrderBy(p => SquaredAcross(p.Cell, feet)).FirstOrDefault();
+
     /// <summary>The usable place nearest the feet (across, then in height), or <see langword="null"/> when none is usable: where the arrow goes.</summary>
     /// <param name="feet">The block the player's feet are in.</param>
     public SleepPlace? NearestUsable(BlockPos feet) =>

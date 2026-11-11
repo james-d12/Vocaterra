@@ -315,6 +315,7 @@
     "ui.sleepHud": "Session complete: sleep at your fire to start session {session}",
     "ui.reviewNothingDue": "Nothing to review yet: carry on",
     "ui.sleepCard": "{key:sleep}: sleep until morning and start session {session}",
+    "ui.sleepBedLocked": "This bed is the inn's: ask for a room first",
     "ui.sleepPrompt": "{key:talk}: sleep until morning (session {session})",
     "ui.sleptToast": "Good morning: session {session} begins",
     "ui.bookLessonOpen": "open: ask {npc}",

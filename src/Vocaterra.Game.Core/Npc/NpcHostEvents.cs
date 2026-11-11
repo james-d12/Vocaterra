@@ -65,6 +65,9 @@ public enum NpcEffectKind
 
     /// <summary>The learner accepted the offer to bake (W08, <c>start_procedure</c>): the station opens for the procedure the NPC teaches, and the teacher enters teaching. Nothing happens when the NPC teaches none.</summary>
     StartProcedure,
+
+    /// <summary>The player is given lodging (Y05, <c>grant_lodging</c>): a sleep place whose access is <c>lodging</c> (the inn's bed) can be slept at from then on, for good. A second grant changes nothing.</summary>
+    GrantLodging,
 }
 
 /// <summary>

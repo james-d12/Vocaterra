@@ -57,6 +57,26 @@ public static class SleepOffer
     /// <param name="session">The 3D game.</param>
     public static string PromptText(VoxelSession session) => Text(session, "sleepPrompt", 1);
 
+    /// <summary>
+    /// Whether the player is free at a bed that is not theirs yet (Y05: the inn's bed before lodging): the game shows <see cref="LockedBedText"/> and E does nothing. A bed whose access is met
+    /// offers the sleep as the fire does; away from every sleep place nothing shows.
+    /// </summary>
+    /// <param name="session">The 3D game.</param>
+    /// <param name="free">Whether the player is free (see <see cref="AtFire"/>).</param>
+    public static bool AtLockedBed(VoxelSession session, bool free)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return free && session.SleepOffered && session.AtLockedBed;
+    }
+
+    /// <summary>The line at a bed the player has no room at yet: the bed is the inn's and a room must be asked for (<c>ui.sleepBedLocked</c>).</summary>
+    /// <param name="session">The 3D game.</param>
+    public static string LockedBedText(VoxelSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.Locale.Ui("sleepBedLocked");
+    }
+
     /// <summary>The closing card's line: <c>Enter: sleep until morning and start session 2</c> (<c>ui.sleepCard</c>; <c>ui.sleepCardDone</c> when no later session has a lesson).</summary>
     /// <param name="session">The 3D game.</param>
     public static string CardText(VoxelSession session) => Text(session, "sleepCard", 1);

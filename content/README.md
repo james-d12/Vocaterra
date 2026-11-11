@@ -38,7 +38,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks; V03: the play session it starts in, and the orders; D-game-27: an order the learner hands over in Spanish, `handOver`, whose NPC needs a `receiving` state and a `<npc>-receive` prompt) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
   | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise; schema 2, V01: the prompt of each state, the opening, the voice, the key words, the pool prefix) | `NpcRoster` |
-  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`) | `HostEventTable` |
+  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`; Y05: `grant_lodging`) | `HostEventTable` |
   | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the sleep places (Y01: where the player sleeps; not `rest`) and the death rules (`wakeAt` names a sleep place); the stage lines' keys, not their text) | `NeedsData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
   | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
@@ -140,7 +140,7 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 - **A trigger.** A tip, a lesson's `do` step and an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
   session log shows each one with its NPC and detail. Since V02: `beacon_reached` (the player reached the beacon; the detail is the scene's name of the place,
-  `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`).
+  `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`). Since Y05: `lodging_granted` (the player was first given lodging by the host action `grant_lodging`; no NPC, no detail). The host-event kinds are listed in `HostEventTable.Kinds`; `grant_lodging` takes no fields beyond `kind`.
 - **A lesson.** Add a file `game-v1/game/lessons/<id>.json` (`lesson.schema.json` lists each step type's fields), its id to `game-v1/game/lessons.json`
   where it should come, a provenance item, and its text to
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
