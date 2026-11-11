@@ -1,7 +1,7 @@
 # Y04, the inn building and the meadows: the agent's report (2026-11-10), as received
 
 Saved by the orchestrator because the milestone is built but **not gated and not merged** (see the open handover,
-`docs/handovers/2026-11-10-2004-settlement.md`). The work is on the local branch `Y04-inn-building` at `cfeea239`, in the worktree
+`docs/handovers/done/2026-11-10-2004-settlement.md`). The work is on the local branch `Y04-inn-building` at `cfeea239`, in the worktree
 `/home/james/Dev/Vocaterra/.claude/worktrees/y04` (clean, two commits: `369c08cf`, which lacks the attribution trailer, and `cfeea239`).
 The brief is `.claude/briefs/y04-inn-building.md`.
 

@@ -280,7 +280,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y02 | Save version 8 and the sleep entry | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 (10,719 tests) |
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | done, gated 2026-11-10 (10,734 tests) |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
-| Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | todo |
+| Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | in progress (launched 2026-11-11) |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
 | Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
