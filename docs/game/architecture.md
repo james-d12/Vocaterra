@@ -172,7 +172,7 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
   World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
   Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
-  Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of the snapshot: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput, SkyKeyframe, SkyArc, SkyWeather (the channels' effect on the look)
+  Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe, SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
@@ -273,7 +273,7 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
 
 **The day and the weather (E01 to E06, D-game-31).** Core's `Atmosphere/` holds the clock and the weather; the game draws and hears them. Core blends
 the channels of the previous and the current weather kind with the time of day into one `AtmosphereSnapshot` per tick, and every consumer reads that
-snapshot: `Graphics/Sky` (the dome, clouds, sun, moon, stars and fog, through `SkyLookInput` and `SkyLook`), the light of `Graphics/World` (the band's tint),
+snapshot: `Graphics/Sky` (the dome, clouds, sun, moon, stars and fog, through `SkyLookInput` and `SkyLook`), the light of `Graphics/World` (`VoxelRenderer.SetAtmosphere`, the light bands),
 `Graphics/Weather` (the drops, from the precipitation channel), the sound (`AmbientBeds.At`) and the NPCs' answer (the snapshot's `say` key). No consumer
 switches on a weather kind's id. Two tests hold that rule: `NoWeatherKindIdsInSourceTests.NoSourceFileNamesAKindOfTheFirstDataOutsideTheDefaultData`
 fails on any quoted kind id under `src/` outside `WeatherData.cs`, and `TheAllowancesCoverOnlyThePrecipitationIdInTheStyleTableAndTheBedNames` allows
