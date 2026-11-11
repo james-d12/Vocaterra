@@ -56,6 +56,43 @@ public sealed class DayClockTests
     }
 
     [Fact]
+    public void Given_ADawnAndADusk_When_TheDaylightIsRead_Then_ItEasesLikeASmoothstepOfTheStraightLine()
+    {
+        // Half way is still one half; a quarter of the way is the smoothstep's 0.156 (a straight line would give 0.25), and the dusk mirrors the dawn.
+        Assert.Equal(0.5, Clock.DaylightAt(AtHour(5)), 6);
+        Assert.Equal(0.5, Clock.DaylightAt(AtHour(21)), 6);
+        Assert.Equal(0.15625, Clock.DaylightAt(AtHour(4.5)), 4);
+        Assert.Equal(0.84375, Clock.DaylightAt(AtHour(5.5)), 4);
+        Assert.Equal(0.84375, Clock.DaylightAt(AtHour(20.5)), 4);
+        Assert.Equal(0.15625, Clock.DaylightAt(AtHour(21.5)), 4);
+    }
+
+    [Fact]
+    public void Given_TheWholeCycle_When_TheDaylightIsSampled_Then_ItRisesFallsAndHasNoSlopeJumpAtThePhaseEdges()
+    {
+        // Sampled every 100 ticks (a sixtieth of an hour). The slope between samples may only change by what a smoothstep's curvature gives: at most 6 / 12 000^2 a tick^2, so 0.0005 over
+        // 100 ticks. The old straight line changed its slope by 0.0083 at each edge (a jump of 16 times that), so this bound catches any return to it.
+        const int step = 100;
+        var samples = Enumerable.Range(0, (int)(Clock.CycleTicks / step) + 1).Select(i => Clock.DaylightAt(AtHour(0) + (i * (long)step))).ToArray();
+        for (var i = 2; i < samples.Length; i++)
+        {
+            var slope = samples[i] - samples[i - 1];
+            var before = samples[i - 1] - samples[i - 2];
+            Assert.True(Math.Abs(slope - before) <= 0.001, $"the slope jumps by {Math.Abs(slope - before):0.00000} at sample {i} (hour {i * step / (double)HourTicks:0.000})");
+        }
+
+        for (var hour = 4.0; hour < 5.99; hour += 0.1)
+        {
+            Assert.True(Clock.DaylightAt(AtHour(hour + 0.1)) > Clock.DaylightAt(AtHour(hour)), $"rises at {hour}");
+        }
+
+        for (var hour = 20.0; hour < 21.99; hour += 0.1)
+        {
+            Assert.True(Clock.DaylightAt(AtHour(hour + 0.1)) < Clock.DaylightAt(AtHour(hour)), $"falls at {hour}");
+        }
+    }
+
+    [Fact]
     public void TheClockWrapsAtTheEndOfACycleAndANightFollowsDusk()
     {
         var midnight = AtHour(24);

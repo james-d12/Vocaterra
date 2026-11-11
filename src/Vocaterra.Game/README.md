@@ -141,8 +141,12 @@ night give the glow full strength (half strength by day). A lantern is a small u
 ### The day cycle: the sky and the light (E02)
 
 `Simulation.Clock` (E01) gives the hour, the daylight (0 at night, rising across dawn, 1 by day, falling across dusk) and the phase; `VoxelGame` turns them into a `SkyLook` every frame and hands it to `SceneDrawer.DrawWorld`.
-`SkyLook.At(SkyLookInput)` is a pure function with no engine type (the input is a record that the weather milestones add to): three keyframes, `SkyKeyframe.Day` (`SkyPalette`'s day set, so noon is the sky the
-game always had), `Twilight` (`SkyPalette`'s dusk set; a dawn mirrors a dusk) and `Night` (a dark readable blue), blended by the phase and the daylight, give the dome's three colours, the clouds' three, the sun's and the moon's
+`SkyLook.At(SkyLookInput)` is a pure function with no engine type (the input is a record that the weather milestones add to): five keyframes, `SkyKeyframe.Day` (`SkyPalette`'s day set, so noon is the sky the
+game always had), `Golden` (a low sun: a paler, warmer horizon, a softer and slightly dimmer dome, a creamy sun, a light of (1, 0.9, 0.76); E11), `Twilight` (`SkyPalette`'s dusk set; a dawn mirrors a dusk), `Night` (a dark readable blue,
+the blue hour) and `DeepNight` (darker and less blue, a light of (0.21, 0.26, 0.40); E11), blended by `SkyBlend` (E11: the phase and the daylight share the moment between a day side, the twilight and a night side; a smoothstep of the sun's
+elevation splits the day side, all Golden at 10 degrees and below and all Day at 42 and above, so about 6:00 to 8:00 and 18:00 to 20:00 are warm and 10:00 to 16:00 is the noon's own look; a smoothstep of how far the sun is under the
+horizon splits the night side, all Night at 18 degrees under and all DeepNight at 56, so 22:00 and 4:00 are the blue hour and the deepest dark is round 1:00; the daylight across a dawn or a dusk is itself a smoothstep, so the look
+runs Night, Twilight, Golden with no step), give the dome's three colours, the clouds' three, the sun's and the moon's
 direction (`SkyArc`: the sun rises in the east at 5, is highest at 13 and sets in the west at 21 on a path tilted to the north, the moon from 18 to 6) and strength, the stars' amount, the fog's colour (the dome's colour
 at the horizon) and the colour of the sun's light on the world (white by day, `ChunkMesher.DuskLight` at the middle of a dusk, `ChunkMesher.NightLight` at night), and how strongly the lanterns glow.
 `SkyRenderer.SetLook` colours the dome again in place when its three colours move; `VoxelRenderer.SetAtmosphere(look)` moves the clear colour and the fog every frame and composes with `SetUnderwater` (under water the
@@ -163,8 +167,7 @@ solid ceiling. The lanterns' glow is its own layer (below) and is not dimmed by 
 
 **Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1), Dusk (`DuskLight`) and
 Night (`NightLight`); the bands bake the sun's light only, the lanterns' glow is its own layer (E02a). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
-in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.24,
-5.7, 20.3 and 21.76 o'clock. A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
+in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.43, 5.51, 20.49 and 21.57 o'clock (4.24, 5.7, 20.3 and 21.76 before E11 eased the daylight). A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
 frame's budget, the old mesh staying on screen until its replacement is built. Chunks are drawn grouped by band, each group with `DiffuseColor = the look's sun light / the band's baked sun light`
 (`LightBands.Tint`), so every chunk shows the same sun light during the swap and the light moves smoothly through the day with no step at a band's edge. The same `DiffuseColor` carries the light to the figures and the
 avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). The glow is not in the bands (E02a, below), so it shows no step.

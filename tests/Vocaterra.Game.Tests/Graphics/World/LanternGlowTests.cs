@@ -24,7 +24,7 @@ public sealed class LanternGlowTests
     [Fact]
     public void Given_EveryBandEdgeOfTheDay_When_TheStrengthIsReadATickApart_Then_ItDoesNotStep()
     {
-        // The four edges of the light bands (about 4.24, 5.7, 20.3 and 21.76 o'clock): the strength has no band in it, so one tick later it differs by the rate of the cycle and no more.
+        // The four edges of the light bands (about 4.43, 5.51, 20.49 and 21.57 o'clock since E11): the strength has no band in it, so one tick later it differs by the rate of the cycle and no more.
         var edges = new List<double>();
         var last = SkyLook.At(SkyLookInput.At(Clock, -1));
         var lastStrength = last.LanternStrength;
@@ -43,7 +43,7 @@ public sealed class LanternGlowTests
 
         Assert.Equal(4, edges.Count);
         edges.Sort(); // the clock starts at hour 8, so the run found the evening's edges first
-        double[] expected = [4.24, 5.7, 20.3, 21.76];
+        double[] expected = [4.43, 5.51, 20.49, 21.57]; // E11: the daylight eases (a smoothstep), so the same daylight thresholds (0.12, 0.85) fall nearer the middle of the dawn and the dusk
         for (var i = 0; i < 4; i++)
         {
             Assert.InRange(edges[i], expected[i] - 0.05, expected[i] + 0.05);
