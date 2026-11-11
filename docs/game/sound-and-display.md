@@ -1,6 +1,6 @@
 # Sound and display
 
-The audio system and the game's sounds, and the UI scale and readable text.
+The audio system and the game's sounds, the window, and the UI scale and readable text.
 
 ## Sounds (S24)
 
@@ -76,6 +76,13 @@ under it while it ducks (0.35); at a gain of 0.3 it would have been 5.6 dB under
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
 ```
+
+## The window
+
+An interactive run starts in borderless full screen at the display's size (`HardwareModeSwitch` off, so the display's mode never changes and switching away is
+instant). **F11** switches to a window and back: the window is the `--size` one, else 1280 x 720, and it can be resized. `--size <W>x<H>` starts in a window of that
+size instead, and a scripted run (`--screenshot`) always starts in its window (1280 x 720 unless `--size` says otherwise), so its pictures keep a fixed size. The
+console's `graphics:` line says which it started in (`full screen 2048x1152`, `window 1280x720`), and F11 prints `display: window 1280x720` and the like.
 
 ## UI scale and readable text (X08, R09)
 

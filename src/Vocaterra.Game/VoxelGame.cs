@@ -400,12 +400,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ]);
         _turns = new TurnPresenter(_pump, _sound, voice, _dialogue, _micCheck, Console.WriteLine);
 
+        var (startWidth, startHeight) = options.StartsFullScreen ? DisplaySize() : (options.WindowWidth ?? StartWidth, options.WindowHeight ?? StartHeight);
         _graphics = new GraphicsDeviceManager(this)
         {
-            PreferredBackBufferWidth = options.WindowWidth ?? StartWidth,
-            PreferredBackBufferHeight = options.WindowHeight ?? StartHeight,
+            PreferredBackBufferWidth = startWidth,
+            PreferredBackBufferHeight = startHeight,
             PreferredDepthStencilFormat = DepthFormat.Depth24,
             SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
+            HardwareModeSwitch = false, // full screen is borderless at the desktop's mode, never a display mode change
+            IsFullScreen = options.StartsFullScreen,
         };
         IsFixedTimeStep = false; // the accumulator owns the tick rate
         IsMouseVisible = true;
@@ -447,6 +450,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
             CycleTextSize: new DelegateCommand(CycleTextSize),
+            ToggleFullScreen: new DelegateCommand(ToggleFullScreen),
             ToggleViewEffects: new DelegateCommand(ToggleViewEffects),
             EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
             ToggleDebug: new DelegateCommand(() => _dialogue.ShowVerdictNotes = _debug.Visible = !_debug.Visible),
@@ -990,6 +994,25 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         var mode = _viewMode.Toggle();
         Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
+    }
+
+    // F11: borderless full screen at the display's size (how an interactive run starts) and a window (the --size one, else 1280x720), and back.
+    private void ToggleFullScreen()
+    {
+        var full = !_graphics.IsFullScreen;
+        var (width, height) = full ? DisplaySize() : (_options.WindowWidth ?? StartWidth, _options.WindowHeight ?? StartHeight);
+        _graphics.PreferredBackBufferWidth = width;
+        _graphics.PreferredBackBufferHeight = height;
+        _graphics.IsFullScreen = full;
+        _graphics.ApplyChanges();
+        Console.WriteLine($"display: {(full ? "full screen" : "window")} {width}x{height}");
+    }
+
+    // The size of the display the game starts on, for borderless full screen.
+    private static (int Width, int Height) DisplaySize()
+    {
+        var mode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+        return (mode.Width, mode.Height);
     }
 
     // F9: the interface text size, 100, 125 and 150 percent (X08), the same setting as the menu's Font size; no other F9 binding, and a text box never reads it.

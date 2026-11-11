@@ -426,6 +426,7 @@
     "ui.control.viewEffects": "Turn the screen effects of hunger, thirst, tiredness and weakness on or off.",
     "ui.control.report": "Report a bug or an idea.",
     "ui.control.textSize": "Change the size of the text.",
+    "ui.control.fullScreen": "Switch between full screen and a window.",
     "ui.control.debug": "Show or hide the debug overlay.",
     "ui.control.endRun": "End the playtest (the closing check).",
     "ui.control.walkForward": "Walk forward.",

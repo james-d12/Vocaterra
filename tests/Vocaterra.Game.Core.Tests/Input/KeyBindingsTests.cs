@@ -133,6 +133,17 @@ public sealed class KeyBindingsTests
         Assert.Equal(["EndPlaytest", "CycleTextSize"], ran);
     }
 
+    [Fact]
+    public void F11TogglesFullScreenWhereverThePlayerIsWhenTheGameOffersIt()
+    {
+        var (commands, ran) = Commands();
+        KeyBindings.Global(commands, playtest: false).RunEvery(Pressed(GameKey.F11));
+        Assert.Empty(ran); // a game that offers no full screen (the old bindings)
+
+        KeyBindings.Global(commands with { ToggleFullScreen = new DelegateCommand(() => ran.Add("ToggleFullScreen")) }, playtest: true).RunEvery(Pressed(GameKey.F11));
+        Assert.Equal(["ToggleFullScreen"], ran);
+    }
+
     private static (GameCommands Commands, List<string> Ran) Commands()
     {
         var ran = new List<string>();
