@@ -75,6 +75,7 @@ public static class ControlTable
         new("viewEffects", ControlGroup.General, [GameKey.F7]),
         new("report", ControlGroup.General, [GameKey.F8]),
         new("textSize", ControlGroup.General, [GameKey.F9]),
+        new("fullScreen", ControlGroup.General, [GameKey.F11]),
         new("debug", ControlGroup.General, [GameKey.F3]),
         new("endRun", ControlGroup.General, [GameKey.F10]),
 

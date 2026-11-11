@@ -17,6 +17,7 @@ namespace Vocaterra.Game.Core.Input;
 /// <param name="Sleep">Enter on the closing card, or E at the player's own lit fire: sleep until the next play session (V12c), or <see langword="null"/> for none.</param>
 /// <param name="DrinkByHand">E while aiming at water within reach: a drink by hand, with nothing held and without Spanish (N02), or <see langword="null"/> for none.</param>
 /// <param name="ToggleViewEffects">F7: the needs' effects on the view (dimmed edges, a blink, red edges) on or off (N05); the icons and the lines stay. <see langword="null"/> for none.</param>
+/// <param name="ToggleFullScreen">F11: borderless full screen (how an interactive run starts) and a window, and back. <see langword="null"/> for none.</param>
 /// <param name="TakeBelongings">E while aiming at the chest a death left, within reach: takes back what the bag can hold (N04), or <see langword="null"/> for none.</param>
 public sealed record GameCommands(
     IGameCommand ToggleView,
@@ -36,4 +37,5 @@ public sealed record GameCommands(
     IGameCommand? DrinkByHand = null,
     IGameCommand? TakeBelongings = null,
     IGameCommand? ToggleViewEffects = null,
-    IGameCommand? OpenStation = null);
+    IGameCommand? OpenStation = null,
+    IGameCommand? ToggleFullScreen = null);
