@@ -1408,3 +1408,12 @@ this file. What is still open is collected in [open-items](../open-items.md).
   proposes the reflexive reading for a subject pronoun before `ver`. Proposed: a core milestone that finds which rule answers `nos`
   here, fixes it at the source with a regression test in the owning module, and records the seed in the fuzz suite's README; the
   oracle is not narrowed.
+- **A fuzz coverage floor that chance can miss (found 2026-11-11 at the gate of the game's Y04; not changed, no milestone yet).**
+  `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings` ends by requiring each of
+  ten diagnostics at least `min(5, iterations / 60)` times, 5 at its 300 iterations. One gate run counted `fallback:forced-same-intent`
+  4 times and failed with "The generator no longer reaches fallback:forced-same-intent." Eight runs of the test alone on the same
+  build counted 9, 14, 6, 10, 15, 7, 7 and 10 and passed: the generator reaches the path about ten times in 300, and a random sample
+  falls under 5 now and then. The oracle itself did not fail. Not checked: whether the count was the same before Y04's content edit
+  (one word in the lexicon, the scene); the milestone agent's own full run on the same code passed. Proposed, for the owner: keep the
+  floor and make the count steady (a fixed seed for the coverage part, or more iterations for the floor), in a core milestone;
+  nothing is narrowed until then, and a gate that fails on this message alone is run again and the run recorded.
