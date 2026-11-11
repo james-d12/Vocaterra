@@ -6,9 +6,11 @@ namespace Vocaterra.Game.Graphics.Sky;
 /// <summary>
 /// Everything the sky, the fog and the world's light need at one moment of the cycle (E02), as plain values with no engine type: the dome's three colours, the clouds' three, the sun
 /// and the moon (where, and how strongly they show), the stars, the fog's colour (the horizon's, so far land fades into the sky), the colour of the sun's light on the world, how
-/// strongly the lanterns glow, and the light band to build meshes in. <see cref="At"/> is a pure function of a <see cref="SkyLookInput"/>: three keyframes (day, twilight, night) blended
-/// by the phase and the daylight. Across a dusk the daylight falls from 1 to 0 and the look goes from the day's keyframe to the twilight's at one half and on to the night's; a dawn is
-/// the same run backwards, so a dawn mirrors a dusk.
+/// strongly the lanterns glow, and the light band to build meshes in. <see cref="At"/> is a pure function of a <see cref="SkyLookInput"/>: five keyframes blended (<see cref="SkyBlend"/>).
+/// The phase and the daylight share the moment between a day side, the twilight and a night side. The day side is the golden
+/// hour's look (a low, warm sun) below 10 degrees of sun elevation and the noon's (today's sky) from 42, a smoothstep between, so the morning and the evening are warm and the middle of the day is the noon; the night side is the blue hour at the night's edges
+/// and the deep night when the sun is far under the world. Across a dusk the daylight falls from 1 to 0 and the look goes from the day side's to the twilight's at one half and on to the
+/// night's; a dawn is the same run backwards, so a dawn mirrors a dusk (E11).
 /// </summary>
 /// <param name="DomeHorizon">The dome at the horizon.</param>
 /// <param name="DomeMiddle">The dome half way up.</param>
@@ -59,14 +61,12 @@ public readonly record struct SkyLook(
     /// <param name="input">The hour, the daylight and the phase.</param>
     public static SkyLook At(in SkyLookInput input)
     {
-        var (day, twilight, night) = Weights(input.Phase, Math.Clamp(input.Daylight, 0, 1));
-        var a = SkyKeyframe.Day;
-        var b = SkyKeyframe.Twilight;
-        var c = SkyKeyframe.Night;
         var sun = SkyArc.SunAt(input.Hour);
         var moon = SkyArc.MoonAt(input.Hour);
         var sunElevation = (float)(Math.Asin(Math.Clamp(sun.Y, -1f, 1f)) * 180 / Math.PI);
         var moonShows = Smooth(0f, 6f, (float)(Math.Asin(Math.Clamp(moon.Y, -1f, 1f)) * 180 / Math.PI));
+        var blend = SkyBlend.At(input.Phase, input.Daylight, sunElevation);
+        var night = blend.NightSide;
         var nightness = (float)Math.Clamp((0.6 - input.Daylight) / 0.6, 0, 1);
         var starAmount = (float)Math.Clamp((0.45 - input.Daylight) / 0.45, 0, 1);
 
@@ -77,39 +77,40 @@ public readonly record struct SkyLook(
         var sunlight = (float)Math.Clamp(input.Sunlight, 0, 1);
         var domeDarken = 0.8f - (0.25f * night); // a day sky greys to 0.8 of its brightness, a night sky to 0.55
         var domeAmount = gloom;
-        var horizon = SkyWeather.Grey(Mix(a.DomeHorizon, b.DomeHorizon, c.DomeHorizon, day, twilight, night), domeAmount, domeDarken);
-        var domeMiddle = SkyWeather.Grey(Mix(a.DomeMiddle, b.DomeMiddle, c.DomeMiddle, day, twilight, night), domeAmount, domeDarken);
-        var light = Mix(a.SunLight, b.SunLight, c.SunLight, day, twilight, night);
+        var horizon = SkyWeather.Grey(blend.Mix(static k => k.DomeHorizon), domeAmount, domeDarken);
+        var domeMiddle = SkyWeather.Grey(blend.Mix(static k => k.DomeMiddle), domeAmount, domeDarken);
+        var light = blend.MixLight();
 
         // A cloud under cover at night follows the dome's middle colour (E08), so an overcast night's clouds are dark like the sky behind them, not light slabs on it.
         var follow = SkyWeather.CloudFollow(input.CloudCover, night);
         return new SkyLook(
             horizon,
             domeMiddle,
-            SkyWeather.Grey(Mix(a.DomeZenith, b.DomeZenith, c.DomeZenith, day, twilight, night), domeAmount, domeDarken),
-            SkyWeather.CloudColour(Mix(a.CloudTop, b.CloudTop, c.CloudTop, day, twilight, night), gloom, 0.65f, domeMiddle, follow),
-            SkyWeather.CloudColour(Mix(a.CloudSide, b.CloudSide, c.CloudSide, day, twilight, night), gloom, 0.58f, domeMiddle, follow),
-            SkyWeather.CloudColour(Mix(a.CloudBottom, b.CloudBottom, c.CloudBottom, day, twilight, night), gloom, 0.48f, domeMiddle, follow),
+            SkyWeather.Grey(blend.Mix(static k => k.DomeZenith), domeAmount, domeDarken),
+            SkyWeather.CloudColour(blend.Mix(static k => k.CloudTop), gloom, 0.65f, domeMiddle, follow),
+            SkyWeather.CloudColour(blend.Mix(static k => k.CloudSide), gloom, 0.58f, domeMiddle, follow),
+            SkyWeather.CloudColour(blend.Mix(static k => k.CloudBottom), gloom, 0.48f, domeMiddle, follow),
             sun,
             Smooth(SunFadeLow, SunFadeHigh, sunElevation) * showing,
-            Mix(a.SunColour, b.SunColour, c.SunColour, day, twilight, night),
+            blend.Mix(static k => k.SunColour),
             moon,
             moonShows * nightness * showing,
             starAmount * starAmount * showing,
             horizon,
             (light.R * sunlight, light.G * sunlight, light.B * sunlight),
-            Mix(a.LanternStrength, b.LanternStrength, c.LanternStrength, day, twilight, night),
+            blend.MixLanterns(),
             LightBands.For(input.Phase, input.Daylight),
             (float)Math.Clamp(input.Fog, 0, 1),
             Math.Clamp(input.CloudCover, 0, 1));
     }
 
-    /// <summary>The look the game has always had by day: noon, the day keyframe itself.</summary>
+    /// <summary>The look the game has always had by day: noon, the day keyframe itself (the sun at 56 degrees is high enough for the whole of the noon's look).</summary>
     public static SkyLook Noon => At(new SkyLookInput(13, 1, DayPhase.Day));
 
     /// <summary>
-    /// The weights of the day, twilight and night keyframes (they add up to 1) in a phase at a daylight: the day's across the Day phase, the night's across the Night phase, and across
-    /// a dawn or a dusk the run night, twilight, day by the daylight (twilight exactly at one half).
+    /// The weights of the day side, the twilight and the night side (they add up to 1) in a phase at a daylight: the day side's across the Day phase, the night side's across the Night
+    /// phase, and across a dawn or a dusk the run night, twilight, day by the daylight (twilight exactly at one half). <see cref="SkyBlend.At"/> splits the day side into the noon's
+    /// and the golden hour's by the sun's height, and the night side into the blue hour's and the deep night's.
     /// </summary>
     /// <param name="phase">The phase of the day.</param>
     /// <param name="daylight">The daylight, 0 to 1.</param>
@@ -138,18 +139,4 @@ public readonly record struct SkyLook(
         var t = Math.Clamp((x - from) / (to - from), 0f, 1f);
         return t * t * (3f - (2f * t));
     }
-
-    private static (byte R, byte G, byte B) Mix((byte R, byte G, byte B) a, (byte R, byte G, byte B) b, (byte R, byte G, byte B) c, float wa, float wb, float wc) => (
-        ToByte((a.R * wa) + (b.R * wb) + (c.R * wc)),
-        ToByte((a.G * wa) + (b.G * wb) + (c.G * wc)),
-        ToByte((a.B * wa) + (b.B * wb) + (c.B * wc)));
-
-    private static (float R, float G, float B) Mix((float R, float G, float B) a, (float R, float G, float B) b, (float R, float G, float B) c, float wa, float wb, float wc) => (
-        (a.R * wa) + (b.R * wb) + (c.R * wc),
-        (a.G * wa) + (b.G * wb) + (c.G * wc),
-        (a.B * wa) + (b.B * wb) + (c.B * wc));
-
-    private static float Mix(float a, float b, float c, float wa, float wb, float wc) => (a * wa) + (b * wb) + (c * wc);
-
-    private static byte ToByte(float value) => (byte)Math.Clamp(MathF.Round(value), 0f, 255f);
 }

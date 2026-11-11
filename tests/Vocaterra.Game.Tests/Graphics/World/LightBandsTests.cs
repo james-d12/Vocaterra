@@ -46,15 +46,15 @@ public sealed class LightBandsTests
     [Theory]
     [InlineData(0.0)]
     [InlineData(4.0)]
-    [InlineData(4.24)]
+    [InlineData(4.43)]
     [InlineData(5.0)]
-    [InlineData(5.7)]
+    [InlineData(5.51)]
     [InlineData(6.0)]
     [InlineData(13.0)]
     [InlineData(20.0)]
-    [InlineData(20.3)]
+    [InlineData(20.49)]
     [InlineData(21.0)]
-    [InlineData(21.76)]
+    [InlineData(21.57)]
     [InlineData(22.0)]
     [InlineData(23.5)]
     public void Given_AnyBandAndABoundaryHour_When_TheTintIsTimesTheBakedLight_Then_ItIsTheLooksSunLight(double hour)
@@ -76,7 +76,7 @@ public sealed class LightBandsTests
     public void Given_TheTwoBandsAtAnEdge_When_TheirBakedSunLightsAreTinted_Then_BothShowTheSameLight()
     {
         // The sun's share of a face is the band's baked light times the band's tint: the same for a mesh of either band, so a change of band shows no step in it.
-        foreach (var hour in new[] { 4.24, 5.7, 20.3, 21.76 })
+        foreach (var hour in new[] { 4.43, 5.51, 20.49, 21.57 })
         {
             var look = SkyLook.At(HourInput(hour));
             var shown = Enum.GetValues<LightBand>().Select(band =>

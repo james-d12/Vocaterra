@@ -172,7 +172,7 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
   World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
   Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
-  Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe, SkyArc, SkyWeather (the channels' effect on the look)
+  Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe (the five keyframes: noon, golden, twilight, night, deep night), SkyBlend (their weights by the phase, the daylight and the sun's height), SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox

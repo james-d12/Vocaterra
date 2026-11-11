@@ -102,17 +102,17 @@ public sealed class SkyLookTests
     public void Given_TheWholeCycle_When_TheLookIsReadASecondApart_Then_NothingJumpsIncludingAtTheKeyframesAndTheWrap()
     {
         // One tick is a sixtieth of a second: read every 60 ticks (a second of play) over two cycles, so the wrap from 24 to 0 is in it. A dusk is two hours, 200 seconds of play, so the
-        // fastest colour moves about two and a half steps of 255 a second; a jump would be a step of ten or more.
+        // fastest colour moves about three and a quarter steps of 255 a second (E11: the daylight now eases, which is 1.5 times the straight pace at its steepest); a jump would be a step of ten or more.
         var last = SkyLook.At(SkyLookInput.At(Clock, -60));
         for (var tick = 0L; tick <= 2 * Clock.CycleTicks; tick += 60)
         {
             var now = SkyLook.At(SkyLookInput.At(Clock, tick));
             var at = $"tick {tick} (hour {Clock.HourAt(tick):0.000})";
-            Assert.True(Distance(last.DomeHorizon, now.DomeHorizon) <= 3, "horizon jumped at " + at);
-            Assert.True(Distance(last.DomeMiddle, now.DomeMiddle) <= 3, "middle jumped at " + at);
-            Assert.True(Distance(last.DomeZenith, now.DomeZenith) <= 3, "zenith jumped at " + at);
-            Assert.True(Distance(last.CloudTop, now.CloudTop) <= 3, "cloud jumped at " + at);
-            Assert.True(Distance(last.SunColour, now.SunColour) <= 3, "sun colour jumped at " + at);
+            Assert.True(Distance(last.DomeHorizon, now.DomeHorizon) <= 4, "horizon jumped at " + at);
+            Assert.True(Distance(last.DomeMiddle, now.DomeMiddle) <= 4, "middle jumped at " + at);
+            Assert.True(Distance(last.DomeZenith, now.DomeZenith) <= 4, "zenith jumped at " + at);
+            Assert.True(Distance(last.CloudTop, now.CloudTop) <= 4, "cloud jumped at " + at);
+            Assert.True(Distance(last.SunColour, now.SunColour) <= 4, "sun colour jumped at " + at);
             Assert.True(Math.Abs(last.SunLight.R - now.SunLight.R) < 0.01f && Math.Abs(last.SunLight.G - now.SunLight.G) < 0.01f && Math.Abs(last.SunLight.B - now.SunLight.B) < 0.01f, "sun light jumped at " + at);
             Assert.True(Math.Abs(last.LanternStrength - now.LanternStrength) < 0.01f, "lanterns jumped at " + at);
             Assert.True(Math.Abs(last.Stars - now.Stars) < 0.03f, "stars jumped at " + at);

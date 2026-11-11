@@ -298,6 +298,13 @@ Both run on their own in play, and a screenshot run can hold either one.
   and night at 22: the light rises across dawn, holds through the day and falls across dusk, and it is out through the night (about 30 minutes of
   light and 10 of night). A new game starts at 8 (`startHour`); a sleep or a collapse wakes the player at 7 (`wakeHour`). The cycle runs whether or not
   the player sleeps.
+- **What each hour looks like (E11).** The look follows the sun's height by day and its depth by night, and the daylight across dawn and dusk eases
+  (a smoothstep, still 0.5 half way), so nothing steps. 4:00 is the night's blue hour; 4:00 to 5:00 the sky lifts through the twilight's amber (5:00 is the
+  middle of the dawn, the same look as 21:00); 5:00 to 6:00 it goes on to the low sun's golden look; 6:00 to 10:00 the sky is a pale warm gold that clears to blue
+  and white (8:00 is half way); 10:00 to 16:00 is noon, the sky the game has always had; 16:00 to 20:00 the gold comes back, warmer towards the evening; 20:00
+  to 22:00 is the dusk (21:00 is `--dusk`: amber, the low warm light, the lanterns at full); 22:00 is the blue hour again and the night deepens, darker and
+  less blue, to its darkest round 1:00 and lifts again to 4:00. The lanterns are at half by day, a little above it in the golden hours and at full from the dusk
+  to the dawn. Weather composes after all of it, as before.
 - **The weather.** A new game starts sunny. A change blends the channels over 45 seconds (`transitionSeconds`). A spell lasts a time drawn from its
   range, and when it ends the next kind is drawn by the weights of `next`; waking draws with the `morningWeight`s. The draws come from the world seed,
   so one seed has one weather.
@@ -324,11 +331,11 @@ Both run on their own in play, and a screenshot run can hold either one.
   kind it leaves and the blend in percent; `held` when the weather is held.
 - **Held is saved.** A held hour or weather is part of the simulation's state: it is in the state digest and in a save written during the run, which
   loads held (`docs/game/saves.md`, the `atmosphere` entry).
-- **Pictures.** The hours worth a picture are 0 (night), 5 (dawn), 7 (morning), 13 (noon), 21 (dusk) and 23 (night); the light changes bands at about
-  4.24, 5.7, 20.3 and 21.76 (the meshes are built again in the background for the new band, a few seconds, and show no step in the sun's light):
+- **Pictures.** The hours worth a picture are 0 (night), 5 (dawn), 7 (morning), 13 (noon), 18 (evening), 21 (dusk) and 23 (night); the light changes bands at about
+  4.43, 5.51, 20.49 and 21.57 (the meshes are built again in the background for the new band, a few seconds, and show no step in the sun's light):
 
   ```bash
-  for h in 0 5 7 13 21 23; do
+  for h in 0 5 7 13 18 21 23; do
     DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --time $h --screenshot /tmp/e02-$h.png --frames 30
   done
   for k in sunny cloudy rain; do

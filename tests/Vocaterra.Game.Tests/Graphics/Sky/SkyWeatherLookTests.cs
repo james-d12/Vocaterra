@@ -79,7 +79,7 @@ public sealed class SkyWeatherLookTests
         var clear = Look(0, Kinds[0].Channels);
         var heavy = Look(0, new WeatherChannels(1, 0.5, 0.5, 0.6, "x", 0.8));
 
-        Assert.True(clear.DomeHorizon.B - clear.DomeHorizon.R > 40, "a clear night glows blue");
+        Assert.True(clear.DomeHorizon.B - clear.DomeHorizon.R > 30, "a clear night glows blue"); // E11: 40 before the deep night, which is less blue by design
         Assert.True(heavy.DomeHorizon.B - heavy.DomeHorizon.R < 12, "an overcast night is a grey");
         Assert.True(Luminance(heavy.DomeHorizon) < Luminance(clear.DomeHorizon));
         Assert.Equal(0f, heavy.Stars);
@@ -196,10 +196,11 @@ public sealed class SkyWeatherLookTests
             heavyHigh = Math.Max(heavyHigh, Math.Max(tint.R, Math.Max(tint.G, tint.B)));
         }
 
-        // Measured: a clear day's tint runs 0.507 to 1.480 over the whole cycle (E02's range, the band edges' own), and at the data's lowest sunlight (0.5) 0.253 to 0.740. The weather
-        // only multiplies the light by the channel, so the tint never goes above E02's top and falls to the channel's share of its bottom: a darker vertex colour, never one past white.
-        Assert.InRange(clearLow, 0.5, 0.52);
-        Assert.InRange(clearHigh, 1.47, 1.49);
+        // Measured: a clear day's tint runs 0.499 to 1.455 over the whole cycle (E02's range was 0.507 to 1.480; E11's smoother daylight, the golden hour and the deep night moved the band
+        // edges' light a little), and at the data's lowest sunlight (0.5) 0.249 to 0.728. The weather only multiplies the light by the channel, so the tint never goes above the clear
+        // sky's top and falls to the channel's share of its bottom: a darker vertex colour, never one past white.
+        Assert.InRange(clearLow, 0.48, 0.52);
+        Assert.InRange(clearHigh, 1.43, 1.48);
         Assert.InRange(heavyLow, 0.24, 0.27);
         Assert.InRange(heavyHigh, 0.7, 0.75);
         Assert.True(heavyHigh <= clearHigh, "weather never lifts the tint past the clear sky's top");

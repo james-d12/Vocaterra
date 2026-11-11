@@ -73,16 +73,19 @@ public sealed class DayClock
         return position < _dusk ? DayPhase.Day : DayPhase.Dusk;
     }
 
-    /// <summary>The daylight at a tick: 0 through the night, rising across dawn, 1 through the day and falling across dusk.</summary>
+    /// <summary>
+    /// The daylight at a tick: 0 through the night, rising across dawn, 1 through the day and falling across dusk. Across a dawn or a dusk it follows a smoothstep of the straight line from
+    /// 0 to 1 (E11), so it eases out of the night and into the day with no slope jump at the phase's edges, and is still exactly 0.5 half way through.
+    /// </summary>
     /// <param name="tick">The simulation's tick.</param>
     public double DaylightAt(long tick)
     {
         var position = PositionAt(tick);
         return PhaseAt(tick) switch
         {
-            DayPhase.Dawn => (position - _dawn) / (double)(_day - _dawn),
+            DayPhase.Dawn => Ease((position - _dawn) / (double)(_day - _dawn)),
             DayPhase.Day => 1,
-            DayPhase.Dusk => 1 - ((position - _dusk) / (double)(_night - _dusk)),
+            DayPhase.Dusk => Ease(1 - ((position - _dusk) / (double)(_night - _dusk))),
             _ => 0,
         };
     }
@@ -129,6 +132,9 @@ public sealed class DayClock
         _offset = Mod(state.Offset);
         _frozenHour = state.FrozenHour;
     }
+
+    // The smoothstep of a straight run from 0 to 1: flat at both ends, 0.5 at one half.
+    private static double Ease(double t) => t * t * (3 - (2 * t));
 
     private long HourToTicks(double hour) => (long)Math.Round(hour / DayData.HoursPerDay * _cycle, MidpointRounding.AwayFromZero);
 
