@@ -78,14 +78,18 @@ public readonly record struct SkyLook(
         var domeDarken = 0.8f - (0.25f * night); // a day sky greys to 0.8 of its brightness, a night sky to 0.55
         var domeAmount = gloom;
         var horizon = SkyWeather.Grey(Mix(a.DomeHorizon, b.DomeHorizon, c.DomeHorizon, day, twilight, night), domeAmount, domeDarken);
+        var domeMiddle = SkyWeather.Grey(Mix(a.DomeMiddle, b.DomeMiddle, c.DomeMiddle, day, twilight, night), domeAmount, domeDarken);
         var light = Mix(a.SunLight, b.SunLight, c.SunLight, day, twilight, night);
+
+        // A cloud under cover at night follows the dome's middle colour (E08), so an overcast night's clouds are dark like the sky behind them, not light slabs on it.
+        var follow = SkyWeather.CloudFollow(input.CloudCover, night);
         return new SkyLook(
             horizon,
-            SkyWeather.Grey(Mix(a.DomeMiddle, b.DomeMiddle, c.DomeMiddle, day, twilight, night), domeAmount, domeDarken),
+            domeMiddle,
             SkyWeather.Grey(Mix(a.DomeZenith, b.DomeZenith, c.DomeZenith, day, twilight, night), domeAmount, domeDarken),
-            SkyWeather.Grey(Mix(a.CloudTop, b.CloudTop, c.CloudTop, day, twilight, night), gloom, 0.65f),
-            SkyWeather.Grey(Mix(a.CloudSide, b.CloudSide, c.CloudSide, day, twilight, night), gloom, 0.58f),
-            SkyWeather.Grey(Mix(a.CloudBottom, b.CloudBottom, c.CloudBottom, day, twilight, night), gloom, 0.48f),
+            SkyWeather.CloudColour(Mix(a.CloudTop, b.CloudTop, c.CloudTop, day, twilight, night), gloom, 0.65f, domeMiddle, follow),
+            SkyWeather.CloudColour(Mix(a.CloudSide, b.CloudSide, c.CloudSide, day, twilight, night), gloom, 0.58f, domeMiddle, follow),
+            SkyWeather.CloudColour(Mix(a.CloudBottom, b.CloudBottom, c.CloudBottom, day, twilight, night), gloom, 0.48f, domeMiddle, follow),
             sun,
             Smooth(SunFadeLow, SunFadeHigh, sunElevation) * showing,
             Mix(a.SunColour, b.SunColour, c.SunColour, day, twilight, night),

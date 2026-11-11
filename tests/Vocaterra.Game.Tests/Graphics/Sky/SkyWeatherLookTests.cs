@@ -87,6 +87,17 @@ public sealed class SkyWeatherLookTests
     }
 
     [Fact]
+    public void Given_AFullCoverAtNight_When_TheLookIsRead_Then_TheCloudTopIsAtMostOneAndAHalfTimesTheDomesMiddle()
+    {
+        foreach (var sunlight in new[] { 0.0, 0.5, 1.0 })
+        {
+            var look = SkyLook.At(new SkyLookInput(0, 0, DayPhase.Night, 1, sunlight, 0));
+
+            Assert.True(Luminance(look.CloudTop) <= 1.5 * Luminance(look.DomeMiddle), $"sunlight {sunlight}: the cloud top {Luminance(look.CloudTop)} against the dome {Luminance(look.DomeMiddle)}");
+        }
+    }
+
+    [Fact]
     public void Given_AFullCoverAtDusk_When_TheLookIsRead_Then_TheAmberIsMostlyGone()
     {
         var clear = Look(SkyLook.DuskHour, Kinds[0].Channels);
