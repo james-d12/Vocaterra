@@ -52,6 +52,8 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
 ```
 
+**Lodging aid (Y05).** `--lodging` (only with `--dev`) gives the player lodging at the start, as the innkeeper will, so the inn's bed can be slept at; without it the bed shows "This bed is the inn's: ask for a room first" and E does nothing (the scripts' `--sleep` refuses there too). Example: `--seed 42 --mute --needs off --dev --lodging --skip-to-session 2 --walk-to 278,231 --wait 1 --sleep`.
+
 **Clean defaults (U01).** Ordinary play starts with no debug text: `--dev` starts the debug overlay and the dialogue's developer note on, F3 toggles both. The "Heard / Expected" line under a spoken turn is not the developer note and always stays. The first-time tip box stands under the overlay when F3 shows it. The speak hint is one: the tip `tip.speak` at the first conversation; once it was shown the dialogue footer keeps only its other keys (the speak key stays in the controls help on the menu's Controls page). The objective tracker (top right) is one line per objective, three at most, the one that advanced last first, the rest as "+n"; a lesson's `do` step shows in the lesson strip while the strip is up, not also in the tracker. The scripted runs pass `--dev` (all but the playtest) so their captures keep the overlay and the note.
 
 **The needs (N01).** Hunger, thirst and sleep fall in active play and push health and stamina (design section 9). `--needs off` freezes them full (the scripted runs pass it, so

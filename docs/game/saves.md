@@ -54,7 +54,7 @@ The save has the player standing at the lit mountain fire, one conversation page
 bundle hash into it as into any file under `tests/`.
 
 **The `sleep` entry (Y02).** `systems.sleep` keeps what a sleep (a save restored in the same run) and a load must not lose, all optional, the entry absent when nothing is set:
-`lodgingGiven` (the innkeeper has given the room; left out when false), `last` (the place last slept at: `{"id"}` and, for a place made in play, its cell `x`, `y`, `z`) and
+`lodgingGiven` (the innkeeper has given the room; left out when false; set in play since Y05 by the host action `grant_lodging`, once and for good, and by the dev aid `--lodging`; a sleep, a load and a migration keep it), `last` (the place last slept at: `{"id"}` and, for a place made in play, its cell `x`, `y`, `z`) and
 `places` (the places made in play, `SleepPlaces.Add`: `id`, `x`, `y`, `z`, `kind`, `radiusBlocks`, `heightBlocks`, `access` and `point` when it has one). The authored places are the bundle's
 and are not saved. `RestoreParts` puts the places made in play back first, before the objective's sleep line and the arrow ask `SleepPlaces`.
 

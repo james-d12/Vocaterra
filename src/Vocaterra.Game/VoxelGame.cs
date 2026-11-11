@@ -1334,7 +1334,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the toasts waiting, the beacon of the start.
     private void SleepNow(string how)
     {
-        if (!_session.CanSleep || _dialogue.IsOpen)
+        if (!_session.CanSleep || _dialogue.IsOpen || _session.AtLockedBed) // Y05: a bed that is not the player's yet refuses the scripts' aid too, which sleeps from anywhere while a fire is lit
         {
             Console.WriteLine($"sleep: not now ({how}): {SleepRefusal()}");
             return;
