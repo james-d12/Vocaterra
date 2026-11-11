@@ -75,7 +75,9 @@ public sealed record LaunchOptions
         + "                          begin it (the fire must be lit; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
-        + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
+        + "  --dusk                  hold the day clock at the dusk hour (21): the low orange sun, the warm light and lanterns that glow at full strength (S15, E02)\n"
+        + "  --time <hour>           hold the day clock at an hour from 0 to 24 (fractions allowed: 7.5 is half past seven) so the sky, the fog and the light show it: 0 midnight, 5 dawn, 13 noon, 21 dusk (E02)\n"
+        + "  --weather <id>          hold the weather at one of the loaded bundle's kinds (an id from game/weather.json; an unknown id is refused and the ids are listed) so the sky, the clouds, the fog and the light show it (E05)\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
@@ -129,6 +131,7 @@ public sealed record LaunchOptions
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
         + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the save's (S24)\n"
         + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
+        + "  --weather-volume <0..1> the volume of the weather's own sounds (the rain); default 0.6, or the save's (E09)\n"
         + "  --voice-volume <0..1>   the volume of the NPCs' voices; default 1, or the save's (the menu)\n"
         + "  --ui-volume <0..1>      the volume of the interface and progress sounds; default 0.8, or the save's (the menu)\n"
         + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
@@ -140,6 +143,8 @@ public sealed record LaunchOptions
         + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
         + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
+        + "  --set-time <hour|run>   a step: hold the clock at an hour from 0 to 24 from this step on, or 'run' to let it run on (E03)\n"
+        + "  --set-weather <id|run>  a step: hold a weather kind by its id (the ids of game/weather.json) from this step on, or 'run' to let it run on (E03)\n"
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
@@ -242,6 +247,20 @@ public sealed record LaunchOptions
         return unknown is null;
     }
 
+    /// <summary>
+    /// Checks the <c>--set-weather</c> steps against the weather kinds the bundle has (E03). The check waits for the data, as <see cref="CheckTalkTargets"/> does for the NPCs.
+    /// </summary>
+    /// <param name="kinds">The ids of the bundle's weather kinds, in the data's order.</param>
+    /// <param name="error">The message for the first unknown id, or empty.</param>
+    /// <returns>Whether every <c>--set-weather</c> names one of the kinds (or <c>run</c>).</returns>
+    public bool CheckWeatherTargets(IReadOnlyList<string> kinds, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(kinds);
+        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
+        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({string.Join(", ", kinds)}) or 'run', got '{unknown.Step!.Item}'.";
+        return unknown is null;
+    }
+
     /// <summary>The credit a correct use earns per kind of input (<c>--typed-credit</c>); typed input earns half by default.</summary>
     public CreditRules Credit { get; init; } = CreditRules.Default;
 
@@ -259,6 +278,9 @@ public sealed record LaunchOptions
 
     /// <summary>The volume of the NPCs' voices (<c>--voice-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
     public double? VoiceVolume { get; init; }
+
+    /// <summary>The volume of the weather's own sounds (<c>--weather-volume</c>, the rain), 0 to 1, or <see langword="null"/> to take the save's or the default (E09).</summary>
+    public double? WeatherVolume { get; init; }
 
     /// <summary>The volume of the interface and progress sounds (<c>--ui-volume</c>), 0 to 1, or <see langword="null"/>.</summary>
     public double? UiVolume { get; init; }
@@ -344,8 +366,28 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--third-person</c> was given: the run starts in the behind-the-shoulder view (S15; F5 flips it in an interactive run).</summary>
     public bool ThirdPerson { get; init; }
 
-    /// <summary>Whether <c>--dusk</c> was given (S15): the sun is lower and dimmer and the lanterns glow at full strength.</summary>
+    /// <summary>Whether <c>--dusk</c> was given (S15): the day clock is held at the dusk hour (<c>SkyLook.DuskHour</c>), the sun is low and warm and the lanterns glow at full strength.</summary>
     public bool Dusk { get; init; }
+
+    /// <summary>The hour <c>--time</c> holds the day clock at (E02), 0 to 24, or <see langword="null"/> when the clock runs (or <c>--dusk</c> holds it).</summary>
+    public double? TimeHour { get; init; }
+
+    /// <summary>The id of the weather kind <c>--weather</c> holds (E05), or <see langword="null"/> when the weather runs. Which ids exist is the bundle's: <see cref="CheckWeather"/> checks it once the data has loaded.</summary>
+    public string? WeatherId { get; init; }
+
+    /// <summary>
+    /// Checks the weather kind <c>--weather</c> names against the bundle's kinds, once the data has loaded (E05): a bundle with another set of kinds takes its own ids with no code change.
+    /// </summary>
+    /// <param name="kinds">The kinds' ids, in the data's order.</param>
+    /// <param name="error">The message that lists the ids when <c>--weather</c> names an unknown one, or empty.</param>
+    /// <returns>Whether <c>--weather</c> is absent or names one of the kinds.</returns>
+    public bool CheckWeather(IReadOnlyList<string> kinds, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(kinds);
+        var unknown = WeatherId is not null && !kinds.Contains(WeatherId, StringComparer.Ordinal);
+        error = unknown ? $"--weather needs a weather kind ({string.Join(", ", kinds)}), got '{WeatherId}'." : string.Empty;
+        return !unknown;
+    }
 
     /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
     public bool ShowsTips => !IsScreenshotRun || Tips;
@@ -393,7 +435,7 @@ public sealed record LaunchOptions
     public Func<double>? TurnClock => IsScreenshotRun && Script.Count > 0 ? null : MonotonicClock.Milliseconds;
 
     /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
-    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume, VoiceVolume, UiVolume);
+    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume, VoiceVolume, UiVolume, WeatherVolume);
 
     /// <summary>Whether the script has a spoken step (<c>--speak</c> or <c>--wav</c>): it needs Vosk, and Kokoro for <c>--speak</c>.</summary>
     public bool HasSpokenSteps => Script.Any(static step => step.Kind is ScriptStepKind.Speak or ScriptStepKind.Wav);
@@ -601,9 +643,9 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -627,6 +669,24 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Seed = seed, SeedGiven = true };
+                    break;
+                case "--time":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var hour) || !double.IsFinite(hour) || hour < 0 || hour > 24)
+                    {
+                        error = $"--time needs an hour from 0 to 24 (fractions allowed, 7.5 is half past seven), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { TimeHour = hour };
+                    break;
+                case "--weather":
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        error = "--weather needs the id of a weather kind (the ids are the bundle's game/weather.json).";
+                        return false;
+                    }
+
+                    result = result with { WeatherId = value };
                     break;
                 case "--session":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var playSession) || playSession is < 1 or > 99)
@@ -698,6 +758,7 @@ public sealed record LaunchOptions
                 case "--ambient-volume":
                 case "--voice-volume":
                 case "--ui-volume":
+                case "--weather-volume":
                     if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var volume) || double.IsNaN(volume) || volume < 0 || volume > 1)
                     {
                         error = $"{arg} needs a number from 0 to 1, got '{value}'.";
@@ -709,6 +770,7 @@ public sealed record LaunchOptions
                         "--sfx-volume" => result with { SfxVolume = volume },
                         "--ambient-volume" => result with { AmbientVolume = volume },
                         "--voice-volume" => result with { VoiceVolume = volume },
+                        "--weather-volume" => result with { WeatherVolume = volume },
                         _ => result with { UiVolume = volume },
                     };
                     break;
@@ -1149,6 +1211,35 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--set-time":
+                    if (value.Trim() == "run")
+                    {
+                        steps.Add(VoxelStep.RunTime());
+                    }
+                    else if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var setHour) && double.IsFinite(setHour) && setHour is >= 0 and <= 24)
+                    {
+                        steps.Add(VoxelStep.SetTime(setHour));
+                    }
+                    else
+                    {
+                        error = $"--set-time needs an hour from 0 to 24 (fractions allowed) or 'run', got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
+                case "--set-weather":
+                    // Which kinds there are is the bundle's (game/weather.json): CheckWeatherTargets refuses an unknown one once the data has loaded.
+                    if (value.Trim().Length == 0)
+                    {
+                        error = $"--set-weather needs a weather kind's id or 'run', got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(value.Trim() == "run" ? VoxelStep.RunWeather() : VoxelStep.SetWeather(value.Trim()));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 case "--select":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var slot) || slot < 1 || slot > 10)
                     {
@@ -1232,7 +1323,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

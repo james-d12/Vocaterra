@@ -54,7 +54,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 
 | Series | Items | State | Detail |
 | --- | --- | --- | --- |
-| Core | M86, O9's double silent h (fuzz seed `8HYgz_I9Ysn1`) | open: launched 2026-11-08, nothing landed | [core plan](nlp/implementation-plan.md) §5 |
+| Core | M86, O9's double silent h (fuzz seed `8HYgz_I9Ysn1`; a silent-h failure of `PronunciationFuzzTests` on "oh hundan", seed `9MOxzRBVGLK4`, was seen once on 2026-11-10 and may be the same family; the same day `PipelineFuzzTests.OpenFallback...` once had `fallback:second-chosen` at 4 against its minimum of 5, a thin margin) | open: launched 2026-11-08, nothing landed | [core plan](nlp/implementation-plan.md) §5 |
 | Core | M27b, M27c: content layering, format de-duplication | todo | [core plan](nlp/implementation-plan.md) §10 |
 | Core | M27a2, M28b, M28c, M28d, M29a, M29b, M29d, M29i | proposed | [core plan](nlp/implementation-plan.md) §5 |
 | Core | M20 to M25: tagger, LLM drafting, oracles, intent classifier, speech check, tutor | unscheduled, behind D8 to D13 | [core plan](nlp/implementation-plan.md) §9 |
@@ -65,6 +65,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |
+| Game E | The pull request to `main`, PR #64 (E00 to E08 and E02a built and gated: the day and night cycle, the weather as data, its sky, light, rain and sound, and the NPCs' weather answer). For the owner: the game in a window, the 42 new clips of E07 by ear, the rain bed's level, the merge | built 2026-11-11; on `feature/weather` (D-game-31) | [weather plan](game/weather-plan.md) section 7, [the handover](handovers/2026-11-10-1943-weather.md) |
 | Game U | U03, U04; any visual redesign | after the pilot; a redesign is not planned | [game plan](game/implementation-plan.md) section 4.9 |
 | Tests | T6's follow-ups (a) to (h) | open, judged on the numbers | [test performance](process/test-performance-plan.md) |
 | CI | SonarCloud, speech models in CI, the scripted runs as CI tests, the cross-platform matrix | not planned | [game plan](game/implementation-plan.md) section 4.6, [known gaps](nlp/known-gaps.md) |

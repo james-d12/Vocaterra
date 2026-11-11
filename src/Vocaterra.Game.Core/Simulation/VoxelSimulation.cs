@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -117,10 +118,16 @@ public sealed partial class VoxelSimulation
     public BlockRayHit? InteractTarget => BlockRay.Cast(Grid, Player);
 
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
-    public static VoxelSimulation Create(Scene scene)
+    /// <param name="scene">The scene.</param>
+    /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
+    /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
+    /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
+    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        return new VoxelSimulation(scene);
+        var simulation = new VoxelSimulation(scene);
+        simulation.StartAtmosphere(day, weather, worldSeed);
+        return simulation;
     }
 
     /// <summary>Advances one tick with no input.</summary>
@@ -194,6 +201,7 @@ public sealed partial class VoxelSimulation
         }
 
         StepWater();
+        StepAtmosphere();
     }
 
     /// <summary>
@@ -312,7 +320,7 @@ public sealed partial class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot());
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null);
     }
 
     /// <summary>
@@ -344,6 +352,7 @@ public sealed partial class VoxelSimulation
         Player.Restore(state.Player);
         _breath.Restore(state.Air);
         _flow.Queue.Restore(state.Flow ?? []);
+        RestoreAtmosphere(state.Atmosphere);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             Inventory.SetSlot(i, state.Slots[i]);
@@ -396,6 +405,7 @@ public sealed partial class VoxelSimulation
         }
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
+        AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }

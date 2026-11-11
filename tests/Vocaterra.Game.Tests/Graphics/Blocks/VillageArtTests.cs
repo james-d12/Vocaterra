@@ -180,7 +180,10 @@ public sealed class VillageArtTests
     [Fact]
     public void ALanternIsASmallGlowingBoxAndAPileIsALowBoxWithItsTopAndSidesDrawn()
     {
-        var lantern = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Lantern), 0, 0, 0).Opaque;
+        // The glass is its own light: it is in the self-lit mesh, which the renderer draws with no light tint (E02), not in the opaque one.
+        var lanternMeshes = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Lantern), 0, 0, 0);
+        Assert.Equal(0, lanternMeshes.Opaque.FaceCount);
+        var lantern = lanternMeshes.LitMesh;
         Assert.Equal(6, lantern.FaceCount);
         Assert.All(lantern.Vertices.ToArray(), static v =>
         {
@@ -194,42 +197,44 @@ public sealed class VillageArtTests
         var wheat = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.Wheat), 0, 0, 0);
         Assert.Equal(0, wheat.Opaque.FaceCount);
         Assert.Equal(2, wheat.PlantMesh.FaceCount); // crossed quads, with the plants
-        var torch = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.PostTorch), 0, 0, 0).Opaque;
-        Assert.Equal(12, torch.FaceCount); // a stick and a flame, like the torch the player places
+        var torch = ChunkMesher.Build(new MapBlocks().Set(5, 5, 5, BlockId.PostTorch), 0, 0, 0);
+        Assert.Equal(12, torch.Opaque.FaceCount + torch.LitMesh.FaceCount); // a stick (opaque) and a flame (self-lit), like the torch the player places
     }
 
     [Fact]
-    public void ALanternWarmsTheFacesNearItMoreAtDuskAndNotTheFarOnes()
+    public void ALanternLightsTheFacesNearItInTheGlowMeshAndNotTheFarOnes()
     {
-        // A floor of stone and a lantern one block over it at (8, 6, 8); the floor's top face at (8, 5) is near it, at (8 + 12, 5) is not.
+        // A floor of stone and a lantern one block over it at (8, 6, 8); the floor's top face at (8, 5) is near it, at (8 + 12, 5) is not. The glow is its own mesh (E02a): the opaque
+        // mesh never changes with a lantern, and it is the glow mesh that has the quads of the faces the lantern reaches, brightest next to it.
         var floor = new MapBlocks().Fill(0, 4, 0, 31, 5, 15, BlockId.Stone);
-        float Warmth(MeshOptions options, int x)
+        var lights = new[] { new BlockPos(8, 6, 8) };
+        float Glow(MeshOptions options, int x)
         {
-            var mesh = ChunkMesher.Build(floor, x / 16, 0, 0, 0, options).Opaque;
-            var vertices = mesh.Vertices.ToArray();
-            var tops = vertices.Where(v => v.Y == 6f && (int)MathF.Floor(v.X) == x).ToArray();
-            Assert.NotEmpty(tops);
-            return tops.Average(static v => (float)(v.Color & 0xFF) / Math.Max(1, (v.Color >> 16) & 0xFF));
+            var vertices = ChunkMesher.Build(floor, x / 16, 0, 0, 0, options).GlowMesh.Vertices.ToArray();
+            var tops = vertices.Where(v => v.Y == 6f && (int)MathF.Floor(v.X) == x && v.Z is >= 7f and <= 10f).ToArray();
+            return tops.Length == 0 ? 0f : tops.Average(static v => (float)(v.Color & 0xFF));
         }
 
-        var lights = new[] { new BlockPos(8, 6, 8) };
-        var plain = Warmth(MeshOptions.Full, 8);
-        var day = Warmth(new MeshOptions(true, 100, lights), 8);
-        var dusk = Warmth(new MeshOptions(true, 100, lights, true), 8);
-        var far = Warmth(new MeshOptions(true, 100, lights), 23);
-        Assert.True(day > plain, "the lantern tints the floor beside it warm by day");
-        Assert.True(dusk > day, "and more at dusk");
-        Assert.Equal(Warmth(MeshOptions.Full, 23), far, 3); // nothing reaches a block 15 blocks away
+        var plain = ChunkMesher.Build(floor, 0, 0, 0, 0, MeshOptions.Full);
+        var lit = ChunkMesher.Build(floor, 0, 0, 0, 0, new MeshOptions(true, 100, lights));
+        Assert.Equal(0, plain.GlowMesh.FaceCount);
+        Assert.Equal(plain.Opaque.Vertices.ToArray(), lit.Opaque.Vertices.ToArray());
+        var near = Glow(new MeshOptions(true, 100, lights), 8);
+        Assert.True(near > 100, "the lantern lights the floor beside it brightly, " + near);
+        Assert.True(Glow(new MeshOptions(true, 100, lights), 12) is > 0f && Glow(new MeshOptions(true, 100, lights), 12) < near, "less further out");
+        Assert.Equal(0f, Glow(new MeshOptions(true, 100, lights), 23)); // nothing reaches a block 15 blocks away
     }
 
     [Fact]
     public void TheGlowIsADeterministicFunctionOfTheBlocksAndTheLights()
     {
         var floor = new MapBlocks().Fill(0, 4, 0, 15, 5, 15, BlockId.Stone);
-        var options = new MeshOptions(true, 100, [new BlockPos(3, 6, 3), new BlockPos(10, 6, 9)], true);
-        var a = ChunkMesher.Build(floor, 0, 0, 0, 0, options).Opaque.Vertices.ToArray();
-        var b = ChunkMesher.Build(floor, 0, 0, 0, 0, options).Opaque.Vertices.ToArray();
-        Assert.Equal(a, b);
+        var options = new MeshOptions(true, 100, [new BlockPos(3, 6, 3), new BlockPos(10, 6, 9)], LightBand.Dusk);
+        var a = ChunkMesher.Build(floor, 0, 0, 0, 0, options);
+        var b = ChunkMesher.Build(floor, 0, 0, 0, 0, options);
+        Assert.Equal(a.Opaque.Vertices.ToArray(), b.Opaque.Vertices.ToArray());
+        Assert.NotEqual(0, a.GlowMesh.FaceCount);
+        Assert.Equal(a.GlowMesh.Vertices.ToArray(), b.GlowMesh.Vertices.ToArray());
     }
 
     [Fact]

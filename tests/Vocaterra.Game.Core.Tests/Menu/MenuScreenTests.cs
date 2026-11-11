@@ -169,7 +169,7 @@ public sealed class MenuScreenTests
     {
         var rig = Build();
         rig.Menu.OpenSettings();
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 5; i++)
         {
             rig.Menu.HandleInput(Press(GameKey.Down));
         }
@@ -187,7 +187,7 @@ public sealed class MenuScreenTests
     {
         var rig = Build();
         rig.Menu.OpenSettings();
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 5; i++)
         {
             rig.Menu.HandleInput(Press(GameKey.Down));
         }

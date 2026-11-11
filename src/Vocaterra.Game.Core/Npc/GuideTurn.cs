@@ -117,6 +117,7 @@ public enum NameCheck
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
 /// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
+/// <param name="WeatherKey">The dialogue key of the weather at the moment of the turn (<c>AtmosphereSnapshot.Say</c>, E07), which picks the pool of an NPC's answer to «¿Qué tiempo hace?» (<see cref="NpcEntry.WeatherAnswers"/>); <see langword="null"/> when the world has none (the plain answer then stands).</param>
 /// <param name="PromptOverride">The prompt to evaluate the line on instead of the NPC's own (S8: the guide's phrase review is answered on the prompt the phrase was taught at, so the core recognizes its intent); <see langword="null"/> for an ordinary turn.</param>
 /// <param name="Facts">The world as the guide sees it for this turn: a copy of the blocks around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
@@ -126,7 +127,7 @@ public enum NameCheck
 /// <param name="Offer">The host event of a teacher's offer to bake (W08, <c>baker.offer_craft</c>) when the teacher could make it now, or <see langword="null"/>: an off-prompt <c>ask_craft</c> is then answered by the offer instead of the NPC's one off-prompt line.</param>
 /// <param name="Grant">What the teacher could give of the run's ingredients now (W08, <see cref="TeachingGrant"/>), or <see langword="null"/> with no run at a station.</param>
 /// <param name="ClosedGifts">The gifts that are not to be given now (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), those given already today that no lesson step requires; <see langword="null"/> for none. An NPC asked for one answers <c>&lt;npc&gt;.gift_used</c>.</param>
-public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null, TeachingGrant? Grant = null, string? Offer = null);
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null, TeachingGrant? Grant = null, string? Offer = null, string? WeatherKey = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the

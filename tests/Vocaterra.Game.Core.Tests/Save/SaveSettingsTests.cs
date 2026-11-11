@@ -24,6 +24,22 @@ public sealed class SaveSettingsTests
     }
 
     [Fact]
+    public void Given_TheWeatherVolume_When_Saved_Then_ItSurvivesAParseAndAnOlderSaveWithoutItTakesTheDefault()
+    {
+        var session = TestGame.NewSession();
+        var settings = new SaveSettings(new SoundVolumes(0.9, 0.25, 0.5, 0.0, 0.3));
+
+        var text = SaveOf(session, settings);
+        Assert.Contains("\"weather\":0.3", text, StringComparison.Ordinal); // kept under settings.sound (docs/game/saves.md)
+        Assert.Equal(0.3, SaveGame.Parse(text).Settings!.Sound.Weather, 6);
+
+        var older = System.Text.RegularExpressions.Regex.Replace(text, ",\"weather\":[^,}]*", string.Empty);
+        Assert.NotEqual(text, older); // the field is gone, as in a save from before E09
+        Assert.Equal(SoundVolumes.Default.Weather, SaveGame.Parse(older).Settings!.Sound.Weather, 6);
+        Assert.Equal(0.0, SaveGame.Parse(older).Settings!.Sound.Ambient, 6); // the rest of the sound block is read as it was
+    }
+
+    [Fact]
     public void ASaveWithoutSettingsLoadsAndTakesTheDefaults()
     {
         var session = TestGame.NewSession();

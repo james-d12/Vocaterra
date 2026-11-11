@@ -6,6 +6,9 @@ public enum SettingId
     /// <summary>The ambient beds' volume, 0 to 100.</summary>
     AmbientVolume,
 
+    /// <summary>The weather's own sounds (the rain), 0 to 100: its own slider, not the ambient one (E09).</summary>
+    WeatherVolume,
+
     /// <summary>The NPCs' voices' volume, 0 to 100.</summary>
     VoiceVolume,
 

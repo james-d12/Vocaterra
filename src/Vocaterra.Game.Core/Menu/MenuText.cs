@@ -14,7 +14,7 @@ public static class MenuText
             "testDebug", "testNeedsRun", "testRefill", "testSoundsOff", "testVoicesMuted", "testShoulder", "testSave",
             "subNeeds", "subView", "subTeleport", "subSound", "subScoring", "subFiles",
             "testNeedHunger", "testNeedThirst", "testNeedSleep", "testNeedHealth", "testNeedStamina",
-            "testDusk", "testGreyscale", "testAssumeKnown", "testTips", "testBeacon", "testPlace", "testGo", "testCredit", "testCreditHalf", "testCreditFull", "testAutosave",
+            "testTimeOfDay", "testWeather", "testRunning", "testGreyscale", "testAssumeKnown", "testTips", "testBeacon", "testPlace", "testGo", "testCredit", "testCreditHalf", "testCreditFull", "testAutosave",
             "settingsOn", "settingsOff",
         },
         .. PlayerSettings.All.SelectMany(static spec => (spec.ChoiceKeys ?? []).Prepend(spec.LabelKey).Concat(spec.MinKey is null ? [] : [spec.MinKey])),

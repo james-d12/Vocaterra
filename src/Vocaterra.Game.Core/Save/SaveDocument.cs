@@ -221,19 +221,20 @@ public sealed record SaveSettings(
 
 /// <summary>
 /// The volume of each sound category, 0 to 1 (S24, D-game-18): the NPCs' voices, the effects of the world, the interface and progress sounds, and the ambient beds
-/// (S25). A value outside 0 to 1 is clamped by <see cref="Clamped"/>; a save from a hand-edited file never carries the mixer past full scale.
+/// (S25), and the weather's own beds (E09). A value outside 0 to 1 is clamped by <see cref="Clamped"/>; a save from a hand-edited file never carries the mixer past full scale.
 /// </summary>
 /// <param name="Voice">The NPCs' pre-rendered voices.</param>
 /// <param name="Sfx">The effects: gathering, placing, picking up, crafting, the fire.</param>
 /// <param name="Ui">The interface and progress sounds: panels, buttons, chimes, the push-to-talk beeps.</param>
 /// <param name="Ambient">The ambient beds.</param>
-public sealed record SoundVolumes(double Voice = 1.0, double Sfx = 0.8, double Ui = 0.8, double Ambient = 0.6)
+/// <param name="Weather">The weather's own beds (the rain, E09).</param>
+public sealed record SoundVolumes(double Voice = 1.0, double Sfx = 0.8, double Ui = 0.8, double Ambient = 0.6, double Weather = 0.6)
 {
     /// <summary>The volumes of a new game.</summary>
     public static SoundVolumes Default { get; } = new();
 
     /// <summary>The same volumes with every value limited to 0 to 1 (a value that is not a number counts as 0).</summary>
-    public SoundVolumes Clamped() => new(Limit(Voice), Limit(Sfx), Limit(Ui), Limit(Ambient));
+    public SoundVolumes Clamped() => new(Limit(Voice), Limit(Sfx), Limit(Ui), Limit(Ambient), Limit(Weather));
 
     private static double Limit(double value) => double.IsNaN(value) ? 0 : Math.Clamp(value, 0, 1);
 }
@@ -444,13 +445,15 @@ public sealed record RepeatSave(string Tag, int Count);
 /// <param name="Gifts">The gifts given today (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), which the next night makes available again; <see langword="null"/> for none.</param>
 /// <param name="Planted">The berry bushes planted at the camp that stand (N08): each is also in <paramref name="Bushes"/> until a night grows it; <see langword="null"/> for none.</param>
 /// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> in a save made before W06 or with none, which starts with none.</param>
+/// <param name="Atmosphere">The day clock's offset and held hour (E01) and the weather's state (E04), <c>systems.atmosphere</c>: <c>{"offset", "frozenHour", "weather"}</c>, written only when it is not a new game's (the offset is 0, no hour is held and the weather is still in its first spell); <see langword="null"/> starts both as a new game has them.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ChestSave? Chest = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Bushes = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string[]? Gifts = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] BushSave[]? Planted = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Atmosphere.AtmosphereState? Atmosphere = null);
 
 /// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
 /// <param name="X">The cell's X.</param>

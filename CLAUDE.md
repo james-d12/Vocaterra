@@ -66,6 +66,11 @@ Facts every session needs:
   A2 ceiling since V08 (D-game-22 (b)): `scripts/content.sh lint content/game-v1 --strict --level a2 --fail-on-level --host-pools 'guide.*'`
   clean, each lesson held to its own `level` (`a1` | `a2`) by the host's `--validate-content`, `content/PHRASES.md` the source of truth
   (D-game-10, D-game-12).
+- **Day, night and weather (D-game-31):** `docs/game/weather-plan.md`, milestones E00 to E08 (prefix `E<nn>:`), built on `feature/weather`
+  in the worktree `.claude/worktrees/weather` (2026-11-10). The data is `content/game-v1/game/day.json` and `weather.json`; the logic is
+  `Vocaterra.Game.Core/Atmosphere`, the drawing `Vocaterra.Game/Graphics/Sky` and `Graphics/Weather`. A weather kind is a row of data:
+  consumers read the `AtmosphereSnapshot`'s channels, and no file under `src/` names a kind's id (two tests enforce it). `--time <hour>`
+  and `--weather <id>` hold them for a run.
 - **Content as data (D-game-21):** `docs/game/content-plan.md`, milestones C01 to C10 (prefix `C<nn>:`), all committed straight to
   `feature/content` (no milestone branches) and gated there: JSON Schemas, one `GameData` load, the L1 locale bundle `content/locale/` (outside game-v1's hash), objectives and NPCs as data.
   Closed on 2026-10-29: C01 to C08 are done (PR #16), C09 is assessed, and C10, the authoring CLI, is specified in the plan's section 3.8.

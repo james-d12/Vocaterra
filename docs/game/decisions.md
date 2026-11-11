@@ -33,6 +33,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-25 | Lessons optional: classes the player takes on, not the game's goal (the adaptation design's sections 5.3 and 5.4; L01) | decided (owner, 2026-11-04): a short required introduction with Luna, every other lesson an offered class; sleep whenever tired (the sleep drive below 75), every sleep a night, no nap; orders open once their NPC is met (amended by D-game-30, proposed: the NPC offers its order and «sí» takes it on); Luz shows the player how to bake on request, session 11 an optional class; amends V12c and D-game-15, answers the design's decision 16 | L01, N03, W08, W10, W11 |
 | D-game-27 | Handing an order over in Spanish (issue #42) | decided (owner, 2026-11-08): the learner says what they give; the item must be named, the count is optional; «no sé» or two misses hand the goods over anyway | nothing |
 | D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
+| D-game-31 | Day, night and weather (the E series, `docs/game/weather-plan.md`) | decided (owner, 2026-11-10): a free-running day and night cycle first, then weather in spells (sunny, cloudy, rain) with a new roll on waking; the first version is the atmosphere and truthful NPC answers, no gameplay effect; built in a new worktree from `main` | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -667,6 +668,24 @@ owner's review:
 How it is built: `GuideSession.OrderOffer.cs`, the objectives' `lessonStep` (`content/schema/objective.schema.json`), an `offering_order` state and an
 `<npc>-order-offer` prompt for each order NPC, ten new NPC lines with their recordings, and the validator's `CheckOrderOffer`. Open for the owner: the wording
 of the eight lines, and whether a declined order should come back at the next talk rather than the next day.
+
+## D-game-31: day, night and weather (decided, 2026-11-10)
+
+*Numbered D-game-31 because `merge-main-into-german` holds D-game-29 and D-game-30 is the orders decision above.*
+
+The owner asked for "a modular foundational weather system", the first version with "the basics like rain, cloudy, sunny", that "should
+allow for future weather systems and be modular". The plan is [the weather plan](weather-plan.md) (the E series, on `feature/weather`).
+The questions and the answers:
+
+1. **How far the first version reaches:** "Atmosphere + NPC answers". Sunny, cloudy and rain as saved, deterministic world state with
+   sky, light, fog, rain and a rain sound; the NPCs answer «¿Qué tiempo hace?» truthfully. No gameplay effect yet.
+2. **How the weather changes:** "I guess we need a day / night cycle implemented first, then add the spells + new roll on waking." So a
+   day and night cycle is built first; the weather then moves on its own in spells of a few minutes, and a sleep rolls the morning's
+   weather.
+3. **The clock and sleeping:** "Free-running cycle". Day and night loop on their own (about 30 minutes of day and 10 of night, set in
+   data). A sleep jumps to the morning; the day counter still moves only on a sleep, so one "Sesión n" can see several sunrises. Sleep's
+   rule (D-game-25) does not change.
+4. **Where it is built:** "Make sure to make a new git worktree from main" (`.claude/worktrees/weather`, branch `feature/weather`).
 
 ## Already decided
 

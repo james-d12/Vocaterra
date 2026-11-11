@@ -17,6 +17,7 @@ public sealed class PlayerSettings
     private static readonly IReadOnlyList<SettingSpec> Specs =
     [
         new(SettingId.AmbientVolume, SettingKind.Slider, 0, 100, 5, 60, "settingsAmbient", "%"),
+        new(SettingId.WeatherVolume, SettingKind.Slider, 0, 100, 5, 60, "settingsWeather", "%"),
         new(SettingId.VoiceVolume, SettingKind.Slider, 0, 100, 5, 100, "settingsVoice", "%"),
         new(SettingId.SfxVolume, SettingKind.Slider, 0, 100, 5, 80, "settingsSfx", "%"),
         new(SettingId.UiVolume, SettingKind.Slider, 0, 100, 5, 80, "settingsUiSounds", "%"),
@@ -56,12 +57,16 @@ public sealed class PlayerSettings
     /// <summary>The ambient beds' volume, 0 to 1.</summary>
     public double AmbientVolume => Get(SettingId.AmbientVolume) / 100.0;
 
-    /// <summary>The volumes of the four sound categories.</summary>
+    /// <summary>The weather's own sounds' volume (the rain), 0 to 1.</summary>
+    public double WeatherVolume => Get(SettingId.WeatherVolume) / 100.0;
+
+    /// <summary>The volumes of the sound categories.</summary>
     public SoundVolumes Volumes => new(
         Get(SettingId.VoiceVolume) / 100.0,
         Get(SettingId.SfxVolume) / 100.0,
         Get(SettingId.UiVolume) / 100.0,
-        Get(SettingId.AmbientVolume) / 100.0);
+        Get(SettingId.AmbientVolume) / 100.0,
+        Get(SettingId.WeatherVolume) / 100.0);
 
     /// <summary>The graphics quality.</summary>
     public QualityLevel Quality => (QualityLevel)Get(SettingId.Quality);
@@ -128,6 +133,7 @@ public sealed class PlayerSettings
         {
             var clean = saved.Clamped();
             settings._values[(int)SettingId.AmbientVolume] = Spec(SettingId.AmbientVolume).Snap((int)Math.Round(clean.Sound.Ambient * 100));
+            settings._values[(int)SettingId.WeatherVolume] = Spec(SettingId.WeatherVolume).Snap((int)Math.Round(clean.Sound.Weather * 100));
             settings._values[(int)SettingId.VoiceVolume] = Spec(SettingId.VoiceVolume).Snap((int)Math.Round(clean.Sound.Voice * 100));
             settings._values[(int)SettingId.SfxVolume] = Spec(SettingId.SfxVolume).Snap((int)Math.Round(clean.Sound.Sfx * 100));
             settings._values[(int)SettingId.UiVolume] = Spec(SettingId.UiVolume).Snap((int)Math.Round(clean.Sound.Ui * 100));
@@ -151,6 +157,11 @@ public sealed class PlayerSettings
         if (launch.AmbientVolume is { } ambient)
         {
             settings._values[(int)SettingId.AmbientVolume] = Spec(SettingId.AmbientVolume).Snap(PercentOf(ambient));
+        }
+
+        if (launch.WeatherVolume is { } weather)
+        {
+            settings._values[(int)SettingId.WeatherVolume] = Spec(SettingId.WeatherVolume).Snap(PercentOf(weather));
         }
 
         if (launch.VoiceVolume is { } voice)

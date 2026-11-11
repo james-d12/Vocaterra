@@ -180,7 +180,7 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures()),
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), state.Atmosphere),
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
@@ -388,7 +388,8 @@ public static class SaveGame
             document.Player,
             slots,
             document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
-            document.Flow));
+            document.Flow,
+            document.Systems?.Atmosphere)); // E01: a save without an entry starts the clock as a new game has it
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);

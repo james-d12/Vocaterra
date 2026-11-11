@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Graphics.Figures;
@@ -15,16 +16,11 @@ public sealed class ArmPresenter : ITickObserver
     /// <summary>Creates the arm of the simulation's body.</summary>
     /// <param name="sim">The simulation: the selected stack, the walk and the gathering.</param>
     /// <param name="isSolid">Whether a block is solid, for the light that reaches the hand.</param>
-    /// <param name="dusk">Whether the scene is at dusk (<c>--dusk</c>).</param>
-    public ArmPresenter(VoxelSimulation sim, Func<int, int, int, bool> isSolid, bool dusk)
+    public ArmPresenter(VoxelSimulation sim, Func<int, int, int, bool> isSolid)
     {
         _sim = sim;
         _isSolid = isSolid;
-        Dusk = dusk;
     }
-
-    /// <summary>Whether the scene is at dusk (<c>--dusk</c>; the menu's Dusk lighting row changes it during the run).</summary>
-    public bool Dusk { get; set; }
 
     /// <summary>Once a tick, after the step: a placement in the tick's commands swings the arm once.</summary>
     public void AfterTick(IReadOnlyList<VoxelCommand> commands)
@@ -38,13 +34,16 @@ public sealed class ArmPresenter : ITickObserver
         }
     }
 
-    /// <summary>The arm as it is now, lit at <paramref name="eye"/> by the scene's <paramref name="lights"/>.</summary>
-    public ArmFrame Frame(Vector3 eye, IReadOnlyList<BlockPos> lights)
+    /// <summary>The arm as it is now, lit at <paramref name="eye"/> by the sun of <paramref name="look"/> and the scene's <paramref name="lights"/>.</summary>
+    /// <param name="eye">The eye in blocks.</param>
+    /// <param name="lights">The lanterns of the world.</param>
+    /// <param name="look">The sky's look at this moment of the cycle: the sun's light and the lanterns' strength.</param>
+    public ArmFrame Frame(Vector3 eye, IReadOnlyList<BlockPos> lights, in SkyLook look)
     {
         var held = HeldItems.For(_sim.SelectedStack);
         var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
         var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
-        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, Dusk);
+        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, look.SunLight, look.LanternStrength);
         return new ArmFrame(held, motion, light);
     }
 }

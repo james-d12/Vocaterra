@@ -217,6 +217,15 @@
       },
       "description": "V29: by intent (state_weather), the reply that says a word of the learner's line back (Sí, hace frío.) in place of the intent's plain reply (¡Sí!)."
     },
+    "weatherAnswers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "E07: the intents (ask_weather) whose reply is the weather's own answer: the NPC says the pool its agent names on the host event <id>.<key> (a transition the game never fires, as <id>.weather), the key being the dialogue key (game/weather.json, a kind's say) of the weather at that moment, in place of the pool its transition names. The validator requires a pool for every key."
+    },
     "poolPrefix": {
       "type": "string",
       "minLength": 1,

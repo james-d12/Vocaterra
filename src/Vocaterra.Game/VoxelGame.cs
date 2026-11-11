@@ -36,6 +36,7 @@ using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Scripted;
@@ -177,7 +178,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // A run with --no-autosave starts with it off (the menu's Autosave row switches it).
     private readonly AutosaveController? _autosave;
     private bool _showTips; // the first-time tips are drawn (an interactive run, or --tips; the menu's First-time tips row)
-    private bool _dusk; // --dusk, and the menu's Dusk lighting row
 
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
@@ -195,9 +195,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         _options = options;
         _showTips = options.ShowsTips;
-        _dusk = options.Dusk;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -214,6 +213,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
+        HoldTheClock(options);
         (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
@@ -239,7 +239,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
-        _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
+        _arm = new ArmPresenter(_sim, _isSolid);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _reportScreen = new ReportScreen(
@@ -497,6 +497,25 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).
+    // The held clock of the launch options (E02): --time holds the day clock at an hour, and --dusk, with no --time, at the dusk hour, so a screenshot run shows the hour it names. The clock's
+    // held hour is part of the simulation's state (E01): a save written during such a run keeps it.
+    private void HoldTheClock(LaunchOptions options)
+    {
+        if (options.WeatherId is { } weather)
+        {
+            _sim.ForceWeather(weather); // --weather holds the kind (E05); the program has checked the id against the bundle
+        }
+
+        if (options.TimeHour is { } hour)
+        {
+            _sim.FreezeClock(hour);
+        }
+        else if (options.Dusk)
+        {
+            _sim.FreezeClock(SkyLook.DuskHour);
+        }
+    }
+
     private void ClosePanels()
     {
         if (_dialogue.IsOpen)
@@ -767,7 +786,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
+        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 
@@ -1007,7 +1027,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         switch (id)
         {
-            case SettingId.AmbientVolume or SettingId.VoiceVolume or SettingId.SfxVolume or SettingId.UiVolume:
+            case SettingId.AmbientVolume or SettingId.WeatherVolume or SettingId.VoiceVolume or SettingId.SfxVolume or SettingId.UiVolume:
                 _sound.Mixer.SetVolumes(_settings.Volumes);
                 Console.WriteLine($"volume {id}: {_settings.Get(id)} percent");
                 break;
@@ -1084,14 +1104,34 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         },
         ShoulderView = () => _viewMode.Mode == CameraMode.ThirdPerson,
         SetShoulderView = on => _viewMode.Set(on ? CameraMode.ThirdPerson : CameraMode.FirstPerson), // F5, --third-person
-        Dusk = () => _dusk,
-        SetDusk = on =>
+        TimeHeld = () => _sim.Clock.State.FrozenHour, // the held hour (--time, --dusk, the Time of day row or a scripted step); null while the clock runs
+        SetTimeHeld = hour =>
         {
-            _dusk = on; // --dusk: the world is meshed again in the evening light, the sky, the arm and the ambient beds follow
-            _drawer.SetDusk(on);
-            _arm.Dusk = on;
-            _sound.SetDusk(on);
-            Console.WriteLine($"dusk lighting: {(on ? "on" : "off")}");
+            if (hour is { } held)
+            {
+                _sim.FreezeClock(held); // the sky, the fog, the light, the arm and the sound follow the clock
+            }
+            else
+            {
+                _sim.UnfreezeClock(); // the clock runs on from its held hour
+            }
+
+            Console.WriteLine(hour is { } shown ? $"time of day: held at {shown:0.##}" : "time of day: running");
+        },
+        WeatherIds = [.. _sim.Weather.Data.Kinds.Select(static kind => kind.Id)],
+        WeatherHeld = () => _sim.Weather.IsHeld ? _sim.Weather.Current.Id : null,
+        SetWeatherHeld = id =>
+        {
+            if (id is { } kind)
+            {
+                _sim.ForceWeather(kind); // held: no transition, until Running
+            }
+            else
+            {
+                _sim.ReleaseWeather();
+            }
+
+            Console.WriteLine(id is { } shownKind ? $"weather: held at {shownKind}" : "weather: running");
         },
         Greyscale = () => _drawer.Colours?.Enabled ?? _options.Greyscale,
         SetGreyscale = on =>

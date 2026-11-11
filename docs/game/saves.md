@@ -42,7 +42,7 @@ The current version is 7. Two branches each wrote a different version 6 (the nee
 (PR #45) and the merged format is version 7, which holds both sides' fields. A save of either old version-6 shape is not read: the game is unreleased, so there is no
 migration between them. Water's fields are optional like the others: `air` (the player's breath, in ticks) in the simulation state, and `flow` (the water that is not a source
 in the scene diff and the cells waiting to flow, H06). The underwater blur setting (H11) is the optional `underwaterBlur` of the save's `settings` (the level as its number: 0 off,
-2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter.
+2 medium, 3 high; no field is the default, low), so it needed no further version. Drowning (H11) leaves no state of its own: the damage is in the `health` meter. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 Version 6 (in the merged format) adds an optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 adds `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
@@ -74,6 +74,17 @@ chest state as optional fields of the entry. Stages and their effects are never 
   given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
 - **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save from before N08 has none and loads with none; the save version stays 6.
   No version change; a save before N06 has neither entry (a bush picked in it stays picked).
+- **The day clock and the weather (E01, E04)** are the `atmosphere` entry of `systems`, with two parts. The entry is absent in a new game's default state (the clock
+  not held, the weather still in its first spell), so a save of a game that never slept or changed weather is byte for byte what it was and every older save and both
+  fixtures load as before; it is written when either part is not a new game's. The state digest adds nothing for the default state, and from the first change of weather
+  on the entry is part of the digest and the save. A load and a sleep's restore put the entry back before the digest check. No version change: the save version stays 7,
+  and a load raises neither a `day_phase` nor a `weather_changed` event.
+  - **The clock** is `{"offset", "frozenHour"}`. `offset` is the number of ticks added to the clock's position in the cycle (0 up to one cycle; a sleep or a collapse sets it so
+    the hour is `wakeHour` in `game/day.json`), `frozenHour` the hour a test or a screenshot holds the clock at (absent when it runs). A save without the entry starts the clock at `startHour`.
+  - **The weather** is the `weather` field: `{"current", "previous", "spellStart", "spellEnd", "spells", "mornings", "held"}`. `current` and `previous` are kind ids of
+    `game/weather.json`, the ticks are the spell's, `spells` and `mornings` are the counters the seeded draws are keyed by (with the world seed, so a restored game continues to the same
+    next kinds), `held` a kind a test holds. The field is absent while the weather is in its first spell (the start kind, never rolled or held). A save without it restores the first spell;
+    an unknown kind id is a refused save.
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## The conversation pages (U08)

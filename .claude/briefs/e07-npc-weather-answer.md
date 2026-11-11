@@ -1,0 +1,69 @@
+# Brief: E07, the NPCs' answer
+
+Sent 2026-11-10 to a general-purpose agent, Sonnet 5.5 at medium effort. Worktree `/home/james/Dev/Vocaterra/.claude/worktrees/e07`,
+branch `E07-npc-weather-answer`, cut from `feature/weather` after E04's gate. The shared part is `.claude/briefs/e-series-standard.md`.
+A content milestone: the block "What a content milestone adds" of `docs/process/milestone-briefs.md` applies where this brief says so.
+
+```
+You are implementing E07, "the NPCs' answer": asked «¿Qué tiempo hace?» (the intent `ask_weather`), every NPC answers with the weather
+the world has, not the fixed «Hoy hace sol.» of V29. Your work is in src/Vocaterra.Game.Core (Npc/, Atmosphere/, Language/Speech/),
+its tests, content/game-v1 and content/schema. The design is docs/game/weather-plan.md section 3.9; where this brief is more specific,
+the brief wins.
+
+E02 (drawing the day and night) runs beside you in src/Vocaterra.Game: do not edit that project beyond what compiling requires.
+
+What E04 left you: each weather kind in content/game-v1/game/weather.json may carry `say: { day, night }`, two strings the code only
+carries (Atmosphere/WeatherSay.cs, WeatherKind.cs); `Simulation.Atmosphere` (an AtmosphereSnapshot) gives the `say` key for the current
+kind and phase (the night's key when the phase is Night, else the day's); `Simulation.ForceWeather(id)` and `FreezeClock(hour)` hold a
+weather and an hour for tests. Read src/Vocaterra.Game.Core/README.md's Atmosphere section first.
+
+Read (the sections named): .claude/briefs/v29-weather-wellbeing-replies.md and v29-report.md (how V29 built `<npc>_sun` and the
+`<npc>_weather` slot reply; your model); docs/game/village-plan.md lines 690-700 (the seam V29 left); docs/process/milestone-briefs.md,
+"What a content milestone adds"; content/README.md ("The edit loop", NPCs as data, the speech files); content/game-v1/agents/baker.json
+(the three `ask_weather` transitions and their `baker_sun` action; the other six NPCs are alike: farmer, fisher, guide, shopkeeper,
+smith, villager); content/game-v1/dialogue/dialogue.json (the `<npc>_sun` and `<npc>_weather` pools, near lines 1820-1970);
+content/game-v1/game/npcs/baker.json; src/Vocaterra.Game.Core/Npc/NpcTurnRules.cs (SlotReplyOf near 296, and how a reply pool is
+chosen for a turn), Npc/NpcRoster.cs (SlotReply, lines 59 and 110), Npc/NpcHostEvents.cs, Npc/WorldFacts.cs and GuideFacts.cs,
+Language/Speech/SpeechLines.cs (lines 111 and 222: which lines get a recorded clip); tests/Vocaterra.Game.Core.Tests/Npc/
+WeatherAndWellbeingTests.cs. grep content/PHRASES.md and docs/game/speech-checklist.md for rows; never read them whole.
+
+Deliverables:
+
+1. The lines. Each of the seven NPCs gets three new one-variant pools beside its `<npc>_sun`, in the same shape:
+   `<npc>_cloudy` «Hoy está nublado.», `<npc>_rain` «Hoy llueve.» and `<npc>_fair` «Hace buen tiempo.» (a clear night, when «Hoy hace
+   sol.» would be false). These three sentences are fixed by the orchestrator, who has checked the Spanish; do not reword them. If the
+   content lint or the level check at A2 objects to a word, report the finding exactly; do not waive it and do not change the line.
+2. The data. In weather.json the kinds get their `say`: `sunny` day `sun`, night `fair`; `cloudy` both `cloudy`; `rain` both `rain`.
+   The key names the pool `<npc>_<key>`. The schema allows the field as E04 left it; the validator now also checks, for the game's
+   bundle, that every kind has `say` and that every NPC that answers `ask_weather` has a pool for every key (so a kind added later
+   cannot ship without its line). Keep the rule that no file under src/ names a kind's id
+   (tests/Vocaterra.Game.Core.Tests/Architecture/NoWeatherKindIdsInSourceTests.cs); pool keys come from the data, not from code.
+3. The choice. When an NPC's turn answers `ask_weather`, the line said and shown is the pool for the snapshot's `say` key at that
+   moment. Find the mechanism that fits what exists: V29's slot reply goes through a host event whose transition names the pool, and
+   the host may choose pools for some agents (`--host-pools`). The core (Vocaterra.Nlp) is not to be edited: if no mechanism in the
+   game and the content can choose the pool without a core change, stop and report what call is missing, with the smallest core change
+   that would do it. Whatever you choose, the agents' three `ask_weather` transitions per NPC stay one rule in the data, not one per
+   weather, if the mechanism allows it; say in the report why if it does not.
+   The reply to the learner's own statement (`state_weather`, «Sí, hace {weather}.» and «¡Sí!») stays exactly as it is.
+4. Speech. The new lines are recorded for the seven NPCs in their voices, normal and slow, as `<npc>_sun.1.wav` is
+   (content/game-v1/speech/<npc>/), by the content loop's speech step; SpeechLines knows them, the provenance and attribution files
+   are updated as the loop requires, and docs/game/speech-checklist.md is regenerated by the tool (never edited by hand). Listen is the
+   owner's job; you check that each file exists, is not silent and is about as long as its neighbours.
+5. The content loop: `scripts/content-loop.sh --grammar --speech` after every content edit, `--record` only if goldens moved (say
+   which), `--tier full` once before the report. Read every grammar finding it prints. The new bundle hash goes into the save
+   fixtures as the loop does it.
+6. Tests. tests/Vocaterra.Game.Core.Tests/Npc/WeatherAndWellbeingTests.cs changes on purpose: where it pinned «Hoy hace sol.» for
+   every NPC, it now pins, for every NPC, the answer in each held weather by day and at night (sun by day and fair at night for the
+   first kind, cloudy, rain), and that a fourth kind defined only in a test's data with its own key and pool is answered with no code
+   change. The `state_weather` tests stay untouched and green. Add a test that the answer changes when the weather changes between
+   two turns of one conversation, and one for the validator's new rule.
+7. A check in the running game, in the report: with the host's text loop or `--transcript` (see CLAUDE.md's demo line and
+   docs/game/running.md), ask one NPC the question in each weather if a host option can hold the weather today; if none can (the
+   `--weather` flag is E05's), say so and rely on the tests. Also a few natural neighbours of the question at one NPC, to show nothing
+   else moved: «Hola», «¿Cómo estás?», «Hace sol», «Llueve», «¿Qué tiempo hace hoy?».
+8. Documents: the weather answer in docs/game/lessons.md where V29's free-talk line is described (near its line 304), the NPC data
+   notes in content/README.md if the choice adds a field, and the Atmosphere section of src/Vocaterra.Game.Core/README.md.
+
+Out of scope: any drawing or sound; the `--weather` flag and menu row (E05); truthful agreeing or disagreeing with `state_weather`;
+greetings by the time of day; any lesson, objective or tip about weather; any new intent or any edit of intents.json.
+```

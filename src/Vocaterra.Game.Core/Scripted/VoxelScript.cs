@@ -162,6 +162,20 @@ public sealed class VoxelScript
                 return CraftTick(step, commands);
             case VoxelStepKind.Pour:
                 return PourNow(step);
+            case VoxelStepKind.SetTime:
+                _sim.FreezeClock(step.Hour);
+                _log(string.Create(CultureInfo.InvariantCulture, $"set-time: held at {step.Hour:0.##}"));
+                return true;
+            case VoxelStepKind.RunTime:
+                _sim.UnfreezeClock();
+                _log("set-time: running");
+                return true;
+            case VoxelStepKind.SetWeather:
+                return SetWeatherNow(step);
+            case VoxelStepKind.RunWeather:
+                _sim.ReleaseWeather();
+                _log("set-weather: running");
+                return true;
             default:
                 return PlaceTick(step, commands);
         }
@@ -217,6 +231,21 @@ public sealed class VoxelScript
         _log(_sim.PourWater(new BlockPos(step.X, step.Y, step.Z))
             ? $"pour {step.X},{step.Y},{step.Z}: a water source where there was {before}"
             : $"pour {step.X},{step.Y},{step.Z}: refused ({before} is there, or the cell is outside the world)");
+        return true;
+    }
+
+    // A weather kind held by its id; an id the data does not have is reported with the ids it does have, and nothing changes.
+    private bool SetWeatherNow(VoxelStep step)
+    {
+        var kinds = _sim.Weather.Data.Kinds;
+        if (!kinds.Any(kind => string.Equals(kind.Id, step.Item, StringComparison.Ordinal)))
+        {
+            _log($"set-weather {step.Item}: no weather kind called '{step.Item}' (the kinds are {string.Join(", ", kinds.Select(static kind => kind.Id))})");
+            return true;
+        }
+
+        _sim.ForceWeather(step.Item);
+        _log($"set-weather: held at {step.Item}");
         return true;
     }
 

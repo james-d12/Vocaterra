@@ -120,16 +120,18 @@ public interface ITalkSounds
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Categories.</b> Voice, sfx, ui and ambient each have a volume (<see cref="SoundVolumes"/>, kept in the save's settings). The NPCs' voices are played by
+/// <b>Categories.</b> Voice, sfx, ui, ambient and weather each have a volume (<see cref="SoundVolumes"/>, kept in the save's settings). The weather's beds (the rain, E09)
+/// are the weather category, not the ambient one. The NPCs' voices are played by
 /// <c>NpcVoice</c>; the mixer is told when one is on (<see cref="SetVoice"/>).
 /// </para>
 /// <para>
-/// <b>Ducking.</b> While a voice line plays, sfx and ambient dip to <see cref="DuckLevel"/> of their volume, eased in and out (<see cref="Advance"/>), so the ear stays on the
+/// <b>Ducking.</b> While a voice line plays, sfx, ambient and weather dip to <see cref="DuckLevel"/> of their volume, eased in and out (<see cref="Advance"/>), so the ear stays on the
 /// Spanish (D-game-13). The interface and progress sounds are short and are not ducked.
 /// </para>
 /// <para>
 /// <b>The microphone rule.</b> From <see cref="Started"/> to <see cref="Stopped"/> sfx, ambient and ui are all silent: nothing is played and what plays is stopped.
 /// The start beep plays just before the recording (<see cref="Starting"/>) and the stop beep just after it, so no game sound reaches the recognizer.
+/// The weather is silent under the same rule, as the ambient is (the category's gain is zero then).
 /// </para>
 /// <para>
 /// <b>Variation.</b> The take of a cue and its small pitch change come from a <see cref="PresentationRng"/> seeded from the world seed. A cue never plays the same take
@@ -264,7 +266,7 @@ public sealed class SoundMixer : ITalkSounds
         PushBeds();
     }
 
-    /// <summary>The gain a category has now: its volume, times the duck for sfx and ambient, and zero while a recording is on (the voices are not the mixer's to gate).</summary>
+    /// <summary>The gain a category has now: its volume, times the duck for sfx, ambient and weather, and zero while a recording is on (the voices are not the mixer's to gate).</summary>
     /// <param name="category">The category.</param>
     public double Gain(SoundCategory category)
     {
@@ -283,6 +285,7 @@ public sealed class SoundMixer : ITalkSounds
             SoundCategory.Sfx => Volumes.Sfx * _duck,
             SoundCategory.Ui => Volumes.Ui,
             SoundCategory.Ambient => Volumes.Ambient * _duck,
+            SoundCategory.Weather => Volumes.Weather * _duck,
             _ => 0,
         };
     }
@@ -463,8 +466,10 @@ public sealed class SoundMixer : ITalkSounds
         }
 
         _bedsPushed = _levels.Count > 0;
-        var gain = Gain(SoundCategory.Ambient) * UnderwaterSound.Gain(Underwater);
+        var ambient = Gain(SoundCategory.Ambient);
+        var weather = Gain(SoundCategory.Weather);
+        var underwater = UnderwaterSound.Gain(Underwater);
         var muffle = UnderwaterSound.Muffle(Underwater);
-        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * gain * AmbientBeds.Gain(pair.Key), _pans.TryGetValue(pair.Key, out var pan) ? pan : 0, muffle)).ToList());
+        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * (AmbientBeds.IsWeather(pair.Key) ? weather : ambient) * underwater * AmbientBeds.Gain(pair.Key), _pans.TryGetValue(pair.Key, out var pan) ? pan : 0, muffle)).ToList());
     }
 }
