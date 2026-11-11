@@ -164,18 +164,50 @@ public static class AmbientLoops
         return body;
     }
 
-    // The evening insects: two steady whirrs (a high and a lower tone), each pulsed at its own rate, over a little noise of the grass.
+    // The evening insects (E10): crickets in a field. Six voices at their own carriers (about 2.8 to 4.2 kilohertz) and their own level (their apparent distance), each chirping one
+    // to three times a second at a jittered rhythm: a chirp is three or four short soft pulses (10 to 25 ms) at the voice's carrier, which wanders a few hertz from chirp to chirp.
+    // Between chirps there is real silence, so the bed never holds one pitch; under them a very quiet low-passed noise of the night air. (The first version was two steady pulsed
+    // sines, which the owner heard as a constant ringing.)
     private static float[] Insects(int n)
     {
         var rng = new PresentationRng(SoundSynth.Seed ^ 0x1E_C7_0005UL);
         var body = new float[n];
+        double[] carriers = [3650, 2850, 4150, 3250, 3900, 3050];
+        double[] levels = [1.0, 0.85, 0.75, 0.65, 0.55, 0.45];
+        double[] rates = [1.0, 1.5, 1.0, 1.2, 1.6, 1.0]; // chirps a second, on average
+        for (var voice = 0; voice < carriers.Length; voice++)
+        {
+            var mean = Rate / rates[voice];
+            var at = (int)(rng.NextDouble() * mean); // the first chirp's start, in samples
+            while (at < n)
+            {
+                var carrier = carriers[voice] + ((rng.NextDouble() * 2 - 1) * 6);
+                var level = levels[voice] * (0.65 + (0.35 * rng.NextDouble()));
+                var pulses = rng.NextDouble() < 0.65 ? 3 : 4;
+                var pulseStart = at;
+                var phase = rng.NextDouble() * 2 * Math.PI;
+                for (var pulse = 0; pulse < pulses; pulse++)
+                {
+                    var length = (int)(Rate * (0.010 + (0.015 * rng.NextDouble())));
+                    for (var i = 0; i < length && pulseStart + i < n; i++)
+                    {
+                        var envelope = Math.Sin(Math.PI * i / length); // a soft attack and decay: no click
+                        body[pulseStart + i] += (float)(Math.Sin((2 * Math.PI * carrier * (pulseStart + i) / Rate) + phase) * envelope * envelope * level);
+                    }
+
+                    pulseStart += length + (int)(Rate * (0.012 + (0.010 * rng.NextDouble())));
+                }
+
+                at += (int)(mean * (0.6 + (0.8 * rng.NextDouble()))); // the next chirp, from this chirp's start: a jittered rhythm
+            }
+        }
+
+        var air = 0.0;
+        var airAlpha = 1 - Math.Exp(-2 * Math.PI * 700 / Rate);
         for (var i = 0; i < n; i++)
         {
-            var t = i / (double)Rate;
-            var high = Math.Sin(2 * Math.PI * 4700 * t) * Math.Pow(0.5 + (0.5 * Math.Cos(2 * Math.PI * 17 * t)), 4);
-            var lower = Math.Sin((2 * Math.PI * 3900 * t) + 0.5) * Math.Pow(0.5 + (0.5 * Math.Cos((2 * Math.PI * 23 * t) + 1.0)), 4);
-            var grass = ((rng.NextDouble() * 2) - 1) * 0.03;
-            body[i] = (float)((high * 0.4) + (lower * 0.25) + grass);
+            air += airAlpha * (((rng.NextDouble() * 2) - 1) - air);
+            body[i] += (float)(air * 0.03);
         }
 
         return body;
