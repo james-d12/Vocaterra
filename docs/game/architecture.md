@@ -120,6 +120,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   choice), InstructionStrip (the strip as a model of its own, built from a ProcedureView; W30's recipe-book page shows the same one), StationPanel (the IScreen: the
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
+Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
                   (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
@@ -171,7 +172,8 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
   World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
   Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
-  Sky/            SkyModel, SkyRenderer
+  Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of the snapshot: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput, SkyKeyframe, SkyArc, SkyWeather (the channels' effect on the look)
+  Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
 UI/
   Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
   Hud/            HudLayers (ObjectiveLayer: the tracker, U01), HudLayout (TrackerRows, TipBlock, ObjectiveBox: the top of the HUD kept apart), HotbarLayer, ToastLayer, TipLayer, BeaconLabel, NeedsHudLayout, NeedsHudLayer, NeedIcons, ViewEffectsLayer, DeathScreenLayer (N05), VoxelLayers, VoxelDebugText
@@ -268,6 +270,16 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   them to the nearest block, the cursor block and a hint, and the front-end draws the beacon.
 - **Evaluation** never runs inside `VoxelSession.Step`. Since P5 it runs on the turn worker (next section); `GuideSession.Say` is the synchronous
   path that the tests and any headless caller still use.
+
+**The day and the weather (E01 to E06, D-game-31).** Core's `Atmosphere/` holds the clock and the weather; the game draws and hears them. Core blends
+the channels of the previous and the current weather kind with the time of day into one `AtmosphereSnapshot` per tick, and every consumer reads that
+snapshot: `Graphics/Sky` (the dome, clouds, sun, moon, stars and fog, through `SkyLookInput` and `SkyLook`), the light of `Graphics/World` (the band's tint),
+`Graphics/Weather` (the drops, from the precipitation channel), the sound (`AmbientBeds.At`) and the NPCs' answer (the snapshot's `say` key). No consumer
+switches on a weather kind's id. Two tests hold that rule: `NoWeatherKindIdsInSourceTests.NoSourceFileNamesAKindOfTheFirstDataOutsideTheDefaultData`
+fails on any quoted kind id under `src/` outside `WeatherData.cs`, and `TheAllowancesCoverOnlyThePrecipitationIdInTheStyleTableAndTheBedNames` allows
+exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and the ambient bed's name for rain. A new weather that reuses the channels is
+a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
+`systems.atmosphere` entry (`saves.md`).
 
 ## Needs (N01)
 
