@@ -351,6 +351,7 @@
     "ui.controlsRange": "{first} to {last}",
     "ui.controlsOr": "or",
     "ui.settingsAmbient": "Ambient volume",
+    "ui.settingsWeather": "Weather volume",
     "ui.settingsVoice": "Voice volume",
     "ui.settingsSfx": "Effects volume",
     "ui.settingsUiSounds": "Interface sounds volume",

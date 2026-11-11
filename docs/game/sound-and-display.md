@@ -10,16 +10,16 @@ made in code at load from a fixed seed. The audio is under 1 MB (the budget is 1
 turn, a verdict, a state hash or the replay.
 
 **The mixer** (`src/Vocaterra.Game.Core/Sound/SoundMixer.cs`, engine free; the engine output is `src/Vocaterra.Game/Sound/SoundEffectOutput.cs`):
-- Categories: voice (the NPCs' Spanish, S9), sfx, ui (panels, buttons, progress, the beeps) and ambient (S25's beds), each with a volume (defaults 1.0, 0.8, 0.8, 0.6).
-- Ducking: sfx and ambient dip to 35 % under any NPC voice line (eased in over 0.08 s, back over 0.6 s), so the ear stays on the Spanish.
-- The microphone rule: while push-to-talk or the mic check records, sfx, ambient and ui are all silent and what plays is stopped. The start beep plays just before the
+- Categories: voice (the NPCs' Spanish, S9), sfx, ui (panels, buttons, progress, the beeps), ambient (S25's beds) and weather (E09: the rain, its own slider, not the ambient one), each with a volume (defaults 1.0, 0.8, 0.8, 0.6, 0.6).
+- Ducking: sfx, ambient and weather dip to 35 % under any NPC voice line (eased in over 0.08 s, back over 0.6 s), so the ear stays on the Spanish.
+- The microphone rule: while push-to-talk or the mic check records, sfx, ambient, weather and ui are all silent and what plays is stopped. The start beep plays just before the
   recording and the stop beep just after it; the recording drops the start beep's length from its start, so no game sound reaches Vosk.
 - Variation: the take of a sound and a small pitch change come from a presentation generator seeded from the world seed (`PresentationRng`, its own SplitMix64 stream),
   never the same take twice in a row.
 - Beds (for S25): `SoundMixer.SetBeds` takes position-weighted targets and cross-fades them over 1.5 s.
 - Volumes are kept in the save's `settings.sound` and restored on `--load`.
 
-**Flags.** `--mute` (the voices off, as before), `--sfx-volume <0..1>`, `--ambient-volume <0..1>`, `--no-sounds` (every sound but the voices off, the beeps too) and
+**Flags.** `--mute` (the voices off, as before), `--sfx-volume <0..1>`, `--ambient-volume <0..1>`, `--weather-volume <0..1>` (the rain's volume, E09), `--no-sounds` (every sound but the voices off, the beeps too) and
 `--sound-log <file>`. A scripted run (`--screenshot`) uses a null output: silent, no audio device needed. `--sound-log` still records its cues, one line each:
 `tick category cue take gain pitch`, with `mark` lines for the voice and recording windows, `#` comment lines for what the microphone rule held back (`# 001640 held back (recording): sfx place_block`) and a `#` summary at the end. A scripted spoken step (`--wav`, `--speak`) and
 the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks, the stop beep.
@@ -52,7 +52,7 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
 | The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur, the birds and the insects, the rain (their mix follows the day and the weather, see below) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
 
-**Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
+**Ambient beds and footsteps (S25).** (E09: the beds of the weather, `AmbientBeds.IsWeather`, which is the rain alone now, follow the Weather volume; the others follow Ambient.) The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
 function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
 weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
 looping beds are made in code (`AmbientLoops.cs`): 10 seconds each, the tail faded into the head with an equal-power curve, so no click at the seam. The
@@ -69,7 +69,7 @@ block apart, count as covered when their highest block is over the head, and the
 height, so the first data's breeze (0.2) leaves the sunny kind's sound as it was and a strong wind is heard in the lowland too; the birds' weight is multiplied by one minus the intensity. Every other bed is unchanged. The loop is
 synthesised (a 900 to 6500 hertz hiss with a patter of single drops, seamless, 441 kB in memory like the other loops). **The gain** is 0.2, the lowest of the beds (wind 0.5, river 0.45, waterfall 0.6, village 0.35,
 insects 0.3): the loop is the loudest of them (RMS 0.22 of full scale against about 0.15) and its hiss lies where the consonants of speech are, so it must not mask an NPC. At the data's intensity of 0.8 and the default
-ambient volume of 0.6 the rain's level is 0.8 x 0.22 x 0.2 x 0.6 = 0.021 of full scale, against 0.060 for the NPCs' clips (the median RMS of 60 of them): about 9 dB under the voice before the duck, and about 18 dB
+weather volume of 0.6 the rain's level is 0.8 x 0.22 x 0.2 x 0.6 = 0.021 of full scale (E09: the rain follows the Weather volume, not the Ambient one, so Ambient at 0 leaves it and Weather at 0 silences only it; the level at the defaults is the same as before, when the rain shared the ambient volume), against 0.060 for the NPCs' clips (the median RMS of 60 of them): about 9 dB under the voice before the duck, and about 18 dB
 under it while it ducks (0.35); at a gain of 0.3 it would have been 5.6 dB under. It is cross-faded by the mixer over 1.5 s, silent while the microphone records, dulled under water with the others.
 
 ```bash

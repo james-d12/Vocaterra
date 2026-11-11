@@ -192,7 +192,7 @@ public sealed class RainBedTests
     public void Given_TheRainBed_When_TheMixerPlaysIt_Then_ItFadesInOverTheBedFade_DucksUnderAVoice_AndIsMutedWhileRecording()
     {
         var output = new RecordingOutput();
-        var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(11), null);
+        var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0, 1.0), new PresentationRng(11), null);
         var rain = AmbientBeds.At(Real.Value, Forest, Sky(1, 0.8), false, Ground(41));
         mixer.SetBeds(rain);
 
@@ -218,6 +218,24 @@ public sealed class RainBedTests
         mixer.Stopped();
         Run(mixer, 2.5);
         Assert.True(output.Beds.Single(static b => b.Bed == AmbientBeds.Rain).Level > 0.1, "the rain comes back when the recording ends");
+    }
+
+    [Fact]
+    public void Given_TheBeds_When_TheWeatherBedsAreAsked_Then_OnlyTheRainIsOne()
+    {
+        Assert.True(AmbientBeds.IsWeather(AmbientBeds.Rain));
+        Assert.All(AmbientBeds.All.Where(static b => b != AmbientBeds.Rain), static b => Assert.False(AmbientBeds.IsWeather(b), b));
+    }
+
+    [Fact]
+    public void Given_TheRainBedAtTheDefaults_When_Played_Then_ItsLevelIsWhatItWasBeforeE09()
+    {
+        // The defaults: Ambient 0.6 and Weather 0.6, so the rain's output is its weight times its gain times 0.6, as it was when the rain shared the ambient volume.
+        var output = new RecordingOutput();
+        var mixer = new SoundMixer(output, SoundVolumes.Default, new PresentationRng(11), null);
+        mixer.SetBeds([new BedInput(AmbientBeds.Rain, 1.0)]);
+        Run(mixer, 3);
+        Assert.Equal(0.2 * 0.6, output.Beds.Single(static b => b.Bed == AmbientBeds.Rain).Level, 6);
     }
 
     [Fact]
