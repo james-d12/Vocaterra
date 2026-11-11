@@ -2354,3 +2354,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     `AmbientBeds.Rain` also names `rain` (a test allows it). The view from under a roof was taken from inside a house; the rain outside the
     door was not in that frame, so it neither confirms nor refutes the cover at an open eave (E06's awning picture did). No scripted run of
     `scripts/scripted-runs.sh` pins the hour or the weather yet.
+- **E09, a Weather volume slider (2026-11-11, Haiku 5.5; gated at `dc34f897` on `feature/weather`, 11108 passed, 3 skipped).** The
+  owner, after playing: the rain was on the Ambient slider with the birds and the wind. `SettingId.WeatherVolume` (0 to 100, default 60,
+  "Weather volume", after Ambient in the menu), `SoundVolumes.Weather` in `settings.sound.weather`, `--weather-volume`. The mixer has a
+  `SoundCategory.Weather` next to Ambient in `SoundMixer.Gain`, so the duck under a voice and the silence while recording are one rule;
+  `PushBeds` gives each bed its category's gain by `AmbientBeds.IsWeather` (the rain only; the wind stays on Ambient, as it comes mostly
+  from height). At the defaults the rain's level is unchanged (a test pins it).
+  - *Changed on purpose:* `MenuScreenTests` (two tests: the Quality row is one Down further) and one `RainBedTests` test (its volumes now
+    set Weather, the rain's own).
+- **E10, the insects without the ringing (2026-11-11, Sonnet 5.5 medium; gated at `4d5248c1` on `feature/weather`, 11111 passed, 3
+  skipped).** The owner heard "a high pitched constant ringing" heading down the path to the guide at dusk. The cause: `AmbientLoops.Insects`
+  was two steady sines (4700 and 3900 Hz, pulsed at 17 and 23 Hz without rest), heard only with `--dusk` until E03 tied the insects to the
+  daylight (`lowland x (1 - daylight)`), so every dawn, dusk and night and loudest in the valley; a scripted run at 21 showed the bed rising
+  to 0.5 on that path. Now six crickets (carriers 2.85 to 4.15 kHz, levels 1.0 to 0.45), chirps of three or four soft pulses one to 1.6 times
+  a second with jittered rhythms, silence between, a faint low-passed air under them. `InsectsBedTests`: at least 40 percent of 20 ms
+  windows quiet and no 50 Hz band above a third of the 2 to 6 kHz energy; both failed on the old loop (49 of 500 windows quiet; 62 percent
+  at 4674 Hz).
+  - *Changed on purpose:* the new loop's RMS is 3.8 dB under the old one's, so `AmbientBeds.Gain(Insects)` went from 0.3 to 0.46 to keep the
+    bed's level (within 0.1 dB). If the owner finds the crickets too present, the old gain is one number.
+  - *Process:* the agent waited on the suite in shell loops against the brief; nothing was left running.

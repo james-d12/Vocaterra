@@ -515,6 +515,9 @@ Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answer
 | E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | done: gated at `09e83885` on `feature/weather` (2026-11-10), 11089 passed |
 | E07 | The NPCs' answer to «¿Qué tiempo hace?» by weather: lines, speech clips, the content loop | E04 | M | Sonnet 5.5, medium | done: gated at `84033e02` on `feature/weather` (2026-11-10), 10936 passed |
 | E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | done: gated at `c4c55776` on `feature/weather` (2026-11-11), 11094 passed; PR #64 to `main` |
+| E09 | A Weather volume slider for the rain (the owner's play-test, 2026-11-11) | E06 | S | Haiku 5.5 | done: gated at `dc34f897` on `feature/weather` (2026-11-11), 11108 passed |
+| E10 | The insects without the ringing (the owner's play-test) | E03 | S | Sonnet 5.5, medium | done: gated at `4d5248c1` on `feature/weather` (2026-11-11), 11111 passed |
+| E11 | A gradual day: the look by the sun's height, eased dawn and dusk, a deepening night (the owner's play-test) | E02, E05 | M | Sonnet 5.5, high | running |
 
 ## 5. Findings log
 
