@@ -6709,9 +6709,13 @@
 {"id":"dialogue:innkeeper_offer.1","stages":{"render":"e40d56fdbca01663"}}
 {"id":"dialogue:innkeeper_room.1","stages":{"render":"37d2e58f53fec867"}}
 {"id":"dialogue:innkeeper_room.2","stages":{"render":"a990a70bb908fd25"}}
+{"id":"dialogue:innkeeper_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:innkeeper_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:innkeeper_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}
+{"id":"dialogue:innkeeper_understood.1","stages":{"render":"8a69b105e1a59215"}}
+{"id":"dialogue:innkeeper_weather.1","stages":{"render":"8707b5db12465ff9"}}
 {"id":"dialogue:innkeeper_well.1","stages":{"render":"897d500155bb0852"}}
+{"id":"dialogue:innkeeper_yes.1","stages":{"render":"b075610fe2c4cccd"}}
 {"id":"dialogue:not_understood.1","stages":{"render":"f55d928d700613f9"}}
 {"id":"dialogue:not_understood.2","stages":{"render":"89a88372b33f3412"}}
 {"id":"dialogue:shop_buy.1","stages":{"render":"e55564e2fc2ebba9"}}
