@@ -328,6 +328,7 @@
     "npc.baker.role": "The baker",
     "npc.smith.role": "The smith",
     "npc.farmer.role": "The farmer",
+    "npc.innkeeper.role": "The innkeeper",
     "objective.camp.title": "camp",
     "objective.meet-guide.hud": "Go down the trail and find the guide",
     "objective.light-fire.hud": "Go back up the trail and light your own fire",

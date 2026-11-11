@@ -346,6 +346,22 @@
 {"id":"dialogue:guide_weather.1","text":"Sí, hace {weather}.","kind":"template"}
 {"id":"dialogue:guide_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:guide_yes.1","text":"¡Sí!","kind":"npc"}
+{"id":"dialogue:innkeeper_bye.1","text":"¡Hasta luego!","kind":"npc"}
+{"id":"dialogue:innkeeper_bye.2","text":"¡Nos vemos!","kind":"npc"}
+{"id":"dialogue:innkeeper_free.1","text":"La habitación es gratis. ¿Quieres una habitación?","kind":"npc"}
+{"id":"dialogue:innkeeper_help.1","text":"Puedes decir: «Quiero una habitación, por favor».","kind":"npc"}
+{"id":"dialogue:innkeeper_help_given.1","text":"Puedes decir: «Buenas noches» o «Gracias».","kind":"npc"}
+{"id":"dialogue:innkeeper_nice.1","text":"¡Qué bien!","kind":"npc"}
+{"id":"dialogue:innkeeper_night.1","text":"Buenas noches. Tu cama está allí.","kind":"npc"}
+{"id":"dialogue:innkeeper_night.2","text":"¡Buenas noches!","kind":"npc"}
+{"id":"dialogue:innkeeper_no.1","text":"Está bien. La habitación es gratis.","kind":"npc"}
+{"id":"dialogue:innkeeper_no.2","text":"Bueno. La habitación es gratis.","kind":"npc"}
+{"id":"dialogue:innkeeper_offer.1","text":"¡Hola! ¿Quieres una habitación?","kind":"npc"}
+{"id":"dialogue:innkeeper_room.1","text":"¡Claro! La habitación es gratis. Tu cama está allí.","kind":"npc"}
+{"id":"dialogue:innkeeper_room.2","text":"¡Muy bien! La habitación es gratis. Tu cama está allí.","kind":"npc"}
+{"id":"dialogue:innkeeper_thank.1","text":"De nada.","kind":"npc"}
+{"id":"dialogue:innkeeper_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:innkeeper_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:not_understood.1","text":"No te entendí. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:not_understood.2","text":"Perdón, ¿qué dices?","kind":"npc"}
 {"id":"dialogue:shop_buy.1","text":"¡Gracias! Aquí tienes.","kind":"npc"}
@@ -445,6 +461,8 @@
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
+{"id":"prompts:inn-given","text":"Buenas noches.","kind":"npc"}
+{"id":"prompts:inn-offer","text":"¿Quieres una habitación?","kind":"npc"}
 {"id":"prompts:lesson-apple","text":"¿Cómo es la manzana?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"prompts:lesson-bake-plan","text":"¿Qué vas a hacer hoy?","kind":"npc"}
@@ -3602,6 +3620,8 @@
 {"id":"npcs/smith.json:name","text":"Domingo","kind":"npc"}
 {"id":"npcs/farmer.json:label","text":"Granjero","kind":"npc"}
 {"id":"npcs/farmer.json:name","text":"León","kind":"npc"}
+{"id":"npcs/innkeeper.json:label","text":"Posadera","kind":"npc"}
+{"id":"npcs/innkeeper.json:name","text":"Rosa","kind":"npc"}
 {"id":"speech:baker_weather.1.buen-tiempo","text":"Sí, hace buen tiempo.","kind":"npc"}
 {"id":"speech:baker_weather.1.calor","text":"Sí, hace calor.","kind":"npc"}
 {"id":"speech:baker_weather.1.fresco","text":"Sí, hace fresco.","kind":"npc"}

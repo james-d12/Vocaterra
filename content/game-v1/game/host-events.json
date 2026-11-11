@@ -165,6 +165,7 @@
     { "npc": "baker", "event": "baker.proc_help", "action": { "kind": "procedure_help" } },
     { "npc": "baker", "event": "baker.give_missing", "action": { "kind": "give_missing" } },
     { "npc": "baker", "event": "baker.teach_recipe", "action": { "kind": "teach_recipe" } },
-    { "npc": "baker", "event": "baker.start_bake", "action": { "kind": "start_procedure" } }
+    { "npc": "baker", "event": "baker.start_bake", "action": { "kind": "start_procedure" } },
+    { "npc": "innkeeper", "event": "innkeeper.room", "action": { "kind": "grant_lodging" } }
   ]
 }

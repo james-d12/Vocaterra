@@ -266,7 +266,9 @@
     // The smith Domingo (VILLAGE_PLAN V12) between his forge and the paved strip by the smithy's door (the point npc.smith), facing south over the square.
     {"name": "smith", "site": "village", "dx": 10, "dz": -12, "facing": "south"},
     // The farmer León (VILLAGE_PLAN V12) at the wheat field's west fence (the point npc.farmer), facing the wheat.
-    {"name": "farmer", "site": "village", "dx": 8, "dz": 0, "facing": "east"}
+    {"name": "farmer", "site": "village", "dx": 8, "dz": 0, "facing": "east"},
+    // The innkeeper Rosa (SETTLEMENT_PLAN Y06) behind the inn's counter (the point npc.innkeeper), facing west to the player's talk cell (280, 227).
+    {"name": "innkeeper", "site": "village", "dx": -10, "dz": 9, "facing": "west"}
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.
@@ -284,7 +286,7 @@
     "npc.smith": { "x": 302, "z": 206, "label": "herrero" },
     "npc.farmer": { "x": 300, "z": 218, "label": "granjero" },
     "npc.fisher": { "x": 240, "z": 208, "label": "pescador" },
-    // The inn's points (Y04): the stand cell beside the west bed, where the player sleeps (Y05), and the cell behind the counter where the innkeeper will stand (Y06).
+    // The inn's points (Y04): the stand cell beside the west bed, where the player sleeps (Y05), and the cell behind the counter where the innkeeper Rosa stands (Y06).
     "bed.inn": { "x": 278, "z": 231 },
     "npc.innkeeper": { "x": 282, "z": 227 }
   },
