@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.Menu;
 /// running (<c>--needs on|off</c>) and each need's value (<c>--set-need</c>), a refill of the needs, every sound but the voices off (<c>--no-sounds</c>), the voices off (<c>--mute</c>),
 /// the camera over the shoulder (F5, <c>--third-person</c>), the held time of day (<c>--time</c>, <c>--dusk</c>, a scripted step) and held weather (a scripted step), the greyscale view (<c>--greyscale</c>), every noun counted as known in the view
 /// (<c>--assume-known</c>, but only the view), the first-time tips (<c>--tips</c>), the beacon (<c>--beacon</c>), a teleport to a named point (<c>--teleport</c>), the typed-answer credit
-/// (<c>--typed-credit</c>), the autosave (<c>--no-autosave</c>) and a save now (F6). None of them is kept in a save: a test aid must not outlive the test. A row appears when its hooks
+/// (<c>--typed-credit</c>), the autosave (<c>--no-autosave</c>) and a save now (F6). The held time of day and the held weather are simulation state, so a save written during the run keeps them (the save's atmosphere entry); none of the others is kept in a save: a test aid must not outlive the test. A row appears when its hooks
 /// are given, so a front-end (or a test) offers only what it has.
 /// </summary>
 public sealed record TestingHooks

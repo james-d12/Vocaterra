@@ -12,6 +12,7 @@ public static class SkyWeather
 
     private const double CoverWeight = 0.5;
     private const double DimWeight = 0.7;
+    private const double CloudFollowWeight = 0.9;
 
     /// <summary>How far the cover is past fair weather, 0 (fair or clearer) to 1 (a full cover).</summary>
     /// <param name="cover">The cloud cover channel, 0 to 1.</param>
@@ -25,6 +26,11 @@ public static class SkyWeather
         var dim = Math.Clamp(1 - sunlight, 0, 1);
         return (float)Math.Clamp((CoverWeight * Overcast(cover)) + (DimWeight * dim), 0, 1);
     }
+
+    /// <summary>How far a cloud's colours follow the dome's middle colour at night under cover (E08): 0 in fair weather and by day, 0.9 at a full cover in the night.</summary>
+    /// <param name="cover">The cloud cover channel, 0 to 1.</param>
+    /// <param name="night">The night keyframe's weight, 0 by day to 1 at night (<see cref="SkyLook.Weights"/>).</param>
+    public static float CloudFollow(double cover, float night) => (float)(Overcast(cover) * Math.Clamp(night, 0f, 1f) * CloudFollowWeight);
 
     /// <summary>How much of the sun (and the moon and the stars) shows through the cover: 1 at fair weather, falling smoothly to 0 at a full cover.</summary>
     /// <param name="cover">The cloud cover channel, 0 to 1.</param>
@@ -53,9 +59,32 @@ public static class SkyWeather
         return (Channel(colour.R, grey, a), Channel(colour.G, grey, a), Channel(colour.B, grey, a));
     }
 
+    /// <summary>
+    /// A cloud's colour (E08): the colour <see cref="Grey"/> would give it, taken <paramref name="follow"/> of the way to the dome's middle colour. It is worked in whole precision and
+    /// rounded once, so a cloud moves no faster than its own two steps and shows no step of its own where the two meet. At a <paramref name="amount"/> and a <paramref name="follow"/>
+    /// of 0 it is the colour itself.
+    /// </summary>
+    /// <param name="colour">The cloud's colour.</param>
+    /// <param name="amount">How far to the grey, 0 to 1 (as <see cref="Grey"/>).</param>
+    /// <param name="darken">The brightness the grey keeps, 0 to 1 (as <see cref="Grey"/>).</param>
+    /// <param name="dome">The dome's middle colour.</param>
+    /// <param name="follow">How far to the dome, 0 to 1 (<see cref="CloudFollow"/>).</param>
+    public static (byte R, byte G, byte B) CloudColour((byte R, byte G, byte B) colour, float amount, float darken, (byte R, byte G, byte B) dome, float follow)
+    {
+        var a = Math.Clamp(amount, 0f, 1f);
+        var f = Math.Clamp(follow, 0f, 1f);
+        var grey = ((0.3f * colour.R) + (0.59f * colour.G) + (0.11f * colour.B)) * darken;
+        var r = colour.R + ((grey - colour.R) * a);
+        var g = colour.G + ((grey - colour.G) * a);
+        var b = colour.B + ((grey - colour.B) * a);
+        return (Round(r + ((dome.R - r) * f)), Round(g + ((dome.G - g) * f)), Round(b + ((dome.B - b) * f)));
+    }
+
     /// <summary>How near the fog's end is, as a multiple of the clear-weather distance: 1 with no fog, 1/3 at full fog, straight in between.</summary>
     /// <param name="fog">The fog channel, 0 to 1.</param>
     public static float FogReach(double fog) => 1f - ((float)Math.Clamp(fog, 0, 1) * (2f / 3f));
 
     private static byte Channel(byte from, float to, float t) => (byte)Math.Clamp(MathF.Round(from + ((to - from) * t)), 0f, 255f);
+
+    private static byte Round(float value) => (byte)Math.Clamp(MathF.Round(value), 0f, 255f);
 }

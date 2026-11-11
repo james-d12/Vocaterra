@@ -50,12 +50,11 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | A jump, a landing | `jump`, `land` (sfx; a landing in water is a `foot_water` splash) | Kenney Impact Sounds |
 | The birds over the forest by day | `bird_chirp` (ambient; scheduled in clusters by the presentation generator, louder the nearer the forest) | synthesized |
 | The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
-| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur; the birds by day and the insects as the daylight falls (E03); the rain, lower under cover, the wind with the weather's wind channel, the birds quieter in rain (E06) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
+| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur, the birds and the insects, the rain (their mix follows the day and the weather, see below) | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
 
 **Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
 function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
-weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; birds sing in the lowland forest by day and the insects
-take over as the daylight falls (E03: the weights are the atmosphere's daylight, so `--time` or `--dusk` gives the mix of that hour, and halfway through dusk the two share the forest equally); the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
+weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
 looping beds are made in code (`AmbientLoops.cs`): 10 seconds each, the tail faded into the head with an equal-power curve, so no click at the seam. The
 scheduled birds and crackles (`AmbientSound.cs`) draw their times from the presentation generator, in ticks, and follow the bed's weight. Pan is the bearing
 of the source from the way the player faces (simple stereo, not 3D). The footsteps (`Footsteps.cs`) read the block under the feet: every solid block kind
@@ -63,7 +62,8 @@ has a surface, and a step is every 2 blocks walked on the ground (about two a se
 row. In water the steps splash. The beds and the scheduled sounds are silent while the microphone records and duck under a voice, like the other sounds.
 The sound log writes a `mark` line when the place or its weights change (`bed at village: village=1.0`).
 
-**Rain, wind and birds in the weather (E06).** The `rain` bed's weight is the precipitation channel's intensity (0 when no precipitation is named), reduced by up to three quarters under cover: nine columns round the feet, a
+**Day and weather in the beds (E03, E06).** The birds sing in the lowland forest by day and the insects take over as the daylight falls: the weights are the
+atmosphere's daylight, so `--time` or `--dusk` gives the mix of that hour, and halfway through dusk the two share the forest equally (E03). The `rain` bed's weight is the precipitation channel's intensity (0 when no precipitation is named), reduced by up to three quarters under cover: nine columns round the feet, a
 block apart, count as covered when their highest block is over the head, and the share covered sets the cut, so the rain on a roof is still heard, at a quarter, and eases as the player walks out from under an eave. The cover query is
 `VoxelGrid.HighestBlock`, the one the drops stop at; Sound reads it and writes nothing to the simulation. The wind bed rises with the wind channel above 0.25 (by up to 0.5 at a channel of 1) on top of its rise with
 height, so the first data's breeze (0.2) leaves the sunny kind's sound as it was and a strong wind is heard in the lowland too; the birds' weight is multiplied by one minus the intensity. Every other bed is unchanged. The loop is

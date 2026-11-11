@@ -348,6 +348,88 @@ focus there that names none of them (V12b). `--talk fisher` then walks up to it 
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/content-plan.md` section 3.6).
 
+## Adding a weather kind
+
+A weather kind is a row of `game-v1/game/weather.json` (E04, D-game-31). The sky, the light, the fog, the rain and the sound read the blended channels
+and never a kind's id, so a kind made of the channels the game already has needs no code. The example below is an invented fog, written here only:
+it is not in the bundle.
+
+1. **The row** in `game/weather.json` (`weather.schema.json`; `GameDataValidator` and `WeatherValidator` check the values):
+
+   ```json
+   {
+     "id": "fog",
+     "cloudCover": 0.6,
+     "sunlight": 0.5,
+     "fog": 0.9,
+     "wind": 0.1,
+     "minSeconds": 150,
+     "maxSeconds": 360,
+     "next": { "cloudy": 2, "sunny": 1 },
+     "morningWeight": 0,
+     "say": { "day": "fog", "night": "fog" }
+   }
+   ```
+
+   - `id`: lowercase kebab-case, unique in the file.
+   - `cloudCover`, `sunlight`, `fog`, `wind`: each from 0 to 1. They are the channels every consumer reads: the clouds and the dome, the sun's light
+     on the world, the horizon's fog, the wind's sound and the slant of the rain.
+   - `precipitation`: `{ "kind": "rain", "intensity": 0.8 }` when something falls, and absent otherwise. The intensity is above 0 exactly when the
+     kind is set, and the kind must have a style row in the game (step 4). The fog has none.
+   - `minSeconds`, `maxSeconds`: the range a spell of this kind lasts, in seconds; `minSeconds` is above 0 and not above `maxSeconds`. The file's
+     `transitionSeconds` (how long a change blends) must not exceed the shortest spell of any kind.
+   - `next`: the kinds that may follow this one, each with a positive whole-number weight; the next kind is drawn in proportion to the weights. Every
+     name must be a kind of the file, and every kind needs a `next` unless it is the only kind.
+   - `morningWeight`: the weight of this kind in the draw made when the player wakes (a sleep or a collapse); 0 means never. At least one kind needs a
+     weight above 0, and none may be negative.
+   - `say`: `{ "day": <key>, "night": <key> }`, the dialogue key an NPC that answers the weather uses in the day phases and at night (dusk and
+     dawn count as day). Optional for the file, but every NPC that answers the weather needs it (step 2). A key may repeat (`rain` says `rain` at both
+     hours); the sunny kind says `sun` by day and `fair` at night.
+
+2. **The three things each NPC with `weatherAnswers` needs for every key.** The seven NPCs that answer «¿Qué tiempo hace?» are the farmer, the
+   fisher, the baker, the shopkeeper, the smith, the villager and the guide. For each of them, for the key `fog` (`smith` as the example):
+   - **a dialogue pool** `smith_fog` in `game-v1/dialogue/dialogue.json`, in the NPC's Spanish:
+
+     ```json
+     "smith_fog": { "poolId": "smith_fog", "variants": [ { "lineId": "smith_fog.1", "text": "Hoy hay niebla." } ] }
+     ```
+
+   - **an agent transition** in `game-v1/agents/smith.json`, on the host event `smith.fog` (the NPC's id, a dot, the key), in each state that already
+     takes `smith.sun`, `smith.cloudy`, `smith.rain` or `smith.fair`:
+
+     ```json
+     { "onHostEvent": "smith.fog", "to": "idle", "actions": [{ "dialogueIntent": "smith_fog", "variantPoolId": "smith_fog" }] }
+     ```
+
+   - **the English line** in `content/locale/en/lines.json`, under the line's id with the prefix `line.`: `"line.smith_fog.1": "It is foggy today."`.
+     The locale check requires it for every dialogue line.
+
+   Nothing is listed in `game/host-events.json` for a weather kind; the transition is the whole of it.
+
+3. **The speech and the grammar** (`docs/game/content.md`). Run `scripts/content-loop.sh --grammar --speech` directly, never under
+   `scripts/limited.sh`. `--grammar` starts LanguageTool and checks the new Spanish lines; `--speech` renders their clips (the voice comes from the
+   NPC's file) and refreshes the manifest, the strings and the speech index. The loop also rewrites the bundle's hash, so the save fixtures are updated
+   by it, and it runs the whole chain (the validation, the goldens, the fast tier). Commit what it changed, as the loop's step 4 says.
+
+4. **Only for a new precipitation** (not for fog). The style table `src/Vocaterra.Game/Graphics/Weather/PrecipitationStyles.cs` needs one row whose
+   `Id` is the precipitation's kind (length, width, fall speed, colour, opacity, slant and share of the drops). This is code. Apart from the rain's bed
+   name, this table is the only place in the source where a precipitation's id is written (`NoWeatherKindIdsInSourceTests`). The rain's sound bed already follows the intensity of whatever falls, so a new precipitation is heard
+   as rain until it has a bed of its own: a name and a weight in `src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`, which is also code.
+
+5. **What the checks say when a step is missed.** `scripts/content.sh refresh` (and the loop) runs `--validate-content` and lists every problem at once:
+   - a value out of range, a `next` name that is no kind, a missing `next`, a zero `morningWeight` for every kind: a `game/weather.json:` line in the
+     validator's words (for example `'fog' has no next kind.`);
+   - a kind with no `say` for an NPC that answers the weather: `game/weather.json: the kind 'fog' has no 'say', and game/npcs/smith.json answers the
+     weather (...)`;
+   - a key with no transition or no pool: `game/npcs/smith.json: the weather kind 'fog' says 'fog', but no transition of agents/smith.json on the
+     host event 'smith.fog' names a dialogue pool for the NPC's answer.`;
+   - a missing English line: `locale en: the string 'line.smith_fog.1' is missing.`;
+   - new Spanish that the grammar cache lacks: the message names the LanguageTool steps (step 3);
+   - a precipitation with no style row: the core's and the game's tests fail, `PrecipitationStylesTests` (`EveryPrecipitationKindHasAStyleRow`) among them,
+     since the tests read the shipped `weather.json`;
+   - a kind's id typed into a source file under `src/`: `NoWeatherKindIdsInSourceTests` names the file and the line.
+   The core's tests run on `content/game-v1` too (R02), so a `weather.json` error that the validator misses shows as a failing test.
+
 ## Stations and items that share a noun (N07)
 
 A recipe's `station` is a catalogue noun that names a block (`mesa` the table, `fuego` the fire-ring stones; the fire counts only while its ring burns). When the output noun names several items
