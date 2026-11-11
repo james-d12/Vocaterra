@@ -2373,3 +2373,23 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - *Changed on purpose:* the new loop's RMS is 3.8 dB under the old one's, so `AmbientBeds.Gain(Insects)` went from 0.3 to 0.46 to keep the
     bed's level (within 0.1 dB). If the owner finds the crickets too present, the old gain is one number.
   - *Process:* the agent waited on the suite in shell loops against the brief; nothing was left running.
+- **E11, a gradual day (2026-11-11, Sonnet 5.5 high; gated at `b4796d07` on `feature/weather`, 11122 passed, 3 skipped).** The owner:
+  "there is no difference at all between 6am -> 8pm, its only dusk and night". The cause: `SkyLook` blended three keyframes by the phase
+  and the daylight only, so the Day phase (6 to 20) was a flat noon and the Night phase a flat night, though the sun's arc moved. Now
+  `SkyBlend` holds five weights: the day side splits into a new `Golden` keyframe (a low sun; light (1.0, 0.9, 0.76), lanterns 0.6) and
+  the noon's (`Day`, unchanged) by a smoothstep of the sun's elevation from 10 to 42 degrees; the night side splits into `Night` (now the
+  blue hour) and a new `DeepNight` (darker, less blue; light (0.21, 0.26, 0.40)) by a smoothstep of the sun's depth from 18 to 56 degrees.
+  `DayClock.DaylightAt` eases across dawn and dusk (a smoothstep, still 0.5 half way). Weather composes after the mix as before.
+  The orchestrator's pictures (camp, sunny, 15 hours, before and after; session scratchpad, not kept): before, 6 to 20 are one picture;
+  after, 6 to 8 are warm with a peach horizon, 10 to 16 are the noon unchanged, 18 to 20 warm again into the dusk; 5 and 21 (the
+  middles of dawn and dusk) are unchanged; 22 is the blue hour, 0 to 2 the deepest (the same picture: the sun stays more than 56 degrees
+  under), 3:30 a little lighter.
+  - *Changed on purpose:* `SkyLookTests`' minute-to-minute bound went from 3 to 4 of 255 (the eased daylight is 1.5 times the straight
+    pace at its steepest); `SkyWeatherLookTests`' clear-night blue margin from 40 to 30 (the deep night is less blue by design) and the
+    measured tint range (0.499 to 1.455, was 0.507 to 1.480); `LightBandsTests` and `LanternGlowTests`' band-edge hours (4.43, 5.51,
+    20.49, 21.57, were 4.24, 5.7, 20.3, 21.76): the thresholds (0.12, 0.85) are the same, the eased daylight crosses them nearer the
+    middle of dawn and dusk.
+  - *Not fixed:* 2:00 is as dark as midnight (the plateau of the deep night is wide); the world's light changes less than the sky by day
+    (the Golden light is 0.9 and 0.76 in green and blue); the faces keep a fixed sun direction (out of scope, as before).
+  - *Process:* the agent's report never reached the orchestrator (its session ended after the commit); the gate and the pictures were run
+    by the next session.
