@@ -2226,6 +2226,12 @@
         { "lineId": "innkeeper_room.2", "text": "¡Muy bien! La habitación es gratis. Tu cama está allí." }
       ]
     },
+    "innkeeper_give": {
+      "poolId": "innkeeper_give",
+      "variants": [
+        { "lineId": "innkeeper_give.1", "text": "Está bien. La habitación es gratis. Tu cama está allí." }
+      ]
+    },
     "innkeeper_night": {
       "poolId": "innkeeper_night",
       "variants": [

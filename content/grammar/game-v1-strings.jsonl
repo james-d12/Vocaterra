@@ -349,6 +349,7 @@
 {"id":"dialogue:innkeeper_bye.1","text":"¡Hasta luego!","kind":"npc"}
 {"id":"dialogue:innkeeper_bye.2","text":"¡Nos vemos!","kind":"npc"}
 {"id":"dialogue:innkeeper_free.1","text":"La habitación es gratis. ¿Quieres una habitación?","kind":"npc"}
+{"id":"dialogue:innkeeper_give.1","text":"Está bien. La habitación es gratis. Tu cama está allí.","kind":"npc"}
 {"id":"dialogue:innkeeper_help.1","text":"Puedes decir: «Quiero una habitación, por favor».","kind":"npc"}
 {"id":"dialogue:innkeeper_help_given.1","text":"Puedes decir: «Buenas noches» o «Gracias».","kind":"npc"}
 {"id":"dialogue:innkeeper_nice.1","text":"¡Qué bien!","kind":"npc"}
@@ -2261,6 +2262,11 @@
 {"id":"intents:ask_availability.ex9","text":"hay pans","kind":"learner","errors":["noun.number"]}
 {"id":"intents:ask_availability.ex10","text":"hay agua aquí","kind":"learner","errors":[]}
 {"id":"intents:ask_availability.ex11","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex12","text":"hay una habitación","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex13","text":"hay una habitación aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex14","text":"hay una cama","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex15","text":"hay habitaciones","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex16","text":"hay un habitación","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:ask_craft.ex0","text":"cómo hago una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex1","text":"qué necesito para una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex2","text":"cómo se hace una antorcha","kind":"learner","errors":[]}
@@ -2557,6 +2563,12 @@
 {"id":"intents:request_item.ex42","text":"me das harina","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex43","text":"me da harina","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex44","text":"quiero el harina","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:request_item.ex45","text":"quiero una habitación, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex46","text":"una habitación, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex47","text":"quiero una habitación","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex48","text":"quiero una cama, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex49","text":"quiero una cama","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex50","text":"quiero un habitación, por favor","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:state_action.ex0","text":"mañana venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo venderé fruta","kind":"learner","errors":[]}
@@ -3496,6 +3508,17 @@
 {"id":"PHRASES.md:aqui-tienes-el-agua.variant3","text":"toma el agua","kind":"learner"}
 {"id":"PHRASES.md:aqui-tienes-el-agua.variant4","text":"te doy el agua","kind":"learner"}
 {"id":"PHRASES.md:aqui-tienes-el-agua.error","text":"aquí tienes la agua","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:quiero-una-habitacion.text","text":"Quiero una habitación, por favor.","kind":"learner"}
+{"id":"PHRASES.md:quiero-una-habitacion.variant1","text":"una habitación, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-una-habitacion.variant2","text":"quiero una habitación","kind":"learner"}
+{"id":"PHRASES.md:quiero-una-habitacion.variant3","text":"quiero una cama, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-una-habitacion.variant4","text":"quiero una cama","kind":"learner"}
+{"id":"PHRASES.md:quiero-una-habitacion.error","text":"quiero un habitación, por favor","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:hay-una-habitacion.text","text":"¿Hay una habitación?","kind":"learner"}
+{"id":"PHRASES.md:hay-una-habitacion.variant1","text":"¿hay una habitación aquí?","kind":"learner"}
+{"id":"PHRASES.md:hay-una-habitacion.variant2","text":"¿hay una cama?","kind":"learner"}
+{"id":"PHRASES.md:hay-una-habitacion.variant3","text":"¿hay habitaciones?","kind":"learner"}
+{"id":"PHRASES.md:hay-una-habitacion.error","text":"hay un habitación","kind":"learner","errors":["gender.agree"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}

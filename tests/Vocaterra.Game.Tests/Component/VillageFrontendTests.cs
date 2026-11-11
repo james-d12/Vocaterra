@@ -121,7 +121,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         static BlockCell? Face(string look) => NpcFigures.PartsOf(look).First(static p => p.Special is not null && p.Group == FigureGroup.Head).Special;
         var stranger = (Body: Body("nobody"), Face: Face("nobody"));
         Assert.Equal(((byte)160, (byte)160, (byte)160), stranger.Body);
-        foreach (var (look, face) in new[] { ("fisher", BlockCell.FaceFisher), ("baker", BlockCell.FaceBaker), ("smith", BlockCell.FaceSmith), ("farmer", BlockCell.FaceFarmer) })
+        foreach (var (look, face) in new[] { ("fisher", BlockCell.FaceFisher), ("baker", BlockCell.FaceBaker), ("smith", BlockCell.FaceSmith), ("farmer", BlockCell.FaceFarmer), ("innkeeper", BlockCell.FaceInnkeeper) })
         {
             Assert.NotEqual(stranger.Body, Body(look));
             Assert.Equal(face, Face(look));

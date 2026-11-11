@@ -4,6 +4,7 @@
   "variantPools": [
     { "id": "innkeeper_offer", "count": 1 },
     { "id": "innkeeper_room", "count": 2 },
+    { "id": "innkeeper_give", "count": 1 },
     { "id": "innkeeper_night", "count": 2 },
     { "id": "innkeeper_no", "count": 2 },
     { "id": "innkeeper_help", "count": 1 },
@@ -20,7 +21,7 @@
       "id": "idle",
       "transitions": [
         { "onHostEvent": "innkeeper.offer", "to": "idle", "actions": [{ "dialogueIntent": "innkeeper_offer", "variantPoolId": "innkeeper_offer" }] },
-        { "onHostEvent": "innkeeper.give", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
+        { "onHostEvent": "innkeeper.give", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_give", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_give" }] },
         { "on": {"intent": "confirm", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
         { "on": {"intent": "ask_availability", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_room", "hostEvent": "innkeeper.room", "variantPoolId": "innkeeper_room" }] },
@@ -42,7 +43,6 @@
     {
       "id": "given",
       "transitions": [
-        { "onHostEvent": "innkeeper.offer", "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
         { "on": {"intent": "confirm", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },
         { "on": {"intent": "ask_availability", "communicated": true}, "to": "given", "actions": [{ "dialogueIntent": "innkeeper_night", "variantPoolId": "innkeeper_night" }] },

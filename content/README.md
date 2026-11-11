@@ -274,7 +274,7 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 
 An NPC is data alone since schema 2 of `game/npcs/<id>.json` (village-plan V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
 fisher Mar of the lesson `el-pueblo`, village-plan V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
-her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson):
+her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson; the innkeeper Rosa, Y06, has no lesson: an offer on a yes-or-no prompt, `patience` and a host event that grants the room, like the shopkeeper's bottle):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
    `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in
@@ -328,7 +328,7 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
 6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); the keys drawn are `guide`,
-   `shopkeeper`, `villager` and, since village-plan V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
+   `shopkeeper`, `villager` and, since village-plan V05, `fisher`, `baker`, `smith` and `farmer`, and, since Y06, `innkeeper`. A key the game does not draw yet gets a plain grey
    figure until a milestone adds it.
 7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
    the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.

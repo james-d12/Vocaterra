@@ -85,7 +85,7 @@ public sealed record NpcFigure(string Name, string Label, BlockPos Feet, int Yaw
 /// shirt with rolled sleeves, a leather apron, a beard and a baker's hat; the villager in a blue tunic and a straw hat; and the player in a blue shirt with a
 /// leather backpack, seen over the shoulder when F5 is pressed. village-plan V05 adds the village's four: the fisher in a blue coat, tall boots and a knitted
 /// cap, with a grey beard; the baker, a woman in a rose dress with flour-white sleeves, a white apron and a white cap; the smith in a rust shirt with rolled
-/// sleeves and a long dark apron, bareheaded, with a moustache; and the farmer in a green shirt and the villager's straw hat in tan. They are drawn in code
+/// sleeves and a long dark apron, bareheaded, with a moustache; and the farmer in a green shirt and the villager's straw hat in tan. Y06 adds the innkeeper Rosa: a plum dress, a mustard shawl, silver hair pinned in a bun and a ring of keys. They are drawn in code
 /// (D-game-5): the faces, the cloth, the skin and the hair are cells of the block atlas (<see cref="BlockArtVillage"/>), tinted by the part's colour.
 /// </summary>
 public static class NpcFigures
@@ -147,6 +147,7 @@ public static class NpcFigures
             "baker" => (C(204, 108, 104), C(126, 92, 70), C(150, 66, 34), BlockCell.FaceBaker),
             "smith" => (C(150, 72, 52), C(62, 58, 56), C(34, 28, 26), BlockCell.FaceSmith),
             "farmer" => (C(70, 146, 62), C(116, 94, 64), C(212, 174, 92), BlockCell.FaceFarmer),
+            "innkeeper" => (C(122, 62, 132), C(70, 52, 78), C(188, 184, 190), BlockCell.FaceInnkeeper),
             _ => (C(160, 160, 160), C(110, 110, 110), C(90, 90, 90), BlockCell.FaceVillager),
         };
         var rolled = name is "shopkeeper" or "smith";
@@ -222,6 +223,13 @@ public static class NpcFigures
                 parts.Add(new FigurePart(new Box(-8f, 31.4f, -8f, 8f, 32.7f, 8f), StrawTan, BlockCell.Hair, FigureGroup.Head)); // the villager's straw hat, in tan: the brim
                 parts.Add(new FigurePart(new Box(-5.1f, 32.7f, -5.1f, 5.1f, 36.4f, 5.1f), StrawTan, BlockCell.Hair, FigureGroup.Head)); // the crown
                 parts.Add(new FigurePart(new Box(-5.2f, 32.7f, -5.2f, 5.2f, 33.7f, 5.2f), C(120, 74, 40), BlockCell.Cloth, FigureGroup.Head)); // its band
+                break;
+            case "innkeeper":
+                parts.Add(new FigurePart(new Box(-4.6f, 5f, -2.9f, 4.6f, 11f, 2.9f), shirt, BlockCell.Cloth, FigureGroup.Body)); // the plum dress's skirt
+                parts.Add(new FigurePart(new Box(-5f, 17.5f, -3.2f, 5f, 22.4f, 3.2f), C(222, 176, 64), BlockCell.Cloth, FigureGroup.Body)); // a mustard shawl over the shoulders
+                parts.Add(new FigurePart(new Box(-5.2f, 16.5f, -3.4f, 5.2f, 17.5f, 3.4f), C(190, 140, 40), BlockCell.Cloth, FigureGroup.Body)); // its fringe
+                parts.Add(new FigurePart(new Box(3f, 8.6f, -3.6f, 4.4f, 10.4f, -2.6f), C(236, 200, 80), BlockCell.Cloth, FigureGroup.Body)); // the ring of keys at her belt
+                parts.Add(new FigurePart(new Box(-3f, 32.2f, -1.2f, 3f, 35.6f, 4.2f), hair, BlockCell.Hair, FigureGroup.Head)); // the pinned-up bun
                 break;
             case PlayerName:
                 parts.Add(new FigurePart(new Box(-4.2f, 10.5f, 2.6f, 4.2f, 22.5f, 7.2f), Leather, BlockCell.Cloth, FigureGroup.Body, BlockCell.Backpack, BlockFace.South)); // the backpack

@@ -557,6 +557,7 @@
     "line.innkeeper_offer.1": "Hello! Would you like a room?",
     "line.innkeeper_room.1": "Of course! The room is free. Your bed is over there.",
     "line.innkeeper_room.2": "Very good! The room is free. Your bed is over there.",
+    "line.innkeeper_give.1": "That is fine. The room is free. Your bed is over there.",
     "line.innkeeper_night.1": "Good night. Your bed is over there.",
     "line.innkeeper_night.2": "Good night!",
     "line.innkeeper_no.1": "That is fine. The room is free.",

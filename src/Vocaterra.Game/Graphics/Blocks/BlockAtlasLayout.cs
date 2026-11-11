@@ -297,6 +297,9 @@ public enum BlockCell
 
     /// <summary>The icon of flour (the item, W10): a cloth sack tied at the neck. Placed after the interface-only cells so the world's mip levels do not move.</summary>
     IconFlour,
+
+    /// <summary>The front of the innkeeper's head (Y06): silver hair pinned up, rosy cheeks. Placed last, so no other cell moves.</summary>
+    FaceInnkeeper,
 }
 
 /// <summary>

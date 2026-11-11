@@ -478,6 +478,12 @@
       "matches": []
     },
     {
+      "key": "0c86ac60e37693c9286df081b954cde03e3ba2fcb4e72af0276a7e6478348cc7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay habitaciones?",
+      "matches": []
+    },
+    {
       "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias no",
@@ -1168,6 +1174,12 @@
       "matches": []
     },
     {
+      "key": "1bd3910c5f35b075b4da9c29652dcdd2acae5d172878102633541a52327ec192",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación, por favor",
+      "matches": []
+    },
+    {
       "key": "1c4085df1094b704233946fc6452d4d054fff1a2984a99e69cf7cf9c8726e146",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda la herrería",
@@ -1195,6 +1207,12 @@
       "key": "1c9208e9a11cd1921d46f8e1e43710aae4f05aaca830cfd76d2c5bdb98ebee96",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a hacer pan",
+      "matches": []
+    },
+    {
+      "key": "1cff7591ad2e6820fe1091490821ec227ea3a60a4e47c75e91664bca3a74bb90",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La habitación es gratis. ¿Quieres una habitación?",
       "matches": []
     },
     {
@@ -1500,6 +1518,18 @@
       "key": "2621cd5b535014eb76a97c0cf89570d9be4d9543944c9ac7ec31432e8b71fa24",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el pueblo",
+      "matches": []
+    },
+    {
+      "key": "26488d6e6ecf108cd26857ebe1e1f02bc3a7295216582d073ffbd8c7651bcdba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una cama",
+      "matches": []
+    },
+    {
+      "key": "26998144c14d5fa673f62e068a6778bae0da26450789b4ea2183cec8a4563a39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Quiero una habitación, por favor».",
       "matches": []
     },
     {
@@ -1965,6 +1995,12 @@
       "matches": []
     },
     {
+      "key": "30ebe0a8c48f80a789c2dd21fbdf69d3599150ac324122f67d3757e5f69bb701",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. La habitación es gratis.",
+      "matches": []
+    },
+    {
       "key": "30f47eb56f7107c29630a4be9dfb8225118c06a27fc20a028bcdbf637c480669",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luego voy a comprar pan",
@@ -2150,6 +2186,12 @@
       "key": "3596915f27256370d87be30456d6a2880b6a4c4e66420a5aeb90985cf6a0fed8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Casi. Piensa otra vez.",
+      "matches": []
+    },
+    {
+      "key": "35a9e4a6b98208337c2d5d19e6bc57cf04d4399581e44049a34db1dcdda2201c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una habitación?",
       "matches": []
     },
     {
@@ -2424,9 +2466,21 @@
       "matches": []
     },
     {
+      "key": "3a7139a06e6674bb30a16e7c882a4f863cb11bef7487253b9e8bbd468fdb6164",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas noches.",
+      "matches": []
+    },
+    {
       "key": "3a86e7c8dc0d6fe64e4d0cca98bf373b97e39f40c2b4cefee32a629150631f69",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, es una espada.",
+      "matches": []
+    },
+    {
+      "key": "3aad312c8301d2e0799e5e211bac827d94cbc4ddef2756c521fcde5d0a5ee650",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una habitación aquí?",
       "matches": []
     },
     {
@@ -2717,6 +2771,12 @@
       "key": "41d333883b2291fdb6d3479ae71f27204ca710eeded0eb1d2e6950d36b8d5508",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da dos panes",
+      "matches": []
+    },
+    {
+      "key": "429296ef5c0f6b3f031ddde1fdf3ae5f75b3e514aded0c479331a8498eb91980",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una cama, por favor",
       "matches": []
     },
     {
@@ -3496,6 +3556,12 @@
       "matches": []
     },
     {
+      "key": "5401782de14a6a7fbebba35f8e850c9ac4b68c77d89b6d89155149d92cd8eecf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bueno. La habitación es gratis.",
+      "matches": []
+    },
+    {
       "key": "54a7b7825d36a9faf87000dc89d85c92ec5d6a6b51282adddb4079e6cca00ff9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes el botella",
@@ -3698,6 +3764,12 @@
       "matches": []
     },
     {
+      "key": "58fae54a2277d6617e38bdcf2d11e856b2aa2b640a416d69d78db39e769115ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación, por favor.",
+      "matches": []
+    },
+    {
       "key": "58fb599f69b00b617770bf14f1f876b73c2cd74bf6efbac1d532d2fb26946686",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuestan dos panes",
@@ -3784,6 +3856,12 @@
       "key": "5ad5b83874c21eaa7313f075750a6fc161a05415cf05ef0047aebeb6c78cc77a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te faltan espada.",
+      "matches": []
+    },
+    {
+      "key": "5b611471fbf3f4ceca62ba7773e39e2ac8cd7a01170ffbac9d5bec8509c0b0b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -3891,6 +3969,12 @@
       "key": "5e0a864c864764afd721fe9f2a77a369dc2fdf67ff8204b28209b706ce076de4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El pan es más barato que la manzana",
+      "matches": []
+    },
+    {
+      "key": "5e22e5e12c9e4eaf6dd7b7a20de31ac3044c315dc175acc2e5b049e254fdb8f5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -5161,6 +5245,12 @@
       ]
     },
     {
+      "key": "7781a01cb6590eba9de425f08c2712ced5ba36cf7c719dcdeb8907f021094399",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una habitación",
+      "matches": []
+    },
+    {
       "key": "7784c71a2da5ce9df46c7c6e2d29a73f8594257f6ad383d143599df181c14df3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesitas ayuda",
@@ -5313,6 +5403,12 @@
       ]
     },
     {
+      "key": "7a7a1d3cf197209df186b1e2feed58222ce1d28eb6a767d7205c8515bdeaca40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una habitación, por favor",
+      "matches": []
+    },
+    {
       "key": "7a8c60429054f6b7aa8e9bf1263b749d141418e9b9be1ee7741d5592735e69e8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay dos pan",
@@ -5340,6 +5436,24 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, hay pan. Es pan de Luz.",
       "matches": []
+    },
+    {
+      "key": "7b5424470df15d9c7641cc8fd2cf4ef80f2172eebada8c20e6710e192b69ac1a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un habitación, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 13,
+          "replacements": [
+            "una habitación",
+            "unas habitaciones"
+          ]
+        }
+      ]
     },
     {
       "key": "7bb9a1fade3cba807787cf67e6af7e02e07c4ce8485f03e6e667b2a5fa153d14",
@@ -5464,6 +5578,12 @@
       "key": "7e4e884ce16248229b36a26f8659ab9540445a3bbbdc017b67512f4fe3ea0d6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fuimos al río",
+      "matches": []
+    },
+    {
+      "key": "7e74839891dee3e65cfa7fa778288a0a6d3d92fcccc67271ab461eba5523a9f1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres una habitación?",
       "matches": []
     },
     {
@@ -5814,6 +5934,12 @@
       "key": "875cc276e9aa3db7287b72f577c8aad2816eef68af861632d4917ce8483b5b89",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero madera.",
+      "matches": []
+    },
+    {
+      "key": "87a6104dbb0387fab3295648ef9466317c4f98f73f30b265bbbbb191e6798db5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Quieres una habitación?",
       "matches": []
     },
     {
@@ -7357,6 +7483,12 @@
       "matches": []
     },
     {
+      "key": "ac96b72261b009a9132eee17d61f04a8730dbca66bfd0574ecd9cfc19d4a4647",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una cama?",
+      "matches": []
+    },
+    {
       "key": "aca6a438d6bc866b4ee54eb1d2426b2e4af5dda2011c74064e8b983d2ae124fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio",
@@ -7731,6 +7863,12 @@
       "matches": []
     },
     {
+      "key": "b55a55454c4ec15a109210f1fa108457298b2cdddc511af92cea3ad2a18a10bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Rosa",
+      "matches": []
+    },
+    {
       "key": "b6543d05cb08b01c582e2ab470402d679621309bed126e379815cb60507f8bbc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una manzana cuesta una moneda.",
@@ -7802,6 +7940,12 @@
       "matches": []
     },
     {
+      "key": "b7b8b035f59f76b9838c8a8b4e75751feb9c4a3ca7aa2ed894d104d6e0d5377c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Buenas noches» o «Gracias».",
+      "matches": []
+    },
+    {
       "key": "b7de5b0d5cd8a75d64c27c2d5310900a16e37dd4897bdf2a6e795f884d005f46",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No gracias",
@@ -7870,6 +8014,12 @@
       "key": "b9135d1e850f57602cd50dd9073d3da08c374ca028c63f8d13ab7f9786e8d70a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos quieren agua.",
+      "matches": []
+    },
+    {
+      "key": "b96941653593f67bb81d5ec7aee98ee417eddd2bd05e39e12b8e787e352c25bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -8092,6 +8242,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "be627e98867e8fbbf8218702f98be02bab6a57cbeadfc9f6253eda93053d085d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas noches. Tu cama está allí.",
+      "matches": []
     },
     {
       "key": "bec9c7ba63b4e94e0771568d98c6f73e4b4d699ebd0e1fea0307a5d5713fe3a3",
@@ -8931,6 +9087,24 @@
       "matches": []
     },
     {
+      "key": "d3a2ecb593ad12db671d5347314de2ca173c4bf4651dc86492f5baaf5e496b40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un habitación",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 4,
+          "length": 13,
+          "replacements": [
+            "una habitación",
+            "unas habitaciones"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d3ac0ced8e798d41cc5a26a3e80de6fea2eca5f1f57d52a259e3e3423c2be9c8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Adiós, amigo! Hasta luego.",
@@ -9405,6 +9579,18 @@
       "matches": []
     },
     {
+      "key": "df94cb5962ba6c74e58b1f2d94f741008de1439a7d32f34bcd9eb3d6b05ee556",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Buenas noches!",
+      "matches": []
+    },
+    {
+      "key": "dfeee35b392332481a9972a0d1174d897d0bd6e7985dd1179c3fc5c3b1245360",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Posadera",
+      "matches": []
+    },
+    {
       "key": "dff10562c8e6044f55adf0d1776c011d2458f3b08d66c6625eb3fbbc429a7aae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! ¿Qué tienes para mí?",
@@ -9414,6 +9600,12 @@
       "key": "dff8734c73d3c2f1af220624b24f9e3cdc98f3954dafd78a09facd4989cf04f4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer luz compra pescado",
+      "matches": []
+    },
+    {
+      "key": "e030109c2612b89127c4cb93780f5896dced9fdf8df3cf42e7d21bde991d1333",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una habitación aquí",
       "matches": []
     },
     {
@@ -9550,6 +9742,12 @@
       "key": "e2ccd94c44f71c3011c7acdba88149f44b28c28cfc8f273c9d1f3139dfc63047",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La manzana es roja y grande",
+      "matches": []
+    },
+    {
+      "key": "e2d08de37587be4295cc4555df2e173038ea6005413784503e5e4673fa2f4aa9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay habitaciones",
       "matches": []
     },
     {
@@ -9990,6 +10188,12 @@
       "key": "ee0d400576cf84016a0d8684666d9e558e9370071e9b7e0702ee02815a375546",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la herrería",
+      "matches": []
+    },
+    {
+      "key": "ee242ab9360c2f6dd6fa601f47544e65be9d2c3cad4ffbea73caa819866c7254",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una cama",
       "matches": []
     },
     {
@@ -10605,6 +10809,12 @@
       "key": "fb2fc29a23f61c9df56fb1b02a21ce4106591c1761b6d3911a1d4e8a1a26f06c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a buscar madera luego",
+      "matches": []
+    },
+    {
+      "key": "fb7f788eaa6d6406645612653a45b8956165ee40f0290cc4decb875994b283b7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación",
       "matches": []
     },
     {
