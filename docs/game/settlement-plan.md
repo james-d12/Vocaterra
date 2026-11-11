@@ -281,8 +281,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y03 | Bed and bedroll blocks | none | S | Haiku 5.5 | done, gated 2026-11-10 (10,734 tests) |
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,759 tests) |
-| Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | todo (registered 2026-11-11, a bug found checking Y05) |
-| Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | todo |
+| Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,763 tests) |
+| Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | in progress (launched 2026-11-11) |
 | Y07 | The opening's logic | Y06 | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | todo |

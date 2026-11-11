@@ -2278,3 +2278,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   woke the player at (278, 38, 233), outside the inn's south wall, where the bed's prompt also showed.** The wake search and the "at the
   place" radius count straight distance through walls; Y05a is registered to fix both. A test of the session's effects reaches the
   protected `ApplyHostEvents` by reflection; Y06's real row lets a test go through a talk turn instead.
+- **Y05a, indoor sleep places (2026-11-11, on `feature/settlement`).** The fix for the bug found checking Y05. "At the place"
+  (`SleepPlaces.IsAt`, behind `UsableAt` and `LockedBedAt`) is the radius and height test and then a bounded walk
+  (`Session/SleepWalk`, `VoxelWalker.FindPath`'s step rules) from the place's cell within `radius + 3` steps, so a wall says no; the
+  death's wake cell is searched first among the cells a 12-step walk reaches, in the same 2-to-5 band, and falls back to the straight
+  search. A place with no standing room in its column keeps the old tests. The walk runs only for a place that passes the radius test
+  (at most 5 steps at a bed, 8 at a fire). Gate: 10,763 tests passed, 3 skipped. Checked on the merged build: the death after a night
+  in the inn's bed wakes at (280, 38, 231), inside the guest room; outside the south wall no sleep prompt shows. A fire in the open is
+  unchanged (`r26-death` wakes at 152, 73, 106). The step bounds are constants in code, not in `needs.json`.
