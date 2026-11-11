@@ -92,11 +92,13 @@ public sealed class NeedsDataTests
     }
 
     [Fact]
-    public void TheShippedSleepPlacesAreTheMountainFireAndDeathWakesThere()
+    public void TheShippedSleepPlacesAreTheMountainFireAndTheInnsBedAndDeathWakesAtTheFire()
     {
-        var place = Assert.Single(Needs.SleepPlaces);
+        Assert.Equal(2, Needs.SleepPlaces.Count);
+        var place = Needs.SleepPlaces[0];
 
         Assert.Equal(new SleepPlaceSpec("camp.fire", "firering.player", "fire", 5, 6, "always"), place);
+        Assert.Equal(new SleepPlaceSpec("inn.bed", "bed.inn", "bed", 2, 2, "lodging"), Needs.SleepPlaces[1]);
         Assert.Equal(place.Id, Needs.Death.WakeAt);
         Assert.Empty(Problems(Needs));
     }

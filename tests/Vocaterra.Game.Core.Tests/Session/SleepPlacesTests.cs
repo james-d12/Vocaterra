@@ -21,11 +21,12 @@ public sealed class SleepPlacesTests
     private static SleepPlace Bed(string id, string access, BlockPos cell) => new(id, null, cell, SleepPlaceSpec.KindBed, 2, 2, access);
 
     [Fact]
-    public void GivenTheShippedBundle_WhenTheSessionStarts_ThenTheMountainFireIsTheOnlyPlaceAndWakingNamesIt()
+    public void GivenTheShippedBundle_WhenTheSessionStarts_ThenTheMountainFireIsTheFirstPlaceAndWakingNamesIt()
     {
         var session = TestGame.NewSession();
 
-        var place = Assert.Single(session.SleepPlaces.All);
+        Assert.Equal(["camp.fire", "inn.bed"], session.SleepPlaces.All.Select(static p => p.Id));
+        var place = session.SleepPlaces.All[0];
         Assert.Equal(("camp.fire", VoxelSession.PlayerFireRing, SleepPlaceSpec.KindFire, 5, 6), (place.Id, place.Point, place.Kind, place.RadiusBlocks, place.HeightBlocks));
         Assert.Equal(Ring(session), place.Cell);
         Assert.Same(place, session.SleepPlaces.WakeAt);

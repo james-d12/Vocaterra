@@ -8,9 +8,9 @@ repository root. The scripted regression runs are in [scripted-runs.md](scripted
 The prototype's world is the first-person voxel scene: it loads the world from the bundle (`content/game-v1/game/scene.json`, S13: generator
 parameters and named sites, not blocks, a 384 x 384 x 128 block valley with high snow-capped mountains along the north and the west, a waterfall off
 the northern cliffs, a river through a dense forest to a lake, the guide's camp in a clearing, the village on the meadow across the river with the stall,
-three timber-framed houses with stepped roofs and chimneys, a stone tower, a fenced crop field, lanterns on posts and the signpost with its three boards
+three timber-framed houses with stepped roofs and chimneys (house3 stands at the south-east corner since Y04), a stone tower, a fenced crop field, lanterns on posts and the signpost with its three boards
 `Tienda`, `Río` and `Montaña` (S15); since village-plan V04 also a bakery with its oven, a smithy with a lit forge and an anvil, a well, the farmer's
-apple crate and an orchard of three trees, and the fisher's crates and lamp on the bridge's east landing; and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
+apple crate and an orchard of three trees, and the fisher's crates and lamp on the bridge's east landing; since Y04 the inn (`posada`, nine by seven at the west edge, its door to the road, a counter, a keeper's cell, a partition with a gap and two beds in the guest room; the points `bed.inn` and `npc.innkeeper`), and two meadows cleared of trees north and south of the village (the sites `meadow.north` and `meadow.south`, where the land the player buys will lie); and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
 seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
 (facing south-east, a canvas tent, a chest and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
 `--quality low|medium|high` sets how far the world is drawn and how much is drawn of the undergrowth, the occlusion and the clouds (see `src/Vocaterra.Game/README.md`); the default, high, is for a real graphics card, and
