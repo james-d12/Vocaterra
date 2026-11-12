@@ -17,7 +17,7 @@ The prototype is the Minecraft-inspired first-person voxel slice in [docs/game/d
 Design Brief, v1.2); its plan, milestone by milestone, is [docs/game/scenario-plan.md](scenario-plan.md). The scenario takes 10 to 15 minutes beside the
 guide's lesson (S17):
 
-- **The opening (S17).** The player wakes alone at their own camp on the cliff. English tips teach looking, walking, jumping, a note at the tent that says the
+- **The opening (S17).** The player wakes alone on the mountain ledge (bare since Y08: no tent; the first night is at the inn). English tips teach looking, walking, jumping, a note on the ledge that says the
   guide's camp is down the trail, collecting and the inventory, one at a time. The objective area says `Go down the trail and find the guide`.
 - **The guide's lesson (S17).** Luna, the guide, greets the player who walks up to her and teaches six short units (hello, yes and no, what is this, please and
   thank you, getting unstuck, what the camp needs), about eight minutes, with the English thinning as phrases are used again.
@@ -32,7 +32,7 @@ guide's lesson (S17):
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in [running.md](running.md).
 
-**Later sessions.** A sleep at the player's own fire (V12c: [lessons.md](lessons.md), "The next session: sleep at the fire") begins the next day, a load keeps the day (V25), and each later
+**Later sessions.** A sleep at the inn's bed, Luna's fire or the player's own camp (V12c, Y08, Y12: [lessons.md](lessons.md), "The next session: sleep at the fire") begins the next day, and from day two the mayor sells land for a camp ("Day two offers land" there), a load keeps the day (V25), and each later
 session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
 S27), and since phase A of [docs/game/village-plan.md](village-plan.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
 more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,

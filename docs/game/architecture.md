@@ -315,6 +315,22 @@ exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and 
 a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
 `systems.atmosphere` entry (`saves.md`).
 
+## The settlement series (Y00 to Y13): where to look
+
+Day one ends at the inn, day two offers land, and the land holds a camp (settlement-plan, D-game-32). Each piece is data in `content/game-v1/game/` plus a small amount of code; this is the map, the details are in the sections named.
+
+| Piece | Data | Code |
+| --- | --- | --- |
+| **Sleep places** (Y01, Y02, Y08): Luna's fire `guide.fire`, the inn's bed `inn.bed`, and the camp's two places made in play; each has a kind (`fire` or `bed`), a reach, an access (`always` or `lodging`) and optionally a wake cell | `needs.json` `sleepPlaces` and `death.wakeAt` | `Session/SleepPlaces.cs` (the list, `Add` for places made in play), `SleepOffer.cs`, `SleepWalk.cs`, `VoxelSession.Sleep.cs`, `VoxelSession.Death.cs` (the wake) |
+| **Lodging** (Y05, Y06, Y07): the innkeeper Rosa gives the room once; the inn's bed is usable only after it | `agents/innkeeper.json`, `game/host-events.json` row `innkeeper.room` with the action `grant_lodging`, `game/session.json` `innBeacon` | `VoxelSession.GrantLodging` (raises `lodging_granted`), `systems.sleep.lodgingGiven` in the save, the dev aid `--lodging` |
+| **The inn and the meadows** (Y04): the `inn` house with the `inn_rooms` stamp (two-block beds), the sites `meadow.north` and `meadow.south` where land is sold | `scene.json` | `World/Generation/` (the scene build), the land rules' eligible regions |
+| **Land rules** (Y09): where one may build and where a plot may lie | `land.json` | `Land/LandRules.cs`, `LandRegister.cs` (an `IBuildRules` the simulation asks), `LandValidator.cs`; the section "Land rules" above |
+| **The stake and the outline** (Y10): the stake marks the pending plot, the outline is drawn round it | item `stake`, `ui.json` plot lines | `Input/StakeUse.cs`, `VoxelSession.Land.cs` (`UseStake`, `SetPendingPlot`), `OverlayMeshes.PlotOutline` in Game; the section "The stake" above |
+| **The exchange** (Y11): the mayor gives the stake and sells the plot; coins, plot and camp kit change hands in one step that cannot half happen | `host-events.json` kinds `give_item` and `sell_plot` (`villager.give_stake`, `villager.sell_plot`), the villager's agent (`offering_stake`, `offering_plot`), `objectives/my-land.json` | `VoxelSession.SellPlot`, `NpcEffect.PlotMiss`, `GuideSession.LandOffer.cs`; the section "Buying the plot" above |
+| **The camp** (Y12): the kit sets up a fire ring, a tent and a bedroll on the owned plot, and can be packed back | `scene.json` stamp `camp` with its anchors, item `camp-kit` | `Land/CampPlan.cs`, `VoxelSession.Camp.cs`, `World/Layout/StampSpec.cs` (the turning); the section "The camp" above |
+
+The checklist `my-land` ("Mi terreno", from play session 2: `stake`, `buy`, `camp`, `fire`) never holds a session back; its steps are events (`item_picked_up`, `plot_bought`, `camp_placed`, `fire_lit` with the detail `camp.fire`), and a load reads `buy`, `camp` and `fire` back from the save and the world (the restore hooks `plot-owned`, `camp-placed`, `camp-fire-lit`). The scripted runs that cover the series are r20 and r30 (the sleep), r40 to r43 (`scripted-runs.md`).
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
