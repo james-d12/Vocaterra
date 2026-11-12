@@ -54,6 +54,8 @@
     {"form":"pócima","lemma":"pócima","pos":"noun","features":{"number":"sg","gender":"f"}},
     {"form":"pócimas","lemma":"pócima","pos":"noun","features":{"number":"pl","gender":"f"}},
     {"form":"posada","lemma":"posada","pos":"noun","features":{"number":"sg","gender":"f"}},
-    {"form":"posadas","lemma":"posada","pos":"noun","features":{"number":"pl","gender":"f"}}
+    {"form":"posadas","lemma":"posada","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"estaca","lemma":"estaca","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"estacas","lemma":"estaca","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }

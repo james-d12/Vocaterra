@@ -48,6 +48,20 @@ public sealed class DevLaunchTests
     }
 
     [Fact]
+    public void Given_TheMarkPlotFlag_When_ItIsParsed_Then_ItNeedsDevTakesAColumnAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--mark-plot", "266,165"], out var given, out _));
+        Assert.Equal((266, 165), given.MarkPlot);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.Null(none.MarkPlot);
+        Assert.False(LaunchOptions.TryParse(["--mark-plot", "266,165"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--dev", "--mark-plot", "north"], out _, out var shape));
+        Assert.Contains("--mark-plot", shape, StringComparison.Ordinal);
+        Assert.Contains("--mark-plot", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheOverlayIsOffUntilItIsSwitchedOnAndTheNoteFollowsTheSameSwitch()
     {
         Assert.False(new VoxelDebugOverlay().Visible);

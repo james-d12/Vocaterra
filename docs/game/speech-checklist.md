@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1618 of the 1618 files have no mark (guide 486, baker 218, villager 182, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1620 of the 1620 files have no mark (guide 488, baker 218, villager 182, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -197,6 +197,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
 | card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
 | card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
+| card.estaca | speech/cards/card.estaca.slow.wav | guide | 0.8 | la estaca |  |
+| card.estaca | speech/cards/card.estaca.wav | guide | 1.0 | la estaca |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/cards/card.fruta.wav | guide | 1.0 | la fruta |  |
 | card.fuego | speech/cards/card.fuego.slow.wav | guide | 0.8 | el fuego |  |

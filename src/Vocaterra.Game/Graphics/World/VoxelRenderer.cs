@@ -539,8 +539,9 @@ public sealed class VoxelRenderer : IDisposable
     /// <param name="tick">The simulation tick (animates the beacon and the figures).</param>
     /// <param name="avatar">The player's own figure, drawn in the behind-the-shoulder view, or <see langword="null"/> in first person.</param>
     /// <param name="arm">The first-person arm and what it holds, drawn last over a cleared depth buffer, or <see langword="null"/> in the shoulder view.</param>
+    /// <param name="plotOutlines">The outlines of the plots of land near the eye (<see cref="OverlayMeshes.PlotOutline"/>, Y10), drawn in the sun's light after the figures, or <see langword="null"/>.</param>
     /// <param name="overlay">Drawn after the figures, the water and the beacon and before the arm clears the depth buffer, so it can test against the scene (the NPCs' name plates, V22), or <see langword="null"/>.</param>
-    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null, Action? overlay = null)
+    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null, Action? overlay = null, IReadOnlyList<MeshBuffer>? plotOutlines = null)
     {
         _sky.Draw(camera, tick, Preset.Clouds);
 
@@ -653,6 +654,14 @@ public sealed class VoxelRenderer : IDisposable
             FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
+        }
+
+        if (plotOutlines is not null)
+        {
+            foreach (var outline in plotOutlines)
+            {
+                DrawDynamic(outline); // the sun's light is still the diffuse colour here, as for the figures
+            }
         }
 
         _effect.DiffuseColor = Vector3.One; // the block's frame is not dimmed by the night

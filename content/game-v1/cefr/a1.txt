@@ -416,3 +416,5 @@ echar
 mezclar
 # posada: the inn, a labelled place of the village where the player's first bed stands (Y04, D-game-32 (e)); in neither of the core's lists.
 posada
+# estaca: the stake that marks the plot of land the player buys, an item the mayor gives (Y10, D-game-32 (e)); in neither of the core's lists.
+estaca

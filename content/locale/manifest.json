@@ -5,10 +5,10 @@
 {"path":"en/keys.json","sha256":"e43445f34b70c25da03a911332665c926d1ac0ed861e1e33e812cda89875b350","bytes":1195},
 {"path":"en/lessons.json","sha256":"a6add426c68db5aa319e62c14332bd592689dd3fd918bd4d8aa67654a6f7baf9","bytes":105619},
 {"path":"en/lines.json","sha256":"269fb65df9b867bcd05248429412ff9d32c4a6dc7442adad9fd177b7d8b97409","bytes":38700},
-{"path":"en/nouns.json","sha256":"bc0721796976291c88ef6d71c5ae616a1c63b17e82c0715ec44bb1e2e6a10b0c","bytes":740},
+{"path":"en/nouns.json","sha256":"fc4be829c1c02c73238ae6621d7e6849d77e7f1c5c8e1f6d85f5b823cf016cd2","bytes":768},
 {"path":"en/phrases.json","sha256":"b6beb676fae9f7035b36ce9fe84495c4a3958abc0815f79c1b0e2cf7c9d476ba","bytes":57139},
 {"path":"en/tips.json","sha256":"3ceb4995e72a47b5dc30faf69321fa9016194adf28bea7ed7d300d916a7a21d0","bytes":1636},
-{"path":"en/ui.json","sha256":"629e6d2a9ff99ece9561d2b7236b0b02a9baa184a977afeed20b9f7132975a0b","bytes":28172},
+{"path":"en/ui.json","sha256":"974c9fd31e3a1905e193c48c85dceb846ceefaa9905e547fbc76c77ed7fdd64f","bytes":29127},
 {"path":"en/verbs.json","sha256":"f6f7f20c7f21cceb323c8c9bc92e9def0c88980ae3f8382c7a2e1f20233b4158","bytes":5034},
 {"path":"locales.json","sha256":"009b08490bd45e1514538fd17ffc2b3e222b4fdc569182220ad6278fed2fd8ff","bytes":304}
-],"bundleHash":"bbfa5be631acff094bc8098e34b5914d8903ae43c80638532c0b203b7ed040fe"}
+],"bundleHash":"7dba5c252211825a9f7f0897a89295eac0b3fa8f9ff0ac980ae51f957d1e6b37"}

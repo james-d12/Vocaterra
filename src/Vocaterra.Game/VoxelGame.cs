@@ -445,7 +445,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             [_menu, _micScreen, _checks, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
             [_menu, _checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell));
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell), cell => _session.UseStake(cell));
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
@@ -783,6 +783,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var (headingStep, headingOffer) = _lesson.State();
         view.LessonHeading = headingStep is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingStep) : headingOffer is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingOffer) : null; // the panel's header (U02)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
+        view.PlotLine = _session.PlotHudLine(); // Y10: the plot's size and price, or "Your land", near it or with the stake in hand
         view.SleepPrompt ??= BedLocked && !_ending.Visible(_sim.Tick) ? SleepOffer.LockedBedText(_session) : null; // Y05: at the inn's bed before lodging, the bed says it is the inn's
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
         view.FadeAlpha = (float)_collapseFade;
