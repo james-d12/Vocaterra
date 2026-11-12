@@ -50,7 +50,12 @@ public static class SkyPalette
     /// <summary>The colour of the dusk sky at an elevation in degrees (S15).</summary>
     public static (byte R, byte G, byte B) AtDusk(float elevationDegrees) => At(elevationDegrees, DuskHorizon, DuskMiddle, DuskZenith);
 
-    private static (byte R, byte G, byte B) At(float elevationDegrees, (byte R, byte G, byte B) horizon, (byte R, byte G, byte B) middle, (byte R, byte G, byte B) zenith)
+    /// <summary>The colour of a sky with the given three colours at an elevation in degrees (E02: the day, dusk and night looks all use the one gradient).</summary>
+    /// <param name="elevationDegrees">The elevation above the horizon.</param>
+    /// <param name="horizon">The colour at and below the horizon.</param>
+    /// <param name="middle">The colour half way up.</param>
+    /// <param name="zenith">The colour overhead.</param>
+    public static (byte R, byte G, byte B) At(float elevationDegrees, (byte R, byte G, byte B) horizon, (byte R, byte G, byte B) middle, (byte R, byte G, byte B) zenith)
     {
         if (elevationDegrees <= 0f)
         {
@@ -81,7 +86,8 @@ public static class SkyPalette
 /// <param name="Width">The size along x.</param>
 /// <param name="Depth">The size along z.</param>
 /// <param name="Thickness">The height of the slab.</param>
-public readonly record struct CloudBox(float X, float Y, float Z, float Width, float Depth, float Thickness);
+/// <param name="Alpha">How much of the cloud shows, above 0 up to 1: 1 for a cloud that is there at any cover from <see cref="CloudField.Cover"/> percent up, less while the cover is just passing its cell.</param>
+public readonly record struct CloudBox(float X, float Y, float Z, float Width, float Depth, float Thickness, float Alpha = 1f);
 
 /// <summary>
 /// The clouds (S14): a field of flat blocky slabs, each cell of a grid holding one cloud of two or three overlapping boxes or none, picked by a hash of
@@ -101,11 +107,46 @@ public static class CloudField
     /// <summary>How far a cloud drifts east in a tick, in blocks (about 0.7 blocks a second).</summary>
     public const float DriftPerTick = 0.012f;
 
-    /// <summary>The percent of cells that hold a cloud.</summary>
+    /// <summary>The percent of cells that hold a cloud in fair weather: the cover the sky has always had (a weather's cloud cover of 0.42).</summary>
     public const int Cover = 42;
 
-    /// <summary>Fills <paramref name="boxes"/> with the clouds round the camera at a tick (the list is cleared first).</summary>
-    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes)
+    /// <summary>How wide, in percent of cover, the fade of a cell is: a cloud takes this much of a rise in cover to come from clear to fully shown.</summary>
+    public const float FadeWidth = 6f;
+
+    /// <summary>
+    /// How much of a cell's cloud shows at a cover (E05), 0 (none) to 1. A cell has a place in the order of the cells (<paramref name="rank"/>, 0 up to 100: the hash's percent, plus a fraction
+    /// so cells of one percent differ). The cells below <see cref="Cover"/> are the fair sky's own and show fully at that cover and above, fading out only as the cover drops under their
+    /// rank; the others fade in as the cover rises past theirs, over <see cref="FadeWidth"/>. The function never falls as the cover rises, and at the fair cover it is exactly 1 for the fair sky's
+    /// cells and 0 for the rest, so that sky is today's.
+    /// </summary>
+    /// <param name="rank">The cell's rank, 0 up to 100.</param>
+    /// <param name="fair">Whether the cell is one of the fair sky's (its percent is under <see cref="Cover"/>).</param>
+    /// <param name="cover">The cloud cover, 0 to 1.</param>
+    public static float CellAlpha(float rank, bool fair, double cover)
+    {
+        // The cover on the scale of the ranks: the fair cover is where the fair cells end, a full cover is where the last cell is fully in, and zero is where the last fair cell is fully out.
+        var c = Math.Clamp(cover, 0, 1);
+        var fairShare = Cover / 100.0;
+        var threshold = c >= fairShare
+            ? Cover + ((c - fairShare) / (1 - fairShare) * (100 + FadeWidth - Cover))
+            : -FadeWidth + (c / fairShare * (Cover + FadeWidth));
+        var alpha = ((threshold - rank) / FadeWidth) + (fair ? 1d : 0d);
+        return (float)Math.Clamp(alpha, 0, 1);
+    }
+
+    /// <summary>Fills <paramref name="boxes"/> with the clouds round the camera at a tick in fair weather (the list is cleared first).</summary>
+    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes) => Generate(cameraX, cameraZ, tick, boxes, Cover / 100.0);
+
+    /// <summary>
+    /// Fills <paramref name="boxes"/> with the clouds round the camera at a tick under a cloud cover (the list is cleared first). At <see cref="Cover"/> percent the boxes are the fair sky's;
+    /// a higher cover only adds clouds (none is moved or removed), each fading in by <see cref="CloudBox.Alpha"/> as the cover passes its cell, and a lower one fades the fair sky's out.
+    /// </summary>
+    /// <param name="cameraX">The camera's x.</param>
+    /// <param name="cameraZ">The camera's z.</param>
+    /// <param name="tick">The simulation's tick (the drift).</param>
+    /// <param name="boxes">The list to fill.</param>
+    /// <param name="cover">The weather's cloud cover, 0 to 1.</param>
+    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes, double cover)
     {
         ArgumentNullException.ThrowIfNull(boxes);
         boxes.Clear();
@@ -117,7 +158,10 @@ public static class CloudField
             for (var cx = cellX0 - Reach; cx <= cellX0 + Reach; cx++)
             {
                 var h = BlockArtNature.Mix((uint)cx, (uint)cz, 0xC10D);
-                if ((h >> 20) % 100 >= Cover)
+                var percent = (h >> 20) % 100;
+                var rank = percent + (((h >> 28) & 0xF) / 16f); // a fraction from the hash's top bits, so cells of one percent differ
+                var alpha = CellAlpha(rank, percent < Cover, cover);
+                if (alpha <= 0f)
                 {
                     continue;
                 }
@@ -128,12 +172,12 @@ public static class CloudField
                 var width = 30f + ((((h >> 24) & 0xF) / 15f) * 34f);
                 var depth = 18f + ((((h >> 4) & 0xF) / 15f) * 22f);
                 var thick = 5f + (((h >> 12) & 3) * 1f);
-                boxes.Add(new CloudBox(originX, y, originZ, width, depth, thick));
+                boxes.Add(new CloudBox(originX, y, originZ, width, depth, thick, alpha));
                 var extra = BlockArtNature.Mix((uint)cx, (uint)cz, 0xC10E);
-                boxes.Add(new CloudBox(originX + (width * 0.45f), y + 1f, originZ + (depth * 0.35f), width * 0.7f, depth * 0.8f, thick + 1f));
+                boxes.Add(new CloudBox(originX + (width * 0.45f), y + 1f, originZ + (depth * 0.35f), width * 0.7f, depth * 0.8f, thick + 1f, alpha));
                 if ((extra & 3) != 0)
                 {
-                    boxes.Add(new CloudBox(originX - (width * 0.2f), y - 0.5f, originZ + (depth * 0.5f), width * 0.5f, depth * 0.7f, thick - 1f));
+                    boxes.Add(new CloudBox(originX - (width * 0.2f), y - 0.5f, originZ + (depth * 0.5f), width * 0.5f, depth * 0.7f, thick - 1f, alpha));
                 }
             }
         }

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water.Flow;
@@ -18,6 +19,7 @@ namespace Vocaterra.Game.Core.Simulation;
 /// <param name="Slots">The inventory's slots, in order (<see cref="Inventory.SlotCount"/> of them).</param>
 /// <param name="Air">The player's air in ticks (water-plan H03); optional, full when missing, so older saves load.</param>
 /// <param name="Flow">The cells waiting for a flow update, in queue order (water-plan H06); optional, none when missing, so older saves load.</param>
+/// <param name="Atmosphere">The day clock's offset and held hour (E01) and the weather's state (E04); <see langword="null"/> is a new game's, so older saves load.</param>
 public sealed record VoxelSimulationState(
     long Tick,
     int SelectedSlot,
@@ -28,5 +30,6 @@ public sealed record VoxelSimulationState(
     PlayerBodyState Player,
     IReadOnlyList<ItemStack> Slots,
     int Air = Water.Breath.MaxAir,
-    IReadOnlyList<FlowEntry>? Flow = null);
+    IReadOnlyList<FlowEntry>? Flow = null,
+    AtmosphereState? Atmosphere = null);
 

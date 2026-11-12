@@ -14,6 +14,7 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="PlantKeepPercent">S14: the percent of the undergrowth that is built at all (a stable pick by position), 100 for every plant.</param>
 /// <param name="AmbientOcclusion">S14: whether the cube corners are darkened by the blocks round them.</param>
 /// <param name="Clouds">S14: whether the flat clouds are drawn.</param>
+/// <param name="RainDrops">E06: the most drops the rain draws at full intensity (a style takes its share of it, <c>PrecipitationStyle.CountShare</c>); the cost is four vertices a drop.</param>
 public sealed record QualityPreset(
     QualityLevel Level,
     int ViewDistance,
@@ -21,7 +22,8 @@ public sealed record QualityPreset(
     int PlantDistance = 64,
     int PlantKeepPercent = 60,
     bool AmbientOcclusion = true,
-    bool Clouds = true)
+    bool Clouds = true,
+    int RainDrops = 1200)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;
@@ -29,9 +31,9 @@ public sealed record QualityPreset(
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true),
-        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true),
-        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200),
+        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400),
+        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400),
     };
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>

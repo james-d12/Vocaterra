@@ -25,6 +25,9 @@ public sealed class PlayerSettingsTests
     [Theory]
     [InlineData(SettingId.AmbientVolume, -40, 0)]
     [InlineData(SettingId.AmbientVolume, 400, 100)]
+    [InlineData(SettingId.WeatherVolume, -40, 0)]
+    [InlineData(SettingId.WeatherVolume, 400, 100)]
+    [InlineData(SettingId.WeatherVolume, 62, 60)]
     [InlineData(SettingId.VoiceVolume, 62, 60)]
     [InlineData(SettingId.VoiceVolume, 63, 65)]
     [InlineData(SettingId.Quality, 9, 2)]
@@ -48,6 +51,31 @@ public sealed class PlayerSettingsTests
     }
 
     [Fact]
+    public void Given_TheWeatherSetting_When_ANewGameStarts_Then_ItIsSixtyLikeTheAmbientAndItsVolumeIsTheWeathers()
+    {
+        var settings = new PlayerSettings();
+        var spec = PlayerSettings.Spec(SettingId.WeatherVolume);
+        Assert.Equal("settingsWeather", spec.LabelKey);
+        Assert.Equal((0, 100, 5, 60), (spec.Min, spec.Max, spec.Step, spec.Default));
+        Assert.Equal(0.6, settings.WeatherVolume, 6);
+        Assert.Equal(0.6, settings.Volumes.Weather, 6);
+        Assert.Equal(settings.AmbientVolume, settings.Volumes.Ambient, 6); // a new game sounds as it did before E09
+    }
+
+    [Fact]
+    public void Given_TheWeatherSetting_When_ChangedLive_Then_OnlyItMovesAndTheVolumesFollow()
+    {
+        var settings = new PlayerSettings();
+        var seen = new List<SettingId>();
+        settings.Changed += seen.Add;
+        settings.Set(SettingId.WeatherVolume, 15);
+
+        Assert.Equal([SettingId.WeatherVolume], seen);
+        Assert.Equal(0.15, settings.Volumes.Weather, 6);
+        Assert.Equal(0.6, settings.Volumes.Ambient, 6); // the ambient volume did not move
+    }
+
+    [Fact]
     public void Given_ASetting_When_ItMoves_Then_ChangedFiresOnceAndNotForTheSameValue()
     {
         var settings = new PlayerSettings();
@@ -65,6 +93,7 @@ public sealed class PlayerSettingsTests
     {
         var settings = new PlayerSettings();
         settings.Set(SettingId.AmbientVolume, 15);
+        settings.Set(SettingId.WeatherVolume, 35);
         settings.Set(SettingId.VoiceVolume, 35);
         settings.Set(SettingId.SfxVolume, 45);
         settings.Set(SettingId.UiVolume, 5);
@@ -155,6 +184,15 @@ public sealed class PlayerSettingsTests
         Assert.Equal(70, settings.FieldOfView);
         Assert.Equal(100, settings.TextPercent);
         Assert.Equal(50, settings.Get(SettingId.VoiceVolume));
+    }
+
+    [Fact]
+    public void Given_AWeatherVolumeInTheSave_When_ResolvedWithAndWithoutTheFlag_Then_TheSaveHoldsUnlessTheFlagWins()
+    {
+        var saved = new SaveSettings(new SoundVolumes(1, 0.8, 0.8, 0.6, 0.9));
+        Assert.Equal(90, PlayerSettings.Resolve(saved).Get(SettingId.WeatherVolume));
+        Assert.Equal(20, PlayerSettings.Resolve(saved, new LaunchSettings(WeatherVolume: 0.2)).Get(SettingId.WeatherVolume));
+        Assert.Equal(90, PlayerSettings.Resolve(saved, new LaunchSettings(AmbientVolume: 0.2)).Get(SettingId.WeatherVolume)); // the ambient flag leaves it alone
     }
 
     [Fact]

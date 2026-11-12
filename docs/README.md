@@ -63,6 +63,7 @@ Documents beside the code or data they describe stay there: `content/README.md`,
 | [village-plan](game/village-plan.md) | The V series, the village and its lessons |
 | [settlement-plan](game/settlement-plan.md) | The inn, purchased land and the campsite: the proposal, its review and the Y series (the first slice, on `feature/settlement`); a larger village and map as later phases |
 | [water-plan](game/water-plan.md) | The H series, flowing water, swimming, breath and the view under water (built 2026-11-07 to 2026-11-08; in `main`) |
+| [weather-plan](game/weather-plan.md) | The E series, a day and night cycle and modular weather: sunny, cloudy and rain, and the NPCs' weather answer (built 2026-11-10 to 2026-11-11 on `feature/weather`, PR #64; D-game-31) |
 | [activities-plan](game/activities-plan.md) | The W series, activities and the core systems (planned 2026-11-01; W01 to W10 built, W11 onward open; D-game-23 in part and D-game-24 decided 2026-11-03; implementation scope in the adaptation design, section 17.3) |
 | [playtest](game/playtest.md) | The facilitator's script for playtests |
 | [scripted-runs](game/scripted-runs.md) | The scripted runs, the front-end's regression set |

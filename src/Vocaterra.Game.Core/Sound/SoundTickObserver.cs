@@ -12,7 +12,7 @@ public sealed class SoundTickObserver(SoundFrontend sound, VoxelSession session)
     {
         var sim = session.Simulation;
         sound.ObserveSimulation(sim.Events, (x, y, z) => sim.Grid.GetBlock(x, y, z));
-        sound.ObserveWorld(sim.Tick, sim.Events, sim.Player, (x, y, z) => sim.Grid.GetBlock(x, y, z), session.FireLit); // the footsteps and the beds (S25)
+        sound.ObserveWorld(sim.Tick, sim.Events, sim.Player, (x, y, z) => sim.Grid.GetBlock(x, y, z), sim.Atmosphere, session.FireLit, sim.Grid.HighestBlock); // the footsteps and the beds (S25; E03: the beds follow the time of day; E06: and the rain, lower under cover)
         sound.ObserveBreath(sim.Breath, Immersion.Of(sim.Grid, sim.Player).Eye); // the bubbles of the breath (H10)
         sound.Scripted.Tick(); // the cues of the frame play together, so an answer's chime and a step's chime fold into one
     }

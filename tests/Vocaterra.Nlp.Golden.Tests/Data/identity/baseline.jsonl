@@ -6355,7 +6355,9 @@
 {"id":"dialogue:baker_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
 {"id":"dialogue:baker_cant_pay.1","stages":{"render":"54b920aab7ef9e92"}}
 {"id":"dialogue:baker_cant_sell.1","stages":{"render":"2817985067b6c41a"}}
+{"id":"dialogue:baker_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:baker_delivered.1","stages":{"render":"9bebf5f8f4d1fdf9"}}
+{"id":"dialogue:baker_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:baker_gift_used.1","stages":{"render":"917a4b1f34428de7"}}
 {"id":"dialogue:baker_give_missing.1","stages":{"render":"40eaf852d3abc5d0"}}
 {"id":"dialogue:baker_greet.1","stages":{"render":"14fe4ea784d9be11"}}
@@ -6373,6 +6375,7 @@
 {"id":"dialogue:baker_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
 {"id":"dialogue:baker_order_yes.1","stages":{"render":"0c95fc33e2cd60fb"}}
 {"id":"dialogue:baker_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
+{"id":"dialogue:baker_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:baker_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:baker_receive_help.1","stages":{"render":"da75aef628a264fd"}}
 {"id":"dialogue:baker_sell.1","stages":{"render":"ac6dbd6eb0f26fcf"}}
@@ -6397,7 +6400,9 @@
 {"id":"dialogue:farmer_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
 {"id":"dialogue:farmer_cant_pay.1","stages":{"render":"e9c40d0bf37809fc"}}
 {"id":"dialogue:farmer_cant_sell.1","stages":{"render":"d229c932b24a960b"}}
+{"id":"dialogue:farmer_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:farmer_delivered.1","stages":{"render":"b7dc7524c87ee10c"}}
+{"id":"dialogue:farmer_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:farmer_greet.1","stages":{"render":"059762b0bca675d0"}}
 {"id":"dialogue:farmer_hello.1","stages":{"render":"ffb948556a252fec"}}
 {"id":"dialogue:farmer_help.1","stages":{"render":"bab91e77cdfcf6c6"}}
@@ -6411,6 +6416,7 @@
 {"id":"dialogue:farmer_order_yes.1","stages":{"render":"03fdb46c7a2275b2"}}
 {"id":"dialogue:farmer_pay.1","stages":{"render":"8ddad20e72818c82"}}
 {"id":"dialogue:farmer_price.1","stages":{"render":"6b4b5ca250311a9c"}}
+{"id":"dialogue:farmer_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:farmer_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:farmer_receive_help.1","stages":{"render":"a7ec06be8845f925"}}
 {"id":"dialogue:farmer_sell.1","stages":{"render":"8bac32291ec51509"}}
@@ -6444,7 +6450,9 @@
 {"id":"dialogue:feedback.slow_repeat.2","stages":{"render":"b05a6b8fd7bf60a8"}}
 {"id":"dialogue:fisher_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}
 {"id":"dialogue:fisher_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
+{"id":"dialogue:fisher_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:fisher_delivered.1","stages":{"render":"591f1506926273c9"}}
+{"id":"dialogue:fisher_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:fisher_far.1","stages":{"render":"b48b0376bf09b97e"}}
 {"id":"dialogue:fisher_greet.1","stages":{"render":"cdeef36869890fc0"}}
 {"id":"dialogue:fisher_hello.1","stages":{"render":"ffb948556a252fec"}}
@@ -6456,6 +6464,7 @@
 {"id":"dialogue:fisher_order_yes.1","stages":{"render":"f14630842224ea8e"}}
 {"id":"dialogue:fisher_point.1","stages":{"render":"054731669e121257"}}
 {"id":"dialogue:fisher_point.2","stages":{"render":"916681fbb8b263a7"}}
+{"id":"dialogue:fisher_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:fisher_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:fisher_receive_help.1","stages":{"render":"75c8b7f2ec69ac17"}}
 {"id":"dialogue:fisher_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6655,9 +6664,11 @@
 {"id":"dialogue:guide.uncertain.2","stages":{"render":"6c0d54f21e849c0b"}}
 {"id":"dialogue:guide_again.1","stages":{"render":"4628bbc0402e8218"}}
 {"id":"dialogue:guide_again.2","stages":{"render":"b3bb933c6fa4155d"}}
+{"id":"dialogue:guide_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:guide_craft.1","stages":{"render":"7f08c4275f963488"}}
 {"id":"dialogue:guide_craft.2","stages":{"render":"0e65bbf7c3917f70"}}
 {"id":"dialogue:guide_craft.3","stages":{"render":"eeaf4245ec9c7294"}}
+{"id":"dialogue:guide_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:guide_find.1","stages":{"render":"1b56233569951fc5"}}
 {"id":"dialogue:guide_find.2","stages":{"render":"49f8a1fd6a86b028"}}
 {"id":"dialogue:guide_find.3","stages":{"render":"655ff90cc5fa0412"}}
@@ -6685,6 +6696,7 @@
 {"id":"dialogue:guide_point.1","stages":{"render":"45b082a02bb800a2"}}
 {"id":"dialogue:guide_point.2","stages":{"render":"f360a4c47f981235"}}
 {"id":"dialogue:guide_point.3","stages":{"render":"388dd4a06f4dcb4b"}}
+{"id":"dialogue:guide_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:guide_slower.1","stages":{"render":"0a3f599ff8e607f8"}}
 {"id":"dialogue:guide_slower.2","stages":{"render":"1f41b269e396c173"}}
 {"id":"dialogue:guide_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6697,6 +6709,8 @@
 {"id":"dialogue:guide_yes.1","stages":{"render":"b075610fe2c4cccd"}}
 {"id":"dialogue:innkeeper_bye.1","stages":{"render":"b1f22ca7156e7092"}}
 {"id":"dialogue:innkeeper_bye.2","stages":{"render":"fcd653abf01f085d"}}
+{"id":"dialogue:innkeeper_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
+{"id":"dialogue:innkeeper_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:innkeeper_free.1","stages":{"render":"6c8d312c7cb6eafe"}}
 {"id":"dialogue:innkeeper_give.1","stages":{"render":"d24d852dd5fe6d36"}}
 {"id":"dialogue:innkeeper_help.1","stages":{"render":"efb48aed4321daeb"}}
@@ -6707,6 +6721,7 @@
 {"id":"dialogue:innkeeper_no.1","stages":{"render":"c239e3164a4b6acf"}}
 {"id":"dialogue:innkeeper_no.2","stages":{"render":"8aa84f5f6001bd41"}}
 {"id":"dialogue:innkeeper_offer.1","stages":{"render":"e40d56fdbca01663"}}
+{"id":"dialogue:innkeeper_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:innkeeper_room.1","stages":{"render":"37d2e58f53fec867"}}
 {"id":"dialogue:innkeeper_room.2","stages":{"render":"a990a70bb908fd25"}}
 {"id":"dialogue:innkeeper_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6723,10 +6738,12 @@
 {"id":"dialogue:shop_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
 {"id":"dialogue:shop_cant_pay.1","stages":{"render":"b39e40e5ee20c6be"}}
 {"id":"dialogue:shop_cant_sell.1","stages":{"render":"02df7e9a01e0ac78"}}
+{"id":"dialogue:shop_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:shop_deny.1","stages":{"render":"d94adc0aee5eca7b"}}
 {"id":"dialogue:shop_deny.2","stages":{"render":"f0fcdeaa843cd58b"}}
 {"id":"dialogue:shop_done.1","stages":{"render":"b1f22ca7156e7092"}}
 {"id":"dialogue:shop_done.2","stages":{"render":"fcd653abf01f085d"}}
+{"id":"dialogue:shop_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:shop_gift_used.1","stages":{"render":"51a7cc1b630589bf"}}
 {"id":"dialogue:shop_give.1","stages":{"render":"0a17b72ba13b6294"}}
 {"id":"dialogue:shop_give.2","stages":{"render":"16a4249f9f3e1116"}}
@@ -6742,6 +6759,7 @@
 {"id":"dialogue:shop_none_offered.1","stages":{"render":"ec9ad337f99118ca"}}
 {"id":"dialogue:shop_offer.1","stages":{"render":"ba2fa40422c9a2c0"}}
 {"id":"dialogue:shop_price.1","stages":{"render":"bba7ea0cd2b25a11"}}
+{"id":"dialogue:shop_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:shop_sell_flour.1","stages":{"render":"afcb954aca5bc6c1"}}
 {"id":"dialogue:shop_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:shop_thank.1","stages":{"render":"267bead7d57632ce"}}
@@ -6757,7 +6775,9 @@
 {"id":"dialogue:smith_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}
 {"id":"dialogue:smith_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
 {"id":"dialogue:smith_cant_sell.1","stages":{"render":"2817985067b6c41a"}}
+{"id":"dialogue:smith_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
 {"id":"dialogue:smith_delivered.1","stages":{"render":"c61ab1742b8bf844"}}
+{"id":"dialogue:smith_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:smith_greet.1","stages":{"render":"0a208522d2cf175e"}}
 {"id":"dialogue:smith_hello.1","stages":{"render":"ffb948556a252fec"}}
 {"id":"dialogue:smith_help.1","stages":{"render":"f530c9a812c4f20a"}}
@@ -6769,6 +6789,7 @@
 {"id":"dialogue:smith_offer.1","stages":{"render":"182fe26a7b978365"}}
 {"id":"dialogue:smith_ok.1","stages":{"render":"d94adc0aee5eca7b"}}
 {"id":"dialogue:smith_order_yes.1","stages":{"render":"164efcaface141e3"}}
+{"id":"dialogue:smith_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:smith_receive.1","stages":{"render":"2b08c8ca371333f4"}}
 {"id":"dialogue:smith_receive_help.1","stages":{"render":"d22c8096382e6e96"}}
 {"id":"dialogue:smith_sun.1","stages":{"render":"a931165fb9761165"}}
@@ -6782,6 +6803,8 @@
 {"id":"dialogue:smith_yes.1","stages":{"render":"b075610fe2c4cccd"}}
 {"id":"dialogue:villager_bye.1","stages":{"render":"ab9fdc9e11aa15a8"}}
 {"id":"dialogue:villager_bye.2","stages":{"render":"4fa6d8aa9b3008d4"}}
+{"id":"dialogue:villager_cloudy.1","stages":{"render":"82fb78ffb54a2f01"}}
+{"id":"dialogue:villager_fair.1","stages":{"render":"1d553973e254973c"}}
 {"id":"dialogue:villager_gift_used.1","stages":{"render":"51a7cc1b630589bf"}}
 {"id":"dialogue:villager_give.1","stages":{"render":"76bcfd3b39201f1a"}}
 {"id":"dialogue:villager_give.2","stages":{"render":"6d1cc658a3e503f6"}}
@@ -6791,6 +6814,7 @@
 {"id":"dialogue:villager_nice.1","stages":{"render":"4ade6819164f7ba9"}}
 {"id":"dialogue:villager_point.1","stages":{"render":"054731669e121257"}}
 {"id":"dialogue:villager_point.2","stages":{"render":"5032dd08527a724d"}}
+{"id":"dialogue:villager_rain.1","stages":{"render":"7483f41e03f09f2d"}}
 {"id":"dialogue:villager_sun.1","stages":{"render":"a931165fb9761165"}}
 {"id":"dialogue:villager_thank.1","stages":{"render":"267bead7d57632ce"}}
 {"id":"dialogue:villager_thank.2","stages":{"render":"e8cdb0bd91a51c89"}}

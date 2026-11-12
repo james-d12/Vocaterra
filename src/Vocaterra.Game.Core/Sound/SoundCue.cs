@@ -14,6 +14,9 @@ public enum SoundCategory
 
     /// <summary>The ambient beds (S25). Ducks under a voice; silent while the microphone records.</summary>
     Ambient,
+
+    /// <summary>The weather's own beds (the rain, E09): their own volume, not the ambient one. Ducks under a voice; silent while the microphone records.</summary>
+    Weather,
 }
 
 /// <summary>
@@ -243,6 +246,7 @@ public static class SoundCues
         SoundCategory.Sfx => "sfx",
         SoundCategory.Ui => "ui",
         SoundCategory.Ambient => "ambient",
+        SoundCategory.Weather => "weather",
         _ => throw new ArgumentOutOfRangeException(nameof(category), category, "Unknown sound category."),
     };
 }
