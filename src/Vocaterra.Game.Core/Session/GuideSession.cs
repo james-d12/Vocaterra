@@ -1420,9 +1420,10 @@ public abstract partial class GuideSession : IDisposable
             _retry = null;
         }
 
-        if (turn.FailForward)
+        if (turn.FailForward && support.InPlay.Count > 0)
         {
-            Log(new PhraseUse(tick, time, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
+            // Y14: the phrase the learner was asked for at that prompt (the first in play there: the NPC's focus, or the lesson step's phrase), none where the prompt asks for none.
+            Log(new PhraseUse(tick, time, support.InPlay[0], PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
         }
 
         if (turn.HostEvents.Count > 0)
@@ -1450,6 +1451,7 @@ public abstract partial class GuideSession : IDisposable
             Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
         }
 
+        var offerStood = Lessons.OfferStandingAt(npc) is not null;
         var handled = !handOverTurn && (Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn)); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
@@ -1469,6 +1471,11 @@ public abstract partial class GuideSession : IDisposable
             {
                 // A miss for the person or the tense (S26, S27) shows no correction line of the core: its recast would echo the learner's own words with "¡Eso es!", against the lesson's retry.
                 shown = turn with { LessonHandled = true, Feedback = formMiss ? null : turn.Feedback };
+                if (offerStood && !turn.Communicated && !turn.Unsure && Data.Words.Classes.Read(turn.Line) is var answer and (ClassAnswer.Yes or ClassAnswer.No))
+                {
+                    // Y14: «sí» or «no» to a class offer was graded at the NPC's own prompt (the trade's, which takes no confirm): the verdict says what the class took it as.
+                    shown = shown with { Intent = answer == ClassAnswer.Yes ? "confirm" : "deny", Communicated = true };
+                }
             }
 
             if (!handled && shown.GuideLines.Count > 0)
