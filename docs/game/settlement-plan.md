@@ -388,7 +388,9 @@ Y07 to Y12 edit the same files. The pull request (Y13) merges `main` again if it
 - `VoxelSession.Skip.cs` gives lodging where it lit the ring; the texts of `PlaytestFlow` and `PlaytestEnd`; Luna's line that
   sends the player to the inn, with its speech.
 
-**Y08 The mountain, the strings and the rebaseline.** The tent, the chest, the crate and `firering.player` leave `scene.json`,
+**Y08 The mountain, the strings and the rebaseline.** *Added 2026-11-12 (the owner: the one-block beds "look broken"):* beds and
+bedrolls become two cells long (head and foot, one mesh: mattress, pillow, headboard, footboard, frame), and the inn's two beds
+take two cells each in its stamp; Y08 already edits the inn's cells and pins the digest again. The tent, the chest, the crate and `firering.player` leave `scene.json`,
 and `camp.player` loses the label "mi campamento"; the mountain's sleep place goes, and `death.wakeAt` names Luna's fire. The console's sleep line says
 "at the fire" wherever the player slept: it names the place. The locale's `tips.json`, `ui.json` and
 `controls.json`, `words.json`'s `hud.camp`, `Sound/AmbientBeds.cs`. The tests that name `firering.player` (seven files, with

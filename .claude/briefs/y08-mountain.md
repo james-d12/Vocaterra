@@ -54,6 +54,20 @@ Deliverables:
    another system breaks without it, and say so). The inn's counter: it is a row of `crate` a player can step onto (Y04); stop that if it
    can be done without a crafting panel opening (a block that is solid and reads as a counter but is not `table`; or a slab-height
    block; your choice, say why). The scene's digests and the world digests in tests are pinned again once, with the reason.
+1b. **Beds two blocks long** (the owner, 2026-11-12: "Why are the beds so short? They look broken"). Today a bed is one block
+   (`BlockId.Bed`, Y03/Y04): a 1 × 1 mattress 0.5 high with a 0.85 headboard (`ChunkMesher.AddBed`, `PileHeight`,
+   `BedHeadboardHeight`), so beside a player 1.8 high it reads as a red box. Make a bed two cells long, the way voxel games do: a head
+   cell and a foot cell (a second block id appended in `Voxel/BlockId.cs`, or the one id with the half decided from its neighbour:
+   choose, say why), meshed as one bed: a mattress about 0.55 high over both cells with a pillow at the head, a headboard about 1.0 high
+   at the head end, a lower footboard, legs or a frame so it stands off the floor, its blanket art over both cells (`BlockArt`,
+   `BlockAtlasLayout`). The head lies against the wall as now. The inn's stamp (`inn_rooms`) places each bed over two cells along row 5
+   (cols 1-2 and 6-7, heads against the west and east walls; the door gap stays clear); `bed.inn` stays a stand cell beside the west
+   bed (move it if the bed now covers it) and the sleep place, its prompt, Y05a's bounded walk and the death's wake cell still work.
+   A bed is still not solid (the crosshair finds it, the player can walk to its side). The bedroll (Y12 will place it) gets the same
+   two-cell length, lower and with no headboard, so a camp's bedroll does not look broken either; nothing places one yet beyond tests.
+   A screenshot of the guest room from the doorway, and one close, into `artifacts/y08/`. Tests: the mesh of a two-cell bed (one
+   mattress over both cells, the headboard at the wall end), a lone half (a head with no foot) meshes as something sane, the inn's
+   beds stand where the stamp says.
 2. **The sleep places and the death** (`game/needs.json`): the mountain's sleep place `camp.fire` goes; Luna's fire (the scene's
    `firering` at `camp.guide`) becomes a sleep place (kind `fire`, access `always`, usable when lit, as every fire), so a player without
    lodging can still sleep there (8.2: "Luna's fire stays usable"); `death.wakeAt` names it. Check that the camp task's torch at Luna's
@@ -98,7 +112,7 @@ models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 
-Report, one page: branch, commit SHA, worktree path; what was removed and changed (the scene, the sleep places, the code, the strings,
-the counter, `chest.player`); any new Spanish with its gloss; the digests pinned again; test counts and the tests added or changed; the
+Report, one page: branch, commit SHA, worktree path; what was removed and changed (the scene, the beds, the sleep places, the code, the
+strings, the counter, `chest.player`); any new Spanish with its gloss; the digests pinned again; test counts and the tests added or changed; the
 runs in the game; each scripted run's difference and verdict, and what was re-baselined; anything Y12 or Y13 should know; known-not-fixed
 with reasoning; anything left undone and why. Leave out how you searched.
