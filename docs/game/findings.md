@@ -2500,3 +2500,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   hold, because placed and scene planks are not told apart (saved state would be needed; Y13 records it as a known gap or Y12 tells
   them apart when it adds the camp's own take-back rule); and the scripted steps' generic refusal ("out of reach, no item, or not
   placeable there") also covers a target inside the player's own cell, which misled the orchestrator's first spot check.
+- **Y07, the opening's logic (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y07-report.md` on the branch; the as-built
+  note is in the settlement plan. The agent merged Y09 into its branch before its last runs, as asked, so the gate needed one run.
+  Gate: 11,304 tests passed, 3 skipped. Checked on the merged build: `--skip-to-session 2` gives lodging and a sleep in the bed works
+  with no `--lodging` (`last: inn.bed`); but Rosa still opens with the offer after a skip, because her agent's state moves only when she
+  gives the room herself: given to Y08. The CAMP steps of the scripted runs no longer finish the checklist (crafting the torch spends
+  wood below 5), and r10 never visits the innkeeper, so it no longer reaches the ending: both to Y08. The known fuzz coverage floor
+  flake met the agent once ("fallback:second-chosen").

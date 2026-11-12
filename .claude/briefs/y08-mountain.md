@@ -4,7 +4,7 @@ engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterr
 game's strings, removes the mountain camp's code paths and captures the scripted runs again; the core is taken as it is.
 
 Where to work: /home/james/Dev/Vocaterra/.claude/worktrees/y08, which already exists on the branch `Y08-mountain` (cut from
-`feature/settlement` after Y07, the opening's logic, and Y09, land rules, were recorded). Start every command with
+`feature/settlement` after Y07, the opening's logic, and Y09, land rules, were recorded; Y10 is not in it yet). Start every command with
 `cd /home/james/Dev/Vocaterra/.claude/worktrees/y08 &&` and use absolute paths for file tools; your shell may start in another checkout,
 which you must not edit. Commit after each item that builds and passes its tests, with the prefix `Y08: `. Do not push your branch. Never
 push or merge `feature/settlement` or `main`. When you finish, leave the worktree on your branch, clean, with no process of yours running.
@@ -30,7 +30,7 @@ loop" and the scene's section; docs/game/settlement-plan.md section 8.2, the Y04
 `tent` stamp and the torch hook), section 9.1; docs/game/decisions.md "D-game-32" (grep for it); docs/game/running.md on the scripted
 runs and `scripts/scripted-runs.sh` with its compare tool. The reports in /home/james/Dev/Vocaterra/.claude/worktrees/settlement/.claude/briefs/:
 `y04-report.md` (the inn's counter), `y06m-report.md` ("For Y07 to Y13": the sleep through `ApplyNight`, the `sunTint`, the digest pins
-in `AtmosphereSimulationTests`), `y07-report.md` (what the opening now does, what it left for you), `y09-report.md` (the land rules).
+in `AtmosphereSimulationTests`), `y07-report.md` (what the opening now does, what it left for you: item 4b), `y09-report.md` (the land rules).
 
 Rules: a game milestone edits only the game projects, their tests, content/game-v1, content/locale, content/schema, assets/ and docs/game/
 and takes the core as it is. A regression check is a C# test, never a script with text baselines (the scripted runs are captures you
@@ -83,6 +83,20 @@ Deliverables:
    that speak of the player's own camp, tent or fire up the trail; `words.json`'s `hud.camp`; any HUD text such as "Session complete:
    your fire is lit" if Y07 left it (read y07-report.md). Spanish strings only if a Spanish line names the mountain camp (grep
    `dialogue.json` for `campamento` and check each use; Luna's own camp stays «el campamento»).
+4b. **Left by Y07 (its report's "For Y08"), all yours:**
+   - Rosa's state after lodging given elsewhere: after `--skip-to-session 2` (which gives lodging) or `--lodging`, she still opens
+     with the offer «¡Hola! ¿Quieres una habitación?», because her agent moves to `given` only through her own talk. Make her agent
+     (or her opening and prompt) follow the lodging: when the room is already given, she is in `given` and greets with the goodnight
+     state, on a new session, after a skip and after a load. A test.
+   - The beacon to the bed shows the raw label `bed.inn`: give the scene point a label («cama», already in the lists) in the same
+     scene edit as item 1.
+   - `SleepTests.EndedFirstSession` lights the mountain ring in the test: remove it with the ring.
+   - `ui.control.talk` says "sleep at your fire"; `docs/game/running.md` lines about 95, 243 and 364 describe the mountain fire; and
+     `scripts/playtest/tester-readme.md` (line about 64) describes the torch ending: you may edit that file for this.
+   - The `--sleep` aid's save shows no `last` sleep place in some run of Y07's: find when and fix it if it is a bug (a sleep at a place
+     records it; a test), or say why not.
+   - The scripted runs' shared CAMP steps no longer finish the camp checklist (crafting the torch spends wood below 5): add the trunks
+     it needs. `r10-playtest` never visits the innkeeper, so it no longer reaches the ending: add the visit («sí») so it does.
 5. **The content loop:** `scripts/content-loop.sh --grammar --speech` after each content edit; `--record` only if the end-to-end goldens
    move (say which and why); `--tier full` once before the report. The new bundle hash goes into the save fixture as CLAUDE.md says (the
    loop does it).
@@ -105,7 +119,7 @@ Not in this milestone: the stake, the plot, the mayor, the camp kit, the campsit
 (Y07 did them); a new NPC or lesson.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count, against `feature/settlement`'s after Y07 and Y09, in their reports); scripts/limited.sh dotnet format Vocaterra.sln
+(report the count; 11,304 passed and 3 skipped after Y07 and Y09); scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; the A2 content gate clean; the full suite once without
 models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/ or artifacts/.
 
