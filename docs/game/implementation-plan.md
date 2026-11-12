@@ -543,6 +543,7 @@ the statuses below follow its table in section 8.3.
 | Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as sleep places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,457 tests) |
 | Y14 | QA fixes (the fail-forward's phrase, the wake card, the class offer's verdict, r30's baker) | Y13 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,463 tests) |
+| Y15 | The stake taken at the purchase (owner, 2026-11-12, on PR #65) | Y14 | S | Sonnet 5.5, medium | running |
 
 ## 5. Findings log
 

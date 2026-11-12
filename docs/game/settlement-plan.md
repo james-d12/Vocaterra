@@ -292,6 +292,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,457 tests) |
 | Y14 | QA fixes: the fail-forward's phrase, the wake card under the sleep prompt, the class offer's verdict, r30's baker | Y13, the QA report of 2026-11-12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,463 tests) |
+| Y15 | The stake taken at the purchase: the mayor keeps the stake when he sells the plot; the checklist's `stake` step stays done | Y14, the owner on PR #65 (2026-11-12) | S | Sonnet 5.5, medium | running |
 
 **Y00 Brief and probes.** No gameplay code. Its results are written into this document as section 9, "Layout and numbers".
 - The inn: a ground-floor building of about 9 × 7 at the road's entrance, in place of `house3`, proved by a scene build. (No
