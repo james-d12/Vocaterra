@@ -121,6 +121,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
+Land/             where the player may build and where land is bought (Y09, D-game-32 (c)): LandData (game/land.json) and LandValidator, LandRules (a mask per column built once from the scene and the file: protected, eligible; `CheckPlot` reads the grid for water, trees, the ground on top and the slope and answers a PlotCheck: yes or a PlotFault), Plot, Protection (village, camp, road), LandRegister (the pending and the owned plot, and the IBuildRules hook the simulation asks: protected columns refuse any block but a torch, planks come back only on owned land) and LandSave (`systems.land`)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
                   (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
@@ -250,6 +251,13 @@ step that tells an order gives it when it starts (`OnLessonStepStarted`, the obj
 (`LessonRunner.ClassOfferedAt`) the order is not offered on its own. The validator checks every order NPC's offer (`GameDataValidator.CheckOrderOffer`). The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
 moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
+
+**Land rules (Y09, D-game-32 (c)).** Core's `Land/` holds the rules and the player's plots; the simulation only asks. `game/land.json` names the protected regions by scene site
+(the village's disc, Luna's camp), the protected squares round the `path` and `bridge` blocks, the meadows and the plot's size, price and slope; `LandRules.Create` turns them and the scene into one byte per column
+when the session starts (`VoxelSession.InitLand`), and `CheckPlot` reads the grid for the rest. `VoxelSimulation.BuildRules` (an `IBuildRules`, set by the session to its `LandRegister`; a host setting like `WalkPermille`, not state, not in the digest)
+is asked by `TryPlace` (a protected column refuses every block but a torch: a `PlaceRefused` event, which the session turns into the hint `ui.landVillage`, `landCamp` or `landRoad`), by `PourWater` (the dev aid) and by the gather (a plank block is gatherable
+only where the hook exists, for `PlankTakeBackTicks`, and only on owned land; elsewhere a `TakeBackRefused` event says `ui.landTakeBack` once per hold). Every other gather, trees, berries, stone, is as it was. `VoxelSession.SetPendingPlot`, `OwnPlot`,
+`IsOwned` and the save entry `systems.land` are what the stake (Y10) and the mayor (Y11) call; a simulation with no hook behaves as before the rules.
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 

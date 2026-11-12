@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Reporting;
@@ -139,6 +140,20 @@ try
 
         SessionSkip.Apply(session, skipTo);
         Console.WriteLine($"session: {SessionSkip.Line(skipTo)}");
+    }
+
+    if (options.OwnPlot is { } ownPlot)
+    {
+        // A dev aid (Y09): the plot is checked by the land rules and owned at once, with no coins and no stake; a refusal names the reason.
+        var check = session.SetPendingPlot(ownPlot.X, ownPlot.Z);
+        if (!check.Ok || !session.OwnPlot())
+        {
+            var reason = check.Ok ? "a plot is owned already" : check.Protection == Protection.None ? check.Fault.ToString() : $"{check.Fault}, {check.Protection}";
+            Console.Error.WriteLine($"--own-plot {ownPlot.X},{ownPlot.Z}: the plot cannot be owned there ({reason}).");
+            return 2;
+        }
+
+        Console.WriteLine($"land: the plot {ownPlot.X},{ownPlot.Z} ({session.OwnedPlot!.Value.Width} by {session.OwnedPlot.Value.Depth}) is owned (--own-plot)");
     }
 
     if (options.Lodging)
