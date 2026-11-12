@@ -798,6 +798,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.FadeAlpha = (float)_collapseFade;
         view.Needs = _needsHud;
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
+        view.SleepPrompt = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.SleepPrompt); // Y14: the bed's prompt and the plot's line stood over the wake card's lines
+        view.PlotLine = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.PlotLine);
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
