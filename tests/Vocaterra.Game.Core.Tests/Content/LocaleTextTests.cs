@@ -33,7 +33,7 @@ public sealed class LocaleTextTests
         Assert.Contains(data.Controls, static c => c.Id == "help" && c.Keys.Contains('H', StringComparison.Ordinal));
         // V12c's sleep at the player's own fire, which starts the next session, has its line since V13 (its keys are the talk key's, at the fire), after saving.
         var sleep = Assert.Single(data.Controls, static c => c.Id == "sleep");
-        Assert.Equal(("E at your own fire", "Sleep until morning and start the next session, once this session's work is done."), (sleep.Keys, sleep.Text));
+        Assert.Equal(("E at a bed or a lit fire", "Sleep until morning and start the next session, once this session's work is done."), (sleep.Keys, sleep.Text));
         Assert.Equal("save", data.Controls[data.Controls.ToList().IndexOf(sleep) - 1].Id);
         Assert.Contains(data.Tips, static t => t is { When: "start", Text: "Move the mouse to look around. The valley below is where you are headed." });
         Assert.Equal(["look", "walk", "jump", "note", "gather"], data.Tips.Where(static t => t.When == "start").Select(static t => t.Id)); // the opening (S17)

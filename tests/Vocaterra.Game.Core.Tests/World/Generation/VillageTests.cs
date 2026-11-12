@@ -232,16 +232,15 @@ public sealed class VillageTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ThePlayersCampHasAColdFireRingATentAChestAndACrate()
+    public void TheMountainLedgeIsBareAndTheGuidesCampHasAColdFireRingAndAChest()
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
-        var ring = scene.Point("firering.player");
-        Assert.Equal(BlockId.Air, grid.GetBlock(ring.X, ring.Y + 1, ring.Z)); // cold: nothing in the middle (S17 lights it with a torch on the rim)
+        var ring = scene.Point("firering");
+        Assert.Equal(BlockId.Air, grid.GetBlock(ring.X, ring.Y + 1, ring.Z)); // cold: nothing in the middle (a torch on the rim lights it)
         Assert.Equal(BlockId.FireRing, grid.GetBlock(ring.X + 1, ring.Y + 1, ring.Z));
-        var tent = scene.Point("tent");
-        Assert.Equal(BlockId.Canvas, grid.GetBlock(tent.X, tent.Y + 3, tent.Z));
-        Assert.Equal(BlockId.Chest, grid.GetBlock(scene.Point("chest.player").X, scene.Point("chest.player").Y + 1, scene.Point("chest.player").Z));
+        Assert.DoesNotContain("tent", scene.Points.Keys); // Y08: the ledge keeps the "tent" stamp's definition for Y12 but places none
+        Assert.DoesNotContain("chest.player", scene.Points.Keys);
         Assert.Equal(BlockId.Chest, grid.GetBlock(scene.Point("chest.guide").X, scene.Point("chest.guide").Y + 1, scene.Point("chest.guide").Z));
     }
 
@@ -440,7 +439,7 @@ public sealed class VillageTests(ITestOutputHelper output)
         var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
         var total = 0;
         // Y04 places the inn's beds, so the bed is a kind that must be there; the bedroll waits for the camp kit (Y12) and stands nowhere yet.
-        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll))
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll && k != BlockId.BedrollFoot))
         {
             var count = grid.BlocksOfKind(kind).Count;
             total += count;

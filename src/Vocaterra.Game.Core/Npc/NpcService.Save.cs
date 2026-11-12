@@ -23,6 +23,26 @@ public sealed partial class NpcService
     }
 
     /// <summary>
+    /// The room was given (Y08), by her own talk or elsewhere (<c>--lodging</c>, the skip, a save): the innkeeper is in <see cref="LodgingState"/>, so she greets with the goodnight
+    /// line and does not offer the room again. A bundle with no such NPC or state is left as it is; the interaction counter does not move.
+    /// </summary>
+    internal void FollowLodging()
+    {
+        if (!_agents.TryGetValue(LodgingAgent, out var agent)
+            || !_bundle.Agents.TryGetValue(LodgingAgent, out var machine)
+            || !machine.Definition.States.Any(static s => string.Equals(s.Id, LodgingState, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        var state = agent.Context.AgentState;
+        if (!string.Equals(state.StateId, LodgingState, StringComparison.Ordinal))
+        {
+            agent.Context = agent.Context with { AgentState = new AgentState(LodgingAgent, LodgingState, state.InteractionCounter) };
+        }
+    }
+
+    /// <summary>
     /// The state of one NPC's conversation as a save holds it. The context's world seed is the session's and is not written: the restore keeps it.
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>

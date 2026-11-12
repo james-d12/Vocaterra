@@ -136,7 +136,7 @@ public sealed class SoundFrontend
     /// <param name="player">The player's body.</param>
     /// <param name="blockAt">Reads the block at a cell.</param>
     /// <param name="atmosphere">The atmosphere now (E03: the birds and the insects follow its daylight).</param>
-    /// <param name="fireLit">Whether the player's own fire is lit.</param>
+    /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (E06: the rain is lower under cover), or <see langword="null"/> for open ground.</param>
     public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
     {

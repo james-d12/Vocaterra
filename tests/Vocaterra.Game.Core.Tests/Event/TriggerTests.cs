@@ -32,12 +32,12 @@ public sealed class TriggerTests
     }
 
     [Fact]
-    public void TheCampsRingIsNotThePlayersRing()
+    public void AnExactDetailKeepsOneRingApartFromAnother()
     {
         var camp = new Trigger(WorldEvents.TorchAtRing, Detail: "firering");
 
         Assert.True(camp.Matches(World(WorldEvents.TorchAtRing, detail: "firering")));
-        Assert.False(camp.Matches(World(WorldEvents.TorchAtRing, detail: "firering.player"))); // an exact detail keeps the two rings apart
+        Assert.False(camp.Matches(World(WorldEvents.TorchAtRing, detail: "firering.camp"))); // the detail is compared exactly, not by prefix
     }
 
     [Fact]

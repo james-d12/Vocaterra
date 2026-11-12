@@ -179,7 +179,7 @@ public static class ChunkMesher
         BlockId.TallGrass or BlockId.Fern or BlockId.Reeds or BlockId.YellowFlower or BlockId.WhiteFlower => BlockShape.Cross,
         BlockId.Torch or BlockId.PostTorch => BlockShape.Torch,
         BlockId.Lantern => BlockShape.Lantern,
-        BlockId.Loaves or BlockId.Apples or BlockId.Bottles or BlockId.Bed or BlockId.Bedroll => BlockShape.Pile,
+        BlockId.Loaves or BlockId.Apples or BlockId.Bottles or BlockId.Bed or BlockId.Bedroll or BlockId.BedFoot or BlockId.BedrollFoot => BlockShape.Pile,
         BlockId.Wheat => BlockShape.Cross,
         BlockId.Door => BlockShape.Door,
         BlockId.Fence => BlockShape.Fence,
@@ -402,8 +402,8 @@ public static class ChunkMesher
                         case BlockShape.Lantern:
                             AddAllFaces(lit, x, y, z, new Box(x + 0.3125f, y + 0.1875f, z + 0.3125f, x + 0.6875f, y + 0.8125f, z + 0.6875f), BlockId.Lantern, BlockCell.Lantern, grey, White, true);
                             break;
-                        case BlockShape.Pile when id == BlockId.Bed:
-                            AddBed(opaque, near, lx, ly, lz, x, y, z, grey, sunTint);
+                        case BlockShape.Pile when id is BlockId.Bed or BlockId.BedFoot or BlockId.Bedroll or BlockId.BedrollFoot:
+                            AddBed(opaque, near, id, lx, ly, lz, x, y, z, grey, sunTint);
                             break;
                         case BlockShape.Pile:
                             AddAllFaces(opaque, x, y, z, new Box(x + 0.1f, y, z + 0.1f, x + 0.9f, y + PileHeight(id), z + 0.9f), id, null, grey, sunTint);
@@ -920,31 +920,80 @@ public static class ChunkMesher
     }
 
     /// <summary>
-    /// The height of a pile's box in blocks. The goods of the stall are 0.42 high. The bed is taller, 0.5, so its blanket reads from eye height as a bed
-    /// and not as a crate, and the bedroll is lower, 0.3, a roll of cloth on the ground (Y03).
+    /// The height of a pile's box in blocks. The goods of the stall are 0.42 high. A bed's mattress is 0.55 (see <see cref="BedMattressTop"/>), and a
+    /// bedroll's mat 0.2 (<see cref="BedrollMatTop"/>; Y08).
     /// </summary>
     public static float PileHeight(BlockId id) => id switch
     {
-        BlockId.Bed => 0.5f, // the mattress; the headboard stands higher (BedHeadboardHeight)
-        BlockId.Bedroll => 0.3f,
+        BlockId.Bed or BlockId.BedFoot => BedMattressTop,
+        BlockId.Bedroll or BlockId.BedrollFoot => BedrollMatTop,
         _ => 0.42f,
     };
 
-    /// <summary>The height of a bed's headboard in blocks (Y04): it stands over the mattress, so the block reads as a bed and not as a red box.</summary>
-    public const float BedHeadboardHeight = 0.85f;
+    /// <summary>The height of a bed's mattress top in blocks (Y08): a player is 1.8 high, and a mattress at about a third of that reads as a bed.</summary>
+    public const float BedMattressTop = 0.55f;
+
+    /// <summary>The height of a bed's headboard in blocks (Y08): it stands over the mattress at the head end, down to the floor.</summary>
+    public const float BedHeadboardHeight = 1.0f;
+
+    /// <summary>The height of a bed's footboard in blocks (Y08): lower than the headboard, so the bed reads as one with a head.</summary>
+    public const float BedFootboardHeight = 0.7f;
+
+    /// <summary>The height of a bedroll's mat in blocks (Y08): lower than a bed and with no board.</summary>
+    public const float BedrollMatTop = 0.2f;
+
+    /// <summary>The height of the pillow's top over the floor, on a bed (Y08).</summary>
+    public const float BedPillowTop = 0.67f;
+
+    /// <summary>The height of the rolled pillow's top over the floor, on a bedroll (Y08).</summary>
+    public const float BedrollPillowTop = 0.3f;
+
+    private static readonly (byte R, byte G, byte B, byte A) PillowTint = (252, 248, 238, 255);
 
     /// <summary>
-    /// A bed (Y04): a mattress whose top is the bed's picture (the pillow at the head, a blanket with a turned-down sheet) and, at the head, a headboard
-    /// of planks standing above it. The head lies against a wall when one stands beside the cell (north, west, east, then south); a bed in the open
-    /// has its head to the north.
+    /// A bed or a bedroll (Y08): two cells long, a head cell (<see cref="BlockId.Bed"/>, <see cref="BlockId.Bedroll"/>) and a foot cell beside it
+    /// (<see cref="BlockId.BedFoot"/>, <see cref="BlockId.BedrollFoot"/>), each meshed as its half of one piece: a mattress over both cells with no
+    /// seam between them, a pillow and a headboard at the head end, a lower footboard at the foot end and, for a bed, a frame under the mattress
+    /// so it stands off the floor. The foot cell lies in the direction the head cell finds it; a head with no foot beside it is a short bed with its
+    /// head against a wall beside the cell (north, west, east, then south) and a footboard of its own; a foot with no head beside it lies with its
+    /// foot to the south, its head end open.
     /// </summary>
-    private static void AddBed(MeshBuffer buffer, Neighbourhood near, int lx, int ly, int lz, int x, int y, int z, bool grey, (byte R, byte G, byte B, byte A) tint)
+    private static void AddBed(MeshBuffer buffer, Neighbourhood near, BlockId id, int lx, int ly, int lz, int x, int y, int z, bool grey, (byte R, byte G, byte B, byte A) tint)
     {
-        var turnDegrees = IsOpaqueCube(near.Get(lx, ly, lz - 1)) ? 0
-            : IsOpaqueCube(near.Get(lx - 1, ly, lz)) ? 270
-            : IsOpaqueCube(near.Get(lx + 1, ly, lz)) ? 90
-            : IsOpaqueCube(near.Get(lx, ly, lz + 1)) ? 180
-            : 0;
+        var isHead = id is BlockId.Bed or BlockId.Bedroll;
+        var isRoll = id is BlockId.Bedroll or BlockId.BedrollFoot;
+        var partner = isHead ? (isRoll ? BlockId.BedrollFoot : BlockId.BedFoot) : (isRoll ? BlockId.Bedroll : BlockId.Bed);
+        (int Dx, int Dz)? partnerSide = null;
+        foreach (var (dx, dz) in new[] { (0, 1), (-1, 0), (1, 0), (0, -1) }) // south, west, east, north
+        {
+            if (near.Get(lx + dx, ly, lz + dz) == partner)
+            {
+                partnerSide = (dx, dz);
+                break;
+            }
+        }
+
+        // The turn about the cell's centre that brings the head to the north edge's place: 0 head north, 90 head east, 180 head south, 270 head west.
+        int turnDegrees;
+        if (partnerSide is { } p)
+        {
+            // From the head cell the foot lies opposite the head; from the foot cell the head lies at the head's end.
+            var (hx, hz) = isHead ? (-p.Dx, -p.Dz) : (p.Dx, p.Dz);
+            turnDegrees = hz < 0 ? 0 : hx > 0 ? 90 : hz > 0 ? 180 : 270;
+        }
+        else if (isHead)
+        {
+            turnDegrees = IsOpaqueCube(near.Get(lx, ly, lz - 1)) ? 0
+                : IsOpaqueCube(near.Get(lx - 1, ly, lz)) ? 270
+                : IsOpaqueCube(near.Get(lx + 1, ly, lz)) ? 90
+                : IsOpaqueCube(near.Get(lx, ly, lz + 1)) ? 180
+                : 0;
+        }
+        else
+        {
+            turnDegrees = 0;
+        }
+
         var turn = Turn.None;
         if (turnDegrees != 0)
         {
@@ -953,12 +1002,60 @@ public static class ChunkMesher
             turn = new Turn(yaw, x + 0.5f - rx, 0, z + 0.5f - rz);
         }
 
-        var mattress = new Box(x + 0.06f, y, z + 0.06f, x + 0.94f, y + PileHeight(BlockId.Bed), z + 0.94f);
-        var headboard = new Box(x + 0.03f, y, z + 0.03f, x + 0.97f, y + BedHeadboardHeight, z + 0.19f);
-        foreach (var face in Faces)
+        // In the frame before the turn the head end is the north edge (low z), the foot end the south edge.
+        var joinsHeadward = !isHead && partnerSide is not null; // a foot cell with its head beside it: its north face is the seam
+        var joinsFootward = isHead && partnerSide is not null; // a head cell with its foot beside it: its south face is the seam
+        var topCell = id switch
         {
-            AddFace(buffer, face, mattress, (x, y, z), BlockAtlasLayout.CellFor(BlockId.Bed, face), tint, turn, grey);
-            AddFace(buffer, face, headboard, (x, y, z), BlockCell.Planks, tint, turn, grey);
+            BlockId.Bed => BlockCell.Bed,
+            BlockId.BedFoot => BlockCell.BedFoot,
+            BlockId.Bedroll => BlockCell.Bedroll,
+            _ => BlockCell.BedrollFoot,
+        };
+        var sideCell = isRoll ? BlockCell.BedrollFoot : BlockCell.BedSide;
+
+        void Piece(Box box, BlockCell? cell, bool skipNorth = false, bool skipSouth = false, (byte R, byte G, byte B, byte A)? tinted = null)
+        {
+            foreach (var face in Faces)
+            {
+                if ((skipNorth && face == BlockFace.North) || (skipSouth && face == BlockFace.South))
+                {
+                    continue;
+                }
+
+                var c = cell ?? (face == BlockFace.Up ? topCell : sideCell);
+                AddFace(buffer, face, box, (x, y, z), c, tinted ?? tint, turn, grey);
+            }
+        }
+
+        if (isRoll)
+        {
+            // The mat: the whole cell wide but a little off the edges, flush at the seam; the head half has the rolled pillow on it.
+            var north = joinsHeadward ? z : z + 0.06f;
+            var south = joinsFootward ? z + 1 : z + 0.94f;
+            Piece(new Box(x + 0.1f, y, north, x + 0.9f, y + BedrollMatTop, south), null, skipNorth: joinsHeadward, skipSouth: joinsFootward);
+            if (isHead)
+            {
+                Piece(new Box(x + 0.2f, y + BedrollMatTop, z + 0.12f, x + 0.8f, y + BedrollPillowTop, z + 0.42f), BlockCell.Cloth, tinted: (214, 196, 140, 255));
+            }
+
+            return;
+        }
+
+        // A bed. The mattress and the frame under it run flush through the seam; the boards stand at the two ends.
+        var headEdge = isHead ? z + 0.14f : z; // the head half starts behind the headboard; a lone foot's head end is open
+        var footEdge = isHead ? (joinsFootward ? z + 1 : z + 0.92f) : z + 0.92f;
+        Piece(new Box(x + 0.08f, y + 0.3f, headEdge, x + 0.92f, y + BedMattressTop, footEdge), null, skipNorth: joinsHeadward, skipSouth: joinsFootward);
+        Piece(new Box(x + 0.05f, y + 0.2f, headEdge, x + 0.95f, y + 0.3f, footEdge), BlockCell.Planks, skipNorth: joinsHeadward, skipSouth: joinsFootward); // the frame
+        if (isHead)
+        {
+            Piece(new Box(x + 0.03f, y, z + 0.03f, x + 0.97f, y + BedHeadboardHeight, z + 0.14f), BlockCell.Planks);
+            Piece(new Box(x + 0.18f, y + BedMattressTop, z + 0.2f, x + 0.82f, y + BedPillowTop, z + 0.58f), BlockCell.Cloth, tinted: PillowTint);
+        }
+
+        if (!isHead || !joinsFootward)
+        {
+            Piece(new Box(x + 0.03f, y, z + 0.92f, x + 0.97f, y + BedFootboardHeight, z + 0.99f), BlockCell.Planks);
         }
     }
 

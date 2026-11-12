@@ -83,11 +83,11 @@
     "maxBushes": 6
   },
   "sleepPlaces": [
-    { "id": "camp.fire", "point": "firering.player", "kind": "fire", "radiusBlocks": 5, "heightBlocks": 6, "access": "always" },
+    { "id": "guide.fire", "point": "firering", "kind": "fire", "radiusBlocks": 5, "heightBlocks": 6, "access": "always" },
     { "id": "inn.bed", "point": "bed.inn", "kind": "bed", "radiusBlocks": 2, "heightBlocks": 2, "access": "lodging" }
   ],
   "death": {
-    "wakeAt": "camp.fire",
+    "wakeAt": "guide.fire",
     "wake": { "health": 50, "hunger": 50, "thirst": 50, "sleep": 50 },
     "keepInBag": "stacksOfOne",
     "chestLastsUntil": "night"

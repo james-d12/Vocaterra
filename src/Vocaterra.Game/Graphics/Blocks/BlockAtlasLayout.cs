@@ -205,10 +205,10 @@ public enum BlockCell
     /// <summary>A group of blue glass bottles.</summary>
     Bottles,
 
-    /// <summary>The inn's bed from above: a wooden frame, a cream pillow at the head and a red blanket (Y03). Every face of the bed shows it.</summary>
+    /// <summary>The top of a bed's head half, seen from above with the head at the top of the picture: a wooden frame at the head end, the cream of the pillow, the sheet turned down and the red blanket (Y03, Y08).</summary>
     Bed,
 
-    /// <summary>The camp's bedroll: a roll of cloth with its end showing the spiral of the cloth (Y03).</summary>
+    /// <summary>The top of a bedroll's head half: a striped mat of cloth with the darker patch the rolled pillow lies on (Y03, Y08).</summary>
     Bedroll,
 
     /// <summary>The shop's board, first half: an arrow and TIE.</summary>
@@ -282,6 +282,15 @@ public enum BlockCell
 
     /// <summary>The icon of a roast apple (the item, N07): the apple, browned and cooked, with a golden highlight.</summary>
     IconRoastApple,
+
+    /// <summary>The top of a bed's foot half (Y08): the red blanket going on from the head half, with a fold across it and the frame at the foot end.</summary>
+    BedFoot,
+
+    /// <summary>The side of a bed's mattress (Y08): the blanket hanging over the edge, with a darker hem. Placed before the interface-only cells like the other world pictures.</summary>
+    BedSide,
+
+    /// <summary>The top and sides of a bedroll's foot half (Y08): the same striped mat as <see cref="Bedroll"/>, without the pillow's patch.</summary>
+    BedrollFoot,
 
     /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
     IconBowl,
@@ -379,6 +388,7 @@ public static class BlockAtlasLayout
             BlockId.Timber => up || down ? BlockCell.TimberEnd : BlockCell.TimberSide,
             BlockId.Lantern => BlockCell.Lantern,
             BlockId.Crate => up || down ? BlockCell.CrateTop : BlockCell.CrateSide,
+            BlockId.Counter => up ? BlockCell.Planks : BlockCell.CrateSide,
             BlockId.AwningRed => BlockCell.AwningRed,
             BlockId.AwningWhite => BlockCell.AwningWhite,
             BlockId.Canvas => BlockCell.Canvas,
@@ -388,8 +398,10 @@ public static class BlockAtlasLayout
             BlockId.Loaves => BlockCell.Loaves,
             BlockId.Apples => BlockCell.Apples,
             BlockId.Bottles => BlockCell.Bottles,
-            BlockId.Bed => BlockCell.Bed,
-            BlockId.Bedroll => BlockCell.Bedroll,
+            BlockId.Bed => up ? BlockCell.Bed : BlockCell.BedSide,
+            BlockId.BedFoot => up ? BlockCell.BedFoot : BlockCell.BedSide,
+            BlockId.Bedroll => up ? BlockCell.Bedroll : BlockCell.BedrollFoot,
+            BlockId.BedrollFoot => BlockCell.BedrollFoot,
             BlockId.SignTiendaA => Reads(face, BlockCell.SignTiendaA),
             BlockId.SignTiendaB => Reads(face, BlockCell.SignTiendaB),
             BlockId.SignRio => Reads(face, BlockCell.SignRio),

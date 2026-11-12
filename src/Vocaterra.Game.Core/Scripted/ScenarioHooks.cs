@@ -15,7 +15,7 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="ReportBusy">Whether the report panel is up or on its way (S21): a saved report closes it, and the script waits for that.</param>
 /// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
 /// <param name="BookPractise">Opens the book on its Lessons page and presses "Practise again" on the lesson (S26, <c>--book-practise</c>).</param>
-/// <param name="Sleep">Closes the panels and sleeps at the player's own fire, as the player's E there does (V12c, <c>--sleep</c>).</param>
+/// <param name="Sleep">Closes the panels and sleeps at the nearest usable sleep place (a bed or a lit fire), as the player's E there does (V12c, <c>--sleep</c>).</param>
 /// <param name="Eat">Eats or drinks the item (given first if the bag has none), as a right click with it does (N02, <c>--eat</c>).</param>
 /// <param name="Drink">Drinks by hand at the water the crosshair is on (N02, <c>--drink</c>).</param>
 /// <param name="Station">Opens the station by its id and starts its procedure; returns whether it opened (W07, <c>--station</c>).</param>

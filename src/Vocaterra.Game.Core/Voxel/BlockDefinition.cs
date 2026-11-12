@@ -118,6 +118,9 @@ public sealed record BlockDefinition(
         new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.Bed, "bed", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.Bedroll, "bedroll", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.BedFoot, "bed-foot", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.BedrollFoot, "bedroll-foot", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Counter, "counter", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood, Tall: true),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

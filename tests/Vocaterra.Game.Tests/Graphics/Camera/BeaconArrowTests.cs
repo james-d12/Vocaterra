@@ -162,9 +162,9 @@ public sealed class BeaconArrowTests
             Assert.NotEqual(string.Empty, scene.LabelOf(point));
         }
 
-        Assert.Equal("mi campamento", scene.LabelOf("camp.player"));
-        Assert.Equal("fuego", scene.LabelOf("firering.player"));
-        Assert.Equal("chest.player", scene.LabelOf("chest.player")); // a place with no label shows its own name
+        Assert.Equal("camp.player", scene.LabelOf("camp.player")); // a place with no label shows its own name (Y08: the ledge is no longer «mi campamento»)
+        Assert.Equal("fuego", scene.LabelOf("firering"));
+        Assert.Equal("cama", scene.LabelOf("bed.inn")); // Y08: the beacon to the bed has a word
     }
 
     [Fact]

@@ -198,7 +198,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
-        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "firering.player", "signpost", "house1", "house2", "house3", "camp", "tent" })
+        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "signpost", "house1", "house2", "house3", "camp", "bed.inn", "npc.innkeeper" })
         {
             Assert.True(scene.Points.ContainsKey(name), $"missing point {name}");
         }
@@ -213,20 +213,18 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(BlockId.Stall, grid.GetBlock(scene.Point("stall").X, scene.Point("stall").Y + 1, scene.Point("stall").Z));
         Assert.Equal(BlockId.Table, grid.GetBlock(scene.Point("workbench").X, scene.Point("workbench").Y + 1, scene.Point("workbench").Z));
         Assert.Equal(BlockId.Sign, grid.GetBlock(scene.Point("signpost").X, scene.Point("signpost").Y + 3, scene.Point("signpost").Z));
-        foreach (var ring in new[] { "firering", "firering.player" })
+        var centre = scene.Point("firering");
+        Assert.Equal(BlockId.Air, grid.GetBlock(centre.X, centre.Y + 1, centre.Z)); // cold: nothing in the middle
+        Assert.Equal(BlockId.FireRing, grid.GetBlock(centre.X + 1, centre.Y + 1, centre.Z));
+
+        // Y08: the mountain's points (the ring, the tent, the chest) are gone; the workbench and the guide's ring are at the guide's camp.
+        foreach (var gone in new[] { "firering.player", "tent", "chest.player" })
         {
-            var centre = scene.Point(ring);
-            Assert.Equal(BlockId.Air, grid.GetBlock(centre.X, centre.Y + 1, centre.Z)); // cold: nothing in the middle
-            Assert.Equal(BlockId.FireRing, grid.GetBlock(centre.X + 1, centre.Y + 1, centre.Z));
+            Assert.False(scene.Points.ContainsKey(gone), $"{gone} is still a point");
         }
 
-        // The cold fire ring and the tent are at the player's camp, the workbench and the guide at the guide's.
-        Assert.InRange(Distance(scene.Point("firering.player"), scene.Point("camp.player")), 1, 12);
-        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.ledge")), 1, 10);
-        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.player")), 1, 18);
         Assert.InRange(Distance(scene.Point("workbench"), scene.Point("camp.guide")), 1, 12);
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
-        Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
         Assert.Equal(scene.Point("npc.fisher"), scene.Npcs.Single(static n => n.Name == "fisher").Feet with { Y = scene.Point("npc.fisher").Y });

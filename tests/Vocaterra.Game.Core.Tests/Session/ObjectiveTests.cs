@@ -49,7 +49,7 @@ public sealed class ObjectiveTests
     {
         var objective = TestGame.Camp();
 
-        Assert.Empty(objective.Record(WorldEvents.TorchAtRing, "firering.player"));
+        Assert.Empty(objective.Record(WorldEvents.TorchAtRing, "firering.other"));
         Assert.Equal(0, objective.Step("torch")!.Count);
 
         Assert.Single(objective.Record(WorldEvents.TorchAtRing, "firering"));

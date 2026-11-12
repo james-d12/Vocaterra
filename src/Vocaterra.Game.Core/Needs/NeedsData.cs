@@ -106,8 +106,8 @@ public sealed record DeathSpec(string WakeAt, double Health, double Hunger, doub
 /// A place where the player can sleep (Y01, <c>game/needs.json</c>'s <c>sleepPlaces</c>; not <see cref="RestSpec"/>, which is resting by a lit fire): a fire is usable while its ring burns, a bed
 /// when its <see cref="Access"/> is met. A place whose <see cref="Point"/> the scene lacks is left out.
 /// </summary>
-/// <param name="Id">The place's id (<c>camp.fire</c>), which <see cref="DeathSpec.WakeAt"/> names.</param>
-/// <param name="Point">The scene point the place stands at (<c>firering.player</c>).</param>
+/// <param name="Id">The place's id (<c>guide.fire</c>), which <see cref="DeathSpec.WakeAt"/> names.</param>
+/// <param name="Point">The scene point the place stands at (<c>firering</c>, Luna's fire ring).</param>
 /// <param name="Kind"><see cref="SleepPlaceSpec.KindFire"/> or <see cref="SleepPlaceSpec.KindBed"/>.</param>
 /// <param name="RadiusBlocks">How far across, in blocks, of the point the player may stand to sleep there.</param>
 /// <param name="HeightBlocks">How far in height, in blocks, of the point.</param>

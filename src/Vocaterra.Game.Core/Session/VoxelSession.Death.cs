@@ -54,7 +54,7 @@ public sealed partial class VoxelSession
     /// <summary>How many times the player has died in this run. The game fades the screen when it changes.</summary>
     public int DeathCount { get; private set; }
 
-    /// <summary>The cause line of the last death or faint (<c>You fainted from thirst and woke by your fire...</c>), or <see langword="null"/> before one: the death screen shows it (N05).</summary>
+    /// <summary>The cause line of the last death or faint (<c>You fainted from thirst and woke where you sleep...</c>), or <see langword="null"/> before one: the death screen shows it (N05).</summary>
     public string? DeathLine { get; private set; }
 
     /// <summary>The chest a death left standing, or <see langword="null"/>: it goes with the next night.</summary>
@@ -178,7 +178,7 @@ public sealed partial class VoxelSession
         _chest = null;
     }
 
-    // The player wakes at the place last slept at, or else the sleep place death.wakeAt names (the mountain fire's camp; the ring is built and cold until its torch is put on): the nearest free ground two to five blocks
+    // The player wakes at the place last slept at, or else the sleep place death.wakeAt names (Luna's fire): the nearest free ground two to five blocks
     // from the place's cell (WakeNearSquared, WakeFarSquared) that is reached on foot from it (Y05a), which is within the rest radius of a ring's middle. A scene without the place leaves the player where they are.
     private void WakeAtSleepPlace()
     {

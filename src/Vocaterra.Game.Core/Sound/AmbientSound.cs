@@ -37,7 +37,7 @@ public sealed class AmbientSound
     /// <summary>The beds' weights for a listener (the same as <see cref="AmbientBeds.At"/>).</summary>
     /// <param name="listener">The listener.</param>
     /// <param name="atmosphere">The atmosphere now (the daylight sets the birds and the insects).</param>
-    /// <param name="fireLit">Whether the player's own fire is lit.</param>
+    /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (the rain is lower under cover), or <see langword="null"/> for open ground.</param>
     public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock);
 
@@ -48,7 +48,7 @@ public sealed class AmbientSound
     /// <param name="tick">The tick.</param>
     /// <param name="listener">The listener.</param>
     /// <param name="atmosphere">The atmosphere now, as the simulation reports it.</param>
-    /// <param name="fireLit">Whether the player's own fire is lit.</param>
+    /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (E06: the rain is lower under cover); read only, never written.</param>
     public void Observe(long tick, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
     {

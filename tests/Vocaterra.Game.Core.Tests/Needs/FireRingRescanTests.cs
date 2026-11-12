@@ -14,7 +14,7 @@ public sealed class FireRingRescanTests
     // The cell the player wakes at after a death with no new ring: where a ring built while the game runs will stand.
     private static BlockPos NormalWakeCell() => Dying(null, rescan: false).Simulation.Player.FeetBlock;
 
-    // Eight stones round the middle, and a torch on the rim, on the side away from the player's own ring so that it lights no ring but the new one; set while the game runs, so the
+    // Eight stones round the middle, and a torch on the rim, on the side away from the guide's ring so that it lights no ring but the new one; set while the game runs, so the
     // finder knows nothing of it until Rescan.
     private static void BuildLitRing(VoxelSession session, BlockPos middle)
     {
@@ -29,16 +29,16 @@ public sealed class FireRingRescanTests
             }
         }
 
-        var own = session.Scene.Point(VoxelSession.PlayerFireRing);
-        var (sx, sz) = Math.Sign(middle.X - own.X) is var x and not 0 ? (x, 0) : (0, Math.Sign(middle.Z - own.Z));
+        var guide = session.Scene.Point(VoxelSession.CampFireRing);
+        var (sx, sz) = Math.Sign(middle.X - guide.X) is var x and not 0 ? (x, 0) : (0, Math.Sign(middle.Z - guide.Z));
         session.Scene.Grid.SetBlock(middle.X + sx, middle.Y + 1, middle.Z + sz, BlockId.Torch);
     }
 
     // Flat ground well away from every ring: a stone floor with air over it, so a ring can be built there.
     private static BlockPos Meadow(VoxelSession session)
     {
-        var own = session.Scene.Point(VoxelSession.PlayerFireRing);
-        var centre = new BlockPos(own.X + 14, own.Y, own.Z);
+        var guide = session.Scene.Point(VoxelSession.CampFireRing);
+        var centre = new BlockPos(guide.X + 14, guide.Y, guide.Z);
         for (var dx = -4; dx <= 4; dx++)
         {
             for (var dz = -4; dz <= 4; dz++)
