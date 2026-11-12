@@ -50,6 +50,12 @@ inside protected regions (the village, the roads, Luna's camp). Only owned land 
 take back planks they placed. The player will mark a plot with a stake (Y10) and buy it from the mayor (Y11); this milestone gives them
 the rules and the state they need, with no item, no outline and no purchase.
 
+Since Y06m (the merge of `main`'s weather series; read `y06m-report.md`, "For Y07 to Y13", in the same folder as this brief):
+`SystemsSave` is `(Procedures, Sleep, Atmosphere)`; add `Land` after them, optional, no version bump. `VoxelSimulation` now carries
+main's atmosphere; `AtmosphereSimulationTests` pins two world digests along a route, which move only if your change alters that
+route's world (it should not: say so if it does). Any new opaque mesh takes `ChunkMesher`'s `sunTint` (you should need none). The test
+count to compare with is 11,221 passed, 3 skipped.
+
 Deliverables:
 
 1. **`game/land.json`** with its schema `content/schema/land.schema.json`, its load in `Content/GameData.cs` (one `LandData` record), a
@@ -99,7 +105,7 @@ Not in this milestone: the stake item, the use-item hook, the outline and the HU
 the checklist `my-land` (Y11); the campsite and its placing (Y12); any `scene.json` edit; any Spanish line spoken by an NPC.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count; the feature branch's count after Y06m is in y06m-report.md in the settlement worktree's .claude/briefs/);
+(report the count; 11,221 passed and 3 skipped after Y06m);
 scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes (after
 `hash` through your wrapper, and the new bundle hash into the save fixture as CLAUDE.md says; `scripts/content-loop.sh` does both); the
 A2 content gate clean; the full suite once without models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/ or
