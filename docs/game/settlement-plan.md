@@ -287,7 +287,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
-| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
+| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
@@ -426,6 +426,12 @@ owned plot; `OwnPlot()` re-checks and owns the pending one (no coins: Y11). Dev 
 `Input/WorldInput.cs` (as `PlantOn` is) marks the pending plot round the ground cell aimed at; a refusal says why on the hint
 line; the pending plot is saved. `OverlayMeshes.PlotOutline`, drawn through `SceneDrawer.DrawWorld` as corner posts and an edge
 line, with a HUD line that gives the size and the price (never by colour alone). A launch flag for the scripted runs.
+
+*Y10 as built (2026-11-12):* the item `stake` (`estaca`, in the A1 world words and the lexicon, its word card recorded; an icon of a
+stake with a red pennant); used on the ground (right click) it marks the pending plot centred on the aimed column, or puts the reason on
+the hint line; marking again moves it free; once land is owned it marks nothing. `OverlayMeshes.PlotOutline`: corner posts and a rail
+lifted above the grass, amber posts and a dashed rail for the pending plot, white posts with green flags and a solid rail for the owned
+one, drawn within 64 blocks in the sun's light; the HUD line "Plot 10 × 10 · price 10 coins" or "Your land". Dev flag `--mark-plot x,z`.
 
 **Y11 Buying the plot.**
 - `villager.give_stake` (the `give_item` kind that exists). A `sell_plot` kind whose misses are `no_plot`, `cant_pay`, `no_room`

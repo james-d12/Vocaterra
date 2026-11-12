@@ -2507,3 +2507,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   gives the room herself: given to Y08. The CAMP steps of the scripted runs no longer finish the checklist (crafting the torch spends
   wood below 5), and r10 never visits the innkeeper, so it no longer reaches the ending: both to Y08. The known fuzz coverage floor
   flake met the agent once ("fallback:second-chosen").
+- **Y10, the stake and the outline (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y10-report.md` on the branch; the
+  as-built note is in the settlement plan. Launched beside Y07 once Y09 was in; it merged Y07 into its branch before its last run.
+  Gate: 11,323 tests passed, 3 skipped. Checked on the merged build: `--mark-plot 266,165` marks the plot at 261,160 and the save holds
+  it; the HUD line and the hint show; the agent's screenshots show both outlines clearly (`artifacts/y10-check/`). The first rail lay in
+  the tall grass and was hidden: an outline must stand above the undergrowth. Known: no plural key for the price ("1 coins"), and an
+  outline above about 36 × 36 would exceed one mesh's vertex limit and silently not draw.
