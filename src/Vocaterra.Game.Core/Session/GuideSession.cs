@@ -1420,9 +1420,10 @@ public abstract partial class GuideSession : IDisposable
             _retry = null;
         }
 
-        if (turn.FailForward)
+        if (turn.FailForward && support.InPlay.Count > 0)
         {
-            Log(new PhraseUse(tick, time, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
+            // Y14: the phrase the learner was asked for at that prompt (the first in play there: the NPC's focus, or the lesson step's phrase), none where the prompt asks for none.
+            Log(new PhraseUse(tick, time, support.InPlay[0], PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
         }
 
         if (turn.HostEvents.Count > 0)

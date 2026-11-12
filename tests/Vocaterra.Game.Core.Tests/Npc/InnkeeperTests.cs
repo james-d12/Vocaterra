@@ -79,6 +79,19 @@ public sealed class InnkeeperTests
     }
 
     [Fact]
+    public void Given_TheOffer_When_ThePlayerSaysNoSe_Then_TheFailForwardIsCreditedToTheRoomPhraseNotToTheWaterPhrase()
+    {
+        var session = AtTheCounter();
+        _ = session.OpenTalk("innkeeper");
+
+        _ = session.Say("no sé");
+
+        var forward = Assert.Single(session.Events.OfType<PhraseUse>(), static u => u.Kind == PhraseUseKind.FailForward);
+        Assert.Equal("quiero-una-habitacion", forward.PhraseId);
+        Assert.DoesNotContain(session.Events.OfType<PhraseUse>(), static u => u.PhraseId == "pedir-agua");
+    }
+
+    [Fact]
     public void Given_TheOffer_When_TheLearnerMissesTwice_Then_PatienceGivesTheRoomAnyway()
     {
         var session = AtTheCounter();
