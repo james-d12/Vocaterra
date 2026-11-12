@@ -186,3 +186,13 @@ the mouse, **Esc** at each level (a recording, a turn thinking, the text box, th
 wheel and 1 to 0 on the hotbar, and in `--playtest`: **F10** (the post-check at once) and **Esc** on the thank-you screen.
 
 **U06 (the panel scrolls).** The wheel and the scrollbar have no scripted run of their own: the panel's pictures gained the 4 px bar at the right edge of the lines whenever lines are out of view, and `--scroll N` (after `--expand`) scrolls the expanded page by N blocks (negative: newer) so a run can show the thumb moved. A talk with two NPCs in turn now keeps the first one's page (`DialogueModel.Pages`).
+
+**Y08 (the mountain camp gone, two-cell beds; captured on `feature/settlement` with Y10 against the branch, one build each, the same work folder).** Re-baselined, each
+difference intended. Every run that builds the scene: the scene line's digest (`213e6370…` to `ab403535…`: the ledge bare, the inn's two-cell beds and counter block) and, in the pictures that
+show the inn or the ledge, new pixels (r07, r08, r12, r14, r15, r31's `land.png`, r27's station pictures were redrawn only by the scene digest and mesh counts; no run shows the old tent).
+`CAMP` gathers two more trunks (`--interact 153,42,189 --interact 153,43,189`): crafting the torch spends three wood, so the checklist now finishes (`madera 5/5`) and r01, r20, r30 and r10 show
+`fire_lit (firering)` (the torch at Luna's ring lights the sound bed) and the checklist's completion (the beacon to the inn, Luna's line). r10 asks Rosa for the room (`--talk innkeeper
+--say "sí, por favor"`) in place of the torch up the trail, so it reaches the ending and the post-check by itself (and exits 0, not 2). r20 sleeps in the inn's bed (the room asked of Rosa, the walk
+to `279,231`; `session 1 ends at the inn`; the save's `last` is `inn.bed`); r30 takes the room and sleeps at Luna's lit fire (`--teleport 176,191`; `session 1 ends at the fire`), then its second `--sleep`
+away from any place (`wherever the player stood`). r26 wakes at Luna's fire (`174,43,188`), not the ledge, so the walk back up to the chest takes 1,355 ticks (the chest still is where the player fell);
+r21, r26, r27 saves differ by the world digest and the stored time. r09, r12 differ by the digest only. No hour or weather was pinned.
