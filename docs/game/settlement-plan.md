@@ -282,7 +282,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y04 | The inn building and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
 | Y05 | Lodging | Y02, Y04 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,759 tests) |
 | Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,763 tests) |
-| Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | in progress (launched 2026-11-11) |
+| Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (10,797 tests) |
 | Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | todo (registered 2026-11-11) |
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
@@ -358,6 +358,13 @@ walk to from the place's stand cell (a fire in the open is unchanged), with a te
 offer, the room given, the goodnight line), `game/npcs/innkeeper.json`, `game/npcs.json`, the place in the scene, the locale's
 role and glosses, the figure in `Graphics/Figures/NpcFigures.cs`, the entry in `game/host-events.json`, the rows in
 `content/PHRASES.md` and `game/phrases.json`, the provenance, the speech.
+
+*Y06 as built (2026-11-12):* Rosa, «Posadera», at (282, 227) facing west; agent states `idle` (`inn-offer`) and `given`
+(`inn-given`); «sí», «sí, por favor», «(Quiero) una habitación, por favor.», «¿Hay una habitación?» and «quiero una cama» raise
+`innkeeper.room` (`grant_lodging`); `patience` misses 2, afterHelp 1, once, through its own line `innkeeper_give`; «No, gracias»
+leaves the offer open. The roster asks every NPC for weather, wellbeing and "understood" replies, so she has them. Voice `pf_dora`
+with gain 1 (mean RMS 1824, Luna 1814). `patience` counts every line at the prompt, so «No, gracias» then any other line gives the
+room: for the owner (misses 3 if wanted).
 
 **Y06m Merge `main`** (registered 2026-11-11, at the owner's request). The day, night and weather series reached `main`
 (PR #64), and with it 248 files, about 30 of them edited on this branch too: the save code and its fixtures (`SaveGame.cs`,
