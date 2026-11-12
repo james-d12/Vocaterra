@@ -997,11 +997,11 @@ public sealed partial class VoxelSession : GuideSession
         }
     }
 
-    // How many items of a noun the bag holds (all of the noun's items: fruta is berries and apples).
     // What a checklist step that asks for held items counts (#32): the bag, and, once the player owns land, one more of the stake's noun: the mayor keeps the stake at the purchase
     // (Y15), so the step "hold the stake" stays done after it, in the same run and after a load (the stake is not in the bag then).
     private int HeldForSteps(string lemma) => HeldOfNoun(lemma) + (Land.Owned is not null && Nouns.ForLemma(lemma) is { } noun && noun.Items.Contains(ItemId.Stake) ? 1 : 0);
 
+    // How many items of a noun the bag holds (all of the noun's items: fruta is berries and apples).
     private int HeldOfNoun(string lemma) => Nouns.ForLemma(lemma) is { } noun ? noun.Items.Sum(Simulation.Inventory.Count) : 0;
 
     // An objective is done: a checklist logs its line, its hooks run (data order), and the session may be complete (the player lit their own fire first, or the
