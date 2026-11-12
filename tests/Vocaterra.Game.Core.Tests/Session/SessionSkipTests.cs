@@ -66,9 +66,13 @@ public sealed class SessionSkipTests
             }
         }
 
-        // Session 1's ending: the camp done, the player's own fire lit (a torch on its rim), so the sleep works from there.
+        // Session 1's ending: the camp done and lodging given at the inn (Y07), so the sleep works from the bed.
         Assert.True(session.SessionComplete);
-        Assert.True(session.FireLit);
+        Assert.True(session.LodgingGiven);
+        Assert.Contains(session.Events.OfType<Vocaterra.Game.Core.Event.WorldEvent>(), static e => e.Name == Vocaterra.Game.Core.Event.WorldEvents.LodgingGranted);
+        Assert.True(session.Objectives.Single(static o => o.Id == "inn-room").Complete);
+        Assert.False(session.FireLit); // the skip no longer lights the mountain's ring
+        Assert.True(session.SleepPlaces.IsUsable(session.SleepPlaces.Find("inn.bed")!)); // the bed is usable at the session's start
         Assert.True(session.GuideMet);
         Assert.All(session.Objectives.Where(static o => o.Spec.EndsSession), static o => Assert.True(o.Complete));
         Assert.All(session.Objectives.Where(o => o.Spec.IsOrder), o => Assert.Equal(o.Spec.Session < target, o.Complete)); // the earlier orders delivered, the later ones open

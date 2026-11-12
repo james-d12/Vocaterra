@@ -499,6 +499,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_well.1 | speech/fisher/fisher_well.1.wav | fisher | 0.9 | Bien, gracias. |  |
 | fisher_yes.1 | speech/fisher/fisher_yes.1.slow.wav | fisher | 0.72 | ¡Sí! |  |
 | fisher_yes.1 | speech/fisher/fisher_yes.1.wav | fisher | 0.9 | ¡Sí! |  |
+| guide.camp.inn.1 | speech/guide/guide.camp.inn.1.slow.wav | guide | 0.8 | ¡Muy bien! Ahora ve a la posada. |  |
+| guide.camp.inn.1 | speech/guide/guide.camp.inn.1.wav | guide | 1.0 | ¡Muy bien! Ahora ve a la posada. |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.slow.wav | guide | 0.8 | Eso no se puede hacer. |  |
 | guide.craft.none.1 | speech/guide/guide.craft.none.1.wav | guide | 1.0 | Eso no se puede hacer. |  |
 | guide.craft.ready.1 | speech/guide/guide.craft.ready.1.slow.wav | guide | 0.8 | ¡Ya lo tienes todo! |  |
@@ -581,8 +583,6 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide.lesson.baker.twenty.1 | speech/baker/guide.lesson.baker.twenty.1.wav | baker | 1.0 | Dieciséis, diecisiete, dieciocho, diecinueve, veinte. |  |
 | guide.lesson.baker.you.1 | speech/baker/guide.lesson.baker.you.1.slow.wav | baker | 0.8 | Compraste dos panes. ¡Muy bien! |  |
 | guide.lesson.baker.you.1 | speech/baker/guide.lesson.baker.you.1.wav | baker | 1.0 | Compraste dos panes. ¡Muy bien! |  |
-| guide.lesson.end.1 | speech/guide/guide.lesson.end.1.slow.wav | guide | 0.8 | ¡Muy bien! Ya tienes fuego. |  |
-| guide.lesson.end.1 | speech/guide/guide.lesson.end.1.wav | guide | 1.0 | ¡Muy bien! Ya tienes fuego. |  |
 | guide.lesson.farmer.apple.1 | speech/farmer/guide.lesson.farmer.apple.1.slow.wav | farmer | 0.8 | ¿Cómo es la manzana? |  |
 | guide.lesson.farmer.apple.1 | speech/farmer/guide.lesson.farmer.apple.1.wav | farmer | 1.0 | ¿Cómo es la manzana? |  |
 | guide.lesson.farmer.apples.1 | speech/farmer/guide.lesson.farmer.apples.1.slow.wav | farmer | 0.8 | Mira mis manzanas. Son rojas y grandes. |  |

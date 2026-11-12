@@ -284,7 +284,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls | Y05 | S/M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,763 tests) |
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (10,797 tests) |
 | Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
-| Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | todo |
+| Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
@@ -388,6 +388,12 @@ Y07 to Y12 edit the same files. The pull request (Y13) merges `main` again if it
 - `VoxelSession.Skip.cs` gives lodging where it lit the ring; the texts of `PlaytestFlow` and `PlaytestEnd`; Luna's line that
   sends the player to the inn, with its speech.
 
+*Y07 as built (2026-11-12):* `inn-room` (step on `lodging_granted`, restore hook `lodging-given`) replaces `light-fire`; the hooks
+`spare-torch`, `point-own-camp`, `scan-fire-ring` are gone; `point-inn` points the beacon at `session.json`'s `innBeacon` (`inn`,
+«posada») and has Luna say «¡Muy bien! Ahora ve a la posada.» (a new spoken-line path, `VoxelSession.Speech.cs`), unless the room was
+already taken. The closing line is the innkeeper's `innkeeper_night` («Buenas noches. Tu cama está allí.»), spoken by her once her talk
+has closed. The skip gives lodging. The mountain ring's code (`firering.player`, the torch hook, `FireLit`) is kept for Y08 and Y12.
+
 **Y08 The mountain, the strings and the rebaseline.** *Added 2026-11-12 (the owner: the one-block beds "look broken"):* beds and
 bedrolls become two cells long (head and foot, one mesh: mattress, pillow, headboard, footboard, frame), and the inn's two beds
 take two cells each in its stamp; Y08 already edits the inn's cells and pins the digest again. The tent, the chest, the crate and `firering.player` leave `scene.json`,
@@ -451,7 +457,7 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), Y06m alone, (Y07, Y11),
 Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
 time, in that order. *As run (owner, 2026-11-11: the weather series is merged, two agents of this series may run at once):* Y06,
-then Y06m alone, then (Y07, Y09), (Y08, Y10), Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
+then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07, Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
 the weather series changed. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
 

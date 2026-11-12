@@ -1,9 +1,0 @@
-{
-  "$schema": "../../../schema/objective.schema.json",
-  "schemaVersion": 1,
-  "id": "light-fire",
-  "about": "The player's own fire (S17): a torch on the rim of the ring at their camp lights it (the code decides the ring and logs fire_lit). A loaded game scans the ring.",
-  "steps": [
-    {"id": "fire", "target": 1, "trigger": {"event": "fire_lit"}, "restore": "scan-fire-ring"}
-  ]
-}

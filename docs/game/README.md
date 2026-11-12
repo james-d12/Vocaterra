@@ -26,8 +26,8 @@ guide's lesson (S17):
   with `Sí, por favor.` or `No, gracias.`
 - **The villager and the river.** The player asks `¿Dónde está el río?`, follows the directions to the river and fills a bottle.
 - **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
-- **The ending (S17).** The complete checklist sends the player back up the trail with a spare torch; a torch on the rim of the fire ring at their own camp
-  lights it, the guide's closing line is said and shown in Spanish and English, and the post-check is offered (playtest).
+- **The ending (S17, Y07).** The complete checklist points the beacon at the inn and Luna sends the player there; a room from the innkeeper ends the session, her
+  closing line is said and shown in Spanish and English once the talk has closed, and the post-check is offered (playtest).
 
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in [running.md](running.md).

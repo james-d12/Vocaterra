@@ -127,6 +127,7 @@
 {"id":"dialogue:fisher_weather.1","text":"Sí, hace {weather}.","kind":"template"}
 {"id":"dialogue:fisher_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:fisher_yes.1","text":"¡Sí!","kind":"npc"}
+{"id":"dialogue:guide.camp.inn.1","text":"¡Muy bien! Ahora ve a la posada.","kind":"npc"}
 {"id":"dialogue:guide.craft.lack.many.1","text":"Te faltan {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.lack.one.1","text":"Te falta {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.none.1","text":"Eso no se puede hacer.","kind":"npc"}
@@ -181,7 +182,6 @@
 {"id":"dialogue:guide.lesson.baker.tomorrow.1","text":"¿Qué harás mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.twenty.1","text":"Dieciséis, diecisiete, dieciocho, diecinueve, veinte.","kind":"npc"}
 {"id":"dialogue:guide.lesson.baker.you.1","text":"Compraste dos panes. ¡Muy bien!","kind":"npc"}
-{"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.apple.1","text":"¿Cómo es la manzana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.apples.1","text":"Mira mis manzanas. Son rojas y grandes.","kind":"npc"}
 {"id":"dialogue:guide.lesson.farmer.ate.1","text":"Ayer comí pan de Luz. ¡Me gustó mucho!","kind":"npc"}

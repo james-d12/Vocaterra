@@ -67,12 +67,16 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk gu
   learner picks it from a bush: a `do` step with a beacon on the nearest berry bush), getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio, por favor`
   do what they say) and the camp's task, then a recap that opens the book's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
   shown (the lesson speaks for her); a turn the core did not understand keeps her not-understood line and the English help.
-- **The ending.** The complete checklist gives a spare torch, sets the beacon on the player's own camp and changes the objective line to `Go back up the trail and
-  light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes fuego.`) is
-  said and shown with its English on a `Session complete` card, and in a playtest the post-check follows (the transfer offer first: she greets the player with
-  it when they pass through her camp on the way back). The fire ring at the guide's camp keeps its role: the checklist's torch step. Outside a playtest the card
-  offers the next session (`Enter: sleep until morning and start session 2`) and the objective line says `Session complete: sleep at your fire to start session 2`
-  (V12c, "The next session: sleep at the fire" below); a playtest keeps `Session complete: your fire is lit`.
+- **The ending (Y07).** Day one ends with the introduction, Luna's camp task and a room at the inn (D-game-32). The complete checklist (`camp.json`'s hook `point-inn`)
+  stands the beacon on the inn (`session.json`'s `innBeacon`, the place `inn`, shown as `posada`) and Luna says «¡Muy bien! Ahora ve a la posada.» (pool
+  `guide.camp.inn`, her voice, shown as a hint with its English); the objective line is `Go to the inn (la posada) and ask for a room` (`inn-room`, whose step waits for
+  `lodging_granted`, restored from the save's lodging). Taking the room from Rosa completes the session. The ending is hers: the closing pool is `innkeeper_night`
+  (`Buenas noches. Tu cama está allí.`, her voice), said and shown with its English on a `Session complete` card once the talk that gave the room has closed
+  (`SessionEnding` waits for `TalkOpen` to be false). In a playtest the post-check follows (the transfer offer first: she greets the player with it when they pass
+  through her camp). The fire ring at the guide's camp keeps its role: the checklist's torch step. Lighting your own fire moved to the campsite (Y12); until Y08 the
+  mountain's ring still lights from a torch but nothing waits for it. Outside a playtest the card offers the next session (`Enter: sleep until morning and start
+  session 2`) and the objective line says `Session complete: go to bed to start session 2` (V12c, "The next session: sleep at the fire" below); a playtest says
+  `Session complete: you have a room at the inn`.
 - **English on the buttons.** `[R] Repetir (repeat)`, `[S] Más despacio (slower)`, `[H] Ayuda (help)`, `[N] No sé (I don't know)`, `[W] Escribir (type)` and the hold-to-talk
   hint carry their English until the button (or its phrase) has been used three times; the keys and buttons work the same without it.
 
@@ -360,7 +364,7 @@ in the same run.
 **`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 10) where a learner
 who played sessions 1 to n-1 and did everything would stand, built from the data alone (the lessons' `session` and `after`, the objectives, the orders and the NPCs'
 host events), so a later session needs no code. Every lesson of an earlier session is completed in its own session (its steps recorded as skipped: the learner
-took none); session 1's ending is reached (the camp's steps counted, a torch on the rim of the player's fire ring, and the camp's bottle of water in the bag: the
+took none); session 1's ending is reached (the camp's steps counted, lodging given at the inn, as Rosa's grant raises it (Y07: the bed is usable), and the camp's bottle of water in the bag: the
 shopkeeper gave it, the river filled it, and nothing in the game empties it, V13; and the shopkeeper counts it as given and his key words as taught, so a
 later visit is not a first one, V09); each earlier order is delivered by the NPC's own `<npc>.delivered` thanks (what
 the bag lacks of its goods brought, the coins it asks for paid from the bag, since only an NPC gives coins, its reward paid); and each earlier lesson's purchases are

@@ -648,6 +648,9 @@ public abstract partial class GuideSession : IDisposable
         PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged && !HandOverOpen
         && Bundle.Prompts.TryGetValue(_npcs.PromptOf(npc), out var prompt) && !prompt.AllowedIntentIds.Contains("confirm", StringComparer.Ordinal);
 
+    /// <summary>Whether a conversation is open (Y07: the session's ending waits for it to close).</summary>
+    public bool TalkOpen => _talkOpen;
+
     /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
     internal bool TalkOpenOn(string npc) => _talkOpen && string.Equals(CurrentNpc, npc, StringComparison.Ordinal);
 

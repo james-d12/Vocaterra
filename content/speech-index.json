@@ -7172,6 +7172,28 @@
       "Sha256": "1dc78fb5214bfa0a4f1c904cd05dc9bee8413c35c209fa3a96c35fd48a1e3562",
       "Bytes": 112844
     },
+    "speech/guide/guide.camp.inn.1.slow.wav": {
+      "Text": "\u00A1Muy bien! Ahora ve a la posada.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "294642fd7dc562b5fa37ba114c7febb895fd4a1470e71a5bd1099d1ead2972fb",
+      "Bytes": 139984
+    },
+    "speech/guide/guide.camp.inn.1.wav": {
+      "Text": "\u00A1Muy bien! Ahora ve a la posada.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "9de3c39aa54e1ce1048ed6027da70b09601f43ddbe902e8a52e73e8d318c5d57",
+      "Bytes": 121244
+    },
     "speech/guide/guide.craft.none.1.slow.wav": {
       "Text": "Eso no se puede hacer.",
       "Speaker": "guide",
@@ -7369,28 +7391,6 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "1f5924f21ea36bfd634187975b7cb4752c1ddb1f4222fc937a3611fa277166fa",
       "Bytes": 118026
-    },
-    "speech/guide/guide.lesson.end.1.slow.wav": {
-      "Text": "\u00A1Muy bien! Ya tienes fuego.",
-      "Speaker": "guide",
-      "SpeakerId": 28,
-      "Voice": "ef_dora",
-      "Speed": 0.8,
-      "Rate": 24000,
-      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
-      "Sha256": "bf428e247d81e80d2c0af18f75b8c8ef55cb50e883fe920f0a7b0a9e9e9ce351",
-      "Bytes": 141644
-    },
-    "speech/guide/guide.lesson.end.1.wav": {
-      "Text": "\u00A1Muy bien! Ya tienes fuego.",
-      "Speaker": "guide",
-      "SpeakerId": 28,
-      "Voice": "ef_dora",
-      "Speed": 1,
-      "Rate": 24000,
-      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
-      "Sha256": "12bddba69be5b4cfaaed65af907591018dfdd58cdcc49c291e3822676aa43d8b",
-      "Bytes": 111644
     },
     "speech/guide/guide.lesson.fast.1.slow.wav": {
       "Text": "Mira. La madera es para la antorcha.",
