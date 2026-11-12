@@ -5,8 +5,8 @@ using Vocaterra.Game.Core.World;
 namespace Vocaterra.Game.Core.Session;
 
 /// <summary>A place the player can sleep at: where it stands, what it is, how near the player must be, and what it asks.</summary>
-/// <param name="Id">The place's id (<c>camp.fire</c>).</param>
-/// <param name="Point">The scene point it was made at (<c>firering.player</c>), or <see langword="null"/> for a place made in play at a cell.</param>
+/// <param name="Id">The place's id (<c>guide.fire</c>).</param>
+/// <param name="Point">The scene point it was made at (<c>firering</c>), or <see langword="null"/> for a place made in play at a cell.</param>
 /// <param name="Cell">The cell it stands at.</param>
 /// <param name="Kind"><see cref="SleepPlaceSpec.KindFire"/> or <see cref="SleepPlaceSpec.KindBed"/>.</param>
 /// <param name="RadiusBlocks">How far across, in blocks, of the cell the player may stand to sleep there.</param>

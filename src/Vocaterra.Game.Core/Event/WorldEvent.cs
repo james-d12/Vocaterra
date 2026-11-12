@@ -120,7 +120,7 @@ public static class WorldEvents
     /// <summary>The player met the guide (S17): the first time the panel opened on her, or the first step of the camp's checklist, whichever came first. The objective line then stops sending the learner down the trail.</summary>
     public const string GuideMet = "guide_met";
 
-    /// <summary>A torch was set on the rim of the fire ring at the player's own camp (S17): the fire is lit.</summary>
+    /// <summary>A torch was set on the rim of the fire ring at the guide's camp (S17, Y08): the fire is lit. The sound plays; no objective waits for it.</summary>
     public const string FireLit = "fire_lit";
 
     /// <summary>The session's ending (S17; Y07): the camp checklist is complete and the player has a room at the inn. The front-end shows the closing moment.</summary>
@@ -128,8 +128,7 @@ public static class WorldEvents
 
     /// <summary>
     /// A torch was placed at a fire ring (content-plan C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
-    /// the ring's prop name (<c>firering</c> at the guide's camp, <c>firering.player</c> at the player's own); in a scene that names no camp ring, every ring
-    /// that is not the player's counts as <c>firering</c>. The camp's checklist step waits for it.
+    /// the ring's prop name (<c>firering</c>, the guide's camp); in a scene that names no camp ring, every ring counts as <c>firering</c>. The camp's checklist step waits for it.
     /// </summary>
     public const string TorchAtRing = "torch_at_ring";
 

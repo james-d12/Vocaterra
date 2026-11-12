@@ -10,7 +10,7 @@ namespace Vocaterra.Game.UI.Hud;
 /// <summary>What the short screen after a death or a faint says (N05).</summary>
 /// <param name="Spanish">The line in Spanish (<c>Estás en tu campamento.</c>).</param>
 /// <param name="English">Its English.</param>
-/// <param name="Cause">The cause line (<c>You fainted from thirst and woke by your fire...</c>).</param>
+/// <param name="Cause">The cause line (<c>You fainted from thirst and woke where you sleep...</c>).</param>
 public sealed record DeathScreenView(string Spanish, string English, string Cause);
 
 /// <summary>

@@ -111,8 +111,8 @@ took the same ticks and asked the same 31 items before and after it (V09).
    lessons its play session has unlocked, and always those of sessions 1 to 3 (`coreSessions: 3` in `game/checks.json`, V07): the pre-check, the
    post-check and the next-day recall of a pilot (play sessions 1 and 2) are the same 31 items as before. The 56 items of sessions 4 to 10 (24 of phase A, 32 of phase B) are not in them. Say before it starts: "Some items are hard on purpose. Guess, or say 'no sé'. There is no score for you." Do not
    help with an item. Esc ends the check (the rest is skipped; note it).
-4. **The opening, at the player's own camp on the cliff.** The tester wakes alone there; no quiz. The English tips come one at a time: look,
-   walk, jump, a note at the tent (its one Spanish word, `camino`, says the guide's camp is down the trail), collecting and the inventory. The
+4. **The opening, on the mountain ledge.** The tester wakes alone there (Y08: a bare ledge, no tent); no quiz. The English tips come one at a time: look,
+   walk, jump, a note on the ledge (its one Spanish word, `camino`, says the guide's camp is down the trail), collecting and the inventory. The
    objective reads `Go down the trail and find the guide`, and the beacon points down the trail to her camp. Say only: "Please go on as you
    would in a game. Talk out loud if you can." Do not explain the controls: the tips do that. Note whether the tester reads them.
 5. **The guide's lesson** (about 5 to 8.5 minutes, the walk down the trail included). Luna, the guide, starts the lesson by herself when the

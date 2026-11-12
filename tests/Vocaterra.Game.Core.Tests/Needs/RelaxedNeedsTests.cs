@@ -82,7 +82,7 @@ public sealed class RelaxedNeedsTests
         Assert.Equal(50, session.Needs.Value(NeedMeter.Thirst), 0);
         Assert.Equal("faint", WorldEventsWoke(session));
         Assert.NotEqual(feetBefore, session.Simulation.Player.FeetBlock);
-        Assert.Contains("woke by your fire. Your bag is with you.", session.DeathLine, StringComparison.Ordinal);
+        Assert.Contains("woke where you sleep. Your bag is with you.", session.DeathLine, StringComparison.Ordinal);
     }
 
     [Fact]

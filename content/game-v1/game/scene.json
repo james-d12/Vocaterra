@@ -50,9 +50,9 @@
   // Named places at fixed positions. A site with a radius levels the ground (to y, or to the height the land has there) out to that radius and
   // slopes it into the land over the blend; every site is also a named point of the scene.
   "sites": {
-    // The player's camp: the brink of a ledge on the mountainside (where the player wakes, with the valley falling away to the south-east) and the
-    // wider ledge behind it, where the tent and the fire ring stand.
-    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4, "label": "mi campamento" },
+    // The mountain ledge (Y08: bare since the first night moved to the inn): the brink of a ledge on the mountainside, where the player arrives with the
+    // valley falling away to the south-east, and the wider ledge behind it.
+    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4 },
     "camp.ledge": { "x": 149, "z": 109, "y": 72, "radius": 9, "blend": 4 },
     "trail": { "x": 150, "z": 118, "label": "camino" },
     "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8, "label": "campamento" },
@@ -150,14 +150,14 @@
     },
 
     // The inn's inside (Y04, SETTLEMENT_PLAN 9.1), placed after the house at its corner, facing north (col 0 is the west wall's column, row 0 the north wall's).
-    // Reception in rows 1 and 2: the counter (a crate, one block high: a table would be a workbench and a stall block a market stall) at col 5 with the keeper's cell behind it at cols 6 and 7, enclosed by the counter, the east wall and the
-    // partition; a partition on row 3 with a gap at col 4, on the door's axis, three high with a lintel; the guest room in rows 4 and 5 with a bed against the
-    // west wall and one against the east wall (the head of a bed lies against the wall beside it); and six one-block windows at eye height, cut through
+    // Reception in rows 1 and 2: the counter (a "counter" block, one block high but tall for a body, so nobody climbs onto it: a table would be a workbench, a stall block a market stall and a crate a step) at col 5 with the keeper's cell behind it at cols 6 and 7, enclosed by the counter, the east wall and the
+    // partition; a partition on row 3 with a gap at col 4, on the door's axis, three high with a lintel; the guest room in rows 4 and 5 with a bed two cells long
+    // against the west wall (cols 1 and 2) and one against the east wall (cols 7 and 6): the head cell "B" at the wall, the foot cell "F" beside it (Y08); and six one-block windows at eye height, cut through
     // the walls with the legend's "air".
     "inn_rooms": {
-      "legend": { "W": "wall", "T": "crate", "B": "bed", "a": "air" },
+      "legend": { "W": "wall", "T": "counter", "B": "bed", "F": "bed-foot", "a": "air" },
       "layers": [
-        ["         ", "     T   ", "     T   ", " WWW WWW ", "         ", " B     B ", "         "],
+        ["         ", "     T   ", "     T   ", " WWW WWW ", "         ", " BF   FB ", "         "],
         ["  a   a  ", "         ", "a       a", " WWW WWW ", "a       a", "         ", "   a a   "],
         ["         ", "         ", "         ", " WWWWWWW ", "         ", "         ", "         "]
       ]
@@ -169,11 +169,8 @@
   },
 
   "props": [
-    // The player's camp: a tent behind the spawn and a cold fire ring in front of it (lit at the end of the session).
-    {"type": "stamp", "stamp": "tent", "site": "camp.ledge", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
-    {"type": "block", "block": "chest", "site": "camp.ledge", "dx": -1, "dz": -4, "name": "chest.player"},
-    {"type": "block", "block": "crate", "site": "camp.ledge", "dx": -1, "dz": -5},
-    {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player", "label": "fuego"},
+    // The mountain ledge is bare (Y08, D-game-32): the player arrives there and walks down the trail; the first night is at the inn, and their own camp
+    // comes later on bought land (the "tent" stamp above is kept for it).
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
     {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench", "label": "mesa"},
@@ -286,8 +283,8 @@
     "npc.smith": { "x": 302, "z": 206, "label": "herrero" },
     "npc.farmer": { "x": 300, "z": 218, "label": "granjero" },
     "npc.fisher": { "x": 240, "z": 208, "label": "pescador" },
-    // The inn's points (Y04): the stand cell beside the west bed, where the player sleeps (Y05), and the cell behind the counter where the innkeeper Rosa stands (Y06).
-    "bed.inn": { "x": 278, "z": 231 },
+    // The inn's points (Y04): the stand cell at the foot of the west bed (the bed covers cols 1 and 2 of row 5; this is col 3), where the player sleeps (Y05), and the cell behind the counter where the innkeeper Rosa stands (Y06).
+    "bed.inn": { "x": 279, "z": 231, "label": "cama" },
     "npc.innkeeper": { "x": 282, "z": 227 }
   },
 

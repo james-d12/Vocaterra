@@ -42,7 +42,7 @@
     "control.view.text": "Switch between your own eyes and a view over your shoulder.",
     "control.save.keys": "{key:save}",
     "control.save.text": "Save the game.",
-    "control.sleep.keys": "{key:talk} at your own fire",
+    "control.sleep.keys": "{key:talk} at a bed or a lit fire",
     "control.sleep.text": "Sleep until morning and start the next session, once this session's work is done.",
     "control.report.keys": "F8",
     "control.report.text": "Report a bug or ask for a feature. A Markdown file and a screenshot go to the session folder. Ctrl+Enter saves, Esc cancels.",

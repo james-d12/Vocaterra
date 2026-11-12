@@ -46,7 +46,7 @@ public sealed partial class SoundEventMapper
     /// <param name="block">The block.</param>
     public static SoundMaterial MaterialOf(BlockId block) => block switch
     {
-        BlockId.Trunk or BlockId.SpruceTrunk or BlockId.BirchTrunk or BlockId.Planks or BlockId.Timber or BlockId.Crate or BlockId.Fence or BlockId.Sign
+        BlockId.Trunk or BlockId.SpruceTrunk or BlockId.BirchTrunk or BlockId.Planks or BlockId.Timber or BlockId.Crate or BlockId.Counter or BlockId.Fence or BlockId.Sign
             or BlockId.Bridge or BlockId.Door or BlockId.Table or BlockId.Stall or BlockId.Wall or BlockId.Roof or BlockId.Chest or BlockId.Torch or BlockId.Lantern => SoundMaterial.Wood,
         BlockId.Stone or BlockId.MossyStone or BlockId.Cobble or BlockId.FireRing => SoundMaterial.Stone,
         BlockId.Leaves or BlockId.SpruceLeaves or BlockId.BirchLeaves or BlockId.Bush or BlockId.BerryBush or BlockId.TallGrass or BlockId.Fern or BlockId.Reeds

@@ -15,7 +15,7 @@ public sealed class SleepEntrySaveTests
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static BlockPos Ring(VoxelSession session) => session.Scene.Point(VoxelSession.PlayerFireRing);
+    private static BlockPos Ring(VoxelSession session) => session.Scene.Point(VoxelSession.CampFireRing);
 
     private static void LightRing(VoxelSession session)
     {
@@ -62,7 +62,7 @@ public sealed class SleepEntrySaveTests
     {
         var session = TestGame.NewSession();
         session.LodgingGiven = true;
-        session.LastSleepPlace = new LastSleepSave("camp.fire");
+        session.LastSleepPlace = new LastSleepSave("guide.fire");
         session.SleepPlaces.Add(Bed("camp.1", FarCell(session)));
         var document = SaveGame.Capture(session, Pristine());
 
@@ -71,7 +71,7 @@ public sealed class SleepEntrySaveTests
         Assert.False(loaded.LodgingGiven);
         Assert.Null(loaded.LastSleepPlace);
         Assert.Empty(loaded.SleepPlaces.MadeInPlay);
-        Assert.Equal(["camp.fire", "inn.bed"], loaded.SleepPlaces.All.Select(static p => p.Id)); // the shipped places (Y04: the inn's bed too)
+        Assert.Equal(["guide.fire", "inn.bed"], loaded.SleepPlaces.All.Select(static p => p.Id)); // the shipped places (Y04: the inn's bed too)
     }
 
     [Fact]
@@ -92,11 +92,11 @@ public sealed class SleepEntrySaveTests
     public void GivenALastAuthoredPlaceAlone_When_ItIsSavedAndLoaded_Then_ItsIdComesBackWithNoCell()
     {
         var session = TestGame.NewSession();
-        session.LastSleepPlace = new LastSleepSave("camp.fire");
+        session.LastSleepPlace = new LastSleepSave("guide.fire");
 
         var loaded = Reload(session);
 
-        Assert.Equal(new LastSleepSave("camp.fire"), loaded.LastSleepPlace);
+        Assert.Equal(new LastSleepSave("guide.fire"), loaded.LastSleepPlace);
         Assert.False(loaded.LodgingGiven);
     }
 
@@ -143,8 +143,8 @@ public sealed class SleepEntrySaveTests
 
         Sleep(session);
 
-        Assert.Equal(new LastSleepSave("camp.fire"), session.LastSleepPlace);
-        Assert.Equal(new LastSleepSave("camp.fire"), SaveGame.Capture(session, Pristine()).Systems!.Sleep!.Last);
+        Assert.Equal(new LastSleepSave("guide.fire"), session.LastSleepPlace);
+        Assert.Equal(new LastSleepSave("guide.fire"), SaveGame.Capture(session, Pristine()).Systems!.Sleep!.Last);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class SleepEntrySaveTests
 
         Sleep(loaded);
 
-        Assert.Equal(new LastSleepSave("camp.fire"), loaded.LastSleepPlace);
+        Assert.Equal(new LastSleepSave("guide.fire"), loaded.LastSleepPlace);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed class SleepEntrySaveTests
 
         Sleep(session); // the --sleep aid: a usable place exists, the player is at none
 
-        Assert.Equal(new LastSleepSave("camp.fire"), session.LastSleepPlace);
+        Assert.Equal(new LastSleepSave("guide.fire"), session.LastSleepPlace);
     }
 
     [Fact]
@@ -312,11 +312,11 @@ public sealed class SleepEntrySaveTests
     public void GivenAnAuthoredLastPlaceOfAnotherBundle_When_ItIsMigrated_Then_ItStaysWhileTheNewBundleHasIt()
     {
         var session = TestGame.NewSession();
-        session.LastSleepPlace = new LastSleepSave("camp.fire");
+        session.LastSleepPlace = new LastSleepSave("guide.fire");
 
         var loaded = Reload(session, migrate: true, bundle: OtherBundle);
 
-        Assert.Equal(new LastSleepSave("camp.fire"), loaded.LastSleepPlace);
+        Assert.Equal(new LastSleepSave("guide.fire"), loaded.LastSleepPlace);
     }
 
     // The player dies of thirst, as DeathTests does it.

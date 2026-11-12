@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Tests.Session;
 /// <summary>The places the player can sleep at (Y01): the shipped mountain fire, a fire usable while a lit ring stands at it, a bed by its access, and the places made while the game runs.</summary>
 public sealed class SleepPlacesTests
 {
-    private static BlockPos Ring(VoxelSession session) => session.Scene.Point(VoxelSession.PlayerFireRing);
+    private static BlockPos Ring(VoxelSession session) => session.Scene.Point(VoxelSession.CampFireRing);
 
     // A torch on the rim of the player's own ring, as the game puts it.
     private static void LightRing(VoxelSession session)
@@ -25,9 +25,9 @@ public sealed class SleepPlacesTests
     {
         var session = TestGame.NewSession();
 
-        Assert.Equal(["camp.fire", "inn.bed"], session.SleepPlaces.All.Select(static p => p.Id));
+        Assert.Equal(["guide.fire", "inn.bed"], session.SleepPlaces.All.Select(static p => p.Id));
         var place = session.SleepPlaces.All[0];
-        Assert.Equal(("camp.fire", VoxelSession.PlayerFireRing, SleepPlaceSpec.KindFire, 5, 6), (place.Id, place.Point, place.Kind, place.RadiusBlocks, place.HeightBlocks));
+        Assert.Equal(("guide.fire", VoxelSession.CampFireRing, SleepPlaceSpec.KindFire, 5, 6), (place.Id, place.Point, place.Kind, place.RadiusBlocks, place.HeightBlocks));
         Assert.Equal(Ring(session), place.Cell);
         Assert.Same(place, session.SleepPlaces.WakeAt);
     }
@@ -62,7 +62,7 @@ public sealed class SleepPlacesTests
 
         session.Simulation.TeleportTo(new BlockPos(ring.X + 5, ring.Y, ring.Z));
         Assert.True(session.AtSleepPlace);
-        Assert.Equal("camp.fire", session.CurrentSleepPlace?.Id);
+        Assert.Equal("guide.fire", session.CurrentSleepPlace?.Id);
 
         session.Simulation.TeleportTo(new BlockPos(ring.X + 6, ring.Y, ring.Z));
         Assert.False(session.AtSleepPlace); // the reach across is five blocks
@@ -132,13 +132,13 @@ public sealed class SleepPlacesTests
         var scene = TestGame.Route();
         var specs = new[]
         {
-            new SleepPlaceSpec("camp.fire", VoxelSession.PlayerFireRing, SleepPlaceSpec.KindFire, 5, 6, SleepPlaceSpec.AccessAlways),
+            new SleepPlaceSpec("guide.fire", VoxelSession.CampFireRing, SleepPlaceSpec.KindFire, 5, 6, SleepPlaceSpec.AccessAlways),
             new SleepPlaceSpec("ghost.bed", "nowhere.at.all", SleepPlaceSpec.KindBed, 2, 2, SleepPlaceSpec.AccessAlways),
         };
 
         var places = new SleepPlaces(specs, "ghost.bed", scene, new FireRings(scene.Grid), () => true);
 
-        Assert.Equal(["camp.fire"], places.All.Select(static p => p.Id).ToArray());
+        Assert.Equal(["guide.fire"], places.All.Select(static p => p.Id).ToArray());
         Assert.Null(places.WakeAt);
     }
 

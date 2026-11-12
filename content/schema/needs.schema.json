@@ -336,7 +336,7 @@
           "id": {
             "type": "string",
             "minLength": 1,
-            "description": "The place's id (camp.fire), which death.wakeAt names."
+            "description": "The place's id (guide.fire), which death.wakeAt names."
           },
           "point": {
             "type": "string",

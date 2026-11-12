@@ -22,7 +22,7 @@ public static class BlockArtVillage
     {
         BlockCell.TimberSide or BlockCell.TimberEnd or BlockCell.Lantern or BlockCell.CrateSide or BlockCell.CrateTop or BlockCell.AwningRed
             or BlockCell.AwningWhite or BlockCell.Canvas or BlockCell.ChestSide or BlockCell.ChestTop or BlockCell.FarmlandTop or BlockCell.Wheat
-            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.Bed or BlockCell.Bedroll or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
+            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.Bed or BlockCell.Bedroll or BlockCell.BedFoot or BlockCell.BedSide or BlockCell.BedrollFoot or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
             or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer or BlockCell.FaceInnkeeper => true,
@@ -198,7 +198,13 @@ public static class BlockArtVillage
             case BlockCell.Bed:
                 return BedPixel(x, y, n);
             case BlockCell.Bedroll:
-                return BedrollPixel(x, y, n);
+                return BedrollPixel(x, y, n, true);
+            case BlockCell.BedrollFoot:
+                return BedrollPixel(x, y, n, false);
+            case BlockCell.BedFoot:
+                return BedFootPixel(x, y, n);
+            case BlockCell.BedSide:
+                return BedSidePixel(y, n);
             case BlockCell.SignBoard:
                 {
                     // The post column of the signpost: the post runs through the middle, the board's plank is cut at its top and bottom.
@@ -399,57 +405,74 @@ public static class BlockArtVillage
 
     private static Rgba BedPixel(int x, int y, uint n)
     {
-        // The bed from above, its head at the top of the picture (the headboard hides the first rows): a dark wooden frame round the edge, a plump cream
-        // pillow with a shadow under it, the sheet turned down over the blanket's top edge, and a red blanket with a darker crease and a lighter ridge
-        // across it (Y04: the first picture, a pillow strip on a red slab, read as a red box from the door).
-        if (x is 0 or 15 || y is 0 or 15)
+        // The top of a bed's head half from above, the head at the top of the picture (Y08: a bed is two cells long). The headboard stands over the first
+        // rows, so the picture has a wooden strip there; the pillow (rows 3 to 9, where the mesh's own pillow lies) is cream with a shaded lower edge; below
+        // it the sheet is turned down over the blanket's top edge, and the red blanket runs on to the bottom row, where the foot half's picture goes on.
+        if (y < 3 || x is 0 or 15)
         {
             return Jit(118, 74, 38, n, 2);
         }
 
-        if (x is >= 2 and <= 13 && y is >= 3 and <= 6)
+        if (y <= 9)
         {
-            // light on the pillow's top, a little shade at its lower edge
-            return y == 6 || x is 2 or 13 ? Jit(214, 208, 196, n, 2) : Jit(252, 250, 242, n, 2);
-        }
-
-        if (y == 7)
-        {
-            return Jit(120, 70, 66, n, 2); // the pillow's shadow on the sheet
-        }
-
-        if (y is 8 or 9)
-        {
-            return y == 8 ? Jit(240, 234, 214, n, 2) : Jit(206, 198, 176, n, 2); // the sheet turned down, with its own fold
+            return y == 9 || x is 1 or 14 ? Jit(214, 208, 196, n, 2) : Jit(252, 250, 242, n, 2);
         }
 
         return y switch
         {
-            10 or 11 => Jit(188, 56, 52, n, 3),
-            12 => Jit(226, 96, 88, n, 2), // the ridge of the fold, lit
-            13 => Jit(112, 28, 30, n, 2), // the crease under it, in shade
+            10 => Jit(240, 234, 214, n, 2), // the sheet turned down
+            11 => Jit(206, 198, 176, n, 2), // its own fold
+            12 => Jit(120, 70, 66, n, 2), // the sheet's shadow on the blanket
+            13 => Jit(188, 56, 52, n, 3),
             _ => Jit(172, 46, 46, n, 3),
         };
     }
 
-    private static Rgba BedrollPixel(int x, int y, uint n)
+    private static Rgba BedFootPixel(int x, int y, uint n)
     {
-        // A roll of cloth lying along the picture: its end at the right is a disc of the cloth's spiral, and the roll's body has stripes along it.
-        var dx = x - 12.5f;
-        var dy = y - 7.5f;
-        var d2 = (dx * dx) + (dy * dy);
-        if (d2 <= 12.25f)
+        // The top of a bed's foot half, the foot at the bottom of the picture: the red blanket goes on from the head half, with a fold across it (a lit ridge
+        // over a dark crease) and the footboard's planks over the last row.
+        if (y == 15 || x is 0 or 15)
         {
-            var ring = (int)(MathF.Sqrt(d2) * 1.5f) % 2;
-            return ring == 0 ? Jit(232, 214, 160, n, 2) : Jit(150, 124, 76, n, 2);
+            return Jit(118, 74, 38, n, 2);
         }
 
-        if (y is < 4 or > 11)
+        return y switch
         {
-            return Clear;
+            8 => Jit(226, 96, 88, n, 2), // the ridge of the fold, lit
+            9 => Jit(112, 28, 30, n, 2), // the crease under it, in shade
+            _ => Jit(172, 46, 46, n, 3),
+        };
+    }
+
+    private static Rgba BedSidePixel(int y, uint n)
+    {
+        // The blanket hanging over the mattress's edge: red, a lit fold, then a darker hem near the bottom.
+        return y switch
+        {
+            < 7 => Jit(172, 46, 46, n, 3),
+            7 or 8 => Jit(188, 56, 52, n, 3),
+            9 => Jit(226, 96, 88, n, 2),
+            10 or 11 => Jit(130, 32, 34, n, 2),
+            _ => Jit(88, 56, 36, n, 2),
+        };
+    }
+
+    private static Rgba BedrollPixel(int x, int y, uint n, bool head)
+    {
+        // A mat of cloth seen from above, the head at the top of the picture: stripes across it (along the mat's length, so they run on from one half to the
+        // next), a darker border and, on the head half, the patch the rolled pillow lies on.
+        if (x is 0 or 15)
+        {
+            return Jit(104, 82, 46, n, 2);
         }
 
-        return y % 3 == 0 ? Jit(118, 96, 56, n, 2) : Jit(168, 146, 92, n, 2);
+        if (head && y is >= 2 and <= 6 && x is >= 3 and <= 12)
+        {
+            return Jit(214, 196, 140, n, 2);
+        }
+
+        return x % 4 < 2 ? Jit(168, 146, 92, n, 2) : Jit(130, 108, 64, n, 2);
     }
 
     private static Rgba BottlesPixel(int x, int y, uint n)

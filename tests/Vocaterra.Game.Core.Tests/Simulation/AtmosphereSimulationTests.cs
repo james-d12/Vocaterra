@@ -161,7 +161,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "7f60766576336394505b33567e0a62fa05d6da8e3b17904ab5cea4ad0a700cb6"; // Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "8213aec474bfe69751dde476146d8e5029c89d6634387939519949bbdaffaedc"; // Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
 
-    private const string PinnedAfterWalking = "77c039bc8d45c08bda377f1a53f0719bdbd32a59225938192eaf227640a5d7b7"; // Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "c0222a77ede53d99fa3ef73c0b4501917f41d57b30f741c8e922cb4c88b67fc0"; // Y08: re-pinned with the one above; Y06m: re-pinned with the one above
 }
