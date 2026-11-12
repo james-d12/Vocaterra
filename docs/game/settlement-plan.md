@@ -451,7 +451,7 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), Y06m alone, (Y07, Y11),
 Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
 time, in that order. *As run (owner, 2026-11-11: the weather series is merged, two agents of this series may run at once):* Y06,
-then Y06m alone, then (Y07, Y09), (Y08, Y10), Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
+then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07, Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
 the weather series changed. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
 

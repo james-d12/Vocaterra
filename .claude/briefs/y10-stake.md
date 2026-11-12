@@ -4,16 +4,16 @@ Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This
 HUD line, on top of Y09's land rules; the core is taken as it is.
 
 Where to work: /home/james/Dev/Vocaterra/.claude/worktrees/y10, which already exists on the branch `Y10-stake` (cut from
-`feature/settlement` after Y07, the opening's logic, and Y09, land rules, were recorded). Start every command with
+`feature/settlement` after Y09, land rules, was recorded). Start every command with
 `cd /home/james/Dev/Vocaterra/.claude/worktrees/y10 &&` and use absolute paths for file tools; your shell may start in another checkout,
 which you must not edit. Commit after each item that builds and passes its tests, with the prefix `Y10: `. Do not push your branch. Never
 push or merge `feature/settlement` or `main`. When you finish, leave the worktree on your branch, clean, with no process of yours running.
 
-Another agent builds Y08 (the mountain, the strings and the rebaseline) at the same time in `.claude/worktrees/y08`: it edits
-`scene.json`, `needs.json`, the locale's tips, ui and controls strings, `AmbientBeds`, the sleep places and many tests that name the
-mountain camp, and re-baselines the scripted runs. Stay out of `scene.json` and `needs.json`, add your locale strings as new keys only
-(at the end of their block), and do not re-baseline scripted runs. Whichever is merged second merges the first and hashes the bundle
-again; the orchestrator handles that.
+Another agent builds Y07 (the opening's logic) at the same time in `.claude/worktrees/y07`: it edits `VoxelSession.cs` (the objective
+hooks, the ending), the objectives, `session.json`, the skip, `PlaytestFlow`, Luna's pools and some locale strings. Stay out of those;
+add your locale strings as new keys only (at the end of their block). After Y07 the Y08 agent will edit `scene.json`, `needs.json`,
+the beds and the mountain's strings: stay out of `scene.json` and `needs.json`. Whichever of you is merged second merges the first and
+hashes the bundle again; the orchestrator handles that. Use a scripted-runs work folder whose name is unique to Y10.
 
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call
 and every screenshot or scripted run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror
@@ -86,7 +86,7 @@ Not in this milestone: the mayor giving the stake and selling the plot, coins, t
 campsite (Y12); `scene.json` or `needs.json` edits; any Spanish line spoken by an NPC.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count, against `feature/settlement`'s after Y07 and Y09, in their reports); scripts/limited.sh dotnet format Vocaterra.sln
+(report the count; 11,298 passed and 3 skipped after Y09); scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes (after `hash` through your wrapper, and the new bundle
 hash into the save fixture as CLAUDE.md says; `scripts/content-loop.sh` does both); the A2 content gate clean; the full suite once
 without models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/ or artifacts/.
