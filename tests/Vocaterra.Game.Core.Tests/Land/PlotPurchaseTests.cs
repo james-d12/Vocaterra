@@ -165,6 +165,22 @@ public sealed class PlotPurchaseTests
     }
 
     [Fact]
+    public void Given_ThePurchaseMade_When_TheLearnerSaysSiToTheClassOffer_Then_TheVerdictIsConfirmUnderstoodAndTheClassStarts()
+    {
+        var session = AtTheSale(12);
+        _ = session.Say("sí"); // the purchase
+        Assert.Equal(1, Bought(session));
+        Assert.NotNull(session.Lessons.OfferStandingAt(Mayor)); // the class follows in the same talk
+
+        var turn = session.Say("sí");
+
+        Assert.Equal("confirm", turn.Intent);
+        Assert.True(turn.Communicated);
+        Assert.True(turn.LessonHandled);
+        Assert.Equal("personas", session.Lessons.Active?.Id);
+    }
+
+    [Fact]
     public void Given_NoPlotPendingAtTheSale_When_TheLearnerSaysSi_Then_TheMayorAsksForTheStakeOnTheFieldAndNothingChanges()
     {
         var session = AtTheSale(12);
@@ -318,8 +334,8 @@ public sealed class PlotPurchaseTests
         var after = Snapshot(session);
         Assert.Equal(20, after.Coins);
 
-        var again = session.Say("sí"); // not understood at his open prompt: nothing happens
-        Assert.False(again.Communicated);
+        var again = session.Say("No, gracias."); // the class offer that follows the purchase, declined (understood, Y14): nothing moves
+        Assert.True(again.Communicated);
         Assert.Equal(after, Snapshot(session));
 
         var asked = session.Say("Quiero un terreno, por favor.");

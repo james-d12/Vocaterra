@@ -97,6 +97,20 @@ public sealed class ClassTests
     }
 
     [Fact]
+    public void Given_AClassOfferStanding_When_TheLearnerSaysSi_Then_TheVerdictIsConfirmUnderstoodAndTheClassStarts()
+    {
+        var session = DayTwo();
+        _ = session.OpenTalk("villager");
+
+        var turn = session.Say("Sí");
+
+        Assert.True(turn.LessonHandled);
+        Assert.Equal("confirm", turn.Intent);
+        Assert.True(turn.Communicated);
+        Assert.Equal("personas", session.Lessons.Active?.Id);
+    }
+
+    [Fact]
     public void AnyOtherLineWithdrawsTheOfferSoALaterSiIsTheNpcsOwn()
     {
         var session = DayTwo();
