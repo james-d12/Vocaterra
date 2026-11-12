@@ -2544,3 +2544,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   offer's verdict is a presentation fix: the turn is still graded at the NPC's own prompt and the shown verdict is rewritten when the
   class takes the answer; a cleaner fix (grading a class offer's yes or no at its own prompt without breaking free talk) is a later
   milestone if the owner wants it. The `pedir-agua` transfers at the baker and the mayor are an owner question (open items).
+- **Y15, the stake taken at the purchase (2026-11-12, on `feature/settlement`; the owner on PR #65).** Report `.claude/briefs/y15-report.md`.
+  The mayor keeps the stake when he sells the plot (every stake in the bag goes through `Take`; a refused sale keeps it; a stake in a
+  chest stays). The kit's room is checked with the coins and the stake out, so `no_room` needs a bag without the stake. The checklist's
+  `stake` step counts the bag plus one once the plot is owned, so it stays done after the purchase and a load (and reads 1/1 with
+  `--own-plot`). No stake is given once land is owned. Gated: 11,469 passed, 3 skipped.
