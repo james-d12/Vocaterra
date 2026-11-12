@@ -42,12 +42,12 @@ public static class PlaytestEnd
 
     /// <summary>
     /// Whether the post-check starts by itself: a playtest with the world running (no battery and no mic check on), the post-check not started, the
-    /// session complete (the camp done and the player's own fire lit), the transfer offered and no talk open (a talk still open finishes first; the end key does not wait for it).
+    /// session complete (the camp done and a room at the inn, Y07), the transfer offered and no talk open (a talk still open finishes first; the end key does not wait for it).
     /// </summary>
     /// <param name="playtest">Whether the run is the playtest profile.</param>
     /// <param name="worldRunning">Whether the world is on screen (no battery, no mic check).</param>
     /// <param name="started">Whether the post-check has started already.</param>
-    /// <param name="campDone">Whether the session is complete (S17): every step of the camp objective is done and the fire at the player's own camp is lit.</param>
+    /// <param name="campDone">Whether the session is complete (S17): the camp objective is done and the room at the inn is taken (Y07).</param>
     /// <param name="transferOffered">Whether the guide has made her transfer offer.</param>
     /// <param name="talkOpen">Whether the dialogue panel is open.</param>
     public static bool StartsOnItsOwn(bool playtest, bool worldRunning, bool started, bool campDone, bool transferOffered, bool talkOpen) =>

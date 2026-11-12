@@ -4,8 +4,8 @@ using Vocaterra.Game.Core.Save;
 namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
-/// The playtest profile (S12, S18): the pre-check, the run, then the post-check, which starts by itself when the camp is done, the fire at the
-/// player's camp is lit and the transfer offered, or at once with F10. Its save goes to the session folder; its thank-you screen waits for Esc. A
+/// The playtest profile (S12, S18): the pre-check, the run, then the post-check, which starts by itself when the camp is done, the room at the
+/// inn is taken and the transfer offered, or at once with F10. Its save goes to the session folder; its thank-you screen waits for Esc. A
 /// next-day recall runs its check and ends.
 /// </summary>
 public sealed class PlaytestFlow
@@ -69,16 +69,16 @@ public sealed class PlaytestFlow
         SavePath = PlaytestEnd.SaveIn(sessionDirectory);
         _console(_recall
             ? $"playtest: the next-day recall of the save from session {_session.Day}; the run ends after the check"
-            : $"playtest: the pre-check, the run, then the post-check when the camp is done, the fire at the player's camp is lit and the transfer offered (or F10); the save is {SavePath}");
+            : $"playtest: the pre-check, the run, then the post-check when the camp is done, the room at the inn is taken and the transfer offered (or F10); the save is {SavePath}");
     }
 
-    /// <summary>Once a frame: the post-check starts by itself once the camp is done, the fire lit and the transfer offered (at a step boundary of a scripted run).</summary>
+    /// <summary>Once a frame: the post-check starts by itself once the camp is done, the room taken and the transfer offered (at a step boundary of a scripted run).</summary>
     public void StartIfDue(bool atStepBoundary, bool worldRunning, bool dialogueOpen)
     {
         if (Enabled && atStepBoundary
             && PlaytestEnd.StartsOnItsOwn(true, worldRunning, _started, _session.SessionComplete, PlaytestEnd.TransferOffered(_session.Events), dialogueOpen))
         {
-            StartPost("the camp is done, the player's fire is lit and the transfer offered");
+            StartPost("the camp is done, the room at the inn is taken and the transfer offered");
         }
     }
 

@@ -6476,6 +6476,7 @@
 {"id":"dialogue:fisher_weather.1","stages":{"render":"8707b5db12465ff9"}}
 {"id":"dialogue:fisher_well.1","stages":{"render":"897d500155bb0852"}}
 {"id":"dialogue:fisher_yes.1","stages":{"render":"b075610fe2c4cccd"}}
+{"id":"dialogue:guide.camp.inn.1","stages":{"render":"4073db7d2f92a0b3"}}
 {"id":"dialogue:guide.craft.lack.many.1","stages":{"render":"58632c608d0a02a5"}}
 {"id":"dialogue:guide.craft.lack.one.1","stages":{"render":"f3a7ff1d89baf0c1"}}
 {"id":"dialogue:guide.craft.none.1","stages":{"render":"0daf2f7b2411346f"}}
@@ -6530,7 +6531,6 @@
 {"id":"dialogue:guide.lesson.baker.tomorrow.1","stages":{"render":"3778e3c5a77d8dd0"}}
 {"id":"dialogue:guide.lesson.baker.twenty.1","stages":{"render":"5decf5263df6838d"}}
 {"id":"dialogue:guide.lesson.baker.you.1","stages":{"render":"d51898672526b67e"}}
-{"id":"dialogue:guide.lesson.end.1","stages":{"render":"a79352388a1ba1d1"}}
 {"id":"dialogue:guide.lesson.farmer.apple.1","stages":{"render":"3598ed9898358ea1"}}
 {"id":"dialogue:guide.lesson.farmer.apples.1","stages":{"render":"f1b268e0bad68cfc"}}
 {"id":"dialogue:guide.lesson.farmer.ate.1","stages":{"render":"b3256570ed363393"}}

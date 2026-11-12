@@ -123,11 +123,8 @@ public static class WorldEvents
     /// <summary>A torch was set on the rim of the fire ring at the player's own camp (S17): the fire is lit.</summary>
     public const string FireLit = "fire_lit";
 
-    /// <summary>The session's ending (S17): the camp checklist is complete and the player's own fire is lit. The front-end shows the closing moment.</summary>
+    /// <summary>The session's ending (S17; Y07): the camp checklist is complete and the player has a room at the inn. The front-end shows the closing moment.</summary>
     public const string SessionComplete = "session_complete";
-
-    /// <summary>The camp's checklist was complete and the player was given a spare torch for their own fire (S17; the detail says how, or that the bag was full).</summary>
-    public const string SpareTorch = "spare_torch";
 
     /// <summary>
     /// A torch was placed at a fire ring (content-plan C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
@@ -215,7 +212,7 @@ public static class WorldEvents
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
-        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
+        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered, OrderAccepted, OrderDeclined,

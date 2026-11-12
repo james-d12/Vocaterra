@@ -1318,6 +1318,12 @@
       "matches": []
     },
     {
+      "key": "20766b87e04c5b74354c6bfa61043f30ff8062c75d15c649613ec95aa6f2ebf8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Ahora ve a la posada.",
+      "matches": []
+    },
+    {
       "key": "2087b4c27c459c2858764f8d1145a43a431db471d15180a453393635f3e860f0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No tengo eso. Tengo agua, pan y harina.",
@@ -7176,12 +7182,6 @@
       "key": "a42d93d29a9de3bc93017d61cdc77cf7269cf7756502eb972b6470eeae715907",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, está cerca.",
-      "matches": []
-    },
-    {
-      "key": "a431ac037e99a47d4a6055a4e4bded40240270c50fa5bad0b5e4ec666ea57237",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "¡Muy bien! Ya tienes fuego.",
       "matches": []
     },
     {

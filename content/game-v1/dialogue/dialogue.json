@@ -636,10 +636,10 @@
         { "lineId": "guide.lesson.task.1", "text": "Necesitas madera y frutas." }
       ]
     },
-    "guide.lesson.end": {
-      "poolId": "guide.lesson.end",
+    "guide.camp.inn": {
+      "poolId": "guide.camp.inn",
       "variants": [
-        { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes fuego." }
+        { "lineId": "guide.camp.inn.1", "text": "¡Muy bien! Ahora ve a la posada." }
       ]
     },
     "guide.lesson.want": {

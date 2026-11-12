@@ -61,7 +61,6 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Dialogue/SupportFrontend.cs"] = "the console's summary at exit",
         ["src/Vocaterra.Game.Core/Session/PlaytestFlow.cs"] = "the facilitator's console lines",
         ["src/Vocaterra.Game.Core/Session/ObjectiveAnnouncer.cs"] = "the console's objective lines",
-        ["src/Vocaterra.Game.Core/Session/VoxelSession.cs"] = "a world event's detail in the session log",
         ["src/Vocaterra.Game.Core/Session/SessionSkip.cs"] = "the test aid's line on the console and in the session log (--skip-to-session, V12c)",
         ["src/Vocaterra.Game.Core/Scripted/CheckScript.cs"] = "the scripted runs' console",
         ["src/Vocaterra.Game/Scripted/ScriptedRunEnd.cs"] = "the scripted runs' console and session log line when a run is cut short (V26)",

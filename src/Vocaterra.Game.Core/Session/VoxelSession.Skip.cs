@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -10,13 +9,13 @@ public sealed partial class VoxelSession
 {
     /// <summary>
     /// Session 1's ending as the objectives describe it (V12c, <see cref="SessionSkip"/>): every step of the objectives the ending waits for that a save counts is counted to
-    /// its target, a torch stands on the rim of the player's own fire ring (the world edit that lights it, as the spare torch placed there), and the stage follows from the
-    /// world and the lessons as a load works it out (<see cref="RestoreStage"/>): the guide met, the fire lit, the session complete, and the completion hooks put back without
-    /// acting (no spare torch, no arrow). The lessons of session 1 are counted first, so the guide counts as met. A step that counts a bottle filled (the camp's water) leaves
+    /// its target, lodging is given at the inn (<see cref="GrantLodging"/>, Y07: the bed is usable), and the stage follows from the
+    /// world and the lessons as a load works it out (<see cref="RestoreStage"/>): the guide met, the session complete, and the completion hooks put back without
+    /// acting (no arrow, no line). The lessons of session 1 are counted first, so the guide counts as met. A step that counts a bottle filled (the camp's water) leaves
     /// that many bottles of water in the bag (V13): the shopkeeper gave the bottle and the river filled it, and nothing in the game empties a bottle, so a learner who played
     /// the session carries it (the farmer's order of session 7 takes it). The shopkeeper counts it as given and his key words as taught (V09).
     /// </summary>
-    /// <exception cref="InvalidOperationException">The scene has no free cell on the rim of the player's fire ring, or the bag cannot hold the bottles.</exception>
+    /// <exception cref="InvalidOperationException">The bag cannot hold the bottles.</exception>
     internal void SkipToEnding()
     {
         foreach (var objective in Objectives.Where(static o => o.Spec.EndsSession))
@@ -39,12 +38,7 @@ public sealed partial class VoxelSession
             }
         }
 
-        if (HasPlayerFireRing && !ScanPlayerFireRing())
-        {
-            var rim = _playerFireRing.Select(static stone => (BlockPos?)new BlockPos(stone.X, stone.Y + 1, stone.Z)).FirstOrDefault(cell => Scene.Grid.GetBlock(cell!.Value.X, cell.Value.Y, cell.Value.Z) == BlockId.Air)
-                ?? throw new InvalidOperationException("The player's fire ring has no free cell on its rim for the torch.");
-            _ = Scene.Grid.SetBlock(rim.X, rim.Y, rim.Z, BlockId.Torch);
-        }
+        GrantLodging(); // the room at the inn, raising lodging_granted as a real grant does: the bed is usable and inn-room counts
 
         RestoreStage();
     }

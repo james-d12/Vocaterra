@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
@@ -272,11 +273,14 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>The scene's name for the fire ring at the player's own camp, where the closing fire is lit (S17).</summary>
     public const string PlayerFireRing = "firering.player";
 
-    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes fuego.</c>), the first of <c>game/session.json</c>'s closing pool, or an empty text when the bundle has none.</summary>
+    /// <summary>The closing line in Spanish (<c>Buenas noches. Tu cama está allí.</c>, the innkeeper's, Y07), the first of <c>game/session.json</c>'s closing pool, or an empty text when the bundle has none.</summary>
     public string ClosingLine => Bundle.Dialogue.TryGetPoolById(Data.Objectives.ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
 
     /// <summary>The speech-line id of <see cref="ClosingLine"/> (its gloss is the locale's <c>line.&lt;id&gt;</c>), or <see langword="null"/> when the bundle has none.</summary>
     public string? ClosingLineId => Bundle.Dialogue.TryGetPoolById(Data.Objectives.ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].LineId : null;
+
+    /// <summary>The speaker of <see cref="ClosingLine"/> (Y07): the NPC the closing pool belongs to (the innkeeper), else the guide.</summary>
+    public string ClosingSpeaker => SpeechSpeakers.OfPool(Data.Objectives.ClosingPool, Data.Npcs);
 
     /// <summary>
     /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
@@ -541,7 +545,7 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>
     /// Works the objectives out again from the world and the progress a save puts back (S17, C07): each step that names a restore hook asks it (<c>lesson-begun</c>: the
-    /// guide is met when a lesson was begun; <c>scan-fire-ring</c>: the fire is lit when a torch stands at the player's own ring), an objective another one's progress
+    /// guide is met when a lesson was begun; <c>lodging-given</c>: the room at the inn was given), an objective another one's progress
     /// completes is completed (the guide is met once the checklist moved), each done objective's hooks put their state back without acting, and the session is complete
     /// when every objective is done. The save holds only the counts of the steps without a restore hook.
     /// </summary>
@@ -549,6 +553,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         _guideMet = false;
         _fireLit = false;
+        _ = ScanPlayerFireRing(); // the latch the sound beds read (Y07: no objective restores it any more)
         foreach (var objective in Objectives)
         {
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is not null))
@@ -577,7 +582,7 @@ public sealed partial class VoxelSession : GuideSession
     private bool RestoreHook(string hook) => hook switch
     {
         "lesson-begun" => Lessons.Book.Lessons.Any(l => Lessons.StatusOf(l.Id) != LessonStatus.NotStarted),
-        "scan-fire-ring" => ScanPlayerFireRing(),
+        "lodging-given" => LodgingGiven,
         _ => throw new InvalidOperationException($"Unknown restore hook '{hook}' (the validator lists the known ones)."),
     };
 
@@ -597,17 +602,10 @@ public sealed partial class VoxelSession : GuideSession
                 }
 
                 break;
-            case "spare-torch":
+            case "point-inn":
                 if (!restoring)
                 {
-                    GiveSpareTorch();
-                }
-
-                break;
-            case "point-own-camp":
-                if (!restoring)
-                {
-                    PointAtOwnCamp();
+                    PointAtInn();
                 }
 
                 break;
@@ -645,7 +643,7 @@ public sealed partial class VoxelSession : GuideSession
         return _fireLit;
     }
 
-    // The player's own fire is lit (S17). The session is complete once the checklist is too, in either order.
+    // The fire at the player's own ring is lit (S17): the latch the sound beds read. Y07: no objective waits for it any more.
     private void LightFire()
     {
         if (_fireLit)
@@ -654,21 +652,20 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         _fireLit = true;
-        Pointer = null; // the way back is walked: the arrow to the player's camp (or any earlier one) goes
-        LogWorld(WorldEvents.FireLit, null, PlayerFireRing); // the light-fire objective waits for it, and the session may complete with it
+        LogWorld(WorldEvents.FireLit, null, PlayerFireRing); // no objective waits for it since Y07 (the sound beds read the latch; Y08 retires the mountain ring)
     }
 
-    // The arrow sends the player up the trail to their own camp, where the cold ring waits (S17).
-    private void PointAtOwnCamp()
+    // The camp checklist is done (Y07): the arrow goes to the inn the session names (game/session.json, innBeacon) and the guide sends the player there. A player who
+    // has the room already (the innkeeper was asked first) is not sent.
+    private void PointAtInn()
     {
-        if (_fireLit || !Scene.Points.TryGetValue(PlayerFireRing, out var ring))
+        if (LodgingGiven || Data.Objectives.InnBeacon is not { } inn)
         {
             return;
         }
 
-        var label = Scene.LabelOf(PlayerFireRing);
-        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z), Point: PlayerFireRing);
-        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
+        PointAtPlace(NpcService.GuideAgent, inn);
+        GuideSays(InnLinePool);
     }
 
     private void CheckSessionComplete()
@@ -680,24 +677,6 @@ public sealed partial class VoxelSession : GuideSession
 
         _sessionComplete = true;
         LogWorld(WorldEvents.SessionComplete, null, Objective.Summary);
-    }
-
-    // The checklist is complete (S17): the player is sent back up the trail with a spare torch for their own fire, unless they hold one already or the fire is lit.
-    private void GiveSpareTorch()
-    {
-        if (_fireLit || Simulation.Inventory.Count(ItemId.Torch) > 0 || !HasPlayerFireRing)
-        {
-            return;
-        }
-
-        if (Simulation.GrantItems(ItemId.Torch, 1) > 0)
-        {
-            LogWorld(WorldEvents.SpareTorch, null, "bag full");
-            return;
-        }
-
-        LogWorld(WorldEvents.SpareTorch, null, Nouns.ForItem(ItemId.Torch)?.Lemma);
-        _hints.Add(Locale.Ui("spareTorch"));
     }
 
     /// <inheritdoc />

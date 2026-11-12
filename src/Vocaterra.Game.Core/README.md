@@ -275,9 +275,9 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   `guide.repeat` and `guide.repeat_slow`, and the session adds her last line (`LastLineOf`: her opening, a lesson step's line, or the last line of a turn the lesson
   did not take) to the turn's follow-up, with `SlowFollowUp` set for the slow one so the front-end plays the slow recording. The credit of a phrase goes to the
   phrase a step has in play before the fixed intent mapping (`Sí.` in the lesson, `Sí, por favor.` at an offer). Tips have a `delay` (seconds after their
-  trigger), so the opening tips come one at a time. `VoxelSession` adds the stage of the objective area (`SessionStage`: find the guide, the checklist, light your
-  fire, complete), the spare torch when the checklist is complete, the arrow to the player's own camp, the lit fire (a torch on the rim of the ring at
-  `firering.player`; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
+  trigger), so the opening tips come one at a time. `VoxelSession` adds the stage of the objective area (`SessionStage`: find the guide, the checklist, the room at the inn, complete), the arrow to the inn and Luna's line that
+  sends the player there when the checklist is complete (`point-inn`, Y07; `TakeSpoken`), the lit fire latch (a torch on the rim of the ring at
+  `firering.player`, which no objective waits for any more; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
   (`RestoreStage`), so the save has no new field.
   **Sleep places (Y01):** sleeping, the E prompt, the closing card, the arrow to bed and waking after a death ask `VoxelSession.SleepPlaces` (`Session/SleepPlaces.cs`), not
   `firering.player`. The list is `needs.json`'s `sleepPlaces` (id, scene point, kind `fire` or `bed`, reach across and in height, access `always` or `lodging`) resolved against
@@ -285,7 +285,7 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   is met (`VoxelSession.LodgingGiven`); `CanSleep` means any place is usable, `AtSleepPlace` that the player stands at a usable one, and the closing card offers the sleep only
   there. A death wakes the player at the place last slept at while it is still in `SleepPlaces`, else at the place `death.wakeAt` names (`WakeAtSleepPlace`, on the nearest free ground two to five blocks from it that is reached on foot from it within 12 steps, Y05a; "at a place" likewise asks a radius, then a walk of radius + 3 steps, `SleepWalk`, so a wall says no). Lodging is given by the host action `grant_lodging` (`NpcEffectKind.GrantLodging`, `VoxelSession.GrantLodging`, Y05: no fee, no expiry; the first grant raises the world event `lodging_granted`, a second changes nothing); at a bed whose access is not met `SleepOffer.AtLockedBed` shows `ui.sleepBedLocked` and E does nothing. The save keeps the last place, the lodging flag and the places made in play (the `sleep` entry of `systems`, version 8; see `docs/game/saves.md`). The world's fire rings are one
   `FireRings` (`VoxelSimulation.Fires`, shared by the session), found by shape when it is made and again on `Rescan()`. (`rest` in `needs.json` is the rule for resting by a lit fire,
-  not this list.) The `light-fire` objective and its hooks still use the latch `FireLit`; they leave in Y07.
+  not this list.) The latch `FireLit` (a torch on the rim of `firering.player`) is read only by the sound beds since Y07, which retired the `light-fire` objective and the hooks that used it; Y08 removes the mountain ring.
 
 ## The learner's record (S19, D-game-16)
 

@@ -126,8 +126,8 @@ took the same ticks and asked the same 31 items before and after it (V09).
    (`¿Quieres agua?`). Four more stand in the world since the village grew (village-plan phase A): the fisher on the bridge's east landing, on the
    road to the village, the baker at the bakery, the smith at the smithy and the farmer at the field. They answer when talked to, but their lessons
    and orders start in sessions 4 to 7 (sessions 8 to 10 have lessons and no order): the objective never points at them and nothing in the first session needs them (a tester who asks the baker
-   for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: the tester takes the spare torch back up the trail and places it on the rim of the fire ring at their own
-   camp; the fire lights, and the screen says `Session complete`. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
+   for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: Luna sends the tester to the inn (the beacon points there); the tester asks the innkeeper for a room
+   (or says «no sé»), and once the talk is closed the screen says `Session complete` in the innkeeper's voice. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
    Spanish, but you can ask the game for help: press H, or N for 'no sé'".
 7. **The rescue rule.** The game never needs you. If the tester is stuck on the **same step for more than 5 minutes** (no progress in the
    objective, the journal, or the dialogue, and no attempt), you may help: first with the place (point at the next thing, "the river is
@@ -286,7 +286,7 @@ Before any tester (the owner, once, end to end):
 1. Build the folder with `scripts/playtest-build.sh`; keep the output; it must end with `all checks passed`.
 2. Play one full session in the build folder as a beginner would: `./playtest.sh`, the mic check (or skip), the pre-check (31 items), the
    opening at the cliff camp, the guide's lesson (about 5 to 8.5 minutes), the camp, the stall, the villager, the river, the guide's offer, the
-   ending (the torch at your own fire ring), the post-check (31 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
+   ending (the room at the inn), the post-check (31 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
    F6 (save) and F8 (a report, Ctrl+Enter to save). Note any control you had to guess. The game measures the time of each part; do not time
    it by hand: `scripts/playtest-report.sh <folder>` prints, under "Durations", the whole session, the lesson, the walk (from the end of the
    lesson to the camp's completion) and each check, from the wall-clock times of the session log (the `lesson_started`, `lesson_completed`,

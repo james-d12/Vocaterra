@@ -3,12 +3,12 @@
   "schemaVersion": 1,
   "id": "camp",
   "title": "Campamento",
-  "about": "The camp checklist (S5): the label of a step is its noun's lemma for a mass noun or a target of one, otherwise the plural (frutas). Once it is done the guide's camp gives a spare torch and the beacon points up the trail to the player's own camp.",
+  "about": "The camp checklist (S5): the label of a step is its noun's lemma for a mass noun or a target of one, otherwise the plural (frutas). Once it is done the beacon points at the inn (session.json's innBeacon) and the guide sends the player there (Y07).",
   "steps": [
     {"id": "wood", "noun": "madera", "target": 5, "trigger": {"event": "item_picked_up", "detail": "madera"}},
     {"id": "berry", "noun": "fruta", "target": 3, "trigger": {"event": "item_picked_up", "detail": "fruta"}},
     {"id": "torch", "noun": "antorcha", "target": 1, "trigger": {"event": "torch_at_ring", "detail": "firering"}},
     {"id": "water", "noun": "agua", "target": 1, "trigger": {"event": "bottle_filled"}}
   ],
-  "onComplete": ["spare-torch", "point-own-camp"]
+  "onComplete": ["point-inn"]
 }

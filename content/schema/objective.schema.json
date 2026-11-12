@@ -112,7 +112,7 @@
           "restore": {
             "enum": [
               "lesson-begun",
-              "scan-fire-ring"
+              "lodging-given"
             ],
             "description": "The code hook that works the step out again from a loaded world; the save does not keep the step."
           }
@@ -132,8 +132,7 @@
       "items": {
         "enum": [
           "guide-met",
-          "spare-torch",
-          "point-own-camp"
+          "point-inn"
         ]
       },
       "description": "The code hooks run when the objective is completed."

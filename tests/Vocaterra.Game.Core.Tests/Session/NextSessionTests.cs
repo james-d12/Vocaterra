@@ -39,7 +39,7 @@ public sealed class NextSessionTests
         Assert.True(session.SleepWanted);
         Assert.True(session.RestDue);
         var line = Assert.Single(session.ObjectiveHud());
-        Assert.Equal("Session complete: sleep at your fire to start session 2", line.Text);
+        Assert.Equal("Session complete: go to bed to start session 2", line.Text);
         Assert.Equal(ObjectivePieceKind.Support, line.Kind);
         Assert.True(line.Done);
         Assert.True(session.AtSleepPlace);
@@ -52,7 +52,7 @@ public sealed class NextSessionTests
         Assert.False(SleepOffer.OnCard(session, cardUp: false, free: true));
 
         session.SleepOffered = false; // a playtest: one session per run
-        Assert.Equal("Session complete: your fire is lit", Hud(session));
+        Assert.Equal("Session complete: you have a room at the inn", Hud(session));
         Assert.False(session.CanSleep);
         Assert.False(SleepOffer.AtFire(session, free: true));
         Assert.False(SleepOffer.OnCard(session, cardUp: true, free: true));

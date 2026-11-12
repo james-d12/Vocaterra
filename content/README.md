@@ -238,8 +238,8 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   `objective.<id>.title` in `locale/en/ui.json`, and each step's label is the noun's lemma for a mass noun or a target of 1, otherwise its plural (a
   `label` overrides it). Another objective is shown by one line, `objective.<id>.hud`. Each step counts the world events its `trigger` matches, up to
   its `target`; a step whose trigger is a pickup of a noun (`item_picked_up` with a `detail`) counts the noun's items in the bag instead, so
-  crafting, eating, giving or dropping them takes it back until the objective is done (#32). What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
-  `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
+  crafting, eating, giving or dropping them takes it back until the objective is done (#32). What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`; `point-inn`: the beacon goes to the place `session.json`'s `innBeacon` names and the guide says `guide.camp.inn`, Y07) and a step's
+  `restore` (`lesson-begun`; `lodging-given`: the lodging the save's sleep entry keeps, Y07), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
   drops its count from older saves. The session's ending (S17's closing moment) waits for the objectives with no `session` that are not orders.
 - **An order** (village-plan V03) is an objective that names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`: items by the name

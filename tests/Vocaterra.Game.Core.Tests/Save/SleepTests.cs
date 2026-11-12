@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Component;
 using Vocaterra.Game.Core.Tests.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Save;
@@ -36,15 +37,30 @@ public sealed class SleepTests
 
     private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
 
-    /// <summary>A new game with session 1's ending reached without the walk (the skip's ending, V12c): the guide's lesson counted, the camp done, the fire lit.</summary>
+    /// <summary>
+    /// A new game with session 1's ending reached without the walk (the skip's ending, V12c): the guide's lesson counted, the camp done, lodging given (Y07). The
+    /// mountain's fire ring is lit here by the test (the skip no longer lights it): the tests that sleep at it stay as they were until Y08 takes that ring away.
+    /// </summary>
     internal static VoxelSession EndedFirstSession()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         session.Lessons.CountAsCompleted("first-words", 1);
         session.SkipToEnding();
         Assert.True(session.SessionComplete);
+        Assert.True(session.LodgingGiven);
+        Assert.False(session.FireLit);
+        LightTheMountainRing(session);
         Assert.True(session.FireLit);
         return session;
+    }
+
+    // The world edit that lights the player's own ring (a torch on its rim), as the skip did before Y07; a loaded stage reads it from the world.
+    private static void LightTheMountainRing(VoxelSession session)
+    {
+        var ring = session.Scene.Point(VoxelSession.PlayerFireRing);
+        var stone = session.Scene.Grid.BlocksOfKind(BlockId.FireRing).First(p => Math.Abs(p.X - ring.X) <= 1 && Math.Abs(p.Z - ring.Z) <= 1);
+        _ = session.Scene.Grid.SetBlock(stone.X, stone.Y + 1, stone.Z, BlockId.Torch);
+        session.RestoreStage();
     }
 
     // What the player meets next, beyond the save: the session, the time, the objective line, the arrow, the lesson, the warm-up, the review question and the second tries.
@@ -93,7 +109,8 @@ public sealed class SleepTests
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
         _ = session.HostEvent(WorldEvents.BottleFilled);
-        OpeningAndEndingTests.PlaceTorchOnPlayersRing(session);
+        OpeningAndEndingTests.TakeTheRoom(session);
+        OpeningAndEndingTests.PlaceTorchOnPlayersRing(session); // the mountain ring lit too: the sleep below is at the fire, as before Y07 (Y08 retires it)
         session.Step([]);
         Assert.True(session.SessionComplete);
         session.OpenTalk("villager"); // a talk that leaves its traces: the NPC's last line, the panel's support

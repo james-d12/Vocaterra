@@ -298,4 +298,4 @@ in `tests/Vocaterra.Game.Core.Tests`, in the same folders as their classes (R16)
   second row of buttons when they do not fit the panel); `--lesson-run <id>` runs a whole lesson in a scripted run (walks to the NPC, types each answer, walks to the
   fruit and back for a `do` step) and `--lesson` takes the guide's `first-words`; the recap ends on the book's phrases page (`LessonFrontend.OnRecapDone`; a
   scripted run does not open it and asks for `--journal --journal-phrases` instead). The post-check of a playtest starts when the session is complete
-  (`PlaytestEnd.StartsOnItsOwn`: the camp done and the player's own fire lit) and the transfer offered.
+  (`PlaytestEnd.StartsOnItsOwn`: the camp done and the room at the inn taken) and the transfer offered.
