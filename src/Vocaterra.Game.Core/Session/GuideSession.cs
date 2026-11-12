@@ -589,7 +589,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         var opening = OpenNow(npc, logOpened: true);
-        if (HandOverOpen || _orderOffer is not null)
+        if (HandOverOpen || _orderOffer is not null || _landOffer is not null)
         {
             _classAfterHandOver = true; // issues #42 and #54: no class starts, resumes or is offered while the NPC waits for the goods or for the answer to its offer; it follows in this talk
         }
@@ -608,7 +608,7 @@ public abstract partial class GuideSession : IDisposable
     // the lesson's prompt (see RetryQueue). A phrase taken here is never queued again in this session.
     private void OfferSecondTry(string npc)
     {
-        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen || _orderOffer is not null
+        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen || _orderOffer is not null || _landOffer is not null
             || !Retries.Pending.Any(item => string.Equals(item.Npc, npc, StringComparison.Ordinal)))
         {
             return;
@@ -843,12 +843,18 @@ public abstract partial class GuideSession : IDisposable
             {
                 EndStaleHandOver(npc);
                 EndStaleOrderOffer(npc);
+                EndStaleLandOffer(npc);
                 var orderOffer = order is null ? OrderOfferOf(npc) : null; // issue #54: an order not yet given is offered when the talk opens, and taken with «sí»
-                var offer = orderOffer?.HostEvent ?? (order is null ? BakeOfferOf(npc, asked: false) : null); // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                var landOffer = order is null && orderOffer is null ? LandOfferOf(npc) : null; // Y11: the mayor offers the stake, or the plot once it is marked
+                var offer = orderOffer?.HostEvent ?? landOffer ?? (order is null ? BakeOfferOf(npc, asked: false) : null); // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
                 opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
                 if (orderOffer is { } made && string.Equals(_npcs.StateOf(npc), NpcHostEvents.OrderOfferState, StringComparison.Ordinal))
                 {
                     NoteOrderOffer(npc, made.Order);
+                }
+                else if (landOffer is not null && IsLandOfferState(_npcs.StateOf(npc)))
+                {
+                    NoteLandOffer(npc);
                 }
                 else if (offer is not null)
                 {
@@ -929,6 +935,7 @@ public abstract partial class GuideSession : IDisposable
         _handOver = null; // the next talk asks again
         _classAfterHandOver = false;
         _orderOffer = null; // issue #54: an offer left unanswered is made again at the next talk
+        _landOffer = null; // Y11: so is the mayor's
         Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }
@@ -948,7 +955,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsNow())
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory, WeatherKey: WeatherKey);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -1322,6 +1329,16 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     protected virtual IReadOnlySet<string>? ClosedGifts => null;
 
+    /// <summary>The land's facts for the mayor's answer to a purchase (Y11), taken now for a turn's scene; the 3D scene has the land, the base game has none.</summary>
+    protected virtual PlotFacts? PlotFactsNow() => null;
+
+    /// <summary>
+    /// The host event of the offer an NPC opens the talk with about the player's land (Y11: <c>&lt;npc&gt;.offer_stake</c> or <c>&lt;npc&gt;.offer_plot</c>), or <see langword="null"/> for none. The 3D scene
+    /// knows the land; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC the panel opens on.</param>
+    protected virtual string? LandOfferAt(string npc) => null;
+
     /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
     /// <param name="npc">The NPC.</param>
     /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
@@ -1462,6 +1479,7 @@ public abstract partial class GuideSession : IDisposable
 
         var waited = HandOverOpen;
         shown = HandOverAfter(turn, shown); // issue #42: the line that hands an order over, or a miss at the NPC's receiving prompt
+        LandOfferAfter(turn); // Y11: the mayor's offer is answered, or asked again
         OrderOfferAfter(turn); // issue #54: «sí» to the NPC's offer gives the order, «no» puts it off until the next day (after the lesson's turn: a class offered now waits for the next line)
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
@@ -1627,7 +1645,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsNow())
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts, WeatherKey: WeatherKey);
     }
 }

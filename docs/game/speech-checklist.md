@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1620 of the 1620 files have no mark (guide 488, baker 218, villager 182, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1664 of the 1664 files have no mark (guide 496, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -197,6 +197,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
 | card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
 | card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
+| card.equipo | speech/cards/card.equipo.slow.wav | guide | 0.8 | el equipo |  |
+| card.equipo | speech/cards/card.equipo.wav | guide | 1.0 | el equipo |  |
 | card.estaca | speech/cards/card.estaca.slow.wav | guide | 0.8 | la estaca |  |
 | card.estaca | speech/cards/card.estaca.wav | guide | 1.0 | la estaca |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
@@ -237,6 +239,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.puerta | speech/cards/card.puerta.wav | guide | 1.0 | la puerta |  |
 | card.rio | speech/cards/card.rio.slow.wav | guide | 0.8 | el río |  |
 | card.rio | speech/cards/card.rio.wav | guide | 1.0 | el río |  |
+| card.terreno | speech/cards/card.terreno.slow.wav | guide | 0.8 | el terreno |  |
+| card.terreno | speech/cards/card.terreno.wav | guide | 1.0 | el terreno |  |
 | card.tienda | speech/cards/card.tienda.slow.wav | guide | 0.8 | la tienda |  |
 | card.tienda | speech/cards/card.tienda.wav | guide | 1.0 | la tienda |  |
 | card.tierra | speech/cards/card.tierra.slow.wav | guide | 0.8 | la tierra |  |
@@ -1087,6 +1091,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.compre-tres-manzanas | speech/guide/phrase.compre-tres-manzanas.wav | guide | 1.0 | Compré tres manzanas. |  |
 | phrase.cuanto-cuesta | speech/guide/phrase.cuanto-cuesta.slow.wav | guide | 0.8 | ¿Cuánto cuesta? |  |
 | phrase.cuanto-cuesta | speech/guide/phrase.cuanto-cuesta.wav | guide | 1.0 | ¿Cuánto cuesta? |  |
+| phrase.cuanto-cuesta-el-terreno | speech/guide/phrase.cuanto-cuesta-el-terreno.slow.wav | guide | 0.8 | ¿Cuánto cuesta el terreno? |  |
+| phrase.cuanto-cuesta-el-terreno | speech/guide/phrase.cuanto-cuesta-el-terreno.wav | guide | 1.0 | ¿Cuánto cuesta el terreno? |  |
 | phrase.cuanto-es-todo | speech/guide/phrase.cuanto-es-todo.slow.wav | guide | 0.8 | ¿Cuánto es todo? |  |
 | phrase.cuanto-es-todo | speech/guide/phrase.cuanto-es-todo.wav | guide | 1.0 | ¿Cuánto es todo? |  |
 | phrase.donde-esta-el-rio | speech/guide/phrase.donde-esta-el-rio.slow.wav | guide | 0.8 | ¿Dónde está el río? |  |
@@ -1189,6 +1195,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | phrase.quiero-madera | speech/guide/phrase.quiero-madera.wav | guide | 1.0 | Quiero madera. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.slow.wav | guide | 0.8 | Quiero tres manzanas rojas. |  |
 | phrase.quiero-tres-manzanas-rojas | speech/guide/phrase.quiero-tres-manzanas-rojas.wav | guide | 1.0 | Quiero tres manzanas rojas. |  |
+| phrase.quiero-un-terreno | speech/guide/phrase.quiero-un-terreno.slow.wav | guide | 0.8 | Quiero un terreno, por favor. |  |
+| phrase.quiero-un-terreno | speech/guide/phrase.quiero-un-terreno.wav | guide | 1.0 | Quiero un terreno, por favor. |  |
 | phrase.quiero-una-habitacion | speech/guide/phrase.quiero-una-habitacion.slow.wav | guide | 0.8 | Quiero una habitación, por favor. |  |
 | phrase.quiero-una-habitacion | speech/guide/phrase.quiero-una-habitacion.wav | guide | 1.0 | Quiero una habitación, por favor. |  |
 | phrase.quiero-vender-madera | speech/guide/phrase.quiero-vender-madera.slow.wav | guide | 0.8 | Quiero vender madera. |  |
@@ -1389,6 +1397,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | prompt.lesson-works | speech/villager/prompt.lesson-works.wav | villager | 1.0 | ¿Dónde trabaja Domingo? |  |
 | prompt.lesson-yesno | speech/guide/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |
 | prompt.lesson-yesno | speech/guide/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
+| prompt.mayor-sell | speech/villager/prompt.mayor-sell.slow.wav | villager | 0.8 | ¿Quieres el terreno? |  |
+| prompt.mayor-sell | speech/villager/prompt.mayor-sell.wav | villager | 1.0 | ¿Quieres el terreno? |  |
+| prompt.mayor-stake | speech/villager/prompt.mayor-stake.slow.wav | villager | 0.8 | ¿Quieres un terreno? |  |
+| prompt.mayor-stake | speech/villager/prompt.mayor-stake.wav | villager | 1.0 | ¿Quieres un terreno? |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
 | prompt.smith-open | speech/smith/prompt.smith-open.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
 | prompt.smith-order-offer | speech/smith/prompt.smith-order-offer.slow.wav | smith | 0.8 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
@@ -1597,6 +1609,38 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_hello.1 | speech/villager/villager_hello.1.wav | villager | 1.0 | Hola. |  |
 | villager_help.1 | speech/villager/villager_help.1.slow.wav | villager | 0.8 | Puedes preguntar: «¿Dónde está el río?». |  |
 | villager_help.1 | speech/villager/villager_help.1.wav | villager | 1.0 | Puedes preguntar: «¿Dónde está el río?». |  |
+| villager_land_cant_pay.1 | speech/villager/villager_land_cant_pay.1.slow.wav | villager | 0.8 | Necesitas diez monedas. Vende madera a Luz. |  |
+| villager_land_cant_pay.1 | speech/villager/villager_land_cant_pay.1.wav | villager | 1.0 | Necesitas diez monedas. Vende madera a Luz. |  |
+| villager_land_help_sell.1 | speech/villager/villager_land_help_sell.1.slow.wav | villager | 0.8 | Puedes decir: «Quiero un terreno, por favor». |  |
+| villager_land_help_sell.1 | speech/villager/villager_land_help_sell.1.wav | villager | 1.0 | Puedes decir: «Quiero un terreno, por favor». |  |
+| villager_land_help_stake.1 | speech/villager/villager_land_help_stake.1.slow.wav | villager | 0.8 | Puedes decir: «Sí, por favor». |  |
+| villager_land_help_stake.1 | speech/villager/villager_land_help_stake.1.wav | villager | 1.0 | Puedes decir: «Sí, por favor». |  |
+| villager_land_no.1 | speech/villager/villager_land_no.1.slow.wav | villager | 0.8 | Está bien. Vuelve cuando quieras. |  |
+| villager_land_no.1 | speech/villager/villager_land_no.1.wav | villager | 1.0 | Está bien. Vuelve cuando quieras. |  |
+| villager_land_no_plot.1 | speech/villager/villager_land_no_plot.1.slow.wav | villager | 0.8 | Primero pon la estaca en el campo. |  |
+| villager_land_no_plot.1 | speech/villager/villager_land_no_plot.1.wav | villager | 1.0 | Primero pon la estaca en el campo. |  |
+| villager_land_no_room.1 | speech/villager/villager_land_no_room.1.slow.wav | villager | 0.8 | Tu bolsa está llena. No hay lugar para el equipo. |  |
+| villager_land_no_room.1 | speech/villager/villager_land_no_room.1.wav | villager | 1.0 | Tu bolsa está llena. No hay lugar para el equipo. |  |
+| villager_land_no_stake.1 | speech/villager/villager_land_no_stake.1.slow.wav | villager | 0.8 | Primero necesitas una estaca. Toma. |  |
+| villager_land_no_stake.1 | speech/villager/villager_land_no_stake.1.wav | villager | 1.0 | Primero necesitas una estaca. Toma. |  |
+| villager_land_owned.1 | speech/villager/villager_land_owned.1.slow.wav | villager | 0.8 | El terreno ya es tuyo. |  |
+| villager_land_owned.1 | speech/villager/villager_land_owned.1.wav | villager | 1.0 | El terreno ya es tuyo. |  |
+| villager_land_plot_offer.1 | speech/villager/villager_land_plot_offer.1.slow.wav | villager | 0.8 | El terreno cuesta diez monedas. ¿Lo quieres? |  |
+| villager_land_plot_offer.1 | speech/villager/villager_land_plot_offer.1.wav | villager | 1.0 | El terreno cuesta diez monedas. ¿Lo quieres? |  |
+| villager_land_price.1 | speech/villager/villager_land_price.1.slow.wav | villager | 0.8 | El terreno cuesta diez monedas. ¿Quieres el terreno? |  |
+| villager_land_price.1 | speech/villager/villager_land_price.1.wav | villager | 1.0 | El terreno cuesta diez monedas. ¿Quieres el terreno? |  |
+| villager_land_sold.1 | speech/villager/villager_land_sold.1.slow.wav | villager | 0.8 | ¡Muy bien! El terreno es tuyo. Toma el equipo. |  |
+| villager_land_sold.1 | speech/villager/villager_land_sold.1.wav | villager | 1.0 | ¡Muy bien! El terreno es tuyo. Toma el equipo. |  |
+| villager_land_sold.2 | speech/villager/villager_land_sold.2.slow.wav | villager | 0.8 | ¡Claro! El terreno es tuyo. Toma el equipo. |  |
+| villager_land_sold.2 | speech/villager/villager_land_sold.2.wav | villager | 1.0 | ¡Claro! El terreno es tuyo. Toma el equipo. |  |
+| villager_land_stake_gave.1 | speech/villager/villager_land_stake_gave.1.slow.wav | villager | 0.8 | Está bien. Toma la estaca. Pon la estaca en el campo. |  |
+| villager_land_stake_gave.1 | speech/villager/villager_land_stake_gave.1.wav | villager | 1.0 | Está bien. Toma la estaca. Pon la estaca en el campo. |  |
+| villager_land_stake_given.1 | speech/villager/villager_land_stake_given.1.slow.wav | villager | 0.8 | ¡Muy bien! Toma la estaca. Pon la estaca en el campo. |  |
+| villager_land_stake_given.1 | speech/villager/villager_land_stake_given.1.wav | villager | 1.0 | ¡Muy bien! Toma la estaca. Pon la estaca en el campo. |  |
+| villager_land_stake_given.2 | speech/villager/villager_land_stake_given.2.slow.wav | villager | 0.8 | ¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo. |  |
+| villager_land_stake_given.2 | speech/villager/villager_land_stake_given.2.wav | villager | 1.0 | ¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo. |  |
+| villager_land_stake_offer.1 | speech/villager/villager_land_stake_offer.1.slow.wav | villager | 0.8 | Hola. ¿Quieres un terreno? Necesitas una estaca. |  |
+| villager_land_stake_offer.1 | speech/villager/villager_land_stake_offer.1.wav | villager | 1.0 | Hola. ¿Quieres un terreno? Necesitas una estaca. |  |
 | villager_nice.1 | speech/villager/villager_nice.1.slow.wav | villager | 0.8 | ¡Qué bien! |  |
 | villager_nice.1 | speech/villager/villager_nice.1.wav | villager | 1.0 | ¡Qué bien! |  |
 | villager_point.1 | speech/villager/villager_point.1.slow.wav | villager | 0.8 | Mira, está allí. |  |

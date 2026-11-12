@@ -212,7 +212,7 @@ prompts (70); speech lines in two files each, in `speech/<speaker>/` and `speech
 battery by play session: 31 items in sessions 1 to 3 (the pilot's), then 39, 47, 55, 63, 71, 79 and 87 in sessions 4 to 10 (eight a lesson; the same).
 
 
-- **The people.** Seven NPCs for the lessons (the innkeeper Rosa, `Posadera`, joined the roster after them in Y06 with no lesson: she offers the inn's free room, `pf_dora`, provisional), in the order of `game/npcs.json`: the guide Luna, the shopkeeper (`Tendero`), the villager (`Aldeano`), the fisher Mar (`Pescador`),
+- **The people.** Seven NPCs for the lessons (the innkeeper Rosa, `Posadera`, joined the roster after them in Y06 with no lesson: she offers the inn's free room, `pf_dora`, provisional), in the order of `game/npcs.json`: the guide Luna, the shopkeeper (`Tendero`), the villager Tomás (`Alcalde` since Y11: the mayor, who gives the stake and sells the plot from day 2), the fisher Mar (`Pescador`),
   the baker Luz (`Panadera`), the smith Domingo (`Herrero`) and the farmer León (`Granjero`). An NPC is data alone (`game/npcs/<id>.json`, schema 2, V01: its
   prompts by state, its opening, its voice, its key words; `content/README.md`, "Adding an NPC"). The four new voices are provisional (D-game-22 (d): the
   fisher `em_santa` at 0.9, the baker `if_sara`, the smith `im_nicola`, the farmer `pm_santa`; `docs/game/speech-checklist.md`; the voice trial is in git history).

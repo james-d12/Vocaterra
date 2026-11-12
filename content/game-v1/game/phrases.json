@@ -184,6 +184,8 @@
     {"id": "aqui-tienes-la-madera-y-las-monedas", "says": "says", "spanish": "Aquí tienes la madera y las monedas.", "intent": "hand_over", "prompt": "smith-receive", "variants": ["aquí tienes dos bloques de madera y dos monedas", "aquí tienes la madera", "aquí tienes las monedas", "toma la madera y las monedas"], "audioLineIds": ["smith_receive_help.1"]},
     {"id": "aqui-tienes-el-agua", "says": "says", "spanish": "Aquí tienes el agua.", "intent": "hand_over", "prompt": "farmer-receive", "variants": ["aquí tienes la botella", "aquí está el agua", "toma el agua", "te doy el agua"], "audioLineIds": ["farmer_receive_help.1"]},
     {"id": "quiero-una-habitacion", "says": "says", "spanish": "Quiero una habitación, por favor.", "intent": "request_item", "prompt": "inn-offer", "variants": ["una habitación, por favor", "quiero una habitación", "quiero una cama, por favor", "quiero una cama"], "audioLineIds": ["innkeeper_help.1"]},
-    {"id": "hay-una-habitacion", "says": "says", "spanish": "¿Hay una habitación?", "intent": "ask_availability", "prompt": "inn-offer", "variants": ["¿hay una habitación aquí?", "¿hay una cama?", "¿hay habitaciones?"], "audioLineIds": []}
+    {"id": "hay-una-habitacion", "says": "says", "spanish": "¿Hay una habitación?", "intent": "ask_availability", "prompt": "inn-offer", "variants": ["¿hay una habitación aquí?", "¿hay una cama?", "¿hay habitaciones?"], "audioLineIds": []},
+    {"id": "quiero-un-terreno", "says": "says", "spanish": "Quiero un terreno, por favor.", "intent": "request_item", "prompt": "mayor-sell", "variants": ["un terreno, por favor", "quiero un terreno", "quiero el terreno", "quiero la tierra"], "audioLineIds": ["villager_land_help_sell.1"]},
+    {"id": "cuanto-cuesta-el-terreno", "says": "says", "spanish": "¿Cuánto cuesta el terreno?", "intent": "ask_price", "prompt": "mayor-sell", "variants": ["¿cuánto cuesta un terreno?", "¿cuánto es el terreno?"], "audioLineIds": []}
   ]
 }

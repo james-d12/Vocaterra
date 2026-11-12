@@ -31,7 +31,8 @@ public sealed class NpcPatienceTests
     {
         Assert.Equal(Shipped, TestGame.Data.Npcs.Find("shopkeeper")!.Patience);
         Assert.Equal(new NpcPatienceRule(2, 1, "innkeeper.give", "inn-offer", true), TestGame.Data.Npcs.Find("innkeeper")!.Patience); // Y06
-        Assert.All(TestGame.Data.Npcs.All.Where(static npc => npc.Id is not ("shopkeeper" or "innkeeper")), static npc => Assert.Null(npc.Patience));
+        Assert.Equal(new NpcPatienceRule(2, 1, "villager.stake_give", "mayor-stake", false), TestGame.Data.Npcs.Find("villager")!.Patience); // Y11: the stake after «no sé» or two misses, never the land
+        Assert.All(TestGame.Data.Npcs.All.Where(static npc => npc.Id is not ("shopkeeper" or "innkeeper" or "villager")), static npc => Assert.Null(npc.Patience));
     }
 
     [Fact]

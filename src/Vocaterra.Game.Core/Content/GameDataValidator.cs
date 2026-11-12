@@ -579,6 +579,11 @@ public static class GameDataValidator
                     problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' buys, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.NoneOffered)}' to answer an offer of none.");
                 }
             }
+
+            if (effect.Kind == NpcEffectKind.SellPlot && data.Bundle.Agents.TryGetValue(npc, out var seller))
+            {
+                CheckSellPlot(data, npc, hostEvent, seller, problems);
+            }
         }
 
         foreach (var lesson in data.Lessons.Lessons)
@@ -756,6 +761,54 @@ public static class GameDataValidator
                 {
                     problems.Add($"{file}: lessonStep '{stepId}' comes at or after the step of '{lesson}' that waits for the delivery, so the order could not be delivered before it is given.");
                 }
+            }
+        }
+    }
+
+    // Y11: the NPC that sells the plot answers each of the sale's misses (the worker raises them before the session changes anything: a sale the world cannot make is never said done),
+    // and offers the stake and the plot when the talk opens: its initial state takes <npc>.offer_stake into offering_stake and <npc>.offer_plot into offering_plot, each of which goes back
+    // to the initial state on <npc>.offer_gone and waits at a prompt that takes confirm and deny.
+    private static void CheckSellPlot(GameData data, string npc, string hostEvent, AgentStateMachine machine, List<string> problems)
+    {
+        var missing = new[] { NpcHostEvents.AlreadyOwned, NpcHostEvents.NoPlot, NpcHostEvents.NoStake, NpcHostEvents.CantPay, NpcHostEvents.NoRoom }
+            .Where(miss => !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, miss)));
+        foreach (var miss in missing)
+        {
+            problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells the plot, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, miss)}' to say why it did not.");
+        }
+
+        var definition = machine.Definition;
+        var initial = definition.States.FirstOrDefault(state => string.Equals(state.Id, definition.InitialState, StringComparison.Ordinal));
+        var file = $"{HostEventTable.RelativePath} ({npc}'s '{hostEvent}')";
+        foreach (var (offer, stateId) in new[] { (NpcHostEvents.OfferStake, NpcHostEvents.StakeOfferState), (NpcHostEvents.OfferPlot, NpcHostEvents.PlotOfferState) })
+        {
+            var offered = NpcHostEvents.Of(npc, offer);
+            if (initial is null || !initial.Transitions.Any(t => string.Equals(t.OnHostEvent, offered, StringComparison.Ordinal) && string.Equals(t.To, stateId, StringComparison.Ordinal)))
+            {
+                problems.Add($"{file}: the initial state of agents/{npc}.json does not take '{offered}' into '{stateId}'.");
+            }
+
+            if (definition.States.FirstOrDefault(state => string.Equals(state.Id, stateId, StringComparison.Ordinal)) is not { } offering)
+            {
+                problems.Add($"{file}: agents/{npc}.json has no state '{stateId}' to wait in for the answer to its offer.");
+                continue;
+            }
+
+            var gone = NpcHostEvents.Of(npc, NpcHostEvents.OfferGone);
+            if (!offering.Transitions.Any(t => string.Equals(t.OnHostEvent, gone, StringComparison.Ordinal) && string.Equals(t.To, definition.InitialState, StringComparison.Ordinal)))
+            {
+                problems.Add($"{file}: the state '{stateId}' of agents/{npc}.json does not take '{gone}' back to '{definition.InitialState}'.");
+            }
+
+            if (data.Npcs.Find(npc) is not { } entry || !entry.Prompts.TryGetValue(stateId, out var prompt) || !data.Bundle.Prompts.TryGetValue(prompt, out var spec))
+            {
+                problems.Add($"{file}: game/npcs/{npc}.json maps no bundle prompt to the state '{stateId}'.");
+                continue;
+            }
+
+            foreach (var intent in new[] { "confirm", "deny" }.Where(intent => !spec.AllowedIntentIds.Contains(intent, StringComparer.Ordinal)))
+            {
+                problems.Add($"{file}: the prompt '{prompt}' the state '{stateId}' waits at does not take the intent '{intent}'.");
             }
         }
     }

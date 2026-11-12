@@ -179,7 +179,7 @@ public sealed class NpcFrontendTests
             Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal(["Pablo (Tendero)", "Tomás (Aldeano)", "Luna (Guía)"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
+        Assert.Equal(["Pablo (Tendero)", "Tomás (Alcalde)", "Luna (Guía)"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
     }
 
     [Fact]

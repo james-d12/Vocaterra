@@ -462,6 +462,22 @@
 {"id":"dialogue:villager_greet.1","text":"¡Hola! ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:villager_hello.1","text":"Hola.","kind":"npc"}
 {"id":"dialogue:villager_help.1","text":"Puedes preguntar: «¿Dónde está el río?».","kind":"npc"}
+{"id":"dialogue:villager_land_cant_pay.1","text":"Necesitas diez monedas. Vende madera a Luz.","kind":"npc"}
+{"id":"dialogue:villager_land_help_sell.1","text":"Puedes decir: «Quiero un terreno, por favor».","kind":"npc"}
+{"id":"dialogue:villager_land_help_stake.1","text":"Puedes decir: «Sí, por favor».","kind":"npc"}
+{"id":"dialogue:villager_land_no.1","text":"Está bien. Vuelve cuando quieras.","kind":"npc"}
+{"id":"dialogue:villager_land_no_plot.1","text":"Primero pon la estaca en el campo.","kind":"npc"}
+{"id":"dialogue:villager_land_no_room.1","text":"Tu bolsa está llena. No hay lugar para el equipo.","kind":"npc"}
+{"id":"dialogue:villager_land_no_stake.1","text":"Primero necesitas una estaca. Toma.","kind":"npc"}
+{"id":"dialogue:villager_land_owned.1","text":"El terreno ya es tuyo.","kind":"npc"}
+{"id":"dialogue:villager_land_plot_offer.1","text":"El terreno cuesta diez monedas. ¿Lo quieres?","kind":"npc"}
+{"id":"dialogue:villager_land_price.1","text":"El terreno cuesta diez monedas. ¿Quieres el terreno?","kind":"npc"}
+{"id":"dialogue:villager_land_sold.1","text":"¡Muy bien! El terreno es tuyo. Toma el equipo.","kind":"npc"}
+{"id":"dialogue:villager_land_sold.2","text":"¡Claro! El terreno es tuyo. Toma el equipo.","kind":"npc"}
+{"id":"dialogue:villager_land_stake_gave.1","text":"Está bien. Toma la estaca. Pon la estaca en el campo.","kind":"npc"}
+{"id":"dialogue:villager_land_stake_given.1","text":"¡Muy bien! Toma la estaca. Pon la estaca en el campo.","kind":"npc"}
+{"id":"dialogue:villager_land_stake_given.2","text":"¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo.","kind":"npc"}
+{"id":"dialogue:villager_land_stake_offer.1","text":"Hola. ¿Quieres un terreno? Necesitas una estaca.","kind":"npc"}
 {"id":"dialogue:villager_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:villager_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:villager_point.2","text":"Está allí, mira.","kind":"npc"}
@@ -554,6 +570,8 @@
 {"id":"prompts:lesson-wood-plan","text":"Necesito cinco bloques de madera para el horno. Te pago cuatro monedas. ¿Qué vas a hacer?","kind":"npc"}
 {"id":"prompts:lesson-works","text":"¿Dónde trabaja Domingo?","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
+{"id":"prompts:mayor-sell","text":"¿Quieres el terreno?","kind":"npc"}
+{"id":"prompts:mayor-stake","text":"¿Quieres un terreno?","kind":"npc"}
 {"id":"prompts:smith-open","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
 {"id":"prompts:smith-order-offer","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"prompts:smith-receive","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
@@ -2376,8 +2394,12 @@
 {"id":"intents:ask_price.ex7","text":"cuánto cuestan el pan","kind":"learner","errors":["conj.person"]}
 {"id":"intents:ask_price.ex8","text":"cuánto cuesta la pan","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:ask_price.ex9","text":"cuánto costa el pan","kind":"learner","errors":["conj.irregular"]}
-{"id":"intents:ask_price.ex10","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
-{"id":"intents:ask_price.ex11","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex10","text":"cuánto cuesta el terreno","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex11","text":"cuánto cuesta un terreno","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex12","text":"cuánto es el terreno","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex13","text":"cuánto cuestan el terreno","kind":"learner","errors":["conj.person"]}
+{"id":"intents:ask_price.ex14","text":"cuánto cuesta el agua","kind":"learner","errors":[]}
+{"id":"intents:ask_price.ex15","text":"cuánto cuesta una manzana","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex0","text":"otra vez, por favor","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex1","text":"otra vez","kind":"learner","errors":[]}
 {"id":"intents:ask_repeat.ex2","text":"repite, por favor","kind":"learner","errors":[]}
@@ -2597,6 +2619,12 @@
 {"id":"intents:request_item.ex48","text":"quiero una cama, por favor","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex49","text":"quiero una cama","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex50","text":"quiero un habitación, por favor","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:request_item.ex51","text":"quiero un terreno, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex52","text":"un terreno, por favor","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex53","text":"quiero un terreno","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex54","text":"quiero el terreno","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex55","text":"quiero la tierra","kind":"learner","errors":[]}
+{"id":"intents:request_item.ex56","text":"quiero una terreno, por favor","kind":"learner","errors":["gender.agree"]}
 {"id":"intents:state_action.ex0","text":"mañana venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex1","text":"venderé fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex2","text":"yo venderé fruta","kind":"learner","errors":[]}
@@ -3547,6 +3575,16 @@
 {"id":"PHRASES.md:hay-una-habitacion.variant2","text":"¿hay una cama?","kind":"learner"}
 {"id":"PHRASES.md:hay-una-habitacion.variant3","text":"¿hay habitaciones?","kind":"learner"}
 {"id":"PHRASES.md:hay-una-habitacion.error","text":"hay un habitación","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:quiero-un-terreno.text","text":"Quiero un terreno, por favor.","kind":"learner"}
+{"id":"PHRASES.md:quiero-un-terreno.variant1","text":"un terreno, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-un-terreno.variant2","text":"quiero un terreno","kind":"learner"}
+{"id":"PHRASES.md:quiero-un-terreno.variant3","text":"quiero el terreno","kind":"learner"}
+{"id":"PHRASES.md:quiero-un-terreno.variant4","text":"quiero la tierra","kind":"learner"}
+{"id":"PHRASES.md:quiero-un-terreno.error","text":"quiero una terreno, por favor","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:cuanto-cuesta-el-terreno.text","text":"¿Cuánto cuesta el terreno?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta-el-terreno.variant1","text":"¿cuánto cuesta un terreno?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta-el-terreno.variant2","text":"¿cuánto es el terreno?","kind":"learner"}
+{"id":"PHRASES.md:cuanto-cuesta-el-terreno.error","text":"cuánto cuestan el terreno","kind":"learner","errors":["conj.person"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -3661,7 +3699,7 @@
 {"id":"npcs/shopkeeper.json:name","text":"Pablo","kind":"npc"}
 {"id":"npcs/shopkeeper.json:keyWords[0]","text":"agua","kind":"npc"}
 {"id":"npcs/shopkeeper.json:keyWords[1]","text":"pan","kind":"npc"}
-{"id":"npcs/villager.json:label","text":"Aldeano","kind":"npc"}
+{"id":"npcs/villager.json:label","text":"Alcalde","kind":"npc"}
 {"id":"npcs/villager.json:name","text":"Tomás","kind":"npc"}
 {"id":"npcs/fisher.json:label","text":"Pescador","kind":"npc"}
 {"id":"npcs/fisher.json:name","text":"Mar","kind":"npc"}
@@ -3692,6 +3730,7 @@
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
+{"id":"speech:card.equipo","text":"el equipo","kind":"npc"}
 {"id":"speech:card.estaca","text":"la estaca","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
 {"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
@@ -3709,5 +3748,6 @@
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
+{"id":"speech:card.terreno","text":"el terreno","kind":"npc"}
 {"id":"speech:card.tienda","text":"la tienda","kind":"npc"}
 {"id":"speech:card.tierra","text":"la tierra","kind":"npc"}

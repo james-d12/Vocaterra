@@ -201,6 +201,9 @@ public static class WorldEvents
     /// <summary>The player was first given lodging (Y05, <c>grant_lodging</c>): the inn's bed is theirs. Raised once; no NPC, no detail.</summary>
     public const string LodgingGranted = "lodging_granted";
 
+    /// <summary>The player bought the plot from the mayor (Y11, <c>sell_plot</c>): the coins are paid, the land is owned and the camp kit is in the bag. Raised once; the NPC is the seller, the detail the plot (<c>x,z</c>).</summary>
+    public const string PlotBought = "plot_bought";
+
     /// <summary>The day clock crossed into another phase (E01; the detail is the new phase: <c>dawn</c>, <c>day</c>, <c>dusk</c> or <c>night</c>). Not raised for a sleep's jump to the morning or a load.</summary>
     public const string DayPhase = "day_phase";
 
@@ -220,6 +223,7 @@ public static class WorldEvents
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,
         LodgingGranted,
+        PlotBought,
         DayPhase, WeatherChanged,
     ];
 }

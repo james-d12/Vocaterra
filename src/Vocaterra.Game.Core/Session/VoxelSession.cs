@@ -185,7 +185,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
+        if ((current is null || !current.Spec.EndsSession) && RestLine() is { } rest)
         {
             return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
@@ -217,14 +217,14 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var active = Objectives.Select((o, i) => (Objective: o, Index: i)).Where(x => !x.Objective.Complete && Shown(x.Objective.Spec)).ToList();
-        var hasMain = active.Any(static x => !x.Objective.Spec.IsOrder);
+        var hasMain = active.Any(static x => x.Objective.Spec.EndsSession);
         if (!hasMain && lessonLine is null && RestLine() is { } rest)
         {
             return new TrackerView([Single(rest)], 0);
         }
 
-        var main = active.FirstOrDefault(static x => !x.Objective.Spec.IsOrder); // the sequence's first undone objective; the later ones are not reached yet
-        var tracked = active.Where(x => x.Objective.Spec.IsOrder || x.Index == main.Index && main.Objective is not null);
+        var main = active.FirstOrDefault(static x => x.Objective.Spec.EndsSession); // the sequence's first undone objective; the later ones are not reached yet
+        var tracked = active.Where(x => !x.Objective.Spec.EndsSession || x.Index == main.Index && main.Objective is not null); // an order or a later session's checklist (Y11's «Mi terreno») is always tracked
         foreach (var (objective, _) in tracked.OrderByDescending(static x => x.Objective.AdvancedAt).ThenBy(static x => x.Index))
         {
             lines.Add(LineOf(objective));
@@ -534,7 +534,7 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>
     /// Works the objectives out again from the world and the progress a save puts back (S17, C07): each step that names a restore hook asks it (<c>lesson-begun</c>: the
-    /// guide is met when a lesson was begun; <c>lodging-given</c>: the room at the inn was given), an objective another one's progress
+    /// guide is met when a lesson was begun; <c>lodging-given</c>: the room at the inn was given; <c>plot-owned</c>: the land was bought), an objective another one's progress
     /// completes is completed (the guide is met once the checklist moved), each done objective's hooks put their state back without acting, and the session is complete
     /// when every objective is done. The save holds only the counts of the steps without a restore hook.
     /// </summary>
@@ -576,6 +576,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         "lesson-begun" => Lessons.Book.Lessons.Any(l => Lessons.StatusOf(l.Id) != LessonStatus.NotStarted),
         "lodging-given" => LodgingGiven,
+        "plot-owned" => Land.Owned is not null,
         _ => throw new InvalidOperationException($"Unknown restore hook '{hook}' (the validator lists the known ones)."),
     };
 
@@ -707,6 +708,9 @@ public sealed partial class VoxelSession : GuideSession
                 case NpcEffectKind.Buy when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss: wont_buy, cant_sell, none_offered, no_room
                     Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
                     break;
+                case NpcEffectKind.SellPlot:
+                    _ = SellPlot(npc, effect, how); // Y11: the worker answered a miss already (cant_pay, no_room, …); the session checks again before anything changes hands
+                    break;
                 default:
                     ApplyTeacherEffect(npc, effect, how); // W08: the teacher's kinds (VoxelSession.Teaching.cs)
                     break;
@@ -765,7 +769,10 @@ public sealed partial class VoxelSession : GuideSession
     }
 
     // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none (SecondBottle).
-    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && Simulation.Inventory.CanAdd(item, count);
+    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && !SecondStake(item) && Simulation.Inventory.CanAdd(item, count);
+
+    // Whether the item is the stake and the player holds one (Y11): the mayor gives no second one, so a repeated «sí» or a request does not fill the bag with stakes.
+    private bool SecondStake(ItemId item) => item == ItemId.Stake && Simulation.Inventory.Count(ItemId.Stake) > 0;
 
     // Whether the item is a bottle and the player holds one, empty or full: the stall's rule (S6) gives none then.
     private bool SecondBottle(ItemId item) =>

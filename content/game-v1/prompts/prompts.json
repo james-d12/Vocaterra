@@ -838,5 +838,25 @@
     "agentId": "innkeeper",
     "slotGrammarIds": [],
     "text": "Buenas noches."
+  },
+  {
+    "promptId": "mayor-stake",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "request_item", "ask_price", "greet", "ask_wellbeing", "state_wellbeing", "state_weather", "ask_weather", "thank", "farewell"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Quieres un terreno?"
+  },
+  {
+    "promptId": "mayor-sell",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "request_item", "ask_price", "greet", "ask_wellbeing", "state_wellbeing", "state_weather", "ask_weather", "thank", "farewell"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Quieres el terreno?"
   }
 ]

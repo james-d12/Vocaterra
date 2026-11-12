@@ -2,7 +2,7 @@
   "$schema": "../../../schema/npc.schema.json",
   "schemaVersion": 2,
   "id": "villager",
-  "label": "Aldeano",
+  "label": "Alcalde",
   "name": "Tomás",
   "figure": "villager",
   "focus": {
@@ -10,10 +10,29 @@
       "donde-esta-el-rio",
       "que-tal",
       "muy-bien"
+    ],
+    "mayor-stake": [
+      "si-por-favor",
+      "no-gracias"
+    ],
+    "mayor-sell": [
+      "quiero-un-terreno",
+      "cuanto-cuesta-el-terreno",
+      "si-por-favor",
+      "no-gracias"
     ]
   },
   "prompts": {
-    "idle": "villager-open"
+    "idle": "villager-open",
+    "offering_stake": "mayor-stake",
+    "offering_plot": "mayor-sell"
+  },
+  "patience": {
+    "misses": 2,
+    "afterHelp": 1,
+    "event": "villager.stake_give",
+    "prompt": "mayor-stake",
+    "once": false
   },
   "opening": {
     "event": "villager.greet",

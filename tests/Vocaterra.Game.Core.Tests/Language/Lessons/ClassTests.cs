@@ -11,10 +11,12 @@ public sealed class ClassTests
 {
     private const string OfferText = "¿Una clase hoy? ¿Sí o no?";
 
-    // Day 2 at the villager: the introduction done, the villager met on day 1.
+    // Day 2 at the villager: the introduction done, the villager met on day 1. The player holds a stake (Y11): the mayor offers the stake first from day 2 while the player has none,
+    // and then the class (PlotPurchaseTests); these tests are about the class alone.
     private static VoxelSession DayTwo()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Stake, 1);
         session.Lessons.CountAsCompleted("first-words", 1);
         session.Day = 2;
         session.Sitting = 2;
@@ -56,6 +58,7 @@ public sealed class ClassTests
     {
         var session = Vocaterra.Game.Core.Tests.Save.SleepTests.EndedFirstSession();
         SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+        _ = session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Stake, 1); // Y11: with no stake the mayor offers it first, then the class (PlotPurchaseTests)
         Stage.TeleportToNpc(session, "villager");
 
         _ = session.OpenTalk("villager");

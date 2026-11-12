@@ -312,6 +312,9 @@ public enum BlockCell
 
     /// <summary>The icon of the stake (the item, Y10): a pale wooden stake with a pointed foot and a red cloth flag. Placed last, so no other cell moves.</summary>
     IconStake,
+
+    /// <summary>The icon of the camp kit (the item, Y11): a small green tent with a dark door and a rolled bedroll in front. Placed last, so no other cell moves.</summary>
+    IconCampKit,
 }
 
 /// <summary>
@@ -445,6 +448,7 @@ public static class BlockAtlasLayout
         ItemId.RoastApple => BlockCell.IconRoastApple,
         ItemId.Flour => BlockCell.IconFlour,
         ItemId.Stake => BlockCell.IconStake,
+        ItemId.CampKit => BlockCell.IconCampKit,
         _ => null,
     };
 
