@@ -290,7 +290,8 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,398 tests) |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
-| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
+| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,457 tests) |
+| Y14 | QA fixes: the fail-forward's phrase, the wake card under the sleep prompt, the class offer's verdict, r30's baker | Y13, the QA report of 2026-11-12 | S/M | Sonnet 5.5, medium | todo (registered 2026-11-12) |
 
 **Y00 Brief and probes.** No gameplay code. Its results are written into this document as section 9, "Layout and numbers".
 - The inn: a ground-floor building of about 9 × 7 at the road's entrance, in place of `house3`, proved by a scene build. (No
@@ -481,6 +482,16 @@ missing block gives the kit back once (owed if the bag is full). Saved as `syste
 series in `docs/process/documentation.md`); the QA agent on progression, world and save; the open items and the handover; the
 pull request from `feature/settlement` into `main` for the owner. The gaps it records: no fire sound at a placed camp, «mi
 campamento» not answered when asked for directions, one plot only, no meals at the inn.
+
+*Y13 as built (2026-11-12):* the runs `r40-inn` (day one to the inn's bed), `r41-land` (the stake, `cant_pay`, the purchase),
+`r42-camp` (the camp, its fire, a night, a death, a berry, packing back) and `r43-stake-refused` (`--mark-plot` acts once at launch, so
+the village refusal is its own run), each the same over two captures; the documents (architecture's "where to look" table, running,
+lessons, playtest, saves, the READMEs). QA (progression, with save and world) found five minor bugs and no blocker
+([the report](../qa-reports/2026-11-12-progression.md)): four go to Y14, the scripted walker at a tree to the open items.
+
+**Y14 QA fixes** (registered 2026-11-12, from the QA report). The fail-forward credits the prompt's own phrase, not always `pedir-agua`;
+the sleep prompt and the plot's HUD line stay off the wake card; «sí» to the class offer after the purchase is graded at the class
+offer's prompt; `r30-no-classes` accepts Luz's order. Before the pull request.
 
 ### 8.4 Order, and the series beside it
 

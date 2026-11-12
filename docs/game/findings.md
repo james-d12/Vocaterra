@@ -2534,3 +2534,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   gate in this series (Y04, Y07's agent, Y12): the core milestone proposed for it is worth registering. Checked on the merged build: a
   camp outside the plot refused, on it placed; a torch on the rim lights it; a sleep "ends at your camp" (`last: camp.fire`). For the
   owner's playtest: the stepped tent.
+- **Y13, close-out (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y13-report.md` on the branch. Four runs (r40 to r43),
+  the documents. Gate: 11,457 tests passed, 3 skipped. A QA agent tested progression with save and world on the same commit in a
+  separate worktree at the same time (report `docs/qa-reports/2026-11-12-progression.md`): five minor bugs; four to Y14. Its two most
+  useful notes for later runs: `--teleport` lands on the top surface (a roof, the tent), so stand beside an object with `--walk-to` or a
+  free cell; and the scripts' `--sleep` sleeps at a lit fire even before the day-one gate allows it.

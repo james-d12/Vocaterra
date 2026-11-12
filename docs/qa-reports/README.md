@@ -42,6 +42,11 @@ triage table below. Confirmed bugs also go into the findings logs ([game plan se
 | QA-2026-11-06-ui-3 | [2026-11-06-ui](2026-11-06-ui.md) | major, game (core unverified) | A turn not understood shows the English "Good. The shopkeeper understood you." | partly: «gracias» is an off-prompt line the NPC took (`OffPromptIntent`, never `Communicated`), so "Good… understood" overstates it; fixed (U02b): the English is the off-prompt wording |
 | QA-2026-11-06-ui-4 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | A typed turn not understood gets the off-prompt coaching line ("The NPC understood, but…") | not a bug: the turn is off the prompt and the NPC took it («Te entiendo…»); U02's coaching is right and stays |
 | QA-2026-11-06-ui-5 | [2026-11-06-ui](2026-11-06-ui.md) | minor, game | At 800x600 and 150 % text the lesson heading is cut before the step total and kind | fixed (U02b) |
+| QA-2026-11-12-progression-1 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | Every NPC's fail-forward (and some transfers) is credited to `pedir-agua` | fix registered: Y14 |
+| QA-2026-11-12-progression-2 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | After a death beside the inn's bed or at the camp the sleep prompt covers the wake card's second line | fix registered: Y14 |
+| QA-2026-11-12-progression-3 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | The scripted walker gives up at a tree on the one-leg walk from the inn to Luna's camp | open (open items, not this series) |
+| QA-2026-11-12-progression-4 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | After the purchase, «sí» to the mayor's class offer starts the class while its verdict reads `unknown, not understood` | fix registered: Y14 |
+| QA-2026-11-12-progression-5 | [2026-11-12-progression](2026-11-12-progression.md) | minor, scripts and docs | `r30-no-classes` never takes Luz's oven order (a task since #54); its row is stale | fix registered: Y14 |
 
 ## Layout of a QA pass report
 

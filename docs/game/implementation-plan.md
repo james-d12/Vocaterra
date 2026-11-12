@@ -541,7 +541,8 @@ the statuses below follow its table in section 8.3.
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor: `sell_plot`, the mayor's title and lines, the «Mi terreno» checklist | Y10 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,398 tests) |
 | Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as sleep places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
-| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
+| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,457 tests) |
+| Y14 | QA fixes (the fail-forward's phrase, the wake card, the class offer's verdict, r30's baker) | Y13 | S/M | Sonnet 5.5, medium | todo (registered 2026-11-12) |
 
 ## 5. Findings log
 
