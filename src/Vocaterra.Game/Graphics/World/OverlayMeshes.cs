@@ -75,11 +75,14 @@ public static class OverlayMeshes
     /// <summary>The side of a corner post, in blocks.</summary>
     public const float PostSide = 0.3f;
 
-    /// <summary>The width of the edge line, in blocks.</summary>
+    /// <summary>The width of the edge line, in blocks. A plot's edge is a box a column long for each column of its sides, so a plot's mesh must stay under the 4096 vertices of a dynamic draw (a perimeter of about 150 columns).</summary>
     public const float EdgeWidth = 0.22f;
 
-    /// <summary>How far the edge line lies above the ground's top, so the ground does not cut it.</summary>
-    public const float EdgeLift = 0.03f;
+    /// <summary>How far the edge line's underside lies above the ground's top: above the undergrowth, so tall grass does not hide it.</summary>
+    public const float EdgeLift = 0.45f;
+
+    /// <summary>The height of the edge line, in blocks.</summary>
+    public const float EdgeHeight = 0.14f;
 
     /// <summary>How near the eye must be to a plot (to its nearest column, in blocks) for its outline to be drawn.</summary>
     public const float PlotOutlineReach = 64f;
@@ -96,9 +99,9 @@ public static class OverlayMeshes
     }
 
     /// <summary>
-    /// The outline of a plot of land (Y10): a post in each corner column and an edge line on the ground round the plot, each piece standing at the ground's height of its own
+    /// The outline of a plot of land (Y10): a post in each corner column and a low edge rail over the ground round the plot, each piece standing at the ground's height of its own
     /// column (<paramref name="surface"/>), so the outline follows the terrain. The pending plot (<paramref name="owned"/> false) is amber with a broken edge (every second column of a
-    /// side) and bare posts; the owned plot is green with a solid edge and a flag on each post, so the two differ by shape and not by colour alone. The meshes are lit by the sun's
+    /// side) and bare posts; the owned plot is white with a solid edge and a green flag on each post, so the two differ by shape and not by colour alone. The meshes are lit by the sun's
     /// tint at draw time like the figures (the renderer's diffuse colour), so they dim at night.
     /// </summary>
     /// <param name="plot">The plot.</param>
@@ -108,7 +111,7 @@ public static class OverlayMeshes
     {
         ArgumentNullException.ThrowIfNull(surface);
         var buffer = new MeshBuffer();
-        var edge = owned ? ((byte)90, (byte)210, (byte)120, (byte)255) : ((byte)255, (byte)196, (byte)56, (byte)255);
+        var edge = owned ? ((byte)238, (byte)242, (byte)234, (byte)255) : ((byte)255, (byte)196, (byte)56, (byte)255);
         var post = owned ? ((byte)238, (byte)238, (byte)232, (byte)255) : ((byte)200, (byte)140, (byte)60, (byte)255);
         var flag = ((byte)64, (byte)190, (byte)96, (byte)255);
         int x0 = plot.X, z0 = plot.Z, x1 = plot.X + plot.Width - 1, z1 = plot.Z + plot.Depth - 1;
@@ -151,11 +154,11 @@ public static class OverlayMeshes
         return buffer;
     }
 
-    // A flat strip on the ground: only its top face (the line is seen from above), lifted a little off the ground's top at the given height.
+    // A low rail over the ground of its column: a box of its own (seen from above and from the side), lifted above the undergrowth.
     private static void AddStrip(MeshBuffer buffer, in Box footprint, float ground, (byte R, byte G, byte B, byte A) tint)
     {
         var y = ground + EdgeLift;
-        ChunkMesher.AddFace(buffer, BlockFace.Up, new Box(footprint.X0, y, footprint.Z0, footprint.X1, y + 0.01f, footprint.Z1), (0f, 0f, 0f), BlockCell.White, tint, Turn.None);
+        AddBox(buffer, new Box(footprint.X0, y, footprint.Z0, footprint.X1, y + EdgeHeight, footprint.Z1), tint);
     }
 
     private static void AddBox(MeshBuffer buffer, in Box box, (byte R, byte G, byte B, byte A) tint)

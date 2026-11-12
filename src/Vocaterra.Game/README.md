@@ -115,7 +115,7 @@ command a script sends), so a craft is deterministic. Opening the panel counts e
 **The screens over the scene.** The hotbar, the toast, the inventory screen, the book and the crafting panel draw over the scene; `FrameView`
 carries the `VoxelSimulation`, the first-person camera, the beacon, the figures, the block atlas (`VoxelIcons`, full colour), the `Objective`, the word
 cards and the viewport size. New layers: the crosshair with a gather bar, the NPC labels, the beacon's label and
-edge arrow, and the 3D debug overlay.
+edge arrow, the plot's line (`PlotHudLayer`, Y10) and the 3D debug overlay. In the scene `OverlayMeshes` makes the block highlight, the beacon column and the plot outline (Y10: posts and a rail, `docs/game/architecture.md`).
 
 **The guide (S3).** The turn worker starts with the game (typed and spoken, the loading screen until Vosk is ready), with a `VoxelSession` (in
 `Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts` answers "where is it" with the nearest block of a noun,

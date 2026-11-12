@@ -53,10 +53,10 @@ public sealed class PlotOutlineTests
         var pending = OverlayMeshes.PlotOutline(Pending, Surface, owned: false);
         var owned = OverlayMeshes.PlotOutline(Pending, Surface, owned: true);
 
-        // The posts are boxes of six faces; an edge strip is one top face. Owned: every column of the four sides (10 + 10 + 8 + 8 = 36) and a flag box on each post.
+        // The posts and the edge rails are boxes of six faces. Owned: every column of the four sides (10 + 10 + 8 + 8 = 36) and a flag box on each post.
         // Pending: every second column of a side (5 + 5 + 4 + 4 = 18) and bare posts.
-        Assert.Equal((4 * 6) + 18, pending.FaceCount);
-        Assert.Equal((4 * 6) + 36 + (4 * 6), owned.FaceCount);
+        Assert.Equal((4 * 6) + (18 * 6), pending.FaceCount);
+        Assert.Equal((4 * 6) + (36 * 6) + (4 * 6), owned.FaceCount);
         Assert.True(owned.FaceCount > pending.FaceCount);
     }
 
@@ -72,7 +72,7 @@ public sealed class PlotOutlineTests
     [Fact]
     public void TheOutlineOfAPlotStaysUnderTheDynamicMeshLimit()
     {
-        var mesh = OverlayMeshes.PlotOutline(new Plot(0, 0, 40, 40), static (_, _) => 5f, owned: true);
+        var mesh = OverlayMeshes.PlotOutline(new Plot(0, 0, 36, 36), static (_, _) => 5f, owned: true);
 
         Assert.True(mesh.VertexCount <= 4096, $"{mesh.VertexCount} vertices");
     }

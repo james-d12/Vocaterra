@@ -71,7 +71,7 @@ public sealed class InventoryTests
     [Fact]
     public void EveryItemHasItsStackLimitInTheDefinitionsAndNothingElse()
     {
-        Assert.Equal(new[] { ItemId.Wood, ItemId.Torch, ItemId.Berry, ItemId.Bottle, ItemId.WaterBottle, ItemId.Bread, ItemId.Book, ItemId.Coin, ItemId.Apple, ItemId.Axe, ItemId.RoastApple, ItemId.Flour }, ItemDefinition.All.Select(static d => d.Id).ToArray());
+        Assert.Equal(new[] { ItemId.Wood, ItemId.Torch, ItemId.Berry, ItemId.Bottle, ItemId.WaterBottle, ItemId.Bread, ItemId.Book, ItemId.Coin, ItemId.Apple, ItemId.Axe, ItemId.RoastApple, ItemId.Flour, ItemId.Stake }, ItemDefinition.All.Select(static d => d.Id).ToArray());
         Assert.Equal((30, 31, 32), ((int)ItemId.Coin, (int)ItemId.Apple, (int)ItemId.Axe)); // V03: after the book; a value is never reused
         Assert.All(ItemDefinition.All.Where(static d => d.Id is not (ItemId.Book or ItemId.Axe)), static d => Assert.Equal(ItemDefinition.DefaultStackLimit, d.MaxStack));
         Assert.Equal(1, ItemDefinition.Get(ItemId.Axe).MaxStack); // a tool, like the book
