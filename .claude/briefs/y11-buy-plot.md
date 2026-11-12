@@ -4,11 +4,14 @@ Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This
 exchange that cannot half happen) and content (the mayor's title, lines, phrases, speech and a checklist); the core is taken as it is.
 
 Where to work: /home/james/Dev/Vocaterra/.claude/worktrees/y11, which already exists on the branch `Y11-buy-plot` (cut from
-`feature/settlement` after Y08 and Y10 were recorded). Start every command with `cd /home/james/Dev/Vocaterra/.claude/worktrees/y11 &&`
+`feature/settlement` after Y10 was recorded). Start every command with `cd /home/james/Dev/Vocaterra/.claude/worktrees/y11 &&`
 and use absolute paths for file tools; your shell may start in another checkout, which you must not edit. Commit after each item that
 builds and passes its tests, with the prefix `Y11: `. Do not push your branch. Never push or merge `feature/settlement` or `main`. When
-you finish, leave the worktree on your branch, clean, with no process of yours running. No other agent builds while you work, unless the
-orchestrator tells you otherwise.
+you finish, leave the worktree on your branch, clean, with no process of yours running. Another agent builds Y08 (the mountain, the strings, the rebaseline, two-block beds) at the same time in `.claude/worktrees/y08`: it
+edits `scene.json`, `needs.json`, the bed blocks and `ChunkMesher`, the sleep places, `AmbientBeds`, the innkeeper's agent
+(`agents/innkeeper.json`, her state after lodging), `scripts/scripted-runs.sh` (the CAMP steps, r10, r20, r30) and the mountain's
+locale strings, and re-baselines the scripted runs. Stay out of those; add your locale strings as new keys only (at the end of their
+block). Whichever of you is merged second merges the first and hashes the bundle again; the orchestrator will tell you.
 
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 the prerender and every screenshot or scripted run through scripts/limited.sh (for example `scripts/limited.sh dotnet build
@@ -32,7 +35,7 @@ their as-built notes, sections 9.3 (the price) and 9.4 (the language probe: what
 in /home/james/Dev/Vocaterra/.claude/worktrees/settlement/.claude/briefs/: `y09-report.md` (`OwnPlot()`, `PendingPlot`, `PlotPrice`,
 the refusal reasons), `y10-report.md` (the stake item, the pending plot it marks, `--mark-plot`), `y06-report.md` (an NPC's agent and
 `patience`, as the innkeeper does it), `y06m-report.md` ("For Y07 to Y13": every NPC needs `weatherAnswers`, the
-`<id>.sun/.cloudy/.rain/.fair` transitions; a pool moves `SpeechLinesTests` and the identity baseline), `y08-report.md`. The code:
+`<id>.sun/.cloudy/.rain/.fair` transitions; a pool moves `SpeechLinesTests` and the identity baseline). The code:
 `Npc/HostEventTable.cs` and the dispatch of host-event kinds in `VoxelSession.cs` (as Y05 added `grant_lodging`), `Npc/NpcHostEvents.cs`
 (the pre-checks), `NpcService.Miss` and the validator's miss states (grep how an existing kind with misses, such as the sale of bread or an
 order, declares and answers them), `GuideScene` (the facts the dialogue worker gets), `Items/Inventory.cs` (`CanExchange`), the
@@ -112,7 +115,7 @@ Not in this milestone: placing the camp kit, the camp's sleep places, planting o
 a fee at the inn.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count, against `feature/settlement`'s after Y08 and Y10, in their reports); scripts/limited.sh dotnet format Vocaterra.sln
+(report the count; 11,323 passed and 3 skipped after Y10); scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; the A2 content gate clean; the full suite once without
 models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/ or artifacts/.
 
