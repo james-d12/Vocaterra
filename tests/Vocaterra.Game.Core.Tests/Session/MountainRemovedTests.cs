@@ -105,7 +105,7 @@ public sealed class MountainRemovedTests
         Assert.Equal("at the inn", SleepOffer.EndedWhere(session, bed, collapse: false));
         Assert.Equal("at the fire", SleepOffer.EndedWhere(session, fire, collapse: false));
         Assert.Equal("where the player fell", SleepOffer.EndedWhere(session, fire, collapse: true));
-        Assert.Equal("where the player fell", SleepOffer.EndedWhere(session, null, collapse: false));
+        Assert.Equal("wherever the player stood", SleepOffer.EndedWhere(session, null, collapse: false)); // the scripts' aid away from any place
     }
 
     [Fact]

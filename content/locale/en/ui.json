@@ -281,6 +281,7 @@
     "ui.endedAtInn": "at the inn",
     "ui.endedAtFire": "at the fire",
     "ui.endedWhereFell": "where the player fell",
+    "ui.endedAnywhere": "wherever the player stood",
     "ui.diedHunger": "You fainted from hunger and woke where you sleep. Your things wait where you fell.",
     "ui.diedThirst": "You fainted from thirst and woke where you sleep. Your things wait where you fell.",
     "ui.chestRest": "Your bag is full. The rest stays in the chest.",

@@ -54,7 +54,7 @@ public static class SleepOffer
     }
 
     /// <summary>
-    /// Where a night ended, for the console's line (Y08, the locale's text): <c>at the inn</c> for a bed, <c>at the fire</c> for a fire, <c>where the player fell</c> for a collapse (which sleeps at no place).
+    /// Where a night ended, for the console's line (Y08, the locale's text): <c>at the inn</c> for a bed, <c>at the fire</c> for a fire, <c>where the player fell</c> for a collapse (which sleeps at no place) and <c>wherever the player stood</c> for the scripts' aid away from any place.
     /// </summary>
     /// <param name="session">The 3D game.</param>
     /// <param name="place">The sleep place slept at, or <see langword="null"/> for none.</param>
@@ -62,7 +62,7 @@ public static class SleepOffer
     public static string EndedWhere(VoxelSession session, SleepPlace? place, bool collapse)
     {
         ArgumentNullException.ThrowIfNull(session);
-        return session.Locale.Ui(collapse || place is null ? "endedWhereFell" : place.Kind == Needs.SleepPlaceSpec.KindBed ? "endedAtInn" : "endedAtFire");
+        return session.Locale.Ui(collapse ? "endedWhereFell" : place is null ? "endedAnywhere" : place.Kind == Needs.SleepPlaceSpec.KindBed ? "endedAtInn" : "endedAtFire");
     }
 
     /// <summary>The fire's prompt: <c>E: sleep until morning (session 3)</c> (<c>ui.sleepPrompt</c>; <c>ui.sleepPromptDone</c> when no later session has a lesson).</summary>

@@ -1,8 +1,8 @@
 # Vocaterra playtest (private build)
 
-Thank you for helping. This is an early prototype. You wake alone at your own camp on a cliff, walk down a trail to meet a
+Thank you for helping. This is an early prototype. You arrive alone on a mountain ledge, walk down a trail to meet a
 guide, learn some Spanish from her in a short lesson, then gather wood and berries, make a torch, ask people for things in
-Spanish, fill a bottle at the river and light a fire at your own camp. It takes about 15 to 25 minutes, the lesson included.
+Spanish, fill a bottle at the river and ask for a room at the inn. It takes about 15 to 25 minutes, the lesson included.
 
 **Please read this first.** You do not need to know Spanish. The Spanish in the game has **not yet been checked by a
 native speaker**; it was written and reviewed with tools only. If something sounds odd, say so. Nothing you do can
@@ -52,8 +52,8 @@ this folder, the folder was not built: ask the facilitator for a built copy.
 2. A **short quiz before the game**: 31 short items. You hear a line and choose what it means (16 items), and you say a
    Spanish phrase for an English situation (15 items). Answer as well as you can; "I do not know" (N, or say "no sé") is
    always allowed and is useful to us.
-3. **The opening.** You wake at your own camp on a cliff. Short English tips explain looking, walking, jumping, the note
-   at your tent (it says the guide's camp is down the trail), collecting and the inventory. Your goal is shown at the top:
+3. **The opening.** You arrive on a bare mountain ledge. Short English tips explain looking, walking, jumping, the note
+   on the ledge (it says the guide's camp is down the trail), collecting and the inventory. Your goal is shown at the top:
    find the guide. The beacon points down the trail to her.
 4. **The guide's lesson** (about 5 to 8.5 minutes, the walk down the trail included). Luna, the guide, greets you when you
    come close to her, and then teaches you a few short Spanish phrases: hello, yes and no, what something is, please and
@@ -61,8 +61,8 @@ this folder, the folder was not built: ask the facilitator for a built copy.
    use the phrases. At the end the book opens on its phrases page.
 5. **The camp.** Gather wood and berries, make a torch at the workbench, ask the shopkeeper for water and the villager
    for the river, and fill your bottle there. The guide may offer you water too.
-6. **The ending.** Take the spare torch back up the trail and place it on the rim of the fire ring at your own camp. The
-   fire lights, and the screen says "Session complete".
+6. **The ending.** Go to the inn (la posada) in the village and ask the innkeeper for a room (say "sí"). She
+   says good night, and the screen says "Session complete".
 7. **A short quiz after the game**, again 31 items, then a thank-you screen. Press **Esc** to close the game.
 
 Please talk out loud while you play if the facilitator asks you to (think aloud). Tell them what you tried, and what

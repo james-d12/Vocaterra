@@ -44,14 +44,14 @@ version number, the version 2 word rows, the first-words split). One fixture, `t
 
 
 **How the fixture is made:** a scripted game run, not by hand, so it is the game's own output. From the repository root, after a build (the camp route of `scripts/scripted-runs.sh`'s
-`CAMP`, then a talk, then the player's own fire):
+`CAMP`, then a talk, then Luna's fire):
 
 ```bash
 dotnet run --project src/Vocaterra.Game -- --session-dir <scratch> --needs off --seed 42 --mute --walk-to 176,186 <CAMP steps> --walk-to 177,185 --craft antorcha \
-  --talk shopkeeper --say "quiero agua, por favor" --leave --teleport 153,109 --place antorcha@153,74,105 --wait 1 --screenshot <png> --frames 30 --save <file>
+  --talk shopkeeper --say "quiero agua, por favor" --leave --teleport 176,188 --wait 1 --screenshot <png> --frames 30 --save <file>
 ```
 
-The save has the player standing at the lit mountain fire, one conversation page, no lodging and no sleep recorded (so no `sleep` entry). `scripts/content-loop.sh` writes a new
+The save has the player standing at Luna's lit fire (Y08: the mountain ring is gone; tick 4258), one conversation page, no lodging and no sleep recorded (so no `sleep` entry). `scripts/content-loop.sh` writes a new
 bundle hash into it as into any file under `tests/`.
 
 **The `sleep` entry (Y02).** `systems.sleep` keeps what a sleep (a save restored in the same run) and a load must not lose, all optional, the entry absent when nothing is set:
