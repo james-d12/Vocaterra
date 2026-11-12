@@ -2471,3 +2471,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   (at most 5 steps at a bed, 8 at a fire). Gate: 10,763 tests passed, 3 skipped. Checked on the merged build: the death after a night
   in the inn's bed wakes at (280, 38, 231), inside the guest room; outside the south wall no sleep prompt shows. A fire in the open is
   unchanged (`r26-death` wakes at 152, 73, 106). The step bounds are constants in code, not in `needs.json`.
+- **Y06m, `origin/main` (the weather series, PR #64) merged into the settlement series (2026-11-12, on `Y06m-merge-main`).** One merge commit; the save
+  stays version 8 (oldest readable 8) and `SystemsSave` carries `Sleep` then `Atmosphere`. A sleep at any usable place, the inn's bed included,
+  wakes in the morning by main's clock (`SaveGame.Sleep` restores the parts, which brings back the atmosphere, then notes the place slept at, then
+  `ApplyNight` calls `Simulation.WakeUp()`), so `systems.sleep.last` is still written after the restore; a death wakes at the last sleep place
+  (inside the guest room when that was the bed), and a death is not a night, so it does not move the clock. `ChunkMesher`: the bed's mesh takes the
+  sun tint like every opaque block. The innkeeper gained main's E07 `weatherAnswers` (`innkeeper_cloudy`, `_rain`, `_fair`, the baker's three lines,
+  six speech files in her voice). Gate: 11,221 passed, 3 skipped with models; 11,174 passed, 50 skipped without.
+  - *Changed on purpose:* `AtmosphereSaveTests` and `WeatherSaveTests` read `save-v8.json` (the version 1 and 4 fixtures are gone) and expect version 8;
+    `AtmosphereSimulationTests` re-pinned its two world digests (the route's world holds the inn now; the clock still adds nothing, as the version 8
+    fixture's strict load shows); `SpeechLinesTests` 396 pools and the innkeeper's 19; the identity baseline gained three lines
+    (`dialogue:innkeeper_cloudy.1`, `_fair.1`, `_rain.1`); the grammar cache is the union of both sides' entries, pruned.
+  - *Scripted runs (all 28 run on `origin/main` and on the merge, same work folder):* the only differences are the settlement's own (the scene digest and tree count,
+    the face count, speech 759 lines to 809, save version 7 to 8, pictures with the inn and the new meadows in view, the world digests). `r26-death` wakes at 152, 73, 106 on both,
+    with the same `systems.atmosphere`. `r10-playtest` exits 2 on both. Nothing was re-baselined.
