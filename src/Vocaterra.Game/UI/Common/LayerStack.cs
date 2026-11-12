@@ -31,6 +31,7 @@ public static class LayerStack
             new BeaconArrowLayer(),
             new TalkHintLayer(),
             new SleepPromptLayer(),
+            new PlotHudLayer(),
             debug,
             new HotbarLayer(),
             new NeedsHudLayer(),

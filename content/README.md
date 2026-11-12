@@ -184,6 +184,12 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).
 - **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
   reading of it with a gender.
+- **An item and its word (the stake, Y10).** An item is a row of `Items/ItemDefinition.cs` (its id, a stable English key, its stack limit; an `ItemId` number is never reused), its icon a
+  cell of the block atlas (`BlockCell.Icon…`, drawn in code in `BlockArt`, CC0 by construction; `BlockAtlasLayout.IconFor`), its Spanish noun a row of `game/nouns.json` whose `items` names the key
+  (`{"lemma": "estaca", "items": ["stake"]}`) with the English word in `locale/en/nouns.json`, so `--give estaca` and the word card work. A word the lists lack (`estaca`: in neither of the core's
+  lists) joins the end of `cefr/a1.txt` with its reason and `lexicon/game.json` with its forms (`estaca`, `estacas`, feminine); the A2 gate and `cefr-check` stay clean. A first card of a new noun
+  needs its two recordings (`content-loop.sh --grammar --speech`). `estaca` reads in the request forms (`Quiero una estaca`, `¿Me das una estaca?`: `request_item`, slot `estaca`); a bare «una estaca»
+  is `unknown`, as «una manzana» is.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
 - **A river and its current.** The `river.path` in `game/scene.json` is listed from **upstream to downstream** (the first waypoint at the waterfall's pool, the last in

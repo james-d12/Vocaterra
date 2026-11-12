@@ -259,6 +259,15 @@ is asked by `TryPlace` (a protected column refuses every block but a torch: a `P
 only where the hook exists, for `PlankTakeBackTicks`, and only on owned land; elsewhere a `TakeBackRefused` event says `ui.landTakeBack` once per hold). Every other gather, trees, berries, stone, is as it was. `VoxelSession.SetPendingPlot`, `OwnPlot`,
 `IsOwned` and the save entry `systems.land` are what the stake (Y10) and the mayor (Y11) call; a simulation with no hook behaves as before the rules.
 
+**The stake and the plot's outline (Y10).** The item `stake` (`ItemId.Stake`, stack of one, places no block) is used with the right click on a block: `Input/StakeUse.Applies` (Core, as `PlantingUse` is) says the frame is
+a use (mouse captured, so no talk or panel is open; stake selected; a block aimed at), `WorldInput` then calls the session's `UseStake(BlockPos)`, which marks the pending plot with the aimed column as the plot's **middle**
+(`LandRules.PlotAround`: the 10 by 10 plot spans five columns west and north of it and four east and south; the outline lands round the cell the player points at) and says the answer on the hint line: `ui.plotMarked`, or the
+refusal's own line (`plotVillage`, `plotCamp`, `plotRoad`, `plotOutside`, `plotWater`, `plotTree`, `plotNotGround`, `plotSteep`), or `plotOwnedHere` / `plotOwnedAlready` once land is owned (the stake then marks nothing). A refusal keeps the
+old pending plot; marking again moves it and costs nothing. `PlotHudLine()` is the HUD text (`ui.plotHud` with size and price from `land.json`, or `ui.plotHudOwned`), shown by `PlotHudLayer` under the crosshair while the player is within
+24 blocks of a plot or holds the stake. The outline is Game's: `OverlayMeshes.PlotOutline(plot, surface, owned)` builds four corner posts and a low rail round the plot, each at the ground height of its own column (`LandRules.GroundOf`);
+the pending plot has bare amber posts and a broken rail (every second column), the owned plot white posts with a green flag each and a solid rail, so the two differ by shape as well as colour. `SceneDrawer.DrawWorld` builds the meshes
+for plots within 64 blocks of the eye and `VoxelRenderer.DrawWorld` draws them after the figures in the sun's light (the figures' diffuse colour, so they dim at night). The dev aid `--mark-plot x,z` is `MarkPlotWithHint`.
+
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
 - **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GuideSession.StoredTime`); nothing reads the clock, so a scripted

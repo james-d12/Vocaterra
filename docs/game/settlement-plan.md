@@ -287,7 +287,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
-| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
+| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
@@ -427,6 +427,12 @@ owned plot; `OwnPlot()` re-checks and owns the pending one (no coins: Y11). Dev 
 line; the pending plot is saved. `OverlayMeshes.PlotOutline`, drawn through `SceneDrawer.DrawWorld` as corner posts and an edge
 line, with a HUD line that gives the size and the price (never by colour alone). A launch flag for the scripted runs.
 
+*Y10 as built (2026-11-12):* the item `stake` (`estaca`, in the A1 world words and the lexicon, its word card recorded; an icon of a
+stake with a red pennant); used on the ground (right click) it marks the pending plot centred on the aimed column, or puts the reason on
+the hint line; marking again moves it free; once land is owned it marks nothing. `OverlayMeshes.PlotOutline`: corner posts and a rail
+lifted above the grass, amber posts and a dashed rail for the pending plot, white posts with green flags and a solid rail for the owned
+one, drawn within 64 blocks in the sun's light; the HUD line "Plot 10 × 10 · price 10 coins" or "Your land". Dev flag `--mark-plot x,z`.
+
 **Y11 Buying the plot.**
 - `villager.give_stake` (the `give_item` kind that exists). A `sell_plot` kind whose misses are `no_plot`, `cant_pay`, `no_room`
   and `already_owned`, after the pre-checks of `Npc/NpcHostEvents.cs` and `NpcService.Miss`, with the validator's miss states;
@@ -457,7 +463,7 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), Y06m alone, (Y07, Y11),
 Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
 time, in that order. *As run (owner, 2026-11-11: the weather series is merged, two agents of this series may run at once):* Y06,
-then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07, Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
+then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07 with Y11 beside it once Y10 was in, then Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
 the weather series changed. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
 

@@ -7477,6 +7477,23 @@
       "matches": []
     },
     {
+      "key": "ac259dbd955d2ebd30305deeabb90d45226313c675ea0e308508b7b830a1895b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la estaca",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "ac6c8187e9bfea9574d26a11a60418fdfa681de000216c1244533f3d172b46cd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a hacer pan hoy",

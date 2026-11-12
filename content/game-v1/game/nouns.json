@@ -27,6 +27,7 @@
     { "lemma": "fuego", "items": [], "blocks": ["fire-ring"] },
     { "lemma": "hacha", "items": ["axe"], "blocks": [] },
     {"lemma": "harina", "items": ["flour"], "blocks": [], "mass": true},
+    {"lemma": "estaca", "items": ["stake"], "blocks": []},
     {"lemma": "bol", "items": [], "blocks": []},
     {"lemma": "cuchara", "items": [], "blocks": []},
     {"lemma": "masa", "items": [], "blocks": [], "mass": true},
