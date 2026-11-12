@@ -126,7 +126,7 @@ public sealed class LodgingTests
         atBed.Simulation.TeleportTo(BedCell(atBed));
         atBed.SetNeed(NeedMeter.Sleep, 20);
         var atFire = TestGame.NewSession();
-        var ring = atFire.Scene.Point(VoxelSession.PlayerFireRing);
+        var ring = atFire.Scene.Point(VoxelSession.CampFireRing);
         var middle = atFire.Fires.Middles.Single(m => m.X == ring.X && m.Z == ring.Z);
         atFire.Scene.Grid.SetBlock(middle.X + 1, middle.Y + 1, middle.Z, BlockId.Torch); // a lit ring is a usable fire
         atFire.Simulation.TeleportTo(ring);
@@ -143,7 +143,7 @@ public sealed class LodgingTests
         }
 
         Assert.Equal("inn.bed", atBed.LastSleepPlace?.Id);
-        Assert.Equal("camp.fire", atFire.LastSleepPlace?.Id);
+        Assert.Equal("guide.fire", atFire.LastSleepPlace?.Id);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class LodgingTests
         Sleep(session);
         session.SetNeed(NeedMeter.Thirst, 0);
         session.SetNeed(NeedMeter.Health, 0.25);
-        session.Simulation.TeleportTo(session.Scene.Point(VoxelSession.PlayerFireRing));
+        session.Simulation.TeleportTo(session.Scene.Point(VoxelSession.CampFireRing));
 
         for (var i = 0; i < 60; i++)
         {

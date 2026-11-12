@@ -3,15 +3,15 @@
   "about": "The first-time tips (tip.<id>); when each comes up is game data (content/game-v1/game/tips.json).",
   "strings": {
     "tip.look": "Move the mouse to look around. The valley below is where you are headed.",
-    "tip.walk": "Walk with W A S D. The trail starts beside your camp.",
+    "tip.walk": "Walk with W A S D. The trail starts at your feet and leads down the mountain.",
     "tip.jump": "Press Space to jump up a ledge or over a gap.",
-    "tip.note": "A note is pinned to your tent: “Welcome, traveler. My camp is down the trail, past the trees. Follow the camino (the trail) and come and say hello. {npc:guide}”",
+    "tip.note": "A note lies on the ledge: “Welcome, traveler. My camp is down the trail, past the trees. Follow the camino (the trail) and come and say hello. {npc:guide}”",
     "tip.gather": "Aim the dot in the middle of the screen at a tree trunk and hold the left mouse button to collect wood.",
     "tip.pickup": "What you collect appears in the bar at the bottom. Press {key:inventory} to see everything you carry.",
     "tip.npc": "Press {key:talk} to talk to someone. The English under the Spanish is there to help you.",
     "tip.speak": "Hold {key:listen} (or {key:listenAlt}) to speak, or press W to type. Press H for help any time. Nothing here is a test: if you are not sure, press N for “I don't know”.",
     "tip.objective": "The list at the top right shows what the camp needs. The English next to each word goes away once you know the word.",
-    "tip.needs": "Hunger, thirst and sleep go down as you walk and work. Eat berries or bread, drink water from the river or your bottle, and sleep at your camp when you are tired.",
-    "tip.collapse": "You were too tired to go on, so you fell asleep where you stood. A day has passed. Sleep at your fire before you are worn out to wake up rested."
+    "tip.needs": "Hunger, thirst and sleep go down as you walk and work. Eat berries or bread, drink water from the river or your bottle, and sleep in a bed at the inn (la posada) or by a lit fire when you are tired.",
+    "tip.collapse": "You were too tired to go on, so you fell asleep where you stood. A day has passed. Sleep in a bed or by a lit fire before you are worn out to wake up rested."
   }
 }

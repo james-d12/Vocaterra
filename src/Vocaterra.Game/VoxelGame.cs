@@ -1369,7 +1369,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void AutosaveDue() =>
         _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_listen.Listening && WorldRunning && !_report.Paused);
 
-    // The sleep at the player's own fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
+    // The sleep at a bed or a lit fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
     // play session (SaveGame.Sleep: the state a load of that save gives), so the session log ends the old session and starts the next as a quit and a load into the same
     // folder write them, the autosave writes the ending session (a load of it starts the session the sleep starts) and starts again as a load starts it, and the
     // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the toasts waiting, the beacon of the start.
@@ -1465,6 +1465,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void PassNight(string how, bool collapse)
     {
         var before = _session.Day;
+        var ended = SleepOffer.EndedWhere(_session, _session.CurrentSleepPlace, collapse); // the place the night ends at (Y08), read before the save is restored
         _autosave?.WriteNow(_sim.Tick, _session.Events.Count, "sleep");
         var document = _saves.Capture();
         _log.End(_session, _sim.Tick); // the session that ends
@@ -1476,14 +1477,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _beacon.Restart();
         _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
         _toasts.Show(SleepOffer.MorningText(_session));
-        Console.WriteLine($"sleep: {how}: session {before} ends {(collapse ? "where the player fell" : "at the fire")}, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
+        Console.WriteLine($"sleep: {how}: session {before} ends {ended}, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
     }
 
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
         : _session.AtLockedBed ? "the bed is the inn's: lodging is not given yet"
-        : !_session.SleepPlaces.AnyUsable ? "the player's own fire is not lit"
+        : !_session.SleepPlaces.AnyUsable ? "no fire is lit"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 

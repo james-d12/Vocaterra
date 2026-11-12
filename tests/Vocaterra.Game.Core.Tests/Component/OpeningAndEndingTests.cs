@@ -20,13 +20,6 @@ public sealed class OpeningAndEndingTests
 {
     private static string Hud(VoxelSession session) => string.Concat(session.ObjectiveHud().Select(static p => p.Text));
 
-    private static BlockPos PlayerRingRim(VoxelSession session)
-    {
-        var centre = session.Scene.Point("firering.player");
-        var stone = session.Scene.Grid.BlocksOfKind(BlockId.FireRing).First(p => Math.Abs(p.X - centre.X) <= 1 && Math.Abs(p.Z - centre.Z) <= 1);
-        return new BlockPos(stone.X, stone.Y + 1, stone.Z);
-    }
-
     /// <summary>The player takes the room at the inn (Y07): walks up to Rosa, opens the talk, says «sí» and closes the talk.</summary>
     internal static void TakeTheRoom(VoxelSession session)
     {
@@ -35,15 +28,6 @@ public sealed class OpeningAndEndingTests
         _ = session.Say("sí");
         session.EndTalk();
         session.Step([]);
-    }
-
-    internal static void PlaceTorchOnPlayersRing(VoxelSession session)
-    {
-        var rim = PlayerRingRim(session);
-        _ = session.Simulation.GrantItems(ItemId.Torch, 1); // no spare torch any more (Y07): the test brings its own
-        Assert.True(VoxelWalker.WalkTo(session, cell => Math.Abs(cell.X - rim.X) + Math.Abs(cell.Z - rim.Z) <= 3 && Math.Abs(cell.Y - rim.Y) <= 2), "no way up to the player's camp");
-        Assert.True(VoxelWalker.Place(session, ItemId.Torch, rim));
-        Assert.Equal(BlockId.Torch, session.Scene.Grid.GetBlock(rim.X, rim.Y, rim.Z));
     }
 
     /// <summary>The camp played headless from the spawn (the guide's camp torch placed), then the water: the checklist is complete.</summary>
@@ -56,7 +40,7 @@ public sealed class OpeningAndEndingTests
     }
 
     [Fact]
-    public void ThePlayerWakesAloneAtTheirCampAndTheObjectiveSendsThemDownTheTrailToTheGuide()
+    public void ThePlayerArrivesAloneOnTheBareLedgeAndTheObjectiveSendsThemDownTheTrailToTheGuide()
     {
         var session = TestGame.NewSessionWithShippedLessons();
 
@@ -64,7 +48,7 @@ public sealed class OpeningAndEndingTests
         Assert.Equal("Go down the trail and find the guide", Hud(session));
         Assert.Equal(ObjectivePieceKind.Support, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
         Assert.False(session.GuideMet);
-        Assert.InRange(session.Simulation.Player.FeetBlock.X, session.Scene.Point("camp.player").X - 6, session.Scene.Point("camp.player").X + 6); // the spawn is the player's camp, alone: no NPC within a long walk
+        Assert.InRange(session.Simulation.Player.FeetBlock.X, session.Scene.Point("camp.player").X - 6, session.Scene.Point("camp.player").X + 6); // the spawn is the mountain ledge, alone: no NPC within a long walk
         Assert.All(TestGame.Data.Npcs.Ids, npc =>
         {
             var feet = session.Scene.Npc(npc).Feet;
@@ -73,7 +57,12 @@ public sealed class OpeningAndEndingTests
         });
         Assert.Empty(session.Events.OfType<PhraseUse>()); // no quiz
         Assert.Null(session.Lessons.View);
-        Assert.Contains(session.Scene.Grid.BlocksOfKind(BlockId.FireRing), p => Math.Abs(p.X - session.Scene.Point("firering.player").X) <= 1); // the cold ring waits at the camp
+        // Y08: the ledge is bare: no tent, chest, crate or fire ring within sight of the spawn (the player's own camp comes later, on land they buy)
+        var spawn = session.Scene.Point("camp.player");
+        foreach (var kind in new[] { BlockId.FireRing, BlockId.Canvas, BlockId.Chest, BlockId.Crate })
+        {
+            Assert.DoesNotContain(session.Scene.Grid.BlocksOfKind(kind), p => Math.Abs(p.X - spawn.X) <= 30 && Math.Abs(p.Z - spawn.Z) <= 30);
+        }
     }
 
     [Fact]
@@ -171,7 +160,7 @@ public sealed class OpeningAndEndingTests
         Assert.Equal(1, names.Count(static n => n == WorldEvents.LodgingGranted));
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));
         Assert.True(names.IndexOf(WorldEvents.LodgingGranted) < names.IndexOf(WorldEvents.SessionComplete));
-        Assert.False(session.FireLit); // the mountain's ring is not lit: the opening no longer needs it
+        Assert.True(session.FireLit); // the torch at Luna's ring (the camp's step) lit it; no objective waits for that
         Assert.Equal("Session complete: go to bed to start session 2", Hud(session));
         session.SleepOffered = false; // a playtest offers no sleep
         Assert.Equal("Session complete: you have a room at the inn", Hud(session));
@@ -213,28 +202,17 @@ public sealed class OpeningAndEndingTests
     }
 
     [Fact]
-    public void TheGuidesCampFireRingStillCompletesTheChecklistsTorchStepAndIsNotThePlayersFire()
+    public void TheTorchAtTheGuidesCampFireRingCompletesTheChecklistsTorchStepAndLightsTheFireButDoesNotEndTheSession()
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
+        _ = session.HostEvent(WorldEvents.BottleFilled);
 
         Assert.Equal(1, session.Objective.Step("torch")!.Count);
-        Assert.False(session.FireLit); // the torch at the guide's ring is the camp's, not the player's own fire
-        Assert.False(session.SessionComplete);
-    }
-
-    [Fact]
-    public void ATorchOnTheRimOfTheRingAtThePlayersOwnCampStillLightsTheFireButNoLongerEndsTheSession()
-    {
-        var session = CompletedCamp();
-        _ = session.TakeSpoken();
-
-        PlaceTorchOnPlayersRing(session);
-        session.Step([]);
-
-        Assert.True(session.FireLit); // the latch the sound beds read, until Y08 takes the mountain's ring away
+        Assert.True(session.FireLit); // Y08: the latch the sound beds read is the torch at Luna's ring, the only camp ring there is
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.FireLit && e.Detail == "firering");
         Assert.False(session.SessionComplete);
         Assert.Equal("inn-room", session.CurrentObjective?.Id);
-        Assert.Equal("posada", session.Pointer!.Place); // the player's fire does not take the arrow to the inn down
+        Assert.Equal("posada", session.Pointer!.Place);
     }
 
     [Fact]

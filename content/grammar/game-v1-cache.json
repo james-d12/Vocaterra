@@ -2031,6 +2031,12 @@
       "matches": []
     },
     {
+      "key": "30ab11ab554abd0b7c0424971acc19c4b1ad40cb1e49ec57ae427bdfc64babac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estás de vuelta.",
+      "matches": []
+    },
+    {
       "key": "30e4266b6d38ea99b812c7d86e0a03979c949d8ab3e503fe2cf83c7c4c4f99d5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No muchas gracias",
@@ -5627,12 +5633,6 @@
       "key": "7c99a22b980e812c81e232201f5006cb03fff27cafd2fd11e4dd72742d762598",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Está lejos?",
-      "matches": []
-    },
-    {
-      "key": "7cd1a2ed2d2fbd621b6732b280e0492191702c2933792396200c38e8dcd50ab9",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Estás en tu campamento.",
       "matches": []
     },
     {

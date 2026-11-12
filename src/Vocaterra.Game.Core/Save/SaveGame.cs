@@ -325,7 +325,7 @@ public static class SaveGame
     }
 
     /// <summary>
-    /// The sleep at the player's own fire (V12c): the running session goes on as the next day (and the next sitting, so the spacing rule sees a different play session), in the state a load of its own save would give, without a new
+    /// The sleep at a bed or a lit fire (V12c): the running session goes on as the next day (and the next sitting, so the spacing rule sees a different play session), in the state a load of its own save would give, without a new
     /// session or scene. <paramref name="document"/> is that save, captured now (<see cref="Capture"/>). What a save does not keep goes back to how a new session has it
     /// (the review question, the second tries, the warm-up, the word cards not shown, the buttons' English counts), every part of the save is put back as a load puts it
     /// back (the world is the save's already), and the session becomes the save's plus one, which lifts the spacing gaps and names the new session's lesson

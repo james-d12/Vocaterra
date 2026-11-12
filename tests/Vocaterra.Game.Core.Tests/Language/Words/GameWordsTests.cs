@@ -57,11 +57,13 @@ public sealed class GameWordsTests
         Assert.Equal("río", scene.Labels["river"]);
         Assert.Equal("casa", scene.Labels["house2"]);
         Assert.Equal("campamento", scene.Labels["camp"]);
-        Assert.Equal("fuego", scene.Labels["firering.player"]);
+        Assert.Equal("cama", scene.Labels["bed.inn"]); // Y08: the beacon to the bed says «cama»
+        Assert.DoesNotContain("firering.player", scene.Labels.Keys);
+        Assert.DoesNotContain("camp.player", scene.Labels.Keys); // the ledge is no longer «mi campamento»
         Assert.Equal("panadería", scene.Labels["bakery"]); // village-plan V04: the bakery, the smithy, the well, the tower and the field
         Assert.Equal("pescador", scene.Labels["npc.fisher"]); // V10: where the fisher stands, which El pueblo's walk back points at
         Assert.Equal(("herrero", "granjero"), (scene.Labels["npc.smith"], scene.Labels["npc.farmer"])); // V12: where the smith and the farmer stand, Gente del pueblo's walks
-        Assert.Equal(27, scene.Labels.Count); // W10 labelled the oven; Y04 the inn (posada)
+        Assert.Equal(26, scene.Labels.Count); // W10 labelled the oven; Y04 the inn (posada); Y08: the ledge and the mountain ring lost theirs and the bed (cama) gained one
     }
 
     [Fact]

@@ -44,7 +44,7 @@ public sealed class InnTests
 
         foreach (var z in new[] { z0 + 1, z0 + 2 })
         {
-            Assert.Equal(BlockId.Crate, At(scene, x0 + 5, floor + 1, z)); // the counter, one block high (a crate: a table within reach would be a workbench)
+            Assert.Equal(BlockId.Counter, At(scene, x0 + 5, floor + 1, z)); // the counter, one block high but tall for a body (a table within reach would be a workbench, a crate a step)
             Assert.Equal(BlockId.Air, At(scene, x0 + 5, floor + 2, z));
         }
 
@@ -57,12 +57,21 @@ public sealed class InnTests
         Assert.Equal(BlockId.Air, At(scene, x0 + 4, floor + 1, z0 + 3)); // the gap, on the door's axis
         Assert.Equal(BlockId.Air, At(scene, x0 + 4, floor + 2, z0 + 3));
         Assert.Equal(BlockId.Wall, At(scene, x0 + 4, floor + 3, z0 + 3)); // with a lintel
+        // Y08: two beds, each two cells long along row 5, the head cell against the wall: cols 1 and 2 on the west, cols 7 and 6 on the east.
         Assert.Equal(BlockId.Bed, At(scene, x0 + 1, floor + 1, z0 + 5));
+        Assert.Equal(BlockId.BedFoot, At(scene, x0 + 2, floor + 1, z0 + 5));
         Assert.Equal(BlockId.Bed, At(scene, x0 + 7, floor + 1, z0 + 5));
+        Assert.Equal(BlockId.BedFoot, At(scene, x0 + 6, floor + 1, z0 + 5));
         Assert.Equal(2, scene.Grid.BlocksOfKind(BlockId.Bed).Count);
-        Assert.Equal(new BlockPos(x0 + 2, floor, z0 + 5), scene.Point("bed.inn")); // the stand cell beside the west bed
-        Assert.Equal(BlockId.Air, At(scene, x0 + 2, floor + 1, z0 + 5));
-        Assert.Equal(BlockId.Air, At(scene, x0 + 2, floor + 2, z0 + 5));
+        Assert.Equal(2, scene.Grid.BlocksOfKind(BlockId.BedFoot).Count);
+        Assert.True(scene.Grid.IsSolid(x0, floor + 1, z0 + 5)); // each head lies against the wall beside it
+        Assert.True(scene.Grid.IsSolid(x0 + 8, floor + 1, z0 + 5));
+        Assert.Equal(new BlockPos(x0 + 3, floor, z0 + 5), scene.Point("bed.inn")); // the stand cell at the foot of the west bed, which covers cols 1 and 2
+        Assert.Equal("cama", scene.LabelOf("bed.inn"));
+        Assert.Equal(BlockId.Air, At(scene, x0 + 3, floor + 1, z0 + 5));
+        Assert.Equal(BlockId.Air, At(scene, x0 + 3, floor + 2, z0 + 5));
+        Assert.Equal(BlockId.Air, At(scene, x0 + 4, floor + 1, z0 + 5)); // the gap's line stays clear
+        Assert.Equal(BlockId.Air, At(scene, x0 + 4, floor + 1, z0 + 4));
 
         foreach (var (c, r) in new[] { (2, 0), (6, 0), (0, 2), (8, 2), (0, 4), (8, 4), (3, 6), (5, 6) })
         {

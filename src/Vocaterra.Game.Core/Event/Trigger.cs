@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Core.Event;
 /// </summary>
 /// <param name="Event">The event's name.</param>
 /// <param name="Npc">The NPC the event must be about (its agent id), or <see langword="null"/> for any.</param>
-/// <param name="Detail">The detail the event must have, exactly (ordinal: <c>firering</c> is not <c>firering.player</c>), or <see langword="null"/> for any.</param>
+/// <param name="Detail">The detail the event must have, exactly (ordinal), or <see langword="null"/> for any.</param>
 public sealed record Trigger(string Event, string? Npc = null, string? Detail = null)
 {
     /// <summary>The moment a session starts (a tip's trigger; no world event).</summary>

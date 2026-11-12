@@ -285,7 +285,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (10,797 tests) |
 | Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
-| Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
+| Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,347 tests) |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
@@ -403,6 +403,13 @@ and `camp.player` loses the label "mi campamento"; the mountain's sleep place go
 `AmbientBedsTests` and `TestingRowsTests`). The digest pinned again. The scripted runs r01, r10, r20 to r24, r26, r27 and r30
 captured again after their differences are read. [lessons](lessons.md), [running](running.md), [playtest](playtest.md).
 
+*Y08 as built (2026-11-12):* the mountain's tent, chest, crate and `firering.player` gone (the ledge stays the arrival); the sleep place
+`guide.fire` at Luna's ring replaces `camp.fire` and `death.wakeAt` names it; beds and bedrolls are two cells (`BedFoot`, `BedrollFoot`;
+mattress 0.55, headboard 1.0 with a pillow, footboard 0.7, a frame), the inn's beds take two cells each and `bed.inn` moved to 279,231
+(labelled «cama»); the counter is a new block `Counter` (solid, not climbable, not a workbench); the console's sleep line names the place;
+Rosa follows lodging given elsewhere (`NpcService.FollowLodging`); `hud.camp` «Estás de vuelta.»; the scripted runs' CAMP steps finish
+the checklist again, r10 reaches the ending, r20 sleeps in the bed and r30 at Luna's fire; digests pinned again once.
+
 **Y09 Land rules and protection.** It stays out of `scene.json`.
 - `game/land.json` with its schema, its load in `Content/GameData.cs`, a `CheckLand` in the validator and a row in
   `content/README.md`: the protected sites by their scene names with a margin, the path and bridge blocks with a margin, the
@@ -463,7 +470,7 @@ campamento» not answered when asked for directions, one plot only, no meals at 
 At most two building agents on the machine. Suggested pairs: (Y00, Y01), (Y02, Y03), Y04, (Y05, Y09), (Y06, Y10), Y06m alone, (Y07, Y11),
 Y08, Y12, Y13 (Y09 names the meadows' sites, which Y04 adds). While the weather session builds, the series runs one agent at a
 time, in that order. *As run (owner, 2026-11-11: the weather series is merged, two agents of this series may run at once):* Y06,
-then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07, Y11, Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
+then Y06m alone, then (Y07, Y09), then Y10 beside Y07 once Y09 was in, Y08 after Y07 with Y11 beside it once Y10 was in, then Y12, Y13. Y09 waits for Y06m because it edits the save and the simulation that
 the weather series changed. Two rules: the milestones that edit `scene.json` (Y04, Y08) never overlap, and milestones that edit the bundle
 are gated one at a time, the second hashing again after it has merged the first.
 

@@ -3672,7 +3672,7 @@
 {"id":"words.json:nearFuture.timeWords[10]","text":"próximo año","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
 {"id":"words.json:hudLines.hud.belongings","text":"tus cosas","kind":"npc"}
-{"id":"words.json:hudLines.hud.camp","text":"Estás en tu campamento.","kind":"npc"}
+{"id":"words.json:hudLines.hud.camp","text":"Estás de vuelta.","kind":"npc"}
 {"id":"words.json:hudLines.hud.fine","text":"bien","kind":"npc"}
 {"id":"words.json:hudLines.hud.name.health","text":"salud","kind":"npc"}
 {"id":"words.json:hudLines.hud.name.hunger","text":"hambre","kind":"npc"}

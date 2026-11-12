@@ -36,7 +36,6 @@ public sealed partial class VoxelSession : GuideSession
 
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
-    private readonly List<BlockPos> _playerFireRing = [];
     private readonly List<string> _hints = [];
     private readonly List<(Objective Objective, ObjectiveStep Step)> _pendingSteps = [];
     private IReadOnlyList<ObjectiveStep> _completed = [];
@@ -260,7 +259,7 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
     public bool GuideMet => _guideMet;
 
-    /// <summary>Whether a torch stands on the rim of the fire ring at the player's own camp (<c>firering.player</c>): the fire is lit.</summary>
+    /// <summary>Whether a torch stands on the rim of the fire ring at the guide's camp (<c>firering</c>; Y08): the fire is lit. The sound beds read it.</summary>
     public bool FireLit => _fireLit;
 
     /// <summary>
@@ -272,9 +271,6 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>The scene's name for the fire ring at the guide's camp, where the checklist's torch goes (S5).</summary>
     public const string CampFireRing = "firering";
 
-    /// <summary>The scene's name for the fire ring at the player's own camp, where the closing fire is lit (S17).</summary>
-    public const string PlayerFireRing = "firering.player";
-
     /// <summary>The closing line in Spanish (<c>Buenas noches. Tu cama está allí.</c>, the innkeeper's, Y07), the first of <c>game/session.json</c>'s closing pool, or an empty text when the bundle has none.</summary>
     public string ClosingLine => Bundle.Dialogue.TryGetPoolById(Data.Objectives.ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
 
@@ -283,16 +279,6 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>The speaker of <see cref="ClosingLine"/> (Y07): the NPC the closing pool belongs to (the innkeeper), else the guide.</summary>
     public string ClosingSpeaker => SpeechSpeakers.OfPool(Data.Objectives.ClosingPool, Data.Npcs);
-
-    /// <summary>
-    /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
-    /// <see cref="SessionComplete"/>).
-    /// </summary>
-    public bool HasPlayerFireRing => _playerFireRing.Count > 0;
-
-    /// <summary>Whether a cell lies at the fire ring of the player's own camp (the same square as <see cref="AtFireRing"/>, around <c>firering.player</c>).</summary>
-    /// <param name="cell">The cell.</param>
-    public bool AtPlayerFireRing(BlockPos cell) => AtRing(_playerFireRing, cell);
 
     /// <inheritdoc />
     protected override void NoteGuideMet()
@@ -436,17 +422,8 @@ public sealed partial class VoxelSession : GuideSession
                         var cell = new BlockPos(e.X, e.Y, e.Z);
                         if (AtFireRing(cell))
                         {
-                            LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring but the player's)
-                        }
-
-                        if (AtPlayerFireRing(cell))
-                        {
-                            LogWorld(WorldEvents.TorchAtRing, null, PlayerFireRing);
-                        }
-
-                        if (AtPlayerFireRing(cell))
-                        {
-                            LightFire(); // the closing fire (S17): a torch on the rim of the ring at the player's own camp
+                            LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring)
+                            LightFire(); // the latch the sound beds read: a torch on the rim of the guide's ring (Y12 will point it at a ring the player builds)
                         }
                     }
 
@@ -542,7 +519,7 @@ public sealed partial class VoxelSession : GuideSession
     /// </summary>
     public bool AtFireRing(BlockPos cell) => AtRing(_fireRing, cell);
 
-    private static bool AtRing(List<BlockPos> ring, BlockPos cell)
+    private static bool AtRing(IReadOnlyList<BlockPos> ring, BlockPos cell)
     {
         foreach (var stone in ring)
         {
@@ -564,8 +541,12 @@ public sealed partial class VoxelSession : GuideSession
     internal void RestoreStage()
     {
         _guideMet = false;
-        _fireLit = false;
-        _ = ScanPlayerFireRing(); // the latch the sound beds read (Y07: no objective restores it any more)
+        if (LodgingGiven)
+        {
+            Conversation.FollowLodging(); // Y08: a save with the room given puts the innkeeper in her goodnight state, whatever state it kept
+        }
+
+        _fireLit = RingHasTorch(_fireRing); // the latch the sound beds read (no objective restores it)
         foreach (var objective in Objectives)
         {
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is not null))
@@ -631,32 +612,32 @@ public sealed partial class VoxelSession : GuideSession
     private bool AlsoDone(Objective objective) =>
         objective.Spec.AlsoDoneBy.Any(id => Objectives.FirstOrDefault(o => string.Equals(o.Id, id, StringComparison.Ordinal)) is { Started: true });
 
-    // Whether a torch stands on the rim of the player's own fire ring; the fire is lit if so.
-    private bool ScanPlayerFireRing()
+    // Whether a torch stands on the rim of a fire ring (the stones of one ring, as AtRing reads them): the fire is lit if so. Y12 passes the ring the player builds.
+    private bool RingHasTorch(IReadOnlyList<BlockPos> ring)
     {
-        foreach (var stone in _playerFireRing)
+        foreach (var stone in ring)
         {
-            for (var dx = -2; dx <= 2 && !_fireLit; dx++)
+            for (var dx = -2; dx <= 2; dx++)
             {
-                for (var dz = -2; dz <= 2 && !_fireLit; dz++)
+                for (var dz = -2; dz <= 2; dz++)
                 {
                     foreach (var y in new[] { stone.Y, stone.Y + 1 })
                     {
                         var x = stone.X + dx;
                         var z = stone.Z + dz;
-                        if (Scene.Grid.InBounds(x, y, z) && Scene.Grid.GetBlock(x, y, z) == BlockId.Torch && AtPlayerFireRing(new BlockPos(x, y, z)))
+                        if (Scene.Grid.InBounds(x, y, z) && Scene.Grid.GetBlock(x, y, z) == BlockId.Torch && AtRing(ring, new BlockPos(x, y, z)))
                         {
-                            _fireLit = true;
+                            return true;
                         }
                     }
                 }
             }
         }
 
-        return _fireLit;
+        return false;
     }
 
-    // The fire at the player's own ring is lit (S17): the latch the sound beds read. Y07: no objective waits for it any more.
+    // The fire at a ring is lit: the latch the sound beds read, with the event that plays the lighting sound. No objective waits for it (Y07).
     private void LightFire()
     {
         if (_fireLit)
@@ -665,7 +646,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         _fireLit = true;
-        LogWorld(WorldEvents.FireLit, null, PlayerFireRing); // no objective waits for it since Y07 (the sound beds read the latch; Y08 retires the mountain ring)
+        LogWorld(WorldEvents.FireLit, null, CampFireRing);
     }
 
     // The camp checklist is done (Y07): the arrow goes to the inn the session names (game/session.json, innBeacon) and the guide sends the player there. A player who
@@ -1036,19 +1017,13 @@ public sealed partial class VoxelSession : GuideSession
         _newCards.Add(new WordCard(noun.Lemma, noun.WithDefinite));
     }
 
-    // The objective's ring is the one at the guide's camp (the scene's point "firering"). The cold ring at the player's own camp (the point
-    // "firering.player") is for the end of the session: a torch set on it does not complete the camp's step. A scene without the point counts every ring.
+    // The objective's ring is the one at the guide's camp (the scene's point "firering"); a scene without the point counts every ring.
     private void ScanFireRing(Scene scene)
     {
         var hasCampRing = scene.Points.TryGetValue(CampFireRing, out var centre);
-        var hasOwnRing = scene.Points.TryGetValue(PlayerFireRing, out var own);
         foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
         {
-            if (hasOwnRing && Math.Abs(stone.X - own.X) <= 1 && Math.Abs(stone.Z - own.Z) <= 1)
-            {
-                _playerFireRing.Add(stone);
-            }
-            else if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
+            if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {
                 _fireRing.Add(stone);
             }

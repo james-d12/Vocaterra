@@ -180,7 +180,7 @@ public sealed class NeedsHudTests
         Assert.Equal("Tengo un poco de hambre.", data.Words.HudLine("need.hunger.1"));
         Assert.Equal("Me muero de sueño.", data.Words.HudLine("need.sleep.4"));
         Assert.Equal("Estoy muy débil.", data.Words.HudLine("need.health.2"));
-        Assert.Equal("Estás en tu campamento.", data.Words.HudLine("hud.camp"));
+        Assert.Equal("Estás de vuelta.", data.Words.HudLine("hud.camp"));
         Assert.Equal("tus cosas", data.Words.HudLine("hud.belongings"));
     }
 

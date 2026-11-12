@@ -130,7 +130,7 @@ public sealed class DeathTests
         }
 
         Assert.Equal(session.Needs.Effects().StaminaMaximum, Meter(session, NeedMeter.Stamina));
-        var ring = session.Scene.Points[VoxelSession.PlayerFireRing];
+        var ring = session.Scene.Points[VoxelSession.CampFireRing];
         var feet = session.Simulation.Player.FeetBlock;
         var apart = Math.Sqrt((((long)ring.X - feet.X) * ((long)ring.X - feet.X)) + (((long)ring.Z - feet.Z) * ((long)ring.Z - feet.Z)));
         Assert.InRange(apart, 2, 5);

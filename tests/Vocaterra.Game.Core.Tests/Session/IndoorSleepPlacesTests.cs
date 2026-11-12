@@ -96,7 +96,7 @@ public sealed class IndoorSleepPlacesTests
         var session = TestGame.NewSession();
         session.SetNeed(NeedMeter.Thirst, 0);
         session.SetNeed(NeedMeter.Health, 0.25);
-        var ring = session.Scene.Point(VoxelSession.PlayerFireRing);
+        var ring = session.Scene.Point(VoxelSession.CampFireRing);
         var expected = StraightWake(session, session.SleepPlaces.WakeAt!.Cell);
 
         for (var i = 0; i < 60; i++)

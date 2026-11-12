@@ -35,7 +35,7 @@ public sealed class AmbientBedsTests
     [Fact]
     public void TheCampOnTheCliffHearsTheWindAndNoForestOrVillage()
     {
-        // The player's camp: the brink of the ledge at y 72, the fire ring behind it (lit at the end of the session).
+        // The mountain ledge (Y08: bare, no ring): the brink of the ledge at y 72.
         var camp = At(155.5, 72, 115.5);
 
         var unlit = AmbientBeds.At(Real.Value, camp, Noon, fireLit: false);
@@ -43,11 +43,22 @@ public sealed class AmbientBedsTests
         Assert.Equal(0.0, W(unlit, AmbientBeds.Birds));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Village));
         Assert.Equal(0.0, W(unlit, AmbientBeds.Waterfall));
-        Assert.Equal(0.0, W(unlit, AmbientBeds.Fire)); // the ring is cold until the fire is lit
+        Assert.Equal(0.0, W(unlit, AmbientBeds.Fire));
 
         var lit = AmbientBeds.At(Real.Value, camp, Noon, fireLit: true);
-        Assert.InRange(W(lit, AmbientBeds.Fire), 0.5, 1.0);
+        Assert.Equal(0.0, W(lit, AmbientBeds.Fire)); // Y08: the fire bed sits at Luna's ring, far down the trail
         Assert.Equal("camp.player", AmbientBeds.PlaceOf(Real.Value, camp));
+    }
+
+    [Fact]
+    public void TheFireBedSitsAtLunasRingOnceItIsLit()
+    {
+        var ring = Real.Value.Fire;
+        Assert.NotNull(ring);
+        var beside = At(ring!.Value.X + 1, 42, ring.Value.Z);
+
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, beside, Noon, fireLit: false), AmbientBeds.Fire));
+        Assert.InRange(W(AmbientBeds.At(Real.Value, beside, Noon, fireLit: true), AmbientBeds.Fire), 0.9, 1.0);
     }
 
     [Fact]

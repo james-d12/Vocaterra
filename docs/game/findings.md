@@ -2513,3 +2513,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   it; the HUD line and the hint show; the agent's screenshots show both outlines clearly (`artifacts/y10-check/`). The first rail lay in
   the tall grass and was hidden: an outline must stand above the undergrowth. Known: no plural key for the price ("1 coins"), and an
   outline above about 36 × 36 would exceed one mesh's vertex limit and silently not draw.
+- **Y08, the mountain, the beds and the strings (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y08-report.md` on the
+  branch; the as-built note is in the settlement plan. The beds were added at the owner's word ("Why are the beds so short? They look
+  broken"): a one-block bed beside a player 1.8 high read as a box; two cells with a frame and boards read as a bed
+  (`artifacts/y08-check/guest-room-close.png`). The agent's first "before" capture of the scripted runs was spoiled by editing
+  `scene.json` while it ran (a hash mismatch): capture a baseline from a separate worktree, never from the one being edited. Gate:
+  11,347 tests passed, 3 skipped. Checked on the merged build: after `--skip-to-session 2` Rosa greets «Buenas noches.» with no offer,
+  and a sleep in the bed prints "session 2 ends at the inn" (`last: inn.bed`).

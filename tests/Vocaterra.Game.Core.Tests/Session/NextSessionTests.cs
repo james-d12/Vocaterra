@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.Session;
 
@@ -19,15 +18,8 @@ public sealed class NextSessionTests
 
     private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
 
-    // Stands the player on the ground three blocks south of their fire ring (where the scripted r20-sleep stands), as --teleport does.
-    private static void TeleportToFire(VoxelSession session)
-    {
-        var ring = session.Scene.Point(VoxelSession.PlayerFireRing);
-        var grid = session.Scene.Grid;
-        var (x, z) = (ring.X, ring.Z + 3);
-        var y = Enumerable.Range(1, grid.SizeY - 3).Reverse().First(y => grid.IsSolid(x, y, z) && !BlockDefinition.IsLeaves(grid.GetBlock(x, y, z)) && !grid.IsSolid(x, y + 1, z));
-        session.Simulation.TeleportTo(new BlockPos(x, y + 1, z));
-    }
+    // Stands the player at the inn's bed (the sleep place's cell; Y08: the mountain fire is gone and the player sleeps at the bed once the room is given).
+    private static void TeleportToFire(VoxelSession session) => session.Simulation.TeleportTo(session.SleepPlaces.Find("inn.bed")!.Cell);
 
     [Fact]
     public void AfterTheFirstDaysEndingTheObjectiveSaysToSleepAtTheFireAndAPlaytestKeepsItsLine()

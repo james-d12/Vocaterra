@@ -262,7 +262,7 @@ public sealed class ObjectiveBookTests
         var loaded = SaveGame.Load(SaveGame.Serialize(SaveGame.Parse(node.ToJsonString())), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
 
         Assert.NotNull(loaded.Migration);
-        Assert.Equal(1, loaded.Objective.Step("wood")!.Count);
+        Assert.Equal(3, loaded.Objective.Step("wood")!.Count);
         Assert.Equal(3, loaded.Objective.Step("berry")!.Count);
         Assert.Equal(1, loaded.Objective.Step("torch")!.Count);
     }

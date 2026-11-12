@@ -29,6 +29,7 @@ public sealed partial class VoxelSession
         }
 
         LodgingGiven = true;
+        Conversation.FollowLodging(); // Y08: the innkeeper greets with the goodnight line from now on, whoever gave the room
         LogWorld(WorldEvents.LodgingGranted, null, null);
     }
 

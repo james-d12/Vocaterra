@@ -101,6 +101,24 @@ public sealed class PlotPurchaseTests
     }
 
     [Fact]
+    public void Given_ADayTwoClassAtTheMayor_When_HeOffersTheStakeAndTheLearnerAnswers_Then_TheClassIsOfferedInTheSameTalkAfterwards()
+    {
+        var session = TestGame.NewSessionWithShippedLessons(LandTestScene.Seed);
+        session.Lessons.CountAsCompleted("first-words", 1);
+        session.Day = 2;
+        session.Sitting = 2;
+        Stage.TeleportToNpc(session, Mayor);
+
+        var opening = session.OpenTalk(Mayor);
+
+        Assert.Equal(StakePrompt, opening.Prompt); // the stake first, as an order's offer comes first (D-game-25)
+        Assert.Null(session.Lessons.OfferStandingAt(Mayor)); // the class waits for the answer
+        _ = session.Say("No, gracias.");
+        Assert.Equal("personas", session.Lessons.OfferStandingAt(Mayor)); // and follows in the same talk
+        Assert.Equal(0, Count(session, ItemId.Stake));
+    }
+
+    [Fact]
     public void Given_TheStakeOffer_When_TheLearnerSaysNoSeOrMissesTwice_Then_PatienceGivesTheStakeAnyway()
     {
         var session = SessionTwo();

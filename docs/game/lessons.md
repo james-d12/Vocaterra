@@ -73,8 +73,8 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk gu
   `lodging_granted`, restored from the save's lodging). Taking the room from Rosa completes the session. The ending is hers: the closing pool is `innkeeper_night`
   (`Buenas noches. Tu cama está allí.`, her voice), said and shown with its English on a `Session complete` card once the talk that gave the room has closed
   (`SessionEnding` waits for `TalkOpen` to be false). In a playtest the post-check follows (the transfer offer first: she greets the player with it when they pass
-  through her camp). The fire ring at the guide's camp keeps its role: the checklist's torch step. Lighting your own fire moved to the campsite (Y12); until Y08 the
-  mountain's ring still lights from a torch but nothing waits for it. Outside a playtest the card offers the next session (`Enter: sleep until morning and start
+  through her camp). The fire ring at the guide's camp keeps its role: the checklist's torch step. Lighting your own fire moved to the campsite (Y12); the mountain's ring is gone (Y08), and the torch at Luna's ring only lights
+  the fire bed and makes her fire a place to sleep. Outside a playtest the card offers the next session (`Enter: sleep until morning and start
   session 2`) and the objective line says `Session complete: go to bed to start session 2` (V12c, "The next session: sleep at the fire" below); a playtest says
   `Session complete: you have a room at the inn`.
 - **English on the buttons.** `[R] Repetir (repeat)`, `[S] Más despacio (slower)`, `[H] Ayuda (help)`, `[N] No sé (I don't know)`, `[W] Escribir (type)` and the hold-to-talk
@@ -103,7 +103,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   says what Luna wants, what we need and what we want and answers the shopkeeper's `usted` questions about themself; the other forms are heard (listen steps) and listed once. A step may name its NPC
   (`npc`), and a `do` step may wait for the panel to open on an NPC (`at`): the walk from the villager to the stall. While such a step waits the objective says `Walk to the stall and talk to the
   shopkeeper`. The villager's and the shopkeeper's lines are in pools named `guide.lesson.villager.*` and `guide.lesson.shop.*` (the voices follow the prefix; `--host-pools 'guide.*'` counts them).
-  `--session 2 --lesson-run personas` runs it with typed answers, walking from the player's camp to the villager and then the stall.
+  `--session 2 --lesson-run personas` runs it with typed answers, walking from the mountain ledge to the villager and then the stall.
 - **The forms a lesson teaches.** `lessons.json` declares them (`verbs`: lemma, person 1 to 3, number sg or pl, tense): the yo and tú of the three verbs (`first-words`) and the third person singular, the
   first and the third person plural of the verbs it uses (`personas`, 12 forms: only those heard, said or named; the conjugation of `ir` waits for session 3). A test checks each is a word the learner meets in the lesson and that the core's morphology knows it; the book's conjugation
   tables (S28) read them.
@@ -126,7 +126,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   `hoy`, `ayer` and `mañana`. The villager covers today and tomorrow, a walk to the stall (the same short walk as Personas) leads to the shopkeeper, who asks about yesterday: `¿Qué comiste ayer?`,
   `¿Fuiste al río ayer?`, `¿Bebiste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
   The lesson of the newest session comes first at an NPC (a learner who reaches session 3 without session 2's `personas` is offered `ayer-y-manana`, and `personas` after it).
-  `--session 3 --lesson-run ayer-y-manana` runs it with typed answers, walking from the player's camp to the villager and then the stall.
+  `--session 3 --lesson-run ayer-y-manana` runs it with typed answers, walking from the mountain ledge to the villager and then the stall.
 - **The tense of the answer's verb.** A step may declare `tense` (`pres`, `pret`, `ir-a` or, since V16, `fut`; below) with a `tenseRetry` line, next to S26's `person`. The runner reads the answer's finite verbs from the turn's word readings:
   for `pret` and `pres` one finite verb with that tense is enough; for `ir-a` it looks for a form of `ir` in the present, then `a`, then an infinitive (`voy a comer`; `vamos` is read as an imperative or a present, both count;
   `iba a comer` is a past, V16).
@@ -281,7 +281,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session 5 --telepo
 # session 1: the fisher asked the way to the bakery, the arrow, the walk to its door (beacon_reached), the bakery and the baker (r19)
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --teleport 236,206 --talk fisher --say "¿dónde está la panadería?" --shot /tmp/v09-arrow.png \
   --walk-to 282,206 --walk-to 282,212 --look 0,4 --screenshot /tmp/v09-bakery-door.png --frames 60
-# session 4: the fisher's lesson with typed answers, from the player's camp
+# session 4: the fisher's lesson with typed answers, from the mountain ledge
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session 4 --lesson-run el-pueblo --screenshot /tmp/v10-el-pueblo.png --frames 30
 ```
 
@@ -328,11 +328,11 @@ The open points after the follow-ups (V24, 2026-11-02) are in [village-plan.md](
 
 ## The next session: sleep at the fire (V12c)
 
-A play session used to advance only on a quit and a `--load`, which nothing in the game said. Now the player sleeps at their own fire, and the next session begins
+A play session used to advance only on a quit and a `--load`, which nothing in the game said. Now the player sleeps in a bed at the inn or at a lit fire (Luna's, since Y08), and the next session begins
 in the same run.
 
 - **Where.** The closing card of session 1 (the ending, S17) offers it: `Enter: sleep until morning and start session 2`, over its `Esc: keep looking around`. And
-  the lit fire at the player's camp (`firering.player`) offers it whenever the session's work is done, the same moment the objective says to sleep (or that every
+  a bed with a room, or a lit fire (Luna's, `firering`; the mountain's ring is gone since Y08), offers it whenever the session's work is done, the same moment the objective says to sleep (or that every
   lesson is done): standing within five blocks of it, the HUD's hint under the crosshair says `E: sleep until morning (session 3)` and **E** sleeps (E keeps
   talking to an NPC under the crosshair and opening the workbench first). On waking in a session whose lesson is left the fire offers nothing, so no sleep skips it. An open panel, a screen,
   a check, a recording or a lesson step that waits comes first: no prompt then. Every lesson starts by itself, so a lesson begun in the run stays engaged when its
@@ -351,8 +351,8 @@ in the same run.
   sleep starts; then its policy starts again from the sleep's tick, as a load's run starts it. The folder and the files stay the run's. The console says
   `sleep: ...: session 1 ends at the fire, session 2 begins (tick, stored time, world digest)` and a toast says `Good morning: session 2 begins`.
 - **What the objective says next.** Once the session's work is done (session 1: its ending; from session 2: no lesson under way and every unlocked lesson done), the
-  line says `Session complete: sleep at your fire to start session 2`, and when the work ends away from the fire (a lesson completed in the village) the beacon
-  goes to the fire. When no later session has a lesson (after session 10, the last) it says `Every lesson so far is done: practise any of them again in the book (J), or
+  line says `Session complete: go to bed to start session 2`, and when the work ends away from the fire (a lesson completed in the village) the beacon
+  goes to the bed. When no later session has a lesson (after session 10, the last) it says `Every lesson so far is done: practise any of them again in the book (J), or
   talk to the people of the village`; the fire still lets the player sleep, which lifts the spacing gaps. From session 2, while a lesson is under way or left, it
   says `Next: talk to the villager for the lesson “Personas”`. These lines come after a lesson's own line, a replay, a review and a new lesson, and over an order,
   as the new lesson's line does, except that an open order keeps its own line rather than `Every lesson so far is done`.
