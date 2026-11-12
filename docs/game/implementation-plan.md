@@ -537,7 +537,7 @@ the statuses below follow its table in section 8.3.
 | Y06m | Merge `main` (the weather series, PR #64) into `feature/settlement` and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
 | Y07 | The opening's logic: `inn-room` ends day one, `light-fire` and its hooks leave, the ending's voice and timing, the skip aid | Y06m | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain camp removed, the strings, the tests and scripted runs captured again | Y07 | M | Sonnet 5.5, medium | todo |
-| Y09 | Land rules and protection: `land.json`, `LandRules`, placing refused on protected columns, planks taken back on owned land, `systems.land` | Y00, Y02, Y04 | M/L | Sonnet 5.5, high | todo |
+| Y09 | Land rules and protection: `land.json`, `LandRules`, placing refused on protected columns, planks taken back on owned land, `systems.land` | Y00, Y02, Y04 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
 | Y11 | Buying the plot from the mayor: `sell_plot`, the mayor's title and lines, the «Mi terreno» checklist | Y10 | M/L | Sonnet 5.5, high | todo |
 | Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as sleep places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | todo |

@@ -286,7 +286,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | todo |
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
-| Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | todo |
+| Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | todo |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
@@ -406,6 +406,15 @@ captured again after their differences are read. [lessons](lessons.md), [running
 - A rules hook on `VoxelSimulation` (as `WalkPermille` is) used by `TryPlace`: planks are refused on protected columns with a
   hint; a torch is always allowed, so the exercise at Luna's ring is untouched. Planks can be gathered inside the owned plot.
   `systems.land` (the pending plot and the owned one).
+
+*Y09 as built (2026-11-12):* `game/land.json` protects the village (its disc and blend plus 2), Luna's camp (plus 2) and every `path`
+and `bridge` block (plus 2), each with a tag for its hint; the meadows are the eligible discs; the plot is 10 × 10, price 10, slope 1.
+`LandRules.CheckPlot` gives the first fault of Protected, OutsideMeadows, Water, Tree, NotGround, TooSteep; every footprint column must
+lie in a meadow (stricter than 9.2's "centre within 20"; 7 plots fit in each meadow on seed 42, at least 3 on four seeds). Only planks
+and torches are placeable today: planks are refused on protected columns, torches never. Planks become gatherable only inside the owned
+plot, so a plank placed in the wild stays until the player owns land; scene planks (house floors) and placed ones are not told apart,
+so holding gather on a house floor shows the take-back hint. `--pour` follows the same rule. `systems.land` holds the pending and the
+owned plot; `OwnPlot()` re-checks and owns the pending one (no coins: Y11). Dev aid `--own-plot x,z` (the west-north corner).
 
 **Y10 The stake and the plot's outline.** The item `stake` (`Items/ItemDefinition.cs`, its noun, its icon). A use-item hook in
 `Input/WorldInput.cs` (as `PlantOn` is) marks the pending plot round the ground cell aimed at; a refusal says why on the hint
