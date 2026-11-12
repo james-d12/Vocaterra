@@ -151,6 +151,8 @@ public sealed record LaunchOptions
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
      + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
         + "  --lodging               a dev aid, only with --dev (Y05): the player starts with lodging, so the inn's bed can be slept at (the innkeeper gives it in play)\n"
+        + "  --own-plot <x,z>        a dev aid, only with --dev (Y09): at the start the player owns the plot whose west-north corner is this block column, if the land rules\n"
+        + "                          allow it there (the meadows' valid origins; a refusal says why and exits); no coins, no stake: the later milestones' tests and the scripted runs use it\n"
         + "  --dev                   the debug overlay and the dialogue's developer note start on (U01); F3 toggles both; without it ordinary play starts clean\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
@@ -411,6 +413,9 @@ public sealed record LaunchOptions
     /// </summary>
     public bool Dev { get; init; }
 
+    /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
+    public (int X, int Z)? OwnPlot { get; init; }
+
     /// <summary>Whether <c>--lodging</c> was given (Y05, a dev aid, allowed only with <c>--dev</c>): the player starts with lodging, so the inn's bed can be slept at.</summary>
     public bool Lodging { get; init; }
 
@@ -652,7 +657,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -713,6 +718,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { SkipToSession = skipTo };
+                    break;
+                case "--own-plot":
+                    if (!VoxelStep.TryParseColumn(value, out var plotX, out var plotZ))
+                    {
+                        error = $"--own-plot needs the west-north block column of the plot, like 261,160; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { OwnPlot = (plotX, plotZ) };
                     break;
                 case "--book-practise":
                     if (string.IsNullOrWhiteSpace(value))
@@ -1332,6 +1346,12 @@ public sealed record LaunchOptions
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
             error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            return false;
+        }
+
+        if (result.OwnPlot is not null && !dev)
+        {
+            error = "--own-plot is a dev aid and needs --dev (it gives the player a plot of land at the start).";
             return false;
         }
 

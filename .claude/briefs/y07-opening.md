@@ -48,6 +48,13 @@ What this milestone is for. Day one used to end when the camp checklist was done
 the introduction, Luna's camp task and a room at the inn. Lighting your own fire moves to the campsite (Y12). The mountain's tent, chest and
 fire ring stay in the scene until Y08; this milestone only stops the opening from using them.
 
+Since Y06m (the merge of `main`'s weather series; read `y06m-report.md`, "For Y07 to Y13", in the same folder as this brief): every sleep
+goes through `SaveGame.Sleep` and `ApplyNight`, which now wakes main's day clock; a new pool or NPC moves the counts in
+`SpeechLinesTests` and adds identity-baseline lines (record them, say so); a new line for an NPC needs its speech in that NPC's voice.
+The test count to compare with is 11,221 passed, 3 skipped. Another agent builds Y09 (land rules) at the same time in
+`.claude/worktrees/y09`: it adds `game/land.json`, `Land/`, `VoxelSession.Land.cs`, `systems.land` and a rules hook in
+`VoxelSimulation.TryPlace`; stay out of those. Whichever is merged second merges the first and hashes the bundle again.
+
 Deliverables:
 
 1. **The objective `inn-room`** (`game/objectives/inn-room.json`, one step whose trigger is the world event `lodging_granted`; its
@@ -109,7 +116,7 @@ console's sleep line, `hud.camp`, the ambient beds, the tests that name `firerin
 beyond the ending's needs (Y06 built it); land, the stake, the mayor, the camp kit (Y09 to Y12); any `scene.json` edit.
 
 Gate (from your worktree's root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(report the count; the feature branch's count after Y06 is in y06-report.md); scripts/limited.sh dotnet format Vocaterra.sln
+(report the count; 11,221 passed and 3 skipped after Y06m); scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; the A2 content gate above clean; the full suite once
 without models (`VOCATERRA_MODELS_DIR` an empty folder) passes. Do not commit bin/, obj/ or artifacts/.
 

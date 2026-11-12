@@ -2493,3 +2493,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - *Scripted runs (all 28 run on `origin/main` and on the merge, same work folder):* the only differences are the settlement's own (the scene digest and tree count,
     the face count, speech 759 lines to 809, save version 7 to 8, pictures with the inn and the new meadows in view, the world digests). `r26-death` wakes at 152, 73, 106 on both,
     with the same `systems.atmosphere`. `r10-playtest` exits 2 on both. Nothing was re-baselined.
+- **Y09, land rules (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y09-report.md` on the branch; the as-built note is
+  in the settlement plan's Y09 paragraph. Gate: 11,298 tests passed, 3 skipped. Checked on the merged build (seed 42, `--dev`): a plank
+  on the village street (282, 38, 221) refused "village: no building there"; a plank in the wild (266, 37, 165) placed, taking it back
+  refused with the land hint. Two things for later: holding gather on a scene plank (a house floor) shows the take-back hint once per
+  hold, because placed and scene planks are not told apart (saved state would be needed; Y13 records it as a known gap or Y12 tells
+  them apart when it adds the camp's own take-back rule); and the scripted steps' generic refusal ("out of reach, no item, or not
+  placeable there") also covers a target inside the player's own cell, which misled the orchestrator's first spot check.
