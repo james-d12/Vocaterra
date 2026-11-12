@@ -97,7 +97,7 @@ public sealed class NpcRosterTests
         Assert.Equal(new NpcVoiceSpec(53, string.Empty, 1.0f), bare.Voice); // no name: the validator says so too
         Assert.Equal("miller", bare.PoolPrefix);
         Assert.Null(bare.PromptIn("idle", "idle"));
-        Assert.True(bare.OwnsPool("miller_hello") && bare.OwnsPool("guide.lesson.miller.flour") && !bare.OwnsPool("millers_hello") && !bare.OwnsPool("guide.lesson.end"));
+        Assert.True(bare.OwnsPool("miller_hello") && bare.OwnsPool("guide.lesson.miller.flour") && !bare.OwnsPool("millers_hello") && !bare.OwnsPool("guide.camp.inn"));
     }
 
     [Theory]

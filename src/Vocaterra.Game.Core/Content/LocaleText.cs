@@ -50,7 +50,7 @@ public sealed class LocaleText
     [
         "english", "lesson", "stepOf", "continue", "skip", "help", "startLesson", "lessonDone", "retry", "helpDefault", "recapTitle", "controlsTitle", "controlsClose",
         "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "stepReview", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
-        "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
+        "objectiveComplete", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
         "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType",
         "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryReviewed", "summaryForms", "summaryPractise",
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",

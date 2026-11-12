@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "inn-room",
+  "about": "The end of day one (Y07, D-game-32): a room at the inn. The innkeeper's host action grant_lodging raises lodging_granted; a loaded game reads the lodging from the save's sleep entry.",
+  "steps": [
+    {"id": "room", "target": 1, "trigger": {"event": "lodging_granted"}, "restore": "lodging-given"}
+  ]
+}

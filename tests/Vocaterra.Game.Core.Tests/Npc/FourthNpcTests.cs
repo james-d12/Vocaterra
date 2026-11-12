@@ -104,7 +104,7 @@ public sealed class FourthNpcTests
         Assert.Equal("miller", speech["miller_point.1"].Speaker);
         Assert.Equal("miller", speech["guide.lesson.miller.near.1"].Speaker); // a lesson line named guide.lesson.<id>.* is his too
         Assert.Equal("miller", speech["prompt.miller-open"].Speaker);
-        Assert.Equal(SpeechSpeakers.Guide, speech["guide.lesson.end.1"].Speaker);
+        Assert.Equal(SpeechSpeakers.Guide, speech["guide.camp.inn.1"].Speaker);
     }
 
     // The bundle with the miller: copied without the speech folder, the five files edited or added, the manifest computed again, loaded by the core and read by

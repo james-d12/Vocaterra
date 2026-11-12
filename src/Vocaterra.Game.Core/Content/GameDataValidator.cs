@@ -295,6 +295,16 @@ public static class GameDataValidator
         {
             problems.Add($"{ObjectiveBook.SessionPath}: the beacon starts on '{book.BeaconStart}', which is not a site or a point of the scene.");
         }
+
+        var needsInn = book.Objectives.Any(static o => o.OnComplete.Contains("point-inn", StringComparer.Ordinal));
+        if (needsInn && book.InnBeacon is null)
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: an objective names the hook 'point-inn', so the session needs an \"innBeacon\" (a place of the scene).");
+        }
+        else if (book.InnBeacon is { } inn && !data.Scene.PointNames.Contains(inn, StringComparer.Ordinal))
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: innBeacon is '{inn}', which is not a place of the scene.");
+        }
     }
 
     private static void CheckNpcs(GameData data, List<string> problems)

@@ -34,7 +34,12 @@
     "closingPool": {
       "type": "string",
       "minLength": 1,
-      "description": "The dialogue pool whose first line the guide says when every objective is done."
+      "description": "The dialogue pool whose first line is said when every objective is done (its NPC's voice: the innkeeper's, Y07)."
+    },
+    "innBeacon": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The scene place (a site or a point, by its name) the point-inn completion hook sends the beacon to (Y07: the inn). Required when an objective names that hook."
     },
     "grants": {
       "type": "array",

@@ -148,8 +148,8 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --look 120,-5 --beacon rive
 # S17, the whole route in one run, from the player's own camp: the walk down the trail to the guide, her lesson (`--lesson-run` does every step with typed
 # answers and picks the fruit she offers from a bush), the camp (wood, fruit, the torch at her fire ring), the stall (the shopkeeper's "¿Qué necesitas?" is a
 # core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
-# checklist is complete: a spare torch is in the bag and the beacon points up the trail), the guide's transfer offer "¿Quieres agua?", and the climb back to the
-# player's camp, where a torch on the rim of the cold fire ring lights it: the closing card says "Session complete". The console prints every lesson step and its
+# checklist is complete: Luna's line sends the player to the inn and the beacon points there, Y07), the guide's transfer offer "¿Quieres agua?", and the walk to the
+# inn, where the innkeeper's «sí» gives the room: the closing card says "Session complete" (the innkeeper's line). The console prints every lesson step and its
 # outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire. One step is spoken
 # (S22): after the lesson the route greets the guide with `--wav` and the bundle's recorded "Hola." (the Kokoro line), so the step goes through Vosk (the
 # console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
