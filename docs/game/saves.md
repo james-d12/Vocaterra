@@ -83,7 +83,7 @@ the mayor, Y11), each `{"x", "z", "width", "depth"}`: the west-north corner and 
 protected regions and the meadows come from `game/land.json` and the scene (`LandRules` builds its mask when the session starts), so an edit of the file changes where a column is protected for every save. A load and a sleep's restore put the
 plots back as saved, with no check (a plot bought stays bought); a plot with no size or outside the world is refused (`SaveException`). The entry is optional, so the version stays 8 and no migration is needed; across bundles
 (`SaveMigration.Adapt`) the entry is kept as it is. The dev aid `--own-plot x,z` (with `--dev`) makes a save carry an owned plot from the start. Y11 adds nothing to the entry: the purchase moves the pending plot to `owned` and puts the camp kit (`camp-kit`) in the slots and the coins out; the
-checklist `my-land`'s `buy` step has the restore hook `plot-owned` and is worked out again from `owned`, its `stake` step counts the bag, and the mayor's agent state is in the NPC records as any NPC's.
+checklist `my-land`'s `buy` step has the restore hook `plot-owned` and is worked out again from `owned`, its `stake` step counts the bag and one more once the plot is owned (the mayor keeps the stake at the purchase, Y15: the bag holds none then), and the mayor's agent state is in the NPC records as any NPC's.
 
 Version 6 added the optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 added `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),

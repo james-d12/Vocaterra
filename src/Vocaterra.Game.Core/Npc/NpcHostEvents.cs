@@ -313,7 +313,7 @@ public sealed record NpcEffect(
     /// The worker asks it of the turn's copy of the bag and the land, and the session asks again of the bag and the land themselves before anything changes hands
     /// (<see cref="Session.VoxelSession.SellPlot"/>). In order: the land is owned already (<see cref="NpcHostEvents.AlreadyOwned"/>); no plot is marked, or the marked one no longer
     /// passes the land rules (<see cref="NpcHostEvents.NoPlot"/> when the bag holds a stake, <see cref="NpcHostEvents.NoStake"/> when it holds none); too few coins
-    /// (<see cref="NpcHostEvents.CantPay"/>); no room for the item once the coins are paid (<see cref="NpcHostEvents.NoRoom"/>).
+    /// (<see cref="NpcHostEvents.CantPay"/>); no room for the item once the coins are paid and the stake handed over (<see cref="NpcHostEvents.NoRoom"/>, Y15).
     /// </summary>
     /// <param name="bag">The bag, or <see langword="null"/> for a turn that carries none (then it holds nothing).</param>
     /// <param name="plot">The land's facts, or <see langword="null"/> for a world with no land (nothing is marked).</param>
@@ -329,8 +329,22 @@ public sealed record NpcEffect(
         return plot.Owned ? NpcHostEvents.AlreadyOwned
             : !plot.Marked ? (bag.Count(ItemId.Stake) > 0 ? NpcHostEvents.NoPlot : NpcHostEvents.NoStake)
             : bag.Count(ItemId.Coin) < plot.Price ? NpcHostEvents.CantPay
-            : !bag.CanExchange(ItemId.Coin, plot.Price, Item, Count) ? NpcHostEvents.NoRoom
+            : !RoomForKit(bag, plot.Price) ? NpcHostEvents.NoRoom
             : null;
+    }
+
+    // Y15: the mayor keeps the stake, so the stake's slots are free for the kit as well as the coins' (a full bag that holds the stake still takes the kit).
+    private bool RoomForKit(Inventory bag, int price)
+    {
+        var after = bag.Copy();
+        _ = after.Remove(ItemId.Coin, price);
+        var stakes = after.Count(ItemId.Stake);
+        if (stakes > 0)
+        {
+            _ = after.Remove(ItemId.Stake, stakes);
+        }
+
+        return after.CanAdd(Item, Count);
     }
 
     /// <summary>

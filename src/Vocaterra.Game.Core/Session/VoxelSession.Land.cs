@@ -238,9 +238,9 @@ public sealed partial class VoxelSession
     }
 
     /// <summary>
-    /// The exchange of the sale (Y11, <see cref="NpcEffectKind.SellPlot"/>): the price in coins out, the plot owned and the camp kit in, as one operation that cannot half happen. The order: first the
-    /// checks of the exchange (the land is not owned, a plot is marked and passes the rules, the coins cover the price, the bag has room for the kit once the coins are out:
-    /// <see cref="NpcEffect.PlotMiss"/> and <see cref="Items.Inventory.CanExchange"/>); then <see cref="OwnPlot"/>, which checks the world once more and may refuse; then the coins and the kit. A refusal at
+    /// The exchange of the sale (Y11, <see cref="NpcEffectKind.SellPlot"/>): the price in coins and the stake out, the plot owned and the camp kit in, as one operation that cannot half happen. The order: first the
+    /// checks of the exchange (the land is not owned, a plot is marked and passes the rules, the coins cover the price, the bag has room for the kit once the coins and the stake are out:
+    /// <see cref="NpcEffect.PlotMiss"/>); then <see cref="OwnPlot"/>, which checks the world once more and may refuse; then the coins, the stake (the mayor keeps it, Y15) and the kit. A refusal at
     /// any step leaves the coins, the bag and the land as they were; the mayor answered the miss on the worker, and a refusal that only the session sees (the world moved since the turn began) says
     /// so on the hint line. A repeated «sí», a reload or a second talk finds the land owned and changes nothing (<c>already_owned</c>).
     /// </summary>
@@ -252,7 +252,7 @@ public sealed partial class VoxelSession
     {
         var price = Land.Rules.PlotPrice;
         var bag = Simulation.Inventory;
-        if (Needs.IsDead || effect.PlotMiss(bag, PlotFactsNow()) is not null || !bag.CanExchange(ItemId.Coin, price, effect.Item, effect.Count))
+        if (Needs.IsDead || effect.PlotMiss(bag, PlotFactsNow()) is not null)
         {
             return false;
         }
@@ -265,6 +265,7 @@ public sealed partial class VoxelSession
         }
 
         Take(npc, ItemId.Coin, price, how);
+        Take(npc, ItemId.Stake, bag.Count(ItemId.Stake), how); // Y15: the mayor keeps the stake (one in the bag, or none; a stake in a chest stays there)
         _ = Give(npc, effect.Item, effect.Count, how);
         LogWorld(WorldEvents.PlotBought, npc, string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{plot.X},{plot.Z}"));
         _hints.Add(Locale.Ui(PlotBoughtHint, ("price", price.ToString(System.Globalization.CultureInfo.InvariantCulture))));

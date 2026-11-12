@@ -117,7 +117,7 @@
 {"path":"game/objectives/fruit-for-mar.json","sha256":"8b01b4a98686be1591496412b78e4f5ae9c02f55ffa3e8f133b2b6e3f8d6ec67","bytes":949},
 {"path":"game/objectives/inn-room.json","sha256":"9577ac18e34133f3c1b0104b2f386cff392161e5effb0642f80d78d1cfb79fda","bytes":415},
 {"path":"game/objectives/meet-guide.json","sha256":"9f719299b1906c04f69ff62d6d673a308229de6541aa14c744681c466224b445","bytes":521},
-{"path":"game/objectives/my-land.json","sha256":"f3c8f8d5f0905c9ce5abcab922dae611f95ca1edf787e18566e44142e1b91b04","bytes":1560},
+{"path":"game/objectives/my-land.json","sha256":"a0781e14d5f7de33bccb40d0ef42061ce34afd31953056bf99ef2a1c1b64f8e8","bytes":1688},
 {"path":"game/objectives/oven-wood.json","sha256":"82bd654671ab6ce1c825016cf03111e0a9030e8240ace6797feedea070195cb2","bytes":1356},
 {"path":"game/objectives/water-for-plants.json","sha256":"a3d73b65f06002eaf4d3f7d7bedd1d69f577c977eb536e8e2e0baa54fbdd8ade","bytes":1531},
 {"path":"game/phrases.json","sha256":"be792f08e3cb7716ec144782b48c5c3d561c8202fd5c400c4acfa2bfcef136fd","bytes":42299},
@@ -1805,4 +1805,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"a127d4db9275ebe1e7a1fefb1b7d9fc402c2447d96265a5b46580a5004959392"}
+],"bundleHash":"57a591525837da8e61b2e724f168285f2335e57facc02a0923c881340367c997"}

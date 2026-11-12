@@ -784,8 +784,9 @@ public sealed partial class VoxelSession : GuideSession
     // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none (SecondBottle).
     private bool CanGive(ItemId item, int count) => !SecondBottle(item) && !SecondStake(item) && Simulation.Inventory.CanAdd(item, count);
 
-    // Whether the item is the stake and the player holds one (Y11): the mayor gives no second one, so a repeated «sí» or a request does not fill the bag with stakes.
-    private bool SecondStake(ItemId item) => item == ItemId.Stake && Simulation.Inventory.Count(ItemId.Stake) > 0;
+    // Whether the item is the stake and the player holds one (Y11) or owns land (Y15: the mayor kept the stake at the purchase, and the owner marks nothing more): the mayor gives
+    // no second one, so a repeated «sí» or a request does not fill the bag with stakes.
+    private bool SecondStake(ItemId item) => item == ItemId.Stake && (Simulation.Inventory.Count(ItemId.Stake) > 0 || Land.Owned is not null);
 
     // Whether the item is a bottle and the player holds one, empty or full: the stall's rule (S6) gives none then.
     private bool SecondBottle(ItemId item) =>
@@ -927,7 +928,7 @@ public sealed partial class VoxelSession : GuideSession
             var before = objective.Progress;
             var wasDone = objective.Steps.Select(static s => s.Done).ToArray();
             _ = objective.Record(world, _eventAmount);
-            _ = objective.Hold(HeldOfNoun); // a step that asks for items counts the bag, not the pickups (#32): the event's count gives way to it
+            _ = objective.Hold(HeldForSteps); // a step that asks for items counts the bag, not the pickups (#32): the event's count gives way to it
             var done = objective.Steps.Where((s, i) => s.Done && !wasDone[i]).ToList();
             if (objective.Progress != before)
             {
@@ -979,7 +980,7 @@ public sealed partial class VoxelSession : GuideSession
         foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
             var before = objective.Progress;
-            var done = objective.Hold(HeldOfNoun);
+            var done = objective.Hold(HeldForSteps);
             if (objective.Progress > before)
             {
                 objective.AdvancedAt = ++_advances;
@@ -995,6 +996,10 @@ public sealed partial class VoxelSession : GuideSession
             }
         }
     }
+
+    // What a checklist step that asks for held items counts (#32): the bag, and, once the player owns land, one more of the stake's noun: the mayor keeps the stake at the purchase
+    // (Y15), so the step "hold the stake" stays done after it, in the same run and after a load (the stake is not in the bag then).
+    private int HeldForSteps(string lemma) => HeldOfNoun(lemma) + (Land.Owned is not null && Nouns.ForLemma(lemma) is { } noun && noun.Items.Contains(ItemId.Stake) ? 1 : 0);
 
     // How many items of a noun the bag holds (all of the noun's items: fruta is berries and apples).
     private int HeldOfNoun(string lemma) => Nouns.ForLemma(lemma) is { } noun ? noun.Items.Sum(Simulation.Inventory.Count) : 0;
