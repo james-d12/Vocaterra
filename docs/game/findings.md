@@ -2286,3 +2286,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   (at most 5 steps at a bed, 8 at a fire). Gate: 10,763 tests passed, 3 skipped. Checked on the merged build: the death after a night
   in the inn's bed wakes at (280, 38, 231), inside the guest room; outside the south wall no sleep prompt shows. A fire in the open is
   unchanged (`r26-death` wakes at 152, 73, 106). The step bounds are constants in code, not in `needs.json`.
+- **Y06, the innkeeper (2026-11-12, on `feature/settlement`).** Rosa, «Posadera», gives the room (report
+  `.claude/briefs/y06-report.md` on the branch). The first agent stopped when its session was cleared; its uncommitted content was
+  committed as WIP and a second agent finished from the same brief. Every learner line reads at `inn-offer` with no wrong reading;
+  «Quiero dormir aquí» and «¿Puedo dormir aquí?» stay unread (Y00's gaps). The roster's tests ask every NPC for weather, wellbeing
+  and "understood" replies, which the brief did not list; she has them. `patience` counts every line at the prompt (a deny or a
+  greeting too), so «No, gracias» and one more line give the room; kept (nobody locked out), for the owner. A new fuzz flake met
+  the agent once in three runs (core findings, the last entry). Gate: 10,797 tests passed, 3 skipped. Checked on the merged build:
+  «sí» at her counter, `innkeeper.room`, `lodging_granted`, a sleep in the bed, `systems.sleep` = lodging given, last `inn.bed`.

@@ -1417,3 +1417,9 @@ this file. What is still open is collected in [open-items](../open-items.md).
   (one word in the lexicon, the scene); the milestone agent's own full run on the same code passed. Proposed, for the owner: keep the
   floor and make the count steady (a fixed seed for the coverage part, or more iterations for the floor), in a core milestone;
   nothing is narrowed until then, and a gate that fails on this message alone is run again and the run recorded.
+- **A fuzz flake on an optional manifest field (found 2026-11-11 by the game's Y06 agent; not changed, no milestone yet).**
+  `ContentSchemaFuzzTests.MutatedBundles_…` failed once in three full runs: seed `2zwDo8nRB_f7` removes `supportLanguage` from
+  `manifest.json`, and oracle O15 calls that an undocumented optional field, though the field is optional and not hashed. Not caused by
+  Y06 (the manifest had the field before it); the class passed on a rerun. Proposed: a core milestone that documents the field as
+  optional for O15 (or a KnownTolerances entry with its reason); nothing is narrowed until then, and a gate that fails on it alone is
+  run again and the run recorded.

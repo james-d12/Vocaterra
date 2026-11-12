@@ -31,7 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-11-1850-settlement](2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | Y06 (the innkeeper) running; then Y07 to Y13 and the pull request |
+| [2026-11-11-1850-settlement](2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | Y06m (the merge of `main`) running; then Y07 to Y13 and the pull request |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.
