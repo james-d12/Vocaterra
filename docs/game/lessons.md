@@ -57,7 +57,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk gu
 ## The opening, the guide's lesson and the ending (S17)
 
 - **The opening.** No quiz at the spawn. The first tips come one at a time, each at its delay (`delay` seconds in `game/tips.json`; their text is the locale's since C03): look at 0 s, walk at 9 s, jump at 18 s,
-  the note pinned to the tent at 28 s (English, with the one Spanish word `camino`, saying the guide's camp is down the trail), collecting at 50 s; the first
+  the note on the ledge at 28 s (no tent since Y08) (English, with the one Spanish word `camino`, saying the guide's camp is down the trail), collecting at 50 s; the first
   pickup then teaches the inventory. The objective area says `Go down the trail and find the guide` until the guide is met (the panel opened on her, or the first
   step of the checklist). The beacon points at her camp from the start.
 - **The guide's lesson** (`first-words`, `game/lessons.json`). Luna, the guide, greets the player who comes within five blocks of her
