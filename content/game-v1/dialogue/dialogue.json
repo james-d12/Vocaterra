@@ -2457,6 +2457,92 @@
         { "lineId": "innkeeper_bye.1", "text": "¡Hasta luego!" },
         { "lineId": "innkeeper_bye.2", "text": "¡Nos vemos!" }
       ]
+    },
+    "villager_land_stake_offer": {
+      "poolId": "villager_land_stake_offer",
+      "variants": [
+        { "lineId": "villager_land_stake_offer.1", "text": "Hola. ¿Quieres un terreno? Necesitas una estaca." }
+      ]
+    },
+    "villager_land_stake_given": {
+      "poolId": "villager_land_stake_given",
+      "variants": [
+        { "lineId": "villager_land_stake_given.1", "text": "¡Muy bien! Toma la estaca. Pon la estaca en el campo." },
+        { "lineId": "villager_land_stake_given.2", "text": "¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo." }
+      ]
+    },
+    "villager_land_stake_gave": {
+      "poolId": "villager_land_stake_gave",
+      "variants": [
+        { "lineId": "villager_land_stake_gave.1", "text": "Está bien. Toma la estaca. Pon la estaca en el campo." }
+      ]
+    },
+    "villager_land_plot_offer": {
+      "poolId": "villager_land_plot_offer",
+      "variants": [
+        { "lineId": "villager_land_plot_offer.1", "text": "El terreno cuesta diez monedas. ¿Lo quieres?" }
+      ]
+    },
+    "villager_land_sold": {
+      "poolId": "villager_land_sold",
+      "variants": [
+        { "lineId": "villager_land_sold.1", "text": "¡Muy bien! El terreno es tuyo. Toma el equipo." },
+        { "lineId": "villager_land_sold.2", "text": "¡Claro! El terreno es tuyo. Toma el equipo." }
+      ]
+    },
+    "villager_land_price": {
+      "poolId": "villager_land_price",
+      "variants": [
+        { "lineId": "villager_land_price.1", "text": "El terreno cuesta diez monedas. ¿Quieres el terreno?" }
+      ]
+    },
+    "villager_land_no_plot": {
+      "poolId": "villager_land_no_plot",
+      "variants": [
+        { "lineId": "villager_land_no_plot.1", "text": "Primero pon la estaca en el campo." }
+      ]
+    },
+    "villager_land_no_stake": {
+      "poolId": "villager_land_no_stake",
+      "variants": [
+        { "lineId": "villager_land_no_stake.1", "text": "Primero necesitas una estaca. Toma." }
+      ]
+    },
+    "villager_land_cant_pay": {
+      "poolId": "villager_land_cant_pay",
+      "variants": [
+        { "lineId": "villager_land_cant_pay.1", "text": "Necesitas diez monedas. Vende madera a Luz." }
+      ]
+    },
+    "villager_land_no_room": {
+      "poolId": "villager_land_no_room",
+      "variants": [
+        { "lineId": "villager_land_no_room.1", "text": "Tu bolsa está llena. No hay lugar para el equipo." }
+      ]
+    },
+    "villager_land_owned": {
+      "poolId": "villager_land_owned",
+      "variants": [
+        { "lineId": "villager_land_owned.1", "text": "El terreno ya es tuyo." }
+      ]
+    },
+    "villager_land_no": {
+      "poolId": "villager_land_no",
+      "variants": [
+        { "lineId": "villager_land_no.1", "text": "Está bien. Vuelve cuando quieras." }
+      ]
+    },
+    "villager_land_help_stake": {
+      "poolId": "villager_land_help_stake",
+      "variants": [
+        { "lineId": "villager_land_help_stake.1", "text": "Puedes decir: «Sí, por favor»." }
+      ]
+    },
+    "villager_land_help_sell": {
+      "poolId": "villager_land_help_sell",
+      "variants": [
+        { "lineId": "villager_land_help_sell.1", "text": "Puedes decir: «Quiero un terreno, por favor»." }
+      ]
     }
   }
 }

@@ -401,6 +401,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [InlineData(BlockCell.IconBottle)]
     [InlineData(BlockCell.IconFlour)]
     [InlineData(BlockCell.IconStake)]
+    [InlineData(BlockCell.IconCampKit)]
     public void AnExtrudedIconIsOneVoxelPerSolidPixelWithSidesOnlyOnItsOutline(BlockCell cell)
     {
         const int Size = BlockAtlasLayout.CellSize;

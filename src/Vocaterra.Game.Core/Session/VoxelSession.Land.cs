@@ -1,5 +1,7 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Land;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 
@@ -35,6 +37,7 @@ public sealed partial class VoxelSession
     private const string PlotOwnedAlreadyHint = "plotOwnedAlready";
     private const string PlotHudKey = "plotHud";
     private const string PlotHudOwnedKey = "plotHudOwned";
+    private const string PlotBeaconKey = "plotBeacon";
 
     /// <summary>The hint for a plank that cannot be taken back because the land is not the player's (<c>ui.landTakeBack</c>).</summary>
     public const string LandTakeBackHint = "landTakeBack";
@@ -94,6 +97,7 @@ public sealed partial class VoxelSession
         if (check.Ok)
         {
             Land.Pending = Land.Rules.PlotAt(x, z);
+            PointAtSeller(); // Y11: a marked plot is bought from the mayor
         }
 
         return check;
@@ -197,6 +201,99 @@ public sealed partial class VoxelSession
         PlotFault.NotGround => PlotNotGroundHint,
         _ => PlotSteepHint,
     };
+
+    /// <summary>The ui key of the hint said when the sale did not go through at the last moment (Y11).</summary>
+    public const string PlotSaleFailedHint = "plotSaleFailed";
+
+    private const string PlotBoughtHint = "plotBought";
+
+    /// <summary>
+    /// The land's facts as a turn needs them (Y11): whether land is owned, whether the marked plot passes the land rules as the world is now (a plot a tree grew on, or a block was placed on,
+    /// does not), and the price. Plain values, taken on the game thread when a line is submitted.
+    /// </summary>
+    protected override PlotFacts? PlotFactsNow() =>
+        new(Land.Owned is not null, Land.Pending is { } pending && Land.Rules.CheckPlot(Scene.Grid, pending).Ok, Land.Rules.PlotPrice);
+
+    /// <summary>The play session's objective that waits for the plot to be bought (the one with a step on <c>plot_bought</c>), or <see langword="null"/> when the bundle has none.</summary>
+    private Objective? LandObjective => Objectives.FirstOrDefault(static o => o.Spec.Steps.Any(static s => string.Equals(s.Trigger.Event, WorldEvents.PlotBought, StringComparison.Ordinal)));
+
+    /// <summary>
+    /// The offer the NPC who sells the plot opens the talk with (Y11): the stake while the player has none and no plot, marked or owned; the plot once one is marked. Only from the play session the
+    /// land's checklist is shown from (day 2: before it the mayor is the villager he was). <see langword="null"/> for any other NPC, and when there is nothing to offer.
+    /// </summary>
+    /// <param name="npc">The NPC the panel opens on.</param>
+    protected override string? LandOfferAt(string npc)
+    {
+        if (!string.Equals(Data.HostEvents.NpcWith(NpcEffectKind.SellPlot), npc, StringComparison.Ordinal) || LandObjective is not { } objective || !Shown(objective.Spec) || Needs.IsDead || Land.Owned is not null)
+        {
+            return null;
+        }
+
+        if (Land.Pending is not null)
+        {
+            return NpcHostEvents.Of(npc, NpcHostEvents.OfferPlot);
+        }
+
+        return Simulation.Inventory.Count(ItemId.Stake) == 0 ? NpcHostEvents.Of(npc, NpcHostEvents.OfferStake) : null;
+    }
+
+    /// <summary>
+    /// The exchange of the sale (Y11, <see cref="NpcEffectKind.SellPlot"/>): the price in coins out, the plot owned and the camp kit in, as one operation that cannot half happen. The order: first the
+    /// checks of the exchange (the land is not owned, a plot is marked and passes the rules, the coins cover the price, the bag has room for the kit once the coins are out:
+    /// <see cref="NpcEffect.PlotMiss"/> and <see cref="Items.Inventory.CanExchange"/>); then <see cref="OwnPlot"/>, which checks the world once more and may refuse; then the coins and the kit. A refusal at
+    /// any step leaves the coins, the bag and the land as they were; the mayor answered the miss on the worker, and a refusal that only the session sees (the world moved since the turn began) says
+    /// so on the hint line. A repeated «sí», a reload or a second talk finds the land owned and changes nothing (<c>already_owned</c>).
+    /// </summary>
+    /// <param name="npc">The seller's agent id.</param>
+    /// <param name="effect">The sale (its item is the camp kit).</param>
+    /// <param name="how">How it was asked for, for the log.</param>
+    /// <returns>Whether the plot was bought.</returns>
+    internal bool SellPlot(string npc, NpcEffect effect, string how)
+    {
+        var price = Land.Rules.PlotPrice;
+        var bag = Simulation.Inventory;
+        if (Needs.IsDead || effect.PlotMiss(bag, PlotFactsNow()) is not null || !bag.CanExchange(ItemId.Coin, price, effect.Item, effect.Count))
+        {
+            return false;
+        }
+
+        var plot = Land.Pending!.Value;
+        if (!OwnPlot())
+        {
+            _hints.Add(Locale.Ui(PlotSaleFailedHint));
+            return false;
+        }
+
+        Take(npc, ItemId.Coin, price, how);
+        _ = Give(npc, effect.Item, effect.Count, how);
+        LogWorld(WorldEvents.PlotBought, npc, string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{plot.X},{plot.Z}"));
+        _hints.Add(Locale.Ui(PlotBoughtHint, ("price", price.ToString(System.Globalization.CultureInfo.InvariantCulture))));
+        PointAtPlot(plot);
+        return true;
+    }
+
+    // The arrow goes to the middle of the owned plot (Y11): the pointer takes any cell, so a plot needs no named place of the scene. Its word is the plot's noun (ui.plotBeacon: «terreno»).
+    private void PointAtPlot(Plot plot)
+    {
+        var (x, z) = plot.Centre;
+        var y = LandRules.GroundOf(Scene.Grid, x, z).Y + 1;
+        var label = Locale.Ui(PlotBeaconKey);
+        Pointer = new PointerMarker(label, new GuideCell(x, y, z));
+        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {x},{y},{z}");
+    }
+
+    // The arrow goes to the NPC who sells the plot (Y11), when a plot is marked and not yet bought: the mayor stands at his place of the scene, and shows his label.
+    private void PointAtSeller()
+    {
+        if (Data.HostEvents.NpcWith(NpcEffectKind.SellPlot) is not { } npc || Data.Npcs.Find(npc) is not { } entry)
+        {
+            return;
+        }
+
+        var feet = Scene.Npc(npc).Feet;
+        Pointer = new PointerMarker(entry.Label, new GuideCell(feet.X, feet.Y, feet.Z));
+        LogWorld(WorldEvents.BeaconSet, npc, $"{entry.Label} at {feet.X},{feet.Y},{feet.Z}");
+    }
 
     /// <summary>Takes the mark away (the pending plot is no more).</summary>
     public void ClearPendingPlot() => Land.Pending = null;

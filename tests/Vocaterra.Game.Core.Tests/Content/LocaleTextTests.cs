@@ -203,7 +203,7 @@ public sealed class LocaleTextTests
         _ = session.OpenTalk("villager");
         var english = session.Locale;
         var turn = session.Say("¿dónde está el río?");
-        Assert.Equal(["Good. The villager understood you."], english.FeedbackFor(turn with { Pointer = null }));
+        Assert.Equal(["Good. The mayor understood you."], english.FeedbackFor(turn with { Pointer = null }));
 
         var dont = session.Say("no sé");
         Assert.Equal(["That is fine. Not knowing is part of learning. Here is the phrase to say."], english.FeedbackFor(dont));
@@ -216,7 +216,7 @@ public sealed class LocaleTextTests
         var forward = english.FeedbackFor(turn with { FailForward = true, Pointer = null });
         Assert.Equal("That is fine. The game carries on: you do not need to say it perfectly to continue.", forward[^1]);
         var pointed = english.FeedbackFor(turn with { Pointer = new GuidePointer("río", new GuideCell(1, 2, 3), 42, "a la izquierda") });
-        Assert.Equal("The villager points to the river, 42 blocks away. Follow the arrow.", pointed[^1]);
+        Assert.Equal("The mayor points to the river, 42 blocks away. Follow the arrow.", pointed[^1]);
     }
 
     [Fact]

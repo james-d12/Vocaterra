@@ -48,7 +48,8 @@
         "axe",
         "roast-apple",
         "flour",
-        "stake"
+        "stake",
+        "camp-kit"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     }
@@ -113,7 +114,8 @@
           "restore": {
             "enum": [
               "lesson-begun",
-              "lodging-given"
+              "lodging-given",
+              "plot-owned"
             ],
             "description": "The code hook that works the step out again from a loaded world; the save does not keep the step."
           }

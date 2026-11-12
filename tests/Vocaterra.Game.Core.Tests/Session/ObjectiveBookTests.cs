@@ -25,7 +25,7 @@ public sealed class ObjectiveBookTests
     {
         // The three the code held, and since village-plan V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
         // session 5: five wood for her oven; since V12 the smith's of session 6: two wood and two coins for the axe.
-        Assert.Equal(["meet-guide", "camp", "inn-room", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants"], Book.Objectives.Select(static o => o.Id));
+        Assert.Equal(["meet-guide", "camp", "inn-room", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants", "my-land"], Book.Objectives.Select(static o => o.Id)); // Y11: «Mi terreno», last, shown from session 2
         var order = Book.Find("fruit-for-mar")!;
         Assert.Equal(("fisher", (int?)4), (order.DeliverTo, order.Session));
         Assert.Equal((ItemId.Berry, 3), (Assert.Single(order.Goods).Item, Assert.Single(order.Goods).Count));
@@ -35,6 +35,11 @@ public sealed class ObjectiveBookTests
         var axe = Book.Find("axe-handle")!;
         Assert.Equal(("smith", (int?)6), (axe.DeliverTo, axe.Session));
         Assert.Equal([(ItemId.Wood, 2), (ItemId.Coin, 2)], axe.Goods.Select(static g => (g.Item, g.Count)));
+        var land = Book.Find("my-land")!;
+        Assert.Equal(("Mi terreno", (int?)2, false), (land.Title, land.Session, land.EndsSession)); // Y11: it never ends a session, so it never holds sleep back
+        Assert.Equal(["estaca", "terreno"], land.Steps.Select(static s => s.Label));
+        Assert.Equal([null, "plot-owned"], land.Steps.Select(static s => s.Restore)); // the stake counts the bag; the purchase is worked out again from the saved land
+        Assert.Equal(["item_picked_up", "plot_bought"], land.Steps.Select(static s => s.Trigger.Event));
         Assert.Equal(("innkeeper_night", "camp.guide", "inn"), (Book.ClosingPool, Book.BeaconStart, Book.InnBeacon));
         Assert.Equal([ItemId.Book], Book.Grants);
 
@@ -101,7 +106,7 @@ public sealed class ObjectiveBookTests
         Assert.Contains("game/objectives/meet-guide.json: onComplete names the hook 'dance', which the game does not have (guide-met, point-inn).", problems);
         Assert.Contains("game/objectives/meet-guide.json: alsoDoneBy names 'meet-guide', which is not another objective of the session.", problems);
         Assert.Contains("game/objectives/meet-guide.json: alsoDoneBy names 'harvest', which is not another objective of the session.", problems);
-        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'look-around', which the game does not have (lesson-begun, lodging-given).", problems);
+        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'look-around', which the game does not have (lesson-begun, lodging-given, plot-owned).", problems);
         Assert.Contains("game/objectives/inn-room.json: the step 'room' waits at the NPC 'miller', which is not one of the NPCs.", problems);
         Assert.Contains("game/session.json: the closing pool 'guide.no.such.pool' is not a dialogue pool with a line.", problems);
         Assert.Contains("game/session.json: the beacon starts on 'nowhere', which is not a site or a point of the scene.", problems);
@@ -125,7 +130,7 @@ public sealed class ObjectiveBookTests
         var broken = Book.Objectives.Select(o => o.Id == "inn-room" ? room with { Steps = [room.Steps[0] with { Restore = "scan-fire-ring" }] } : o).ToList();
         var data = TestGame.Data.WithObjectives(ObjectiveBook.Of(broken, Book.ClosingPool, Book.Grants, Book.BeaconStart, Book.InnBeacon));
 
-        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'scan-fire-ring', which the game does not have (lesson-begun, lodging-given).", GameDataValidator.Validate(data));
+        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'scan-fire-ring', which the game does not have (lesson-begun, lodging-given, plot-owned).", GameDataValidator.Validate(data));
     }
 
     [Theory]
@@ -209,7 +214,7 @@ public sealed class ObjectiveBookTests
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10 to V13)
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered", "my-land.stake"], document.Objective.Select(static o => o.Key)); // and the orders' one step, and Y11's «Mi terreno» stake step (its purchase is restored from the land) each (V10 to V13)
         Assert.Equal(2, document.Objective[0].Count);
     }
 
@@ -243,7 +248,7 @@ public sealed class ObjectiveBookTests
         Assert.Null(loaded.CurrentObjective);
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(SaveGame.CurrentVersion, resaved.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], resaved.Objective.Select(static o => o.Key));
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered", "my-land.stake"], resaved.Objective.Select(static o => o.Key));
     }
 
     [Fact]

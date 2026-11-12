@@ -1,8 +1,8 @@
 {
   "$schema": "../../schema/session.schema.json",
   "schemaVersion": 1,
-  "about": "The session (CONTENT_PLAN C07): the objectives in the order the HUD shows them (the order gates nothing: every objective counts from the start), the dialogue pool of the closing line (the innkeeper's, Y07) said when every objective is done, the scene place the beacon points at once the camp is done, the items the learner starts with, and the scene point the beacon starts on. Each objective is its own file, game/objectives/<id>.json.",
-  "objectives": ["meet-guide", "camp", "inn-room", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants"],
+  "about": "The session (CONTENT_PLAN C07): the objectives in the order the HUD shows them (my-land, shown from session 2, is last: the orders come before it) (the order gates nothing: every objective counts from the start), the dialogue pool of the closing line (the innkeeper's, Y07) said when every objective is done, the scene place the beacon points at once the camp is done, the items the learner starts with, and the scene point the beacon starts on. Each objective is its own file, game/objectives/<id>.json.",
+  "objectives": ["meet-guide", "camp", "inn-room", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants", "my-land"],
   "closingPool": "innkeeper_night",
   "grants": ["book"],
   "beaconStart": "camp.guide",

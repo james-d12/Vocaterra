@@ -36,6 +36,7 @@ public sealed class PhraseSheetTests
         "pon-la-harina", "echa-el-agua", "mezcla", "pon-la-madera", "pon-la-masa", "saca-el-pan", "haz-la-masa", "haz-el-pan-horno", "haz-pan", "voy-a-hacer-pan", "hice-pan", "quiero-harina", "vendo-pan", "hoy-vamos-a-hacer-pan", "que-hiciste", "todavia-no", "toma-aqui-tienes", "quieres-hacer-pan",
         "que-tienes-para-mi", "aqui-tienes-tres-frutas", "aqui-tienes-cinco-bloques", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-el-agua", // D-game-27: the hand-over (issue #42)
         "quiero-una-habitacion", "hay-una-habitacion", // Y06: the innkeeper's offer
+        "quiero-un-terreno", "cuanto-cuesta-el-terreno", // Y11: the mayor's sale
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);

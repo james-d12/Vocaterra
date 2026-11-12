@@ -101,8 +101,8 @@ public sealed class ObjectiveBook
     /// <summary>The folder of the objective files inside the bundle folder.</summary>
     public const string Folder = "game/objectives/";
 
-    /// <summary>The restore hooks a step may name: <c>lesson-begun</c> (one once a lesson was begun), <c>lodging-given</c> (one once the player has been given lodging, Y07).</summary>
-    public static IReadOnlyList<string> RestoreHooks { get; } = ["lesson-begun", "lodging-given"];
+    /// <summary>The restore hooks a step may name: <c>lesson-begun</c> (one once a lesson was begun), <c>lodging-given</c> (one once the player has been given lodging, Y07), <c>plot-owned</c> (one once the player owns land, Y11).</summary>
+    public static IReadOnlyList<string> RestoreHooks { get; } = ["lesson-begun", "lodging-given", "plot-owned"];
 
     /// <summary>The completion hooks an objective may name: <c>guide-met</c> and <c>point-inn</c> (the beacon goes to <see cref="InnBeacon"/> and the guide sends the player there, Y07).</summary>
     public static IReadOnlyList<string> CompleteHooks { get; } = ["guide-met", "point-inn"];

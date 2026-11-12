@@ -33,8 +33,8 @@ public sealed class ObjectiveTrackerTests
         var tracker = session.ObjectiveTracker(lessonStripShown: false);
 
         Assert.Equal(3, tracker.Lines.Count);
-        Assert.Equal(1, tracker.More);
-        Assert.Equal("+1", tracker.MoreText);
+        Assert.Equal(2, tracker.More); // the guide, the three orders and (Y11, from day 2) «Mi terreno» are five
+        Assert.Equal("+2", tracker.MoreText);
         Assert.Equal(session.Locale.ObjectiveHudLine("meet-guide"), tracker.Lines[0].Pieces.Single().Text); // none has advanced: the session's own order
 
         session.Objectives.Single(static o => o.Id == "axe-handle").AdvancedAt = 50; // the order that moved last goes first
@@ -55,7 +55,7 @@ public sealed class ObjectiveTrackerTests
         var tracker = session.ObjectiveTracker(lessonStripShown: false);
         Assert.StartsWith("Campamento", tracker.Lines[0].Pieces[0].Text, StringComparison.Ordinal);
         Assert.Equal(3, tracker.Lines.Count);
-        Assert.Equal(1, tracker.More); // the camp and the three orders are four
+        Assert.Equal(2, tracker.More); // the camp, the three orders and «Mi terreno» are five
     }
 
     [Fact]

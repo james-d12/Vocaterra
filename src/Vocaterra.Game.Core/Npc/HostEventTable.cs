@@ -21,7 +21,7 @@ public sealed class HostEventTable
     public const int SchemaVersion = 2;
 
     /// <summary>The kinds of action the file may name.</summary>
-    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell", "buy", "procedure_repeat", "procedure_slower", "procedure_help", "give_missing", "teach_recipe", "start_procedure", "grant_lodging"];
+    public static IReadOnlyList<string> Kinds { get; } = ["give_item", "point_at_noun", "point_at_place", "point_at_slot", "take_item", "sell", "buy", "procedure_repeat", "procedure_slower", "procedure_help", "give_missing", "teach_recipe", "start_procedure", "grant_lodging", "sell_plot"];
 
     private readonly Dictionary<(string Npc, string HostEvent), NpcEffect> _table;
 
@@ -35,7 +35,7 @@ public sealed class HostEventTable
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
     /// "point_at_noun", "noun" } | { "kind": "point_at_place", "place" } | { "kind": "point_at_slot", "slot" } | { "kind": "take_item", "item", "count"? } | { "kind":
-    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } | { "kind": "procedure_repeat" | "procedure_slower" | "procedure_help" | "give_missing" } | { "kind": "teach_recipe" | "start_procedure", "procedure"? } | { "kind": "grant_lodging" } } ] }</c> (<c>buy</c> since village-plan V15: the NPC pays for what the learner sells; the six procedure kinds since W08). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
+    /// "sell", "item", "price" } | { "kind": "buy", "item", "price" } | { "kind": "procedure_repeat" | "procedure_slower" | "procedure_help" | "give_missing" } | { "kind": "teach_recipe" | "start_procedure", "procedure"? } | { "kind": "grant_lodging" } | { "kind": "sell_plot", "item" } } ] }</c> (<c>buy</c> since village-plan V15: the NPC pays for what the learner sells; the six procedure kinds since W08). An item is named as the save names it (<c>water-bottle</c>); a count is a number from 1 or <c>"qty"</c>, the number the
     /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>
@@ -72,6 +72,7 @@ public sealed class HostEventTable
                     "procedure_help" => new NpcEffect(NpcEffectKind.ProcedureHelp),
                     "give_missing" => new NpcEffect(NpcEffectKind.GiveMissing),
                     "grant_lodging" => new NpcEffect(NpcEffectKind.GrantLodging),
+                    "sell_plot" => new NpcEffect(NpcEffectKind.SellPlot, ItemNamed(Text(action, "item"))),
                     "teach_recipe" => new NpcEffect(NpcEffectKind.TeachRecipe, Procedure: OptionalText(action, "procedure")),
                     "start_procedure" => new NpcEffect(NpcEffectKind.StartProcedure, Procedure: OptionalText(action, "procedure")),
                     var kind => throw new InvalidDataException($"{RelativePath}: the action '{kind}' of {npc}'s '{name}' is not one of {string.Join(", ", Kinds)}."),
@@ -99,6 +100,11 @@ public sealed class HostEventTable
         ArgumentNullException.ThrowIfNull(hostEvent);
         return _table.TryGetValue((npc, hostEvent), out var effect) ? effect : new NpcEffect(NpcEffectKind.None);
     }
+
+    /// <summary>The NPC whose agent raises an event of this kind (the mayor, for <see cref="NpcEffectKind.SellPlot"/>), the first in ordinal order, or <see langword="null"/> when no row has it.</summary>
+    /// <param name="kind">The kind.</param>
+    public string? NpcWith(NpcEffectKind kind) =>
+        _table.Where(p => p.Value.Kind == kind).Select(static p => p.Key.Npc).Order(StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>Every mapped (NPC, host event), ordinal.</summary>
     public IReadOnlyList<(string Npc, string HostEvent)> Mapped() =>

@@ -36,9 +36,9 @@ public sealed class NpcRosterTests
         // The three the code held, and since village-plan V10 the fisher Mar, V11 the baker Luz and V12 the smith Domingo and the farmer León, at the end (the saves
         // keep the NPCs in this order).
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper"], Npcs.Ids);
-        Assert.Equal(["Guía", "Tendero", "Aldeano", "Pescador", "Panadera", "Herrero", "Granjero", "Posadera"], Npcs.All.Select(static n => n.Label));
+        Assert.Equal(["Guía", "Tendero", "Alcalde", "Pescador", "Panadera", "Herrero", "Granjero", "Posadera"], Npcs.All.Select(static n => n.Label));
         Assert.Equal(["Luna", "Pablo", "Tomás", "Mar", "Luz", "Domingo", "León", "Rosa"], Npcs.All.Select(static n => n.Called));
-        Assert.Equal(["Luna (Guía)", "Pablo (Tendero)", "Tomás (Aldeano)", "Mar (Pescador)", "Luz (Panadera)", "Domingo (Herrero)", "León (Granjero)", "Rosa (Posadera)"], Npcs.All.Select(static n => n.Title));
+        Assert.Equal(["Luna (Guía)", "Pablo (Tendero)", "Tomás (Alcalde)", "Mar (Pescador)", "Luz (Panadera)", "Domingo (Herrero)", "León (Granjero)", "Rosa (Posadera)"], Npcs.All.Select(static n => n.Title));
         Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.CalledOf("otro"));
         Assert.Equal("otro", Npcs.TitleOf("otro"));
@@ -161,9 +161,11 @@ public sealed class NpcRosterTests
         Assert.Equal(["como-te-llamas", "que-haces"], Npcs.FocusAt("smith-open"));
         Assert.Equal(["como-te-llamas", "que-haces", "quiero-tres-manzanas-rojas", "cuanto-es-todo", "puedo-pagar-con-fruta"], Npcs.FocusAt("farmer-open"));
         Assert.Equal(["quiero-una-habitacion", "hay-una-habitacion", "si-por-favor", "no-gracias"], Npcs.FocusAt("inn-offer")); // Y06
+        Assert.Equal(["si-por-favor", "no-gracias"], Npcs.FocusAt("mayor-stake")); // Y11: the mayor's offer of the stake
+        Assert.Equal(["quiero-un-terreno", "cuanto-cuesta-el-terreno", "si-por-favor", "no-gracias"], Npcs.FocusAt("mayor-sell")); // Y11: his sale
 
         Assert.Equal(
-            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "hay-una-habitacion", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "quiero-una-habitacion", "si-por-favor", "vendo-madera"],
+            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-cuesta-el-terreno", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "hay-una-habitacion", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "quiero-un-terreno", "quiero-una-habitacion", "si-por-favor", "vendo-madera"],
             Npcs.ScaffoldPhrases.Order(StringComparer.Ordinal));
         Assert.Equal("shopkeeper", Npcs.HomeOf("pedir-agua"));
         Assert.Equal("villager", Npcs.HomeOf("donde-esta-el-rio"));

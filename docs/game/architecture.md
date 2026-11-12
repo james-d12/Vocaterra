@@ -268,6 +268,13 @@ old pending plot; marking again moves it and costs nothing. `PlotHudLine()` is t
 the pending plot has bare amber posts and a broken rail (every second column), the owned plot white posts with a green flag each and a solid rail, so the two differ by shape as well as colour. `SceneDrawer.DrawWorld` builds the meshes
 for plots within 64 blocks of the eye and `VoxelRenderer.DrawWorld` draws them after the figures in the sun's light (the figures' diffuse colour, so they dim at night). The dev aid `--mark-plot x,z` is `MarkPlotWithHint`.
 
+**Buying the plot (Y11).** The mayor's sale is one exchange that cannot half happen: `VoxelSession.SellPlot` (called by `ApplyHostEvents` for the kind `sell_plot`, the `NpcEffectKind.SellPlot` row of `game/host-events.json`) first asks the exchange's checks
+(`NpcEffect.PlotMiss`: owned already, no plot marked or the marked one no longer passes `CheckPlot`, the coins short of `Land.Rules.PlotPrice`, no room for the camp kit once the coins are out: `Inventory.CanExchange`), then `OwnPlot()`, which checks the world once
+more and may refuse, and only then takes the coins and gives the kit, logs `plot_bought` and puts the arrow on the plot. A refusal at any step leaves coins, bag and land as they were, and the repeated «sí», a reload and a second talk meet
+the land owned (`already_owned`). The same `PlotMiss` runs on the worker over the turn's copies (`GuideScene.Land`, a `PlotFacts` taken on the game thread at submit, and the bag's copy), so the mayor never says «El terreno es tuyo» for a sale the
+world cannot make; the session asks again of the bag and the land themselves. His offers at the talk's opening are the session's (`GuideSession.LandOffer`: `LandOfferAt`, the stake while the player has none and no plot, the sale once a plot is marked, from the
+play session the checklist `my-land` is shown from) and follow the order offer's shape (`offering_stake`, `offering_plot`, `offer_gone`).
+
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
 - **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GuideSession.StoredTime`); nothing reads the clock, so a scripted

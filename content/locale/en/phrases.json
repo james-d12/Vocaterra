@@ -547,6 +547,12 @@
     "phrase.quiero-una-habitacion.meaning": "I want a room, please.",
     "phrase.hay-una-habitacion.card": "¿Hay una habitación? = Is there a room? · hay = is there",
     "phrase.hay-una-habitacion.explain": "Ask if there is a room: hay, there is, and una habitación.",
-    "phrase.hay-una-habitacion.meaning": "Is there a room?"
+    "phrase.hay-una-habitacion.meaning": "Is there a room?",
+    "phrase.quiero-un-terreno.card": "Quiero un terreno, por favor. = I want a plot of land, please. · un terreno = a plot of land",
+    "phrase.quiero-un-terreno.explain": "Ask the mayor for the plot you marked with the stake: quiero, un and the noun, terreno. It costs ten coins, and he gives you the camp kit with it.",
+    "phrase.quiero-un-terreno.meaning": "I want a plot of land, please.",
+    "phrase.cuanto-cuesta-el-terreno.card": "¿Cuánto cuesta el terreno? = How much does the plot cost? · cuesta = costs",
+    "phrase.cuanto-cuesta-el-terreno.explain": "Ask the price of the plot: cuánto cuesta, how much does it cost, and el terreno.",
+    "phrase.cuanto-cuesta-el-terreno.meaning": "How much does the plot cost?"
   }
 }

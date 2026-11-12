@@ -874,6 +874,7 @@ public sealed partial class NpcService
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
         NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.GiftMiss(npc, slots, scene.Inventory, _nouns, scene.ClosedGifts),
+        NpcEffectKind.SellPlot => effect.PlotMiss(scene.Inventory, scene.Land),
         NpcEffectKind.GiveMissing => scene.Grant is { } grant ? grant.Miss : NpcHostEvents.NothingMissing, // W08: nothing to give with no run
         _ => null,
     };

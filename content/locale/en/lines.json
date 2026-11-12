@@ -608,6 +608,24 @@
     "line.innkeeper_weather.1.viento": "Yes, it is windy.",
     "line.innkeeper_weather.1.fresco": "Yes, it is cool.",
     "line.innkeeper_weather.1.buen-tiempo": "Yes, the weather is nice.",
-    "line.innkeeper_weather.1.mal-tiempo": "Yes, the weather is bad."
+    "line.innkeeper_weather.1.mal-tiempo": "Yes, the weather is bad.",
+    "line.villager_land_stake_offer.1": "Hello. Would you like a plot of land? You need a stake.",
+    "line.villager_land_stake_given.1": "Very good! Take the stake. Put the stake in the field.",
+    "line.villager_land_stake_given.2": "Of course! Take this stake. Put the stake near the village.",
+    "line.villager_land_stake_gave.1": "That is fine. Take the stake. Put the stake in the field.",
+    "line.villager_land_plot_offer.1": "The plot costs ten coins. Do you want it?",
+    "line.villager_land_sold.1": "Very good! The plot is yours. Take the kit.",
+    "line.villager_land_sold.2": "Of course! The plot is yours. Take the kit.",
+    "line.villager_land_price.1": "The plot costs ten coins. Do you want the plot?",
+    "line.villager_land_no_plot.1": "First put the stake in the field.",
+    "line.villager_land_no_stake.1": "First you need a stake. Here you are.",
+    "line.villager_land_cant_pay.1": "You need ten coins. Sell wood to Luz.",
+    "line.villager_land_no_room.1": "Your bag is full. There is no space for the kit.",
+    "line.villager_land_owned.1": "The plot is already yours.",
+    "line.villager_land_no.1": "That is fine. Come back whenever you like.",
+    "line.villager_land_help_stake.1": "You can say: “Sí, por favor” (Yes, please).",
+    "line.villager_land_help_sell.1": "You can say: “Quiero un terreno, por favor” (I want a plot of land, please).",
+    "line.prompt.mayor-stake": "Would you like a plot of land?",
+    "line.prompt.mayor-sell": "Do you want the plot?"
   }
 }

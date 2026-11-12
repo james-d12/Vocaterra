@@ -107,6 +107,8 @@ public sealed class GrammarStringsExtractorTests
         ["aqui-tienes-el-agua"] = ["gender.agree"],
         ["quiero-una-habitacion"] = ["gender.agree"], // Y06: the innkeeper's offer
         ["hay-una-habitacion"] = ["gender.agree"],
+        ["quiero-un-terreno"] = ["gender.agree"], // Y11: the mayor's sale
+        ["cuanto-cuesta-el-terreno"] = ["conj.person"],
     };
 
     [Fact]
