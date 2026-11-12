@@ -2539,3 +2539,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   separate worktree at the same time (report `docs/qa-reports/2026-11-12-progression.md`): five minor bugs; four to Y14. Its two most
   useful notes for later runs: `--teleport` lands on the top surface (a roof, the tent), so stand beside an object with `--walk-to` or a
   free cell; and the scripts' `--sleep` sleeps at a lit fire even before the day-one gate allows it.
+- **Y14, QA fixes (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y14-report.md` on the branch; the as-built note is in
+  the settlement plan. Gate: 11,463 tests passed, 3 skipped. Checked: «no sé» at the inn credits `quiero-una-habitacion`. The class
+  offer's verdict is a presentation fix: the turn is still graded at the NPC's own prompt and the shown verdict is rewritten when the
+  class takes the answer; a cleaner fix (grading a class offer's yes or no at its own prompt without breaking free talk) is a later
+  milestone if the owner wants it. The `pedir-agua` transfers at the baker and the mayor are an owner question (open items).
