@@ -46,8 +46,8 @@ version number, the version 2 word rows, the first-words split). One fixture, `t
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
 `needs` (the five meters and two timers, N01), `chest` (the belongings a death left, N04), `bushes` (berry bushes picked since the last night, N06), `gifts` (today's gifts, N06), `planted` (the bushes planted at the
 camp or on the owned plot that still stand, N08), `procedures` (what the learner knows of the stations, W06), `sleep` (the inn's lodging, the place last slept at, the places made in play, the camp and the kit owed, Y02 and Y12),
-`atmosphere` (the day clock's offset and held hour, the weather's state, E01 and E04) and `land` (the pending and the owned plot, Y09 to Y11). The sections below describe each; the settlement series' three are
-`sleep` (with `camp` and `kitOwed` inside it), `land` and, from the same weather series that shares the version, `atmosphere`.
+`atmosphere` (the day clock's offset and held hour, the weather's state, E01 and E04) and `land` (the pending and the owned plot, Y09 to Y11). The sections below describe each; the settlement series' are
+`sleep` (with `camp` and `kitOwed` inside it) and `land`, the weather series' is `atmosphere`.
 
 **How the fixture is made:** a scripted game run, not by hand, so it is the game's own output. From the repository root, after a build (the camp route of `scripts/scripted-runs.sh`'s
 `CAMP`, then a talk, then Luna's fire):
