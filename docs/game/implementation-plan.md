@@ -498,6 +498,26 @@ the findings (the Menu entry of section 5).
 | Menu | The menu: `Game.Core/Menu/` (`MenuScreen`, `PlayerSettings`, `MenuRows`, `ControlsListing`), `Game.Core/Input/ControlTable` (every control and its keys in one table that the bindings, the panels and the controls page read), `UI/Menu/` (`MenuLayer`, `MenuLayout`, `MenuMetrics`); the settings in `SaveSettings` (quality, mouse sensitivity, invert Y, field of view added), applied at run time (the mixer, the canvas, the renderer's preset, the camera, the look); the testing section; Esc opens the menu; its Controls page lists the keys (F1 was removed at the owner's request on 2026-11-09); `--menu`, `--settings`, `--controls`, `--menu-scroll`; the old F8 settings panel and F1 help retired | N09, X08, H11 | L | Sonnet 5.5 | done: merged into `main` by PR #46 (2026-11-09) |
 | Menu-2 | Every launch-flag setting that can change while the game runs moved into the menu: the draw distance (a saved slider with an Auto position) and `--voice-volume`, `--ui-volume`, `--fov`, `--mouse-sensitivity`, `--invert-y` so each menu setting also has a flag; the Testing section grown and grouped (the five needs as sliders, teleport and beacon over the scene's named points, dusk, greyscale, all-nouns-known view, tips, autosave, typed credit) | Menu | M | Sonnet 5.5 | done: merged into `main` by PR #46 (2026-11-09) |
 
+### 4.12 Day, night and weather (the E series; owner, 2026-11-10, D-game-31)
+
+Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answers and the progress table are in
+[the weather plan](weather-plan.md); the statuses below follow its section 7.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| E00 | The series registered: the plan, D-game-31, the index rows, the handover | none | S | orchestrator | done, 2026-11-10 |
+| E01 | The clock in Core: `Atmosphere/DayClock`, `day.json`, the simulation's part, digest, save, the `day_phase` event, a sleep wakes in the morning | E00 | M | Sonnet 5.5, medium | done: gated at `1a5a9a07` on `feature/weather` (2026-11-10), 10764 passed |
+| E02 | Drawing the cycle: `SkyLook`, the dome, sun, moon and stars, fog, the light bands and their tint | E01 | L | Sonnet 5.5, high | done: gated at `920233f9` on `feature/weather` (2026-11-10), 10925 passed |
+| E02a | The lanterns' glow as its own additive layer, so it does not step at a light band's edge (found by E02) | E05 | M | Sonnet 5.5, high | done: gated at `89ee19fb` on `feature/weather` (2026-11-10), 10993 passed |
+| E03 | Sound and switches for the time: beds by phase, `--time`, the menu row, F3, the scripted step | E01, E02 | S | Haiku 5.5 | done: gated at `ac7facdd` on `feature/weather` (2026-11-10), 11030 passed |
+| E04 | Weather in Core: `weather.json`, `WeatherSystem`, the `Atmosphere` snapshot, `weather_changed`, the morning roll | E01 | M | Sonnet 5.5, medium | done: gated at `0d73dba9` on `feature/weather` (2026-11-10), 10837 passed |
+| E05 | Sky and light by weather; `--weather` and its switches | E02, E04 | M | Sonnet 5.5, medium | done: gated at `c74ce223` on `feature/weather` (2026-11-10), 10978 passed |
+| E06 | Rain: the drops, the cover check, the rain bed and the wind | E05 | M/L | Sonnet 5.5, high | done: gated at `09e83885` on `feature/weather` (2026-11-10), 11089 passed |
+| E07 | The NPCs' answer to «¿Qué tiempo hace?» by weather: lines, speech clips, the content loop | E04 | M | Sonnet 5.5, medium | done: gated at `84033e02` on `feature/weather` (2026-11-10), 10936 passed |
+| E08 | Close-out: documents, the full gate, the screenshot tour, the pull request | E03, E06, E07 | S | Haiku 5.5 | done: gated at `c4c55776` on `feature/weather` (2026-11-11), 11094 passed; PR #64 to `main` |
+| E09 | A Weather volume slider for the rain (the owner's play-test, 2026-11-11) | E06 | S | Haiku 5.5 | done: gated at `dc34f897` on `feature/weather` (2026-11-11), 11108 passed |
+| E10 | The insects without the ringing (the owner's play-test) | E03 | S | Sonnet 5.5, medium | done: gated at `4d5248c1` on `feature/weather` (2026-11-11), 11111 passed |
+| E11 | A gradual day: the look by the sun's height, eased dawn and dusk, a deepening night (the owner's play-test) | E02, E05 | M | Sonnet 5.5, high | done: gated at `b4796d07` on `feature/weather` (2026-11-11), 11122 passed |
 ### 4.13 The inn, bought land and the campsite (the Y series; owner, 2026-11-10, D-game-32)
 
 Branch `feature/settlement`, commit prefix `Y<nn>:`. (Section 4.12 is the E series, day, night and weather, on `feature/weather`.)

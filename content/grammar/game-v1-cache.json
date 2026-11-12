@@ -8689,6 +8689,12 @@
       "matches": []
     },
     {
+      "key": "ca381ad9b5a9def24b162e4dcaf77695de455b546941d3fe9ab0a3795ac42fd3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy llueve.",
+      "matches": []
+    },
+    {
       "key": "ca71fe7c23db38223f47d6cf149c536b024b50b6d7726083fa2dfc7f526acdc0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una fruta por favor",
@@ -9609,6 +9615,12 @@
       "matches": []
     },
     {
+      "key": "e0085736dca9cac1acf016a18343cc9bcb6c133b7301745cf13476e2acfa92c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hace buen tiempo.",
+      "matches": []
+    },
+    {
       "key": "e030109c2612b89127c4cb93780f5896dced9fdf8df3cf42e7d21bde991d1333",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay una habitación aquí",
@@ -9618,6 +9630,12 @@
       "key": "e061c9e50721087728523c7f0876d2720715fb7529bf3d1ac16efa2578618df7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuál es grande",
+      "matches": []
+    },
+    {
+      "key": "e063d7533bc54a1df9c02d99d3bdfbe53b0686eec8e64f259f9223f22d32eec9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy está nublado.",
       "matches": []
     },
     {

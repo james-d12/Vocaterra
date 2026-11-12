@@ -19,6 +19,7 @@ public static class MenuRows
         {
             MenuRow.Heading("headingSound"),
             MenuRow.Of(settings, SettingId.AmbientVolume),
+            MenuRow.Of(settings, SettingId.WeatherVolume),
             MenuRow.Of(settings, SettingId.VoiceVolume),
             MenuRow.Of(settings, SettingId.SfxVolume),
             MenuRow.Of(settings, SettingId.UiVolume),
@@ -82,7 +83,7 @@ public static class MenuRows
         }
 
         rows.Add(MenuRow.Switch("shoulderView", "testShoulder", testing.ShoulderView, testing.SetShoulderView));
-        AddSwitch(rows, "dusk", "testDusk", testing.Dusk, testing.SetDusk);
+        AddTimeAndWeather(rows, testing);
         AddSwitch(rows, "greyscale", "testGreyscale", testing.Greyscale, testing.SetGreyscale);
         AddSwitch(rows, "assumeAllKnown", "testAssumeKnown", testing.AssumeAllKnown, testing.SetAssumeAllKnown);
         AddSwitch(rows, "tips", "testTips", testing.TipsShown, testing.SetTipsShown);
@@ -123,6 +124,37 @@ public static class MenuRows
         rows.Add(MenuRow.Subheading("subFiles"));
         AddSwitch(rows, "autosave", "testAutosave", testing.AutosaveOn, testing.SetAutosaveOn);
         rows.Add(MenuRow.Button("saveNow", "testSave", testing.SaveNow));
+    }
+
+    // The time of day: "Running", then the hours 0 to 23 (a held hour holds the clock; Running lets it run on). The weather: "Running", then the loaded kinds by their ids.
+    // Each shows what the simulation holds, so a clock held by --time shows its hour.
+    private static void AddTimeAndWeather(List<MenuRow> rows, TestingHooks testing)
+    {
+        if (testing.TimeHeld is { } timeHeld && testing.SetTimeHeld is { } setTimeHeld)
+        {
+            rows.Add(MenuRow.Slider(
+                "timeOfDay",
+                "testTimeOfDay",
+                -1,
+                23,
+                1,
+                () => timeHeld() is { } hour ? (int)Math.Floor(hour) : -1,
+                value => setTimeHeld(value < 0 ? null : value),
+                ":00",
+                "testRunning"));
+        }
+
+        var weather = testing.WeatherIds ?? [];
+        if (weather.Count > 0 && testing.WeatherHeld is { } weatherHeld && testing.SetWeatherHeld is { } setWeatherHeld)
+        {
+            rows.Add(MenuRow.Picker(
+                "weather",
+                "testWeather",
+                weather,
+                "testRunning",
+                () => weatherHeld() is { } id ? IndexOf(weather, id) + 1 : 0,
+                value => setWeatherHeld(value <= 0 ? null : weather[value - 1])));
+        }
     }
 
     private static void AddSwitch(List<MenuRow> rows, string id, string labelKey, Func<bool>? get, Action<bool>? set)

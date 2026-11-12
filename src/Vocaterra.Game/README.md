@@ -23,7 +23,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--quality <low\|medium\|high>` | S13 and S14: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU), and what is drawn: **plant distance and share** (the undergrowth is drawn within 64, 112 or 192 blocks of the eye, 80, 100 or 100 percent of it built), **ambient occlusion** (on at all three; the preset says, so a slower machine can turn it off) and **clouds**. Only the chunks within the view distance are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. Medians on this VM (software GL), 1280 x 720: low 42 ms from the camp and 32 ms in the forest, medium 52 ms, high 49 ms (see the S14 line of the plan's findings) |
 | `--view-distance <blocks>` | draw this far instead of the quality's distance (48 to 576 in steps of 16; the menu's Draw distance, whose Auto is the quality's own) |
 | `--fov <degrees>`, `--mouse-sensitivity <percent>`, `--invert-y on\|off` | the menu's Field of view (60 to 110 in steps of 5), Mouse sensitivity (25 to 300 in steps of 5) and Invert mouse Y, for a run; the save's value otherwise |
-| `--voice-volume <0..1>`, `--ui-volume <0..1>` | the menu's Voice volume and Interface sounds volume, for a run (with `--sfx-volume` and `--ambient-volume`) |
+| `--voice-volume <0..1>`, `--ui-volume <0..1>` | the menu's Voice volume and Interface sounds volume, for a run (with `--sfx-volume`, `--ambient-volume` and `--weather-volume`) |
 | `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, the steps below in order, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
 | `--frames <n>` | with `--screenshot`: run at least `n` ticks before the screenshot (default 120) |
 | `--look <yaw>,<pitch>` | a step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |
@@ -43,7 +43,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
 | `--third-person` | start in the behind-the-shoulder view (S15); **F5** switches between it and first person in an interactive run (first person is the default). The player's own figure is drawn with its backpack, and the arm is not |
-| `--dusk` | an evening (S15): an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
+| `--dusk` | an evening (S15, E02): holds the day clock at 21, the middle of a dusk: an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
+| `--time <hour>` | holds the day clock at an hour from 0 to 24, fractions allowed (E02): the sky, the fog, the sun and the moon, the stars and the light of the world show that hour; `--time` wins over `--dusk` for the clock |
 | `--greyscale` | the playtest A/B switch (D-game-6 as amended): blocks whose noun is not known yet are grey, known ones in colour (`GreyscaleWorld`, `WordColours`; blocks no noun names, the figures, the sky and the UI stay in colour); a noun that becomes known during play regains its colour and toasts. Default: full colour |
 | `--assume-known <nouns>` | a test aid: the comma-separated catalogue nouns count as known from the start (`--assume-known árbol` colours the trunks for an A/B shot); not a play path |
 | `--voxel` | accepted and ignored (the 3D world is the only one since S4) |
@@ -65,7 +66,8 @@ one tick; the camera holds the old height and lets it go over 8 ticks).
 
 `ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque
 cube (or the same kind of transparent block: leaves against leaves, of any tree; water against water), so a block shut in on all sides has no face. **The light (S14)
-is in the vertex colours**: each face is shaded by the sun, which stands high in the north-west (`ChunkMesher.SunDirection`; the sky's square sun is drawn there),
+is in the vertex colours**: each face is shaded by a sun that stands high in the north-west (`ChunkMesher.SunDirection`; the faces keep this direction all day, so the shaded side of a block does not move
+with the sun, a known limit of E02; the sky's sun is on its own arc, see "The day cycle" below),
 so the top is full and warm (a tint of 1.0, 0.98, 0.92), the west and north faces about two thirds of the way to it, and the east, south and bottom faces dark and
 blue (the shade fills with sky); and every cube vertex is darkened by its **ambient occlusion** (0 to 3 of the three blocks that touch the corner: a vertex keeps 1.0, 0.82,
 0.66 or 0.5 of its light), the quad's diagonal turned to follow the darker corners. Stone is also tinted by height (`RockTint`: warm and earthy at the foot of the
@@ -83,8 +85,8 @@ cells (the stall, the houses, the signpost, the workbench) and the item icons we
 level averaged cell by cell so no level ever mixes one cell with the next, and with the colours weighted by alpha so the leaves do not darken) and sampled with `PointMipLinear`: crisp
 pixels close up, smooth and in the right colours far away, no shimmer. `VoxelRenderer` uploads one vertex buffer per chunk and mesh and draws with MonoGame's own effects (no custom shader:
 `mgfxc` needs Wine on Linux): `AlphaTestEffect` for the opaque faces and the plants (texture times vertex colour, the cut-out pixels dropped at alpha 110, fog in the haze colour) and `BasicEffect`
-for the water and the small overlays. The order is the sky (`SkyRenderer`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
-fade into haze instead of ending in a wall; a square sun with a stepped glow; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
+for the water and the small overlays. The order is the sky (`SkyRenderer`, drawn from a `SkyLook`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
+fade into haze instead of ending in a wall; square stars at hashed places that fade in with the night; a square sun with a stepped glow on its arc over the day; a square moon at night; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
 with distance), then the opaque chunks, the plants of the chunks near the eye with no back-face culling, the figures and the highlight, the water and the beacon. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
 the chunks within the quality preset's view distance of the eye (`ChunkViewSet`, nearest first, rebuilt when the eye changes chunk or a block is edited): a chunk of air is never in the set,
 a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
@@ -133,8 +135,93 @@ person it draws the arm last, over a cleared depth buffer so it never sinks into
 outline) and the item the hand holds (`HeldItems.For`: a log, a torch with its flame drawn unlit; a bottle, a berry, a loaf, a coin, an apple, the axe, the book and every other item is its 16 x 16 icon extruded into voxels by `ItemModels`, one pixel thick, issue #44); the world matrix places it at the bottom right and applies
 `ArmMotion` (a sway while walking, a chop while `GatherProgress` grows, a dip for `ArmMotion.PlaceTicks` after a place command), and `ArmLight` tints it by the cover above the head and the lanterns and torch
 near it (the `DiffuseColor` of the alpha-test effect). Lanterns glow because `VoxelRenderer.FindLights` collects the lantern blocks (only the chunks whose kind mask holds one are searched) and
-`ChunkMesher` warms and brightens the vertices within `GlowRadius` (7 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; `--dusk` gives
-the glow full strength and dims the sun. A lantern is a small unlit glass box (`BlockShape.Lantern`) and the stall's goods are low boxes (`BlockShape.Pile`). Y03 added the bed and the bedroll as piles too: `ChunkMesher.PileHeight` gives the bed a box 0.5 high (a blanket that reads as a bed from eye height) and the bedroll 0.3, the goods 0.42. Their pictures are `BlockArtVillage`'s `Bed` cell (a wooden frame, a cream pillow at the head, a red blanket) and `Bedroll` cell (a roll of cloth with its spiral end); the atlas grew to 13 rows of colour cells (104 cells) because the 96 of the 12 rows were full; the mip chain is taken from the taller atlas. Y04 gave the bed a mesh of its own, `ChunkMesher.AddBed`: the mattress (0.5 high, the picture on its top: a plump pillow with a shadow, the sheet turned down, a blanket with a lit ridge over a dark crease) and a planks headboard (`BedHeadboardHeight`, 0.85) at the head, which lies against a wall beside the cell (north, west, east, then south; a bed in the open has its head to the north).
+`ChunkMesher` builds, for the cube faces within `GlowRadius` (9 blocks) of one, a quad in the chunk's glow mesh (below), with a falloff by the square of the distance and the most on faces that look at the lantern; the dusk and the
+night give the glow full strength (half strength by day). A lantern is a small unlit glass box (`BlockShape.Lantern`; with a torch's flame it is in the chunk's self-lit mesh, which no light tint touches) and the stall's goods are low boxes (`BlockShape.Pile`). Y03 added the bed and the bedroll as piles too: `ChunkMesher.PileHeight` gives the bed a box 0.5 high (a blanket that reads as a bed from eye height) and the bedroll 0.3, the goods 0.42. Their pictures are `BlockArtVillage`'s `Bed` cell (a wooden frame, a cream pillow at the head, a red blanket) and `Bedroll` cell (a roll of cloth with its spiral end); the atlas grew to 13 rows of colour cells (104 cells) because the 96 of the 12 rows were full; the mip chain is taken from the taller atlas. Y04 gave the bed a mesh of its own, `ChunkMesher.AddBed`: the mattress (0.5 high, the picture on its top: a plump pillow with a shadow, the sheet turned down, a blanket with a lit ridge over a dark crease) and a planks headboard (`BedHeadboardHeight`, 0.85) at the head, which lies against a wall beside the cell (north, west, east, then south; a bed in the open has its head to the north). The bed's mesh takes the same sun tint as the other opaque blocks (the merge of the weather series, Y06m).
+
+### The day cycle: the sky and the light (E02)
+
+`Simulation.Clock` (E01) gives the hour, the daylight (0 at night, rising across dawn, 1 by day, falling across dusk) and the phase; `VoxelGame` turns them into a `SkyLook` every frame and hands it to `SceneDrawer.DrawWorld`.
+`SkyLook.At(SkyLookInput)` is a pure function with no engine type (the input is a record that the weather milestones add to): five keyframes, `SkyKeyframe.Day` (`SkyPalette`'s day set, so noon is the sky the
+game always had), `Golden` (a low sun: a paler, warmer horizon, a softer and slightly dimmer dome, a creamy sun, a light of (1, 0.9, 0.76); E11), `Twilight` (`SkyPalette`'s dusk set; a dawn mirrors a dusk), `Night` (a dark readable blue,
+the blue hour) and `DeepNight` (darker and less blue, a light of (0.21, 0.26, 0.40); E11), blended by `SkyBlend` (E11: the phase and the daylight share the moment between a day side, the twilight and a night side; a smoothstep of the sun's
+elevation splits the day side, all Golden at 10 degrees and below and all Day at 42 and above, so about 6:00 to 8:00 and 18:00 to 20:00 are warm and 10:00 to 16:00 is the noon's own look; a smoothstep of how far the sun is under the
+horizon splits the night side, all Night at 18 degrees under and all DeepNight at 56, so 22:00 and 4:00 are the blue hour and the deepest dark is round 1:00; the daylight across a dawn or a dusk is itself a smoothstep, so the look
+runs Night, Twilight, Golden with no step), give the dome's three colours, the clouds' three, the sun's and the moon's
+direction (`SkyArc`: the sun rises in the east at 5, is highest at 13 and sets in the west at 21 on a path tilted to the north, the moon from 18 to 6) and strength, the stars' amount, the fog's colour (the dome's colour
+at the horizon) and the colour of the sun's light on the world (white by day, `ChunkMesher.DuskLight` at the middle of a dusk, `ChunkMesher.NightLight` at night), and how strongly the lanterns glow.
+`SkyRenderer.SetLook` colours the dome again in place when its three colours move; `VoxelRenderer.SetAtmosphere(look)` moves the clear colour and the fog every frame and composes with `SetUnderwater` (under water the
+water's colour and fog win, dimmed by the light's luminance so the water is dark at night).
+
+**Weather (E05).** `VoxelGame` builds the `SkyLookInput` from `Simulation.Atmosphere` (the snapshot), so the look follows the cloud cover, the sunlight and the fog beside the hour; no file here names a kind's id, and
+`--weather <id>` takes whatever ids the bundle has. Each channel moves the look continuously (`SkyWeather`), so the 45-second blend between two kinds shows no step; with the first kind's values (cover 0.42,
+sunlight 1, fog 0) every value is exactly what the day cycle gives (`SkyWeatherLookTests`, and a camp screenshot at tick 300 that is pixel-identical to the build before). `Gloom` joins the cover past the fair 0.42 (weight
+0.5) and the sunlight lost (weight 0.7) into 0 to 1: the dome's three colours go that far to the grey of their own brightness, darkened to 0.8 of it by day and to 0.55 by night (an overcast night has no blue glow, and a
+dusk or a dawn loses its amber), and the clouds' top, sides and underside go to 0.65, 0.58 and 0.48 of theirs. The sun's disc and halo, the moon and the stars are multiplied by `BodyVisibility` (1 at the fair cover, a
+smoothstep to 0 at a full cover). The colour of the sun's light on the world is multiplied by the sunlight channel, through E02's tint, so weather never rebuilds a mesh and never changes the band (the band follows the
+daylight alone); the tint over a whole day runs 0.507 to 1.48 in clear weather (E02's range) and 0.253 to 0.74 at the data's lowest sunlight (0.5), never above E02's top. The fog keeps the horizon's colour (it greys with the
+sky) and comes nearer with the fog channel: `VoxelRenderer.FogEndFor(viewDistance, fog)` is the clear distance times `SkyWeather.FogReach` (1 at no fog, 1/3 at full fog, straight between) and the start keeps
+`FogStartFraction` of the end; it is read again when the look changes and when the preset or the view distance does, and composes with `SetUnderwater` as before. `CloudField.Generate(x, z, tick, boxes, cover)`
+ranks every cell by its hash: at 0.42 the boxes are today's exactly; a higher cover only adds clouds (none moves or goes), and a cell near the threshold fades in by `CloudBox.Alpha` over 6 percent of cover
+(`CellAlpha`, monotonic in the cover), so no cloud pops during a blend; at a full cover the field holds 467 boxes, 14 010 vertices (5 850 at the fair cover). A full cover is still scattered slabs over a grey dome, not a
+solid ceiling. The lanterns' glow is its own layer (below) and is not dimmed by the weather.
+
+**Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1), Dusk (`DuskLight`) and
+Night (`NightLight`); the bands bake the sun's light only, the lanterns' glow is its own layer (E02a). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
+in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.43, 5.51, 20.49 and 21.57 o'clock (4.24, 5.7, 20.3 and 21.76 before E11 eased the daylight). A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
+frame's budget, the old mesh staying on screen until its replacement is built. Chunks are drawn grouped by band, each group with `DiffuseColor = the look's sun light / the band's baked sun light`
+(`LightBands.Tint`), so every chunk shows the same sun light during the swap and the light moves smoothly through the day with no step at a band's edge. The same `DiffuseColor` carries the light to the figures and the
+avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). The glow is not in the bands (E02a, below), so it shows no step.
+Measured on this VM (software GL, `--quality low`/default): a whole band change takes about 6.5 s
+(low) and 14 s (default) of building behind the frame budget, the worst frame about 20 ms (low) and 11 ms (default). The faces keep the fixed sun direction of the mesher: no shadows move with the sun.
+
+**The lanterns' glow as its own layer (E02a).** The light a lantern or a post torch throws on the faces near it is not baked with the sun's: the base meshes (opaque, undergrowth, water) hold the face tint, the ambient occlusion and the band's sun
+multiplier only, and `ChunkMeshes.GlowMesh` holds, for every cube face a light reaches (leaves too), the very same quad (the same four positions in the same order, the same texture coordinates), its vertex colour the reach of
+the glow at that corner as a grey level, 0 at `GlowRadius` to 1 (`LanternGlow.VertexColour`; the falloff and the facing are as before). It is built with the chunk and does not depend on the band, so a band change builds it again
+unchanged. `VoxelRenderer.DrawGlow` draws it after the opaque and the undergrowth passes: additive blending (the picture times the glow is added to what is there, the alpha is left alone), depth tested and not written, with the
+same alpha test as the opaque pass (a leaf's clear pixels neither draw nor glow), and `DiffuseColor = LanternGlow.Amber x the look's LanternStrength` (0.5 by day, 1 at dusk and by night, a smooth blend through dawn and dusk, whatever the
+band and not touched by the weather's sunlight). Because the quads are the opaque mesh's own, drawn with the same effect and transform, every pixel is at the depth the face wrote and the "less or equal" test passes it: no z-fighting
+(`ChunkMesherGlowTests` checks the quads are the opaque mesh's own; a close screenshot at night shows a clean wall). The fog's colour is black for this pass, so the glow fades out with distance in the same range as the fog instead of adding haze.
+What changed in the look: the old mix also cooled the lit face (less green, much less blue) before adding, and an additive pass cannot multiply, so `Amber` is (0.55, 0.27, 0.02) in place of the old add colour (0.55, 0.30, 0.08) and the
+cooling is gone; and the old vertex colour was cut at 1 before the picture, where the glow now adds on top of a face in full sun (a little brighter beside a lantern at noon). Measured at midnight, beside a lantern, the wall's mean colour went from
+(92, 42, 24) to (92, 43, 28) and the grass's from (56, 88, 19) to (56, 90, 24); at noon the wall from (169, 86, 44) to (177, 89, 48). Away from any lantern noon is pixel for pixel what it was. The glow of a village is 13 380 vertices (3 345 quads, 0.4 percent of the world's).
+
+### Rain (E06)
+
+The first particle effect: the precipitation the weather's snapshot carries is drawn after the water. `Graphics/Weather/` holds it, and nothing in it names a kind's id but the style table.
+
+**The world's draw order** (`VoxelRenderer.DrawWorld`): the sky, the opaque chunks by light band, the self-lit pieces, the undergrowth, the lanterns' glow, the NPC figures and the avatar, the block frame, the
+translucent water (alpha blend, depth read only, from the farthest chunk), **the rain** (the same blend and depth states, both faces), the beacon, the name plates, the held arm (depth cleared). The rain reads the depth the
+opaque world wrote and writes none, so a drop behind a wall or a hill is hidden and a drop in front of the water shows over it.
+
+**The field** (`PrecipitationField`, no engine type). The drops live in a box that wraps round the camera: 36 blocks wide both ways and 24 high (`BoxWidth`, `BoxHeight`), reaching 3 blocks further below the eye than above it
+(`BoxLowering`), because most of the rain is seen below the horizon, on the ground in front. Each drop has a fixed place in a pattern from `PresentationRng` (seeded by a constant; no clock, no `System.Random`) that repeats
+every box width east-west and north-south, so the field never ends and costs the same anywhere, and a camera moved by the box's size sees the same pattern (`PrecipitationFieldTests`). A drop falls at the style's speed
+(the tick over 60, with a little spread per drop) and leans with the wind along a fixed heading (east and a little south, the way the clouds drift): its lateral drift is the style's slant times the wind channel times the
+height, so its line is straight. The streak runs from the head (the drop) up its own line for the style's length. The drops alive are the style's share of the quality's budget times the intensity, one after another: the
+last one alive fades in by the fraction, so a transition thickens and thins the rain with no pop, and the count is monotonic in the intensity and zero at zero. A drop also fades towards the box's walls, roof and floor
+(where it wraps) and in front of the eye.
+
+**The cover** (`ColumnCover`). Each column's cover is `VoxelGrid.HighestBlock` (trees, roofs and plants count), read by chunk column (256 columns a tile) and cached with the sum of the chunks' versions: a block placed or
+removed in a chunk column makes that tile again at the next frame (`Refresh`, once a frame, for the tiles the box overlaps), and a quiet world makes none. A drop is not drawn below the top face of its column's cover
+(`OverheadCover.Top`, in Core, so the sound uses the same rule): the rain stops at the eaves and under a tree, and a drop that reaches a roof or the ground is cut short into it, so no streak sinks into a surface. There
+are no splashes, puddles or wet blocks.
+
+**The style table** (`PrecipitationStyles.Table`, rows of `PrecipitationStyle`): per precipitation kind, keyed by the string of the snapshot's `PrecipitationKind`, the streak's length and width, the fall speed, the colour
+and opacity, how much the wind slants it and the share of the budget at full intensity. It has one row, for the kind `game/weather.json` names; it is the one place the precipitation's id is written (`NoWeatherKindIdsInSourceTests`
+allows that file, and `AmbientBeds.cs`, whose bed of the same word is a bed's id and not a decision on a kind). A test over the bundle's data holds that every precipitation kind of the weather has a row, so a kind added
+later (snow) without a style fails there: it is a new row, a new loop and a bed, and a consumer of the channels. An id the table lacks draws nothing and is reported once in the console.
+
+**The pass** (`PrecipitationRenderer`): the streaks as camera-facing quads (the side vector is the streak's direction crossed with the way to the eye) in one `DynamicVertexBuffer` with a fixed index buffer and a fixed
+vertex array, so a frame allocates nothing; `BasicEffect` with vertex colour, no lighting, alpha blend (`NonPremultiplied`), depth read and not written. The colour is the style's times the look's sun light (a power of 0.7
+with a floor of 0.3, so night rain is dim but shows, and a village's rain is not dark against its dark houses); the head has the style's opacity and the tail a little of it, so a streak fades up its line. A streak is
+narrowed near the lens (to 0.3 of its width at the eye, full from six blocks out). It is fogged like the world: the pass takes the world's fog colour, start and end (the under-water blend included). The pass fades with
+the under-water amount and is not drawn at 1, so nothing is blurred wrongly by the under-water view; a draw at 0 intensity, an unknown kind or a budget of 0 sends nothing. `VoxelRenderer.SetPrecipitation` takes the kind,
+intensity and wind from `SceneDrawer` (which reads the snapshot's channels), and `DrawnRainVertices` is what the last frame sent (a scripted run's closing console line adds it when it rained).
+
+**The quality field.** `QualityPreset.RainDrops` is the most drops at full intensity (a style takes its share): 2200 on low, 3400 on medium, 5400 on high (four vertices a drop: 3 772, 5 788 and 9 124 vertices drawn
+in the camp view in the data's rain, which holds 0.8). The field's pattern is made for 6000 (`MaxDrops`). On the heaviest kind the camp view's frame time (scripted, real GPU) went from 2.7, 3.2 and 3.4 ms to 3.1, 3.9 and
+4.5 ms on low, medium and high; on a software GL (llvmpipe) the low preset's 34.5 ms went to 35.1 ms (the run varies between two modes, 35 and 48 ms, with or without the rain). The cost is the managed work of
+filling and building the quads, not the GL work.
 
 **The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
 `DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use

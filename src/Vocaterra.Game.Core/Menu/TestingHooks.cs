@@ -5,9 +5,9 @@ namespace Vocaterra.Game.Core.Menu;
 /// <summary>
 /// The testing section's controls, each over something the front-end already has (a flag of the command line or a function key): the debug overlay (F3, <c>--dev</c>), the needs
 /// running (<c>--needs on|off</c>) and each need's value (<c>--set-need</c>), a refill of the needs, every sound but the voices off (<c>--no-sounds</c>), the voices off (<c>--mute</c>),
-/// the camera over the shoulder (F5, <c>--third-person</c>), dusk lighting (<c>--dusk</c>), the greyscale view (<c>--greyscale</c>), every noun counted as known in the view
+/// the camera over the shoulder (F5, <c>--third-person</c>), the held time of day (<c>--time</c>, <c>--dusk</c>, a scripted step) and held weather (a scripted step), the greyscale view (<c>--greyscale</c>), every noun counted as known in the view
 /// (<c>--assume-known</c>, but only the view), the first-time tips (<c>--tips</c>), the beacon (<c>--beacon</c>), a teleport to a named point (<c>--teleport</c>), the typed-answer credit
-/// (<c>--typed-credit</c>), the autosave (<c>--no-autosave</c>) and a save now (F6). None of them is kept in a save: a test aid must not outlive the test. A row appears when its hooks
+/// (<c>--typed-credit</c>), the autosave (<c>--no-autosave</c>) and a save now (F6). The held time of day and the held weather are simulation state, so a save written during the run keeps them (the save's atmosphere entry); none of the others is kept in a save: a test aid must not outlive the test. A row appears when its hooks
 /// are given, so a front-end (or a test) offers only what it has.
 /// </summary>
 public sealed record TestingHooks
@@ -51,11 +51,20 @@ public sealed record TestingHooks
     /// <summary>Puts the camera over the shoulder or back in first person.</summary>
     public required Action<bool> SetShoulderView { get; init; }
 
-    /// <summary>Whether the lighting is the dusk of <c>--dusk</c>.</summary>
-    public Func<bool>? Dusk { get; init; }
+    /// <summary>The hour the clock is held at (0 to 24), or <see langword="null"/> while it runs (<c>--time</c>, <c>--dusk</c> and the Time of day row hold it).</summary>
+    public Func<double?>? TimeHeld { get; init; }
 
-    /// <summary>Switches dusk lighting (the world is meshed again, the sky and the ambient beds follow).</summary>
-    public Action<bool>? SetDusk { get; init; }
+    /// <summary>Holds the clock at an hour (the sky, the light and the sound follow it), or lets it run on for <see langword="null"/>.</summary>
+    public Action<double?>? SetTimeHeld { get; init; }
+
+    /// <summary>The id of the weather kind held, or <see langword="null"/> while the weather runs (the Weather row and a scripted step hold it).</summary>
+    public Func<string?>? WeatherHeld { get; init; }
+
+    /// <summary>Holds a weather kind by its id, or releases the weather for <see langword="null"/>.</summary>
+    public Action<string?>? SetWeatherHeld { get; init; }
+
+    /// <summary>The ids of the loaded weather kinds, in the data's order: the Weather row's choices after "Running"; empty or <see langword="null"/> for none.</summary>
+    public IReadOnlyList<string>? WeatherIds { get; init; }
 
     /// <summary>Whether the playtest A/B view is on: blocks whose noun is not known yet are grey.</summary>
     public Func<bool>? Greyscale { get; init; }

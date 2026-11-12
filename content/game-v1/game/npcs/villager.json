@@ -23,6 +23,9 @@
     "answer_accepted",
     "villager_nice"
   ],
+  "weatherAnswers": [
+    "ask_weather"
+  ],
   "slotReplies": {
     "state_weather": {
       "slot": "weather",

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Physics;
 
 namespace Vocaterra.Game.Core.Sound;
@@ -27,21 +28,18 @@ public sealed class AmbientSound
     /// <summary>Creates the ambient sound over the mixer.</summary>
     /// <param name="mixer">The mixer.</param>
     /// <param name="places">The scene's places.</param>
-    /// <param name="dusk">Whether <c>--dusk</c> is on.</param>
-    public AmbientSound(SoundMixer mixer, AmbientPlaces places, bool dusk)
+    public AmbientSound(SoundMixer mixer, AmbientPlaces places)
     {
         _mixer = mixer ?? throw new ArgumentNullException(nameof(mixer));
         _places = places ?? throw new ArgumentNullException(nameof(places));
-        Dusk = dusk;
     }
-
-    /// <summary>Whether it is dusk: the birds stop and the insects start (<c>--dusk</c>; the menu's Dusk lighting row changes it during the run).</summary>
-    public bool Dusk { get; set; }
 
     /// <summary>The beds' weights for a listener (the same as <see cref="AmbientBeds.At"/>).</summary>
     /// <param name="listener">The listener.</param>
+    /// <param name="atmosphere">The atmosphere now (the daylight sets the birds and the insects).</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public IReadOnlyList<BedInput> WeightsAt(Listener listener, bool fireLit) => AmbientBeds.At(_places, listener, Dusk, fireLit);
+    /// <param name="highestBlock">Reads the highest block of a column of the world (the rain is lower under cover), or <see langword="null"/> for open ground.</param>
+    public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock);
 
     /// <summary>
     /// One tick: the beds' targets are set for the listener, a line is logged when the place or its weights change (rounded to a tenth), and the chirps and crackles
@@ -49,11 +47,13 @@ public sealed class AmbientSound
     /// </summary>
     /// <param name="tick">The tick.</param>
     /// <param name="listener">The listener.</param>
+    /// <param name="atmosphere">The atmosphere now, as the simulation reports it.</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public void Observe(long tick, Listener listener, bool fireLit)
+    /// <param name="highestBlock">Reads the highest block of a column of the world (E06: the rain is lower under cover); read only, never written.</param>
+    public void Observe(long tick, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
     {
         _mixer.SetTick(tick);
-        var inputs = WeightsAt(listener, fireLit);
+        var inputs = WeightsAt(listener, atmosphere, fireLit, highestBlock);
         _mixer.SetBeds(inputs);
         var weights = inputs.ToDictionary(static b => b.Bed, static b => b.Weight, StringComparer.Ordinal);
         _firePan = inputs.First(static b => b.Bed == AmbientBeds.Fire).Pan;

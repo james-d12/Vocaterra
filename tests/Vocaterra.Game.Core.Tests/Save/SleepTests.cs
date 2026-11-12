@@ -27,6 +27,7 @@ public sealed class SleepTests
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
         loaded.Day++;
         loaded.Needs.Sleep(); // N03: a night moves the needs, which a load does not; everything else is a load's
+        loaded.Simulation.WakeUp(); // E01: a night wakes in the morning, which a load does not either
         loaded.SettleNeedStages();
         loaded.BeginPlaySession();
         loaded.NoteSleptAt(); // Y02: the one thing a sleep adds to a load, the place the player slept at (none away from one)

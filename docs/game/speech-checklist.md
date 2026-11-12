@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1570 of the 1570 files have no mark (guide 480, baker 212, villager 176, farmer 170, shopkeeper 168, fisher 150, smith 124, innkeeper 90). Two files a line: the normal speed and the slow one.
+**To hear:** 1618 of the 1618 files have no mark (guide 486, baker 218, villager 182, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -83,8 +83,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_cant_pay.1 | speech/baker/baker_cant_pay.1.wav | baker | 1.0 | Necesitas más monedas. |  |
 | baker_cant_sell.1 | speech/baker/baker_cant_sell.1.slow.wav | baker | 0.8 | No tienes madera. |  |
 | baker_cant_sell.1 | speech/baker/baker_cant_sell.1.wav | baker | 1.0 | No tienes madera. |  |
+| baker_cloudy.1 | speech/baker/baker_cloudy.1.slow.wav | baker | 0.8 | Hoy está nublado. |  |
+| baker_cloudy.1 | speech/baker/baker_cloudy.1.wav | baker | 1.0 | Hoy está nublado. |  |
 | baker_delivered.1 | speech/baker/baker_delivered.1.slow.wav | baker | 0.8 | ¡Gracias! Toma cuatro monedas. |  |
 | baker_delivered.1 | speech/baker/baker_delivered.1.wav | baker | 1.0 | ¡Gracias! Toma cuatro monedas. |  |
+| baker_fair.1 | speech/baker/baker_fair.1.slow.wav | baker | 0.8 | Hace buen tiempo. |  |
+| baker_fair.1 | speech/baker/baker_fair.1.wav | baker | 1.0 | Hace buen tiempo. |  |
 | baker_gift_used.1 | speech/baker/baker_gift_used.1.slow.wav | baker | 0.8 | Hoy no tengo más. |  |
 | baker_gift_used.1 | speech/baker/baker_gift_used.1.wav | baker | 1.0 | Hoy no tengo más. |  |
 | baker_give_missing.1 | speech/baker/baker_give_missing.1.slow.wav | baker | 0.8 | Toma. Aquí tienes. |  |
@@ -119,6 +123,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | baker_order_yes.1 | speech/baker/baker_order_yes.1.wav | baker | 1.0 | ¡Gracias! Hay árboles cerca del pueblo. |  |
 | baker_price.1 | speech/baker/baker_price.1.slow.wav | baker | 0.8 | El pan cuesta dos monedas. |  |
 | baker_price.1 | speech/baker/baker_price.1.wav | baker | 1.0 | El pan cuesta dos monedas. |  |
+| baker_rain.1 | speech/baker/baker_rain.1.slow.wav | baker | 0.8 | Hoy llueve. |  |
+| baker_rain.1 | speech/baker/baker_rain.1.wav | baker | 1.0 | Hoy llueve. |  |
 | baker_receive.1 | speech/baker/baker_receive.1.slow.wav | baker | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | baker_receive.1 | speech/baker/baker_receive.1.wav | baker | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | baker_receive_help.1 | speech/baker/baker_receive_help.1.slow.wav | baker | 0.8 | Puedes decir: «Aquí tienes cinco bloques de madera». |  |
@@ -249,8 +255,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_cant_pay.1 | speech/farmer/farmer_cant_pay.1.wav | farmer | 1.0 | Necesitas más monedas. Una manzana cuesta una moneda. |  |
 | farmer_cant_sell.1 | speech/farmer/farmer_cant_sell.1.slow.wav | farmer | 0.8 | No tienes fruta. |  |
 | farmer_cant_sell.1 | speech/farmer/farmer_cant_sell.1.wav | farmer | 1.0 | No tienes fruta. |  |
+| farmer_cloudy.1 | speech/farmer/farmer_cloudy.1.slow.wav | farmer | 0.8 | Hoy está nublado. |  |
+| farmer_cloudy.1 | speech/farmer/farmer_cloudy.1.wav | farmer | 1.0 | Hoy está nublado. |  |
 | farmer_delivered.1 | speech/farmer/farmer_delivered.1.slow.wav | farmer | 0.8 | ¡Gracias! Toma tres manzanas. |  |
 | farmer_delivered.1 | speech/farmer/farmer_delivered.1.wav | farmer | 1.0 | ¡Gracias! Toma tres manzanas. |  |
+| farmer_fair.1 | speech/farmer/farmer_fair.1.slow.wav | farmer | 0.8 | Hace buen tiempo. |  |
+| farmer_fair.1 | speech/farmer/farmer_fair.1.wav | farmer | 1.0 | Hace buen tiempo. |  |
 | farmer_greet.1 | speech/farmer/farmer_greet.1.slow.wav | farmer | 0.8 | ¡Hola! Este es mi campo. |  |
 | farmer_greet.1 | speech/farmer/farmer_greet.1.wav | farmer | 1.0 | ¡Hola! Este es mi campo. |  |
 | farmer_hello.1 | speech/farmer/farmer_hello.1.slow.wav | farmer | 0.8 | ¡Hola! |  |
@@ -277,6 +287,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer_pay.1 | speech/farmer/farmer_pay.1.wav | farmer | 1.0 | Aquí se paga con monedas. Pero yo te compro fruta. |  |
 | farmer_price.1 | speech/farmer/farmer_price.1.slow.wav | farmer | 0.8 | Una manzana cuesta una moneda. |  |
 | farmer_price.1 | speech/farmer/farmer_price.1.wav | farmer | 1.0 | Una manzana cuesta una moneda. |  |
+| farmer_rain.1 | speech/farmer/farmer_rain.1.slow.wav | farmer | 0.8 | Hoy llueve. |  |
+| farmer_rain.1 | speech/farmer/farmer_rain.1.wav | farmer | 1.0 | Hoy llueve. |  |
 | farmer_receive.1 | speech/farmer/farmer_receive.1.slow.wav | farmer | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | farmer_receive.1 | speech/farmer/farmer_receive.1.wav | farmer | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | farmer_receive_help.1 | speech/farmer/farmer_receive_help.1.slow.wav | farmer | 0.8 | Puedes decir: «Aquí tienes el agua». |  |
@@ -413,8 +425,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_bye.1 | speech/fisher/fisher_bye.1.wav | fisher | 0.9 | ¡Adiós! Hasta luego. |  |
 | fisher_bye.2 | speech/fisher/fisher_bye.2.slow.wav | fisher | 0.72 | Hasta luego. |  |
 | fisher_bye.2 | speech/fisher/fisher_bye.2.wav | fisher | 0.9 | Hasta luego. |  |
+| fisher_cloudy.1 | speech/fisher/fisher_cloudy.1.slow.wav | fisher | 0.72 | Hoy está nublado. |  |
+| fisher_cloudy.1 | speech/fisher/fisher_cloudy.1.wav | fisher | 0.9 | Hoy está nublado. |  |
 | fisher_delivered.1 | speech/fisher/fisher_delivered.1.slow.wav | fisher | 0.72 | ¡Gracias! Toma dos monedas. |  |
 | fisher_delivered.1 | speech/fisher/fisher_delivered.1.wav | fisher | 0.9 | ¡Gracias! Toma dos monedas. |  |
+| fisher_fair.1 | speech/fisher/fisher_fair.1.slow.wav | fisher | 0.72 | Hace buen tiempo. |  |
+| fisher_fair.1 | speech/fisher/fisher_fair.1.wav | fisher | 0.9 | Hace buen tiempo. |  |
 | fisher_far.1 | speech/fisher/fisher_far.1.slow.wav | fisher | 0.72 | ¿Lejos? ¿Qué buscas? |  |
 | fisher_far.1 | speech/fisher/fisher_far.1.wav | fisher | 0.9 | ¿Lejos? ¿Qué buscas? |  |
 | fisher_greet.1 | speech/fisher/fisher_greet.1.slow.wav | fisher | 0.72 | ¿Qué buscas? |  |
@@ -437,6 +453,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | fisher_point.1 | speech/fisher/fisher_point.1.wav | fisher | 0.9 | Mira, está allí. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.slow.wav | fisher | 0.72 | Está por allí, mira. |  |
 | fisher_point.2 | speech/fisher/fisher_point.2.wav | fisher | 0.9 | Está por allí, mira. |  |
+| fisher_rain.1 | speech/fisher/fisher_rain.1.slow.wav | fisher | 0.72 | Hoy llueve. |  |
+| fisher_rain.1 | speech/fisher/fisher_rain.1.wav | fisher | 0.9 | Hoy llueve. |  |
 | fisher_receive.1 | speech/fisher/fisher_receive.1.slow.wav | fisher | 0.72 | ¡Hola! ¿Qué tienes para mí? |  |
 | fisher_receive.1 | speech/fisher/fisher_receive.1.wav | fisher | 0.9 | ¡Hola! ¿Qué tienes para mí? |  |
 | fisher_receive_help.1 | speech/fisher/fisher_receive_help.1.slow.wav | fisher | 0.72 | Puedes decir: «Aquí tienes tres frutas». |  |
@@ -833,12 +851,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_again.1 | speech/guide/guide_again.1.wav | guide | 1.0 | Claro. Otra vez. |  |
 | guide_again.2 | speech/guide/guide_again.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo otra vez. |  |
 | guide_again.2 | speech/guide/guide_again.2.wav | guide | 1.0 | ¡Claro! Te lo digo otra vez. |  |
+| guide_cloudy.1 | speech/guide/guide_cloudy.1.slow.wav | guide | 0.8 | Hoy está nublado. |  |
+| guide_cloudy.1 | speech/guide/guide_cloudy.1.wav | guide | 1.0 | Hoy está nublado. |  |
 | guide_craft.1 | speech/guide/guide_craft.1.slow.wav | guide | 0.8 | ¡Claro! Mira. |  |
 | guide_craft.1 | speech/guide/guide_craft.1.wav | guide | 1.0 | ¡Claro! Mira. |  |
 | guide_craft.2 | speech/guide/guide_craft.2.slow.wav | guide | 0.8 | A ver, te digo. |  |
 | guide_craft.2 | speech/guide/guide_craft.2.wav | guide | 1.0 | A ver, te digo. |  |
 | guide_craft.3 | speech/guide/guide_craft.3.slow.wav | guide | 0.8 | Sí, te ayudo. |  |
 | guide_craft.3 | speech/guide/guide_craft.3.wav | guide | 1.0 | Sí, te ayudo. |  |
+| guide_fair.1 | speech/guide/guide_fair.1.slow.wav | guide | 0.8 | Hace buen tiempo. |  |
+| guide_fair.1 | speech/guide/guide_fair.1.wav | guide | 1.0 | Hace buen tiempo. |  |
 | guide_find.1 | speech/guide/guide_find.1.slow.wav | guide | 0.8 | A ver, busco. |  |
 | guide_find.1 | speech/guide/guide_find.1.wav | guide | 1.0 | A ver, busco. |  |
 | guide_find.2 | speech/guide/guide_find.2.slow.wav | guide | 0.8 | ¡Claro! Busco. |  |
@@ -893,6 +915,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | guide_point.2 | speech/guide/guide_point.2.wav | guide | 1.0 | Un minuto, miro. |  |
 | guide_point.3 | speech/guide/guide_point.3.slow.wav | guide | 0.8 | ¡Claro! Miro. |  |
 | guide_point.3 | speech/guide/guide_point.3.wav | guide | 1.0 | ¡Claro! Miro. |  |
+| guide_rain.1 | speech/guide/guide_rain.1.slow.wav | guide | 0.8 | Hoy llueve. |  |
+| guide_rain.1 | speech/guide/guide_rain.1.wav | guide | 1.0 | Hoy llueve. |  |
 | guide_slower.1 | speech/guide/guide_slower.1.slow.wav | guide | 0.8 | Claro. Más despacio. |  |
 | guide_slower.1 | speech/guide/guide_slower.1.wav | guide | 1.0 | Claro. Más despacio. |  |
 | guide_slower.2 | speech/guide/guide_slower.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo más despacio. |  |
@@ -937,6 +961,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | innkeeper_bye.1 | speech/innkeeper/innkeeper_bye.1.wav | innkeeper | 1.0 | ¡Hasta luego! |  |
 | innkeeper_bye.2 | speech/innkeeper/innkeeper_bye.2.slow.wav | innkeeper | 0.8 | ¡Nos vemos! |  |
 | innkeeper_bye.2 | speech/innkeeper/innkeeper_bye.2.wav | innkeeper | 1.0 | ¡Nos vemos! |  |
+| innkeeper_cloudy.1 | speech/innkeeper/innkeeper_cloudy.1.slow.wav | innkeeper | 0.8 | Hoy está nublado. |  |
+| innkeeper_cloudy.1 | speech/innkeeper/innkeeper_cloudy.1.wav | innkeeper | 1.0 | Hoy está nublado. |  |
+| innkeeper_fair.1 | speech/innkeeper/innkeeper_fair.1.slow.wav | innkeeper | 0.8 | Hace buen tiempo. |  |
+| innkeeper_fair.1 | speech/innkeeper/innkeeper_fair.1.wav | innkeeper | 1.0 | Hace buen tiempo. |  |
 | innkeeper_free.1 | speech/innkeeper/innkeeper_free.1.slow.wav | innkeeper | 0.8 | La habitación es gratis. ¿Quieres una habitación? |  |
 | innkeeper_free.1 | speech/innkeeper/innkeeper_free.1.wav | innkeeper | 1.0 | La habitación es gratis. ¿Quieres una habitación? |  |
 | innkeeper_give.1 | speech/innkeeper/innkeeper_give.1.slow.wav | innkeeper | 0.8 | Está bien. La habitación es gratis. Tu cama está allí. |  |
@@ -957,6 +985,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | innkeeper_no.2 | speech/innkeeper/innkeeper_no.2.wav | innkeeper | 1.0 | Bueno. La habitación es gratis. |  |
 | innkeeper_offer.1 | speech/innkeeper/innkeeper_offer.1.slow.wav | innkeeper | 0.8 | ¡Hola! ¿Quieres una habitación? |  |
 | innkeeper_offer.1 | speech/innkeeper/innkeeper_offer.1.wav | innkeeper | 1.0 | ¡Hola! ¿Quieres una habitación? |  |
+| innkeeper_rain.1 | speech/innkeeper/innkeeper_rain.1.slow.wav | innkeeper | 0.8 | Hoy llueve. |  |
+| innkeeper_rain.1 | speech/innkeeper/innkeeper_rain.1.wav | innkeeper | 1.0 | Hoy llueve. |  |
 | innkeeper_room.1 | speech/innkeeper/innkeeper_room.1.slow.wav | innkeeper | 0.8 | ¡Claro! La habitación es gratis. Tu cama está allí. |  |
 | innkeeper_room.1 | speech/innkeeper/innkeeper_room.1.wav | innkeeper | 1.0 | ¡Claro! La habitación es gratis. Tu cama está allí. |  |
 | innkeeper_room.2 | speech/innkeeper/innkeeper_room.2.slow.wav | innkeeper | 0.8 | ¡Muy bien! La habitación es gratis. Tu cama está allí. |  |
@@ -1379,6 +1409,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_cant_pay.1 | speech/shopkeeper/shop_cant_pay.1.wav | shopkeeper | 1.0 | La harina cuesta una moneda. |  |
 | shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.slow.wav | shopkeeper | 0.8 | No tienes pan. |  |
 | shop_cant_sell.1 | speech/shopkeeper/shop_cant_sell.1.wav | shopkeeper | 1.0 | No tienes pan. |  |
+| shop_cloudy.1 | speech/shopkeeper/shop_cloudy.1.slow.wav | shopkeeper | 0.8 | Hoy está nublado. |  |
+| shop_cloudy.1 | speech/shopkeeper/shop_cloudy.1.wav | shopkeeper | 1.0 | Hoy está nublado. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.slow.wav | shopkeeper | 0.8 | Está bien. |  |
 | shop_deny.1 | speech/shopkeeper/shop_deny.1.wav | shopkeeper | 1.0 | Está bien. |  |
 | shop_deny.2 | speech/shopkeeper/shop_deny.2.slow.wav | shopkeeper | 0.8 | Bueno. |  |
@@ -1387,6 +1419,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_done.1 | speech/shopkeeper/shop_done.1.wav | shopkeeper | 1.0 | ¡Hasta luego! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.slow.wav | shopkeeper | 0.8 | ¡Nos vemos! |  |
 | shop_done.2 | speech/shopkeeper/shop_done.2.wav | shopkeeper | 1.0 | ¡Nos vemos! |  |
+| shop_fair.1 | speech/shopkeeper/shop_fair.1.slow.wav | shopkeeper | 0.8 | Hace buen tiempo. |  |
+| shop_fair.1 | speech/shopkeeper/shop_fair.1.wav | shopkeeper | 1.0 | Hace buen tiempo. |  |
 | shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.slow.wav | shopkeeper | 0.8 | Hoy no tengo más pan. |  |
 | shop_gift_used.1 | speech/shopkeeper/shop_gift_used.1.wav | shopkeeper | 1.0 | Hoy no tengo más pan. |  |
 | shop_give.1 | speech/shopkeeper/shop_give.1.slow.wav | shopkeeper | 0.8 | Toma la botella. El agua está en el río. |  |
@@ -1417,6 +1451,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_offer.1 | speech/shopkeeper/shop_offer.1.wav | shopkeeper | 1.0 | ¿Quieres pan? |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.slow.wav | shopkeeper | 0.8 | El pan cuesta dos monedas. |  |
 | shop_price.1 | speech/shopkeeper/shop_price.1.wav | shopkeeper | 1.0 | El pan cuesta dos monedas. |  |
+| shop_rain.1 | speech/shopkeeper/shop_rain.1.slow.wav | shopkeeper | 0.8 | Hoy llueve. |  |
+| shop_rain.1 | speech/shopkeeper/shop_rain.1.wav | shopkeeper | 1.0 | Hoy llueve. |  |
 | shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.slow.wav | shopkeeper | 0.8 | Aquí tienes la harina. |  |
 | shop_sell_flour.1 | speech/shopkeeper/shop_sell_flour.1.wav | shopkeeper | 1.0 | Aquí tienes la harina. |  |
 | shop_sun.1 | speech/shopkeeper/shop_sun.1.slow.wav | shopkeeper | 0.8 | Hoy hace sol. |  |
@@ -1467,8 +1503,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_bye.2 | speech/smith/smith_bye.2.wav | smith | 1.0 | Hasta luego. |  |
 | smith_cant_sell.1 | speech/smith/smith_cant_sell.1.slow.wav | smith | 0.8 | No tienes madera. |  |
 | smith_cant_sell.1 | speech/smith/smith_cant_sell.1.wav | smith | 1.0 | No tienes madera. |  |
+| smith_cloudy.1 | speech/smith/smith_cloudy.1.slow.wav | smith | 0.8 | Hoy está nublado. |  |
+| smith_cloudy.1 | speech/smith/smith_cloudy.1.wav | smith | 1.0 | Hoy está nublado. |  |
 | smith_delivered.1 | speech/smith/smith_delivered.1.slow.wav | smith | 0.8 | ¡Gracias! Toma el hacha. |  |
 | smith_delivered.1 | speech/smith/smith_delivered.1.wav | smith | 1.0 | ¡Gracias! Toma el hacha. |  |
+| smith_fair.1 | speech/smith/smith_fair.1.slow.wav | smith | 0.8 | Hace buen tiempo. |  |
+| smith_fair.1 | speech/smith/smith_fair.1.wav | smith | 1.0 | Hace buen tiempo. |  |
 | smith_greet.1 | speech/smith/smith_greet.1.slow.wav | smith | 0.8 | ¡Hola! Esta es mi herrería. |  |
 | smith_greet.1 | speech/smith/smith_greet.1.wav | smith | 1.0 | ¡Hola! Esta es mi herrería. |  |
 | smith_hello.1 | speech/smith/smith_hello.1.slow.wav | smith | 0.8 | ¡Hola! |  |
@@ -1491,6 +1531,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_ok.1 | speech/smith/smith_ok.1.wav | smith | 1.0 | Está bien. |  |
 | smith_order_yes.1 | speech/smith/smith_order_yes.1.slow.wav | smith | 0.8 | ¡Muy bien! Te hago un hacha. |  |
 | smith_order_yes.1 | speech/smith/smith_order_yes.1.wav | smith | 1.0 | ¡Muy bien! Te hago un hacha. |  |
+| smith_rain.1 | speech/smith/smith_rain.1.slow.wav | smith | 0.8 | Hoy llueve. |  |
+| smith_rain.1 | speech/smith/smith_rain.1.wav | smith | 1.0 | Hoy llueve. |  |
 | smith_receive.1 | speech/smith/smith_receive.1.slow.wav | smith | 0.8 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive.1 | speech/smith/smith_receive.1.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.slow.wav | smith | 0.8 | Puedes decir: «Aquí tienes la madera y las monedas». |  |
@@ -1537,6 +1579,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_bye.1 | speech/villager/villager_bye.1.wav | villager | 1.0 | ¡Adiós! Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.slow.wav | villager | 0.8 | Hasta luego. |  |
 | villager_bye.2 | speech/villager/villager_bye.2.wav | villager | 1.0 | Hasta luego. |  |
+| villager_cloudy.1 | speech/villager/villager_cloudy.1.slow.wav | villager | 0.8 | Hoy está nublado. |  |
+| villager_cloudy.1 | speech/villager/villager_cloudy.1.wav | villager | 1.0 | Hoy está nublado. |  |
+| villager_fair.1 | speech/villager/villager_fair.1.slow.wav | villager | 0.8 | Hace buen tiempo. |  |
+| villager_fair.1 | speech/villager/villager_fair.1.wav | villager | 1.0 | Hace buen tiempo. |  |
 | villager_gift_used.1 | speech/villager/villager_gift_used.1.slow.wav | villager | 0.8 | Hoy no tengo más pan. |  |
 | villager_gift_used.1 | speech/villager/villager_gift_used.1.wav | villager | 1.0 | Hoy no tengo más pan. |  |
 | villager_give.1 | speech/villager/villager_give.1.slow.wav | villager | 0.8 | Aquí tienes. |  |
@@ -1555,6 +1601,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | villager_point.1 | speech/villager/villager_point.1.wav | villager | 1.0 | Mira, está allí. |  |
 | villager_point.2 | speech/villager/villager_point.2.slow.wav | villager | 0.8 | Está allí, mira. |  |
 | villager_point.2 | speech/villager/villager_point.2.wav | villager | 1.0 | Está allí, mira. |  |
+| villager_rain.1 | speech/villager/villager_rain.1.slow.wav | villager | 0.8 | Hoy llueve. |  |
+| villager_rain.1 | speech/villager/villager_rain.1.wav | villager | 1.0 | Hoy llueve. |  |
 | villager_sun.1 | speech/villager/villager_sun.1.slow.wav | villager | 0.8 | Hoy hace sol. |  |
 | villager_sun.1 | speech/villager/villager_sun.1.wav | villager | 1.0 | Hoy hace sol. |  |
 | villager_thank.1 | speech/villager/villager_thank.1.slow.wav | villager | 0.8 | De nada. |  |

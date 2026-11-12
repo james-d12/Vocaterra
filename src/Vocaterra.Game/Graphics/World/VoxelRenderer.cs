@@ -11,6 +11,7 @@ using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
+using Vocaterra.Game.Graphics.Weather;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -60,13 +61,16 @@ public readonly record struct MeshStats(
 /// buried in solid blocks are skipped, the rest are built nearest first within the frame's time budget, and a chunk that goes out of range lets its
 /// mesh go. The chunks that are drawn are culled against the camera's frustum, and the fog closes in at the view distance, in the sky colour. A chunk
 /// is meshed again when its version, or a neighbour's, changed, or when a block kind it holds changed its grey state (<see cref="ChunkVersionTracker"/>).
+/// The light of the day cycle (E02) is a <see cref="SkyLook"/> given each frame (<see cref="SetAtmosphere"/>): the clear colour and the fog follow it, and the world's light follows
+/// it without a remesh: every mesh bakes the sun's light of one of three bands (<see cref="LightBand"/>) and is drawn with a tint that brings that baked light to the light of the
+/// moment, so the chunks of two bands show the same light while a change of band is built again in the background.
 /// </summary>
 public sealed class VoxelRenderer : IDisposable
 {
-    /// <summary>The colour the target is cleared to and the colour of the fog: the haze at the horizon (<see cref="SkyPalette.Horizon"/>), so far land fades into the sky.</summary>
+    /// <summary>The colour of the day's haze at the horizon (<see cref="SkyPalette.Horizon"/>), which is the clear colour and the fog's at noon, so far land fades into the sky.</summary>
     public static readonly Color Sky = new(SkyPalette.Horizon.R, SkyPalette.Horizon.G, SkyPalette.Horizon.B);
 
-    /// <summary>The colour of the evening haze (S15, <c>--dusk</c>).</summary>
+    /// <summary>The colour of the evening haze (S15), which is the clear colour and the fog's at the middle of a dusk.</summary>
     public static readonly Color DuskSky = new(SkyPalette.DuskHorizon.R, SkyPalette.DuskHorizon.G, SkyPalette.DuskHorizon.B);
 
     /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the near land is clear, and from a third of the way out the distance turns to haze.</summary>
@@ -104,7 +108,13 @@ public sealed class VoxelRenderer : IDisposable
     private readonly List<ChunkGpu> _visible = [];
     private IReadOnlyList<NpcFigure> _figures = [];
     private readonly MeshBuffer _figureBuffer = new();
-    private bool _dusk;
+    private SkyLook _look;
+    private PrecipitationState _precipitation = PrecipitationState.None;
+    private readonly PrecipitationRenderer _rain;
+    private LightBand _band;
+    private Vector3 _sunLight = Vector3.One;
+    private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
+    private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
     private readonly HashSet<int> _resident = [];
     private IReadOnlyList<int> _wanted = [];
     private long _checkedEdits = -1;
@@ -117,8 +127,9 @@ public sealed class VoxelRenderer : IDisposable
     private int _released;
     private int _pending;
 
-    /// <summary>Creates the renderer for a grid and a quality preset. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, bool dusk = false, RiverCurrents? currents = null)
+    /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
+    /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -126,14 +137,15 @@ public sealed class VoxelRenderer : IDisposable
         _water = water;
         _grid = grid;
         Preset = preset;
-        _dusk = dusk;
-        ClearColour = dusk ? DuskSky : Sky;
-        var fogEnd0 = FogEndFor(preset.ViewDistance);
+        _look = look;
+        _band = look.Band;
+        ClearColour = new Color(look.FogColour.R, look.FogColour.G, look.FogColour.B);
+        var fogEnd0 = FogEndFor(preset.ViewDistance, look.Fog);
         DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
         _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
-        var fogEnd = FogEndFor(preset.ViewDistance);
+        var fogEnd = fogEnd0;
         _effect = new BasicEffect(device)
         {
             TextureEnabled = true,
@@ -156,9 +168,11 @@ public sealed class VoxelRenderer : IDisposable
             AlphaFunction = CompareFunction.Greater,
             ReferenceAlpha = 110,
         };
-        _sky = new SkyRenderer(device, dusk);
+        _sky = new SkyRenderer(device, look);
+        _rain = new PrecipitationRenderer(device, grid, log);
         Lights = FindLights(grid);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, dusk);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
+        SetLightTints(look);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
         _chunks = new ChunkGpu[grid.Chunks.Count];
         for (var i = 0; i < _chunks.Length; i++)
@@ -211,13 +225,34 @@ public sealed class VoxelRenderer : IDisposable
         return found;
     }
 
-    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>; the water's while the view is under water.</summary>
+    /// <summary>The colour the target is cleared to and the fog's colour: the look's horizon colour (<see cref="SkyLook.FogColour"/>); the water's while the view is under water.</summary>
     public Color ClearColour { get; private set; }
 
-    /// <summary>The fog above water (the haze's colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
+    /// <summary>The fog above water (the look's haze colour, start and end for the preset): what <see cref="SetUnderwater"/> blends from.</summary>
     public FogParameters DryFog { get; private set; }
 
+    /// <summary>How many vertices the rain sent in the last <see cref="DrawWorld"/> (E06; four to a drop, 0 when it does not rain or the eye is under water).</summary>
+    public int DrawnRainVertices => _rain.DrawnVertices;
+
+    /// <summary>
+    /// Takes what falls this frame (E06), from the weather's channels: the precipitation pass of <see cref="DrawWorld"/> draws it after the water, with the quality's drop budget.
+    /// </summary>
+    /// <param name="state">The kind, the intensity and the wind.</param>
+    public void SetPrecipitation(in PrecipitationState state) => _precipitation = state;
+
+    /// <summary>The look the renderer draws in now (<see cref="SetAtmosphere"/>).</summary>
+    public SkyLook Look => _look;
+
+    /// <summary>The light band new meshes are built in (the look's).</summary>
+    public LightBand Band => _band;
+
     private float _underwaterAmount;
+
+    /// <summary>
+    /// How much of the water's own colour the light of the moment leaves, 0 to 1 (E02): the luminance of the look's sun light, 1 at noon, about 0.7 at dusk and 0.36 at night. The water's
+    /// colour and fog still win under water, as before, but they are dimmed by this, so the water is dark at night and not a bright blue under a dark world.
+    /// </summary>
+    public float WaterLight { get; private set; } = 1f;
 
     /// <summary>
     /// Sets how far under water the view is (H05): the fog, the clear colour and the sky blend from the dry ones to the water's by <paramref name="amount"/>
@@ -232,12 +267,55 @@ public sealed class VoxelRenderer : IDisposable
         }
 
         _underwaterAmount = amount;
-        var fog = UnderwaterFog.Blend(DryFog, amount);
-        var colour = new Vector3(fog.Red, fog.Green, fog.Blue);
-        ClearColour = amount <= 0f ? (_dusk ? DuskSky : Sky) : new Color(colour);
+        ApplyFogState();
+    }
+
+    /// <summary>
+    /// Takes the sky's look of this frame (E02), in place of the old dusk switch: the clear colour and the fog follow the look's horizon colour, the sky is drawn in it, and the
+    /// world's light follows its sun light by the tints each band is drawn with. A change of the look's light band makes the meshes of the other bands stale: <see cref="Remesh"/>
+    /// builds them again in the background within its budget, the old ones staying on screen (tinted to the same light) until each is replaced. It composes with
+    /// <see cref="SetUnderwater"/>: under water the water's colour and fog win, as before.
+    /// </summary>
+    /// <param name="look">The look at this moment of the cycle.</param>
+    public void SetAtmosphere(in SkyLook look)
+    {
+        _look = look;
+        if (look.Band != _band)
+        {
+            _band = look.Band;
+            _meshOptions = _meshOptions with { Band = _band };
+        }
+
+        SetLightTints(look);
+        var fogEnd = FogEndFor(Preset.ViewDistance, look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
+        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, fogEnd * FogStartFraction, fogEnd);
+        _sky.SetLook(look);
+        ApplyFogState();
+    }
+
+    // The sun's light of the look and each band's tint: the colour a chunk of the band is drawn with so that its baked light shows as the look's.
+    private void SetLightTints(in SkyLook look)
+    {
+        _sunLight = new Vector3(look.SunLight.R, look.SunLight.G, look.SunLight.B);
+        WaterLight = Math.Clamp((0.3f * look.SunLight.R) + (0.59f * look.SunLight.G) + (0.11f * look.SunLight.B), 0f, 1f);
+        for (var b = 0; b < LightBands.Count; b++)
+        {
+            var (r, g, bl) = LightBands.Tint(look.SunLight, (LightBand)b);
+            _tints[b] = new Vector3(r, g, bl);
+        }
+    }
+
+    // The dry fog blended with the water's by the amount under water, applied to both effects, the clear colour and the sky's haze.
+    private void ApplyFogState()
+    {
+        var fog = UnderwaterFog.Blend(DryFog, _underwaterAmount);
+        var t = Math.Clamp(_underwaterAmount, 0f, 1f);
+        var dim = (WaterLight - 1f) * t; // the water's share of the blend, dimmed by the light: dry * (1 - t) + water * t becomes dry * (1 - t) + water * light * t
+        var colour = new Vector3(fog.Red + (dim * UnderwaterFog.WaterRed), fog.Green + (dim * UnderwaterFog.WaterGreen), fog.Blue + (dim * UnderwaterFog.WaterBlue));
+        ClearColour = _underwaterAmount <= 0f ? new Color(_look.FogColour.R, _look.FogColour.G, _look.FogColour.B) : new Color(colour);
         ApplyFog(_effect, colour, fog);
         ApplyFog(_solid, colour, fog);
-        _sky.SetHaze(ClearColour, amount);
+        _sky.SetHaze(ClearColour, _underwaterAmount);
     }
 
     private static void ApplyFog(IEffectFog effect, Vector3 colour, FogParameters fog)
@@ -266,10 +344,10 @@ public sealed class VoxelRenderer : IDisposable
 
         var remesh = preset.AmbientOcclusion != Preset.AmbientOcclusion || preset.PlantKeepPercent != Preset.PlantKeepPercent;
         Preset = preset;
-        var fogEnd = FogEndFor(preset.ViewDistance);
+        var fogEnd = FogEndFor(preset.ViewDistance, _look.Fog);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
         _view = new ChunkViewSet(_grid, preset.ViewDistance);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _dusk);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
         if (remesh)
         {
             ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
@@ -277,30 +355,7 @@ public sealed class VoxelRenderer : IDisposable
 
         _wanted = [];
         _checkedEdits = -1;
-        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog of the new distance
-    }
-
-    /// <summary>
-    /// Changes between day and dusk lighting while the game runs (the menu's Dusk lighting row): the sky, the fog and the clear colour take the other palette and every mesh is built
-    /// again (the evening light and the lanterns' glow are in the vertices). Nothing happens when the lighting is the one in force.
-    /// </summary>
-    /// <param name="dusk">Whether it is dusk.</param>
-    public void SetDusk(bool dusk)
-    {
-        if (dusk == _dusk)
-        {
-            return;
-        }
-
-        _dusk = dusk;
-        ClearColour = dusk ? DuskSky : Sky;
-        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, DryFog.Start, DryFog.End);
-        _sky.SetDusk(dusk);
-        _meshOptions = new MeshOptions(Preset.AmbientOcclusion, Preset.PlantKeepPercent, Lights, dusk);
-        ReleaseAllMeshes();
-        _wanted = [];
-        _checkedEdits = -1;
-        _underwaterAmount = float.NaN; // the next SetUnderwater applies the fog colour
+        ApplyFogState(); // the fog of the new distance
     }
 
     // Lets every mesh go and forgets the versions the tracker holds, so the next Remesh builds the view again, nearest first.
@@ -318,8 +373,14 @@ public sealed class VoxelRenderer : IDisposable
         }
     }
 
-    /// <summary>Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off.</summary>
-    public static float FogEndFor(int viewDistance) => viewDistance * 0.94f;
+    /// <summary>
+    /// Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off. The weather's <paramref name="fog"/> (0 to 1, E05) brings it
+    /// nearer, straight in the channel (<see cref="SkyWeather.FogReach"/>): at 0 it is the clear-weather distance, at 1 about a third of the view distance. The fog's start keeps its
+    /// proportion to the end (<see cref="FogStartFraction"/>).
+    /// </summary>
+    /// <param name="viewDistance">The view distance in blocks.</param>
+    /// <param name="fog">The weather's fog channel.</param>
+    public static float FogEndFor(int viewDistance, float fog = 0f) => viewDistance * 0.94f * SkyWeather.FogReach(fog);
 
     /// <summary>The far plane of the camera for a view distance: past the fog's end and the last chunk's corner.</summary>
     public static float FarPlaneFor(int viewDistance) => viewDistance + (2f * VoxelChunk.Size);
@@ -347,8 +408,8 @@ public sealed class VoxelRenderer : IDisposable
             foreach (var index in _resident)
             {
                 var chunk = _chunks[index];
-                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads) * 4;
-                quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads;
+                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads) * 4;
+                quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads;
             }
 
             return new MeshStats(
@@ -392,7 +453,8 @@ public sealed class VoxelRenderer : IDisposable
     /// <summary>
     /// Builds the meshes the eye needs: the chunks in view whose mesh is missing or out of date, in-frustum ones first and nearest first, until the
     /// time budget is spent (always at least one, so the view fills even on a slow frame); and lets go of the meshes of the chunks that went out of
-    /// range. Returns how many meshes it built.
+    /// range. Returns how many meshes it built. A mesh built in another light band than the look's (E02) is stale, not due: it stays on screen, drawn with its band's
+    /// tint, until its replacement is built; the due chunks come first, then the stale ones, each group in-frustum first and nearest first, all within the same budget.
     /// </summary>
     /// <param name="eye">The eye in blocks.</param>
     /// <param name="frustum">The camera's frustum, to build what is on screen first, or <see langword="null"/>.</param>
@@ -411,28 +473,46 @@ public sealed class VoxelRenderer : IDisposable
         var recheck = _checkedEdits != _grid.EditCount;
         var due = new List<int>();
         var offscreen = new List<int>();
+        List<int>? stale = null;
+        List<int>? staleOffscreen = null;
         foreach (var index in wanted)
         {
             var chunk = _grid.Chunks[index];
             var coord = chunk.Coord;
             var isDue = !_tracker.HasMesh(coord) || (recheck && _tracker.IsDue(coord));
-            if (!isDue)
+            var isStale = !isDue && _tracker.IsBandStale(coord, _band);
+            if (!isDue && !isStale)
             {
                 continue;
             }
 
-            if (frustum is null || frustum.Intersects(_chunks[index].Box))
+            var inView = frustum is null || frustum.Intersects(_chunks[index].Box);
+            if (isDue)
             {
-                due.Add(index);
+                (inView ? due : offscreen).Add(index);
+            }
+            else if (inView)
+            {
+                (stale ??= []).Add(index);
             }
             else
             {
-                offscreen.Add(index);
+                (staleOffscreen ??= []).Add(index);
             }
         }
 
         _checkedEdits = _grid.EditCount;
+        if (stale is not null)
+        {
+            due.AddRange(stale);
+        }
+
         due.AddRange(offscreen);
+        if (staleOffscreen is not null)
+        {
+            due.AddRange(staleOffscreen);
+        }
+
         var built = 0;
         foreach (var index in due)
         {
@@ -479,21 +559,46 @@ public sealed class VoxelRenderer : IDisposable
         _solid.Texture = _atlas.Texture;
 
         _visible.Clear();
+        Array.Clear(_bandChunks);
         foreach (var index in _wanted)
         {
             var chunk = _chunks[index];
             if (chunk.Visible(camera.Frustum))
             {
                 _visible.Add(chunk);
+                _bandChunks[(int)chunk.Band]++;
             }
         }
 
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
+
+        // The chunks are drawn grouped by the light band their mesh was built in (E02), each group tinted so that its baked light shows as the look's light: normally one group,
+        // two while a change of band is being built again.
+        for (var band = 0; band < LightBands.Count; band++)
+        {
+            if (_bandChunks[band] == 0)
+            {
+                continue;
+            }
+
+            _solid.DiffuseColor = _tints[band];
+            _solid.CurrentTechnique.Passes[0].Apply();
+            foreach (var chunk in _visible)
+            {
+                if ((int)chunk.Band == band)
+                {
+                    DrawChunk(chunk.Opaque, chunk.OpaqueQuads);
+                }
+            }
+        }
+
+        // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
+        _solid.DiffuseColor = Vector3.One;
         _solid.CurrentTechnique.Passes[0].Apply();
         foreach (var chunk in _visible)
         {
-            DrawChunk(chunk.Opaque, chunk.OpaqueQuads);
+            DrawChunk(chunk.Lit, chunk.LitQuads);
         }
 
         // The undergrowth: crossed quads with both sides showing, only in the chunks near the eye.
@@ -502,23 +607,38 @@ public sealed class VoxelRenderer : IDisposable
         var plantReachSquared = (float)plantReach * plantReach;
         _device.RasterizerState = RasterizerState.CullNone;
         _drawnPlantQuads = 0;
-        foreach (var chunk in _visible)
+        for (var band = 0; band < LightBands.Count; band++)
         {
-            if (chunk.PlantQuads > 0 && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
+            if (_bandChunks[band] == 0)
             {
-                DrawChunk(chunk.Plants, chunk.PlantQuads);
-                _drawnPlantQuads += chunk.PlantQuads;
+                continue;
+            }
+
+            _solid.DiffuseColor = _tints[band];
+            _solid.CurrentTechnique.Passes[0].Apply();
+            foreach (var chunk in _visible)
+            {
+                if ((int)chunk.Band == band && chunk.PlantQuads > 0 && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
+                {
+                    DrawChunk(chunk.Plants, chunk.PlantQuads);
+                    _drawnPlantQuads += chunk.PlantQuads;
+                }
             }
         }
 
+        _solid.DiffuseColor = Vector3.One;
         _device.RasterizerState = RasterizerState.CullClockwise;
+        DrawGlow();
+
+        // The figures and the player's avatar are lit by the look's sun light directly (their colours are not baked in a band) and, as before, warmed near a lantern.
+        _effect.DiffuseColor = _sunLight;
         _effect.CurrentTechnique.Passes[0].Apply();
         DrawnFigureQuads = 0;
         foreach (var figure in _figures)
         {
             var (fx, fy, fz) = figure.FeetPosition;
             _figureBuffer.Clear();
-            var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, _dusk);
+            var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, _look.LanternStrength);
             FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(figure.Look), FigureAnimation.For(figure, tick), fx, fy, fz, figure.FacingRadians, FigureLight(warm));
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
@@ -527,7 +647,7 @@ public sealed class VoxelRenderer : IDisposable
         if (avatar is { } player)
         {
             _figureBuffer.Clear();
-            var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, _dusk);
+            var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, _look.LanternStrength);
             var pose = player.Moving ? FigureAnimation.Walking(player.WalkPhase) : FigureAnimation.Idle(tick, 3);
             pose = pose with { HeadPitch = Math.Clamp(-player.PitchRadians, -0.6f, 0.6f) };
             FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
@@ -535,6 +655,8 @@ public sealed class VoxelRenderer : IDisposable
             DrawDynamic(_figureBuffer);
         }
 
+        _effect.DiffuseColor = Vector3.One; // the block's frame is not dimmed by the night
+        _effect.CurrentTechnique.Passes[0].Apply();
         if (highlight is { } block)
         {
             DrawDynamic(OverlayMeshes.Highlight(block));
@@ -546,16 +668,34 @@ public sealed class VoxelRenderer : IDisposable
         _device.DepthStencilState = DepthStencilState.DepthRead;
         _device.SamplerStates[0] = WaterTextures.Sampler;
         _effect.Texture = _water.FrameAt(tick);
-        _effect.CurrentTechnique.Passes[0].Apply();
         _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
         _device.Indices = _indices;
+        var waterBand = -1; // the water takes its band's tint like the rest of the chunk; the effect is applied again only where the band changes along the sorted chunks
         foreach (var chunk in _visible)
         {
+            if (chunk.AlphaQuads == 0)
+            {
+                continue;
+            }
+
+            if ((int)chunk.Band != waterBand)
+            {
+                waterBand = (int)chunk.Band;
+                _effect.DiffuseColor = _tints[waterBand];
+                _effect.CurrentTechnique.Passes[0].Apply();
+            }
+
             DrawChunk(chunk.Alpha, chunk.AlphaQuads);
         }
 
+        // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
+        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, _underwaterAmount);
+        _device.RasterizerState = RasterizerState.CullClockwise;
+        _device.Indices = _indices;
+
         _device.SamplerStates[0] = AtlasSampler;
         _effect.Texture = _atlas.Texture;
+        _effect.DiffuseColor = Vector3.One;
 
         if (beacon is { } target)
         {
@@ -576,6 +716,54 @@ public sealed class VoxelRenderer : IDisposable
         _device.DepthStencilState = DepthStencilState.None;
         _device.BlendState = BlendState.Opaque;
     }
+
+    // The lanterns' glow (E02a): the quads of the faces a lantern reaches, drawn again over the opaque pass and added to it, with the depth tested and not written. They are the very
+    // quads of the opaque mesh (the same positions, in the same order, through the same transform and the same effect), so every pixel they cover is at the very depth the face wrote and
+    // the "less or equal" test lets it through: no fighting. The strength is the look's (continuous over the day, untouched by the weather), and the fog fades the glow out to nothing
+    // (the fog colour is black for this pass: the colour added at a distance is none) instead of adding haze.
+    private void DrawGlow()
+    {
+        var any = false;
+        foreach (var chunk in _visible)
+        {
+            if (chunk.GlowQuads > 0)
+            {
+                any = true;
+                break;
+            }
+        }
+
+        if (!any)
+        {
+            return;
+        }
+
+        var fogColour = _solid.FogColor;
+        _device.BlendState = GlowBlend;
+        _device.DepthStencilState = DepthStencilState.DepthRead;
+        var (r, g, b) = LanternGlow.PassColour(_look.LanternStrength);
+        _solid.DiffuseColor = new Vector3(r, g, b);
+        _solid.FogColor = Vector3.Zero;
+        _solid.CurrentTechnique.Passes[0].Apply();
+        foreach (var chunk in _visible)
+        {
+            DrawChunk(chunk.Glow, chunk.GlowQuads);
+        }
+
+        _solid.FogColor = fogColour;
+        _solid.DiffuseColor = Vector3.One;
+        _device.BlendState = BlendState.Opaque;
+        _device.DepthStencilState = DepthStencilState.Default;
+    }
+
+    /// <summary>The blend of the glow pass: the colour is added to what is there (the picture times the glow times the strength), and the alpha is left as it is.</summary>
+    private static readonly BlendState GlowBlend = new()
+    {
+        ColorSourceBlend = Blend.One,
+        ColorDestinationBlend = Blend.One,
+        AlphaSourceBlend = Blend.Zero,
+        AlphaDestinationBlend = Blend.One,
+    };
 
     // The colour a lantern's warmth gives a figure on top of the sun: amber added to the three channels.
     private static (float R, float G, float B) FigureLight(float warm) =>
@@ -626,12 +814,15 @@ public sealed class VoxelRenderer : IDisposable
             chunk.Opaque?.Dispose();
             chunk.Alpha?.Dispose();
             chunk.Plants?.Dispose();
+            chunk.Lit?.Dispose();
+            chunk.Glow?.Dispose();
         }
 
         _indices.Dispose();
         _effect.Dispose();
         _solid.Dispose();
         _sky.Dispose();
+        _rain.Dispose();
     }
 
     private void BuildChunk(int index)
@@ -644,7 +835,7 @@ public sealed class VoxelRenderer : IDisposable
         if (ChunkMesher.IsBuried(_source, chunk))
         {
             _buriedSkipped++;
-            _tracker.MarkMeshed(coord, chunk.KindMask);
+            _tracker.MarkMeshed(coord, chunk.KindMask, _band);
             _resident.Remove(index);
             return;
         }
@@ -653,8 +844,11 @@ public sealed class VoxelRenderer : IDisposable
         (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
         (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
-        _tracker.MarkMeshed(coord, meshes.Kinds);
-        if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null)
+        (gpu.Lit, gpu.LitQuads) = Upload(meshes.LitMesh);
+        (gpu.Glow, gpu.GlowQuads) = Upload(meshes.GlowMesh);
+        _tracker.MarkMeshed(coord, meshes.Kinds, _band);
+        gpu.Band = _band;
+        if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
         {
             _resident.Add(index);
         }
@@ -787,22 +981,33 @@ public sealed class VoxelRenderer : IDisposable
         public int AlphaQuads;
         public VertexBuffer? Plants;
         public int PlantQuads;
+        public VertexBuffer? Lit;
+        public int LitQuads;
+        public VertexBuffer? Glow;
+        public int GlowQuads;
+        public LightBand Band;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
-        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null || Plants is not null) && frustum.Intersects(Box);
+        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null || Plants is not null || Lit is not null) && frustum.Intersects(Box);
 
         public void Release()
         {
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();
+            Lit?.Dispose();
+            Glow?.Dispose();
             Opaque = null;
             Alpha = null;
             Plants = null;
+            Lit = null;
+            Glow = null;
             OpaqueQuads = 0;
             AlphaQuads = 0;
             PlantQuads = 0;
+            LitQuads = 0;
+            GlowQuads = 0;
         }
     }
 }

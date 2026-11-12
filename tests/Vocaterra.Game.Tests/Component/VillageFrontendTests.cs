@@ -259,7 +259,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
             }
 
             _ = ArmMotion.At(tick, tick % 2 == 0, (int)(tick % 30), tick % 40);
-            _ = ArmLight.At(solid, (6f, 6f, 6f), lights, true, tick % 5 == 0);
+            _ = ArmLight.At(solid, (6f, 6f, 6f), lights, true, tick % 5 == 0 ? ChunkMesher.DuskLight : Day, tick % 5 == 0 ? 1f : 0.5f);
             _ = ThirdPersonRig.Eye(solid, (6f, 6f, 6f), (0f, 0f, -1f), (1f, 0f, 0f));
             _ = ArmMeshes.Item(item);
             _ = FigureAnimation.Walking(tick * 0.1f);
@@ -492,22 +492,28 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     public void TheArmIsLitByTheSceneDimmerUnderACoverAndWarmerNearALanternOrWithATorch()
     {
         var eye = (X: 20.5f, Y: 40.5f, Z: 20.5f);
-        var open = ArmLight.At(static (_, _, _) => false, eye, [], false, false);
-        var covered = ArmLight.At((x, y, z) => y == 43, eye, [], false, false);
+        var open = ArmLight.At(static (_, _, _) => false, eye, [], false, Day, 0.5f);
+        var covered = ArmLight.At((x, y, z) => y == 43, eye, [], false, Day, 0.5f);
         Assert.True(covered.R < open.R);
         Assert.Equal(ArmLight.CoveredShare, covered.R, 3);
         Assert.Equal(1f, open.R, 3);
         var lantern = new BlockPos(22, 41, 20);
-        var near = ArmLight.At(static (_, _, _) => false, eye, [lantern], false, false);
+        var near = ArmLight.At(static (_, _, _) => false, eye, [lantern], false, Day, 0.5f);
         Assert.True(near.R > open.R && near.B < near.R && near.G < near.R + 0.001f, "the light is warm");
         Assert.True((near.R / near.B) > (open.R / open.B));
-        var far = ArmLight.At(static (_, _, _) => false, eye, [new BlockPos(60, 41, 60)], false, false);
+        var far = ArmLight.At(static (_, _, _) => false, eye, [new BlockPos(60, 41, 60)], false, Day, 0.5f);
         Assert.Equal(open, far);
-        var torch = ArmLight.At(static (_, _, _) => false, eye, [], true, false);
+        var torch = ArmLight.At(static (_, _, _) => false, eye, [], true, Day, 0.5f);
         Assert.True(torch.R > torch.B);
-        var dusk = ArmLight.At(static (_, _, _) => false, eye, [lantern], false, true);
+        var dusk = ArmLight.At(static (_, _, _) => false, eye, [lantern], false, ChunkMesher.DuskLight, 1f);
         Assert.True(dusk.R / dusk.B > near.R / near.B, "at dusk the lantern's share is greater");
+        var duskOpen = ArmLight.At(static (_, _, _) => false, eye, [], false, ChunkMesher.DuskLight, 1f);
+        Assert.Equal(ChunkMesher.DuskLight.R, duskOpen.R, 3); // the sun's light is the look's: dimmer and redder at dusk
+        Assert.Equal(ChunkMesher.DuskLight.B, duskOpen.B, 3);
     }
+
+    // The sun's light at noon: white.
+    private static readonly (float R, float G, float B) Day = (1f, 1f, 1f);
 
     // ---- the recipe panel ----
 

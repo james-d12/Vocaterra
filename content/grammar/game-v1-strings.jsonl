@@ -6,7 +6,9 @@
 {"id":"dialogue:baker_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:baker_cant_pay.1","text":"Necesitas más monedas.","kind":"npc"}
 {"id":"dialogue:baker_cant_sell.1","text":"No tienes madera.","kind":"npc"}
+{"id":"dialogue:baker_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:baker_delivered.1","text":"¡Gracias! Toma cuatro monedas.","kind":"npc"}
+{"id":"dialogue:baker_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:baker_gift_used.1","text":"Hoy no tengo más.","kind":"npc"}
 {"id":"dialogue:baker_give_missing.1","text":"Toma. Aquí tienes.","kind":"npc"}
 {"id":"dialogue:baker_greet.1","text":"¿Qué quieres?","kind":"npc"}
@@ -24,6 +26,7 @@
 {"id":"dialogue:baker_ok.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:baker_order_yes.1","text":"¡Gracias! Hay árboles cerca del pueblo.","kind":"npc"}
 {"id":"dialogue:baker_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:baker_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:baker_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"dialogue:baker_receive_help.1","text":"Puedes decir: «Aquí tienes cinco bloques de madera».","kind":"npc"}
 {"id":"dialogue:baker_sell.1","text":"Aquí tienes el pan. ¡Gracias!","kind":"npc"}
@@ -48,7 +51,9 @@
 {"id":"dialogue:farmer_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:farmer_cant_pay.1","text":"Necesitas más monedas. Una manzana cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:farmer_cant_sell.1","text":"No tienes fruta.","kind":"npc"}
+{"id":"dialogue:farmer_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:farmer_delivered.1","text":"¡Gracias! Toma tres manzanas.","kind":"npc"}
+{"id":"dialogue:farmer_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:farmer_greet.1","text":"¡Hola! Este es mi campo.","kind":"npc"}
 {"id":"dialogue:farmer_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:farmer_help.1","text":"Puedes preguntar: «¿Qué haces?».","kind":"npc"}
@@ -62,6 +67,7 @@
 {"id":"dialogue:farmer_order_yes.1","text":"¡Gracias! El río está cerca.","kind":"npc"}
 {"id":"dialogue:farmer_pay.1","text":"Aquí se paga con monedas. Pero yo te compro fruta.","kind":"npc"}
 {"id":"dialogue:farmer_price.1","text":"Una manzana cuesta una moneda.","kind":"npc"}
+{"id":"dialogue:farmer_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:farmer_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"dialogue:farmer_receive_help.1","text":"Puedes decir: «Aquí tienes el agua».","kind":"npc"}
 {"id":"dialogue:farmer_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
@@ -95,7 +101,9 @@
 {"id":"dialogue:feedback.slow_repeat.2","text":"Si necesitas ayuda, di «ayuda».","kind":"npc"}
 {"id":"dialogue:fisher_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:fisher_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:fisher_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:fisher_delivered.1","text":"¡Gracias! Toma dos monedas.","kind":"npc"}
+{"id":"dialogue:fisher_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:fisher_far.1","text":"¿Lejos? ¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:fisher_greet.1","text":"¿Qué buscas?","kind":"npc"}
 {"id":"dialogue:fisher_hello.1","text":"¡Hola!","kind":"npc"}
@@ -107,6 +115,7 @@
 {"id":"dialogue:fisher_order_yes.1","text":"¡Gracias! Hay fruta en el campamento de Luna.","kind":"npc"}
 {"id":"dialogue:fisher_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
+{"id":"dialogue:fisher_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:fisher_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"dialogue:fisher_receive_help.1","text":"Puedes decir: «Aquí tienes tres frutas».","kind":"npc"}
 {"id":"dialogue:fisher_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -306,9 +315,11 @@
 {"id":"dialogue:guide.uncertain.2","text":"No te entendí bien. ¿Me lo dices otra vez?","kind":"npc"}
 {"id":"dialogue:guide_again.1","text":"Claro. Otra vez.","kind":"npc"}
 {"id":"dialogue:guide_again.2","text":"¡Claro! Te lo digo otra vez.","kind":"npc"}
+{"id":"dialogue:guide_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:guide_craft.1","text":"¡Claro! Mira.","kind":"npc"}
 {"id":"dialogue:guide_craft.2","text":"A ver, te digo.","kind":"npc"}
 {"id":"dialogue:guide_craft.3","text":"Sí, te ayudo.","kind":"npc"}
+{"id":"dialogue:guide_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:guide_find.1","text":"A ver, busco.","kind":"npc"}
 {"id":"dialogue:guide_find.2","text":"¡Claro! Busco.","kind":"npc"}
 {"id":"dialogue:guide_find.3","text":"Un minuto, busco.","kind":"npc"}
@@ -336,6 +347,7 @@
 {"id":"dialogue:guide_point.1","text":"A ver, miro.","kind":"npc"}
 {"id":"dialogue:guide_point.2","text":"Un minuto, miro.","kind":"npc"}
 {"id":"dialogue:guide_point.3","text":"¡Claro! Miro.","kind":"npc"}
+{"id":"dialogue:guide_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:guide_slower.1","text":"Claro. Más despacio.","kind":"npc"}
 {"id":"dialogue:guide_slower.2","text":"¡Claro! Te lo digo más despacio.","kind":"npc"}
 {"id":"dialogue:guide_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -348,6 +360,8 @@
 {"id":"dialogue:guide_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:innkeeper_bye.1","text":"¡Hasta luego!","kind":"npc"}
 {"id":"dialogue:innkeeper_bye.2","text":"¡Nos vemos!","kind":"npc"}
+{"id":"dialogue:innkeeper_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
+{"id":"dialogue:innkeeper_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:innkeeper_free.1","text":"La habitación es gratis. ¿Quieres una habitación?","kind":"npc"}
 {"id":"dialogue:innkeeper_give.1","text":"Está bien. La habitación es gratis. Tu cama está allí.","kind":"npc"}
 {"id":"dialogue:innkeeper_help.1","text":"Puedes decir: «Quiero una habitación, por favor».","kind":"npc"}
@@ -358,6 +372,7 @@
 {"id":"dialogue:innkeeper_no.1","text":"Está bien. La habitación es gratis.","kind":"npc"}
 {"id":"dialogue:innkeeper_no.2","text":"Bueno. La habitación es gratis.","kind":"npc"}
 {"id":"dialogue:innkeeper_offer.1","text":"¡Hola! ¿Quieres una habitación?","kind":"npc"}
+{"id":"dialogue:innkeeper_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:innkeeper_room.1","text":"¡Claro! La habitación es gratis. Tu cama está allí.","kind":"npc"}
 {"id":"dialogue:innkeeper_room.2","text":"¡Muy bien! La habitación es gratis. Tu cama está allí.","kind":"npc"}
 {"id":"dialogue:innkeeper_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -374,10 +389,12 @@
 {"id":"dialogue:shop_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:shop_cant_pay.1","text":"La harina cuesta una moneda.","kind":"npc"}
 {"id":"dialogue:shop_cant_sell.1","text":"No tienes pan.","kind":"npc"}
+{"id":"dialogue:shop_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:shop_deny.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:shop_deny.2","text":"Bueno.","kind":"npc"}
 {"id":"dialogue:shop_done.1","text":"¡Hasta luego!","kind":"npc"}
 {"id":"dialogue:shop_done.2","text":"¡Nos vemos!","kind":"npc"}
+{"id":"dialogue:shop_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:shop_gift_used.1","text":"Hoy no tengo más pan.","kind":"npc"}
 {"id":"dialogue:shop_give.1","text":"Toma la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
@@ -393,6 +410,7 @@
 {"id":"dialogue:shop_none_offered.1","text":"¿Cuántos panes me vendes?","kind":"npc"}
 {"id":"dialogue:shop_offer.1","text":"¿Quieres pan?","kind":"npc"}
 {"id":"dialogue:shop_price.1","text":"El pan cuesta dos monedas.","kind":"npc"}
+{"id":"dialogue:shop_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:shop_sell_flour.1","text":"Aquí tienes la harina.","kind":"npc"}
 {"id":"dialogue:shop_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:shop_thank.1","text":"De nada.","kind":"npc"}
@@ -408,7 +426,9 @@
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_cant_sell.1","text":"No tienes madera.","kind":"npc"}
+{"id":"dialogue:smith_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:smith_delivered.1","text":"¡Gracias! Toma el hacha.","kind":"npc"}
+{"id":"dialogue:smith_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:smith_greet.1","text":"¡Hola! Esta es mi herrería.","kind":"npc"}
 {"id":"dialogue:smith_hello.1","text":"¡Hola!","kind":"npc"}
 {"id":"dialogue:smith_help.1","text":"Puedes preguntar: «¿Cómo te llamas?».","kind":"npc"}
@@ -420,6 +440,7 @@
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
 {"id":"dialogue:smith_order_yes.1","text":"¡Muy bien! Te hago un hacha.","kind":"npc"}
+{"id":"dialogue:smith_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:smith_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"dialogue:smith_receive_help.1","text":"Puedes decir: «Aquí tienes la madera y las monedas».","kind":"npc"}
 {"id":"dialogue:smith_sun.1","text":"Hoy hace sol.","kind":"npc"}
@@ -433,6 +454,8 @@
 {"id":"dialogue:smith_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:villager_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:villager_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:villager_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
+{"id":"dialogue:villager_fair.1","text":"Hace buen tiempo.","kind":"npc"}
 {"id":"dialogue:villager_gift_used.1","text":"Hoy no tengo más pan.","kind":"npc"}
 {"id":"dialogue:villager_give.1","text":"Aquí tienes.","kind":"npc"}
 {"id":"dialogue:villager_give.2","text":"Toma.","kind":"npc"}
@@ -442,6 +465,7 @@
 {"id":"dialogue:villager_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:villager_point.1","text":"Mira, está allí.","kind":"npc"}
 {"id":"dialogue:villager_point.2","text":"Está allí, mira.","kind":"npc"}
+{"id":"dialogue:villager_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:villager_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}

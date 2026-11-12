@@ -40,7 +40,8 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 
 The current version is 8, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;
 the oldest this game loads is 8 (it writes 8), and older saves are not migrated.") and nothing migrates it: the code that read versions 1 to 7 is gone (the branches on the
-version number, the version 2 word rows, the first-words split). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, is the version 8 save the tests read.
+version number, the version 2 word rows, the first-words split). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, is the version 8 save the tests read. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+
 
 **How the fixture is made:** a scripted game run, not by hand, so it is the game's own output. From the repository root, after a build (the camp route of `scripts/scripted-runs.sh`'s
 `CAMP`, then a talk, then the player's own fire):
@@ -94,7 +95,15 @@ chest state as optional fields of the entry. Stages and their effects are never 
   A gift a lesson step requires (a `do` step on `item_given` at that NPC) is never closed and never counted. With `--needs off` nothing is recorded, nothing grows back and every gift is
   given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
 - **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save with none loads with none.
- 
+- **The day clock and the weather (E01, E04)** are the `atmosphere` entry of `systems`, with two parts. The entry is absent in a new game's default state (the clock
+  not held, the weather still in its first spell), so a save of a game that never slept or changed weather is byte for byte what it was (the version 8 fixture loads as it is); it is written when either part is not a new game's. The state digest adds nothing for the default state, and from the first change of weather
+  on the entry is part of the digest and the save. A load and a sleep's restore put the entry back before the digest check. The save is version 8 with it (main's weather series left the save at 7 and the settlement series' `systems.sleep` made 8; the entry is optional, so it changed no version): `systems` carries `sleep` and `atmosphere` side by side, and a load raises neither a `day_phase` nor a `weather_changed` event.
+  - **The clock** is `{"offset", "frozenHour"}`. `offset` is the number of ticks added to the clock's position in the cycle (0 up to one cycle; a sleep or a collapse sets it so
+    the hour is `wakeHour` in `game/day.json`), `frozenHour` the hour a test or a screenshot holds the clock at (absent when it runs). A save without the entry starts the clock at `startHour`.
+  - **The weather** is the `weather` field: `{"current", "previous", "spellStart", "spellEnd", "spells", "mornings", "held"}`. `current` and `previous` are kind ids of
+    `game/weather.json`, the ticks are the spell's, `spells` and `mornings` are the counters the seeded draws are keyed by (with the world seed, so a restored game continues to the same
+    next kinds), `held` a kind a test holds. The field is absent while the weather is in its first spell (the start kind, never rolled or held). A save without it restores the first spell;
+    an unknown kind id is a refused save.
 - **A load raises no `need_stage` event** for what was saved: the stages are taken as they are.
 
 ## The conversation pages (U08)

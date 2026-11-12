@@ -2209,6 +2209,191 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     (`UiScaleLayoutTests.TheWholeSettingsPage...` measures every label, note and value of the full page at each window size and text scale).
   - *Tests (Menu-2).* Core: `TestingRowsTests`, `PlayerSettingsTests` (draw distance, the new flags over the save), `AutosaveControllerTests`, `TypedCreditSettingTests`, `GroundFinderTests`; Game:
     `GreyscaleTests` (runtime switch, all-known view), `VoxelLaunchOptionsTests`, `SoundLaunchOptionsTests`, `UiScaleLayoutTests`.
+- **E01, the clock in Core (2026-11-10, Sonnet 5.5 medium; gated at `1a5a9a07` on `feature/weather`, 10764 passed, 3 skipped; the E series,
+  `docs/game/weather-plan.md`, D-game-31).** `Atmosphere/`: `DayData` (`game/day.json`: a 2400 s cycle, dawn 4, day 6, dusk 20, night 22, start 8,
+  wake 7), `DayClock`, `DayPhase`. The time of day is a function of the simulation's tick plus a saved offset (`(start + tick + offset) mod cycle`,
+  integer ticks), so nothing is accumulated and the default state adds nothing to the state digest: every digest, fixture and golden is as it was, and
+  the save version stays 7 (`systems.atmosphere` holds the offset and a held hour, written only when not the default).
+  - *A sleep wakes in the morning.* `VoxelSession.ApplyNight` calls `Simulation.WakeUp()`, for a night and a collapse; stored time, `Day` and `Sitting`
+    do not move. Two tests changed on purpose: `SleepTests.LoadOf` wakes the loaded game too (a sleep is a load plus the night), and
+    `NightTests.ThePlayerWakesWhereTheyFell` now shows the collapse moves the digest by the clock alone.
+  - *The event.* `day_phase` (detail `dawn`, `day`, `dusk`, `night`), once per boundary; a wake, a hold and a load raise none. No content waits on it yet.
+  - *A held clock* (`FreezeClock`, for E03's `--time`) stays held through a sleep. A bundle with no `day.json` does not load, as with `needs.json`.
+  - *A core fuzz failure seen once, not from this change:* the agent's full run failed `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`
+    on "oh hundan" (a silent h; `CsCheck_Seed=9MOxzRBVGLK4`); the gate's run drew other seeds and passed. It looks like M86's family (O9's silent h),
+    which is open; that is not verified.
+- **E04, weather in Core (2026-11-10, Sonnet 5.5 medium; gated at `0d73dba9` on `feature/weather`, 10837 passed, 3 skipped).** `Atmosphere/`:
+  `WeatherChannels` (cloud cover, sunlight, fog, wind, a precipitation kind and its intensity), `WeatherKind` and `WeatherData`
+  (`game/weather.json`: `sunny`, `cloudy`, `rain`; `start` sunny; a 45 s transition), `WeatherSystem`, `AtmosphereSnapshot` and `AtmosphereModel`.
+  - *Kinds are data.* No file under `src/` names a kind's id outside `WeatherData.Default` (`NoWeatherKindIdsInSourceTests`), and a fourth kind
+    (`mist`, with a drizzle) defined only in a test's data runs through the system and the snapshot.
+  - *The sequence.* A spell's next kind and length come from `WorldRng` keyed by the world seed, a pass name and the spell counter; a new spell
+    starts at the tick it is drawn, so a game restored long after a spell's end changes once. `sunny` goes only to `cloudy`, so rain never
+    follows sun directly. `WakeUp()` (a night, a collapse) also rolls the morning by the morning weights (6, 3, 1) as a cut.
+  - *Digest and save.* In its first spell the weather adds nothing to the digest and is not written, so new games' digests, both fixtures and every
+    golden are as they were, and the save version stays 7. `systems.atmosphere` gains an optional `weather` field. Any `WakeUp` moves the digest
+    from then on (the morning counter).
+  - *Events.* `weather_changed` (detail: the kind's id), once per change; a change made by a host action between steps (`WakeUp`, `ForceWeather`)
+    is raised at the next step. `Force` is a cut and holds through a sleep; `Release` keeps the kind and draws a new spell.
+- **E02, drawing the cycle (2026-11-10, Sonnet 5.5 high; gated at `920233f9` on `feature/weather`, 10925 passed, 3 skipped).** The sky, the fog
+  and the world's light follow the day clock. `Graphics/Sky/`: `SkyLookInput`, `SkyLook` (a pure function), `SkyKeyframe` (day and twilight reuse
+  `SkyPalette`'s two sets, a new night; dawn mirrors dusk), `SkyArc` (the sun rises in the east at 5, is highest at 13 and sets in the west at 21;
+  the moon from 18 to 6); `SkyRenderer` draws from the look (the dome coloured again in place, 150 hashed stars, a square moon).
+  `Graphics/World/`: `LightBand`, `LightBands`, `VoxelRenderer.SetAtmosphere` in place of `SetDusk`.
+  - *The check the design rests on holds:* `DiffuseColor` tints the opaque pass (`AlphaTestEffect`) and the translucent pass (`BasicEffect`).
+  - *Light bands.* A mesh bakes one of three bands; a change of band marks meshes stale, and they are rebuilt in view and nearest first within the
+    mesh budget while the old mesh stays. Chunks are drawn grouped by band with a tint of the look's light over the band's baked light. The band
+    follows the daylight as well as the phase (the Dusk band only for daylight 0.12 to 0.85), which keeps the tint within 0.4 to 1.6; bands
+    change at about 4.24, 5.7, 20.3 and 21.76 h. A full change takes 6 to 7 s on the low preset (about 1300 meshes) and 14 to 15 s on the default
+    (about 1760), worst frame 21 ms; the steady cost is 0.1 to 0.2 ms a frame.
+  - *What else now takes the light:* plants, water, bushes, fences, doors, piles and torch sticks baked no sun multiplier before (only cubes did)
+    and now bake the band's, so at dusk they dim as the blocks do; at the Day band every vertex equals the old one (tested), and the default run's
+    camp view is pixel-identical to the build before. Lantern glass and torch flames are a self-lit mesh (`ChunkMeshes.LitMesh`) drawn with no
+    tint. Under water the water's colour and fog are dimmed by the light, so a night dive is dark.
+  - *`--time <hour>`* holds the clock (`FreezeClock`); `--dusk` and the menu's Dusk row hold hour 21. A held clock is part of the state, so a save
+    written in such a run loads held. No scripted run pins a digest or an event log of a `--dusk` run.
+  - *Not fixed (E02a):* the lanterns' glow on nearby faces is baked and scaled by the band's tint, so it steps at a band's edge (the lantern
+    area's mean red 136 against 88 across the Night and Dusk edge) and shows as a patchwork round lanterns while a band change runs. The fix is
+    the glow as its own additive mesh with a continuous strength.
+  - *Known limits:* the faces keep their fixed north-west sun direction, so the drawn sun and the shading agree only near 10:20 and 15:40; held
+    `--dusk` now has the sun on the western horizon; under-water screenshots are written with alpha near 0.5 (older than this change;
+    `ScreenshotWriter` could force 255).
+- **E07, the NPCs' answer (2026-11-10, Sonnet 5.5 medium; gated at `84033e02` on `feature/weather`, 10936 passed, 3 skipped).** Asked «¿Qué tiempo
+  hace?», each of the seven NPCs answers with the weather the world has: «Hoy hace sol.» (the existing `<npc>_sun`), «Hoy está nublado.»
+  (`_cloudy`), «Hoy llueve.» (`_rain`) and, on a clear night, «Hace buen tiempo.» (`_fair`). The three new sentences were fixed by the orchestrator;
+  the A2 lint, the level check and the grammar check raised nothing. 42 clips recorded (21 lines, normal and slow); none has been listened to.
+  - *The mechanism, with no core change.* An NPC's file lists the intents it answers by the weather (`weatherAnswers: ["ask_weather"]`). Its agent
+    keeps the one `ask_weather` transition per state and gets one transition per key on a host event that is never fired (`baker.cloudy`), which
+    names the pool, as V29's `<npc>.weather` does (the lint's `reach.pool` wants every pool named by a transition). The session passes the
+    snapshot's `say` key into the turn (`GuideScene.WeatherKey`), and `NpcTurnRules.Compose` swaps the reply for that key's pool
+    (`WeatherReplyOf`), drawn by the same seeded pick. With no key or no pool the transition's «Hoy hace sol.» stands; `Vocaterra.Host` has no
+    weather and still says it.
+  - *The data.* `weather.json`'s kinds carry `say` (`sunny`: `sun` by day, `fair` at night; `cloudy`; `rain`). The validator requires a `say` on
+    every kind and a pool for every key at every NPC that has `weatherAnswers`, so a kind added later cannot ship without its line. No file in
+    `src/` names a kind or a key; a fourth kind defined only in a test's bundle is answered with no code change (`WeatherAnswerBundleTests`).
+  - *Unchanged:* the reply to the learner's own statement (`state_weather`).
+  - *Not run:* the answer in the running game, since no option held the weather when E07 ran (`--weather` is E05's); the session tests stand in.
+  - *A core fuzz counter seen one under its minimum, once:* E07's own full run failed `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings`
+    with `fallback:second-chosen` at 4 against a minimum of 5 in 300 draws (no seed kept); it passed alone and in the gate. Its generator draws
+    prompts and transcripts, which E07 did not change, so this looks like a thin margin in the core's test and not an effect of the new pools;
+    that was read from the test, not measured.
+- **E05, sky and light by weather (2026-11-10, Sonnet 5.5 medium; gated at `c74ce223` on `feature/weather`, 10978 passed, 3 skipped).** The sky,
+  the clouds, the fog and the world's light read the snapshot's channels. `Graphics/Sky/SkyWeather` (pure functions of the channels: overcast,
+  gloom, the sun's, moon's and stars' visibility, the grey, the fog's reach), `SkyLookInput.At(snapshot)`, `CloudField.Generate(..., cover)`,
+  `VoxelRenderer.FogEndFor(viewDistance, fog)`, and the launch flag `--weather <id>` (checked against the loaded bundle's ids in `Program.cs`).
+  - *The first kind is today's look exactly:* at fair values every function returns its input; the look equals E02's at every hour (tested), and
+    the default run's camp view is pixel-identical to the build before. No existing test changed.
+  - *By weather:* the dome greys and darkens (more at night; a covered night has no blue glow, a covered dusk loses its amber); the sun, the moon
+    and the stars fade to nothing at full cover; the clouds' colours darken; the sun's light is multiplied by the sunlight channel through E02's
+    tint, so weather rebuilds no mesh (the tint is 0.25 to 0.74 at the data's lowest sunlight, never above E02's top); the fog is complete at a
+    third of the view distance at full fog. Every value is continuous along a blend between two kinds (tested in 450 steps at six hours).
+  - *Clouds:* a higher cover only adds clouds, and a cloud near the threshold fades in by alpha. Full cover is 467 boxes (14 010 vertices, 5 850
+    at the fair cover) at no measurable frame time.
+  - *Weak:* a full cover is still scattered slabs over a grey dome, not a ceiling (one cloud per 96-block cell); the overcast reads through the
+    dome and the fog. The sun's colour is not desaturated under cover. The baked lantern glow is scaled by the weather's tint too (E02a).
+- **E02a, the lanterns' glow as its own layer (2026-11-10, Sonnet 5.5 high; gated at `89ee19fb` on `feature/weather`, 10993 passed, 3 skipped).**
+  The fix of E02's open defect. The base meshes bake no glow in any band; `ChunkMeshes.GlowMesh` holds, for every cube face a lantern or post
+  torch reaches, the opaque quad itself with the reach as its vertex colour, and `VoxelRenderer.DrawGlow` draws it once after the opaque and
+  plant passes: additive, depth read, the same `AlphaTestEffect`, black fog, `DiffuseColor` the amber times the look's `LanternStrength` (0.5 by
+  day, 1 at dusk and night, smooth between; no band and no weather in it). `Graphics/World/LanternGlow`.
+  - *No step:* across the Night and Dusk edge the lit wall's mean red moved 128.6 to 89.7 before (30 percent down while the sun rose 15) and
+    108.9 to 117.7 after; across the Dusk and Day edge 189.0 to 162.6 before and 177.2 to 177.2 after. A test walks a whole cycle tick by tick.
+    Rain no longer dims the glow (the wall's red at night in the heaviest kind: 51.2 before, 80.2 after, 98.5 in clear weather).
+  - *The look changed a little:* an additive pass cannot cool the lit face, so the amber moved from (0.55, 0.30, 0.08) to (0.55, 0.27, 0.02);
+    midnight is within 4 of 255 of the old colour, noon and dusk are about 5 percent brighter beside a lantern. The default camp view is
+    pixel-identical except the far village's lanterns.
+  - *Cost:* 13 380 vertices (0.4 percent of the world's), no measurable frame time.
+  - *Not checked:* that identical-vertex draws match bit for bit under `LessEqual` on a real GPU (it holds on software GL; a small depth bias on
+    the pass is the fix if a GPU speckles); the glow under water. Fences, doors, undergrowth and water take no glow, as before.
+  - *Seen by the orchestrator in its night screenshot in the heaviest kind, not from this change:* the cloud slabs stay light grey against a
+    near-black covered sky (E05's cloud colours at night under cover want a darker floor).
+- **E03, sound and switches (2026-11-10, Haiku 5.5; gated at `ac7facdd` on `feature/weather`, 11030 passed, 3 skipped).** The ambient sound follows
+  the time of day, and the clock and the weather have their testing switches.
+  - *Sound.* `AmbientBeds.At` takes the atmosphere's snapshot in place of the dusk flag: the birds' weight is multiplied by the daylight, the
+    insects' by one minus it. `AmbientSound.Dusk` and `SoundFrontend.SetDusk` are gone; `SoundTickObserver` passes `sim.Atmosphere`. Nothing in
+    Sound writes to the simulation. No weather channel is used yet (E06).
+  - *Menu.* The Dusk lighting row became "Time of day" (a slider: Running, then 0:00 to 23:00) and "Weather" (a picker: Running, then the loaded
+    data's ids). `TestingHooks` has `TimeHeld`, `SetTimeHeld`, `WeatherHeld`, `SetWeatherHeld` and `WeatherIds`. The rows show the simulation's
+    state, so a `--time` or `--weather` launch shows as held. The slider shows whole hours (a hold at 7.5 reads 7:00).
+  - *F3.* One line: the hour, the phase, "held"; the weather's kind, the previous kind and the blend during a transition, "held".
+  - *Scripted steps.* `--set-time <hour>` and `--set-time run`, `--set-weather <id>` and `--set-weather run`; an unknown id is refused at launch
+    once the data is loaded (`LaunchOptions.CheckWeatherTargets`). `--dusk` still holds hour 21.
+  - *The merge.* E03 and E05 both added a weather check and usage lines at the same places (`Program.cs`, `LaunchOptions.cs`, `running.md`); a
+    second Haiku run merged `feature/weather` into the branch keeping both (`CheckWeatherTargets` for the steps, `CheckWeather` for the flag).
+  - *Open:* `TestingHooks`' comment says test aids are not kept in saves, but a held clock or weather is simulation state and is saved, as with
+    `--time`. The comment is to change at the close-out unless the owner wants held values dropped on save.
+  - *Process:* two finished agents left endless shell loops waiting on `pgrep -f "scripts/test.sh"` (which matches the loop itself), although
+    the brief forbids them; the orchestrator stopped them. The series' shared brief already says so; the next briefs repeat it in the prompt.
+- **E06, rain (2026-11-10, Sonnet 5.5 high; gated at `09e83885` on `feature/weather`, 11089 passed, 3 skipped).** The precipitation of the
+  snapshot is drawn and heard. `Graphics/Weather/`: `PrecipitationField` (a wrapping box of 36 x 24 blocks round the camera, drops by
+  `PresentationRng`, leaning with the wind, the number alive scaling with the intensity), `ColumnCover` (`VoxelGrid.HighestBlock` per column,
+  cached by chunk versions: no rain under a roof, a tree or an overhang), `PrecipitationStyles` (one row per precipitation kind; a test over
+  `weather.json` requires a row for each), `PrecipitationRenderer` (camera-facing quads from one reused buffer, after the water pass, fogged,
+  lit by the look, off under water). `QualityPreset.RainDrops` 2200, 3400, 5400.
+  - *Sound.* A synthesised `rain` bed (gain 0.2, the lowest bed: about 9 dB under an NPC's voice before the duck, by measurement of the
+    files, not by ear), a quarter of its weight under cover (`Sound/ListenerShelter`, `Voxel/OverheadCover`); the wind rises with the wind
+    channel above 0.25, so the first kind sounds as before; the birds are multiplied by one minus the intensity. Sound writes nothing to the
+    simulation.
+  - *Cost.* 0.4 to 1.1 ms a frame on a real GPU by preset; under software GL only the low preset is usable, as before. The default run's camp
+    view is pixel-identical to the build before.
+  - *Known:* on flat open ground the rain looks sparse (the box is 36 blocks wide; farther rain is left to the fog); the wind has one fixed
+    heading; drops step at 60 Hz; no splashes, puddles or thunder (out of scope).
+- **E08, the close-out (2026-11-11, Haiku 5.5; gated at `c4c55776` on `feature/weather`, 11094 passed, 3 skipped).** Relaunched after
+  the stop of 2026-11-10, on the branch with `main` (PR #63, borderless full screen) merged in at `920f4144`. The documents: the series in
+  `docs/game/architecture.md` (the stopped agent's lines checked and two corrected: `SkyLook` takes a `SkyLookInput`, the world's light is
+  `VoxelRenderer.SetAtmosphere`); "Adding a weather kind" in `content/README.md`; `saves.md` and `sound-and-display.md` each say a thing once;
+  `running.md` gathers the switches in "Day, night and weather" (its Testing paragraph wrongly said a held clock or weather is not saved).
+  - *Changed on purpose.* Under cover at night a cloud's three colours move up to 0.9 of the way to the dome's middle colour
+    (`SkyWeather.CloudFollow`, `CloudColour`, worked in full precision and rounded once), so an overcast night has dark clouds, not light
+    grey slabs; by day and in the first kind nothing changes, and E05's equality and continuity tests pass untouched; one new test bounds
+    the cloud top at 1.5 times the dome's middle. `TestingHooks`' comment says the held hour and weather are saved; no behaviour changed.
+  - *The tour.* The camp in the three kinds at 5, 13, 21 and 0; the village in rain at 13 and 0; a view from inside a house; the
+    `--set-time` and `--set-weather` steps mid-run; a default run of 300 frames on a sunny morning (08:03 at tick 300). The smith's replies
+    in the running game: «Hoy hace sol.», «Hoy está nublado.», «Hoy llueve.» and, at 23 in the first kind, «Hace buen tiempo.», as E07 meant.
+  - *Known, not fixed:* `PrecipitationStyles`' comment calls the table the one place a precipitation's id is written, but
+    `AmbientBeds.Rain` also names `rain` (a test allows it). The view from under a roof was taken from inside a house; the rain outside the
+    door was not in that frame, so it neither confirms nor refutes the cover at an open eave (E06's awning picture did). No scripted run of
+    `scripts/scripted-runs.sh` pins the hour or the weather yet.
+- **E09, a Weather volume slider (2026-11-11, Haiku 5.5; gated at `dc34f897` on `feature/weather`, 11108 passed, 3 skipped).** The
+  owner, after playing: the rain was on the Ambient slider with the birds and the wind. `SettingId.WeatherVolume` (0 to 100, default 60,
+  "Weather volume", after Ambient in the menu), `SoundVolumes.Weather` in `settings.sound.weather`, `--weather-volume`. The mixer has a
+  `SoundCategory.Weather` next to Ambient in `SoundMixer.Gain`, so the duck under a voice and the silence while recording are one rule;
+  `PushBeds` gives each bed its category's gain by `AmbientBeds.IsWeather` (the rain only; the wind stays on Ambient, as it comes mostly
+  from height). At the defaults the rain's level is unchanged (a test pins it).
+  - *Changed on purpose:* `MenuScreenTests` (two tests: the Quality row is one Down further) and one `RainBedTests` test (its volumes now
+    set Weather, the rain's own).
+- **E10, the insects without the ringing (2026-11-11, Sonnet 5.5 medium; gated at `4d5248c1` on `feature/weather`, 11111 passed, 3
+  skipped).** The owner heard "a high pitched constant ringing" heading down the path to the guide at dusk. The cause: `AmbientLoops.Insects`
+  was two steady sines (4700 and 3900 Hz, pulsed at 17 and 23 Hz without rest), heard only with `--dusk` until E03 tied the insects to the
+  daylight (`lowland x (1 - daylight)`), so every dawn, dusk and night and loudest in the valley; a scripted run at 21 showed the bed rising
+  to 0.5 on that path. Now six crickets (carriers 2.85 to 4.15 kHz, levels 1.0 to 0.45), chirps of three or four soft pulses one to 1.6 times
+  a second with jittered rhythms, silence between, a faint low-passed air under them. `InsectsBedTests`: at least 40 percent of 20 ms
+  windows quiet and no 50 Hz band above a third of the 2 to 6 kHz energy; both failed on the old loop (49 of 500 windows quiet; 62 percent
+  at 4674 Hz).
+  - *Changed on purpose:* the new loop's RMS is 3.8 dB under the old one's, so `AmbientBeds.Gain(Insects)` went from 0.3 to 0.46 to keep the
+    bed's level (within 0.1 dB). If the owner finds the crickets too present, the old gain is one number.
+  - *Process:* the agent waited on the suite in shell loops against the brief; nothing was left running.
+- **E11, a gradual day (2026-11-11, Sonnet 5.5 high; gated at `b4796d07` on `feature/weather`, 11122 passed, 3 skipped).** The owner:
+  "there is no difference at all between 6am -> 8pm, its only dusk and night". The cause: `SkyLook` blended three keyframes by the phase
+  and the daylight only, so the Day phase (6 to 20) was a flat noon and the Night phase a flat night, though the sun's arc moved. Now
+  `SkyBlend` holds five weights: the day side splits into a new `Golden` keyframe (a low sun; light (1.0, 0.9, 0.76), lanterns 0.6) and
+  the noon's (`Day`, unchanged) by a smoothstep of the sun's elevation from 10 to 42 degrees; the night side splits into `Night` (now the
+  blue hour) and a new `DeepNight` (darker, less blue; light (0.21, 0.26, 0.40)) by a smoothstep of the sun's depth from 18 to 56 degrees.
+  `DayClock.DaylightAt` eases across dawn and dusk (a smoothstep, still 0.5 half way). Weather composes after the mix as before.
+  The orchestrator's pictures (camp, sunny, 15 hours, before and after; session scratchpad, not kept): before, 6 to 20 are one picture;
+  after, 6 to 8 are warm with a peach horizon, 10 to 16 are the noon unchanged, 18 to 20 warm again into the dusk; 5 and 21 (the
+  middles of dawn and dusk) are unchanged; 22 is the blue hour, 0 to 2 the deepest (the same picture: the sun stays more than 56 degrees
+  under), 3:30 a little lighter.
+  - *Changed on purpose:* `SkyLookTests`' minute-to-minute bound went from 3 to 4 of 255 (the eased daylight is 1.5 times the straight
+    pace at its steepest); `SkyWeatherLookTests`' clear-night blue margin from 40 to 30 (the deep night is less blue by design) and the
+    measured tint range (0.499 to 1.455, was 0.507 to 1.480); `LightBandsTests` and `LanternGlowTests`' band-edge hours (4.43, 5.51,
+    20.49, 21.57, were 4.24, 5.7, 20.3, 21.76): the thresholds (0.12, 0.85) are the same, the eased daylight crosses them nearer the
+    middle of dawn and dusk.
+  - *Not fixed:* 2:00 is as dark as midnight (the plateau of the deep night is wide; the owner, 2026-11-11: "2am is fine for my
+    testing", so it stays); the world's light changes less than the sky by day
+    (the Golden light is 0.9 and 0.76 in green and blue; the owner, 2026-11-11: fine, so it stays); the faces keep a fixed sun direction (out of scope, as before).
+  - *Process:* the agent's report never reached the orchestrator (its session ended after the commit); the gate and the pictures were run
+    by the next session.
 - **The Y series' first two milestones (the settlement plan's section 8; 2026-11-10, on `feature/settlement`).**
   - *Y00, the brief and the probes* (documents only). Its measurements are [the settlement plan](settlement-plan.md) section 9: the inn is a
     9 x 7 house at the village's dx -16, dz 8 with a stamp for its inside; the plot is 10 x 10 on ground that varies by at most one block, and

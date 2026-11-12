@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
@@ -11,6 +12,9 @@ namespace Vocaterra.Game.Core.Tests.Sound;
 /// </summary>
 public sealed class AmbientSynthTests
 {
+    // Noon: the full day, so the birds sing and the insects are silent.
+    private static readonly AtmosphereSnapshot Noon = new(13, DayPhase.Day, 1, default, string.Empty, null);
+
     private const int LoopLength = (int)(AmbientLoops.LoopSeconds * SoundSynth.SampleRate);
 
     [Theory]
@@ -19,6 +23,7 @@ public sealed class AmbientSynthTests
     [InlineData("waterfall")]
     [InlineData("village")]
     [InlineData("insects")]
+    [InlineData("rain")]
     public void EveryBedLoopsSeamlesslyWithoutAClick(string bed)
     {
         var loop = AmbientLoops.Render(bed);
@@ -43,6 +48,7 @@ public sealed class AmbientSynthTests
     [InlineData("waterfall")]
     [InlineData("village")]
     [InlineData("insects")]
+    [InlineData("rain")]
     public void EveryBedIsAudibleAndWithinItsPeak(string bed)
     {
         var loop = AmbientLoops.Render(bed);
@@ -113,14 +119,14 @@ public sealed class AmbientSynthTests
         var output = new RecordingOutput();
         var log = new ListLog();
         var mixer = new SoundMixer(output, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(31), log);
-        var ambient = new AmbientSound(mixer, places, dusk: false);
+        var ambient = new AmbientSound(mixer, places);
 
         // The forest by day: the birds sing, and the fire (lit, by the listener) crackles.
         var forest = new Listener(10.5, 40, 10.5, 0);
         var tick = 0L;
         for (; tick < 60 * 30; tick++)
         {
-            ambient.Observe(tick, forest, fireLit: true);
+            ambient.Observe(tick, forest, Noon, fireLit: true);
             mixer.Advance(1.0 / 60);
         }
 
@@ -133,10 +139,10 @@ public sealed class AmbientSynthTests
         // The same route and seed give the same schedule.
         var replay = new RecordingOutput();
         var replayMixer = new SoundMixer(replay, new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(31), new ListLog());
-        var replayAmbient = new AmbientSound(replayMixer, places, dusk: false);
+        var replayAmbient = new AmbientSound(replayMixer, places);
         for (var t = 0L; t < 60 * 30; t++)
         {
-            replayAmbient.Observe(t, forest, fireLit: true);
+            replayAmbient.Observe(t, forest, Noon, fireLit: true);
             replayMixer.Advance(1.0 / 60);
         }
 
@@ -147,7 +153,7 @@ public sealed class AmbientSynthTests
         mixer.Started();
         for (var t = 0L; t < 60 * 10; t++, tick++)
         {
-            ambient.Observe(tick, forest, fireLit: true);
+            ambient.Observe(tick, forest, Noon, fireLit: true);
             mixer.Advance(1.0 / 60);
         }
 
@@ -162,11 +168,11 @@ public sealed class AmbientSynthTests
         var places = new AmbientPlaces(new Point2(292.5, 218.5), null, null, [], null, [], [new NamedPlace("village", new Point2(292.5, 218.5), 22)]);
         var log = new ListLog();
         var mixer = new SoundMixer(new RecordingOutput(), new SoundVolumes(1.0, 1.0, 1.0, 1.0), new PresentationRng(2), log);
-        var ambient = new AmbientSound(mixer, places, dusk: false);
+        var ambient = new AmbientSound(mixer, places);
 
-        ambient.Observe(100, new Listener(292.5, 37, 218.5, 0), fireLit: false);
-        ambient.Observe(101, new Listener(292.5, 37, 218.5, 0), fireLit: false); // the same place: no new line
-        ambient.Observe(200, new Listener(0.5, 37, 0.5, 0), fireLit: false);
+        ambient.Observe(100, new Listener(292.5, 37, 218.5, 0), Noon, fireLit: false);
+        ambient.Observe(101, new Listener(292.5, 37, 218.5, 0), Noon, fireLit: false); // the same place: no new line
+        ambient.Observe(200, new Listener(0.5, 37, 0.5, 0), Noon, fireLit: false);
 
         var marks = log.Lines.Where(static l => l.Contains("mark", StringComparison.Ordinal)).ToList();
         Assert.Equal(2, marks.Count);

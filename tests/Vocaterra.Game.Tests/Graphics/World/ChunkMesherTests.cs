@@ -294,7 +294,8 @@ public sealed class ChunkMesherTests
     {
         Assert.Equal(6, Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Bush)).Opaque.FaceCount);
         Assert.Equal(6, Mesh(new MapBlocks().Set(5, 5, 5, BlockId.BerryBush)).Opaque.FaceCount);
-        Assert.Equal(12, Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Torch)).Opaque.FaceCount); // the stick and the flame
+        var torch = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Torch));
+        Assert.Equal(12, torch.Opaque.FaceCount + torch.LitMesh.FaceCount); // the stick (opaque) and the flame (self-lit, E02)
         Assert.Equal(6, Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Fence)).Opaque.FaceCount);
         // A stone block next to a bush shows all six of its faces: the bush is not an opaque cube.
         var withBush = Mesh(new MapBlocks().Set(5, 5, 5, BlockId.Stone).Set(6, 5, 5, BlockId.Bush));
@@ -358,7 +359,7 @@ public sealed class ChunkMesherTests
 
             faces += meshes.FaceCount;
             Assert.True(meshes.PlantMesh.VertexCount <= 65532);
-            vertices += meshes.Opaque.VertexCount + meshes.Alpha.VertexCount + meshes.PlantMesh.VertexCount;
+            vertices += meshes.Opaque.VertexCount + meshes.Alpha.VertexCount + meshes.PlantMesh.VertexCount + meshes.LitMesh.VertexCount;
         }
 
         Assert.Equal(faces * 4, vertices);

@@ -17,6 +17,9 @@
   "acknowledgementPools": [
     "answer_accepted"
   ],
+  "weatherAnswers": [
+    "ask_weather"
+  ],
   "slotReplies": {
     "state_weather": {
       "slot": "weather",

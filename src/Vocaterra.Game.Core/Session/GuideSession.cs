@@ -362,6 +362,9 @@ public abstract partial class GuideSession : IDisposable
     /// <summary>The game's digest of the rest of its state, copied into the replay record of a turn.</summary>
     protected abstract string StateDigest();
 
+    /// <summary>The dialogue key of the weather now (E07): an NPC's answer to «¿Qué tiempo hace?» takes its pool from it. <see langword="null"/> for a session with no weather.</summary>
+    protected virtual string? WeatherKey => null;
+
     /// <summary>The facts the guide was built with: the world as it is now.</summary>
     protected IGuideFacts LiveFacts => _liveFacts;
 
@@ -942,8 +945,8 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
-            : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory, WeatherKey: WeatherKey);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
         if (review is not null && turn.Communicated)
@@ -1621,7 +1624,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true))
-            : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts, WeatherKey: WeatherKey);
     }
 }

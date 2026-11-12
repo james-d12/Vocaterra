@@ -1889,6 +1889,24 @@
         { "lineId": "smith_sun.1", "text": "Hoy hace sol." }
       ]
     },
+    "smith_cloudy": {
+      "poolId": "smith_cloudy",
+      "variants": [
+        { "lineId": "smith_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "smith_rain": {
+      "poolId": "smith_rain",
+      "variants": [
+        { "lineId": "smith_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "smith_fair": {
+      "poolId": "smith_fair",
+      "variants": [
+        { "lineId": "smith_fair.1", "text": "Hace buen tiempo." }
+      ]
+    },
     "smith_well": {
       "poolId": "smith_well",
       "variants": [
@@ -1911,6 +1929,24 @@
       "poolId": "baker_sun",
       "variants": [
         { "lineId": "baker_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "baker_cloudy": {
+      "poolId": "baker_cloudy",
+      "variants": [
+        { "lineId": "baker_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "baker_rain": {
+      "poolId": "baker_rain",
+      "variants": [
+        { "lineId": "baker_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "baker_fair": {
+      "poolId": "baker_fair",
+      "variants": [
+        { "lineId": "baker_fair.1", "text": "Hace buen tiempo." }
       ]
     },
     "baker_well": {
@@ -1937,6 +1973,24 @@
         { "lineId": "farmer_sun.1", "text": "Hoy hace sol." }
       ]
     },
+    "farmer_cloudy": {
+      "poolId": "farmer_cloudy",
+      "variants": [
+        { "lineId": "farmer_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "farmer_rain": {
+      "poolId": "farmer_rain",
+      "variants": [
+        { "lineId": "farmer_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "farmer_fair": {
+      "poolId": "farmer_fair",
+      "variants": [
+        { "lineId": "farmer_fair.1", "text": "Hace buen tiempo." }
+      ]
+    },
     "farmer_well": {
       "poolId": "farmer_well",
       "variants": [
@@ -1959,6 +2013,24 @@
       "poolId": "fisher_sun",
       "variants": [
         { "lineId": "fisher_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "fisher_cloudy": {
+      "poolId": "fisher_cloudy",
+      "variants": [
+        { "lineId": "fisher_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "fisher_rain": {
+      "poolId": "fisher_rain",
+      "variants": [
+        { "lineId": "fisher_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "fisher_fair": {
+      "poolId": "fisher_fair",
+      "variants": [
+        { "lineId": "fisher_fair.1", "text": "Hace buen tiempo." }
       ]
     },
     "fisher_well": {
@@ -1985,6 +2057,24 @@
         { "lineId": "villager_sun.1", "text": "Hoy hace sol." }
       ]
     },
+    "villager_cloudy": {
+      "poolId": "villager_cloudy",
+      "variants": [
+        { "lineId": "villager_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "villager_rain": {
+      "poolId": "villager_rain",
+      "variants": [
+        { "lineId": "villager_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "villager_fair": {
+      "poolId": "villager_fair",
+      "variants": [
+        { "lineId": "villager_fair.1", "text": "Hace buen tiempo." }
+      ]
+    },
     "villager_well": {
       "poolId": "villager_well",
       "variants": [
@@ -2009,6 +2099,24 @@
         { "lineId": "guide_sun.1", "text": "Hoy hace sol." }
       ]
     },
+    "guide_cloudy": {
+      "poolId": "guide_cloudy",
+      "variants": [
+        { "lineId": "guide_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "guide_rain": {
+      "poolId": "guide_rain",
+      "variants": [
+        { "lineId": "guide_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "guide_fair": {
+      "poolId": "guide_fair",
+      "variants": [
+        { "lineId": "guide_fair.1", "text": "Hace buen tiempo." }
+      ]
+    },
     "guide_well": {
       "poolId": "guide_well",
       "variants": [
@@ -2031,6 +2139,24 @@
       "poolId": "shop_sun",
       "variants": [
         { "lineId": "shop_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "shop_cloudy": {
+      "poolId": "shop_cloudy",
+      "variants": [
+        { "lineId": "shop_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "shop_rain": {
+      "poolId": "shop_rain",
+      "variants": [
+        { "lineId": "shop_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "shop_fair": {
+      "poolId": "shop_fair",
+      "variants": [
+        { "lineId": "shop_fair.1", "text": "Hace buen tiempo." }
       ]
     },
     "shop_well": {
@@ -2298,6 +2424,24 @@
       "poolId": "innkeeper_sun",
       "variants": [
         { "lineId": "innkeeper_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "innkeeper_cloudy": {
+      "poolId": "innkeeper_cloudy",
+      "variants": [
+        { "lineId": "innkeeper_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "innkeeper_rain": {
+      "poolId": "innkeeper_rain",
+      "variants": [
+        { "lineId": "innkeeper_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "innkeeper_fair": {
+      "poolId": "innkeeper_fair",
+      "variants": [
+        { "lineId": "innkeeper_fair.1", "text": "Hace buen tiempo." }
       ]
     },
     "innkeeper_thank": {
