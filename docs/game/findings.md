@@ -2520,3 +2520,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `scene.json` while it ran (a hash mismatch): capture a baseline from a separate worktree, never from the one being edited. Gate:
   11,347 tests passed, 3 skipped. Checked on the merged build: after `--skip-to-session 2` Rosa greets «Buenas noches.» with no offer,
   and a sleep in the bed prints "session 2 ends at the inn" (`last: inn.bed`).
+- **Y11, buying the plot (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y11-report.md` on the branch; the as-built
+  note is in the settlement plan. Launched beside Y08 once Y10 was in; it merged Y08 before its last run. Gate: 11,398 tests passed, 3
+  skipped. Checked on the merged build: with a marked plot and ten coins, the mayor opens «El terreno cuesta diez monedas. ¿Lo
+  quieres?», «Quiero un terreno, por favor.» buys it (`item_taken` moneda, `item_given` equipo, `plot_bought (261,160)`, «Mi terreno»
+  complete), `systems.land` owned. Small gaps left: asking for a stake while holding one gets «Toma la estaca» and nothing; a full bag
+  at the stake's offer has no miss; «Quiero comprar un terreno» and «Quiero este terreno» stay unread (core gaps of Y00). A new fuzz
+  seed in the core, not this work's (the core findings' last entry).

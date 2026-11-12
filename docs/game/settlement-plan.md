@@ -288,7 +288,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,347 tests) |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
-| Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
+| Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,398 tests) |
 | Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
 
@@ -448,6 +448,14 @@ one, drawn within 64 blocks in the sun's light; the HUD line "Plot 10 × 10 · p
 - The content: the mayor's title (`game/npcs/villager.json`, `npc.villager.role`), his lines for the stake and the sale, the
   rows in `PHRASES.md`, the speech. The checklist `my-land` («Mi terreno», `"session": 2`) with the steps `stake` and `buy`; the
   arrow to the plot.
+
+*Y11 as built (2026-11-12):* Tomás is «Alcalde»; from day 2 his talk opens with the stake (`mayor-stake`) or, with a plot marked, the
+sale (`mayor-sell`), before any class offer. `sell_plot` with five misses (`already_owned`, `no_plot`, `no_stake`, `cant_pay`,
+`no_room`), checked in the worker and again in the session; the exchange is the pre-check (with `CanExchange`), then `OwnPlot()`, then
+coins out and kit in, so a refusal at any step changes nothing. The camp kit is `camp-kit`, «equipo de campamento» (noun `equipo`).
+`my-land` («Mi terreno», session 2): `stake` (the stake in the bag) and `buy` (`plot_bought`, hook `plot-owned`); the arrow points at
+the mayor while a plot is marked, then at the plot. `prado` failed the gate, so the lines say «el campo» and «cerca del pueblo».
+`alcalde` and `terreno` are in the A1 world words; the generated lexicon already had them.
 
 **Y12 The campsite.**
 - The item `camp-kit` and one camp shape (the `tent` stamp that exists, a bedroll, a fire ring). The stamp's rotation moves out

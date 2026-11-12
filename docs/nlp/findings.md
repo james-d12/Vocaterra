@@ -1423,3 +1423,8 @@ this file. What is still open is collected in [open-items](../open-items.md).
   Y06 (the manifest had the field before it); the class passed on a rerun. Proposed: a core milestone that documents the field as
   optional for O15 (or a KnownTolerances entry with its reason); nothing is narrowed until then, and a gate that fails on it alone is
   run again and the run recorded.
+- **A fuzz seed on «porque» (found 2026-11-12 by the game's Y11 agent; not changed, no milestone yet).**
+  `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag…` failed once with seed `dTc3W4dw5Cg2` («túneles unos porque»: the
+  analyzer reads «porque» as a plural noun); the same seed fails on `feature/settlement` without Y11, so it is the core's or the bundle's
+  as it stood. The full run passed. Proposed: a core milestone that finds why «porque» gets a noun reading, fixes it at the source with a
+  regression test, and records the seed; the oracle is not narrowed.
