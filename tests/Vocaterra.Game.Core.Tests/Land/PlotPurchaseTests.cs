@@ -296,10 +296,97 @@ public sealed class PlotPurchaseTests
     }
 
     [Fact]
+    public void Given_AStakeInTheBag_When_ThePlotIsBought_Then_TheMayorKeepsTheStakeAndTheStakeStepStaysDone()
+    {
+        var session = AtTheSale(10);
+        session.Step([]);
+        Assert.Equal(1, Count(session, ItemId.Stake));
+        Assert.True(Step(session, "my-land.stake").Done);
+
+        _ = session.Say("sí");
+        session.Step([]);
+
+        Assert.Equal(0, Count(session, ItemId.Stake));
+        Assert.Equal(1, Count(session, ItemId.CampKit));
+        Assert.True(Step(session, "my-land.stake").Done);
+        Assert.True(Step(session, "my-land.buy").Done);
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e is { Name: WorldEvents.ItemTaken, Npc: Mayor } && e.Detail?.StartsWith("estaca", StringComparison.Ordinal) == true);
+        Assert.Contains("The mayor keeps the stake", string.Join(' ', session.TakeHints()), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_NoStakeInTheBag_When_AMarkedPlotIsBought_Then_TheSaleGoesThrough()
+    {
+        var session = SessionTwo(10);
+        Assert.Equal(VoxelSession.StakeResult.Marked, session.MarkPlot(Corner.X + 5, Corner.Z + 5).Result); // the launch flag's way: no stake held
+        Assert.Equal(0, Count(session, ItemId.Stake));
+        _ = session.OpenTalk(Mayor);
+
+        _ = session.Say("sí");
+
+        Assert.NotNull(session.OwnedPlot);
+        Assert.Equal((0, 1, 0), (Count(session, ItemId.Coin), Count(session, ItemId.CampKit), Count(session, ItemId.Stake)));
+    }
+
+    [Fact]
+    public void Given_AStakeHeldAndTheSaleRefused_When_TheLearnerSaysSi_Then_TheStakeStaysInTheBag()
+    {
+        // cant_pay
+        var poor = AtTheSale(9);
+        _ = poor.Say("sí");
+        Assert.Equal(1, Count(poor, ItemId.Stake));
+
+        // no_plot (the marked ground no longer passes the land rules)
+        var spoiled = AtTheSale(12);
+        var (x, z) = (Corner.X + 3, Corner.Z + 4);
+        Assert.True(spoiled.Scene.Grid.SetBlock(x, LandRules.GroundOf(spoiled.Scene.Grid, x, z).Y, z, BlockId.Stone));
+        _ = spoiled.Say("sí");
+        Assert.Equal(1, Count(spoiled, ItemId.Stake));
+
+        // a sale the session refuses at the last moment (the world moved after the turn)
+        var moved = AtTheSale(12);
+        var cell = (X: Corner.X + 2, Z: Corner.Z + 2);
+        _ = moved.Scene.Grid.SetBlock(cell.X, LandRules.GroundOf(moved.Scene.Grid, cell.X, cell.Z).Y, cell.Z, BlockId.Stone);
+        Assert.False(moved.SellPlot(Mayor, TestGame.Data.HostEvents.Of(Mayor, "villager.buy_plot"), "test"));
+        Assert.Equal(1, Count(moved, ItemId.Stake));
+    }
+
+    [Fact]
+    public void Given_AFullBagWhoseOnlyFreeableSlotsAreTheCoinsAndTheStake_When_ThePlotIsBought_Then_TheStakesSlotMakesRoomForTheKit()
+    {
+        var session = AtTheSale(20); // ten coins stay: the coins' slot is not freed by the price
+        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // book, coins, stake and 37 axes fill the 40 slots
+        Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
+        Assert.Equal(1, Count(session, ItemId.Stake));
+
+        _ = session.Say("sí");
+
+        Assert.NotNull(session.OwnedPlot);
+        Assert.Equal((10, 1, 0), (Count(session, ItemId.Coin), Count(session, ItemId.CampKit), Count(session, ItemId.Stake)));
+    }
+
+    [Fact]
+    public void Given_ThePurchaseIsSaved_When_TheGameLoadsWithNoStakeInTheBag_Then_TheStakeStepIsStillDone()
+    {
+        var session = AtTheSale(10);
+        _ = session.Say("sí");
+        session.Step([]);
+
+        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
+        loaded.Step([]);
+
+        Assert.Equal(0, Count(loaded, ItemId.Stake));
+        Assert.True(loaded.ObjectiveStep("my-land.stake")!.Done);
+        Assert.True(loaded.ObjectiveStep("my-land.buy")!.Done);
+    }
+
+    [Fact]
     public void Given_AFullBag_When_TheLearnerSaysSi_Then_TheMayorSaysThereIsNoRoomAndNothingChanges()
     {
-        var session = AtTheSale(20);
-        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // the book, the coins and 38 axes fill the 40 slots; ten coins leave the coin slot occupied
+        var session = SessionTwo(20);
+        _ = session.MarkPlot(Corner.X + 5, Corner.Z + 5); // no stake held: its slot would make room for the kit
+        _ = session.OpenTalk(Mayor);
+        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // the book, the coins and 38 axes fill the 40 slots (with no stake to hand over); ten coins leave the coin slot occupied
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
         var before = Snapshot(session);
         var axes = Count(session, ItemId.Axe);
@@ -324,6 +411,22 @@ public sealed class PlotPurchaseTests
 
         Assert.Equal((0, 1), (Count(session, ItemId.Coin), Count(session, ItemId.CampKit)));
         Assert.NotNull(session.OwnedPlot);
+    }
+
+    [Fact]
+    public void Given_ThePlotWasBought_When_TheLearnerAsksForAStakeAgain_Then_NoStakeIsGivenAndTheStakesUseMarksNothing()
+    {
+        var session = AtTheSale(10);
+        _ = session.Say("sí");
+        session.EndTalk();
+        _ = session.OpenTalk(Mayor);
+
+        _ = session.Say("Quiero una estaca");
+
+        Assert.Equal(0, Count(session, ItemId.Stake));
+        Assert.False(session.LandOffered);
+        Assert.Equal(VoxelSession.StakeResult.NotApplied, session.UseStake(new BlockPos(Corner.X + 5, LandRules.GroundOf(session.Scene.Grid, Corner.X + 5, Corner.Z + 5).Y, Corner.Z + 5)));
+        Assert.Null(session.PendingPlot);
     }
 
     [Fact]

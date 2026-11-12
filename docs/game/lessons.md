@@ -392,7 +392,7 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --skip-to-session 4 
 
 From play session 2 the tracker shows a second checklist, **Mi terreno** (`objectives/my-land.json`: `estaca`, `terreno`, `campamento`, `fuego`). It is a checklist, not a lesson: it never holds sleep back and does not end a session, and no lesson step waits for it. The mayor, Tomás, the villager of `game/npcs.json`, runs it with his own agent states:
 
-- **The stake.** While the player holds no stake and owns no plot he opens a talk with the offer of the stake (`offer_stake`, the state `offering_stake`; «sí» gives it, `villager.give_stake`), and a request answers the same (`Quiero una estaca, por favor.`).
+- **The stake.** While the player holds no stake and owns no plot he opens a talk with the offer of the stake (`offer_stake`, the state `offering_stake`; «sí» gives it, `villager.give_stake`), and a request answers the same (`Quiero una estaca, por favor.`). At the purchase he keeps the stake (Y15), and once the land is owned he gives no second one.
   The stake (`estaca`) is used with the right click on the ground: it marks the pending plot round that column, an outline in amber (broken rail) with `Plot 10 × 10 · price 10 coins`; in the village, on a road or at Luna's camp it is refused with a line saying why
   (`land.json`'s protected regions; `Protected, Village` on the console).
 - **The plot.** Once a plot is marked he offers it (`offer_plot`, `offering_plot`: «El terreno cuesta diez monedas. ¿Lo quieres?»); `Quiero un terreno, por favor.` or «sí» buys it. With fewer than ten coins the miss is `cant_pay`
