@@ -259,6 +259,8 @@ public static class BlockArt
                 return PlainIconPixel(x, y);
             case BlockCell.IconFlour:
                 return FlourIconPixel(x, y, speckle);
+            case BlockCell.IconStake:
+                return StakeIconPixel(x, y, speckle);
             default:
                 return Clear;
         }
@@ -622,6 +624,27 @@ public static class BlockArt
         }
 
         return (x + y) % 5 == 0 ? Shade(236, 228, 208, speckle % 2) : Shade(246, 242, 228, speckle % 2); // the flour, pale and a little dusty
+    }
+
+    private static (byte R, byte G, byte B, byte A) StakeIconPixel(int x, int y, uint speckle)
+    {
+        // A wooden stake standing upright: a two-pixel pale shaft with a pointed foot, a red cloth flag flying from the top to the right.
+        if (y is >= 1 and <= 4 && x >= 9 && x <= 14 - y)
+        {
+            return y == 4 ? Shade(150, 40, 36, 0) : (x + y) % 4 == 0 ? Shade(214, 62, 52, 0) : Shade(196, 50, 44, 0); // the flag, with a darker hem
+        }
+
+        if (x is 7 or 8 && y is >= 1 and <= 12)
+        {
+            return x == 7 ? Shade(214, 176, 112, speckle % 2) : Shade(178, 138, 80, speckle % 2); // the shaft, lit on the left
+        }
+
+        if (y is 13 or 14 && (y == 13 ? x is 7 or 8 : x == 7))
+        {
+            return Shade(178, 138, 80, 0); // the pointed foot
+        }
+
+        return Clear;
     }
 
     private static (byte R, byte G, byte B, byte A) Shade(int r, int g, int b, uint noise)

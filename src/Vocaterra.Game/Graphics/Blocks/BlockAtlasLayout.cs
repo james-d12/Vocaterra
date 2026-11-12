@@ -300,6 +300,9 @@ public enum BlockCell
 
     /// <summary>The front of the innkeeper's head (Y06): silver hair pinned up, rosy cheeks. Placed last, so no other cell moves.</summary>
     FaceInnkeeper,
+
+    /// <summary>The icon of the stake (the item, Y10): a pale wooden stake with a pointed foot and a red cloth flag. Placed last, so no other cell moves.</summary>
+    IconStake,
 }
 
 /// <summary>
@@ -429,6 +432,7 @@ public static class BlockAtlasLayout
         ItemId.Axe => BlockCell.IconAxe,
         ItemId.RoastApple => BlockCell.IconRoastApple,
         ItemId.Flour => BlockCell.IconFlour,
+        ItemId.Stake => BlockCell.IconStake,
         _ => null,
     };
 

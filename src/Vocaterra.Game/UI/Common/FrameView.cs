@@ -138,6 +138,9 @@ public sealed class FrameView
     /// <summary>The prompt of the player's own lit fire for this frame (V12c: <c>E: sleep until morning (session 3)</c>), or <see langword="null"/> when it does not offer the sleep.</summary>
     public string? SleepPrompt { get; set; }
 
+    /// <summary>The HUD line of the player's plot (Y10, <c>Plot 10 × 10 · price 10 coins</c> or <c>Your land</c>), or <see langword="null"/> when the player is far from it and holds no stake.</summary>
+    public string? PlotLine { get; set; }
+
     /// <summary>The closing card's line offering the sleep for this frame (V12c: <c>Enter: sleep until morning and start session 2</c>), or <see langword="null"/>.</summary>
     public string? EndingSleep { get; set; }
 

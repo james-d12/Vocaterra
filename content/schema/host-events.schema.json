@@ -22,7 +22,8 @@
         "apple",
         "axe",
         "roast-apple",
-        "flour"
+        "flour",
+        "stake"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     },

@@ -156,6 +156,19 @@ try
         Console.WriteLine($"land: the plot {ownPlot.X},{ownPlot.Z} ({session.OwnedPlot!.Value.Width} by {session.OwnedPlot.Value.Depth}) is owned (--own-plot)");
     }
 
+    if (options.MarkPlot is { } markPlot)
+    {
+        // A dev aid (Y10): the stake's use on the column, with the land rules' answer on the console and the hint line.
+        var use = session.MarkPlotWithHint(markPlot.X, markPlot.Z);
+        var reason = use.Check.Protection == Protection.None ? use.Check.Fault.ToString() : $"{use.Check.Fault}, {use.Check.Protection}";
+        Console.WriteLine(use.Result switch
+        {
+            VoxelSession.StakeResult.Marked => $"land: the stake at {markPlot.X},{markPlot.Z} marked the pending plot {session.PendingPlot!.Value.X},{session.PendingPlot.Value.Z} ({session.PendingPlot.Value.Width} by {session.PendingPlot.Value.Depth}) (--mark-plot)",
+            VoxelSession.StakeResult.AlreadyOwned => $"land: the stake at {markPlot.X},{markPlot.Z} marked nothing: the plot is owned already (--mark-plot)",
+            _ => $"land: the stake at {markPlot.X},{markPlot.Z} was refused: {reason} (--mark-plot)",
+        });
+    }
+
     if (options.Lodging)
     {
         session.GrantLodging(); // a dev aid (Y05): the inn's bed is usable from the start
