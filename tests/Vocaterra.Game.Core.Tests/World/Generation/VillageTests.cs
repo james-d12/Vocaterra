@@ -18,8 +18,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "1349a7e570ce5167"; // Y04: the inn, its inside and the moved house3; V10: the well's rim one block high
-    private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
+    private const string VillageStructureDigest = "44d687ce746f761f"; // Y08: the inn's two-cell beds and its counter block; Y04: the inn, its inside and the moved house3; V10: the well's rim one block high
+    private const string CampsStructureDigest = "98bb81aa36dff745c801126a48c72c7a"; // Y08: the ledge half changed (bare), the guide's camp half did not
 
     // The village's levelled disc, whose structure the digest covers: 24 since village-plan V04 (the bakery, the smithy, the well), 19 of the 20 before.
     private const int VillageRadius = 24;
@@ -438,8 +438,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     {
         var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
         var total = 0;
-        // Y04 places the inn's beds, so the bed is a kind that must be there; the bedroll waits for the camp kit (Y12) and stands nowhere yet.
-        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll && k != BlockId.BedrollFoot))
+        // Y04 places the inn's beds, so the bed is a kind that must be there; the bedroll and the tent's canvas wait for the camp kit (Y12; Y08 took the mountain tent away) and stand nowhere yet.
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll && k != BlockId.BedrollFoot && k != BlockId.Canvas))
         {
             var count = grid.BlocksOfKind(kind).Count;
             total += count;

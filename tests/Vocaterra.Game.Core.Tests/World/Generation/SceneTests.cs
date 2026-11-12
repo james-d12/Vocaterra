@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "213e63701b1d392ec308c222584056135b2e2975253420100152f925c09b20ca"; // Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "ab4035358a106d1dc191cfaef216646d2af002aef32a39dff0c09e886baeaa5c"; // Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -250,7 +250,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
         Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells
-        Assert.Equal(3 * 8, counts[BlockId.FireRing]); // three rings of eight stones: the two camps' and the smith's forge (V04)
+        Assert.Equal(2 * 8, counts[BlockId.FireRing]); // two rings of eight stones: the guide's camp and the smith's forge (V04; Y08: the mountain ring is gone)
         Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
     }
 
