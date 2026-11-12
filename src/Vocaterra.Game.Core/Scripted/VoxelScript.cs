@@ -2,6 +2,7 @@ using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
@@ -230,7 +231,7 @@ public sealed class VoxelScript
         var before = BlockDefinition.Get(_sim.Grid.GetBlock(step.X, step.Y, step.Z)).Name;
         _log(_sim.PourWater(new BlockPos(step.X, step.Y, step.Z))
             ? $"pour {step.X},{step.Y},{step.Z}: a water source where there was {before}"
-            : $"pour {step.X},{step.Y},{step.Z}: refused ({before} is there, or the cell is outside the world)");
+            : $"pour {step.X},{step.Y},{step.Z}: refused ({before} is there, the cell is outside the world, or the land rules protect the column)");
         return true;
     }
 
@@ -358,6 +359,12 @@ public sealed class VoxelScript
             return true;
         }
 
+        if (_stepTicks > 0 && _sim.Events.Any(static e => e.Kind == SimulationEventKind.TakeBackRefused))
+        {
+            _log($"interact {step.X},{step.Y},{step.Z}: refused by the land rules (planks come back only on the player's own land)"); // Y09
+            return true;
+        }
+
         if (_stepTicks >= InteractTickLimit)
         {
             _log($"interact {step.X},{step.Y},{step.Z}: not gathered after {_stepTicks} ticks (out of reach, or not gatherable)");
@@ -410,6 +417,12 @@ public sealed class VoxelScript
         }
 
         var block = _sim.Grid.GetBlock(step.X, step.Y, step.Z);
+        if (_sim.Events.Where(static e => e.Kind == SimulationEventKind.PlaceRefused).Select(static e => (int?)e.Detail).FirstOrDefault() is { } protection)
+        {
+            _log($"place {step.Item}@{step.X},{step.Y},{step.Z}: refused by the land rules ({ProtectionNames.Of((Protection)protection)}: no building there)"); // Y09
+            return true;
+        }
+
         _log(block == BlockId.Air
             ? $"place {step.Item}@{step.X},{step.Y},{step.Z}: refused (out of reach, no {step.Item}, or not placeable there)"
             : $"place {step.Item}@{step.X},{step.Y},{step.Z}: placed {BlockDefinition.Get(block).Name}");

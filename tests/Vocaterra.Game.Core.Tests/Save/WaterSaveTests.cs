@@ -180,7 +180,7 @@ public sealed class WaterSaveTests
         Assert.Equal(400, loaded.Simulation.Breath.Air);
     }
 
-    // A cell of open air on the ground a few blocks from the spawn, where a pour has room to spread.
+    // A cell of open air on the ground a few blocks from the spawn, where a pour has room to spread and the land rules allow it (the trail from the ledge is protected, Y09).
     private static BlockPos PourSpot(Vocaterra.Game.Core.Session.VoxelSession session)
     {
         var grid = session.Scene.Grid;
@@ -188,7 +188,7 @@ public sealed class WaterSaveTests
         for (var d = 3; d < 12; d++)
         {
             var spot = new BlockPos(feet.X + d, feet.Y, feet.Z);
-            if (grid.GetBlock(spot.X, spot.Y, spot.Z) == BlockId.Air && grid.IsSolid(spot.X, spot.Y - 1, spot.Z))
+            if (grid.GetBlock(spot.X, spot.Y, spot.Z) == BlockId.Air && grid.IsSolid(spot.X, spot.Y - 1, spot.Z) && !session.Land.Rules.IsProtected(spot.X, spot.Z))
             {
                 return spot;
             }

@@ -34,6 +34,20 @@ public sealed class DevLaunchTests
     }
 
     [Fact]
+    public void Given_TheOwnPlotFlag_When_ItIsParsed_Then_ItNeedsDevTakesAColumnAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--own-plot", "261,160"], out var given, out _));
+        Assert.Equal((261, 160), given.OwnPlot);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.Null(none.OwnPlot);
+        Assert.False(LaunchOptions.TryParse(["--own-plot", "261,160"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--dev", "--own-plot", "north"], out _, out var shape));
+        Assert.Contains("--own-plot", shape, StringComparison.Ordinal);
+        Assert.Contains("--own-plot", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheOverlayIsOffUntilItIsSwitchedOnAndTheNoteFollowsTheSameSwitch()
     {
         Assert.False(new VoxelDebugOverlay().Visible);

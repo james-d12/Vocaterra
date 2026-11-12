@@ -65,6 +65,12 @@ and are not saved. `RestoreParts` puts the places made in play back first, befor
 - **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
   is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
 
+**The `land` entry (Y09).** `systems.land` keeps the player's plots, both optional, the entry absent when neither exists: `pending` (the plot marked with a stake and not yet bought, Y10) and `owned` (the plot bought from
+the mayor, Y11), each `{"x", "z", "width", "depth"}`: the west-north corner and the size in blocks, along the world's axes (a plot is columns, not a volume). One plot of each kind at most. What is *not* saved is the rules: the
+protected regions and the meadows come from `game/land.json` and the scene (`LandRules` builds its mask when the session starts), so an edit of the file changes where a column is protected for every save. A load and a sleep's restore put the
+plots back as saved, with no check (a plot bought stays bought); a plot with no size or outside the world is refused (`SaveException`). The entry is optional, so the version stays 8 and no migration is needed; across bundles
+(`SaveMigration.Adapt`) the entry is kept as it is. The dev aid `--own-plot x,z` (with `--dev`) makes a save carry an owned plot from the start.
+
 Version 6 added the optional `systems` map to the save: a system's name to its entry, so a system joins the save without another format change (W06 added `procedures`).
 Its `needs` entry holds the player's five meters and two timers: `hunger`, `thirst`, `sleep` (0 to 100), `stamina` (0 to its current maximum), `health` (0 to 100),
 `exhaustionSeconds` (seconds of active play at sleep's last stage) and `effortFreeSeconds` (seconds since the last effort). Later milestones added the regrowth, gift and

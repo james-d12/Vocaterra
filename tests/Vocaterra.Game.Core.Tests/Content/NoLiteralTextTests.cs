@@ -27,6 +27,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Needs/NeedsValidator.cs"] = "the content authors' problem list (game/needs.json)",
         ["src/Vocaterra.Game.Core/Atmosphere/DayValidator.cs"] = "the content authors' problem list (game/day.json)",
         ["src/Vocaterra.Game.Core/Atmosphere/WeatherValidator.cs"] = "the content authors' problem list (game/weather.json)",
+        ["src/Vocaterra.Game.Core/Land/LandValidator.cs"] = "the content authors' problem list (game/land.json)",
         ["src/Vocaterra.Game.Core/Content/GameData.cs"] = "a load error for the content authors",
         ["src/Vocaterra.Game.Core/Content/LocaleBundle.cs"] = "load errors for the content authors",
         ["src/Vocaterra.Game.Core/Language/Lessons/LessonBook.cs"] = "load errors for the content authors",
