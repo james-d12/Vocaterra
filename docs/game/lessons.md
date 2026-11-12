@@ -349,17 +349,18 @@ in the same run.
   `session_start` (no mic check, no check battery; a `slept` world event is the new session's first, `session 1 to 2`), and the `session_end` counts only its own
   session's events. The autosave writes the session as it ends (`autosave: ... written at sleep`, with no toast), so a load of the autosave starts the session the
   sleep starts; then its policy starts again from the sleep's tick, as a load's run starts it. The folder and the files stay the run's. The console says
-  `sleep: ...: session 1 ends at the fire, session 2 begins (tick, stored time, world digest)` and a toast says `Good morning: session 2 begins`.
+  `sleep: ...: session 1 ends at the inn, session 2 begins (tick, stored time, world digest)` (`at the inn` for the inn's bed, `at the fire` for Luna's fire, `at your camp` for the camp's bedroll or ring) and a toast says `Good morning: session 2 begins`.
 - **What the objective says next.** Once the session's work is done (session 1: its ending; from session 2: no lesson under way and every unlocked lesson done), the
   line says `Session complete: go to bed to start session 2`, and when the work ends away from the fire (a lesson completed in the village) the beacon
   goes to the bed. When no later session has a lesson (after session 10, the last) it says `Every lesson so far is done: practise any of them again in the book (J), or
   talk to the people of the village`; the fire still lets the player sleep, which lifts the spacing gaps. From session 2, while a lesson is under way or left, it
   says `Next: talk to the villager for the lesson “Personas”`. These lines come after a lesson's own line, a replay, a review and a new lesson, and over an order,
   as the new lesson's line does, except that an open order keeps its own line rather than `Every lesson so far is done`.
-- **`--sleep`** is a script step: it closes the panels and sleeps as the player's E at the fire would, wherever the player stands (a script needs no walk); refused
-  with a console line when the fire is not lit, a lesson step waits or the run is a playtest. The scripted run r20-sleep reaches session 1's ending the short way
-  (the camp, the shopkeeper's bottle on a second visit, the river and the fire by `--teleport`), shows the card, sleeps, and shows session 2's objective, the beacon
-  on the villager (no fire prompt: Personas is left) and the book's Lessons page.
+- **`--sleep`** is a script step: it closes the panels and sleeps as the player's E at a sleep place would, at the place the player stands at or, away from every place,
+  wherever the player stands (a script needs no walk; the console says `wherever the player stood` and no last place is recorded); refused with a console line at the inn's bed before the room is given, when a
+  lesson step waits or the run is a playtest. The scripted run r20-sleep reaches session 1's ending the short way (the camp, the shopkeeper's bottle on a second visit, the river by
+  `--teleport`, Rosa's room, the walk to the bed), shows the card, sleeps, and shows session 2's objective, the beacon on the villager (no prompt: Personas is left) and the book's Lessons page;
+  r40-inn plays the same day as a player does (the walk to the river and the inn on foot), r30 sleeps at Luna's fire instead.
 
 **`--skip-to-session <n>`** (a test aid, `SessionSkip`): a new game starts as play session n (from 2 to the last session that has a lesson, 10) where a learner
 who played sessions 1 to n-1 and did everything would stand, built from the data alone (the lessons' `session` and `after`, the objectives, the orders and the NPCs'
@@ -386,6 +387,20 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --walk-to 172,187 --
 # session 4 at once: the fisher's lesson named and pointed at, the earlier sessions counted as done (r21-skip)
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --skip-to-session 4 --wait 1 --shot /tmp/v12c-skip.png --book-page lessons --screenshot /tmp/v12c-skip-book.png --frames 30
 ```
+
+## Day two offers land (Y09 to Y12)
+
+From play session 2 the tracker shows a second checklist, **Mi terreno** (`objectives/my-land.json`: `estaca`, `terreno`, `campamento`, `fuego`). It is a checklist, not a lesson: it never holds sleep back and does not end a session, and no lesson step waits for it. The mayor, Tomás, the villager of `game/npcs.json`, runs it with his own agent states:
+
+- **The stake.** While the player holds no stake and owns no plot he opens a talk with the offer of the stake (`offer_stake`, the state `offering_stake`; «sí» gives it, `villager.give_stake`), and a request answers the same (`Quiero una estaca, por favor.`).
+  The stake (`estaca`) is used with the right click on the ground: it marks the pending plot round that column, an outline in amber (broken rail) with `Plot 10 × 10 · price 10 coins`; in the village, on a road or at Luna's camp it is refused with a line saying why
+  (`land.json`'s protected regions; `Protected, Village` on the console).
+- **The plot.** Once a plot is marked he offers it (`offer_plot`, `offering_plot`: «El terreno cuesta diez monedas. ¿Lo quieres?»); `Quiero un terreno, por favor.` or «sí» buys it. With fewer than ten coins the miss is `cant_pay`
+  («Necesitas diez monedas. Vende madera a Luz.», nothing changes and the pending plot stays); with enough, the coins go out, the camp kit (`equipo`) comes in and `plot_bought` is raised in one step (`villager.buy_plot`). The owned plot shows its outline in white with a green flag at each corner (`Your land`).
+  Coins come from the village's orders and the market (the smith buys wood) or, for a run, `--give moneda`.
+- **The camp.** The kit's right click on the owned ground sets up a camp (`campamento`), a torch on its ring lights the fire (`fuego`), and a night at the bedroll or the lit ring ends the session "at your camp". Holding the gather button on the camp packs it back into the kit.
+
+There is no lesson for any of it: the words (`estaca`, `terreno`, `campamento`, `fuego`, `equipo`) are word cards shown the first time the item or the step arrives, and the mayor's lines are data (`agents/villager.json`, pools `villager_land_*`). One plot and one camp per player (settlement-plan).
 
 ## The session summary and the second try (X04, R01 and R02)
 

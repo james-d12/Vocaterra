@@ -127,7 +127,7 @@ took the same ticks and asked the same 31 items before and after it (V09).
    road to the village, the baker at the bakery, the smith at the smithy and the farmer at the field. They answer when talked to, but their lessons
    and orders start in sessions 4 to 7 (sessions 8 to 10 have lessons and no order): the objective never points at them and nothing in the first session needs them (a tester who asks the baker
    for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: Luna sends the tester to the inn (the beacon points there); the tester asks the innkeeper for a room
-   (or says «no sé»), and once the talk is closed the screen says `Session complete` in the innkeeper's voice. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
+   (or says «no sé»), and once the talk is closed the screen says `Session complete` in the innkeeper's voice. The room is where day one ends in a playtest: the bed, session 2 and the land («Mi terreno», from session 2) are not part of it, which is one session. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
    Spanish, but you can ask the game for help: press H, or N for 'no sé'".
 7. **The rescue rule.** The game never needs you. If the tester is stuck on the **same step for more than 5 minutes** (no progress in the
    objective, the journal, or the dialogue, and no attempt), you may help: first with the place (point at the next thing, "the river is
@@ -333,7 +333,7 @@ Not planned: written at V09 after phase B of the village plan and checked at V24
   keeps the day and sets the sitting on (V25). A tester who saves in session 5 and loads sees session 5 again.
 - The accent note: a verb typed without the accent of its tense (`ayer compre pan`) is accepted, and a note under the reply names the accented form, in free talk as in a lesson (M70, V21b).
 - The name plates show only for the NPC the tester faces and the beacon's NPC (V22), and the stall and the market answer what was said (V21, V21b).
-- **A way in.** `--playtest` plays one session a run and offers no sleep at the fire, and a `--load` of its save runs the recall battery and ends;
+- **A way in.** `--playtest` plays one session a run and offers no sleep (at the inn's bed or a fire), and a `--load` of its save runs the recall battery and ends;
   `--skip-to-session`, the test aid that starts a later session, refuses `--playtest`. A playtest of sessions 7 to 10 needs a profile that starts a tester at
   a later session (its saves and logs marked as such, as the skip's are), or sittings that allow the sleep. That is a game milestone, not a facilitator's
   step.

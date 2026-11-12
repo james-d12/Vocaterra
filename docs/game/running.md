@@ -70,9 +70,9 @@ the language runs keep their baselines); `--set-need <need> <value>` sets one at
 DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --set-need thirst 30 --walk-to 176,186 --screenshot /tmp/n01.png --frames 60 --save /tmp/n01.save
 ```
 
-**Sleeping (L01).** E at the lit fire sleeps from day 2 only while the sleep drive is below 75 (day 1: once its ending is reached); otherwise it shows «No tengo sueño.» and sleeps nothing. `--sleep` and a script's `sleep` step sleep at any drive, so a `--needs off` run (the sleep drive full) can still pass the night. No lesson, class or order holds sleep back.
+**Sleeping (L01, Y08, Y12).** E at a sleep place sleeps from day 2 only while the sleep drive is below 75 (day 1: once its ending is reached); otherwise it shows «No tengo sueño.» and sleeps nothing. The places are Luna's lit fire, the inn's bed (once Rosa has given the room) and the camp's bedroll or lit ring; the console's night line says where it ended (`at the fire`, `at the inn`, `at your camp`, `wherever the player stood`, or `where the player fell` for a collapse). `--sleep` and a script's `sleep` step sleep at any drive, so a `--needs off` run (the sleep drive full) can still pass the night. No lesson, class or order holds sleep back.
 
-**Sleep and the collapse (N03).** Every night (E at the lit fire, Enter on the closing card while the player stands at the lit fire, `--sleep`) applies the night to the needs: sleep to 100, health +20 (to 100),
+**Sleep and the collapse (N03).** Every night (E at a sleep place, Enter on the closing card while the player stands at one, `--sleep`) applies the night to the needs: sleep to 100, health +20 (to 100),
 hunger -15 and thirst -20, neither below 10 (a drive already below 10 stays). After 60 s of active play with sleep at its last stage the screen fades and the player sleeps where
 they stand (sleep to 50, stamina full, the same costs, no health), wakes there, and the day and sitting move as for a night; a tip explains it once. To reach it in a script:
 `--set-need sleep 0 --wait 62` (needs on; the collapse is the sleep drive's, so hunger 0 does not cause it). The line `sleep: collapse: session 1 ends where the player fell, ...`
@@ -152,9 +152,10 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --look 120,-5 --beacon rive
 # S17, the whole route in one run, from the player's own camp: the walk down the trail to the guide, her lesson (`--lesson-run` does every step with typed
 # answers and picks the fruit she offers from a bush), the camp (wood, fruit, the torch at her fire ring), the stall (the shopkeeper's "¿Qué necesitas?" is a
 # core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
-# checklist is complete: Luna's line sends the player to the inn and the beacon points there, Y07), the guide's transfer offer "¿Quieres agua?", and the walk to the
-# inn, where the innkeeper's «sí» gives the room: the closing card says "Session complete" (the innkeeper's line). The console prints every lesson step and its
-# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire. One step is spoken
+# checklist is complete: Luna's line sends the player to the inn and the beacon points there, Y07), and the walk to the
+# inn, where the innkeeper's «sí» gives the room: the closing card says "Session complete" (the innkeeper's line); the walk to the bed and `--sleep` begin session 2
+# at the inn (Y13: this is r40-inn's route). The console prints every lesson step and its
+# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river, the closing card and the morning. One step is spoken
 # (S22): after the lesson the route greets the guide with `--wav` and the bundle's recorded "Hola." (the Kokoro line), so the step goes through Vosk (the
 # console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute \
@@ -164,15 +165,21 @@ dotnet run --project src/Vocaterra.Game -- --seed 42 --mute \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s17-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
   --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/s17-river.png \
-  --talk guide --say "sí, por favor" \
-  --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
-  --screenshot /tmp/s17-fire.png --frames 90
+  --talk innkeeper --say "sí, por favor" --leave --wait 1 --shot /tmp/s17-ending.png \
+  --walk-to 279,231 --look 270,-20 --sleep --look 129,-20 --wait 2 \
+  --screenshot /tmp/s17-morning.png --frames 90
 # the lesson alone, with its steps printed (the player is walked down the trail to the guide first); the book's phrases page at the end shows what was learnt
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 # the opening: the objective line and the first tip at the spawn (a scripted run draws no tips unless --tips is given)
 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --tips --screenshot /tmp/s17-opening.png --frames 90
 dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
+
+**Day one, day two and the camp, scripted (Y13).** The settlement series' whole route, as `scripts/scripted-runs.sh` plays it (r40 to r43, [scripted-runs.md](scripted-runs.md)); every command is `--seed 42 --mute` and needs `--dev` for the aids named:
+
+- **Day one, ending at the inn (r40-inn).** The route of the S17 block above without the guide's spoken hello: the camp's steps, the shopkeeper (`--talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --leave`), the river (`--walk-to 234,222 --interact 233,34,222`: `agua 1/1`, `objective: complete`, `guide says: ¡Muy bien! Ahora ve a la posada.`, the beacon on the inn, `posada 46 blocks`), Rosa (`--talk innkeeper --say "sí, por favor"`: `innkeeper.room`, `lodging_granted`), the card, `--walk-to 279,231` (the bed's stand cell), `--sleep` (`session 1 ends at the inn, session 2 begins`) and the morning in the guest room, where the tracker shows «Mi terreno».
+- **Day two, the land (r41-land).** `--skip-to-session 2 --mark-plot 266,165` (the stake's use on the meadow at the start), `--talk villager --say "Quiero una estaca, por favor."` (the mayor gives the stake), `--say "Quiero un terreno, por favor."` with no coin (`cant_pay`), ten `--give moneda`, the same line again (`plot_bought`, the camp kit in the bag), and the owned plot's outline. The stake in the village is refused (`--give estaca --mark-plot 285,206`: `land: the stake at 285,206 was refused: Protected, Village`, r43). `--own-plot x,z` skips the purchase (and raises no `plot_bought`, so the `terreno` step stays 0/1 until a load).
+- **The camp (r42-camp).** `--own-plot 261,160 --give equipo --place-camp 263,161,north` (`camp: Placed at 263,161 facing North, fire 263,37,161, bed 263,37,166, wake 263,37,163`), `--give antorcha` and `--place antorcha@262,38,161` (the torch on the ring's rim: `fire_lit`), `--set-time 23`, `--sleep` (`session 2 ends at your camp`), `--plant 268,36,167` (a berry; `--needs on`), `--need health 5 --need thirst 0 --wait 25` away from the camp (`death: 1, woke at 263,37,163`), and a held `--interact 262,37,161` packing the camp back (45 ticks). The camp's wake cell is the camp's own: a death at the wake cell itself puts the chest there and the player on the next free cell.
 
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
 `--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (an id of `game/npcs.json`: `guide`, `shopkeeper`, `villager`,
