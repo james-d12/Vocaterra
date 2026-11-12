@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
@@ -73,6 +74,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Simulation.SetRecipes(Recipes.Rules);
+        InitLand(scene); // Y09: the village, the roads and Luna's camp refuse blocks
         Objectives = data.Objectives.Objectives.Select(static spec => new Objective(spec)).ToList();
         Objective = Objectives.First(static o => o.IsChecklist);
         ScanFireRing(scene);
@@ -462,6 +464,16 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.WaterWithoutBottle:
                     LogWorld(WorldEvents.WaterWithoutBottle, null, null);
                     _hints.Add(Locale.Ui(NeedBottleHint));
+                    break;
+                case SimulationEventKind.PlaceRefused:
+                    if (LandHintFor((Protection)e.Detail) is { } landHint)
+                    {
+                        _hints.Add(Locale.Ui(landHint)); // Y09: the village, the road or the camp is not the player's to build on
+                    }
+
+                    break;
+                case SimulationEventKind.TakeBackRefused:
+                    _hints.Add(Locale.Ui(LandTakeBackHint));
                     break;
                 default:
                     break;

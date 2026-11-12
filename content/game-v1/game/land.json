@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schema/land.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "Where the player may build and where land can be bought (Y09, D-game-32 (c)). Placing planks stays allowed in the wild, so a plank dam in the river works; it is refused on a protected column. protectedSites are discs round a scene site (site: its name in scene.json; the disc reaches the site's radius, plus its blend when includeBlend is true, plus margin); protectedBlocks are the columns within margin (a square) of a column that holds one of the named blocks (the roads and the bridge). protection says which hint the player reads (village, camp or road). The eligible regions are discs of radius round a scene site: a plot lies wholly in one of them. The plot is width by depth blocks along the world's axes; price is its cost in coins (the mayor sells it, Y11); maxSlope is the most its highest and lowest ground may differ. The margins are those measured in settlement-plan 9.2: the village's disc 24 + blend 8 + 2 = 34, Luna's camp 12 + 2 = 14, the roads and the bridge 2.",
+  "protectedSites": [
+    { "site": "village", "protection": "village", "margin": 2, "includeBlend": true },
+    { "site": "camp.guide", "protection": "camp", "margin": 2, "includeBlend": false }
+  ],
+  "protectedBlocks": [
+    { "blocks": ["path", "bridge"], "protection": "road", "margin": 2 }
+  ],
+  "eligible": [
+    { "site": "meadow.north", "radius": 22 },
+    { "site": "meadow.south", "radius": 22 }
+  ],
+  "plot": { "width": 10, "depth": 10, "price": 10, "maxSlope": 1 }
+}

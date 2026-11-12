@@ -176,7 +176,7 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), session.CaptureSleep(), state.Atmosphere),
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), session.CaptureSleep(), state.Atmosphere, session.CaptureLand()),
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
@@ -381,6 +381,7 @@ public static class SaveGame
             document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
             document.Flow,
             document.Systems?.Atmosphere)); // E01: a save without an entry starts the clock as a new game has it
+        session.RestoreLand(document.Systems?.Land); // Y09: the pending plot and the owned one (the rules come from the scene)
         session.RestoreSleep(document.Systems?.Sleep); // Y02: the places made in play go back before anything that asks SleepPlaces (the objective's sleep line, the arrow)
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));

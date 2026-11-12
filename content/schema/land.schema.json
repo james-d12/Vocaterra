@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/land.json",
+  "description": "The land rules (Y09): the regions where placing blocks is refused, the regions where a plot may lie, and the plot's size, price and slope. Loaded by LandData (Vocaterra.Game.Core); GameDataValidator checks the site names against scene.json and the numbers (LandValidator).",
+  "type": "object",
+  "required": ["schemaVersion", "protectedSites", "protectedBlocks", "eligible", "plot"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "protectedSites": {
+      "type": "array",
+      "description": "Discs round scene sites where placing is refused (the village, Luna's camp).",
+      "items": {
+        "type": "object",
+        "required": ["site", "protection", "margin"],
+        "additionalProperties": false,
+        "properties": {
+          "site": { "type": "string", "minLength": 1, "description": "A key of scene.json's sites; the site needs a radius." },
+          "protection": { "enum": ["village", "camp", "road"], "description": "Which hint the player reads when a block is refused here." },
+          "margin": { "type": "integer", "minimum": 0, "description": "Blocks added to the site's radius (and blend) for the disc." },
+          "includeBlend": { "type": "boolean", "description": "Whether the site's blend is part of the disc (the village's is, so the protection follows the scene's ground work). Default false." }
+        }
+      }
+    },
+    "protectedBlocks": {
+      "type": "array",
+      "description": "Columns within margin of a column holding one of the named blocks (the roads, the bridge).",
+      "items": {
+        "type": "object",
+        "required": ["blocks", "protection", "margin"],
+        "additionalProperties": false,
+        "properties": {
+          "blocks": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "Block names (BlockDefinition names: path, bridge)." },
+          "protection": { "enum": ["village", "camp", "road"] },
+          "margin": { "type": "integer", "minimum": 0, "description": "Blocks of square margin round each such column." }
+        }
+      }
+    },
+    "eligible": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Discs round scene sites where a plot may lie (the two meadows).",
+      "items": {
+        "type": "object",
+        "required": ["site", "radius"],
+        "additionalProperties": false,
+        "properties": {
+          "site": { "type": "string", "minLength": 1, "description": "A key of scene.json's sites." },
+          "radius": { "type": "integer", "minimum": 1, "description": "The disc's radius in blocks." }
+        }
+      }
+    },
+    "plot": {
+      "type": "object",
+      "required": ["width", "depth", "price", "maxSlope"],
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "integer", "minimum": 1, "description": "East-west size in blocks." },
+        "depth": { "type": "integer", "minimum": 1, "description": "North-south size in blocks." },
+        "price": { "type": "integer", "minimum": 0, "description": "Cost in coins (the mayor, Y11)." },
+        "maxSlope": { "type": "integer", "minimum": 0, "description": "The most the highest and the lowest ground of the plot may differ, in blocks." }
+      }
+    }
+  }
+}

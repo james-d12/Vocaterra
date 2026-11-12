@@ -98,7 +98,7 @@ public sealed partial class VoxelSimulation
     /// <param name="block">The block kind.</param>
     public int GatherTicksOf(BlockId block)
     {
-        var definition = BlockDefinition.Get(block);
+        var definition = GatherDefinition(block);
         if (definition.Gatherable && definition.Material != Material.None
             && SelectedStack is { IsEmpty: false } held && ItemDefinition.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
         {
@@ -483,6 +483,11 @@ public sealed partial class VoxelSimulation
     /// </summary>
     private void StepGather(BlockPos? target)
     {
+        if (target != _takeBackRefusedAt)
+        {
+            _takeBackRefusedAt = null; // a new hold may say again why a plank stays (Y09)
+        }
+
         if (target is not { } cell || !Grid.InBounds(cell.X, cell.Y, cell.Z) || !InReach(cell))
         {
             _noBottleHint = null;
@@ -498,8 +503,8 @@ public sealed partial class VoxelSimulation
         }
 
         _noBottleHint = null;
-        var definition = BlockDefinition.Get(id);
-        if (!definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
+        var definition = GatherDefinition(id);
+        if (TakeBackRefused(id, cell) || !definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
         {
             ResetGather();
             return;
@@ -592,6 +597,11 @@ public sealed partial class VoxelSimulation
         if (BlockDefinition.IsSolid(placed) && OverlapsPlayer(cell))
         {
             return;
+        }
+
+        if (PlaceRefusedByLand(placed, cell))
+        {
+            return; // Y09: not on the village, the roads or Luna's camp (a torch is always allowed)
         }
 
         Grid.SetBlock(cell.X, cell.Y, cell.Z, placed);
