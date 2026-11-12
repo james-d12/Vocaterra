@@ -102,6 +102,10 @@ public enum ScriptStepKind
 
     /// <summary>Plants a berry at the camp on the ground block whose cell is in <see cref="ScriptStep.Value"/> (<c>--plant 10,4,12</c>, N08): the held berry goes on the grass or dirt, as a right click on it does.</summary>
     Plant,
+
+    /// <summary>Sets up the camp with the camp kit in the bag (<c>--place-camp 262,166,north</c>, Y12): <see cref="ScriptStep.Value"/> is the ground column the fire ring's middle goes on and the side the camp faces, as the kit's use on that ground does. The console says the answer and the hint line gives a refusal's reason.</summary>
+    PlaceCamp,
+
     /// <summary>Opens the station named in <see cref="ScriptStep.Value"/> and starts its first procedure (<c>--station horno</c>, W07): the overlay stays open for what follows, as the panel's E does at the oven. A line says when the station is unknown.</summary>
     Station,
 

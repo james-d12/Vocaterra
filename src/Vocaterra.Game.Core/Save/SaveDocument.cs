@@ -466,10 +466,14 @@ public sealed record SystemsSave(
 /// <param name="LodgingGiven">Whether the player has been given lodging, which meets a sleep place whose access is <c>lodging</c>; left out when false.</param>
 /// <param name="Last">The place last slept at, or <see langword="null"/> for none.</param>
 /// <param name="Places">The places made in play (<c>SleepPlaces.Add</c>), or <see langword="null"/> for none. The authored places are in the bundle, not here.</param>
+/// <param name="Camp">The camp the player set up with the camp kit (Y12): where its footprint lies and which way it faces; its two places are in <paramref name="Places"/>. <see langword="null"/> for none.</param>
+/// <param name="KitOwed">Whether a camp whose blocks were gone was dropped by a load and the camp kit could not go back into a full bag yet (Y12); left out when false.</param>
 public sealed record SleepSave(
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] bool LodgingGiven = false,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] LastSleepSave? Last = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] SleepPlaceSave[]? Places = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] SleepPlaceSave[]? Places = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Land.CampSave? Camp = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] bool KitOwed = false);
 
 /// <summary>The place last slept at: its id and, for a place made in play, its cell.</summary>
 /// <param name="Id">The place's id.</param>
@@ -492,6 +496,7 @@ public sealed record LastSleepSave(
 /// <param name="HeightBlocks">How far in height, in blocks.</param>
 /// <param name="Access"><c>always</c> or <c>lodging</c>.</param>
 /// <param name="Point">The scene point it was made at, or <see langword="null"/>.</param>
+/// <param name="Wake">The cell the player wakes on after a death (the camp's places, Y12), or <see langword="null"/>.</param>
 public sealed record SleepPlaceSave(
     string Id,
     int X,
@@ -501,7 +506,14 @@ public sealed record SleepPlaceSave(
     int RadiusBlocks,
     int HeightBlocks,
     string Access,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? Point = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? Point = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] CellSave? Wake = null);
+
+/// <summary>A block cell in a save.</summary>
+/// <param name="X">The cell's X.</param>
+/// <param name="Y">The cell's Y.</param>
+/// <param name="Z">The cell's Z.</param>
+public sealed record CellSave(int X, int Y, int Z);
 
 /// <summary>A cell of a picked berry bush (N06, design 9.6) that a night grows back.</summary>
 /// <param name="X">The cell's X.</param>

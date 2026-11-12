@@ -39,7 +39,8 @@ public sealed class AmbientSound
     /// <param name="atmosphere">The atmosphere now (the daylight sets the birds and the insects).</param>
     /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (the rain is lower under cover), or <see langword="null"/> for open ground.</param>
-    public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock);
+    /// <param name="campFire">The middle of the player's own camp's fire ring while it burns (Y12), or <see langword="null"/>.</param>
+    public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock, campFire);
 
     /// <summary>
     /// One tick: the beds' targets are set for the listener, a line is logged when the place or its weights change (rounded to a tenth), and the chirps and crackles
@@ -50,10 +51,11 @@ public sealed class AmbientSound
     /// <param name="atmosphere">The atmosphere now, as the simulation reports it.</param>
     /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (E06: the rain is lower under cover); read only, never written.</param>
-    public void Observe(long tick, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
+    /// <param name="campFire">The middle of the player's own camp's fire ring while it burns (Y12), or <see langword="null"/>.</param>
+    public void Observe(long tick, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null)
     {
         _mixer.SetTick(tick);
-        var inputs = WeightsAt(listener, atmosphere, fireLit, highestBlock);
+        var inputs = WeightsAt(listener, atmosphere, fireLit, highestBlock, campFire);
         _mixer.SetBeds(inputs);
         var weights = inputs.ToDictionary(static b => b.Bed, static b => b.Weight, StringComparer.Ordinal);
         _firePan = inputs.First(static b => b.Bed == AmbientBeds.Fire).Pan;

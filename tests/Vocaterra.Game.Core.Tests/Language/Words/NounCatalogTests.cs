@@ -121,6 +121,6 @@ public sealed class NounCatalogTests
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(32, TestGame.Nouns.Nouns.Count); // Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
+        Assert.Equal(33, TestGame.Nouns.Nouns.Count); // Y12 campamento (the camp, a step of «Mi terreno», no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
     }
 }

@@ -16,4 +16,8 @@ public interface IBuildRules
     /// <summary>Whether the player may take back the planks of a cell (only on owned land).</summary>
     /// <param name="cell">The cell of the plank.</param>
     bool MayTakeBack(BlockPos cell);
+
+    /// <summary>Whether the cell holds a block of the camp the player set up (Y12): holding the gather button on it packs the whole camp back into the kit instead of gathering the block.</summary>
+    /// <param name="cell">The cell aimed at.</param>
+    bool IsCampBlock(BlockPos cell);
 }

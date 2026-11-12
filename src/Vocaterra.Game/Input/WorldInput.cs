@@ -26,6 +26,7 @@ public sealed class WorldInput
     private readonly NeedsData? _needs;
     private readonly Func<BlockPos, VoxelSession.PlantResult>? _plant;
     private readonly Func<BlockPos, VoxelSession.StakeResult>? _stake;
+    private readonly Func<BlockPos, VoxelSession.CampResult>? _camp;
     private readonly MouseLook _mouseLook = new();
     private bool _holdClick;
 
@@ -38,9 +39,11 @@ public sealed class WorldInput
     /// <param name="needs">The foods, which say what the right click eats.</param>
     /// <param name="plant">Plants the held berry on the ground block (N08), or <see langword="null"/> for none.</param>
     /// <param name="stake">Marks the pending plot round the block aimed at with the held stake (Y10), or <see langword="null"/> for none.</param>
-    public WorldInput(VoxelSimulation sim, LookControl look, LiveVoxelInput live, IGameCommand openBook, IGameCommand? eat = null, NeedsData? needs = null, Func<BlockPos, VoxelSession.PlantResult>? plant = null, Func<BlockPos, VoxelSession.StakeResult>? stake = null)
+    /// <param name="camp">Sets up the camp with the held camp kit on the ground aimed at (Y12), or <see langword="null"/> for none.</param>
+    public WorldInput(VoxelSimulation sim, LookControl look, LiveVoxelInput live, IGameCommand openBook, IGameCommand? eat = null, NeedsData? needs = null, Func<BlockPos, VoxelSession.PlantResult>? plant = null, Func<BlockPos, VoxelSession.StakeResult>? stake = null, Func<BlockPos, VoxelSession.CampResult>? camp = null)
     {
         _stake = stake;
+        _camp = camp;
         _eat = eat;
         _needs = needs;
         _plant = plant;
@@ -142,6 +145,11 @@ public sealed class WorldInput
             _ = _stake(aimed.Block); // the stake marks the pending plot round the aimed column (Y10); the session says the answer on the hint line
         }
 
+        if (active && _camp is not null && target is { } campAim && CampKitUse.Applies(input, captured, _sim.SelectedStack, target))
+        {
+            _ = _camp(campAim.Block); // the kit sets the camp up on the aimed ground (Y12); the session says the answer on the hint line
+        }
+
         if (!planted && active && _eat is not null && _needs is not null && FoodItemUse.Applies(input, captured, _sim.SelectedStack, _needs))
         {
             _eat.Execute(); // a food item is eaten, the water bottle drunk (N02)
@@ -151,7 +159,7 @@ public sealed class WorldInput
             strafe,
             forward,
             jump,
-            captured && input.LeftDown && !swallowClick ? LiveVoxelInput.GatherFor(_sim.InteractTarget) : null,
+            captured && input.LeftDown && !swallowClick ? LiveVoxelInput.GatherFor(_sim.InteractTarget, _sim.BuildRules) : null,
             captured && input.RightClicked ? LiveVoxelInput.PlacementFor(_sim.SelectedStack, target) : null,
             slot);
         return captured;

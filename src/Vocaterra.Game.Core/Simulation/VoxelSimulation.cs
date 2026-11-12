@@ -503,6 +503,12 @@ public sealed partial class VoxelSimulation
         }
 
         _noBottleHint = null;
+        if (BuildRules?.IsCampBlock(cell) == true)
+        {
+            StepPackCamp(cell, id); // Y12: a block of the player's camp is not gathered one by one: holding on it packs the whole camp
+            return;
+        }
+
         var definition = GatherDefinition(id);
         if (TakeBackRefused(id, cell) || !definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
         {
@@ -628,7 +634,8 @@ public sealed partial class VoxelSimulation
     }
 
     /// <summary>Whether the cell's cube overlaps the player's box (touching an edge does not count).</summary>
-    private bool OverlapsPlayer(BlockPos cell) =>
+    /// <param name="cell">The cell.</param>
+    public bool OverlapsPlayer(BlockPos cell) =>
         Player.MinX < (cell.X + 1) * U && Player.MaxX > cell.X * U
         && Player.MinY < (cell.Y + 1) * U && Player.MaxY > cell.Y * U
         && Player.MinZ < (cell.Z + 1) * U && Player.MaxZ > cell.Z * U;

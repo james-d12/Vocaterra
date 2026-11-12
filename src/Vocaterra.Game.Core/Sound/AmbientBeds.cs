@@ -273,7 +273,8 @@ public static class AmbientBeds
     /// Reads the highest block of a column of the world (<c>VoxelGrid.HighestBlock</c>, the query the rain's drops use), or <see langword="null"/> for open ground everywhere: the rain is
     /// lower where the listener stands under cover. Only read when it rains, and never written.
     /// </param>
-    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
+    /// <param name="campFire">The middle of the fire ring of the player's own camp while it burns (Y12), or <see langword="null"/>: the fire bed follows it as it follows the guide's ring.</param>
+    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null)
     {
         ArgumentNullException.ThrowIfNull(places);
         var here = new Point2(listener.X, listener.Z);
@@ -322,6 +323,16 @@ public static class AmbientBeds
         {
             fireWeight = Falloff(Distance(here, fire), 6, 24);
             firePan = Pan(listener, fire);
+        }
+
+        if (campFire is { } camp)
+        {
+            var campWeight = Falloff(Distance(here, camp), 6, 24); // Y12: the ring the player's camp lit, which burns as Luna's does
+            if (campWeight > fireWeight)
+            {
+                fireWeight = campWeight;
+                firePan = Pan(listener, camp);
+            }
         }
 
         foreach (var lamp in places.Lamps)

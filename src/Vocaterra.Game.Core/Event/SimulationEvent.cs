@@ -59,6 +59,9 @@ public enum SimulationEventKind
 
     /// <summary>(Land, Y09) The player worked on a plank block outside their own land, where planks cannot be taken back: the position is the block. Raised once per hold, like <see cref="WaterWithoutBottle"/>.</summary>
     TakeBackRefused = 16,
+
+    /// <summary>(Land, Y12) The player held the gather button on a block of their camp for the whole time it takes to pack it: the position is the block. The session packs the camp up.</summary>
+    CampPackRequested = 17,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

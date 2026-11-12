@@ -342,7 +342,30 @@ internal static class SceneLayoutParser
                 throw new SceneLayoutException($"{where} has no layers.");
             }
 
-            stamps[stamp.Name] = new StampSpec(stamp.Name, legend, layers);
+            var anchors = new Dictionary<string, (int Column, int Row)>(StringComparer.Ordinal);
+            if (stamp.Value.TryGetProperty("anchors", out var anchorElement))
+            {
+                var drawnWidth = layers.Max(static l => l.Count == 0 ? 0 : l.Max(static row => row.Length));
+                var drawnDepth = layers.Max(static l => l.Count);
+                foreach (var anchor in anchorElement.EnumerateObject())
+                {
+                    var at = anchor.Value;
+                    if (at.ValueKind != JsonValueKind.Array || at.GetArrayLength() != 2 || at[0].ValueKind != JsonValueKind.Number || at[1].ValueKind != JsonValueKind.Number)
+                    {
+                        throw new SceneLayoutException($"{where}: the anchor '{anchor.Name}' is [column, row].");
+                    }
+
+                    var (column, row) = (at[0].GetInt32(), at[1].GetInt32());
+                    if (column < 0 || column >= drawnWidth || row < 0 || row >= drawnDepth)
+                    {
+                        throw new SceneLayoutException($"{where}: the anchor '{anchor.Name}' lies outside the drawing.");
+                    }
+
+                    anchors[anchor.Name] = (column, row);
+                }
+            }
+
+            stamps[stamp.Name] = new StampSpec(stamp.Name, legend, layers, anchors.Count == 0 ? null : anchors);
         }
 
         return stamps;

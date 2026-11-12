@@ -123,6 +123,22 @@
       ]
     },
 
+    // The camp the camp kit places on the player's plot (Y12, D-game-32), one rigid piece drawn facing north (the front, with the fire, on the north side; placed in play it turns to face
+    // the player, StampSpec.Turn, the same turning the scene's own stamps get): the fire ring (a "fire-ring" square round an empty middle, three blocks from the tent's door), a free row
+    // of ground between the ring and the tent, and the "tent" stamp's A-frame (rows 4 to 7, its canvas cells as drawn above) with a bedroll two cells long on the ground inside it ("bedroll"
+    // the head at the back, "bedroll-foot" the foot towards the door). Five wide and eight deep, so it fits the 10 x 10 plot with ground to walk round it. The anchors name cells of the
+    // first layer: "fire" the ring's middle (the sleep place at the fire, and the cell the player aims at), "bed" the bedroll's head (the sleep place in the tent) and "wake" the cell
+    // the player wakes on after a death, between the ring and the door.
+    "camp": {
+      "legend": { "R": "canvas", "F": "fire-ring", "D": "bedroll", "d": "bedroll-foot" },
+      "anchors": { "fire": [2, 1], "bed": [2, 6], "wake": [2, 3] },
+      "layers": [
+        [" FFF ", " F F ", " FFF ", "     ", "R   R", "R d R", "R D R", "R   R"],
+        ["     ", "     ", "     ", "     ", " R R ", " R R ", " R R ", " R R "],
+        ["     ", "     ", "     ", "     ", "  R  ", "  R  ", "  R  ", "  R  "]
+      ]
+    },
+
     // The bakery's oven (VILLAGE_PLAN V04): a cobble vault three wide and two deep, its mouth on the south row with the fire in it (a torch of the scenery,
     // not the item's torch) and a chimney at the back.
     "oven": {

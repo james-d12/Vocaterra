@@ -42,4 +42,5 @@ public sealed record ScenarioHooks(
     Func<string, bool>? Station = null,
     Action<string>? Act = null,
     Action? ProcHelp = null,
-    Func<string, bool>? StationSay = null);
+    Func<string, bool>? StationSay = null,
+    Action<int, int, World.Layout.Direction>? PlaceCamp = null);

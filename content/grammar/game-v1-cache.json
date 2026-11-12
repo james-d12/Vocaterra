@@ -6910,6 +6910,23 @@
       "matches": []
     },
     {
+      "key": "9c83c46f17b8cfc9ebbd204b85dc7c50f86b7f0841a532782f4123a0e3506bfe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el campamento",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "9c9b8101be65c738d0a3b8302ab69147888617ae5f12b4b66cc140964f9ca64c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola. ¿Quieres un terreno? Necesitas una estaca.",

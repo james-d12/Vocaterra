@@ -780,43 +780,21 @@ public static class SceneBuilder
             Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));
         }
 
-        // A small structure drawn in the layout (a tent), turned to face a side and set on level ground.
+        // A small structure drawn in the layout (a tent), turned to face a side and set on level ground. The turning is StampSpec's (Y12: the camp the player places goes down the same way).
         private void BuildStamp(PropSpec prop, string where)
         {
             var stamp = prop.Stamp is { } name && _layout.Stamps.TryGetValue(name, out var found)
                 ? found
                 : throw new SceneLayoutException($"{where}: there is no stamp '{prop.Stamp}'.");
-            var drawnWidth = stamp.Layers.Max(static layer => layer.Count == 0 ? 0 : layer.Max(static row => row.Length));
-            var drawnDepth = stamp.Layers.Max(static layer => layer.Count);
             var facing = prop.Facing ?? Direction.North;
-            var turned = facing is Direction.East or Direction.West;
-            var width = turned ? drawnDepth : drawnWidth;
-            var depth = turned ? drawnWidth : drawnDepth;
+            var width = stamp.WidthFacing(facing);
+            var depth = stamp.DepthFacing(facing);
             var h = FlatHeight(prop.X, prop.Z, width, depth, where);
             var cells = new List<BlockPos>();
-            for (var layer = 0; layer < stamp.Layers.Count; layer++)
+            foreach (var (dx, dz, layer, block) in stamp.Cells(facing))
             {
-                var rows = stamp.Layers[layer];
-                for (var r = 0; r < rows.Count; r++)
-                {
-                    for (var c = 0; c < rows[r].Length; c++)
-                    {
-                        if (rows[r][c] == ' ')
-                        {
-                            continue;
-                        }
-
-                        var (dx, dz) = facing switch
-                        {
-                            Direction.North => (c, r),
-                            Direction.East => (drawnDepth - 1 - r, c),
-                            Direction.South => (drawnWidth - 1 - c, drawnDepth - 1 - r),
-                            _ => (r, drawnWidth - 1 - c),
-                        };
-                        Put(prop.X + dx, h + 1 + layer, prop.Z + dz, stamp.Legend[rows[r][c]], where);
-                        cells.Add(new BlockPos(prop.X + dx, h + 1 + layer, prop.Z + dz));
-                    }
-                }
+                Put(prop.X + dx, h + 1 + layer, prop.Z + dz, block, where);
+                cells.Add(new BlockPos(prop.X + dx, h + 1 + layer, prop.Z + dz));
             }
 
             if (prop.Name is not null)

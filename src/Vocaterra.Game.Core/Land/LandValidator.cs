@@ -89,6 +89,58 @@ internal static class LandValidator
             problems.Add($"{File}: the plot's maxSlope must not be negative (it is {land.MaxSlope}).");
         }
 
+        problems.AddRange(CampProblems(land, scene));
+        return problems;
+    }
+
+    // Y12: the camp stamp the camp kit places: its three anchors on cells that hold what the camp's code expects (the fire's middle an empty cell inside a ring of fire-ring stones, the bed a bedroll head
+    // with its foot beside it, the wake cell free to stand in with its head room), and a footprint, turned any way, that leaves a block of ground round it on the plot.
+    private static List<string> CampProblems(LandData land, SceneLayout scene)
+    {
+        const string SceneFile = "game/scene.json";
+        var problems = new List<string>();
+        if (!scene.Stamps.TryGetValue(CampPlan.StampName, out var stamp))
+        {
+            problems.Add($"{SceneFile}: there is no stamp '{CampPlan.StampName}', the camp the camp kit places.");
+            return problems;
+        }
+
+        foreach (var anchor in CampPlan.RequiredAnchors.Where(anchor => stamp.AnchorOffset(anchor, Direction.North) is null))
+        {
+            problems.Add($"{SceneFile}: the stamp '{CampPlan.StampName}' has no anchor '{anchor}'.");
+        }
+
+        if (problems.Count > 0)
+        {
+            return problems;
+        }
+
+        var plan = new CampPlan(stamp, Direction.North, 0, 0, 0);
+        var cells = plan.Blocks.ToDictionary(static b => b.Cell, static b => b.Block);
+        BlockId At(BlockPos cell) => cells.TryGetValue(cell, out var block) ? block : BlockId.Air;
+        var ring = Enumerable.Range(-1, 3).SelectMany(dx => Enumerable.Range(-1, 3).Where(dz => dx != 0 || dz != 0).Select(dz => new BlockPos(plan.Fire.X + dx, plan.Fire.Y, plan.Fire.Z + dz)));
+        if (At(plan.Fire) != BlockId.Air || ring.Any(cell => At(cell) != BlockId.FireRing))
+        {
+            problems.Add($"{SceneFile}: the stamp '{CampPlan.StampName}' must have its 'fire' anchor on an empty cell with a fire-ring stone on each of the eight cells round it, on the first layer.");
+        }
+
+        if (At(plan.Bed) != BlockId.Bedroll || !new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }.Any(d => At(new BlockPos(plan.Bed.X + d.Item1, plan.Bed.Y, plan.Bed.Z + d.Item2)) == BlockId.BedrollFoot))
+        {
+            problems.Add($"{SceneFile}: the stamp '{CampPlan.StampName}' must have its 'bed' anchor on a bedroll with a bedroll-foot beside it.");
+        }
+
+        if (At(plan.Wake) != BlockId.Air || At(plan.Wake with { Y = plan.Wake.Y + 1 }) != BlockId.Air)
+        {
+            problems.Add($"{SceneFile}: the stamp '{CampPlan.StampName}' must leave its 'wake' anchor free, with the cell above it free too.");
+        }
+
+        var longest = Math.Max(stamp.DrawnWidth, stamp.DrawnDepth);
+        var shortest = Math.Min(stamp.DrawnWidth, stamp.DrawnDepth);
+        if (longest > Math.Min(land.PlotWidth, land.PlotDepth) - 2 || shortest > Math.Max(land.PlotWidth, land.PlotDepth) - 2)
+        {
+            problems.Add($"{SceneFile}: the stamp '{CampPlan.StampName}' ({stamp.DrawnWidth} by {stamp.DrawnDepth}) must leave a block of ground on every side of the plot ({land.PlotWidth} by {land.PlotDepth}), turned either way.");
+        }
+
         return problems;
     }
 }

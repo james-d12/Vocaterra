@@ -115,7 +115,9 @@
             "enum": [
               "lesson-begun",
               "lodging-given",
-              "plot-owned"
+              "plot-owned",
+              "camp-placed",
+              "camp-fire-lit"
             ],
             "description": "The code hook that works the step out again from a loaded world; the save does not keep the step."
           }

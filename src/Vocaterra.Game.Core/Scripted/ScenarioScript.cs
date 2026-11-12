@@ -43,6 +43,24 @@ public sealed class ScenarioScript
         return true;
     }
 
+    /// <summary>Reads <c>x,z,facing</c> (the column the camp's fire ring goes on and the side the camp faces: north, east, south or west); false when the text is not that.</summary>
+    /// <param name="text">The text.</param>
+    /// <param name="x">The column's x, when it is read.</param>
+    /// <param name="z">The column's z, when it is read.</param>
+    /// <param name="facing">The side, when it is read.</param>
+    public static bool TryParseCamp(string text, out int x, out int z, out World.Layout.Direction facing)
+    {
+        x = 0;
+        z = 0;
+        facing = World.Layout.Direction.North;
+        var parts = (text ?? string.Empty).Split(',');
+        return parts.Length == 3
+            && int.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out x)
+            && int.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out z)
+            && parts[2].Trim().ToLowerInvariant() is "north" or "east" or "south" or "west"
+            && Enum.TryParse(parts[2].Trim(), ignoreCase: true, out facing);
+    }
+
     /// <summary>The ticks the script waits after arriving before it opens the panel (the view settles).</summary>
     public const int SettleTicks = 20;
 
@@ -387,6 +405,18 @@ public sealed class ScenarioScript
                 else
                 {
                     _log($"eat {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.PlaceCamp:
+                if (TryParseCamp(step.Value, out var campX, out var campZ, out var campFacing))
+                {
+                    _hooks.PlaceCamp?.Invoke(campX, campZ, campFacing);
+                }
+                else
+                {
+                    _log($"place-camp {step.Value}: the camp is x,z,facing (north, east, south or west)");
                 }
 
                 _index++;

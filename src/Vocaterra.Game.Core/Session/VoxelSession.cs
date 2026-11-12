@@ -395,6 +395,7 @@ public sealed partial class VoxelSession : GuideSession
         Simulation.Step(commands);
         StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         StepWaterEvents();
+        ReturnOwedKit(); // Y12: a camp kit a load could not give back
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)
@@ -423,7 +424,11 @@ public sealed partial class VoxelSession : GuideSession
                         if (AtFireRing(cell))
                         {
                             LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring)
-                            LightFire(); // the latch the sound beds read: a torch on the rim of the guide's ring (Y12 will point it at a ring the player builds)
+                            LightFire(); // the latch the sound beds read: a torch on the rim of the guide's ring
+                        }
+                        else
+                        {
+                            _ = TorchAtCampRing(cell); // Y12: the ring of the camp the player set up lights the same way
                         }
                     }
 
@@ -455,6 +460,9 @@ public sealed partial class VoxelSession : GuideSession
                     break;
                 case SimulationEventKind.TakeBackRefused:
                     _hints.Add(Locale.Ui(LandTakeBackHint));
+                    break;
+                case SimulationEventKind.CampPackRequested:
+                    _ = PackCamp(); // Y12: the gather button held on a block of the camp
                     break;
                 default:
                     break;
@@ -493,6 +501,9 @@ public sealed partial class VoxelSession : GuideSession
         _completed = FlushObjectives();
         return _completed;
     }
+
+    /// <summary>The short hints waiting to be shown, in order, left where they are (the console's line for a dev aid reads them; <see cref="TakeHints"/> clears them).</summary>
+    public IReadOnlyList<string> PeekHints() => _hints.ToArray();
 
     /// <summary>The short hints the world gave since the last call (water with no bottle), in order, and clears them.</summary>
     public IReadOnlyList<string> TakeHints()
@@ -577,6 +588,8 @@ public sealed partial class VoxelSession : GuideSession
         "lesson-begun" => Lessons.Book.Lessons.Any(l => Lessons.StatusOf(l.Id) != LessonStatus.NotStarted),
         "lodging-given" => LodgingGiven,
         "plot-owned" => Land.Owned is not null,
+        "camp-placed" => Camp is not null,
+        "camp-fire-lit" => CampFireIsLit,
         _ => throw new InvalidOperationException($"Unknown restore hook '{hook}' (the validator lists the known ones)."),
     };
 

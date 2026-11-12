@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Dialogue;
@@ -59,6 +60,18 @@ public sealed class DevLaunchTests
         Assert.False(LaunchOptions.TryParse(["--dev", "--mark-plot", "north"], out _, out var shape));
         Assert.Contains("--mark-plot", shape, StringComparison.Ordinal);
         Assert.Contains("--mark-plot", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_ThePlaceCampStep_When_ItIsParsed_Then_ItIsAStepOfTheScriptWithAColumnAndASideAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--give", "equipo", "--place-camp", "266,163,north", "--screenshot", "x.png"], out var given, out _));
+        Assert.Equal([(ScriptStepKind.Give, "equipo"), (ScriptStepKind.PlaceCamp, "266,163,north")], given.Script.Select(static s => (s.Kind, s.Value)));
+        Assert.False(LaunchOptions.TryParse(["--place-camp", "266,163", "--screenshot", "x.png"], out _, out var error));
+        Assert.Contains("--place-camp", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--place-camp", "266,163,north"], out _, out var needs));
+        Assert.Contains("--place-camp", needs, StringComparison.Ordinal);
+        Assert.Contains("--place-camp", LaunchOptions.Usage, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -25,6 +25,9 @@ public sealed class LandRegister : IBuildRules
     /// <summary>The plot the player owns, or <see langword="null"/>.</summary>
     public Plot? Owned { get; internal set; }
 
+    /// <summary>The camp the player set up on the owned plot (Y12), or <see langword="null"/>: the session sets it.</summary>
+    public CampPlan? Camp { get; internal set; }
+
     /// <summary>Whether the column lies in the owned plot.</summary>
     /// <param name="x">The column's x.</param>
     /// <param name="z">The column's z.</param>
@@ -35,6 +38,9 @@ public sealed class LandRegister : IBuildRules
 
     /// <inheritdoc />
     public bool MayTakeBack(BlockPos cell) => IsOwned(cell.X, cell.Z);
+
+    /// <inheritdoc />
+    public bool IsCampBlock(BlockPos cell) => Camp?.IsBlock(cell) == true;
 
     /// <summary>The entry a save keeps, or <see langword="null"/> when there is no plot to keep.</summary>
     internal LandSave? Capture() => Pending is null && Owned is null ? null : new LandSave(Pending is { } p ? PlotSave.Of(p) : null, Owned is { } o ? PlotSave.Of(o) : null);
