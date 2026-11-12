@@ -285,7 +285,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y06 | The innkeeper: the NPC, her or his lines and voice | Y00, Y05 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (10,797 tests) |
 | Y06m | Merge `main` into `feature/settlement` (the weather series, PR #64) and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
 | Y07 | The opening's logic | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
-| Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | todo |
+| Y08 | The mountain, the strings and the rebaseline | Y07 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,347 tests) |
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | todo |
@@ -402,6 +402,13 @@ and `camp.player` loses the label "mi campamento"; the mountain's sleep place go
 `controls.json`, `words.json`'s `hud.camp`, `Sound/AmbientBeds.cs`. The tests that name `firering.player` (seven files, with
 `AmbientBedsTests` and `TestingRowsTests`). The digest pinned again. The scripted runs r01, r10, r20 to r24, r26, r27 and r30
 captured again after their differences are read. [lessons](lessons.md), [running](running.md), [playtest](playtest.md).
+
+*Y08 as built (2026-11-12):* the mountain's tent, chest, crate and `firering.player` gone (the ledge stays the arrival); the sleep place
+`guide.fire` at Luna's ring replaces `camp.fire` and `death.wakeAt` names it; beds and bedrolls are two cells (`BedFoot`, `BedrollFoot`;
+mattress 0.55, headboard 1.0 with a pillow, footboard 0.7, a frame), the inn's beds take two cells each and `bed.inn` moved to 279,231
+(labelled «cama»); the counter is a new block `Counter` (solid, not climbable, not a workbench); the console's sleep line names the place;
+Rosa follows lodging given elsewhere (`NpcService.FollowLodging`); `hud.camp` «Estás de vuelta.»; the scripted runs' CAMP steps finish
+the checklist again, r10 reaches the ending, r20 sleeps in the bed and r30 at Luna's fire; digests pinned again once.
 
 **Y09 Land rules and protection.** It stays out of `scene.json`.
 - `game/land.json` with its schema, its load in `Content/GameData.cs`, a `CheckLand` in the validator and a row in
