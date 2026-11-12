@@ -12,6 +12,9 @@ public sealed partial class VoxelSimulation
     /// <summary>The ticks it takes to take a placed plank back by hand (half a second; the axe is quicker, as on any wood).</summary>
     public const int PlankTakeBackTicks = 30;
 
+    /// <summary>The ticks it takes to pack the player's camp up by holding the gather button on any of its blocks (Y12; three quarters of a second).</summary>
+    public const int CampPackTicks = 45;
+
     private BlockPos? _takeBackRefusedAt;
 
     /// <summary>
@@ -26,6 +29,31 @@ public sealed partial class VoxelSimulation
         return id == BlockId.Planks && BuildRules is not null
             ? definition with { GatherTicks = PlankTakeBackTicks, Drop = ItemId.Wood, DropCount = 1 }
             : definition;
+    }
+
+    // One tick of holding the gather button on a block of the player's camp (Y12): progress as a gather's, shown by the same events, and at the end the session is asked to pack the camp.
+    private void StepPackCamp(BlockPos cell, BlockId id)
+    {
+        if (_gatherTarget != cell || _gatherBlock != id)
+        {
+            _gatherTarget = cell;
+            _gatherBlock = id;
+            _gatherProgress = 0;
+        }
+
+        if (GatherStepsNow())
+        {
+            _gatherProgress++;
+        }
+
+        _events.Add(new SimulationEvent(SimulationEventKind.GatherProgress, Tick, cell.X, cell.Y, cell.Z, _gatherProgress, CampPackTicks));
+        if (_gatherProgress < CampPackTicks)
+        {
+            return;
+        }
+
+        ResetGather();
+        _events.Add(new SimulationEvent(SimulationEventKind.CampPackRequested, Tick, cell.X, cell.Y, cell.Z));
     }
 
     // Whether the rules refuse the player this plank block; says so once per hold.

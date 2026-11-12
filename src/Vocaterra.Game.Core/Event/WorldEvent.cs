@@ -204,6 +204,9 @@ public static class WorldEvents
     /// <summary>The player bought the plot from the mayor (Y11, <c>sell_plot</c>): the coins are paid, the land is owned and the camp kit is in the bag. Raised once; the NPC is the seller, the detail the plot (<c>x,z</c>).</summary>
     public const string PlotBought = "plot_bought";
 
+    /// <summary>The player set up the camp with the camp kit on their land (Y12): the tent, the bedroll and the fire ring stand. Raised once per camp set up; the detail is the fire ring's middle cell (<c>x,y,z</c>).</summary>
+    public const string CampPlaced = "camp_placed";
+
     /// <summary>The day clock crossed into another phase (E01; the detail is the new phase: <c>dawn</c>, <c>day</c>, <c>dusk</c> or <c>night</c>). Not raised for a sleep's jump to the morning or a load.</summary>
     public const string DayPhase = "day_phase";
 
@@ -224,6 +227,7 @@ public static class WorldEvents
         IngredientsGiven, RecipeTaught,
         LodgingGranted,
         PlotBought,
+        CampPlaced,
         DayPhase, WeatherChanged,
     ];
 }

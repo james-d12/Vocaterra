@@ -110,6 +110,7 @@ public sealed class AutosavePolicy
             WorldEvent { Name: WorldEvents.TalkClosed } => "dialogue closed",
             WorldEvent { Name: WorldEvents.LodgingGranted } => "lodging granted",
             WorldEvent { Name: WorldEvents.PlotBought } => "plot bought",
+            WorldEvent { Name: WorldEvents.CampPlaced } => "camp placed",
             _ => null,
         };
     }

@@ -3728,6 +3728,7 @@
 {"id":"speech:card.bol","text":"el bol","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
+{"id":"speech:card.campamento","text":"el campamento","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
 {"id":"speech:card.equipo","text":"el equipo","kind":"npc"}

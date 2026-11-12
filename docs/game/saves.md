@@ -62,6 +62,13 @@ and are not saved. `RestoreParts` puts the places made in play back first, befor
 - **The last place slept** is written by `SaveGame.Sleep` after `RestoreParts` (the save a sleep restores was taken before the sleep): a sleep at a usable place records it; a sleep at
   none (the `--sleep` aid away from a place) and a collapse leave it as it was. A death wakes the player at the last place while `SleepPlaces` still has it, else at the place
   `death.wakeAt` names.
+- **The camp (Y12).** `systems.sleep.camp` is `{"x", "z", "ground", "facing"}`: the west-north corner of the camp's footprint on the owned plot, the height of the ground under it and the side its front faces
+  (`north`, `east`, `south`, `west`); written only while a camp stands (the kit's use, `VoxelSession.UseCampKit`, sets it; packing the camp up clears it). The camp's cells and blocks are not saved: they are the scene layout's `camp` stamp
+  turned and laid on that corner (`CampPlan`, the scene build's own turning), so a camp is never rediscovered from `Scene.Points` or the world. Its two sleep places are in `places` with the ids `camp.bed` (kind `bed`, the
+  bedroll's head cell) and `camp.fire` (kind `fire`, the ring's middle; usable while a torch is on the ring, read from the world), each with the extra field `wake` (`{"x", "y", "z"}`, the cell a death wakes the player on).
+  A load or a sleep puts the camp back only if every block of it still stands; otherwise its two places are dropped, the place last slept falls back (the inn's bed with lodging, else Luna's fire) and the camp kit comes back to the bag
+  once. A bag with no room leaves the kit owed: `systems.sleep.kitOwed` is `true` (left out otherwise) and the kit is given the first tick the bag has room. The checklist `my-land`'s steps `camp` and `fire` are not saved: a load reads them from the camp
+  (`camp-placed`) and from the ring in the world (`camp-fire-lit`).
 - **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
   is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
 

@@ -364,7 +364,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         _stationPanel.Help(); // --proc-help: H at the station
                         Console.WriteLine(StationLine("proc-help"));
                     },
-                    StationSayFromScript);
+                    StationSayFromScript,
+                    (x, z, facing) =>
+                    {
+                        // A test aid (Y12): --place-camp x,z,facing is the camp kit's use on the ground of that column, the camp facing the side given
+                        var ground = new BlockPos(x, Vocaterra.Game.Core.Land.CampPlan.GroundOf(session.Scene.Grid, x, z), z);
+                        var hintsBefore = session.PeekHints().Count;
+                        var result = session.UseCampKit(ground, facing);
+                        var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
+                        Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
+                    });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -445,7 +454,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             [_menu, _micScreen, _checks, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
             [_menu, _checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell), cell => _session.UseStake(cell));
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell), cell => _session.UseStake(cell), cell => _session.UseCampKit(cell));
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),

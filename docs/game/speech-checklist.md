@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1664 of the 1664 files have no mark (guide 496, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1666 of the 1666 files have no mark (guide 498, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -193,6 +193,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
 | card.camino | speech/cards/card.camino.slow.wav | guide | 0.8 | el camino |  |
 | card.camino | speech/cards/card.camino.wav | guide | 1.0 | el camino |  |
+| card.campamento | speech/cards/card.campamento.slow.wav | guide | 0.8 | el campamento |  |
+| card.campamento | speech/cards/card.campamento.wav | guide | 1.0 | el campamento |  |
 | card.casa | speech/cards/card.casa.slow.wav | guide | 0.8 | la casa |  |
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
 | card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |

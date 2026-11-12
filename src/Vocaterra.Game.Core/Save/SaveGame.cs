@@ -315,6 +315,9 @@ public static class SaveGame
             _ = session.Simulation.GrantItems(ItemId.Book, 1);
         }
 
+        // A camp whose blocks were gone at the load gives the camp kit back, once, after the digest check too (the bag is part of the digest); a full bag leaves it owed for a later tick.
+        session.ReturnOwedKit();
+
         // A load keeps the day as saved (V25): the objective, the orders and the lessons stand where the save left them, and only a sleep moves the day. The sitting is the
         // next one (S10), which lifts the spacing gaps; a save from before V25 has none, and its session is the sitting it continues from.
         session.Day = document.Session;
@@ -363,6 +366,7 @@ public static class SaveGame
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
         session.ApplyNight(collapse);
         session.BeginPlaySession();
+        session.ReturnOwedKit(); // Y12: a camp the night found gone gives its kit back
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.

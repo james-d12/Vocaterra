@@ -12,7 +12,8 @@ namespace Vocaterra.Game.Core.Session;
 /// <param name="RadiusBlocks">How far across, in blocks, of the cell the player may stand to sleep there.</param>
 /// <param name="HeightBlocks">How far in height, in blocks, of the cell.</param>
 /// <param name="Access"><see cref="SleepPlaceSpec.AccessAlways"/> or <see cref="SleepPlaceSpec.AccessLodging"/>.</param>
-public sealed record SleepPlace(string Id, string? Point, BlockPos Cell, string Kind, int RadiusBlocks, int HeightBlocks, string Access);
+/// <param name="Wake">The cell the player wakes on after a death, for a place that names one (the camp's, Y12), or <see langword="null"/> to wake on the nearest free ground.</param>
+public sealed record SleepPlace(string Id, string? Point, BlockPos Cell, string Kind, int RadiusBlocks, int HeightBlocks, string Access, BlockPos? Wake = null);
 
 /// <summary>
 /// The places the player can sleep at (Y01): the authored ones (<see cref="NeedsData.SleepPlaces"/>) resolved against the scene's points, and the ones added and removed while the game

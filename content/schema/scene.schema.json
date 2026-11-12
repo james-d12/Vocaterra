@@ -262,6 +262,16 @@
               }
             },
             "description": "The layers from the ground up, each a list of rows."
+          },
+          "anchors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "description": "Y12: named cells of the first layer as drawn, [column, row], which turn with the stamp (the camp's fire, bed and wake cells)."
           }
         }
       }

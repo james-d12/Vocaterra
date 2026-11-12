@@ -273,7 +273,7 @@ public static class SaveMigration
         }
 
         var adapted = sleep with { Last = last, Places = places.Length == 0 ? null : places };
-        return adapted.LodgingGiven || adapted.Last is not null || adapted.Places is not null ? adapted : null;
+        return adapted.LodgingGiven || adapted.Last is not null || adapted.Places is not null || adapted.Camp is not null || adapted.KitOwed ? adapted : null;
     }
 
     // The learner's own record (history, word rows, settings) names no bundle content, so it is kept whole.

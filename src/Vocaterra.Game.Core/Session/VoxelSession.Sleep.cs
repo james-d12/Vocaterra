@@ -49,7 +49,7 @@ public sealed partial class VoxelSession
     internal SleepSave? CaptureSleep()
     {
         var made = SleepPlaces.MadeInPlay;
-        if (!LodgingGiven && LastSleepPlace is null && made.Count == 0)
+        if (!LodgingGiven && LastSleepPlace is null && made.Count == 0 && Camp is null && !CampKitOwed)
         {
             return null;
         }
@@ -57,7 +57,9 @@ public sealed partial class VoxelSession
         return new SleepSave(
             LodgingGiven,
             LastSleepPlace,
-            made.Count == 0 ? null : [.. made.Select(static p => new SleepPlaceSave(p.Id, p.Cell.X, p.Cell.Y, p.Cell.Z, p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access, p.Point))]);
+            made.Count == 0 ? null : [.. made.Select(static p => new SleepPlaceSave(p.Id, p.Cell.X, p.Cell.Y, p.Cell.Z, p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access, p.Point, p.Wake is { } w ? new CellSave(w.X, w.Y, w.Z) : null))],
+            CaptureCamp(),
+            CampKitOwed);
     }
 
     /// <summary>Puts the sleep entry back (Y02); no entry is no lodging, no last place and no places made in play.</summary>
@@ -66,7 +68,8 @@ public sealed partial class VoxelSession
     {
         LodgingGiven = save?.LodgingGiven ?? false;
         LastSleepPlace = save?.Last;
-        SleepPlaces.RestoreMadeInPlay((save?.Places ?? []).Select(static p => new SleepPlace(p.Id, p.Point, new BlockPos(p.X, p.Y, p.Z), p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access)));
+        SleepPlaces.RestoreMadeInPlay((save?.Places ?? []).Select(static p => new SleepPlace(p.Id, p.Point, new BlockPos(p.X, p.Y, p.Z), p.Kind, p.RadiusBlocks, p.HeightBlocks, p.Access, p.Wake is { } w ? new BlockPos(w.X, w.Y, w.Z) : null)));
+        RestoreCamp(save?.Camp, save?.KitOwed ?? false); // Y12: a camp whose blocks stand is back; one whose blocks are gone loses its places and gives the kit back once
     }
 
     /// <summary>

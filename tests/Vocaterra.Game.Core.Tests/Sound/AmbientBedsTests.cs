@@ -62,6 +62,17 @@ public sealed class AmbientBedsTests
     }
 
     [Fact]
+    public void TheFireBedFollowsTheRingOfThePlayersOwnCampWhileItBurns()
+    {
+        var camp = new Point2(262.5, 166.5); // a placed camp's ring on the north meadow, far from Luna's ring and the lamps
+        var beside = At(camp.X + 1, 38, camp.Z);
+
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, beside, Noon, fireLit: false), AmbientBeds.Fire)); // no camp lit, none heard
+        Assert.InRange(W(AmbientBeds.At(Real.Value, beside, Noon, fireLit: false, campFire: camp), AmbientBeds.Fire), 0.9, 1.0);
+        Assert.Equal(0.0, W(AmbientBeds.At(Real.Value, At(camp.X + 40, 38, camp.Z), Noon, fireLit: false, campFire: camp), AmbientBeds.Fire)); // out of earshot
+    }
+
+    [Fact]
     public void TheForestByTheGuidesCampHearsTheBirdsByDayAndTheInsectsAtNight()
     {
         // The guide's camp: in the lowland forest at y 42, far from the village and the river.

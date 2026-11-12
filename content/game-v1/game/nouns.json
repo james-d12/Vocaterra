@@ -29,6 +29,7 @@
     {"lemma": "harina", "items": ["flour"], "blocks": [], "mass": true},
     {"lemma": "estaca", "items": ["stake"], "blocks": []},
     {"lemma": "terreno", "items": [], "blocks": []},
+    {"lemma": "campamento", "items": [], "blocks": []},
     {"lemma": "equipo", "items": ["camp-kit"], "blocks": [], "labels": { "camp-kit": "equipo de campamento" }},
     {"lemma": "bol", "items": [], "blocks": []},
     {"lemma": "cuchara", "items": [], "blocks": []},

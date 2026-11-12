@@ -252,6 +252,16 @@ step that tells an order gives it when it starts (`OnLessonStepStarted`, the obj
 moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 
+**The camp (Y12, D-game-32).** The camp kit (`camp-kit`, bought with the plot) sets up one piece on the owned plot: the scene layout's `camp` stamp (`game/scene.json`: a fire ring, a free row of ground, the tent's A-frame
+and a two-cell bedroll in it, with the anchors `fire`, `bed` and `wake`), turned by `StampSpec.Turn`, the same turning the scene's own build uses (`SceneBuilder.BuildStamp` and the camp share it, so they put blocks down alike). Core's
+`Land/CampPlan` names the cells and checks them against the grid without changing it (`Check`: every column owned, the ground at one height, every cell free or undergrowth, the ground plain; `HasWake`: a cell to wake on reached on foot from the bed
+and a walk out of the footprint, read with the camp's blocks set and put back); `VoxelSession.UseCampKit` (`Session/VoxelSession.Camp.cs`) adds the player's own check (stand clear of the camp), then sets the blocks directly (never `TryPlace`,
+which refuses all but planks and torches on protected ground), takes the kit, rescans the fire rings, adds the sleep places `camp.bed` and `camp.fire` (made in play, saved with their cells and the wake cell) and raises `camp_placed`.
+A torch on the ring lights it through the same hook as Luna's (`torch_at_ring` and, the first time, `fire_lit`, both with the detail `camp.fire`); the fire cooks and rests as every ring does (`Fires`), and the fire bed of the sound follows
+it (`AmbientBeds.At`'s `campFire`). Holding the gather button on any block of the camp (`IBuildRules.IsCampBlock`, `VoxelSimulation.StepPackCamp`, 45 ticks) raises `CampPackRequested` and the session packs the whole camp back
+(`PackCamp`: the kit and the ring's torches into the bag, the places dropped, the last place slept falling back). A load keeps a camp whose blocks all stand and otherwise drops its places and gives the kit back once. Planting works on the plot
+as well as at Luna's camp, each with its own count of bushes.
+
 **Land rules (Y09, D-game-32 (c)).** Core's `Land/` holds the rules and the player's plots; the simulation only asks. `game/land.json` names the protected regions by scene site
 (the village's disc, Luna's camp), the protected squares round the `path` and `bridge` blocks, the meadows and the plot's size, price and slope; `LandRules.Create` turns them and the scene into one byte per column
 when the session starts (`VoxelSession.InitLand`), and `CheckPlot` reads the grid for the rest. `VoxelSimulation.BuildRules` (an `IBuildRules`, set by the session to its `LandRegister`; a host setting like `WalkPermille`, not state, not in the digest)

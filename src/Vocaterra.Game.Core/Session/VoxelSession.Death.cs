@@ -188,6 +188,13 @@ public sealed partial class VoxelSession
             return;
         }
 
+        // Y12: a place that names its own wake cell (the camp's, between the ring and the tent's door) wakes the player there while it is free ground.
+        if (place.Wake is { } wake && wake != _chest?.Cell && IsFreeGround(Scene.Grid, wake))
+        {
+            Simulation.TeleportTo(wake);
+            return;
+        }
+
         // Y05a: the cell is one the player walks to from the place (a bounded walk, so not through a wall), two to five blocks across from it as before (a fire's ring, a bed's side).
         // No standing room at the place, or no cell reached, falls back to the straight search.
         var reach = SleepWalk.StartFor(Scene.Grid, place.Cell) is { } start ? SleepWalk.ReachFrom(Scene.Grid, start, WakeWalkSteps) : null;

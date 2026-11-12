@@ -2772,6 +2772,28 @@
       "Sha256": "967a35399e9f4e304910c29b53b8e0d6e177d33090976e1313482be120d5384c",
       "Bytes": 50444
     },
+    "speech/cards/card.campamento.slow.wav": {
+      "Text": "el campamento",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "b35629ef04a631f90a71d5ecef86cddd003617bedd6a872fde20bb7bc4e09e93",
+      "Bytes": 74444
+    },
+    "speech/cards/card.campamento.wav": {
+      "Text": "el campamento",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "f6b8016ed234176b93fee70c3fcdf94c0eabe6953d0bb1171e535a4d961a517e",
+      "Bytes": 60044
+    },
     "speech/cards/card.casa.slow.wav": {
       "Text": "la casa",
       "Speaker": "guide",

@@ -272,7 +272,8 @@ public sealed class PlotPurchaseTests
         session.Step([]);
 
         Assert.Equal(0, Count(session, ItemId.Coin));
-        Assert.True(session.Objectives.First(static o => o.Id == "my-land").Complete);
+        Assert.True(Step(session, "my-land.buy").Done);
+        Assert.False(session.Objectives.First(static o => o.Id == "my-land").Complete); // Y12: the camp and its fire are the checklist's other two steps
         Assert.True(session.SessionComplete);
         Assert.False(session.Objectives.First(static o => o.Id == "my-land").Spec.EndsSession);
         Assert.Equal(2, session.Objectives.First(static o => o.Id == "my-land").Spec.Session);
@@ -362,7 +363,7 @@ public sealed class PlotPurchaseTests
 
         Assert.Equal(new Plot(Corner.X, Corner.Z, 10, 10), loaded.OwnedPlot);
         Assert.True(loaded.ObjectiveStep("my-land.buy")!.Done); // restored from systems.land.owned
-        Assert.True(loaded.Objectives.First(static o => o.Id == "my-land").Complete);
+        Assert.False(loaded.Objectives.First(static o => o.Id == "my-land").Complete); // Y12: the camp and its fire are still to do
         Assert.Equal((after.Coins, after.Kits, after.Stakes, after.Owned, after.Pending), (Count(loaded, ItemId.Coin), Count(loaded, ItemId.CampKit), Count(loaded, ItemId.Stake), loaded.OwnedPlot, loaded.PendingPlot));
         Assert.Equal(0, Bought(loaded)); // restored, not raised again
         Stage.TeleportToNpc(loaded, Mayor);
