@@ -2527,3 +2527,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   complete), `systems.land` owned. Small gaps left: asking for a stake while holding one gets «Toma la estaca» and nothing; a full bag
   at the stake's offer has no miss; «Quiero comprar un terreno» and «Quiero este terreno» stay unread (core gaps of Y00). A new fuzz
   seed in the core, not this work's (the core findings' last entry).
+- **Y12, the campsite (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y12-report.md` on the branch; the as-built note
+  is in the settlement plan. Nothing cut, packing back included. The first gate run failed only on the known coverage floor of
+  `PipelineFuzzTests.OpenFallback…` ("The generator no longer reaches fallback:forced-same-intent", log `test-20261112-053533.log`);
+  run again by the rule, it passed (11,457 tests, 3 skipped; `test-20261112-054337.log`). That is the third time the floor has met a
+  gate in this series (Y04, Y07's agent, Y12): the core milestone proposed for it is worth registering. Checked on the merged build: a
+  camp outside the plot refused, on it placed; a torch on the rim lights it; a sleep "ends at your camp" (`last: camp.fire`). For the
+  owner's playtest: the stepped tent.

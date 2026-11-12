@@ -289,7 +289,7 @@ leaves `session.json`), and scene places added while the game runs (the arrow ne
 | Y09 | Land rules and protection | Y00, Y02, Y04 (the meadows' sites) | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
 | Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
 | Y11 | Buying the plot from the mayor | Y10 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,398 tests) |
-| Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | todo |
+| Y12 | The campsite | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
 | Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | todo |
 
 **Y00 Brief and probes.** No gameplay code. Its results are written into this document as section 9, "Layout and numbers".
@@ -466,6 +466,15 @@ the mayor while a plot is marked, then at the plot. `prado` failed the gate, so 
   (`VoxelSession.Planting.cs`); `my-land` gains the steps `camp` and `fire`.
 - Gathering a camp block on owned land packs the whole camp back into the kit (the first thing to cut if the milestone runs
   large). A load drops a sleep place whose blocks are gone and gives the kit back.
+
+*Y12 as built (2026-11-12):* the camp is a `camp` stamp (5 × 8: a fire ring, a free row, the tent's canvas, a two-cell bedroll), with
+stamp `anchors` (`fire`, `bed`, `wake`); one rotation helper (`StampSpec`) for the scene's build and the placing in play. The kit is used
+with a right click inside the owned plot; every cell is checked first (owned, level, free, the player clear, a wake cell reachable), then
+the blocks set directly, the kit taken, `camp.bed` and `camp.fire` made sleep places with their wake cells, `camp_placed`. A torch on the
+ring lights it (`fire_lit (camp.fire)`); cooking and the fire's sound follow it; planting is allowed on the plot with its own count;
+`my-land` gains `camp` and `fire` (noun `campamento`). Holding gather on a camp block packs it all back into the kit; a load with a
+missing block gives the kit back once (owed if the bag is full). Saved as `systems.sleep.camp`. The tent is the stepped canvas the
+`tent` stamp always was. Dev aid `--place-camp x,z,face`.
 
 **Y13 Close-out.** The scripted runs `r40-inn`, `r41-land` and `r42-camp`; the documents ([saves](saves.md),
 [architecture](architecture.md), [running](running.md), `content/README.md`, the fixture's line in `CLAUDE.md`, the list of
