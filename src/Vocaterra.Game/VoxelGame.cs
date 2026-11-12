@@ -369,8 +369,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     {
                         // A test aid (Y12): --place-camp x,z,facing is the camp kit's use on the ground of that column, the camp facing the side given
                         var ground = new BlockPos(x, Vocaterra.Game.Core.Land.CampPlan.GroundOf(session.Scene.Grid, x, z), z);
+                        var hintsBefore = session.PeekHints().Count;
                         var result = session.UseCampKit(ground, facing);
-                        var hints = string.Join(" | ", session.PeekHints());
+                        var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
                     });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
