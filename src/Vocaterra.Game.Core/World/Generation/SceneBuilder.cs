@@ -791,12 +791,30 @@ public static class SceneBuilder
             var facing = prop.Facing ?? Direction.North;
             var width = stamp.WidthFacing(facing);
             var depth = stamp.DepthFacing(facing);
-            var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            var h = prop.FloorY is null ? FlatHeight(prop.X, prop.Z, width, depth, where) : prop.FloorY.Value;
             var cells = new List<BlockPos>();
             foreach (var (dx, dz, layer, block) in stamp.Cells(facing))
             {
-                Put(prop.X + dx, h + 1 + layer, prop.Z + dz, block, where);
-                cells.Add(new BlockPos(prop.X + dx, h + 1 + layer, prop.Z + dz));
+                var x = prop.X + dx;
+                var z = prop.Z + dz;
+                var y = h + 1 + layer;
+                if (prop.FloorY is not null)
+                {
+                    CheckColumn(x, z, where);
+                    if (IsWater(x, z))
+                    {
+                        throw new SceneLayoutException($"{where}: the column ({x}, {z}) is in the water.");
+                    }
+
+                    Reserve(x, z);
+                    if (y <= HeightAt(x, z))
+                    {
+                        continue; // under the ground already
+                    }
+                }
+
+                Put(x, y, z, block, where);
+                cells.Add(new BlockPos(x, y, z));
             }
 
             if (prop.Name is not null)
