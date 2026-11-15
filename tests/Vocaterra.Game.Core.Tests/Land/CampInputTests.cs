@@ -18,12 +18,12 @@ public sealed class CampInputTests
         var kit = new ItemStack(ItemId.CampKit, 1);
         var grass = new BlockRayHit(new BlockPos(0, 0, 0), BlockId.Grass, BlockFace.Up, new BlockPos(0, 1, 0), 10);
 
-        Assert.True(CampKitUse.Applies(click, true, kit, grass));
-        Assert.False(CampKitUse.Applies(click, true, kit, null));
-        Assert.False(CampKitUse.Applies(click, false, kit, grass));
-        Assert.False(CampKitUse.Applies(new TestInputFrame(), true, kit, grass));
-        Assert.False(CampKitUse.Applies(click, true, new ItemStack(ItemId.Stake, 1), grass));
-        Assert.False(CampKitUse.Applies(click, true, ItemStack.Empty, grass));
+        Assert.True(HeldItemUse.Applies(click, true, kit, grass, ItemId.CampKit));
+        Assert.False(HeldItemUse.Applies(click, true, kit, null, ItemId.CampKit));
+        Assert.False(HeldItemUse.Applies(click, false, kit, grass, ItemId.CampKit));
+        Assert.False(HeldItemUse.Applies(new TestInputFrame(), true, kit, grass, ItemId.CampKit));
+        Assert.False(HeldItemUse.Applies(click, true, new ItemStack(ItemId.Stake, 1), grass, ItemId.CampKit));
+        Assert.False(HeldItemUse.Applies(click, true, ItemStack.Empty, grass, ItemId.CampKit));
     }
 
     [Fact]

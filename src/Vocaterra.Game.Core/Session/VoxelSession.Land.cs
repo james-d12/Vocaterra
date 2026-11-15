@@ -208,11 +208,16 @@ public sealed partial class VoxelSession
     private const string PlotBoughtHint = "plotBought";
 
     /// <summary>
-    /// The land's facts as a turn needs them (Y11): whether land is owned, whether the marked plot passes the land rules as the world is now (a plot a tree grew on, or a block was placed on,
-    /// does not), and the price. Plain values, taken on the game thread when a line is submitted.
+    /// The land's facts as a turn to the NPC who sells the plot needs them (Y11); no other NPC's turn reads them, so the plot is not checked for those.
     /// </summary>
-    protected override PlotFacts? PlotFactsNow() =>
-        new(Land.Owned is not null, Land.Pending is { } pending && Land.Rules.CheckPlot(Scene.Grid, pending).Ok, Land.Rules.PlotPrice);
+    /// <param name="npc">The NPC the line is said to.</param>
+    protected override PlotFacts? PlotFactsFor(string npc) =>
+        string.Equals(Data.HostEvents.NpcWith(NpcEffectKind.SellPlot), npc, StringComparison.Ordinal) ? PlotFactsNow() : null;
+
+    // The land's facts now (Y11): whether land is owned, whether the marked plot passes the land rules as the world is now (a plot a tree grew on, or a block was placed on,
+    // does not), and the price. Plain values, taken on the game thread when a line is submitted.
+    private PlotFacts PlotFactsNow() =>
+        new(Land.Owned is not null, Land.Owned is null && Land.Pending is { } pending && Land.Rules.CheckPlot(Scene.Grid, pending).Ok, Land.Rules.PlotPrice);
 
     /// <summary>The play session's objective that waits for the plot to be bought (the one with a step on <c>plot_bought</c>), or <see langword="null"/> when the bundle has none.</summary>
     private Objective? LandObjective => Objectives.FirstOrDefault(static o => o.Spec.Steps.Any(static s => string.Equals(s.Trigger.Event, WorldEvents.PlotBought, StringComparison.Ordinal)));
@@ -241,8 +246,9 @@ public sealed partial class VoxelSession
     /// The exchange of the sale (Y11, <see cref="NpcEffectKind.SellPlot"/>): the price in coins and the stake out, the plot owned and the camp kit in, as one operation that cannot half happen. The order: first the
     /// checks of the exchange (the land is not owned, a plot is marked and passes the rules, the coins cover the price, the bag has room for the kit once the coins and the stake are out:
     /// <see cref="NpcEffect.PlotMiss"/>); then <see cref="OwnPlot"/>, which checks the world once more and may refuse; then the coins, the stake (the mayor keeps it, Y15) and the kit. A refusal at
-    /// any step leaves the coins, the bag and the land as they were; the mayor answered the miss on the worker, and a refusal that only the session sees (the world moved since the turn began) says
-    /// so on the hint line. A repeated «sí», a reload or a second talk finds the land owned and changes nothing (<c>already_owned</c>).
+    /// any step leaves the coins, the bag and the land as they were. A miss the worker found was answered by the mayor and never reaches here (<see cref="NpcTurnRules.AnswerMisses"/> drops the
+    /// sale), so a refusal here is one only the session sees (the world moved since the line was submitted): the hint line says so. A repeated «sí», a reload or a second talk finds the land owned,
+    /// and the mayor answers <c>already_owned</c> on the worker.
     /// </summary>
     /// <param name="npc">The seller's agent id.</param>
     /// <param name="effect">The sale (its item is the camp kit).</param>
@@ -252,24 +258,24 @@ public sealed partial class VoxelSession
     {
         var price = Land.Rules.PlotPrice;
         var bag = Simulation.Inventory;
-        if (Needs.IsDead || effect.PlotMiss(bag, PlotFactsNow()) is not null)
+        if (Needs.IsDead)
         {
             return false;
         }
 
-        var plot = Land.Pending!.Value;
-        if (!OwnPlot())
+        var plot = Land.Pending;
+        if (effect.PlotMiss(bag, PlotFactsNow()) is not null || !OwnPlot())
         {
-            _hints.Add(Locale.Ui(PlotSaleFailedHint));
+            _hints.Add(Locale.Ui(PlotSaleFailedHint)); // the worker took the line as a yes (its misses keep the sale back, NpcTurnRules.AnswerMisses): the world moved since
             return false;
         }
 
         Take(npc, ItemId.Coin, price, how);
         Take(npc, ItemId.Stake, bag.Count(ItemId.Stake), how); // Y15: the mayor keeps the stake (one in the bag, or none; a stake in a chest stays there)
         _ = Give(npc, effect.Item, effect.Count, how);
-        LogWorld(WorldEvents.PlotBought, npc, string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{plot.X},{plot.Z}"));
+        LogWorld(WorldEvents.PlotBought, npc, string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{plot!.Value.X},{plot.Value.Z}"));
         _hints.Add(Locale.Ui(PlotBoughtHint, ("price", price.ToString(System.Globalization.CultureInfo.InvariantCulture))));
-        PointAtPlot(plot);
+        PointAtPlot(plot.Value);
         return true;
     }
 

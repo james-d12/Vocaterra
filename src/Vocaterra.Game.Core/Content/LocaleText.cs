@@ -77,7 +77,7 @@ public sealed class LocaleText
         "autosaved", "greyNewWord",
         "sleepHud", "reviewNothingDue", "sleepCard", "sleepPrompt", "sleepBedLocked", "endedAtInn", "endedAtFire", "endedAtCamp", "endedWhereFell", "endedAnywhere", "sleptToast", "bookLessonOpen", "bookLessonAfter",
         "bookLessonsAllDone", "foodKept", "drinkKept", "plantedBush", "plantFar", "plantOccupied", "plantFull", "landVillage", "landCamp", "landRoad", "landTakeBack", "plotVillage", "plotCamp", "plotRoad", "plotOutside", "plotWater", "plotTree", "plotNotGround", "plotSteep", "plotMarked", "plotOwnedHere", "plotOwnedAlready", "plotHud", "plotHudOwned", "diedHunger", "diedThirst", "chestRest", "beaconBelongings",
-        "plotBought", "plotSaleFailed", "plotBeacon", "landStakeAsk", "landPlotAsk",
+        "plotBought", "plotSaleFailed", "plotBeacon", "campBeacon", "landStakeAsk", "landPlotAsk",
         "campOutside", "campNotLevel", "campBlocked", "campPlayer", "campNoWake", "campHave", "campPlaced", "campPacked", "campPackFull", "campKitBack",
         "faintedHunger", "faintedThirst", "diedDrowned", "faintedDrowned", "effectsOn", "effectsOff",
         "settingsTitle", "settingsRate", "settingsEffects", "settingsRelaxed", "settingsBlur", "blurLow", "blurMedium", "blurHigh", "settingsOn", "settingsOff", "settingsHint",

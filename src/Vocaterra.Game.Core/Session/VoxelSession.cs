@@ -119,9 +119,12 @@ public sealed partial class VoxelSession : GuideSession
         return dot < 0 ? null : Objectives.FirstOrDefault(o => string.Equals(o.Id, key[..dot], StringComparison.Ordinal))?.Step(key[(dot + 1)..]);
     }
 
-    /// <summary>The counts a save keeps, by <c>&lt;objective&gt;.&lt;step&gt;</c>, in the session's order: every step without a restore hook (the others are worked out again from the world, <see cref="RestoreStage"/>).</summary>
+    /// <summary>
+    /// The counts a save keeps, by <c>&lt;objective&gt;.&lt;step&gt;</c>, in the session's order: every step. A step with a restore hook is also worked out again from the world (<see cref="RestoreStage"/>),
+    /// and its saved count keeps it done when the world no longer shows it (a camp packed up after its fire was lit).
+    /// </summary>
     public IReadOnlyList<(string Key, int Count)> ObjectiveCounts() =>
-        Objectives.SelectMany(o => o.Spec.Steps.Where(static s => s.Restore is null).Select(s => (o.Id + "." + s.Id, o.Step(s.Id)!.Count))).ToList();
+        Objectives.SelectMany(o => o.Spec.Steps.Select(s => (o.Id + "." + s.Id, o.Step(s.Id)!.Count))).ToList();
 
     /// <summary>Puts back the counts a save keeps (S10): each key must be a step of an objective and appear once; the steps not named keep their count.</summary>
     /// <param name="counts">The counts by <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -526,28 +529,23 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>
     /// Whether a cell lies at the camp's fire ring: a cell in the three-by-three square of the ring, on the layer of its stones (the empty
-    /// centre) or on top of a stone (the rim). The torch is set on the rim, where a one-block ring does not hide its flame.
+    /// centre) or on top of a stone (the rim). The torch is set on the rim, where a one-block ring does not hide its flame. It is the square <see cref="FireRings.IsLit"/>
+    /// reads, so a torch at the ring is a torch that lights it.
     /// </summary>
     public bool AtFireRing(BlockPos cell) => AtRing(_fireRing, cell);
 
-    private static bool AtRing(IReadOnlyList<BlockPos> ring, BlockPos cell)
-    {
-        foreach (var stone in ring)
-        {
-            if ((stone.Y == cell.Y || stone.Y + 1 == cell.Y) && Math.Abs(stone.X - cell.X) <= 1 && Math.Abs(stone.Z - cell.Z) <= 1)
-            {
-                return true;
-            }
-        }
+    // The middles (FireRings) of the rings whose stones are in the list: the camp's one ring, or every ring of a scene that names none.
+    private IEnumerable<BlockPos> MiddlesOf(IReadOnlyList<BlockPos> ring) =>
+        Fires.Middles.Where(middle => ring.Any(stone => stone.Y == middle.Y && Math.Abs(stone.X - middle.X) <= 1 && Math.Abs(stone.Z - middle.Z) <= 1));
 
-        return false;
-    }
+    private bool AtRing(IReadOnlyList<BlockPos> ring, BlockPos cell) =>
+        MiddlesOf(ring).Any(middle => Math.Abs(cell.X - middle.X) <= 1 && Math.Abs(cell.Z - middle.Z) <= 1 && cell.Y - middle.Y is 0 or 1);
 
     /// <summary>
     /// Works the objectives out again from the world and the progress a save puts back (S17, C07): each step that names a restore hook asks it (<c>lesson-begun</c>: the
     /// guide is met when a lesson was begun; <c>lodging-given</c>: the room at the inn was given; <c>plot-owned</c>: the land was bought), an objective another one's progress
     /// completes is completed (the guide is met once the checklist moved), each done objective's hooks put their state back without acting, and the session is complete
-    /// when every objective is done. The save holds only the counts of the steps without a restore hook.
+    /// when every objective is done. A step with a restore hook that the save had done stays done (a step is never undone by a load).
     /// </summary>
     internal void RestoreStage()
     {
@@ -557,12 +555,13 @@ public sealed partial class VoxelSession : GuideSession
             Conversation.FollowLodging(); // Y08: a save with the room given puts the innkeeper in her goodnight state, whatever state it kept
         }
 
-        _fireLit = RingHasTorch(_fireRing); // the latch the sound beds read (no objective restores it)
+        _fireLit = MiddlesOf(_fireRing).Any(Fires.IsLit); // the latch the sound beds read (no objective restores it)
         foreach (var objective in Objectives)
         {
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is not null))
             {
-                objective.Set(step.Id, RestoreHook(step.Restore!) ? step.Target : 0);
+                // Done when the world shows it, or when the save had it done: a step is never undone, in the run or by a load (the camp packed up after «Mi terreno» was done).
+                objective.Set(step.Id, RestoreHook(step.Restore!) || objective.Step(step.Id)!.Count >= step.Target ? step.Target : 0);
             }
         }
 
@@ -624,31 +623,6 @@ public sealed partial class VoxelSession : GuideSession
     // Whether another objective's progress completes this one (alsoDoneBy).
     private bool AlsoDone(Objective objective) =>
         objective.Spec.AlsoDoneBy.Any(id => Objectives.FirstOrDefault(o => string.Equals(o.Id, id, StringComparison.Ordinal)) is { Started: true });
-
-    // Whether a torch stands on the rim of a fire ring (the stones of one ring, as AtRing reads them): the fire is lit if so. Y12 passes the ring the player builds.
-    private bool RingHasTorch(IReadOnlyList<BlockPos> ring)
-    {
-        foreach (var stone in ring)
-        {
-            for (var dx = -2; dx <= 2; dx++)
-            {
-                for (var dz = -2; dz <= 2; dz++)
-                {
-                    foreach (var y in new[] { stone.Y, stone.Y + 1 })
-                    {
-                        var x = stone.X + dx;
-                        var z = stone.Z + dz;
-                        if (Scene.Grid.InBounds(x, y, z) && Scene.Grid.GetBlock(x, y, z) == BlockId.Torch && AtRing(ring, new BlockPos(x, y, z)))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
 
     // The fire at a ring is lit: the latch the sound beds read, with the event that plays the lighting sound. No objective waits for it (Y07).
     private void LightFire()

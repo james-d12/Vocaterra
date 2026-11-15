@@ -207,7 +207,7 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFiveSaveKeysTheChecklistsStepsByObjectiveAndLeavesTheHookedOnesToTheWorld()
+    public void AVersionFiveSaveKeysTheChecklistsStepsByObjectiveTheHookedOnesToo()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 2);
@@ -215,8 +215,10 @@ public sealed class ObjectiveBookTests
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered", "my-land.stake"], document.Objective.Select(static o => o.Key)); // and the orders' one step, and Y11's «Mi terreno» stake step (its purchase is restored from the land) each (V10 to V13)
-        Assert.Equal(2, document.Objective[0].Count);
+        Assert.Equal(StepKeys(session), document.Objective.Select(static o => o.Key)); // every step, in the session's order: a step with a restore hook is saved too, so a load never undoes it
+        Assert.Contains("meet-guide.met", document.Objective.Select(static o => o.Key));
+        Assert.Contains("my-land.camp", document.Objective.Select(static o => o.Key));
+        Assert.Equal(2, document.Objective.Single(static o => o.Key == "camp.wood").Count);
     }
 
     [Fact]
@@ -249,8 +251,12 @@ public sealed class ObjectiveBookTests
         Assert.Null(loaded.CurrentObjective);
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(SaveGame.CurrentVersion, resaved.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered", "my-land.stake"], resaved.Objective.Select(static o => o.Key));
+        Assert.Equal(StepKeys(loaded), resaved.Objective.Select(static o => o.Key));
     }
+
+    // The save key of every step of the session's objectives, in its order (<objective>.<step>).
+    private static List<string> StepKeys(VoxelSession session) =>
+        session.Objectives.SelectMany(static o => o.Spec.Steps.Select(s => o.Id + "." + s.Id)).ToList();
 
     [Fact]
     public void TheFixtureOfAnotherBundleKeepsItsStepsThroughTheMigration()

@@ -8,10 +8,33 @@ namespace Vocaterra.Game.Core.Session;
 /// </summary>
 internal static class SleepWalk
 {
+    /// <summary>
+    /// The world as the walk reads it: the grid, with some cells read as other blocks (<see cref="Land.CampPlan.HasWake"/> looks at the camp before it is set) and the grid itself never written.
+    /// A grid is a view with no cells changed.
+    /// </summary>
+    /// <param name="grid">The world.</param>
+    /// <param name="changed">The cells read as other blocks, or <see langword="null"/> for none.</param>
+    internal readonly struct WalkView(VoxelGrid grid, IReadOnlyDictionary<BlockPos, BlockId>? changed = null)
+    {
+        public static implicit operator WalkView(VoxelGrid grid) => new(grid);
+
+        public bool InBounds(int x, int y, int z) => grid.InBounds(x, y, z);
+
+        public BlockId GetBlock(int x, int y, int z) =>
+            changed is not null && changed.TryGetValue(new BlockPos(x, y, z), out var id) && grid.InBounds(x, y, z) ? id : grid.GetBlock(x, y, z);
+
+        // As VoxelGrid reads them (outside the grid is solid; a tall block collides in the cell above it too; nothing stands on a tall block).
+        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+
+        public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+
+        private bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
+    }
+
     private static readonly (int Dx, int Dz)[] Directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
     /// <summary>The cell a body stands in at the place's column (the cell, one above, one below or two above, the first that can be stood in), or <see langword="null"/> when the column has none.</summary>
-    public static BlockPos? StartFor(VoxelGrid grid, BlockPos cell)
+    public static BlockPos? StartFor(WalkView grid, BlockPos cell)
     {
         foreach (var dy in new[] { 0, 1, -1, 2 })
         {
@@ -26,7 +49,7 @@ internal static class SleepWalk
     }
 
     /// <summary>Whether the body whose feet are at <paramref name="feet"/> can walk from <paramref name="start"/> in at most <paramref name="maxSteps"/> steps (a body in the air, up to two cells above the ground of a reached column, counts as in it).</summary>
-    public static bool Reaches(VoxelGrid grid, BlockPos start, BlockPos feet, int maxSteps)
+    public static bool Reaches(WalkView grid, BlockPos start, BlockPos feet, int maxSteps)
     {
         var seen = new HashSet<BlockPos> { start };
         var frontier = new List<BlockPos> { start };
@@ -62,7 +85,7 @@ internal static class SleepWalk
     }
 
     /// <summary>Every cell reached from the start in at most <paramref name="maxSteps"/> steps, with the steps.</summary>
-    public static Dictionary<BlockPos, int> ReachFrom(VoxelGrid grid, BlockPos start, int maxSteps)
+    public static Dictionary<BlockPos, int> ReachFrom(WalkView grid, BlockPos start, int maxSteps)
     {
         var steps = new Dictionary<BlockPos, int> { [start] = 0 };
         var seen = new HashSet<BlockPos> { start };
@@ -87,7 +110,7 @@ internal static class SleepWalk
         return steps;
     }
 
-    private static void Expand(VoxelGrid grid, BlockPos current, HashSet<BlockPos> seen, List<BlockPos> into)
+    private static void Expand(WalkView grid, BlockPos current, HashSet<BlockPos> seen, List<BlockPos> into)
     {
         foreach (var (dx, dz) in Directions)
         {
@@ -115,7 +138,7 @@ internal static class SleepWalk
         }
     }
 
-    private static bool Standable(VoxelGrid grid, BlockPos feet) =>
+    private static bool Standable(WalkView grid, BlockPos feet) =>
         grid.InBounds(feet.X, feet.Y, feet.Z)
         && !grid.BlocksBody(feet.X, feet.Y, feet.Z)
         && !grid.BlocksBody(feet.X, feet.Y + 1, feet.Z)

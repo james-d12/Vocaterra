@@ -954,7 +954,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsNow())
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsFor(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory, WeatherKey: WeatherKey);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -973,6 +973,7 @@ public abstract partial class GuideSession : IDisposable
             Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
         }
 
+        turn = AsClassAnswer(turn);
         LastWordTurn = Words.RecordTurn(turn, turn.CreditKind, Credit, StoredTime.UnixSeconds);
         RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
         var afterwards = AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
@@ -1194,10 +1195,11 @@ public abstract partial class GuideSession : IDisposable
                 Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
             }
 
-            words = Words.RecordTurn(turn, turn.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
+            var graded = AsClassAnswer(turn);
+            words = Words.RecordTurn(graded, graded.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
-            RecordTurnLine(turn, outcome.Request.Now.UnixSeconds);
-            var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
+            RecordTurnLine(graded, outcome.Request.Now.UnixSeconds);
+            var shown = AfterTurn(graded, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
             if (!ReferenceEquals(shown, turn))
             {
                 outcome = outcome with { Turn = shown }; // the lesson took the turn, or the guide says her last line again (S17)
@@ -1328,8 +1330,12 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     protected virtual IReadOnlySet<string>? ClosedGifts => null;
 
-    /// <summary>The land's facts for the mayor's answer to a purchase (Y11), taken now for a turn's scene; the 3D scene has the land, the base game has none.</summary>
-    protected virtual PlotFacts? PlotFactsNow() => null;
+    /// <summary>
+    /// The land's facts for the mayor's answer to a purchase (Y11), taken now for a turn's scene, or <see langword="null"/> for an NPC who sells no land (nothing of the turn reads them). The 3D scene
+    /// has the land, the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC the line is said to.</param>
+    protected virtual PlotFacts? PlotFactsFor(string npc) => null;
 
     /// <summary>
     /// The host event of the offer an NPC opens the talk with about the player's land (Y11: <c>&lt;npc&gt;.offer_stake</c> or <c>&lt;npc&gt;.offer_plot</c>), or <see langword="null"/> for none. The 3D scene
@@ -1349,6 +1355,25 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="world">The event.</param>
     protected virtual void OnWorldEvent(WorldEvent world)
     {
+    }
+
+    // Y14: «sí» or «no» to a class offer (LessonRunner.OnClassTurn) is the answer to the offer, though the NPC's own prompt (the trade's) takes no confirm. The turn is
+    // graded as the class takes it, confirm or deny and understood, before anything records it: the learner's history, the word progress, the phrase log and the panel
+    // all see the same verdict. A turn the core understood, and a spoken one the recognizer was not sure of (D-game-9: the microphone's trouble, logged as such), are left as they are.
+    private GuideTurn AsClassAnswer(GuideTurn turn)
+    {
+        if (turn.Communicated || turn.Uncertain || IsHandOverTurn(turn) || Lessons.OfferStandingAt(turn.Npc) is null)
+        {
+            return turn;
+        }
+
+        var answer = Data.Words.Classes.Read(turn.Line);
+        if (answer is not (ClassAnswer.Yes or ClassAnswer.No))
+        {
+            return turn;
+        }
+
+        return turn with { Intent = answer == ClassAnswer.Yes ? "confirm" : "deny", Communicated = true, OffPromptIntent = null, Repair = null, RepairKind = null };
     }
 
     // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world. Returns the turn as the player is to see
@@ -1450,7 +1475,6 @@ public abstract partial class GuideSession : IDisposable
             Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
         }
 
-        var offerStood = Lessons.OfferStandingAt(npc) is not null;
         var handled = !handOverTurn && (Lessons.OnTurn(turn) || Lessons.OnClassTurn(turn)); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
@@ -1470,11 +1494,6 @@ public abstract partial class GuideSession : IDisposable
             {
                 // A miss for the person or the tense (S26, S27) shows no correction line of the core: its recast would echo the learner's own words with "¡Eso es!", against the lesson's retry.
                 shown = turn with { LessonHandled = true, Feedback = formMiss ? null : turn.Feedback };
-                if (offerStood && !turn.Communicated && !turn.Unsure && Data.Words.Classes.Read(turn.Line) is var answer and (ClassAnswer.Yes or ClassAnswer.No))
-                {
-                    // Y14: «sí» or «no» to a class offer was graded at the NPC's own prompt (the trade's, which takes no confirm): the verdict says what the class took it as.
-                    shown = shown with { Intent = answer == ClassAnswer.Yes ? "confirm" : "deny", Communicated = true };
-                }
             }
 
             if (!handled && shown.GuideLines.Count > 0)
@@ -1651,7 +1670,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsNow())
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsFor(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts, WeatherKey: WeatherKey);
     }
 }

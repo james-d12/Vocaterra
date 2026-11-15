@@ -139,7 +139,7 @@ public sealed partial class VoxelSession
             return;
         }
 
-        var label = place.Point is { } point ? Scene.LabelOf(point) : place.Id;
+        var label = place.Point is { } point ? Scene.LabelOf(point) : Locale.Ui(CampBeaconKey); // a place made in play has no point of the scene: the camp's two (ui.campBeacon: «campamento»)
         var cell = place.Cell;
         Pointer = new PointerMarker(label, new GuideCell(cell.X, cell.Y, cell.Z), Point: place.Point);
         LogWorld(WorldEvents.BeaconSet, null, $"{label} at {cell.X},{cell.Y},{cell.Z}");

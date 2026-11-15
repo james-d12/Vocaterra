@@ -950,6 +950,12 @@ public static class ChunkMesher
 
     private static readonly (byte R, byte G, byte B, byte A) PillowTint = (252, 248, 238, 255);
 
+    private static readonly (byte R, byte G, byte B, byte A) RolledPillowTint = (214, 196, 140, 255);
+
+    // A colour of its own under the band's light: the colour times the sun tint the rest of the piece is baked with, so a pillow darkens at night as the mattress does.
+    private static (byte R, byte G, byte B, byte A) Lit((byte R, byte G, byte B, byte A) colour, (byte R, byte G, byte B, byte A) light) =>
+        ((byte)((colour.R * light.R + 127) / 255), (byte)((colour.G * light.G + 127) / 255), (byte)((colour.B * light.B + 127) / 255), colour.A);
+
     /// <summary>
     /// A bed or a bedroll (Y08): two cells long, a head cell (<see cref="BlockId.Bed"/>, <see cref="BlockId.Bedroll"/>) and a foot cell beside it
     /// (<see cref="BlockId.BedFoot"/>, <see cref="BlockId.BedrollFoot"/>), each meshed as its half of one piece: a mattress over both cells with no
@@ -1036,7 +1042,7 @@ public static class ChunkMesher
             Piece(new Box(x + 0.1f, y, north, x + 0.9f, y + BedrollMatTop, south), null, skipNorth: joinsHeadward, skipSouth: joinsFootward);
             if (isHead)
             {
-                Piece(new Box(x + 0.2f, y + BedrollMatTop, z + 0.12f, x + 0.8f, y + BedrollPillowTop, z + 0.42f), BlockCell.Cloth, tinted: (214, 196, 140, 255));
+                Piece(new Box(x + 0.2f, y + BedrollMatTop, z + 0.12f, x + 0.8f, y + BedrollPillowTop, z + 0.42f), BlockCell.Cloth, tinted: Lit(RolledPillowTint, tint));
             }
 
             return;
@@ -1050,7 +1056,7 @@ public static class ChunkMesher
         if (isHead)
         {
             Piece(new Box(x + 0.03f, y, z + 0.03f, x + 0.97f, y + BedHeadboardHeight, z + 0.14f), BlockCell.Planks);
-            Piece(new Box(x + 0.18f, y + BedMattressTop, z + 0.2f, x + 0.82f, y + BedPillowTop, z + 0.58f), BlockCell.Cloth, tinted: PillowTint);
+            Piece(new Box(x + 0.18f, y + BedMattressTop, z + 0.2f, x + 0.82f, y + BedPillowTop, z + 0.58f), BlockCell.Cloth, tinted: Lit(PillowTint, tint));
         }
 
         if (!isHead || !joinsFootward)

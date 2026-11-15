@@ -17,6 +17,9 @@ public sealed partial class VoxelSession
     /// <summary>The id of the sleep place at the camp's bedroll (Y12).</summary>
     public const string CampBedPlace = "camp.bed";
 
+    // The ui key of the word the arrow shows at the camp's places (ui.campBeacon: «campamento»), as the plot's arrow shows ui.plotBeacon.
+    private const string CampBeaconKey = "campBeacon";
+
     /// <summary>The id of the sleep place at the camp's fire ring (Y12); usable when the ring is lit, as every fire is.</summary>
     public const string CampFirePlace = "camp.fire";
 
@@ -128,7 +131,7 @@ public sealed partial class VoxelSession
             return CampResult.Refused;
         }
 
-        _ = plan.Place(grid);
+        plan.Place(grid);
         _ = Simulation.TakeItems(ItemId.CampKit, 1);
         Camp = plan;
         Land.Camp = plan;

@@ -170,12 +170,12 @@ public sealed class StakeTests
         var stake = new ItemStack(ItemId.Stake, 1);
         var grass = new BlockRayHit(new BlockPos(0, 0, 0), BlockId.Grass, BlockFace.Up, new BlockPos(0, 1, 0), 10);
 
-        Assert.True(StakeUse.Applies(click, true, stake, grass));
-        Assert.False(StakeUse.Applies(click, true, stake, null)); // in the air
-        Assert.False(StakeUse.Applies(click, false, stake, grass)); // a talk or a panel holds the input
-        Assert.False(StakeUse.Applies(new TestInputFrame(), true, stake, grass)); // no click
-        Assert.False(StakeUse.Applies(click, true, new ItemStack(ItemId.Wood, 5), grass));
-        Assert.False(StakeUse.Applies(click, true, ItemStack.Empty, grass));
+        Assert.True(HeldItemUse.Applies(click, true, stake, grass, ItemId.Stake));
+        Assert.False(HeldItemUse.Applies(click, true, stake, null, ItemId.Stake)); // in the air
+        Assert.False(HeldItemUse.Applies(click, false, stake, grass, ItemId.Stake)); // a talk or a panel holds the input
+        Assert.False(HeldItemUse.Applies(new TestInputFrame(), true, stake, grass, ItemId.Stake)); // no click
+        Assert.False(HeldItemUse.Applies(click, true, new ItemStack(ItemId.Wood, 5), grass, ItemId.Stake));
+        Assert.False(HeldItemUse.Applies(click, true, ItemStack.Empty, grass, ItemId.Stake));
     }
 
     [Fact]

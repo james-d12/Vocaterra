@@ -29,6 +29,11 @@ public sealed class SleepPlaces
     private readonly List<SleepPlace> _places = [];
     private readonly HashSet<string> _madeInPlay = new(StringComparer.Ordinal);
 
+    // The walks of IsAt, by place id, for one feet cell and one state of the world: the prompt, the card and the rest rule ask several times a frame, the walk is done once.
+    private readonly Dictionary<string, bool> _walks = new(StringComparer.Ordinal);
+    private BlockPos _walkFeet;
+    private long _walkEdits = -1;
+
     /// <summary>Resolves the authored places against a scene.</summary>
     /// <param name="specs">The authored places.</param>
     /// <param name="wakeAt">The id of the place the player wakes at after a death.</param>
@@ -65,6 +70,7 @@ public sealed class SleepPlaces
         Remove(place.Id);
         _places.Add(place);
         _madeInPlay.Add(place.Id);
+        _walks.Clear();
     }
 
     /// <summary>The places made in play (<see cref="Add"/>), in the order made: what the save keeps, since the authored ones are the bundle's.</summary>
@@ -77,6 +83,7 @@ public sealed class SleepPlaces
         ArgumentNullException.ThrowIfNull(places);
         _places.RemoveAll(p => _madeInPlay.Contains(p.Id));
         _madeInPlay.Clear();
+        _walks.Clear();
         foreach (var place in places)
         {
             if (Find(place.Id) is null)
@@ -91,6 +98,7 @@ public sealed class SleepPlaces
     public bool Remove(string id)
     {
         _madeInPlay.Remove(id);
+        _walks.Clear();
         return _places.RemoveAll(p => string.Equals(p.Id, id, StringComparison.Ordinal)) > 0;
     }
 
@@ -146,7 +154,8 @@ public sealed class SleepPlaces
 
     /// <summary>
     /// Whether the player is at the place: within its reach across and in height (a radius test, first and cheap) and then reachable on foot from the place's cell within
-    /// <see cref="WalkStepsOf"/> steps, so a wall between them says no. A place whose cell has no standing room in its column keeps the radius test alone.
+    /// <see cref="WalkStepsOf"/> steps, so a wall between them says no. A place whose cell has no standing room in its column keeps the radius test alone. The walk is kept until the feet
+    /// move or the world is edited (<see cref="VoxelGrid.EditCount"/>), so asking again in the same frame costs nothing.
     /// </summary>
     /// <param name="place">The place.</param>
     /// <param name="feet">The block the player's feet are in.</param>
@@ -158,7 +167,20 @@ public sealed class SleepPlaces
             return false;
         }
 
-        return SleepWalk.StartFor(_grid, place.Cell) is not { } start || SleepWalk.Reaches(_grid, start, feet, WalkStepsOf(place));
+        if (_walkEdits != _grid.EditCount || _walkFeet != feet)
+        {
+            _walks.Clear();
+            _walkEdits = _grid.EditCount;
+            _walkFeet = feet;
+        }
+
+        if (!_walks.TryGetValue(place.Id, out var at))
+        {
+            at = SleepWalk.StartFor(_grid, place.Cell) is not { } start || SleepWalk.Reaches(_grid, start, feet, WalkStepsOf(place));
+            _walks[place.Id] = at;
+        }
+
+        return at;
     }
 
     private static bool Within(SleepPlace place, BlockPos feet) =>

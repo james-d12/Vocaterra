@@ -461,7 +461,7 @@ public sealed class CampLifeTests
         Assert.Empty(loaded.SleepPlaces.MadeInPlay);
         Assert.Equal(1, Kits(loaded));
         Assert.False(loaded.Land.IsCampBlock(camp.Blocks[0].Cell));
-        Assert.False(loaded.ObjectiveStep("my-land.camp")!.Done);
+        Assert.True(loaded.ObjectiveStep("my-land.camp")!.Done); // the camp was set up before the save: the step stays done though the camp is gone
         var again = Reload(loaded); // the kit is in the bag now: a second load gives no second one
         Assert.Equal(1, Kits(again));
         Assert.Null(again.Camp);

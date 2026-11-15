@@ -299,6 +299,7 @@
     "ui.plotBought": "You bought the plot for {price} coins. The mayor keeps the stake; the camp kit is in your bag.",
     "ui.plotSaleFailed": "The sale did not go through: the plot cannot be bought as it is now. Nothing was paid. Mark it again.",
     "ui.plotBeacon": "terreno",
+    "ui.campBeacon": "campamento",
     "ui.campOutside": "Put your camp on your own land.",
     "ui.campNotLevel": "The ground is not level enough here.",
     "ui.campBlocked": "Something is in the way.",

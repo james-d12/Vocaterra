@@ -242,12 +242,26 @@ public sealed class CampPlan
         return -1;
     }
 
-    /// <summary>Sets the camp's blocks (undergrowth in the camp's way goes), without any check: <see cref="Check"/> first. Returns what each cell held before, to put back.</summary>
+    /// <summary>Sets the camp's blocks (undergrowth in the camp's way goes), without any check: <see cref="Check"/> first.</summary>
     /// <param name="grid">The world.</param>
-    public IReadOnlyList<(BlockPos Cell, BlockId Was)> Place(VoxelGrid grid)
+    public void Place(VoxelGrid grid)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        var before = new List<(BlockPos, BlockId)>();
+        foreach (var cell in Cleared(grid))
+        {
+            grid.SetBlock(cell.X, cell.Y, cell.Z, BlockId.Air);
+        }
+
+        foreach (var (cell, block) in _blocks)
+        {
+            grid.SetBlock(cell.X, cell.Y, cell.Z, block);
+        }
+    }
+
+    // The cells of the footprint's layers that something stands in now, which setting the camp clears before its blocks go in.
+    private List<BlockPos> Cleared(VoxelGrid grid)
+    {
+        var cleared = new List<BlockPos>();
         for (var z = CornerZ; z < CornerZ + Depth; z++)
         {
             for (var x = CornerX; x < CornerX + Width; x++)
@@ -255,40 +269,27 @@ public sealed class CampPlan
                 for (var layer = 0; layer < Height; layer++)
                 {
                     var y = GroundY + 1 + layer;
-                    var id = grid.GetBlock(x, y, z);
-                    if (id != BlockId.Air)
+                    if (grid.GetBlock(x, y, z) != BlockId.Air)
                     {
-                        before.Add((new BlockPos(x, y, z), id));
-                        grid.SetBlock(x, y, z, BlockId.Air);
+                        cleared.Add(new BlockPos(x, y, z));
                     }
                 }
             }
         }
 
-        foreach (var (cell, block) in _blocks)
-        {
-            grid.SetBlock(cell.X, cell.Y, cell.Z, block);
-        }
-
-        return before;
+        return cleared;
     }
 
-    /// <summary>Puts back what <see cref="Place"/> replaced: the camp's blocks go and the cells it cleared hold what they did.</summary>
-    /// <param name="grid">The world.</param>
-    /// <param name="before">What <see cref="Place"/> returned.</param>
-    public void Undo(VoxelGrid grid, IReadOnlyList<(BlockPos Cell, BlockId Was)> before)
+    // The world as setting the camp would leave it, as changed cells over the grid: the cleared cells, then the camp's blocks.
+    private Dictionary<BlockPos, BlockId> Cells(VoxelGrid grid)
     {
-        ArgumentNullException.ThrowIfNull(grid);
-        ArgumentNullException.ThrowIfNull(before);
-        foreach (var (cell, _) in _blocks)
+        var cells = Cleared(grid).ToDictionary(static cell => cell, static _ => BlockId.Air);
+        foreach (var (cell, block) in _blocks)
         {
-            grid.SetBlock(cell.X, cell.Y, cell.Z, BlockId.Air);
+            cells[cell] = block;
         }
 
-        foreach (var (cell, was) in before)
-        {
-            grid.SetBlock(cell.X, cell.Y, cell.Z, was);
-        }
+        return cells;
     }
 
     /// <summary>The most steps on foot from the bed to the wake cell, and the most from the wake cell to the open ground, the walk of <see cref="HasWake"/>.</summary>
@@ -296,26 +297,19 @@ public sealed class CampPlan
 
     /// <summary>
     /// Whether the camp, once set, leaves a cell to wake on: the wake cell can be stood in, it is reached on foot from the bed (the walk of the sleep places, Y05a) and from it a body walks out of the
-    /// footprint. The world is read with the camp's blocks in it (they are set for the look and put back before it returns), so a plank wall round the camp says no.
+    /// footprint. The world is read as it would be with the camp's blocks in it, so a plank wall round the camp says no; the grid itself is only read (no edit, no block change event).
     /// </summary>
     /// <param name="grid">The world as it is now, which <see cref="Check"/> found fit.</param>
     public bool HasWake(VoxelGrid grid)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        var before = Place(grid);
-        try
+        var world = new Session.SleepWalk.WalkView(grid, Cells(grid));
+        if (Session.SleepWalk.StartFor(world, Wake) != Wake || Session.SleepWalk.StartFor(world, Bed) is not { } bedStart || !Session.SleepWalk.Reaches(world, bedStart, Wake, WakeWalkSteps))
         {
-            if (Session.SleepWalk.StartFor(grid, Wake) != Wake || Session.SleepWalk.StartFor(grid, Bed) is not { } bedStart || !Session.SleepWalk.Reaches(grid, bedStart, Wake, WakeWalkSteps))
-            {
-                return false;
-            }
+            return false;
+        }
 
-            return Session.SleepWalk.ReachFrom(grid, Wake, WakeWalkSteps).Keys.Any(cell => !Covers(cell.X, cell.Z));
-        }
-        finally
-        {
-            Undo(grid, before);
-        }
+        return Session.SleepWalk.ReachFrom(world, Wake, WakeWalkSteps).Keys.Any(cell => !Covers(cell.X, cell.Z));
     }
 
     /// <summary>The entry a save keeps.</summary>

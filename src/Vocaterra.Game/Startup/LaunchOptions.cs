@@ -254,20 +254,6 @@ public sealed record LaunchOptions
         return unknown is null;
     }
 
-    /// <summary>
-    /// Checks the <c>--set-weather</c> steps against the weather kinds the bundle has (E03). The check waits for the data, as <see cref="CheckTalkTargets"/> does for the NPCs.
-    /// </summary>
-    /// <param name="kinds">The ids of the bundle's weather kinds, in the data's order.</param>
-    /// <param name="error">The message for the first unknown id, or empty.</param>
-    /// <returns>Whether every <c>--set-weather</c> names one of the kinds (or <c>run</c>).</returns>
-    public bool CheckWeatherTargets(IReadOnlyList<string> kinds, out string error)
-    {
-        ArgumentNullException.ThrowIfNull(kinds);
-        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
-        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({string.Join(", ", kinds)}) or 'run', got '{unknown.Step!.Item}'.";
-        return unknown is null;
-    }
-
     /// <summary>The credit a correct use earns per kind of input (<c>--typed-credit</c>); typed input earns half by default.</summary>
     public CreditRules Credit { get; init; } = CreditRules.Default;
 
@@ -383,17 +369,25 @@ public sealed record LaunchOptions
     public string? WeatherId { get; init; }
 
     /// <summary>
-    /// Checks the weather kind <c>--weather</c> names against the bundle's kinds, once the data has loaded (E05): a bundle with another set of kinds takes its own ids with no code change.
+    /// Checks the weather kinds the options name against the bundle's kinds, once the data has loaded, as <see cref="CheckTalkTargets"/> does for the NPCs: the one <c>--weather</c> holds (E05)
+    /// and those the <c>--set-weather</c> steps set (E03). A bundle with another set of kinds takes its own ids with no code change.
     /// </summary>
     /// <param name="kinds">The kinds' ids, in the data's order.</param>
-    /// <param name="error">The message that lists the ids when <c>--weather</c> names an unknown one, or empty.</param>
-    /// <returns>Whether <c>--weather</c> is absent or names one of the kinds.</returns>
+    /// <param name="error">The message that lists the ids for the first unknown one, or empty.</param>
+    /// <returns>Whether <c>--weather</c> is absent or names one of the kinds, and every <c>--set-weather</c> names one of them (or <c>run</c>).</returns>
     public bool CheckWeather(IReadOnlyList<string> kinds, out string error)
     {
         ArgumentNullException.ThrowIfNull(kinds);
-        var unknown = WeatherId is not null && !kinds.Contains(WeatherId, StringComparer.Ordinal);
-        error = unknown ? $"--weather needs a weather kind ({string.Join(", ", kinds)}), got '{WeatherId}'." : string.Empty;
-        return !unknown;
+        var known = string.Join(", ", kinds);
+        if (WeatherId is not null && !kinds.Contains(WeatherId, StringComparer.Ordinal))
+        {
+            error = $"--weather needs a weather kind ({known}), got '{WeatherId}'.";
+            return false;
+        }
+
+        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
+        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({known}) or 'run', got '{unknown.Step!.Item}'.";
+        return unknown is null;
     }
 
     /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
@@ -1267,7 +1261,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--set-weather":
-                    // Which kinds there are is the bundle's (game/weather.json): CheckWeatherTargets refuses an unknown one once the data has loaded.
+                    // Which kinds there are is the bundle's (game/weather.json): CheckWeather refuses an unknown one once the data has loaded.
                     if (value.Trim().Length == 0)
                     {
                         error = $"--set-weather needs a weather kind's id or 'run', got '{value}'.";
