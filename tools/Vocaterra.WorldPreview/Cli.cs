@@ -78,11 +78,12 @@ internal static class Cli
                 throw new ArgumentException($"--world is free or valley, not '{world}'.");
             }
 
-            var town = options.TryGetValue("--region", out var layoutPath) ? BuildTown(layoutPath, options, data, seed) : null;
-            if (town is not null && world != "valley")
+            if (options.ContainsKey("--region") && world != "valley")
             {
                 throw new ArgumentException("--region needs --world valley.");
             }
+
+            var town = options.TryGetValue("--region", out var layoutPath) ? BuildTown(layoutPath, options, data, seed) : null;
 
             var places = world == "valley"
                 ? (town is null
