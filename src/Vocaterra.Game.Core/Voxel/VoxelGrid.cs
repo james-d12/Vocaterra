@@ -315,10 +315,10 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         var found = new List<BlockPos>();
-        var bit = 1UL << (int)kind;
+        var bit = BlockKinds.Bit(kind);
         foreach (var coord in DenseOrder())
         {
-            if (!_chunks.TryGetValue(coord, out var chunk) || (chunk.KindMask & bit) == 0)
+            if (!_chunks.TryGetValue(coord, out var chunk) || (chunk.KindMask & bit) == UInt128.Zero)
             {
                 continue;
             }

@@ -97,10 +97,10 @@ public sealed class Scene
             }
         }
 
-        var bit = 1UL << (int)kind;
+        var bit = BlockKinds.Bit(kind);
         foreach (var chunk in Grid.ChangedChunks())
         {
-            if ((chunk.KindMask & bit) == 0)
+            if ((chunk.KindMask & bit) == UInt128.Zero)
             {
                 continue;
             }

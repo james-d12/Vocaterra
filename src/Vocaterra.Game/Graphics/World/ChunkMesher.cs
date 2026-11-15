@@ -277,7 +277,7 @@ public static class ChunkMesher
     }
 
     // The kinds that are not an opaque cube: a chunk holding one of them is never buried.
-    private static readonly ulong NotOpaqueCubes = NonOpaqueKindMask();
+    private static readonly UInt128 NotOpaqueCubes = NonOpaqueKindMask();
 
     /// <summary>
     /// Whether a chunk is fully buried: all of its 4 096 blocks are opaque cubes and every neighbour block across its six faces is an opaque cube too, so
@@ -288,7 +288,7 @@ public static class ChunkMesher
     {
         ArgumentNullException.ThrowIfNull(blocks);
         ArgumentNullException.ThrowIfNull(chunk);
-        if (chunk.NonAirCount != VoxelChunk.Volume || (chunk.KindMask & NotOpaqueCubes) != 0)
+        if (chunk.NonAirCount != VoxelChunk.Volume || (chunk.KindMask & NotOpaqueCubes) != UInt128.Zero)
         {
             return false;
         }
@@ -313,9 +313,9 @@ public static class ChunkMesher
         return true;
     }
 
-    private static ulong NonOpaqueKindMask()
+    private static UInt128 NonOpaqueKindMask()
     {
-        var mask = 0UL;
+        UInt128 mask = 0;
         foreach (var kind in Enum.GetValues<BlockId>())
         {
             if (!IsOpaqueCube(kind))
@@ -327,11 +327,11 @@ public static class ChunkMesher
         return mask;
     }
 
-    /// <summary>The bit of a block kind in a kinds mask (one bit per <see cref="BlockId"/> value; every kind is below 64).</summary>
-    public static ulong KindBit(BlockId id) => BlockKinds.Bit(id);
+    /// <summary>The bit of a block kind in a kinds mask (one bit per <see cref="BlockId"/> value; every kind is below 128).</summary>
+    public static UInt128 KindBit(BlockId id) => BlockKinds.Bit(id);
 
     /// <summary>Whether a block kind is drawn grey: its bit is set in the grey mask (the greyscale A/B, see <see cref="GreyscaleWorld"/>).</summary>
-    public static bool IsGrey(BlockId id, ulong greyKinds) => (greyKinds & KindBit(id)) != 0;
+    public static bool IsGrey(BlockId id, UInt128 greyKinds) => (greyKinds & KindBit(id)) != UInt128.Zero;
 
     // The blocks of the chunk and one layer round it, read once: the hot loops index this array instead of asking the source for each neighbour.
     private sealed class Neighbourhood
@@ -373,7 +373,7 @@ public static class ChunkMesher
     /// is in <paramref name="greyKinds"/> take their pictures from the grey copies of the atlas; with the default 0 every block is drawn in colour.
     /// The result says which kinds the chunk holds (<see cref="ChunkMeshes.Kinds"/>).
     /// </summary>
-    public static ChunkMeshes Build(IBlockSource blocks, int chunkX, int chunkY, int chunkZ, ulong greyKinds = 0, MeshOptions? options = null)
+    public static ChunkMeshes Build(IBlockSource blocks, int chunkX, int chunkY, int chunkZ, UInt128 greyKinds = default, MeshOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(blocks);
         var settings = options ?? MeshOptions.Full;
@@ -382,7 +382,7 @@ public static class ChunkMesher
         var plants = new MeshBuffer();
         var glowMesh = new MeshBuffer(); // the lanterns' light on the faces they reach (E02a): the cube faces again, drawn additively, whatever the band
         var lit = new MeshBuffer(); // the pieces that are their own light (a lantern's glass, a torch's flame): drawn with no light tint, so the day cycle never dims them (E02)
-        var kinds = 0UL;
+        UInt128 kinds = 0;
         var x0 = chunkX * Size;
         var y0 = chunkY * Size;
         var z0 = chunkZ * Size;
@@ -1187,7 +1187,7 @@ public readonly struct Turn
 /// <param name="Plants">The crossed quads of the undergrowth (drawn without culling, only near the eye), or <see langword="null"/> when there are none.</param>
 /// <param name="Lit">The self-lit pieces (E02): a lantern's glass and a torch's flame, which the renderer draws with no light tint (drawn with the opaque pass), or <see langword="null"/> when there are none.</param>
 /// <param name="Glow">The lanterns' light on the faces they reach (E02a): the same quads as the opaque mesh's, in the same order, with the glow at each corner as the colour; the renderer draws it additively over the opaque pass with the strength of the moment (<see cref="LanternGlow"/>), or <see langword="null"/> when no lantern reaches the chunk.</param>
-public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0, MeshBuffer? Plants = null, MeshBuffer? Lit = null, MeshBuffer? Glow = null)
+public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, UInt128 Kinds = default, MeshBuffer? Plants = null, MeshBuffer? Lit = null, MeshBuffer? Glow = null)
 {
     /// <summary>The glow quads (empty when no lantern reaches the chunk).</summary>
     public MeshBuffer GlowMesh { get; } = Glow ?? new MeshBuffer();

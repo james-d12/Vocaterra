@@ -33,7 +33,7 @@ public sealed class VoxelChunk
     private int _nonAir;
     private byte[]? _water;
     private int _flowing;
-    private ulong _kinds;
+    private UInt128 _kinds;
     private bool _kindsValid;
 
     internal VoxelChunk(VoxelChunkCoord coord) => Coord = coord;
@@ -60,19 +60,19 @@ public sealed class VoxelChunk
     public bool IsEmpty => _nonAir == 0;
 
     /// <summary>
-    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 64). Computed on first use after an edit and cached,
+    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 128, see BlockKinds.Capacity). Computed on first use after an edit and cached,
     /// so a search for one kind skips every chunk without it.
     /// </summary>
-    public ulong KindMask
+    public UInt128 KindMask
     {
         get
         {
             if (!_kindsValid)
             {
-                var mask = 0UL;
+                UInt128 mask = 0;
                 foreach (var block in Blocks)
                 {
-                    mask |= 1UL << (int)block;
+                    mask |= BlockKinds.Bit(block);
                 }
 
                 _kinds = mask;
