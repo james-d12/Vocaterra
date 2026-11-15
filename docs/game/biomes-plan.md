@@ -479,7 +479,7 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 
 **Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
-agent max", so one at a time from then on): each milestone starts as soon as
+agent max", so one at a time; that evening "you can have up to 4 agents now", D-game-34 item 19): each milestone starts as soon as
 its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
 the work that depends on the review waits. The first waves:
 1. B01, B04a and B08a
@@ -630,3 +630,4 @@ series, `docs/game/biomes-plan.md`).*
 | B08a | done 2026-11-15 | `e6eb6e3f`: 11,785 passed, 3 skipped | the pass in the bounded valley: a graded cutting from the village to the east edge (383, 208, y 58), the `paso` sites, the rockfall, the stamp's `floorY`; report `.claude/briefs/b08a-report.md`, merge `.claude/briefs/b08a-merge-report.md` |
 | B06 | done 2026-11-15 | `f5a8dbbe`: 11,879 passed, 3 skipped | regions (`IRegion`, `RegionCatalog`, `AuthoredReliefRegion`), the blend (`regionBlend` in world.json: margin 64, edge smoothing, trees thinned, land bias to 512 blocks, the exit corridor from the pass), `CompositeChunkSource`, `WorldFactory` (bounded and streamed), `ChunkStreamer`, `Scene.Places`, the `WorldFacts` window; the dense-member allow-list empty; report `.claude/briefs/b06-report.md` |
 | (rivers) | 2026-11-15: the owner, on B06's pictures (rivers stop at the blend margin): rivers near a region start in the hills, as headwaters (D-game-34 item 18) | none | added to B02b |
+| (four agents) | 2026-11-15, about 21:45 UTC: the owner: "you can have up to 4 agents now" (D-game-34 item 19) | none | B08b, B09 and B15 launched beside B02b |

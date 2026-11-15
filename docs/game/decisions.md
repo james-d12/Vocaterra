@@ -822,6 +822,9 @@ the owner's answers of 2026-11-15 are in its section 5.
     margin): near a region a river narrows and shallows to a stream and starts at a spring or a small pond on the slopes outside the
     margin, and flows away to a lake or the sea; no river or lake water inside the margin, and no lake cut straight by it. Chosen over
     bending rivers round the valley and over rivers flowing through it (which would change the hand-made valley). B02b does it.
+19. **Up to four agents** (2026-11-15, about 21:45 UTC): "you can have up to 4 agents now". Item 17's one agent becomes up to four
+    building agents at once; heavy commands go back to `scripts/limited.sh`'s two machine-wide slots. No game windows still waits for
+    the owner's word that he has finished playing.
 
 ## Already decided
 
