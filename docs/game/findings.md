@@ -2599,3 +2599,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   The maps showed needle ranges, inland "ocean" basins, steep coasts with flat sea floors, snow on cold lowland and short or looping
   rivers; the owner ruled on them (D-game-34 item 16) and B02b tunes them. Its first gate was stopped before its tests when the owner
   stopped the work (the unverified merge was reset away); re-run at one heavy slot: 11,769 passed, 3 skipped.
+- **B04b, the game's consumers keyed by chunk coordinate (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b04b-game-consumers.md`, report `.claude/briefs/b04b-report.md`. The renderer, `ChunkVersionTracker`, `ChunkViewSet`,
+  the rain cover and a new `ChunkLightIndex` read only through `TryGetChunk`, `PeekBlock` and `Limits` and forget a chunk on eviction;
+  meshes, glow and the view list equal the dense versions (tested), and 31 of 32 scripted runs were identical (r17-speak's voice
+  timing). Findings: the player's placed torch (`antorcha`, `BlockId.Torch`) is not a light kind, so a torch lighting a cave (B12)
+  needs it made one; the light index misses `FillColumn` writes made after it is built (only the scene build uses them). It conflicted
+  with B05 in the dense-member allow-list; a Haiku agent merged B05 in, leaving only the three B06 entries (its reason pattern now
+  also admits a `B05:` tag, harmless with no such entry and moot when B06 empties the list). Gated: 11,779 passed, 3 skipped.
