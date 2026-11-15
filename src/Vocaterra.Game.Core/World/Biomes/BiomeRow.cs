@@ -48,9 +48,9 @@ public sealed record BiomeConditions(
 }
 
 /// <summary>One kind of tree a biome grows, by the name of a code strategy.</summary>
-/// <param name="Species">The species' name (<see cref="TreeStrategies.Species"/>).</param>
+/// <param name="Species">The species' name (<see cref="Generation.Procedural.StrategyRegistry.SpeciesNames"/>).</param>
 /// <param name="Weight">Its share among the biome's species (positive).</param>
-/// <param name="Crown">The crown shape's name (<see cref="TreeStrategies.Crowns"/>), or <see langword="null"/> for the species' own.</param>
+/// <param name="Crown">The crown shape's name (<see cref="Generation.Procedural.StrategyRegistry.CrownNames"/>), or <see langword="null"/> for the species' own.</param>
 public sealed record TreeEntry(string Species, int Weight, string? Crown);
 
 /// <summary>The trees of a biome.</summary>
@@ -91,6 +91,8 @@ public sealed record DecorRule(int Density, IReadOnlyList<DecorEntry> Blocks)
 /// <param name="Decor">The undergrowth.</param>
 /// <param name="SnowCap">Whether snow covers the top where the surface temperature is below the snow threshold.</param>
 /// <param name="BaseTemperature">An optional base temperature of the biome in thousandths, for the temperature system to come (data only: nothing reads it yet).</param>
+/// <param name="SurfaceStrategy">The name of the code strategy that shapes the biome's own ground (B03, D-game-34 item 13), a name of the strategy and never a biome id.</param>
+/// <param name="DecorStrategy">The name of the code strategy that dresses the biome's ground with plants.</param>
 public sealed record BiomeRow(
     int Index,
     string Id,
@@ -102,4 +104,6 @@ public sealed record BiomeRow(
     TreeRule Trees,
     DecorRule Decor,
     bool SnowCap,
-    int? BaseTemperature);
+    int? BaseTemperature,
+    string SurfaceStrategy = Generation.Procedural.StrategyRegistry.PlainSurface,
+    string DecorStrategy = Generation.Procedural.StrategyRegistry.UndergrowthDecoration);

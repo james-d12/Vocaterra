@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.World.Biomes;
@@ -90,7 +91,9 @@ public sealed record BiomeData(int DitherTemperature, int DitherHumidity, IReadO
             trees,
             decor,
             row.TryGetProperty("snowCap", out var snow) && snow.GetBoolean(),
-            row.TryGetProperty("baseTemperature", out var baseTemperature) ? baseTemperature.GetInt32() : null);
+            row.TryGetProperty("baseTemperature", out var baseTemperature) ? baseTemperature.GetInt32() : null,
+            row.TryGetProperty("surfaceStrategy", out var surface) ? surface.GetString() ?? string.Empty : StrategyRegistry.PlainSurface,
+            row.TryGetProperty("decorStrategy", out var decorStrategy) ? decorStrategy.GetString() ?? string.Empty : StrategyRegistry.UndergrowthDecoration);
     }
 
     private static BiomeConditions ParseWhen(JsonElement when) => new(

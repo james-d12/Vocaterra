@@ -17,6 +17,7 @@ internal readonly record struct UnexitableEdge((int X, int Z) Water, (int X, int
 /// each of the four neighbouring columns that is dry the lowest standable floor from the bed up. The body leaves by walking when the floor is at most a step
 /// (<see cref="VoxelPhysics.StepHeight"/>) above the bed, and by the hop out (<see cref="SwimMotion.HopReach"/> above the feet, the feet as high as the swim state lets
 /// them be, read with <see cref="Immersion"/>) when the water is deep enough to swim. Anything else is an edge nobody can climb: a body gets in only by dropping off it.
+/// A floor of bridge blocks or of leaves is a structure or a crown over the water and not a bank.
 /// </summary>
 internal static class UnexitableEdges
 {
@@ -61,6 +62,11 @@ internal static class UnexitableEdges
                 if (grid.GetBlock(bx, floorCell - 1, bz) == BlockId.Bridge || grid.GetBlock(bx, floorCell - 2, bz) == BlockId.Bridge)
                 {
                     continue;
+                }
+
+                if (BlockDefinition.IsLeaves(grid.GetBlock(bx, floorCell - 1, bz)))
+                {
+                    continue; // the floor is the top of a tree's crown over the water (B03: a generated forest leans over a river), not a bank
                 }
 
                 if (HoldsBackHigherWater(grid, top, bx, bz))
