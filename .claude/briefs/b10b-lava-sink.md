@@ -1,7 +1,7 @@
-You are implementing B10b, "The body sinks into lava", for the Vocaterra repository (C#, .NET 10). The language core is the engine
+You are implementing B10b, "The body sinks into lava; the ores easier to see", for the Vocaterra repository (C#, .NET 10). The language core is the engine
 Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nlp.* test and tool projects; the game is Vocaterra.Game.Core (the
 engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's work is in the game: the
-body's movement in Vocaterra.Game.Core, any view effect in Vocaterra.Game, and their tests.
+body's movement in Vocaterra.Game.Core, any view effect and the ores' art in Vocaterra.Game, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b10b, already on the local branch `B10b-lava-sink` (cut from
 `feature/biomes` at @@BASE@@, which holds B10's lava). Run every command from that directory. Commit after each item that builds and passes
 its tests, with the prefix `B10b: `. Do not push your branch. Never push or merge feature/biomes or main. When you finish, leave the
@@ -16,6 +16,9 @@ the words `eval` and `hash` in a command line). Model-gated tests need VOCATERRA
 
 **The owner's decision (2026-11-15, D-game-34 item 22):** "You should sink into it. Damage doesn't need to be done in this pr." B10 made
 lava stop the body like a solid block, so a body can stand on a lava surface; instead, the body sinks into lava.
+**And (2026-11-15, D-game-34 item 23):** "I think the ores should be more obvious. In terms of their colour." B10's ore tiles
+(artifacts/b-series/b10/tiles.png, the last three of the second row) have small, faint flecks: tin's pale grey is nearly invisible on
+stone, iron's tan is faint, copper's orange is small.
 
 Read first: CLAUDE.md; docs/game/implementation-plan.md sections 1, 3 and 6; .claude/briefs/b10-report.md (lava 61: `Solid=false`,
 `Liquid=true`, `StopsBody`, `Glows`; `VoxelGrid.BlocksBody`, SleepWalk's and the mesher's copies honour `StopsBody`); how the body moves
@@ -28,7 +31,7 @@ decisions.md or docs/game/biomes-plan.md (the orchestrator does); engine code on
 later series). The valley stays byte-identical (`SceneTests.GoldenDigest` does not move; no lava stands in it). Keep off the files other
 agents are changing now: src/Vocaterra.Game/Program.cs, VoxelGame.cs's start-up, Graphics/World and the edge wall (B07, which also
 touches the body's collision at the valley's edge: keep your change to how a liquid cell acts on the body, and expect a small merge),
-World/Generation and World/Underground (B11), world.json and biomes.json (B02b).
+World/Generation and World/Underground (B11), world.json and biomes.json (B02b). In Graphics/Blocks change only the three ores' art.
 
 Deliverables:
 1. Lava acts on the body as a thick liquid: the body enters it and sinks slowly, moves slowly through it (well below its speed in
@@ -40,7 +43,14 @@ Deliverables:
 3. If the game tints the view when the eye is under water, tint it deep orange when the eye is in lava (Game project).
 4. Tests: a body dropped onto a lava pool sinks into it (not resting on top); it moves slower in lava than in water; it can swim up and
    climb out at an edge; it takes no harm; the walk planner still avoids lava; `SceneTests.GoldenDigest` unchanged.
-5. Documents: docs/game/running.md (or where movement in water is described).
+5. The ores easier to see (src/Vocaterra.Game/Graphics/Blocks, `BlockArtNature`): on the same stone, larger clusters of strong colour
+   (several clusters of 3 to 6 pixels each per tile face), each with a darker rim and a lighter highlight so it stands out at a distance
+   and in shade: iron a warm peach-tan (about #D8A27A) with a brown rim, tin a bright silver-white with a cool blue tint (about #E6EEF5)
+   and a dark grey rim, copper a bright orange (about #E87A2C) with a few teal-green patina pixels (about #3FB59A). The three must be
+   told apart at a glance from each other and from granite. Their grey-world colours follow as today. Redraw the tile sheet B10 made
+   (stone, cobble, water and the nine tiles at 8x) before and after, to /home/james/Dev/Vocaterra/artifacts/b-series/b10b/ (outside git)
+   with an index.md; the PNG writer may stay a throwaway test as in B10, or become a small tool if it is cheap.
+6. Documents: docs/game/running.md (or where movement in water is described).
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
 (@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
@@ -49,5 +59,6 @@ Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
 
-Report, half a page: branch, commit SHA, worktree path; how lava acts on the body now (the numbers); the view tint; test counts; bugs
+Report, half a page: branch, commit SHA, worktree path; how lava acts on the body now (the numbers); the view tint; the ores' new
+colours and the pictures; test counts; bugs
 found and fixed; known-not-fixed; files touched outside the milestone's area. Leave out file dumps and long logs.

@@ -838,6 +838,9 @@ the owner's answers of 2026-11-15 are in its section 5.
 22. **The body sinks into lava** (2026-11-15, about 23:15 UTC, on B10's report that a body could stand on a lava surface): "You should
     sink into it. Damage doesn't need to be done in this pr." Lava acts on the body as a thick liquid (slow sinking, moving and
     swimming up); no harm in this series. B10b does it. Item 9's "lava only blocks the body" is replaced.
+23. **The ores easier to see** (2026-11-15, about 23:25 UTC, on B10's tile sheet): "I think the ores should be more obvious. In terms of
+    their colour." Larger clusters of strong colour with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with
+    green patina) on the same stone. Added to B10b.
 
 ## Already decided
 
