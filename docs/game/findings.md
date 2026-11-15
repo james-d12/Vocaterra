@@ -2549,3 +2549,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   chest stays). The kit's room is checked with the coins and the stake out, so `no_room` needs a bag without the stake. The checklist's
   `stake` step counts the bag plus one once the plot is owned, so it stays done after the purchase and a load (and reads 1/1 with
   `--own-plot`). No stake is given once land is owned. Gated: 11,469 passed, 3 skipped.
+- **B00, the B series registered (2026-11-15, on `feature/biomes`; D-game-34).** Brief `.claude/briefs/b00-register.md`. Section 4.14
+  of this plan, the open-items and index rows. The gate (`162dec4f`, 11,498 passed, 3 skipped) failed one test,
+  `MarkdownLinkTests`: the brief the orchestrator had committed beside it held two relative Markdown links, and the test scans
+  `.claude/briefs/` too. The agent's own run of the test passed because its branch predated the brief. Fixed by writing the links as
+  code; the test re-run passed. A brief names files as code, never as Markdown links.

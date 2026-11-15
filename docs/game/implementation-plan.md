@@ -552,7 +552,7 @@ The design, the owner's answers and the progress table are in [the biomes plan](
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| B00 | Register the series: D-game-34 decided, this section, the index rows, the handover | the owner accepts | S | Haiku 5.5 | in progress |
+| B00 | Register the series: D-game-34 decided, this section, the index rows, the handover | the owner accepts | S | Haiku 5.5 | done: gated at `162dec4f` on `feature/biomes` (2026-11-15), 11,498 passed |
 | B01 | Noise primitives, climate with altitude, the tall height model, `BiomeTable`, `world.json` and `biomes.json` with schemas and validators | B00 | L | Sonnet 5.5, high | planned |
 | B02 | `tools/Vocaterra.WorldPreview`: PNG maps and vertical slices of biomes and heights for three seeds (the owner reviews the maps before tuning) | B01 | S/M | Sonnet 5.5, medium | planned |
 | B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to -64 | B01 | L | Sonnet 5.5, high | planned |

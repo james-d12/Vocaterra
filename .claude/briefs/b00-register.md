@@ -16,7 +16,7 @@ Deliverables:
 1. docs/game/implementation-plan.md: a new section "### 4.14 A tall procedural world and biomes (the B series; owner, 2026-11-15,
    D-game-34)", placed after section 4.13's table and before "## 5. Findings log". Model it on section 4.12 and 4.13 (read lines 501 to
    547): a short paragraph (branch `feature/biomes`, commit prefix `B<nn>:`, milestone branches `B<nn>-<name>`; the design, the owner's
-   answers and the progress table are in [the biomes plan](biomes-plan.md); the statuses follow its section 8), then a table with the
+   answers and the progress table are in `[the biomes plan](biomes-plan.md)`; the statuses follow its section 8), then a table with the
    columns `| ID | What | Depends on | Size | Model | Status |`. One row per milestone B00 to B15 (B04a and B04b as separate rows), taken
    from the plan's section 4 table: "What" a one-line summary of the plan's milestone text, "Depends on" and "Size" as in the plan,
    "Model" written as `Haiku 5.5`, `Sonnet 5.5, medium` or `Sonnet 5.5, high` (the plan's "Haiku", "Sonnet medium", "Sonnet high").
@@ -24,9 +24,9 @@ Deliverables:
    4 ("Order") and the owner-review stops: B02 (the maps, before tuning), B07 (the performance gate and the pictures), B08 (the pass),
    B13 (caves and ores in the valley).
 2. docs/open-items.md: remove the `D-game-34` row from section 1 (the decision is answered); add a row to section 3 after the `Game Y`
-   row: `| Game B | B00 to B15: a tall procedural world round hand-crafted regions (biomes, ranges, rivers, lakes and sea; caves, lava,
-   rock layers and ores; the pass out of the valley, opened by the lessons) | registered 2026-11-15 (D-game-34); in progress on
-   `feature/biomes` | [biomes plan](game/biomes-plan.md) section 4 |`.
+   row with four cells. Series: Game B. Items: B00 to B15: a tall procedural world round hand-crafted regions (biomes, ranges, rivers,
+   lakes and sea; caves, lava, rock layers and ores; the pass out of the valley, opened by the lessons). State: registered 2026-11-15
+   (D-game-34); in progress on `feature/biomes`. Detail: a link "biomes plan" to `game/biomes-plan.md`, then "section 4".
 3. docs/README.md and docs/game/README.md: in the biomes-plan rows, change "proposed" to "decided" (the docs index row ends "D-game-34
    proposed": make it "D-game-34 decided"; the game README row says "The B series proposal" and "(D-game-34, proposed)": make them "The B
    series" and "(D-game-34)"; in the docs index row, "proposed 2026-11-15 on `feature/biomes`" becomes "registered 2026-11-15 on
