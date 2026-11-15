@@ -47,4 +47,7 @@ public enum SettingId
 
     /// <summary>The relaxed needs (half the rates, a faint instead of a death): 0 off, 1 on.</summary>
     RelaxedNeeds,
+
+    /// <summary>The pass cheat (B08b): 0 off, 1 on. On, the pass through the east ring opens at once (and stays open when it is turned off again).</summary>
+    PassCheat,
 }

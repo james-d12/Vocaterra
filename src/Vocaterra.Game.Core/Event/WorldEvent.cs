@@ -213,6 +213,9 @@ public static class WorldEvents
     /// <summary>The weather changed kind (E04; the detail is the new kind's id, a row of <c>game/weather.json</c>). Not raised for a load.</summary>
     public const string WeatherChanged = "weather_changed";
 
+    /// <summary>The pass through the east ring opened (B08b): the last required lesson was completed, or the cheat setting was turned on. Raised once; the detail is <c>lessons</c> or <c>cheat</c>. Not raised for a load.</summary>
+    public const string PassOpened = "pass_opened";
+
     /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -229,5 +232,6 @@ public static class WorldEvents
         PlotBought,
         CampPlaced,
         DayPhase, WeatherChanged,
+        PassOpened,
     ];
 }

@@ -33,7 +33,7 @@ public sealed class TemplateBlockIndex
         ArgumentNullException.ThrowIfNull(grid);
         var limits = grid.Limits;
         var chunks = new List<VoxelChunk>();
-        var chunkCount = new int[64];
+        var chunkCount = new int[BlockKinds.Capacity];
         for (var cy = limits.MinChunkY; cy < limits.EndChunkY; cy++)
         {
             for (var cz = limits.MinChunkZ; cz < limits.EndChunkZ; cz++)
@@ -47,9 +47,9 @@ public sealed class TemplateBlockIndex
 
                     chunks.Add(chunk);
                     var mask = chunk.KindMask;
-                    for (var kind = 1; kind < 64; kind++)
+                    for (var kind = 1; kind < BlockKinds.Capacity; kind++)
                     {
-                        if ((mask & (1UL << kind)) != 0)
+                        if ((mask & BlockKinds.Bit(kind)) != UInt128.Zero)
                         {
                             chunkCount[kind]++;
                         }
@@ -58,9 +58,9 @@ public sealed class TemplateBlockIndex
             }
         }
 
-        var wanted = 0UL;
+        UInt128 wanted = 0;
         var refused = new HashSet<BlockId>();
-        for (var kind = 1; kind < 64; kind++)
+        for (var kind = 1; kind < BlockKinds.Capacity; kind++)
         {
             if (chunkCount[kind] > MostChunksPerKind)
             {
@@ -68,14 +68,14 @@ public sealed class TemplateBlockIndex
             }
             else if (chunkCount[kind] > 0)
             {
-                wanted |= 1UL << kind;
+                wanted |= BlockKinds.Bit(kind);
             }
         }
 
         var lists = new Dictionary<BlockId, List<BlockPos>>();
         foreach (var chunk in chunks)
         {
-            if ((chunk.KindMask & wanted) == 0)
+            if ((chunk.KindMask & wanted) == UInt128.Zero)
             {
                 continue;
             }
@@ -85,7 +85,7 @@ public sealed class TemplateBlockIndex
             for (var i = 0; i < blocks.Length; i++)
             {
                 var block = blocks[i];
-                if (block == BlockId.Air || (wanted & (1UL << (int)block)) == 0)
+                if (block == BlockId.Air || (wanted & BlockKinds.Bit(block)) == UInt128.Zero)
                 {
                     continue;
                 }

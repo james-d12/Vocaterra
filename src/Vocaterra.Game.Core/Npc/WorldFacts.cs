@@ -53,7 +53,7 @@ public sealed class WorldFacts : IGuideFacts
     private static readonly (int X, int Y, int Z)[] JoinedSteps = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)];
 
     private readonly Func<int, int, int, BlockId> _blockAt;
-    private readonly Func<int, int, int, ulong>? _chunkKinds;
+    private readonly Func<int, int, int, UInt128>? _chunkKinds;
     private readonly NounCatalog _nouns;
     private readonly DirectionWords _directions;
 
@@ -69,7 +69,7 @@ public sealed class WorldFacts : IGuideFacts
     /// <param name="nouns">The noun catalogue.</param>
     /// <param name="directions">The direction phrases of the answers (<c>game/words.json</c>, C05).</param>
     /// <param name="chunkKinds">The block kinds each chunk holds, or <see langword="null"/> to read every block.</param>
-    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, ulong>? chunkKinds = null)
+    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, UInt128>? chunkKinds = null)
     {
         _directions = directions ?? throw new ArgumentNullException(nameof(directions));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeX);
@@ -92,7 +92,7 @@ public sealed class WorldFacts : IGuideFacts
     /// <param name="nouns">The noun catalogue.</param>
     /// <param name="directions">The direction phrases of the answers.</param>
     /// <param name="chunkKinds">The block kinds each chunk holds, or <see langword="null"/> to read every block.</param>
-    public WorldFacts(WorldWindow bounds, Func<GuideViewpoint, WorldWindow> searchWindow, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, ulong>? chunkKinds = null)
+    public WorldFacts(WorldWindow bounds, Func<GuideViewpoint, WorldWindow> searchWindow, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, UInt128>? chunkKinds = null)
     {
         _bounds = bounds;
         _searchWindow = searchWindow ?? throw new ArgumentNullException(nameof(searchWindow));
@@ -125,7 +125,7 @@ public sealed class WorldFacts : IGuideFacts
             (cx, cy, cz) =>
             {
                 var coord = new VoxelChunkCoord(cx, cy, cz);
-                return grid.IsStreamed ? grid.GetChunk(coord).KindMask : grid.TryGetChunk(coord, out var chunk) ? chunk.KindMask : 0UL;
+                return grid.IsStreamed ? grid.GetChunk(coord).KindMask : grid.TryGetChunk(coord, out var chunk) ? chunk.KindMask : UInt128.Zero;
             });
     }
 
@@ -145,7 +145,7 @@ public sealed class WorldFacts : IGuideFacts
         }
 
         var box = window ?? WorldWindow.Of(grid.Limits);
-        var copied = new Dictionary<VoxelChunkCoord, (BlockId[] Blocks, ulong Kinds)>();
+        var copied = new Dictionary<VoxelChunkCoord, (BlockId[] Blocks, UInt128 Kinds)>();
         for (var cy = box.MinY >> ChunkShift; cy < (box.EndY + ChunkSize - 1) >> ChunkShift; cy++)
         {
             for (var cz = box.MinZ >> ChunkShift; cz < (box.EndZ + ChunkSize - 1) >> ChunkShift; cz++)
@@ -210,12 +210,12 @@ public sealed class WorldFacts : IGuideFacts
             return null;
         }
 
-        var mask = 0UL;
+        UInt128 mask = 0;
         for (var kind = 0; kind < wanted.Length; kind++)
         {
             if (wanted[kind])
             {
-                mask |= 1UL << kind;
+                mask |= BlockKinds.Bit(kind);
             }
         }
 
@@ -257,7 +257,7 @@ public sealed class WorldFacts : IGuideFacts
 
             for (var cy = firstY; cy < endY; cy++)
             {
-                if (_chunkKinds is { } kindsOf && (kindsOf(cx, cy, cz) & mask) == 0)
+                if (_chunkKinds is { } kindsOf && (kindsOf(cx, cy, cz) & mask) == UInt128.Zero)
                 {
                     continue;
                 }
@@ -385,7 +385,7 @@ public sealed class WorldFacts : IGuideFacts
         return centre < low ? low - centre : centre > high ? centre - high : 0;
     }
 
-    private bool ChunkColumnMayHold(int cx, int cz, int firstY, int endY, ulong mask)
+    private bool ChunkColumnMayHold(int cx, int cz, int firstY, int endY, UInt128 mask)
     {
         if (_chunkKinds is not { } kindsOf)
         {
@@ -394,7 +394,7 @@ public sealed class WorldFacts : IGuideFacts
 
         for (var cy = firstY; cy < endY; cy++)
         {
-            if ((kindsOf(cx, cy, cz) & mask) != 0)
+            if ((kindsOf(cx, cy, cz) & mask) != UInt128.Zero)
             {
                 return true;
             }
