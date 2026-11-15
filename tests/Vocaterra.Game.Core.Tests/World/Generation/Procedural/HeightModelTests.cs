@@ -30,7 +30,7 @@ public sealed class HeightModelTests
 
         var shape = model.Shape(10, 20, Climate(-4096, 2000, 1000));
 
-        Assert.InRange(shape.Height, 8, 24);
+        Assert.InRange(shape.Height, -64, -20); // the deep ocean (B02b): the sea floor falls to well under y 0
         Assert.True(shape.Water);
         Assert.Equal(World.Vertical.SeaLevel, shape.WaterLevel);
     }
@@ -42,7 +42,7 @@ public sealed class HeightModelTests
 
         var shape = model.Shape(10, 20, Climate(4096, 4096, 3000));
 
-        Assert.InRange(shape.Height, 100, 135);
+        Assert.InRange(shape.Height, 80, 110);
         Assert.False(shape.Water);
         Assert.Equal(-1, shape.WaterLevel);
     }
@@ -129,12 +129,45 @@ public sealed class HeightModelTests
     }
 
     [Fact]
+    public void Given_RuggedCrestClimateOverTheSea_When_TheColumnsAreShaped_Then_TheCoastFadesThePeaksSoNoIslandRisesFromTheWater()
+    {
+        var faded = new HeightModel(World, 42);
+        var unfaded = new HeightModel(World with { Height = World.Height with { CoastData = null } }, 42);
+        var (highestFaded, highestUnfaded) = (int.MinValue, int.MinValue);
+        for (var i = 0; i < 300; i++)
+        {
+            var sea = Climate(150, -4096, 4096); // the shore is at 75 thousandths, so 150 of 4096 is the sea; the erosion and ridges are the highest range's
+            highestFaded = Math.Max(highestFaded, faded.Shape(i * 11, i * 7, sea).Height);
+            highestUnfaded = Math.Max(highestUnfaded, unfaded.Shape(i * 11, i * 7, sea).Height);
+        }
+
+        Assert.True(highestFaded < World.Vertical.SeaLevel, $"the faded sea reaches {highestFaded}");
+        Assert.True(highestUnfaded > World.Vertical.SeaLevel + 100, $"without the coast the same climate reaches {highestUnfaded}");
+    }
+
+    [Fact]
+    public void Given_TheHillsAtTheCoastAndFarInland_When_TheColumnsAreShaped_Then_TheCoastIsCalmerAndInlandIsRugged()
+    {
+        var model = new HeightModel(World, 42);
+        int Spread(int continentalness)
+        {
+            var heights = Enumerable.Range(0, 400).Select(i => model.Shape(i * 5, i * 3, Climate(continentalness, -4096, 0)).Height).ToArray();
+            return heights.Max() - heights.Min();
+        }
+
+        var coast = Spread(300); // the coast's hills: a quarter of their amplitude
+        var inland = Spread(1600);
+        Assert.True(coast <= 5, $"hills at the coast span {coast} blocks");
+        Assert.True(inland >= coast + 3, $"hills far inland span {inland} blocks, at the coast {coast}");
+    }
+
+    [Fact]
     public void Given_ALowlandRiverField_When_AColumnOnTheCentreLineIsShaped_Then_ItIsCarvedBelowTheSeaAndABankIsNot()
     {
         var model = new HeightModel(World, 42);
 
-        var river = model.Shape(100, 100, Climate(0, 4096, 0, river: 0));
-        var bank = model.Shape(100, 100, Climate(0, 4096, 0, river: 4096));
+        var river = model.Shape(100, 100, Climate(820, 4096, 0, river: 0));
+        var bank = model.Shape(100, 100, Climate(820, 4096, 0, river: 4096));
 
         Assert.Equal(4096, river.RiverWeight);
         Assert.True(river.Water);
@@ -165,7 +198,7 @@ public sealed class HeightModelTests
         {
             for (var x = -3000; x < 3000; x += 16)
             {
-                var shape = model.Shape(x, z, Climate(450, 3000, 0));
+                var shape = model.Shape(x, z, Climate(900, 3000, 0));
                 if (shape.LakeWeight > 0 && shape.Water)
                 {
                     lakes++;
@@ -180,7 +213,7 @@ public sealed class HeightModelTests
         }
 
         Assert.True(lakes > 100, $"{lakes} lake columns in a 6000-block square of lowland");
-        Assert.Equal(0, model.Shape(0, 0, Climate(450, -4096, 0)).LakeWeight); // rugged land holds no lake
+        Assert.Equal(0, model.Shape(0, 0, Climate(900, -4096, 0)).LakeWeight); // rugged land holds no lake
         Assert.Equal(0, model.Shape(0, 0, Climate(4096, 3000, 0)).LakeWeight); // and neither does the high plateau
     }
 
@@ -231,7 +264,6 @@ public sealed class HeightModelTests
     [Fact]
     public void Given_ASeedAndColumns_When_ShapedTwiceOrFar_Then_TheShapeIsTheSameAndAnotherSeedGivesAnother()
     {
-        var climate = new ClimateSampler(World, 42);
         var a = new HeightModel(World, 42);
         var b = new HeightModel(World, 42);
         var other = new HeightModel(World, 43);
@@ -240,7 +272,7 @@ public sealed class HeightModelTests
         {
             for (var i = 0; i < 100; i++)
             {
-                var c = climate.At(origin + i, origin - i);
+                var c = Climate(1600, -1000, 1000); // rugged inland land, where the hills show
                 Assert.Equal(a.Shape(origin + i, origin - i, c), b.Shape(origin + i, origin - i, c));
                 differing += a.Shape(origin + i, origin - i, c) != other.Shape(origin + i, origin - i, c) ? 1 : 0;
             }

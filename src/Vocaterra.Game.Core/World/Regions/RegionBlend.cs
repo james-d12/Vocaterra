@@ -131,11 +131,19 @@ internal sealed class BlendedHeightModel : IHeightModel
         _corridors = [.. blend.Data.ExitCorridors.Select(spec => Corridor.Build(spec, this, climate, blend))];
     }
 
+    /// <summary>The share of the free world's water a column keeps: none within the margin, growing over the headwater distance beyond it (a smoothstep) to all of it.</summary>
+    /// <param name="distance">The distance from the region's footprint.</param>
+    internal int WaterShare(int distance)
+    {
+        var margin = _blend.Data.Margin;
+        return distance <= margin ? 0 : IntMath.Smooth((distance - margin) * One / _blend.Data.Headwater.Distance);
+    }
+
     /// <summary>The ground without the corridors: the region's own inside, eased to the edge across the margin, and the inner model's beyond.</summary>
     private ColumnShape Eased(int x, int z, in ClimateSample c)
     {
-        var shape = _inner.Shape(x, z, c);
         var (region, distance) = _blend.Regions.Nearest(x, z);
+        var shape = region is not null && _inner is IHeadwaterHeightModel headwater ? headwater.Shape(x, z, c, WaterShare(distance)) : _inner.Shape(x, z, c);
         if (region is null || distance >= _blend.Data.Margin)
         {
             return shape;

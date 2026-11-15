@@ -111,6 +111,19 @@
             "inlandFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "inlandTo": { "type": "integer", "minimum": -1000, "maximum": 1000 }
           }
+        },
+        "coast": {
+          "type": "object",
+          "description": "Near the sea the peaks fade out and the hills calm down (B02b), so the shore is a gentle shelf and no rugged island rises from the water. Optional; without it the peaks and hills are the same everywhere.",
+          "required": ["peaksFrom", "peaksTo", "hillsFrom", "hillsTo", "hillsFloor"],
+          "additionalProperties": false,
+          "properties": {
+            "peaksFrom": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness, in thousandths, below which the peaks show nothing." },
+            "peaksTo": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness above which the peaks show in full; above peaksFrom." },
+            "hillsFrom": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness at and below which the hills keep only hillsFloor of their amplitude." },
+            "hillsTo": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness above which the hills keep all of it; above hillsFrom." },
+            "hillsFloor": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The share of the hills' amplitude, in thousandths, that remains at the coast." }
+          }
         }
       }
     },
@@ -141,6 +154,15 @@
             "floor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at the region's edge." },
             "shoreFloor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at radius blocks out; a little inland of the sea. No higher than the floor." },
             "radius": { "type": "integer", "minimum": 8, "maximum": 8192, "description": "The distance in blocks over which the floor falls from floor to shoreFloor (and at that rate beyond it); at least the margin." }
+          }
+        },
+        "headwater": {
+          "type": "object",
+          "description": "How the rivers and lakes near a region give way to springs and ponds (B02b): none inside the margin, growing to the free world's over distance blocks beyond it.",
+          "required": ["distance"],
+          "additionalProperties": false,
+          "properties": {
+            "distance": { "type": "integer", "minimum": 1, "maximum": 4096, "description": "The blocks beyond the margin over which a river narrows and shallows to a stream that begins at a spring, and a lake shrinks to a pond." }
           }
         },
         "edgeSmoothing": {

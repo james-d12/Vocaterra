@@ -63,6 +63,11 @@ internal static class WorldGenValidator
             problems.Add($"{File}: regionBlend.edgeSmoothing needs a blurRadius from 0 to 64 columns and an ease from 1 to the margin (they are {smoothing.BlurRadius} and {smoothing.Ease}).");
         }
 
+        if (blend.Headwater.Distance < 1 || blend.Headwater.Distance > 4096)
+        {
+            problems.Add($"{File}: regionBlend.headwater.distance must be from 1 to 4096 blocks (it is {blend.Headwater.Distance}).");
+        }
+
         foreach (var corridor in blend.ExitCorridors)
         {
             var length = (int)Mathematics.IntMath.ISqrt(((long)(corridor.ToX - corridor.FromX) * (corridor.ToX - corridor.FromX)) + ((long)(corridor.ToZ - corridor.FromZ) * (corridor.ToZ - corridor.FromZ)));
@@ -167,6 +172,15 @@ internal static class WorldGenValidator
         Thousandths(problems, "height.lakes.threshold", l.Threshold);
         Ordered(problems, "height.lakes.calmFrom/calmTo", l.CalmFrom, l.CalmTo, -1000, 1000);
         Ordered(problems, "height.lakes.inlandFrom/inlandTo", l.InlandFrom, l.InlandTo, -1000, 1000);
+        if (h.CoastData is { } coast)
+        {
+            Ordered(problems, "height.coast.peaksFrom/peaksTo", coast.PeaksFrom, coast.PeaksTo, -1000, 1000);
+            Ordered(problems, "height.coast.hillsFrom/hillsTo", coast.HillsFrom, coast.HillsTo, -1000, 1000);
+            if (coast.HillsFloor < 0 || coast.HillsFloor > 1000)
+            {
+                problems.Add($"{File}: height.coast.hillsFloor must be from 0 to 1000 thousandths (it is {coast.HillsFloor}).");
+            }
+        }
     }
 
     private static void CheckSpline(List<string> problems, string name, IReadOnlyList<SplinePoint> points, int minX, int maxX, int minY, int maxY)

@@ -17,8 +17,9 @@ public sealed class RegionBlendDataTests
         var blend = Shipped.Blend;
 
         Assert.Equal((64, 3), (blend.Margin, blend.TreeClearance));
-        Assert.Equal(new LandBiasSpec(100, -120, 512), blend.LandBias);
+        Assert.Equal(new LandBiasSpec(150, 105, 512), blend.LandBias);
         Assert.Equal(new EdgeSmoothingSpec(16, 16), blend.Smoothing);
+        Assert.Equal(new HeadwaterSpec(320), blend.Headwater); // a few hundred blocks beyond the margin (B02b)
         var corridor = Assert.Single(blend.ExitCorridors);
         Assert.Equal((383, 208), (corridor.FromX, corridor.FromZ)); // the pass's road ends at x 383, z about 208 (B08a)
         Assert.True(corridor.ToX > corridor.FromX);
@@ -71,6 +72,27 @@ public sealed class RegionBlendDataTests
         var bad = Shipped with { RegionBlend = Shipped.Blend with { EdgeSmoothing = new EdgeSmoothingSpec(blurRadius, ease) } };
 
         Assert.Contains(Problems(bad), static p => p.Contains("edgeSmoothing", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5000)]
+    public void Given_AHeadwaterDistanceOutOfRange_When_TheWorldIsValidated_Then_ItIsRefused(int distance)
+    {
+        var bad = Shipped with { RegionBlend = Shipped.Blend with { HeadwaterSpec = new HeadwaterSpec(distance) } };
+
+        Assert.Contains(Problems(bad), static p => p.Contains("headwater", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Given_ASectionWithNoHeadwaterPart_When_ItIsParsed_Then_TheDefaultHeadwaterIsUsed()
+    {
+        var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "world.json")).Replace("\"headwater\": { \"distance\": 320 },", string.Empty, StringComparison.Ordinal);
+
+        var world = WorldGenData.Parse(json);
+
+        Assert.Equal(HeadwaterSpec.Default, world.Blend.Headwater);
+        Assert.Empty(Problems(world));
     }
 
     [Fact]

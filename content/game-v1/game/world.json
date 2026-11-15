@@ -2,36 +2,38 @@
   "$schema": "../../schema/world.schema.json",
   "schemaVersion": 1,
   "generated_by": "hand-authored",
-  "about": "The procedural world's numbers (B01, D-game-34). vertical is the range of block rows (y -64 to 320, whole 16-block chunk layers) and the sea level, which stays 32 so the valley keeps its coordinates. climate gives the six smooth fields the world is made of, each a fractal of gradient noise (cell is the first octave's size in blocks, each octave halves it; warpBlocks bends the field by that many blocks at most) sampled every latticeBlocks blocks and interpolated; temperature falls by lapsePer100Blocks thousandths for every 100 blocks above the sea, and snow and trees follow that value against the thresholds in altitude. height holds three splines (points are [input, output]; an input is thousandths of the field's range): base from the continentalness (blocks), rangeFactor from the erosion (thousandths: how much of the peaks shows) and peaks from the ridges (blocks), so height = base + factor x peaks + hills; above softCapAbove the ground rises at half rate and never passes clamp. Terraces shape the steep middle slopes, crags the highest ridges, rivers are carved where the river field is near zero down to bedHeight (below the sea) and lakes pull low calm basins down to theirs. Every number is a whole number: lengths are blocks, field values thousandths of their range (-1000 to 1000). Biomes are in biomes.json; no word of Spanish belongs here. regionBlend (B06) is how the land outside an authored region (the valley) is eased into its edge: over margin blocks the ground eases to the edge's height, no trunk stands within treeClearance columns of the border and the trees thin across the margin, the continentalness never falls below a floor that runs from landBias.floor at the edge to landBias.shoreFloor at landBias.radius blocks out (so no sea opens at the valley's feet), the edge's own roughness is blurred over edgeSmoothing.blurRadius columns and the ground eases from the edge's exact height to the blurred one over edgeSmoothing.ease blocks (so the edge does not comb the land into ridges), and each exit corridor is a road of halfWidth blocks each side of the line from (fromX, fromZ) to (toX, toZ), its bank easing over shoulder blocks and giving way to the land over the last fade blocks. Field values are thousandths; every number is a whole number.",
+  "about": "The procedural world's numbers (B01, D-game-34). vertical is the range of block rows (y -64 to 320, whole 16-block chunk layers) and the sea level, which stays 32 so the valley keeps its coordinates. climate gives the six smooth fields the world is made of, each a fractal of gradient noise (cell is the first octave's size in blocks, each octave halves it; warpBlocks bends the field by that many blocks at most) sampled every latticeBlocks blocks and interpolated; temperature falls by lapsePer100Blocks thousandths for every 100 blocks above the sea, and snow and trees follow that value against the thresholds in altitude. height holds three splines (points are [input, output]; an input is thousandths of the field's range): base from the continentalness (blocks), rangeFactor from the erosion (thousandths: how much of the peaks shows) and peaks from the ridges (blocks), so height = base + factor x peaks + hills; above softCapAbove the ground rises at half rate and never passes clamp. Terraces shape the steep middle slopes, crags the highest ridges, rivers are carved where the river field is near zero down to bedHeight (below the sea) and lakes pull low calm basins down to theirs. Every number is a whole number: lengths are blocks, field values thousandths of their range (-1000 to 1000). Biomes are in biomes.json; no word of Spanish belongs here. regionBlend (B06) is how the land outside an authored region (the valley) is eased into its edge: over margin blocks the ground eases to the edge's height, no trunk stands within treeClearance columns of the border and the trees thin across the margin, the continentalness never falls below a floor that runs from landBias.floor at the edge to landBias.shoreFloor at landBias.radius blocks out (so no sea opens at the valley's feet), the edge's own roughness is blurred over edgeSmoothing.blurRadius columns and the ground eases from the edge's exact height to the blurred one over edgeSmoothing.ease blocks (so the edge does not comb the land into ridges), and each exit corridor is a road of halfWidth blocks each side of the line from (fromX, fromZ) to (toX, toZ), its bank easing over shoulder blocks and giving way to the land over the last fade blocks. Field values are thousandths; every number is a whole number. B02b (the owner's map review of B02): the continentalness is a continent-scale field (cell 4096) whose shore sits at 75 thousandths, so about two thirds of the map is sea and the seas are one connected ocean, with a long shelf each side of the shore (the base spline falls from y 32 at the shore to y -44 far out and rises gently inland); height.coast fades the peaks out over the land near the sea (peaksFrom to peaksTo) and calms the hills there (hillsFrom to hillsTo, keeping hillsFloor thousandths of their amplitude) so no rugged island rises from the water; the ridges and erosion are wide fields (cells 4096 and 5120) and the peaks spline starts at ridges 520, so the ranges are chains with foothills, a spine at 200 to 300 and a share of the land above 150 several times B02's; the river field is wide (cell 2048) and the rivers are carved only on low land, so they run between the hills and the sea or a lake; the lakes are inland basins just beyond the shore (inlandFrom). regionBlend.headwater.distance is how many blocks beyond the blend margin a river narrows and shallows to a stream that begins at a spring, and a lake shrinks to a pond; inside the margin there is no river or lake.",
   "vertical": { "minY": -64, "maxY": 320, "seaLevel": 32 },
   "climate": {
     "latticeBlocks": 4,
-    "continentalness": { "cell": 2048, "octaves": 4, "warpCell": 512, "warpBlocks": 192 },
-    "erosion": { "cell": 1536, "octaves": 3 },
-    "ridges": { "cell": 1024, "octaves": 2, "warpCell": 256, "warpBlocks": 48 },
+    "continentalness": { "cell": 4096, "octaves": 3, "warpCell": 1024, "warpBlocks": 384 },
+    "erosion": { "cell": 5120, "octaves": 3 },
+    "ridges": { "cell": 4096, "octaves": 2, "warpCell": 1024, "warpBlocks": 256 },
     "temperature": { "cell": 3072, "octaves": 2 },
     "humidity": { "cell": 3072, "octaves": 2 },
-    "river": { "cell": 1024, "octaves": 2, "warpCell": 256, "warpBlocks": 96 },
+    "river": { "cell": 2048, "octaves": 2, "warpCell": 512, "warpBlocks": 192 },
     "lapsePer100Blocks": 250
   },
   "height": {
-    "base": [[-1000, 12], [-500, 16], [-300, 23], [-190, 27], [-150, 30], [-135, 34], [-110, 39], [-60, 41], [0, 42], [150, 52], [250, 64], [350, 84], [500, 110], [1000, 120]],
-    "rangeFactor": [[-1000, 1000], [-250, 1000], [0, 500], [250, 100], [500, 0], [1000, 0]],
-    "peaks": [[0, 0], [550, 0], [700, 30], [820, 100], [900, 190], [1000, 190]],
+    "base": [[-1000, -56], [-405, -44], [-285, -26], [-175, -6], [-85, 12], [-15, 23], [45, 29], [75, 32], [125, 36], [185, 42], [255, 50], [335, 58], [415, 68], [495, 78], [645, 90], [1000, 96]],
+    "rangeFactor": [[-1000, 1000], [0, 1000], [130, 650], [260, 250], [380, 0], [1000, 0]],
+    "peaks": [[0, 0], [520, 0], [620, 35], [700, 90], [780, 145], [860, 195], [940, 228], [1000, 240]],
     "detail": { "hillsCell": 64, "hillsOctaves": 4, "calmAmplitude": 3, "ruggedAmplitude": 10 },
     "softCapAbove": 280,
     "clamp": 310,
     "terraces": { "step": 4, "fromHeight": 100, "toHeight": 150, "ridgesFrom": 700, "ridgesTo": 900 },
-    "crags": { "amplitude": 14, "cell": 24, "ridgesFrom": 750, "ridgesTo": 900, "heightFrom": 170, "heightTo": 230 },
-    "rivers": { "width": 40, "bedHeight": 27, "fadeFromHeight": 60, "fadeToHeight": 84, "seaFadeFrom": -400, "seaFadeTo": -150 },
-    "lakes": { "cell": 384, "octaves": 2, "threshold": 50, "softness": 100, "bedHeight": 29, "calmFrom": -100, "calmTo": 200, "heightFrom": 50, "heightTo": 64, "inlandFrom": -50, "inlandTo": 100 }
+    "crags": { "amplitude": 14, "cell": 24, "ridgesFrom": 800, "ridgesTo": 930, "heightFrom": 170, "heightTo": 230 },
+    "rivers": { "width": 14, "bedHeight": 27, "fadeFromHeight": 60, "fadeToHeight": 84, "seaFadeFrom": -155, "seaFadeTo": 65 },
+    "lakes": { "cell": 640, "octaves": 2, "threshold": 0, "softness": 120, "bedHeight": 29, "calmFrom": -300, "calmTo": 100, "heightFrom": 46, "heightTo": 60, "inlandFrom": 125, "inlandTo": 200 },
+    "coast": { "peaksFrom": 100, "peaksTo": 200, "hillsFrom": 65, "hillsTo": 205, "hillsFloor": 250 }
   },
-  "altitude": { "snowBelowTemperature": -400, "treeLineBelowTemperature": -300 },
+  "altitude": { "snowBelowTemperature": -400, "treeLineBelowTemperature": -480 },
   "regionBlend": {
     "margin": 64,
     "treeClearance": 3,
-    "landBias": { "floor": 100, "shoreFloor": -120, "radius": 512 },
+    "landBias": { "floor": 150, "shoreFloor": 105, "radius": 512 },
     "edgeSmoothing": { "blurRadius": 16, "ease": 16 },
+    "headwater": { "distance": 320 },
     "exitCorridors": [
       { "id": "pass", "fromX": 383, "fromZ": 208, "toX": 479, "toZ": 208, "halfWidth": 3, "shoulder": 10, "fade": 32 }
     ]

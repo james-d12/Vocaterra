@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 
 /// <summary>
 /// The procedural goldens (B03): the digest of a block of 3 x 3 chunk columns (the 24 chunk digests of each column's layers, from y -64 to 320, hashed in order, the columns row by row) round a fixed
-/// column of each of three seeds, which hold a mountain, a coast, a river, a lake, a forest and open plains, so the borders between chunks, the crowns that cross them and the shores are in it. A change to any pass, strategy, species, data row or noise moves some of them, which is what they are for: when a change is meant, read the
+/// column of each of three seeds, which hold a mountain, a coast, a river, a lake, a forest and open plains (B02b moved the columns to where the tuned world has each, found by a search from the old ones), so the borders between chunks, the crowns that cross them and the shores are in it. A change to any pass, strategy, species, data row or noise moves some of them, which is what they are for: when a change is meant, read the
 /// new digests from the failure and put them here. Like <see cref="SceneTests.GoldenDigest"/> they are digests of blocks, so they hold across machines.
 /// </summary>
 public sealed class ProceduralGoldenTests(ITestOutputHelper output)
@@ -15,24 +15,24 @@ public sealed class ProceduralGoldenTests(ITestOutputHelper output)
     /// <summary>The golden columns: the seed, what is in the column, its chunk coordinates and its digest.</summary>
     public static TheoryData<ulong, string, int, int, string> Columns => new()
     {
-        { 42, "river", -12, -8, "b5c3b7171e09fc02d74c0ad48d376bb5cf1e7df97392865359acb02ec4d0045c" },
-        { 42, "lake", -100, -104, "9154ef8160d5b56250e99d00c5d9ffd2adbcbcdbebddc3e2795ab26fc816ee32" },
-        { 42, "coast", 16, 24, "1f802b2c84c9fed62dc243acfa7242700795d915103219f3eae34fb054f2e630" },
-        { 42, "forest", -52, -8, "9c0db7940385c17e0509dda3db25de489f96ff4f1ea0754d0f3461b2653fe5e0" },
-        { 42, "mountain", -64, -64, "e39e8d573fb9a210a567902158d9c952cff67fd9e333467a37b2c2620de74627" },
-        { 42, "plain", 24, 16, "9fef48527581254a7094f2de72e34055761ee88f1744bac0560546aee47c1fc3" },
-        { 7, "river", -8, 8, "4cbfe49f5671ce61a0e8c070a507343f1fa71b2fb3278b84cca3f441d48e13ba" },
-        { 7, "lake", -32, 20, "5a553da3a43a6854a0c41458ee55791a83bc55e75326298ee0d2eda74325abe5" },
-        { 7, "coast", 4, -16, "c1b92a8c55deeb65f858e038e0f79fa05c8af3676f6b830193a17858284d88e0" },
-        { 7, "forest", -20, 12, "0a3332af8842d7d15f90bbd92e5bc905dff6d1b5c1e66d7d919738d9eae8a70d" },
-        { 7, "mountain", 12, 8, "1832c934631da60a181a4d05764a20a69ce32a7bc64760b146f96e6a45f6835a" },
-        { 7, "plain", 12, -20, "bc12068b5430c2ca0b91c1c969fe0a7a595466e2c08cfaba9dc2fda147cc3e4d" },
-        { 2026, "river", -4, -12, "3aa7aade4634e6979546f4b6de2f42ac69239998476c5e35e958a6da100ca773" },
-        { 2026, "lake", 16, 20, "ead6457762d57d9e894a23b897d1e105c7fce61f4154f41a4f2b9ebe2ee3940d" },
-        { 2026, "coast", 12, 0, "df6bdf0034e40c86ce41c5b216f79eb0fa1e864d4575bf57ea4130b8b74efe0a" },
-        { 2026, "forest", 184, -88, "5074693b3829e18aa32f84a9642859d3f78af43160411d4a905c24fb42c780ba" },
-        { 2026, "mountain", -24, 8, "07eb1d55c838c780567cb5932e8db5350e33a4f9dbe995fad2fb710f92889edc" },
-        { 2026, "plain", 16, 8, "7b1749e2a145bfa0037d15e9cfe1a37c181a67cc9e33d2980ca4b38b94c6a5e6" },
+        { 42, "river", 14, -25, "a6dd61912e501590e5461d0edc209efb5fca11aed4fea9bd62e57339a8f5bd97" },
+        { 42, "lake", 31, -98, "d13a19893627eca9263ecba1f2d76bfd2e68aa2b3dc3e35a5d44726f8a436687" },
+        { 42, "coast", 31, 8, "852f9952cce857bef3f1eabc4cda54082e3b28b569bce77ef6a214b6843816ae" },
+        { 42, "forest", -12, -76, "3579b301fe3ec3b2e3aeb66bceaa48f62198aec4ea93837c515e4b7bdf68672c" },
+        { 42, "mountain", -28, -100, "6c85f7d39240f60a7df9b54a0d68db728bad07ba5898f2cf2d84dc390e1aa254" },
+        { 42, "plain", 70, -30, "973640c8aada3c68c4bbeeb91c9f281f3cca8c957900a598491a8f11ccdad200" },
+        { 7, "river", -8, 8, "efbe7e5e601d2b3959f060eef7a743090f312bfa3ee5e26f667fbdf9785111e1" },
+        { 7, "lake", -122, -50, "dcc0d95a517a706eb3d0f2a2976bd79b664c246257346a287cd00154a2d20105" },
+        { 7, "coast", -11, -1, "eb5237ab22fe3c5532f3a72ec5f5c4ded5de070b6e3fd93ad431414f0703f803" },
+        { 7, "forest", -45, -13, "91960c9b91150f914e3c05a6e3ef000c2f7cc4a90f385da38ec3cc33f0ad7e36" },
+        { 7, "mountain", -184, -157, "b421a97aae36ab81144cb0083e551d08cde205167b32e7b15eedbf1ab418566f" },
+        { 7, "plain", 43, -76, "a9ae0a22265eb14472653e3764314b2fc3e6ec39465af3e6ebe18c63e2577d23" },
+        { 2026, "river", -7, 3, "410d1ab0dd7e109c7b3a47571188aaba6eb2fccb78ddf35c5bdfa4d6829b41af" },
+        { 2026, "lake", 20, 39, "44c2b25a2fbbdf7a01593ac53de349e21ece92533b811f846b70b9959300287c" },
+        { 2026, "coast", 3, 9, "8371c569ab51033bc78f2badb6fbd36abb321d68189187435bac3957d5bdcbef" },
+        { 2026, "forest", 184, -88, "d2054bcdd0a56d3b4a61613ea1b69ee9d45711081423d0bc651e05018f9fdd79" },
+        { 2026, "mountain", -21, 6, "56930ed4c4fa2febe8ddbc447aca0203a50c256f90a0bfb4a233fae05e34dd47" },
+        { 2026, "plain", 7, 21, "4cb8a8b841ec5d84504f3f21a339c1f1d6f00e37cdc3f490e70d4e13cd381cb7" },
     };
 
     /// <summary>The digest of the 3 x 3 columns round a column: the chunk digests of their layers, bottom to top, row by row, hashed together.</summary>

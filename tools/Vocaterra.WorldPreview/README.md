@@ -15,8 +15,9 @@ scripts/limited.sh dotnet run --project tools/Vocaterra.WorldPreview -- slice --
 | Command | Writes |
 |---|---|
 | `biomes` | each column in its biome row's colour; `<name>.legend.txt` lists each row's id, colour and share of the area |
-| `heights` | sea blue by depth, lowland green to upland brown to grey stone, white where snow lies, lit from the north-west; `<name>.stats.txt` gives the lowest and highest ground and the share of land above 100, 150, 200 and 250 blocks |
+| `heights` | sea blue by depth, lowland green to upland brown to grey stone, white where snow lies (where the biome table says snow covers the column: the row allows it and the surface temperature is below the threshold), lit from the north-west; `<name>.stats.txt` gives the lowest and highest ground and the share of land above 100, 150, 200 and 250 blocks |
 | `maps` | both, for the same area |
+| `stats` | no picture: the owner's map-review numbers (B02b) as text and, with `--out`, as a file: the water share, the sea (biome `ocean`) and its connectivity (bodies, the largest's share of the sea, the five largest), the share of the land above 150, 200 and 250, the lowest snow-covered ground, the rivers (bodies of `river-channel` columns, and how many reach the sea or a lake), and the coast profile (the mean ground by distance from the shore, on the land and out to sea). It names the biome ids `ocean`, `lake-basin` and `river-channel` |
 | `slice` | y -64 to 320: ground in the surface biome's colour, water blue, the snow line (white) and tree line (green), the sea level dashed yellow, ticks every 64 blocks up and every 1 024 along |
 
 `--world valley` (B06) samples the world as the streamed game makes it round the valley, through the scene's place query (`Scene.Places`): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land. Its maps carry the outlines of the footprint (red), the end of the blend margin (orange) and the land bias's radius (dashed yellow); `--world free` (the default) is the procedural world alone.

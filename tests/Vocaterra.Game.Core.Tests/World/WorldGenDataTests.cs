@@ -27,9 +27,11 @@ public sealed class WorldGenDataTests
         Assert.Equal(Shipped.Height.Peaks, world.Height.Peaks);
         Assert.Equal(Shipped.Height with { Base = [], RangeFactor = [], Peaks = [] }, world.Height with { Base = [], RangeFactor = [], Peaks = [] });
         Assert.Equal(new VerticalRange(-64, 320, 32), world.Vertical);
-        Assert.Equal(new NoiseSpec(2048, 4, 512, 192), world.Climate.Continentalness);
-        Assert.Equal(new NoiseSpec(1536, 3, 0, 0), world.Climate.Erosion);
-        Assert.Equal(new SplinePoint(-1000, 12), world.Height.Base[0]);
+        Assert.Equal(new NoiseSpec(4096, 3, 1024, 384), world.Climate.Continentalness);
+        Assert.Equal(new NoiseSpec(5120, 3, 0, 0), world.Climate.Erosion);
+        Assert.Equal(new SplinePoint(-1000, -56), world.Height.Base[0]);
+        Assert.Equal(Shipped.Height.Coast, world.Height.Coast);
+        Assert.NotNull(world.Height.CoastData); // the coast fades the peaks and calms the hills
         Assert.Equal(4, world.Height.Terraces.Step);
         Assert.Equal(27, world.Height.Rivers.BedHeight);
         Assert.Equal(29, world.Height.Lakes.BedHeight);
@@ -101,6 +103,24 @@ public sealed class WorldGenDataTests
         Assert.True(Names(Problems(With(Shipped, static h => h with { Lakes = h.Lakes with { InlandFrom = 500, InlandTo = 100 } })), "inlandFrom"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { Detail = h.Detail with { HillsOctaves = 0 } })), "height.detail"));
         Assert.True(Names(Problems(Shipped with { Altitude = new AltitudeData(-2000, -300) }), "snowBelowTemperature"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(200, 100, 0, 100, 500) })), "height.coast.peaksFrom/peaksTo"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 100, 100, 500) })), "height.coast.hillsFrom/hillsTo"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 0, 100, 1500) })), "height.coast.hillsFloor"));
+    }
+
+    [Fact]
+    public void Given_AFileWithNoCoastSection_When_ItIsParsed_Then_ThePeaksAndHillsAreTheSameEverywhere()
+    {
+        var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "world.json"));
+        var cut = json.IndexOf(",\n    \"coast\"", StringComparison.Ordinal);
+        Assert.True(cut > 0);
+        var end = json.IndexOf('}', cut) + 1;
+
+        var world = WorldGenData.Parse(json[..cut] + json[end..]);
+
+        Assert.Null(world.Height.CoastData);
+        Assert.Equal(CoastSpec.None, world.Height.Coast);
+        Assert.Empty(Problems(world));
     }
 
     [Fact]

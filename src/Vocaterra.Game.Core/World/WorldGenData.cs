@@ -86,6 +86,20 @@ public sealed record RiverSpec(int Width, int BedHeight, int FadeFromHeight, int
 public sealed record LakeSpec(int Cell, int Octaves, int Threshold, int Softness, int BedHeight, int CalmFrom, int CalmTo, int HeightFrom, int HeightTo, int InlandFrom, int InlandTo);
 
 /// <summary>
+/// The coast (B02b): over the land near the sea the peaks fade out (no rugged island rises from the sea) and the hills calm down, so the shore is a gentle shelf and not a cliff.
+/// </summary>
+/// <param name="PeaksFrom">The continentalness, in thousandths, below which the peaks show nothing.</param>
+/// <param name="PeaksTo">The continentalness, in thousandths, above which the peaks show in full.</param>
+/// <param name="HillsFrom">The continentalness, in thousandths, at and below which the hills keep only <paramref name="HillsFloor"/> of their amplitude.</param>
+/// <param name="HillsTo">The continentalness, in thousandths, above which the hills keep all of it.</param>
+/// <param name="HillsFloor">The share of the hills' amplitude, in thousandths, that remains at the coast.</param>
+public sealed record CoastSpec(int PeaksFrom, int PeaksTo, int HillsFrom, int HillsTo, int HillsFloor)
+{
+    /// <summary>No coast: the peaks and the hills are the same everywhere (the world files before B02b).</summary>
+    public static CoastSpec None { get; } = new(-4000, -3999, -4000, -3999, 1000);
+}
+
+/// <summary>
 /// The height model's data: the three splines (the base from the continentalness, the range factor from the erosion, the peaks from the ridges), the detail, the caps, and the terraces, crags,
 /// rivers and lakes. A spline's inputs are thousandths of the field's range; the base's and the peaks' outputs are blocks; the range factor's output is thousandths (0 to 1 000).
 /// </summary>
@@ -99,6 +113,7 @@ public sealed record LakeSpec(int Cell, int Octaves, int Threshold, int Softness
 /// <param name="Crags">The crags.</param>
 /// <param name="Rivers">The rivers.</param>
 /// <param name="Lakes">The lakes.</param>
+/// <param name="CoastData">The coast's fading of the peaks and the hills (the file's <c>coast</c> section; none when the file has none).</param>
 public sealed record HeightData(
     IReadOnlyList<SplinePoint> Base,
     IReadOnlyList<SplinePoint> RangeFactor,
@@ -109,7 +124,12 @@ public sealed record HeightData(
     TerraceSpec Terraces,
     CragSpec Crags,
     RiverSpec Rivers,
-    LakeSpec Lakes);
+    LakeSpec Lakes,
+    CoastSpec? CoastData = null)
+{
+    /// <summary>The coast: the file's section, or <see cref="CoastSpec.None"/>.</summary>
+    public CoastSpec Coast => CoastData ?? CoastSpec.None;
+}
 
 /// <summary>The thresholds snow and trees follow, read against the climate temperature at the height in question (<see cref="Climate.IClimateSampler.TemperatureAt"/>).</summary>
 /// <param name="SnowBelowTemperature">Snow lies where the temperature, in thousandths, is below this.</param>
@@ -210,7 +230,10 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                 Int(lakes, "heightFrom"),
                 Int(lakes, "heightTo"),
                 Int(lakes, "inlandFrom"),
-                Int(lakes, "inlandTo")));
+                Int(lakes, "inlandTo")),
+            height.TryGetProperty("coast", out var coast)
+                ? new CoastSpec(Int(coast, "peaksFrom"), Int(coast, "peaksTo"), Int(coast, "hillsFrom"), Int(coast, "hillsTo"), Int(coast, "hillsFloor"))
+                : null);
     }
 
     private static int Int(JsonElement owner, string name) => owner.GetProperty(name).GetInt32();

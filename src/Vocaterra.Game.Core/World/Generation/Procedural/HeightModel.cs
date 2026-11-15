@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// zero and lakes pulled into low calm basins. The splines are of the fields, never of a biome, so a border between biomes cannot make a cliff. Everything is fixed point (heights in
 /// sixteenths of a block inside) and pure: the seed only keys the detail noise.
 /// </summary>
-public sealed class HeightModel : IHeightModel
+public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
 {
     private const int One = IntMath.One;
 
@@ -42,13 +42,23 @@ public sealed class HeightModel : IHeightModel
     }
 
     /// <inheritdoc />
-    public ColumnShape Shape(int x, int z, in ClimateSample c)
+    public ColumnShape Shape(int x, int z, in ClimateSample c) => Shape(x, z, c, One);
+
+    /// <inheritdoc />
+    ColumnShape IHeadwaterHeightModel.Shape(int x, int z, in ClimateSample c, int water) => Shape(x, z, c, water);
+
+    // The ground with a share of the water (the headwaters: One is the free world's rivers and lakes).
+    private ColumnShape Shape(int x, int z, in ClimateSample c, int share)
     {
+        var coast = _data.Coast;
         var factor = _factor.Evaluate(c.Erosion);
-        var h16 = _base.Evaluate(c.Continentalness) + (int)((long)factor * _peaks.Evaluate(c.Ridges) / One);
+        var inland = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.PeaksFrom), FieldScale.FromThousandths(coast.PeaksTo));
+        var h16 = _base.Evaluate(c.Continentalness) + (int)((long)(factor * (long)inland / One) * _peaks.Evaluate(c.Ridges) / One);
 
         var detail = _data.Detail;
         var amplitude = IntMath.Lerp(detail.CalmAmplitude, detail.RuggedAmplitude, factor);
+        var calm = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.HillsFrom), FieldScale.FromThousandths(coast.HillsTo));
+        amplitude = (int)((long)amplitude * IntMath.Lerp(FieldScale.FromThousandths(coast.HillsFloor), One, calm) / One);
         if (amplitude > 0)
         {
             h16 += (int)((long)_hills.Fbm(x, z, detail.HillsCell, detail.HillsOctaves) * amplitude * 16 / One);
@@ -65,13 +75,13 @@ public sealed class HeightModel : IHeightModel
         h16 = Math.Min(h16, (_data.Clamp * 16) + 15);
         var natural = h16;
 
-        var riverWeight = RiverWeight(c, natural);
+        var riverWeight = RiverWeight(c, natural, share);
         if (riverWeight > 0)
         {
             h16 = IntMath.Lerp(h16, Math.Min(h16, _data.Rivers.BedHeight * 16), riverWeight);
         }
 
-        var lakeWeight = LakeWeight(x, z, c, h16);
+        var lakeWeight = LakeWeight(x, z, c, natural, share);
         if (lakeWeight > 0)
         {
             h16 = IntMath.Lerp(h16, Math.Min(h16, _data.Lakes.BedHeight * 16), lakeWeight);
@@ -118,10 +128,17 @@ public sealed class HeightModel : IHeightModel
     }
 
     // 1 in the middle of a river, 0 beyond its width (the profile squared), faded out on high land and towards the sea.
-    private int RiverWeight(in ClimateSample c, int natural16)
+    // Near a region the river's width and its depth are scaled by the water's share: a narrow, shallow stream whose bed rises to the ground.
+    private int RiverWeight(in ClimateSample c, int natural16, int water)
     {
         var river = _data.Rivers;
-        var core = One - IntMath.Ramp(Math.Abs(c.River), 0, FieldScale.FromThousandths(river.Width));
+        var width = (int)((long)FieldScale.FromThousandths(river.Width) * water / One);
+        if (width == 0)
+        {
+            return 0;
+        }
+
+        var core = One - IntMath.Ramp(Math.Abs(c.River), 0, width);
         if (core == 0)
         {
             return 0;
@@ -130,15 +147,17 @@ public sealed class HeightModel : IHeightModel
         core = core * core / One; // the square narrows the water and leaves the banks a long gentle shoulder
 
         var weight = core * (One - IntMath.Ramp(natural16, river.FadeFromHeight * 16, river.FadeToHeight * 16)) / One;
-        return weight * IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(river.SeaFadeFrom), FieldScale.FromThousandths(river.SeaFadeTo)) / One;
+        weight = weight * IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(river.SeaFadeFrom), FieldScale.FromThousandths(river.SeaFadeTo)) / One;
+        return (int)((long)weight * water / One);
     }
 
-    // A lake where the lake field is high, the land inland, low and calm.
-    private int LakeWeight(int x, int z, in ClimateSample c, int h16)
+    // A lake where the lake field is high, the land inland, low and calm (the land as it was before the rivers).
+    // Near a region the lake shrinks (its threshold rises towards the top of the field) and shallows by the water's share, so it is a pond with a round shore and not a lake cut by a line.
+    private int LakeWeight(int x, int z, in ClimateSample c, int natural16, int water)
     {
         var lake = _data.Lakes;
         var calm = IntMath.Ramp(c.Erosion, FieldScale.FromThousandths(lake.CalmFrom), FieldScale.FromThousandths(lake.CalmTo));
-        var low = One - IntMath.Ramp(h16, lake.HeightFrom * 16, lake.HeightTo * 16);
+        var low = One - IntMath.Ramp(natural16, lake.HeightFrom * 16, lake.HeightTo * 16); // by the land before any river carved it, so a river on high ground cannot open a deep pit
         var inland = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(lake.InlandFrom), FieldScale.FromThousandths(lake.InlandTo));
         var weight = (long)calm * low / One * inland / One;
         if (weight == 0)
@@ -146,8 +165,8 @@ public sealed class HeightModel : IHeightModel
             return 0;
         }
 
-        var threshold = FieldScale.FromThousandths(lake.Threshold);
+        var threshold = FieldScale.FromThousandths(lake.Threshold) + (int)((long)One * (One - water) / One);
         var basin = IntMath.Ramp(_lakes.Fbm(x, z, lake.Cell, lake.Octaves), threshold, threshold + FieldScale.FromThousandths(lake.Softness));
-        return (int)(weight * basin / One);
+        return (int)(weight * basin / One * water / One);
     }
 }

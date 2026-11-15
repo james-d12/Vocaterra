@@ -11,10 +11,14 @@ namespace Vocaterra.Game.Core.World.Regions;
 /// <param name="LandBias">The pull of the continentalness towards land round a region.</param>
 /// <param name="ExitCorridors">The walkable ways out: a road that continues beyond an exit of a region, at a height of its own, for a short stretch.</param>
 /// <param name="EdgeSmoothing">How the edge's own roughness is smoothed away from the border (<see cref="EdgeSmoothingSpec.Default"/> when <see langword="null"/>).</param>
-public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec LandBias, IReadOnlyList<ExitCorridorSpec> ExitCorridors, EdgeSmoothingSpec? EdgeSmoothing = null)
+/// <param name="HeadwaterSpec">How the rivers and lakes near a region give way to springs and ponds (<see cref="Headwater"/> default when <see langword="null"/>).</param>
+public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec LandBias, IReadOnlyList<ExitCorridorSpec> ExitCorridors, EdgeSmoothingSpec? EdgeSmoothing = null, HeadwaterSpec? HeadwaterSpec = null)
 {
     /// <summary>The edge smoothing: the file's, or the default.</summary>
     public EdgeSmoothingSpec Smoothing => EdgeSmoothing ?? EdgeSmoothingSpec.Default;
+
+    /// <summary>The headwaters: the file's, or the default.</summary>
+    public HeadwaterSpec Headwater => HeadwaterSpec ?? Regions.HeadwaterSpec.Default;
 
     /// <summary>The section's name in <c>game/world.json</c>.</summary>
     public const string SectionName = "regionBlend";
@@ -57,7 +61,10 @@ public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec
             corridors,
             section.TryGetProperty("edgeSmoothing", out var smoothing)
                 ? new EdgeSmoothingSpec(smoothing.GetProperty("blurRadius").GetInt32(), smoothing.GetProperty("ease").GetInt32())
-                : EdgeSmoothingSpec.Default);
+                : EdgeSmoothingSpec.Default,
+            section.TryGetProperty("headwater", out var headwater)
+                ? new HeadwaterSpec(headwater.GetProperty("distance").GetInt32())
+                : Regions.HeadwaterSpec.Default);
     }
 }
 
@@ -96,4 +103,16 @@ public sealed record EdgeSmoothingSpec(int BlurRadius, int Ease)
 {
     /// <summary>The numbers a world file with no <c>edgeSmoothing</c> gets.</summary>
     public static EdgeSmoothingSpec Default { get; } = new(16, 16);
+}
+
+/// <summary>
+/// The headwaters of the rivers near a region (B02b): no river or lake reaches into the blend margin; over <see cref="Distance"/> blocks beyond it a river narrows and shallows to a stream whose
+/// channel floor rises to meet the ground (it begins at a spring, where the bed first falls under the sea) and a lake shrinks to a pond and then to nothing, so the water never ends in a trench
+/// or a straight cut. Beyond the margin and the distance the rivers and lakes are the free world's.
+/// </summary>
+/// <param name="Distance">The blocks beyond the margin over which the water grows from none to the free world's; at least 1.</param>
+public sealed record HeadwaterSpec(int Distance)
+{
+    /// <summary>The numbers a world file with no <c>headwater</c> gets.</summary>
+    public static HeadwaterSpec Default { get; } = new(320);
 }

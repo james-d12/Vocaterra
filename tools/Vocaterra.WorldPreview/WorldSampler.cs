@@ -172,7 +172,7 @@ internal sealed class WorldSampler
     {
         var shape = ShapeAt(x, z, c);
         var column = _biomes.Classify(c, shape.Height, x, z);
-        var snow = !shape.Water && ClimateLapse.Apply(c.Temperature, shape.Height, SeaLevel, _world.Climate.LapsePer100Blocks) < _snowBelow;
+        var snow = column.Snow;
         return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow));
     }
 

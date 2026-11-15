@@ -165,7 +165,7 @@ public sealed class BiomeTableTests
         var mild = SnowLine(0);
         var hot = SnowLine(2500);
         Assert.True(cold < mild && mild < hot, $"snow starts at {cold}, {mild} and {hot}");
-        Assert.True(cold < 100 && mild > 120, "a cold range is white low down, a mild one only high up");
+        Assert.True(cold is >= 120 and < 130 && mild > 150, "even a cold range is white only from the slopes up (y 120, B02b); a mild one only high up");
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public sealed class BiomeTableTests
 
         Assert.True(table.Classify(climate, 60, 0, 0).TreesGrow);
         var line = Enumerable.Range(33, 280).First(y => !table.Classify(climate, y, 0, 0).TreesGrow);
-        Assert.InRange(line, 100, 200);
+        Assert.InRange(line, 200, 260);
         Assert.False(table.Classify(climate, 300, 0, 0).TreesGrow);
         Assert.True(table.Classify(Climate(temperature: 3000), 200, 0, 0).TreesGrow); // a hot land grows trees higher
     }

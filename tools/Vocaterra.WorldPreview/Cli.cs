@@ -14,6 +14,7 @@ internal static class Cli
           biomes    each column in its biome row's colour, with a legend text file (id, colour, share)
           heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded, with a stats text file (lowest and highest ground, shares above 100 to 250)
           maps      both of them for the same area
+          stats     the owner's map-review numbers as text (shares, land above 150 to 250, the sea's connectivity, snow, the coast's profile); no picture
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level
 
         options:
@@ -44,7 +45,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -99,6 +100,18 @@ internal static class Cli
             var map = sampler.Map(cx, cz, size, scale);
             var sampled = started.Elapsed;
             var stem = $"{(places is null ? string.Empty : "valley-")}seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
+            if (command == "stats")
+            {
+                var report = Stats.Report(sampler, map);
+                output.Write(report);
+                if (outPath != ".")
+                {
+                    File.WriteAllText(Target(outPath, "stats-" + stem, false).Replace(".png", ".txt"), report);
+                }
+
+                return 0;
+            }
+
             if (command is "biomes" or "maps")
             {
                 var path = Target(outPath, "biomes-" + stem, command == "biomes");
