@@ -2563,3 +2563,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Release); the first tuning made 14-block cliffs between neighbouring columns (fine ridged octaves and deep river canyons on uplands),
   now held to 9 by a test over 3 seeds. Not fixed: peaks are not faded over the sea, so rugged coasts can raise islands; terrace and crag
   risers reach 8 to 9 blocks. Gated: 11,597 passed, 3 skipped.
+- **B04a, the sparse VoxelGrid (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b04a-sparse-grid.md`, report
+  `.claude/briefs/b04a-report.md`. Chunks keyed by `VoxelChunkCoord`, none for air; a bounded and a streamed mode (`WorldLimits`, y down
+  to -64, `IChunkGenerator` for generate-on-read); installs are not edits (`ResidencyVersion`, `IChunkResidencyListener`);
+  `PristineDigest` and `IsChanged`; `IVoxelReader`; the dense members bounded-only, every use allow-listed with the milestone that
+  removes it. Byte-identical: every golden held and 33 of 35 scripted runs matched. Findings: `WalkPlanner` keyed its search by a dense
+  int index that breaks below y 0 and overflows an int on a 60,000-block world (now keyed by `BlockPos`, same order); r01-route's
+  `sounds.log` voice-end tick moved between captures of the same code (2174, 2131, 1950) while another agent built, so the speech timing
+  of that run depends on load (not yet proven with a second baseline). The valley build is 10 to 12% slower (612 to 690 ms), its grid
+  28.5 MB instead of 36.8 MB, neighbour reads 40% faster. The valley's chunks count as changed until `SealPristine()` is called (B05).
+  Gated after a merge of `feature/biomes` into the branch (an architecture.md conflict with B01): 11,650 passed, 3 skipped.
