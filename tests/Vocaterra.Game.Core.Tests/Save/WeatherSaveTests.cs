@@ -15,7 +15,7 @@ public sealed class WeatherSaveTests
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
 
@@ -92,7 +92,7 @@ public sealed class WeatherSaveTests
     public void ASleepRollsTheMorningAndTheSavedWeatherRestoresIt()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Tick(session, 90);
 
         var text = SaveOf(session);
@@ -108,7 +108,7 @@ public sealed class WeatherSaveTests
     public void ASaveNamingAnUnknownKindDoesNotRestore()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var weather = session.Simulation.Weather.State with { Current = "hail" };
         var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, null, weather) } };
 
@@ -127,7 +127,7 @@ public sealed class WeatherSaveTests
     }
 
     [Theory]
-    [InlineData("save-v8.json")]
+    [InlineData("save-v9.json")]
     public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsEight(string fixture)
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
@@ -136,7 +136,7 @@ public sealed class WeatherSaveTests
 
         Assert.Null(loaded.Migration);
         Assert.True(loaded.Simulation.Weather.IsInitial);
-        Assert.Equal(8, SaveGame.CurrentVersion);
+        Assert.Equal(9, SaveGame.CurrentVersion);
         Assert.DoesNotContain("weather", SaveOf(loaded), StringComparison.Ordinal);
     }
 }

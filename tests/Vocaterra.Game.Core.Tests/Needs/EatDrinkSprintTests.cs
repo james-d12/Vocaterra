@@ -583,7 +583,7 @@ public sealed class EatDrinkSprintTests
         session.EatItem(ItemId.WaterBottle);
         Tick(session, 300);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route);
 
         Assert.Equal(session.Needs.Capture(), loaded.Needs.Capture());
         Assert.Equal(1, loaded.Simulation.Inventory.Count(ItemId.Bottle));

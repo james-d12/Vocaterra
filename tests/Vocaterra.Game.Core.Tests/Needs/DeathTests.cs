@@ -320,18 +320,18 @@ public sealed class DeathTests
         var session = Dying();
         var cell = session.Chest!.Cell;
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, _ => Pristine());
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, _ => Pristine());
         Assert.NotNull(loaded.Chest);
         Assert.Equal(session.Chest.Items, loaded.Chest.Items);
         Assert.Equal(cell, loaded.Chest.Cell);
         Assert.Equal(BlockId.Chest, loaded.Scene.Grid.GetBlock(cell.X, cell.Y, cell.Z));
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
 
         Assert.Null(session.Chest);
         Assert.Equal(BlockId.Air, session.Scene.Grid.GetBlock(cell.X, cell.Y, cell.Z));
         Assert.Equal(1, session.DayResetCount);
-        Assert.Null(SaveGame.Capture(session, Pristine()).Systems!.Chest);
+        Assert.Null(SaveGame.Capture(session).Systems!.Chest);
     }
 
     [Fact]
@@ -339,13 +339,13 @@ public sealed class DeathTests
     {
         var session = Dying();
 
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
         var again = SaveGame.Serialize(SaveGame.Parse(text));
 
         Assert.Equal(text, again);
         Assert.Contains("\"chest\":{", text, StringComparison.Ordinal);
         var loaded = SaveGame.Load(text, TestGame.Data, _ => Pristine());
-        Assert.Equal(JsonSerializer.Serialize(SaveGame.Capture(session, Pristine()).Systems), JsonSerializer.Serialize(SaveGame.Parse(text).Systems));
+        Assert.Equal(JsonSerializer.Serialize(SaveGame.Capture(session).Systems), JsonSerializer.Serialize(SaveGame.Parse(text).Systems));
         Assert.Equal(session.Chest!.Items, loaded.Chest!.Items);
     }
 
@@ -355,11 +355,11 @@ public sealed class DeathTests
         var session = Playing(thirst: 0, health: 3);
         session.Simulation.Inventory.Add(ItemId.Book, 1); // nothing to leave: no chest, so the world's edits are the same too
         Tick(session, 30);
-        var before = SaveGame.Capture(session, Pristine());
+        var before = SaveGame.Capture(session);
 
         Tick(session, 20 * Tps);
         Assert.Equal(1, session.DeathCount);
-        var after = SaveGame.Capture(session, Pristine());
+        var after = SaveGame.Capture(session);
 
         string Json(object? value) => JsonSerializer.Serialize(value);
         Assert.Equal(Json(before.Learner), Json(after.Learner));
@@ -379,7 +379,7 @@ public sealed class DeathTests
         {
             var session = Dying();
             Tick(session, 600);
-            return SaveGame.Save(session, Pristine());
+            return SaveGame.Save(session);
         }
 
         Assert.Equal(Run(), Run());

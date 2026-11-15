@@ -46,13 +46,12 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="LastRepairs">The repair each NPC's last answered turn ended with.</param>
 /// <param name="NextTurnId">The id the next submitted turn gets.</param>
 /// <param name="Npcs">Each NPC's conversation state, in the order of <c>game/npcs.json</c> (guide, shopkeeper, villager, fisher, baker, smith, farmer).</param>
-/// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
+/// <param name="Chunks">The world edits: the chunks that differ from the world as generated (<see cref="VoxelChunk.IsChanged"/>), sorted by chunk coordinate.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history). A version 2 save's rows counted the check answers (S19b); they are taken out on the load.</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 /// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
-/// <param name="World">The grid's chunk counts (X01), or <see langword="null"/> in a save from before X01 (a load across bundles then assumes this build's grid).</param>
 /// <param name="SkippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c): the sessions before it were counted as done, not played, so the save is
 /// no learner's. <see langword="null"/>, and left out of the file, for every other game.</param>
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
@@ -98,7 +97,6 @@ public sealed record SaveDocument(
     LearnerRecordSave? Learner = null,
     bool BookGranted = false,
     SaveSettings? Settings = null,
-    WorldDims? World = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
@@ -108,12 +106,6 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null);
-
-/// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
-/// <param name="ChunksX">Chunks along x.</param>
-/// <param name="ChunksY">Chunks along y.</param>
-/// <param name="ChunksZ">Chunks along z.</param>
-public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>

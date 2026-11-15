@@ -212,7 +212,7 @@ public sealed class LearnerRecordTests
             session.Learner.Append(Entry(session.Learner.NextId, $"agua {id}", [Noun("agua", "agua", 0, 4)]));
         }
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var document = SaveGame.Parse(text);
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.NotNull(document.Learner);
@@ -251,7 +251,7 @@ public sealed class LearnerRecordTests
         Assert.NotEmpty(replayed);
 
         // Saved and loaded, the record is the saved one; folding the loaded history (the whole of it, since this one is short) gives it too.
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(Show(session.Learner.Rows), Show(loaded.Learner.Rows));
         Assert.Equal(Show(session.Learner.Rows), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
     }
@@ -322,7 +322,7 @@ public sealed class LearnerRecordTests
         var replayed = LearnerWords.Fold(session.Learner.History).Rows;
         Assert.Equal(Show(session.Learner.Rows), Show(replayed));
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(Show(replayed), Show(loaded.Learner.Rows));
         Assert.Equal(Show(replayed), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
     }
@@ -350,7 +350,7 @@ public sealed class LearnerRecordTests
         Assert.Null(inUnit.CompletedSession);
 
         // The save is taken mid-lesson: the load carries the counts and the lesson goes on where it stopped.
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var resumed = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Equal(Show(session.Lessons.Record), Show(resumed.Lessons.Record));
         Stage.TeleportToNpc(resumed, "guide");

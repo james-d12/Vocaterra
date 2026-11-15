@@ -313,7 +313,7 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
   the lesson's NPC) and `Phrases`. The counts are over every run of the lesson.
 - **The save's learner part.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows); `LessonProgressSave` keeps `Turns`,
   `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. The word rows do not count the check answers (S19b). Only version 8 saves load (Y02): the older
-  versions' loading code is gone, and the fixture is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`.
+  versions' loading code is gone, and the fixture is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`.
 
 **The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
 

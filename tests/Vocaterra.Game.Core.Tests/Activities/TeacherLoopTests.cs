@@ -253,7 +253,7 @@ public sealed class TeacherLoopTests
         Assert.Single(rig.Session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.IngredientsGiven);
 
         // A reload keeps the day: it does not open the grant again.
-        var document = SaveGame.Capture(rig.Session, Pristine());
+        var document = SaveGame.Capture(rig.Session);
         Assert.Equal(["pan"], document.Systems!.Procedures!.GrantedToday!);
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.Equal(["pan"], loaded.GrantsGivenToday);
@@ -499,7 +499,7 @@ public sealed class TeacherLoopTests
         using var rig = new Rig();
         Assert.True(rig.Open());
         Assert.Equal("teaching", rig.TeacherState);
-        var document = SaveGame.Capture(rig.Session, Pristine());
+        var document = SaveGame.Capture(rig.Session);
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.Null(loaded.TeachingNpc);
         Assert.Equal("teaching", loaded.Conversation.StateOf("baker")); // her state was saved with the others
@@ -514,7 +514,7 @@ public sealed class TeacherLoopTests
     {
         using var rig = new Rig();
         Assert.True(rig.Open());
-        var document = SaveGame.Capture(rig.Session, Pristine());
+        var document = SaveGame.Capture(rig.Session);
         var loaded = SaveGame.Load(SaveGame.Serialize(document), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.Equal("teaching", loaded.Conversation.StateOf("baker")); // saved while she listened at the station
         Assert.Equal(StartOutcome.Resumed, loaded.StartProcedure("pan", "horno", true));

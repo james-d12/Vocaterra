@@ -105,11 +105,11 @@ public sealed class RelaxedNeedsTests
     public void ASaveOfTheDefaultSettingsIsWhatItWasAndTheSettingRoundTrips()
     {
         var session = Playing(relaxed: false);
-        var plain = SaveGame.Save(session, TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 100));
+        var plain = SaveGame.Save(session, new SaveSettings(new SoundVolumes(), 100));
         Assert.DoesNotContain("relaxedNeeds", plain, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("viewEffectsOff", plain, StringComparison.OrdinalIgnoreCase);
 
-        var text = SaveGame.Save(session, TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 125, ViewEffectsOff: true, RelaxedNeeds: true));
+        var text = SaveGame.Save(session, new SaveSettings(new SoundVolumes(), 125, ViewEffectsOff: true, RelaxedNeeds: true));
         var settings = SaveGame.Parse(text).Settings!.Clamped();
         Assert.True(settings.RelaxedNeeds);
         Assert.True(settings.ViewEffectsOff);
@@ -119,7 +119,7 @@ public sealed class RelaxedNeedsTests
         var loaded = SaveGame.Parse(plain);
         Assert.False(loaded.Settings!.RelaxedNeeds);
         Assert.False(loaded.Settings.ViewEffectsOff);
-        Assert.Equal(SaveGame.Parse(plain).StateDigest, SaveGame.Parse(SaveGame.Save(Playing(relaxed: true), TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 100))).StateDigest);
+        Assert.Equal(SaveGame.Parse(plain).StateDigest, SaveGame.Parse(SaveGame.Save(Playing(relaxed: true), new SaveSettings(new SoundVolumes(), 100))).StateDigest);
     }
 
     private static string? WorldEventsWoke(VoxelSession session) =>

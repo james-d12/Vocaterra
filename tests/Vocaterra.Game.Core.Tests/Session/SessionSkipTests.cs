@@ -226,14 +226,14 @@ public sealed class SessionSkipTests
     public void TheSaveCarriesTheMarkAndAnOrdinarySaveDoesNot()
     {
         var session = SkippedTo(4);
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         Assert.Contains("\"skippedTo\":4", text, StringComparison.Ordinal);
 
         var loaded = SaveGame.Load(text, TestGame.Data, static seed => TestGame.Route(seed));
         Assert.Equal(4, loaded.SkippedTo);
         Assert.Equal(4, loaded.Day); // the day as saved (V25)
 
-        Assert.DoesNotContain("skippedTo", SaveGame.Save(TestGame.NewSessionWithShippedLessons(), TestGame.Route()), StringComparison.Ordinal);
+        Assert.DoesNotContain("skippedTo", SaveGame.Save(TestGame.NewSessionWithShippedLessons()), StringComparison.Ordinal);
     }
 
     [Fact]

@@ -372,7 +372,7 @@ public sealed class PlotPurchaseTests
         _ = session.Say("sí");
         session.Step([]);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         loaded.Step([]);
 
         Assert.Equal(0, Count(loaded, ItemId.Stake));
@@ -476,7 +476,7 @@ public sealed class PlotPurchaseTests
         _ = session.Say("sí");
         session.Step([]);
         var after = Snapshot(session);
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -504,7 +504,7 @@ public sealed class PlotPurchaseTests
         session.EndTalk();
         session.Step([]);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         loaded.Step([]);
 
         Assert.Equal(new Plot(Corner.X, Corner.Z, 10, 10), loaded.PendingPlot);
