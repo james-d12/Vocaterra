@@ -202,6 +202,11 @@ public interface IPlaceInfo       { ClimateSample ClimateAt(int x, int z); int T
   - A biome or an ore defined only in test data must generate with no code change, as the weather series' E04 did with its fourth kind.
   - The blocks themselves stay `BlockId` values with code-drawn art; data rows name them. Tree species and crown shapes stay code
     strategies, also named by the data.
+  - **Generation behaviour stays in code** (owner, 2026-11-15: "The data should just be for basic stuff like, you know, the types of
+    biomes, but the biome generation code might be different"). Data holds the biome types and their parameters; how a kind of land is
+    shaped (dunes in a desert, crags on a range) is code. A biome row may name code strategies for its own surface shaping and
+    decoration, as it names tree species: the strategy has its own name (`dunes`, never a biome id), is registered in `WorldFactory`, and
+    fades out at the biome's border so a border never makes a cliff. B03 builds the registry with the default strategies.
 - **Purity guards.**
   - A reflection test checks that seam implementations hold only readonly fields and no static mutable state.
   - A token ban keeps `Thread`, `Task`, `lock` and `Interlocked` out of `World/Noise`, `World/Climate`, `World/Biomes`,

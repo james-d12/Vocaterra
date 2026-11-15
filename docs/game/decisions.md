@@ -796,6 +796,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     how they look and what's being generated." Every B milestone that changes what is generated or drawn leaves screenshots or maps for
     the owner (the plan's section 4, "Pictures for the owner"); B03b adds a procedural sample to the game so the biomes can be seen in
     3D before the streamed world.
+13. **Data and code** (2026-11-15): "The data should just be for basic stuff like, you know, the types of biomes, but the biome generation
+    code might be different. Like the deserts, we might have to have custom code ... I'm not expecting that stuff to be in the data."
+    Data holds biome types and parameters; biome-specific generation is code, named by a biome row as a strategy (the plan's section 3.2,
+    "Data, not code").
 
 ## Already decided
 
