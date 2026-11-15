@@ -786,6 +786,12 @@ the owner's answers of 2026-11-15 are in its section 5.
    ores are not gatherable; the ores have no items and no nouns in this series, so the question of «estaño» at the A2 ceiling does not
    arise yet. Bedrock stays unbreakable for when digging comes.
 9. **Lava:** blocks the body and glows; it does no harm and the needs model does not change.
+10. **Parallel work** (2026-11-15): "Let's try to do as much in parallel as we can". Asked how many building agents, the owner chose
+    "Up to three" for the B series (from four, three or two); `scripts/limited.sh` is unchanged, so at most two heavy commands still run
+    at once within its caps. The orchestrator split B08 into B08a (the pass, which needs nothing new) and B08b (its lock, after B01), and
+    moved the edge wall to B07.
+11. **Review stops** (2026-11-15): at B02, B07, B08b and B13 only the work that depends on the review waits for the owner ("Hold only
+    what depends on it"); independent milestones keep building.
 
 ## Already decided
 

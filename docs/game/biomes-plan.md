@@ -355,7 +355,7 @@ The underground is chunk-local and a pure function of (x, y, z). It is configure
   - Beyond the margin the land is free to rise into the great ranges. Seen from the pass, the valley's ring of 110-block peaks becomes the
     foothills of mountains two or three times their height.
   - An exit corridor declared in `world.json` keeps the way out of the pass walkable.
-- **The pass** (B08):
+- **The pass** (B08a builds it, B08b its lock; B07 keeps and lifts the edge wall):
   - The east side of the ring, beside the village, is already its lowest part: in relief rows 12 to 14, columns 22 and 23 are `f` and `k`,
     heights 60 and 80 (column 21 is already `b`, height 44). They are lowered to `c` and `d`, heights 48 to 52.
   - A road runs from the village, about x 316, z 218, to the east edge at x 383.
@@ -459,26 +459,23 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index | M | Sonnet medium | B04a | nothing (identical pictures) |
 | B05 | Saves version 9 and the changed-chunk state digest | M | Sonnet medium | B04a | state digests, fixtures |
 | B06 | `WorldFactory`; the regions and `CompositeChunkSource` (copy, blend, land bias); streamed mode with generate-on-read; `ChunkStreamer`; `WorldQuery` as `IPlaceInfo`; the `WorldFacts` window. The game itself stays bounded | L | Sonnet high | B03, B05 | new tests only |
-| B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06 | pictures (owner review) |
-| B08 | The pass through the east ring, and the road out of the valley; the pass closed by a rockfall and the valley's edge kept as a wall until every lesson in `world.json`'s list is complete, or a cheat setting opens it | M | Sonnet medium | B06 (`feature/settlement` merged in PR #65) | valley golden, bundle, runs |
+| B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, the valley's edge kept as a wall for the body while the pass is locked (B08b's state) and lifted when it opens, far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06, B08b | pictures (owner review) |
+| B08a | The pass through the east ring in the bounded valley: the relief lowered, the road from the village to the east edge, the `paso` site (no label) and the rockfall that closes the pass, all in `scene.json` | S/M | Sonnet medium | B00 | valley golden, bundle, runs |
+| B08b | The pass's lock: the list of required lessons in `world.json` (all of today's), the unlock rule in Core, a cheat setting in the settings menu, the rockfall removed (saved like any change) when the pass opens | S/M | Sonnet medium | B01, B08a | bundle, runs |
 | B09 | Widen block kinds from 64 to 128 bits: `KindMask`, the mesher's grey masks, `WorldFacts` masks, the tracker | M | Sonnet medium | B04b | nothing |
 | B10 | The underground blocks: slate, granite, limestone, gravel, lava, bedrock, and iron, tin and copper ore. Code-drawn art; none gatherable, no items or nouns; lava blocks the body, glows and does no harm; bedrock is unbreakable | M | Sonnet medium | B09 | nothing expected |
 | B11 | The underground generation, configured by `underground.json` (schema, validator, `NoOreIdsInSourceTests`): strata, ores, cheese and spaghetti caves on a coarse 3D lattice, entrances, lava level, the bedrock floor. Tests: chunk-locality, no cave within reach of water, no entrance in a region or on a path, ore counts per seed within ranges, lava at rest, time per chunk. Vertical slices in the preview tool | L | Sonnet high | B03, B10 | procedural goldens |
 | B12 | The underground in play: darkening by depth, lava light, a light index that follows placed torches, the near zone for underground chunks (wider when the player is underground); a scripted cave tour; a VM performance check | M/L | Sonnet high | B07, B11 | pictures (owner review) |
-| B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08, B11 | valley golden (owner review) |
+| B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08b, B11 | valley golden (owner review) |
 | B14 | Integration: ambient sound by biome and underground from `IPlaceInfo`; water-at-rest and exitable-edge checks over 3 seeds; signed coordinates in scripted runs; the cloud layer's height as data; a scripted tour through the pass into each biome and down a cave; documents (`architecture.md`, `saves.md`, `running.md`, and "Adding a biome" and "Adding an ore" in `content/README.md`) and findings | M | Sonnet medium | B12, B13 | new runs |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
 
-**Order,** with at most two building agents at a time (machine resources):
-1. B01 and B04a
-2. B03 and B04b
-3. B02 and B05
-4. B06 and B09
-5. B07 and B10
-6. B08 and B11
-7. B12 and B13
-8. B14
-9. B15
+**Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once): each milestone starts as soon as
+its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
+the work that depends on the review waits. The first waves:
+1. B01, B04a and B08a
+2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a)
+3. then B06 (B03, B05), B09 (B04b), B10 (B09), B11 (B03, B10), B07 (B06, B08b), B15 (B06), B12 (B07, B11), B13 (B08b, B11), B14
 
 The game stays playable at every gate. It switches to the streamed world at B07 and gains its underground at B11 and B12.
 
@@ -594,3 +591,4 @@ series, `docs/game/biomes-plan.md`).*
 | (refresh) | 2026-11-15, after the fast-forward to `main` at `0db529a1` | none (documents only) | saves version 9 (not 8), block ids 0 to 56, B08 no longer waits for `feature/settlement`, line references checked; committed with D-game-34 entered as proposed |
 | (accepted) | 2026-11-15: D-game-34 decided, the five answers recorded (section 5); B08 grows to M (the closed pass), B10 loses gathering | none (documents only) | B00 next |
 | B00 | done 2026-11-15 | `162dec4f`: 11,498 passed, 3 skipped; the doc-link test failed on two links in the orchestrator's own brief, fixed in the next commit and re-run | section 4.14 of the game plan; open items and index rows |
+| (parallel) | 2026-11-15: the owner allows three building agents on the B series and holds only dependent work at a review stop; B08 split into B08a (the pass, now) and B08b (its lock, after B01); the edge wall moves to B07 | none (documents only) | B08a launched beside B01 and B04a |
