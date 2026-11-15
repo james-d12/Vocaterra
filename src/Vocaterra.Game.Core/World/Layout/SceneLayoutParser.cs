@@ -398,7 +398,8 @@ internal static class SceneLayoutParser
                 facing,
                 string.Equals(axis, "z", StringComparison.Ordinal),
                 GetString(prop, "stamp"),
-                blockName is null ? BlockId.Path : BlockNamed(blockName, $"prop '{type}'")));
+                blockName is null ? BlockId.Path : BlockNamed(blockName, $"prop '{type}'"),
+                GetOptionalInt(prop, "floorY")));
         }
 
         return props;

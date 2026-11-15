@@ -19,6 +19,7 @@ namespace Vocaterra.Game.Core.World.Layout;
 /// <param name="AlongZ">For a workbench: whether it extends along Z instead of X.</param>
 /// <param name="Stamp">For a stamp: the name of the stamp.</param>
 /// <param name="Block">For a paving: the block laid.</param>
+/// <param name="FloorY">For a stamp: the y of the level under its first layer, or <see langword="null"/> for a stamp on one flat footprint. The layers then lie at fixed heights (the first at <c>FloorY + 1</c>), the footprint need not be flat, and a cell that would lie at or under the ground of its column is left out, so the stamp fills a slope up to a level (a heap across a pass).</param>
 public sealed record PropSpec(
-    string Type, int X, int Z, string? Name, int Width, int Depth, int Height, int Length, Direction? Facing, bool AlongZ, string? Stamp = null, BlockId Block = BlockId.Path);
+    string Type, int X, int Z, string? Name, int Width, int Depth, int Height, int Length, Direction? Facing, bool AlongZ, string? Stamp = null, BlockId Block = BlockId.Path, int? FloorY = null);
 

@@ -349,6 +349,10 @@
           "stamp": {
             "type": "string"
           },
+          "floorY": {
+            "type": "integer",
+            "description": "A stamp only: the y of the level under its first layer. The layers then lie at fixed heights, the footprint need not be flat, and a cell at or under the ground of its column is left out, so the stamp fills a slope up to a level (a heap across a pass); without it the footprint must be one flat height."
+          },
           "block": {
             "type": "string",
             "description": "A block kind by its stable name (nouns.schema.json lists them)."

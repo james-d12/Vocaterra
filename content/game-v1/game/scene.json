@@ -64,7 +64,13 @@
     "meadow.south": { "x": 264, "z": 258 },
     "river": { "x": 230, "z": 222, "label": "río" },
     "waterfall": { "x": 258, "z": 112, "label": "cascada" },
-    "lake": { "x": 212, "z": 294, "label": "lago" }
+    "lake": { "x": 212, "z": 294, "label": "lago" },
+    // The pass through the east ring (B08a, biomes-plan 3.6): "paso.gate" is where the road leaves the village's levelled ground (the road's first block, about x 316; at 38); "paso.foot" is where it starts to climb through the ring (at 46); "paso" is the top of the pass, on the road, with no label (no
+    // word in content yet); "paso.edge" is where the road meets the valley's east edge, at 58. None levels anything (no radius).
+    "paso.gate": { "x": 318, "z": 218, "y": 38 },
+    "paso.foot": { "x": 340, "z": 212, "y": 46 },
+    "paso": { "x": 372, "z": 208 },
+    "paso.edge": { "x": 383, "z": 208, "y": 58 }
   },
 
   // The waterfall: a cliff whose lip is the row of the site; the plateau behind it is raised to "top" and a sheet of water falls into the pool.
@@ -90,10 +96,47 @@
     {
       "name": "road", "from": "camp.guide", "to": "village", "mode": "follow", "halfWidth": 1,
       "via": [[192, 204], [204, 222], [216, 214], [226, 205], [238, 205], [256, 210], [270, 226], [284, 222]]
+    },
+    // The pass road (B08a): from the village's east side to the valley's east edge, made of path blocks (the land rules protect it as a road). It climbs about twenty blocks, from the village's ground at 38 to
+    // 58 at the edge, grading evenly (no step is more than a block). The first leg is narrow and runs to "paso.foot", where the ground is already rising. The second is a cutting: seven blocks wide and
+    // graded, it is cut through the east ring (the ring's own relief is not edited: its neighbours' ground lies high on both sides, 20 blocks and more over the road, so the pass has steep banks and one
+    // way in). The relief rows 12 to 14 of the plan's first sketch would move with the noise's warp, which bends the relief by up to 86 blocks away from a road, and open a second notch to the south.
+    {
+      "name": "pass.floor", "from": "paso.gate", "to": "paso.foot", "mode": "grade", "halfWidth": 1,
+      "via": [[330, 214]]
+    },
+    {
+      "name": "pass", "from": "paso.foot", "to": "paso.edge", "mode": "grade", "halfWidth": 3,
+      "via": [[352, 209], [372, 208]]
     }
   ],
 
   "stamps": {
+    // The rockfall (B08a, biomes-plan 3.6): a heap of stone, cobble and mossy stone across the pass's cutting, seven wide (x) and seventeen long (z, north row first), drawn at fixed heights: its first
+    // layer is the level y 51 and its tops lie between y 64 and 66, so the prop's "floorY" (50) makes it fill the cutting from the road (whatever its slope: a cell at or under the ground is left out)
+    // up to those tops. The road is at 54 to 58 there, so the heap stands ten blocks over it and no body climbs onto it. It is a cobble-and-stone mix, not a wall: its top is uneven.
+    "rockfall": {
+      "legend": { "S": "stone", "C": "cobble", "M": "mossy-stone" },
+      "layers": [
+        ["SMSCSCM", "SCSMSMC", "MCSMCSS", "CSSSMMC", "SSSSSSS", "MSSSCCM", "CMSCMSS", "SMSCSCM", "SCSMSMC", "MCSMCSS", "CSSSMMC", "SSSSSSS", "MSSSCCM", "CMSCMSS", "SMSCSCM", "SCSMSMC", "MCSMCSS"],
+        ["CMSMSCS", "SMSMCSC", "MCSSMCS", "CCSSSMM", "SSSSSSS", "SSSCCMM", "MSSCMSC", "CMSMSCS", "SMSMCSC", "MCSSMCS", "CCSSSMM", "SSSSSSS", "SSSCCMM", "MSSCMSC", "CMSMSCS", "SMSMCSC", "MCSSMCS"],
+        ["CSCMSMS", "SMCSCSM", "SMCSMCS", "MCCSSSM", "CCCCCCC", "SSCCMMS", "MSCMSSC", "CSCMSMS", "SMCSCSM", "SMCSMCS", "MCCSSSM", "CCCCCCC", "SSCCMMS", "MSCMSSC", "CSCMSMS", "SMCSCSM", "SMCSMCS"],
+        ["MSCSCMS", "CSCSMSM", "SMCSSMC", "MMCCSSS", "CCCCCCC", "SCCMMSS", "SSCMSCM", "MSCSCMS", "CSCSMSM", "SMCSSMC", "MMCCSSS", "CCCCCCC", "SCCMMSS", "SSCMSCM", "MSCSCMS", "CSCSMSM", "SMCSSMC"],
+        ["MSMSCSC", "CSMSMCS", "SSMCSMC", "SMMCCSS", "MMMMMMM", "CCMMSSS", "SCMSSCM", "MSMSCSC", "CSMSMCS", "SSMCSMC", "SMMCCSS", "MMMMMMM", "CCMMSSS", "SCMSSCM", "MSMSCSC", "CSMSMCS", "SSMCSMC"],
+        ["SCMSMSC", "MSMCSCS", "CSMCSSM", "SSMMCCS", "MMMMMMM", "CMMSSSC", "SCMSCMS", "SCMSMSC", "MSMCSCS", "CSMCSSM", "SSMMCCS", "MMMMMMM", "CMMSSSC", "SCMSCMS", "SCMSMSC", "MSMCSCS", "CSMCSSM"],
+        ["SCSCMSM", "MCSCSMS", "CSSMCSM", "SSSMMCC", "SSSSSSS", "MMSSSCC", "CMSSCMS", "SCSCMSM", "MCSCSMS", "CSSMCSM", "SSSMMCC", "SSSSSSS", "MMSSSCC", "CMSSCMS", "SCSCMSM", "MCSCSMS", "CSSMCSM"],
+        ["SMSCSCM", "SCSMSMC", "MCSMCSS", "CSSSMMC", "SSSSSSS", "MSSSCCM", "CMSCMSS", "SMSCSCM", "SCSMSMC", "MCSMCSS", "CSSSMMC", "SSSSSSS", "MSSSCCM", "CMSCMSS", "SMSCSCM", "SCSMSMC", "MCSMCSS"],
+        ["CMSMSCS", "SMSMCSC", "MCSSMCS", "CCSSSMM", "SSSSSSS", "SSSCCMM", "MSSCMSC", "CMSMSCS", "SMSMCSC", "MCSSMCS", "CCSSSMM", "SSSSSSS", "SSSCCMM", "MSSCMSC", "CMSMSCS", "SMSMCSC", "MCSSMCS"],
+        ["CSCMSMS", "SMCSCSM", "SMCSMCS", "MCCSSSM", "CCCCCCC", "SSCCMMS", "MSCMSSC", "CSCMSMS", "SMCSCSM", "SMCSMCS", "MCCSSSM", "CCCCCCC", "SSCCMMS", "MSCMSSC", "CSCMSMS", "SMCSCSM", "SMCSMCS"],
+        ["MSCSCMS", "CSCSMSM", "SMCSSMC", "MMCCSSS", "CCCCCCC", "SCCMMSS", "SSCMSCM", "MSCSCMS", "CSCSMSM", "SMCSSMC", "MMCCSSS", "CCCCCCC", "SCCMMSS", "SSCMSCM", "MSCSCMS", "CSCSMSM", "SMCSSMC"],
+        ["MSMSCSC", "CSMSMCS", "SSMCSMC", "SMMCCSS", "MMMMMMM", "CCMMSSS", "SCMSSCM", "MSMSCSC", "CSMSMCS", "SSMCSMC", "SMMCCSS", "MMMMMMM", "CCMMSSS", "SCMSSCM", "MSMSCSC", "CSMSMCS", "SSMCSMC"],
+        ["SCMSMSC", "MSMCSCS", "CSMCSSM", "SSMMCCS", "MMMMMMM", "CMMSSSC", "SCMSCMS", "SCMSMSC", "MSMCSCS", "CSMCSSM", "SSMMCCS", "MMMMMMM", "CMMSSSC", "SCMSCMS", "SCMSMSC", "MSMCSCS", "CSMCSSM"],
+        ["SCSCMSM", "MCSCSMS", "CSSMCSM", "SSSMMCC", "SSSSSSS", "MMSSSCC", "CMSSCMS", "SCSCMSM", "MCSCSMS", "CSSMCSM", "SSSMMCC", "SSSSSSS", "MMSSSCC", "CMSSCMS", "SCSCMSM", "MCSCSMS", "CSSMCSM"],
+        [" MS SC ", "       ", " CS CS ", " SS MM ", "       ", " SS CC ", " MS MS ", "       ", " CS SM ", " CS CS ", "       ", " SS SS ", " SS CC ", "       ", " MS SC ", " CS SM ", "       "],
+        [" M  S  ", "       ", "  S  C ", " C  S  ", "       ", "  S  M ", " S  M  ", "       ", "  S  S ", " C  M  ", "       ", "  S  S ", " S  C  ", "       ", "  S  C ", " M  C  ", "       "]
+      ]
+    },
+
     // A plain A-frame tent (north row first): the roof blocks come down to the ground on both sides and the ends stay open.
     // A stone tower (S15): a cobble shaft with a door and four window slits, a timber band under a stepped roof and a flagpole. Five by five.
     "tower": {
@@ -261,6 +304,10 @@
     {"type": "tree", "site": "village", "dx": 19, "dz": -4},
     {"type": "tree", "site": "village", "dx": 19, "dz": 0},
     {"type": "tree", "site": "village", "dx": 19, "dz": 4},
+
+    // The rockfall: it closes the pass across the road where it meets the ring (B08a). The pass stays closed until the lessons are done; B08b removes this prop's blocks (the stamp's cells, found by the
+    // name "rockfall": Scene.PropCells) when the pass opens, so nothing else may be built into it and its name must not change.
+    {"type": "stamp", "stamp": "rockfall", "x": 360, "z": 200, "floorY": 50, "facing": "north", "name": "rockfall"},
 
     // The fisher's bank: on the bridge's east landing, south of the road, two crates and a lamp beside the place he will stand (npc.fisher).
     {"type": "block", "block": "crate", "site": "bridge.east", "dx": 3, "dz": 3},
