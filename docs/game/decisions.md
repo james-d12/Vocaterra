@@ -835,6 +835,9 @@ the owner's answers of 2026-11-15 are in its section 5.
     of-detail terrain tiles read straight from the pure height model and biome table, coarser with distance and built on worker
     threads, show the land **to 16 km at 60 fps on the High preset** on his machine. "Fold it into B07" (over a separate milestone
     after B07, or a later series); "16 km" (over 8 or 4 km). The plan's "does not do" loses distant-terrain detail levels.
+22. **The body sinks into lava** (2026-11-15, about 23:15 UTC, on B10's report that a body could stand on a lava surface): "You should
+    sink into it. Damage doesn't need to be done in this pr." Lava acts on the body as a thick liquid (slow sinking, moving and
+    swimming up); no harm in this series. B10b does it. Item 9's "lava only blocks the body" is replaced.
 
 ## Already decided
 
