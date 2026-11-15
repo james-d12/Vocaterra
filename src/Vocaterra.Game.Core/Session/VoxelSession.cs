@@ -403,6 +403,7 @@ public sealed partial class VoxelSession : GuideSession
         StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         StepWaterEvents();
         ReturnOwedKit(); // Y12: a camp kit a load could not give back
+        StepPass(); // B08b: the last required lesson may have been completed
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)

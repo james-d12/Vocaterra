@@ -31,6 +31,7 @@ public sealed class PlayerSettings
         new(SettingId.FieldOfView, SettingKind.Slider, 60, 110, 5, 70, "settingsFov", "°"),
         new(SettingId.NeedsRate, SettingKind.Slider, 50, 400, 25, 100, "settingsRate", "%"),
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
+        new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
     ];
 
     private readonly int[] _values;
@@ -98,6 +99,9 @@ public sealed class PlayerSettings
     /// <summary>Whether the needs are relaxed.</summary>
     public bool RelaxedNeeds => Get(SettingId.RelaxedNeeds) == 1;
 
+    /// <summary>Whether the pass cheat is on: the pass through the east ring is open at once (B08b).</summary>
+    public bool PassCheat => Get(SettingId.PassCheat) == 1;
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -147,6 +151,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.FieldOfView] = clean.EffectiveFieldOfView;
             settings._values[(int)SettingId.NeedsRate] = (int)Math.Round(clean.EffectiveNeedsRate * 100);
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
+            settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -224,6 +229,11 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = 1;
         }
 
+        if (launch.PassOpen)
+        {
+            settings._values[(int)SettingId.PassCheat] = 1;
+        }
+
         return settings;
     }
 
@@ -239,7 +249,8 @@ public sealed class PlayerSettings
         MouseSensitivity: Get(SettingId.MouseSensitivity),
         InvertY: InvertY,
         FieldOfView: Get(SettingId.FieldOfView),
-        ViewDistance: ViewDistance ?? 0).Clamped();
+        ViewDistance: ViewDistance ?? 0,
+        PassCheat: PassCheat).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

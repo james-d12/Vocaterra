@@ -37,6 +37,8 @@ public static class MenuRows
             MenuRow.Heading("headingNeeds"),
             MenuRow.Of(settings, SettingId.NeedsRate),
             MenuRow.Of(settings, SettingId.RelaxedNeeds),
+            MenuRow.Heading("headingCheats"),
+            MenuRow.Of(settings, SettingId.PassCheat),
         };
         if (testing is not null)
         {
