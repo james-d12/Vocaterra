@@ -161,7 +161,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "8a309f77b59c776a41859cdaaa21f1c465ee5ed154d8a7a772fdcad9cd82df83"; // B08a: re-pinned (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "707fc711fdf7c500093708ebb2c9d483b709220e2955e13c1e7bcd22b7691ffb"; // B08a: re-pinned (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
 
-    private const string PinnedAfterWalking = "291e0464ad66635fa74b8effc140cd03deb05d4bbad79eec3f78a7dceeb26558"; // B08a: re-pinned with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "9ae31a8773580bdda89e499af96c6632555d469a3287060fca5686ccd306a2a1"; // B08a: re-pinned with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above
 }

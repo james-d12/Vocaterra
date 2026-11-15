@@ -119,7 +119,8 @@ public sealed class PassTests(ITestOutputHelper output)
         var grid = scene.Grid;
         var village = scene.Point("village");
         var road = grid.BlocksOfKind(BlockId.Path).Where(b => b.X >= village.X + 20).Select(b => (b.X, b.Z)).ToHashSet();
-        var start = road.Where(c => c.X <= village.X + 26).OrderBy(c => Math.Abs(c.Z - village.Z)).First();
+        var start = road.OrderBy(static c => c.X).ThenBy(c => Math.Abs(c.Z - village.Z)).First();
+        Assert.True(start.X <= village.X + 24 + 8 + 2, $"the road starts at {start}, beyond the slope that blends the village into the land"); // the village's levelled ground, its blend and a margin
 
         var walked = Reach(grid, start, (x, z) => road.Contains((x, z)));
 

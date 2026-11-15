@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "4d418e660d4a701046069c249ac4e9a043917e9a8cf40c8cbf8e7cdf88d5176c"; // B08a: the pass through the east ring (a road of path blocks from the village to the east edge, cut through the ring as a graded cutting, the sites paso.gate, paso.foot, paso and paso.edge, and the rockfall heap that closes it); Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "b189ee0a67838d702683c259ed253a80e7310f8e24c16531ffed707b7ea2672d"; // B08a: the pass through the east ring (a road of path blocks from the village to the east edge, cut through the ring as a graded cutting, the sites paso.gate, paso.rise, paso.foot, paso and paso.edge, and the rockfall heap with its rubble that closes it); Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
