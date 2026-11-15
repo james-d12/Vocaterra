@@ -593,3 +593,4 @@ series, `docs/game/biomes-plan.md`).*
 | (proposal) | written 2026-11-15; caves, ores and the tall world added the same day | none (documents only) | for the owner's review |
 | (refresh) | 2026-11-15, after the fast-forward to `main` at `0db529a1` | none (documents only) | saves version 9 (not 8), block ids 0 to 56, B08 no longer waits for `feature/settlement`, line references checked; committed with D-game-34 entered as proposed |
 | (accepted) | 2026-11-15: D-game-34 decided, the five answers recorded (section 5); B08 grows to M (the closed pass), B10 loses gathering | none (documents only) | B00 next |
+| B00 | registered 2026-11-15 | (filled by the orchestrator) | section 4.14 of the game plan; open items and index rows |
