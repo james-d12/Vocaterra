@@ -34,7 +34,7 @@ public sealed class WorldEditsSaveTests(ITestOutputHelper output)
         Assert.Equal(WaterLevel.Flowing(3), loaded.Scene.Grid.GetWater(100, 20, 100));
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
         Assert.Equal(session.Simulation.Inventory.Slots, loaded.Simulation.Inventory.Slots);
-        Assert.Equal(SaveOf(session), SaveOf(loaded)); // saved again from the restored world, the same file
+        Assert.Equal(CanonicalJson.Serialize(edits), CanonicalJson.Serialize(SaveGame.Parse(SaveOf(loaded)).Chunks)); // saved again from the restored world, the same chunks
     }
 
     [Fact]

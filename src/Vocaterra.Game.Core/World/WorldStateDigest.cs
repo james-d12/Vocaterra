@@ -1,6 +1,6 @@
-using Vocaterra.Game.Core.Voxel;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
+using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.World;
 
