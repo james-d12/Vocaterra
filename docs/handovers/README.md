@@ -31,6 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
+| [2026-11-15-1417-biomes](2026-11-15-1417-biomes.md) | The B series (a tall procedural world round hand-crafted regions, D-game-34 proposed) on `feature/biomes` | The owner's acceptance of D-game-34 and answers to the plan's five questions; then B00 |
 | [2026-11-10-1943-weather](2026-11-10-1943-weather.md) | The E series (day, night and weather) on `feature/weather` | PR #64 merged into `main` (2026-11-11); the handover is its session's to close |
 | [2026-11-11-1850-settlement](2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | The owner's review and merge of PR #65 (the series is done; Y15, the owner's change, is in) |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |

@@ -1,0 +1,584 @@
+# Procedural world and biomes: the B series
+
+A plan written on 2026-11-15 at the owner's request, from a read of `main` at `c7124db3` (the branch was cut at `9e17c9aa`, which changes
+no world code). Nothing was built or run. Refreshed the same day after `feature/biomes` was fast-forwarded to `main` at `0db529a1` (PR #65,
+the settlement series): saves are already at version 8, so B05 makes version 9; block ids now run to 56; B08 no longer waits; and the line
+references were checked again.
+
+The goal is **an endless, streamed, tall world**, like Minecraft's since 1.18.
+- **Above ground:** most of it is generated procedurally, with biomes that include plains, forests, high meadows, great mountain ranges,
+  rivers, lakes, beaches and sea.
+- **Below ground:** caves, lava, a few kinds of stone, and iron, tin and copper ores.
+- **Hand-crafted regions** are kept: first the valley, with its village and its mountain ring, then other towns authored the same way.
+
+The world, biome and underground generation is built from small modules, so later systems can read it without changing the generator. The
+first such system is temperature.
+
+**Status (2026-11-15):** a proposal for the owner's review.
+- It registers no milestones yet. Registration is B00, done once the owner accepts.
+- The decision it needs, **D-game-34** (section 5), is entered in `docs/game/decisions.md` as proposed (2026-11-15) and is decided when
+  the owner accepts. D-game-32 is used on `main` (the settlement series), and D-game-33 is reserved on `feature/talk-sets`.
+- It lives on `feature/biomes`, cut from `main` at `9e17c9aa` and fast-forwarded to `0db529a1` on 2026-11-15, in the worktree
+  `.claude/worktrees/biomes`.
+- The commit prefix is `B<nn>:`. Nothing is pushed to `main`; the owner merges by pull request.
+
+## 1. The request
+
+> Against the latest main branch, can we investigate how to add procedural generation to the game. However with my game i want areas of
+> custom crafted, like what exists now with the village, and mountains. But outside of that I want it to be procedurally generated. My
+> idea is that as the game expands, I can have areas of custom placement, like other towns, etc, but most of the world is procedural like
+> minecraft. For the procedural generation, to start with I want basic biomes like minecraft, so forests, plains, rivers, mountains. etc.
+
+The owner then added:
+
+> With the new system it needs to be modular code and be able to work with other systems. For example i plan on adding temperature later
+> on. The code and biome and world generation needs to be modular and follow SOLID principles
+
+> What about caves and underground? we basically want what minecraft has. They dont need to be overly complicated, but the basic lava,
+> underground caves for now is ok, perhaps with a few different typers of stones to change things up. We need ores as well, for now just
+> basic iron, tin ,copper, will do.
+
+> also the y axis heighs, i think we need high y axis, to make tall large mountains, sometihng like in 1.18 mc with the wilderness bound
+> update that added huge mountains
+
+The page the owner linked (minecraft.wiki, "Wilderness Bound") describes a later update: dappled forests, poplar trees and abandoned camps.
+The tall mountains and the deep noise caves came with Minecraft 1.18, which set the world's height at −64 to 320. That is the reference
+used here.
+
+The owner's answers to the follow-up questions (2026-11-15) are in section 5. The owner's standing rule also applies: the code follows
+`docs/process/code-guidelines.md`:
+- single responsibility and composition;
+- logic in `Vocaterra.Game.Core`, drawing in `Vocaterra.Game`;
+- Given_When_Then tests in folders that mirror the source.
+
+### Why this changes the direction
+
+Three earlier documents rule this out today:
+- The prototype brief (`docs/game/design/prototype-brief.md`, LEAVE FOR LATER) lists "Procedural terrain, multiple biomes or a large open
+  world".
+- D-game-22 says the world grows inward.
+- The adaptation design's decision 15 keeps play inside the valley until after the pilot.
+
+The series therefore needs a new owner decision that amends all three: D-game-34 (section 5). It also takes over phase 7 of the settlement
+plan ("Larger valley", `docs/game/settlement-plan.md`), which was a fixed 512×512 world. The activities plan's note that "ores need
+terrain work" (`docs/game/activities-plan.md`) is the terrain work it meant.
+
+## 2. What exists today (on `main`)
+
+- **A fixed 384×128×384 box, built in full at load.**
+  - `SceneBuilder.Build(layout, seed)` (`src/Vocaterra.Game.Core/World/Generation/SceneBuilder.cs:33`) generates the whole valley
+    synchronously, in about 0.6 s, holding about 38 MB. It reads `content/game-v1/game/scene.json`.
+  - The relief is a hand-drawn grid of one base-32 character per chunk corner (`scene.json`, `terrain.relief`). The grid's size must match
+    the world's.
+  - `TerrainGenerator.cs` adds noise, domain warp, terraces and site levelling, then carves the single river, lake and waterfall. It works
+    in whole-map passes over `int[w*d]` arrays.
+  - Heights run from 0 to 128: water level 32, valley floor 36, peaks 108 to 116, ceiling 124.
+  - Below the surface everything is plain stone: no caves, no ores, no lava, no layers.
+- **The world's edge is a wall.**
+  - `VoxelGrid.IsSolid` reads solid outside the grid (`Voxel/VoxelGrid.cs:106`), and writes outside it throw.
+  - The mesher treats y < 0 as stone.
+  - The ring of authored mountains hides the edge.
+- **Storage is dense.**
+  - `VoxelGrid` holds a `VoxelChunk[]` with every chunk allocated (`VoxelGrid.cs:14`).
+  - The dense index `((cy*ChunksZ)+cz)*ChunksX+cx` is copied in `ChunkVersionTracker.cs:54`, `ChunkViewSet.cs:74`, `WorldFacts.cs:131` and
+    `SaveMigration.cs:104`.
+  - A `VoxelChunk` is 16³ `ushort` block ids, with a lazy `KindMask` of one bit per kind. That caps block ids at 64. `main` uses 57
+    (0 to 56, with the settlement series' beds, bedrolls and counter), which leaves 7 free.
+- **Generation is not chunk-local.** The forest draws one sequential `WorldRng.For(seed, "trees")` stream over the whole map
+  (`SceneBuilder.cs:1124`), so changing the world's extent reshuffles every tree.
+- **Saves diff the whole world.**
+  - `VoxelGridDiff.Capture` compares every chunk against a pristine full rebuild. That rebuild is made on the first save and kept, costing a
+    0.7 s hitch and 38 MB (`Save/VoxelGridDiff.cs:26`, `Save/SaveService.cs:37`).
+  - Edits are keyed by the dense chunk index, plus `WorldDims`.
+- **Several systems scan the whole world.**
+  - `WorldFacts.Snapshot` copies every non-empty chunk (about 28 MB) on each turn of the guide.
+  - `BlocksOfKind` is used for fire rings and the renderer's lights.
+  - `ColumnCover` (rain), `RiverCurrents`, `AmbientBeds` (sound places from the layout) and `ChunkViewSet` (counts empty chunks over all
+    4,608) also assume the whole world is in memory.
+- **The state digest hashes the whole grid.** It feeds NPC turns as `hostStateHash`, and saves check it. Goldens pin it:
+  `SceneTests.GoldenDigest`, `AtmosphereSimulationTests` and the save fixtures.
+- **Light is baked, not propagated.**
+  - Each face gets a fixed sun shade, ambient occlusion and a time-of-day band (`LightBands`).
+  - Stone gets a height-banded tint (`ChunkMesher.RockTint`, `:586`).
+  - Lanterns glow by distance from a list found once (`VoxelRenderer.FindLights`, `:173`).
+  - With nothing darkening a face by its depth under ground, a cave would be lit like a meadow.
+- **Gathering is by hand, block by block.**
+  - `BlockDefinition` (`Voxel/BlockDefinition.cs:45`) gives each block its gather ticks, its drop (an `ItemId`) and what it leaves behind.
+  - Trunks and berry bushes are gatherable. Stone, cobble and mossy stone are not.
+  - Items are an `ItemId` enum (`Items/ItemDefinition.cs:12`), and their Spanish nouns are in `game/nouns.json`.
+  - The needs model has health (`Needs/PlayerNeeds.cs`), but nothing in the world harms the player.
+- **The sky.** The cloud layer floats at a fixed y of 168 (`Graphics/Sky/SkyModel.cs:105`).
+- **Building blocks that already fit an endless world:**
+  - `TerrainNoise` is integer value noise that depends only on the coordinate, so it is unbounded and correct for negative x and z.
+  - `IntMath` provides fixed point (One = 4096); generation never uses floating point.
+  - `WorldRng.For(seed, pass, chunkX, chunkY)` already takes chunk keys.
+  - `FlowSimulation` is event-driven and never scans the world.
+  - `ChunkMesher` holds no engine code.
+  - The weather series' rule, "a kind is a row of data", is enforced by tests that forbid kind ids in `src`.
+- **One thread.** World building, simulation, meshing and saving all run on the game loop's thread. The only background thread is the NLP
+  `TurnWorker`, which reads an immutable `WorldFacts` snapshot.
+
+## 3. Design
+
+### 3.1 The shape in one paragraph
+
+The world becomes a sparse, streamed `VoxelGrid`:
+- **Extent:** y runs from −64 to 320; x and z are endless (in practice ±30,000 blocks).
+- **Where chunks come from:** a pure `IChunkSource`, so a chunk is a function of the seed, the world data and its coordinates. A
+  `CompositeChunkSource` hands out an authored **region's** chunks where there is one. The valley stays where it is, built by the unchanged
+  `SceneBuilder`, so every coordinate, every save position and the valley's goldens survive. Everywhere else, and under the valley, the
+  **procedural pipeline** fills the chunks, in this order:
+  1. climate fields
+  2. the height model
+  3. biome choice from data
+  4. surface shapers
+  5. underground passes (strata, ores, caves, lava)
+  6. decorators
+- **Reading a chunk that isn't loaded generates it on the spot,** so the simulation can never tell which chunks are resident.
+- **Saves keep only the chunks that changed.**
+
+### 3.2 Modules
+
+Tests mirror these folders. Everything is in `Vocaterra.Game.Core` unless the folder says Game.
+
+| Folder | Contents | Responsibility |
+|---|---|---|
+| `World/Noise/` | `TerrainNoise` (moved here, pass names unchanged), `GradientNoise` (2D and 3D), `NoiseStack` (fBm, ridged, warp), `Spline`, `LatticeSampler3` | Integer noise primitives |
+| `World/Climate/` | `IClimateSampler`, `ClimateSample`, `ClimateSampler` | Continuous climate at (x, z), and its change with altitude |
+| `World/Biomes/` | `BiomeRow`, `BiomeTable : IBiomeSelector`, `BiomeData`, `BiomeValidator` | Biome choice, from data |
+| `World/Underground/` | `UndergroundData`, `StrataTable : IStrataSelector`, `OreTable`, `OreRow`, `CaveField : ICaveField`, `UndergroundValidator` | Rock layers, ores, caves and lava, from data |
+| `World/Generation/Procedural/` | `IHeightModel`, `HeightModel`, `IColumnShaper`, `IChunkDecorator`, `GenerationPipeline`, the passes, `ProceduralChunkSource` | Turning climate into blocks |
+| `World/Regions/` | `IRegion`, `RegionCatalog`, `AuthoredReliefRegion`, `ProceduralReliefRegion` (B15), `RegionBlend` | Hand-crafted areas |
+| `World/Streaming/` | `IChunkSource`, `CompositeChunkSource`, `ChunkData`, `ChunkCoord3`, `ChunkStreamer` | What is loaded |
+| `World/` | `WorldFactory`, `WorldQuery : IPlaceInfo`, `WorldGenData` | Wiring, and the shared place query |
+| `Voxel/` | `VoxelGrid` (sparse inside), `IVoxelReader`, internal `IVoxelWriter`, `IChunkResidencyListener` | Storage |
+| Game: `World/` | `ChunkPrefetcher` | Optional worker threads that call the pure source |
+
+Notes on the table:
+- **`ProceduralChunkSource`'s passes** are the surface, river banks, the `BankBesideWater` port, strata, ores, caves, lava, the floor, trees
+  and undergrowth.
+- **`ChunkStreamer`** holds the residency policy only.
+- **`WorldFactory`** is the composition root.
+- **`AuthoredReliefRegion`** is the valley. **`ProceduralReliefRegion`** places towns.
+
+**The seams.** Every implementation behind them is pure, immutable, integer-only and safe to call from any thread.
+
+```csharp
+public readonly record struct ClimateSample(int Temperature, int Humidity, int Continentalness, int Erosion, int Ridges, int River);
+public interface IClimateSampler  { ClimateSample At(int x, int z); int TemperatureAt(int x, int y, int z); }  // y: lapse with altitude
+public interface IHeightModel     { ColumnShape Shape(int x, int z, in ClimateSample c); }
+public interface IBiomeSelector   { BiomeRow Select(in ClimateSample c, int height, int x, int z); }   // a data row, no enum
+public interface IStrataSelector  { BlockId RockAt(int x, int y, int z, int surface); }                  // stone, slate, granite, limestone
+public interface ICaveField       { CaveCell At(int x, int y, int z, in ColumnShape column); }         // solid, air or lava
+internal interface IColumnShaper   { string PassName { get; } void Shape(in ColumnContext ctx, IVoxelWriter chunk); }
+internal interface IChunkDecorator { string PassName { get; } void Decorate(in ColumnContext ctx, IVoxelWriter chunk); }
+public interface IChunkSource     { ChunkData Generate(ChunkCoord3 coord); }
+public interface IRegion          { string Id { get; } RegionBounds Bounds { get; } bool Covers(ChunkCoord3 c); ChunkData Copy(ChunkCoord3 c); int EdgeHeight(int x, int z); }
+public interface IPlaceInfo       { ClimateSample ClimateAt(int x, int z); int TemperatureAt(int x, int y, int z); BiomeRow BiomeAt(int x, int z);
+                                    IRegion? RegionAt(int x, int z); int NaturalSurfaceAt(int x, int z); bool IsUnderground(int x, int y, int z); }
+```
+
+**How the principles apply.**
+- **Single responsibility.** Climate, height, biome choice, strata, ores, caves, shaping, decoration, regions, residency and storage are
+  separate types, each testable alone.
+- **Open/closed.**
+  - A new feature is a new pass, registered in `WorldFactory` in a fixed order.
+  - A pass's unique `PassName` is also its `WorldRng` and noise key. A test checks the names are unique and differ from the valley's
+    (`terrain`, `forest`, `trees`, `treeshape`, `undergrowth`).
+  - A new biome, rock or ore is a row of data. A new kind of region is a new `IRegion`.
+- **Interface segregation.** A consumer that needs blocks takes `IVoxelReader`. One that needs to know about a place takes `IPlaceInfo`.
+  Writing stays `internal` to the simulation.
+- **Dependency inversion.**
+  - Physics, the renderer, sound, the rain cover, the guide's `WorldFacts` and the future temperature system depend on those interfaces,
+    never on the generator.
+  - `WorldFactory.Create(GameData, seed, mode)` replaces the call to `SceneBuilder.Build` at `src/Vocaterra.Game/Program.cs:90`.
+- **One place query for everyone.**
+  - `IPlaceInfo` is exposed as `Scene.Places`.
+  - It reads the pure model, not the edited grid, so the guide's `TurnWorker` can query it off-thread without a snapshot.
+  - Sound, weather, `WorldFacts`, the settlement series' runtime place lookup and the temperature system all read it.
+- **Data, not code.**
+  - Biome, rock-layer and ore ids never appear in `src`. `NoBiomeIdsInSourceTests` and `NoOreIdsInSourceTests` mirror
+    `NoWeatherKindIdsInSourceTests`.
+  - A biome or an ore defined only in test data must generate with no code change, as the weather series' E04 did with its fourth kind.
+  - The blocks themselves stay `BlockId` values with code-drawn art; data rows name them. Tree species and crown shapes stay code
+    strategies, also named by the data.
+- **Purity guards.**
+  - A reflection test checks that seam implementations hold only readonly fields and no static mutable state.
+  - A token ban keeps `Thread`, `Task`, `lock` and `Interlocked` out of `World/Noise`, `World/Climate`, `World/Biomes`,
+    `World/Underground` and `World/Generation`.
+
+### 3.3 How a temperature system plugs in later
+
+A temperature system needs no change to the generator. A `Core/Temperature/PlaceTemperature` would read `IPlaceInfo`, a
+`temperature.json`, the weather series' `AtmosphereSnapshot` and shelter. Its value is built from:
+- **Climate:** `IPlaceInfo.TemperatureAt(x, y, z)`, the continuous climate temperature with its lapse over altitude. It is the same lapse
+  that decides where snow lies on the peaks, so the cold the player feels and the snow they see agree.
+- **Day:** plus a day swing from `Daylight`.
+- **Weather:** minus cooling from the `WeatherChannels` (cloud cover, precipitation, wind), never from kind ids, following the weather plan's
+  rule that consumers read channels.
+- **Shelter:** plus a term from `ListenerShelter` or `ColumnCover`.
+- **Underground:** a pull towards a steady cave temperature when `IsUnderground`.
+
+It uses fixed point if it feeds the needs simulation. A biome row may also carry an optional base temperature, as data only.
+
+### 3.4 The tall world and the surface model
+
+All maths is fixed point (`IntMath.One` = 4096). Every parameter is data in `world.json` and `biomes.json`.
+
+- **The vertical range.**
+  - y runs from **−64 to 320**: 24 chunk layers instead of 8, set in `world.json`.
+  - The **sea level stays 32**, so the valley keeps every coordinate (its water, sites, saves and scripted runs). That leaves 96 blocks of
+    underground below the sea and 288 above it. Minecraft has 127 and 257, around a sea level of 63.
+  - The valley fills chunk layers 0 to 7 of its columns. Above them is air; below them, from −64 to 0, the procedural underground
+    (section 3.5).
+- **Noise.**
+  - Reuse `TerrainNoise` and `IntMath.Ramp`, `Lerp` and `Smooth`.
+  - Add integer gradient noise in 2D and 3D with a quintic fade, because value noise gives square-ish contours at large cells. Also add
+    `Fbm`, `Ridged`, `Warp`, and a `Spline` whose control points are data.
+  - Move `Terrace` (`TerrainGenerator.cs:195`) and `BankHeight` (`:328`) into a shared helper unchanged. The valley's golden guards this.
+  - Climate is sampled on a 4-block lattice and interpolated. Detail is computed for each column.
+- **Fields**, in the manner of Minecraft 1.18's continentalness, erosion and peaks-and-valleys:
+
+  | Field | Noise and scale (blocks) | Use |
+  |---|---|---|
+  | Continentalness C | gradient fBm 2048 to 256, warp 192 | sea, coast, inland, far inland |
+  | Erosion E | gradient fBm 1536 to 384 | low E is rugged and high; high E is flat and low |
+  | Ridges R | ridged noise 640, 320, 160, warp 48 | peaks and valleys within the ranges |
+  | Temperature T, humidity H | 3072 to 1024 | the biome lookup, and later temperature |
+  | River V | 1024, 512, warp 96 | rivers where V is near zero |
+  | Lakes Lk | 256 | inland basins |
+  | Detail | `Hills` (64, 32, 16, 8) and crags | the surface |
+
+- **Height.** Three splines from data, combined so that a biome border can never make a cliff:
+  - **Base, from C:** sea floor 12 to 26, coast 30 to 35, lowlands 38 to 60, uplands 70 to 120.
+  - **Range factor, from E:** 0 on eroded flats, 1 in the rugged highlands.
+  - **Peaks, from R:** valleys 0, ridges up to about 190 blocks.
+  - **Combined:** height = base + factor × peaks + detail.
+  - **Results:** gentle plains and forests near the sea; high meadows and plateaus at 100 to 160; great ranges whose peaks reach 220 to
+    300. A soft cap above 280 slows the rise to half rate, and the height is clamped to 310.
+  - Terraces (step 6) on the steep middle slopes. Jagged crags only on the highest ridges.
+- **Snow and trees follow temperature at altitude.**
+  - `TemperatureAt(x, y, z)` falls with height. Snow lies where it drops below a data threshold, so a cold range is white lower down than a
+    warm one.
+  - The tree line is the same rule with its own threshold.
+  - The stone tint bands of `RockTint` become altitude data instead of fixed heights.
+- **Water.** Every procedural water block is a source at sea level, so all of it is at rest from the start (H07).
+  - **Rivers** carve where |V| is small, down to a bed below the water level (32), with banks from `BankHeight`. They fade out where the
+    land rises above about 72, in a region's margin and towards the sea. Like Minecraft's, they have no current and no waterfalls.
+  - **Lakes** pull the height towards 29 in low, calm basins.
+  - **Every column below 32** fills to 32, as `TerrainGenerator.Finish` does.
+  - **The ported `BankBesideWater`** keeps every water edge exitable (D-game-26).
+- **Biomes.** Ordered data rows; the first match wins. The validator requires a final catch-all row. All are made from existing blocks:
+  - **Water and coast:** ocean, beach, river.
+  - **Mountains**, in Minecraft 1.18's manner:
+    - jagged peaks (stone and snow on the highest cold ridges);
+    - stony peaks (bare stone on warm high ridges);
+    - snowy slopes (snow over stone);
+    - grove (spruce on snowy slopes);
+    - meadow (high grassland with many flowers and no trees).
+  - **Then a Whittaker lookup over T × H:** taiga (spruce), plains, forest (oak and birch), birch or dense forest.
+  - Borders are dithered by jittering T and H a little.
+- **Decoration.**
+  - Trees stand on a jittered grid of 4×4 cells per chunk, each cell inside one chunk, seeded by `WorldRng.For(seed, pass, cx, cz)`.
+  - Spacing is settled by hash priority among neighbouring cells. This replaces the valley's order-dependent stream, which stays as it is
+    inside the valley.
+  - Crowns come from the candidates of the neighbouring chunks, and only the blocks inside the chunk being generated are written.
+  - Trees need solid ground under the trunk, so none stands over a cave mouth.
+  - Undergrowth stays driven by noise.
+
+### 3.5 The underground
+
+The underground is chunk-local and a pure function of (x, y, z). It is configured in `content/game-v1/game/underground.json`.
+
+- **New blocks.** There are 9, so B09 widens the kind mask to 128 first:
+  - **Rock:** slate (the deep stone, like Minecraft's deepslate), granite, limestone.
+  - **Fluid and floor:** lava, and an unbreakable floor block ("bedrock").
+  - **Ores:** iron ore, tin ore, copper ore.
+  - **Gravel**, for cave floors and river beds.
+
+  All their art is drawn in code, so the assets stay CC0 (D-game-5).
+- **Strata** (`IStrataSelector`):
+  - Stone fills from the surface layers down to about y 8.
+  - Slate fills below y 0. Between 0 and 8 the change is dithered by a column hash, so the boundary is ragged.
+  - Granite and limestone form large blobs from 3D noise in the stone layer.
+  - The floor is a ragged layer of bedrock 1 to 4 blocks thick at y −64 to −60.
+- **Ores** (`OreTable`, data rows):
+  - Each row gives a block, a y range with a peak (a triangular distribution), veins per chunk, vein size, and the rocks it may replace.
+  - Starting values, in the manner of 1.18:
+    - copper is common from −16 to 112, peaking at 48;
+    - iron runs from −24 to 56, peaking at 16, with a second band high in the mountains from 80 to 320;
+    - tin is less common, from −32 to 48, peaking at 8.
+  - Veins are blobs of 3 to 10 blocks placed with `WorldRng.For(seed, "ore:<id>", cx, cz)`. A vein never crosses its chunk's edge, which
+    keeps generation chunk-local.
+  - Ores replace rock only, never air, water or another ore.
+  - The same ore block serves in stone and in slate, so no "deep" variants are needed.
+- **Caves** (`ICaveField`): noise caves like Minecraft 1.18's.
+  - **Cheese caverns:** large chambers where one 3D noise field is high, mostly deep down.
+  - **Spaghetti tunnels:** long winding tunnels where two 3D noise fields are both near zero.
+  - Both are sampled on a coarse lattice (4×8×4 blocks) and interpolated, which keeps the cost per chunk low.
+  - Caves reach up into the mountains as well as down into the slate.
+  - **Entrances:** tunnels may open at the surface only on dry procedural land, where an entrance mask allows. Never inside a region, on a
+    path or within reach of water.
+  - **Water never pours in.** A cave cell is kept solid if it lies within 3 blocks of any water cell or under a water column's bed. Every
+    test of section 4 checks it.
+- **Lava** fills the cave air below a lava level (data, y −54), so the bottom caverns hold lakes of lava.
+  - Lava is a flat source at a single level, so it rests at once.
+  - In this slice lava does not flow. Section 6 lists flow as later work.
+- **Under the valley.** The procedural underground fills y −64 to 0 under the valley's columns from B11. B13 then lets the strata, ore and
+  cave passes into the valley's own stone, at least 8 blocks under the surface and away from its sites, paths, water and village. That
+  re-records the valley's goldens once, with the owner's review.
+- **In play** (B10 and B12):
+  - **Gathering.** Ores can be gathered by hand, slowly (data ticks), and drop new items: iron ore, tin ore and copper ore. They are
+    materials for the crafting design (`docs/game/design/crafting-and-cooking.md`). Smelting and tools are not in this series.
+  - **What can't be gathered.** Rock stays ungatherable, as stone is today, so the underground is reached through cave entrances. Digging
+    rock and tools are an owner question (section 5).
+  - **Lava** blocks the body, so it can't be walked into. It glows.
+  - **Bedrock** can never be removed.
+- **Light underground** (B12):
+  - A face below its column's surface darkens with depth (sky exposure from the pure height model and the column's highest block), down
+    to a cave minimum within about 6 blocks.
+  - Lava, torches and lanterns light it. The per-column light index is rebuilt when a torch is placed or removed, so a placed torch lights
+    a cave.
+  - This approximates sky light without propagation. Section 6 lists propagated light as later work.
+
+### 3.6 Regions, the blend and the pass
+
+- **The valley is an `AuthoredReliefRegion`.**
+  - It covers chunk columns 0 to 23 and chunk layers 0 to 7.
+  - It is built once by the unchanged `SceneBuilder`, then frozen into immutable arrays so worker threads can't race on its lazy caches.
+  - It also exports `Terrain.Height`, the edge profile used for blending.
+  - Until B13 it stays byte-identical: `SceneTests.GoldenDigest` and `VillageTests` hold.
+  - Its trunks keep 2 blocks from the edge, so its crowns never cross the border.
+- **The blend sits outside the region,** over a margin of about 64 blocks (data).
+  - The procedural height is eased towards the height at the nearest point of the region's edge.
+  - Trees keep 3 blocks off the border and thin out across the margin. Rivers, lakes and cave entrances fade out in it.
+  - Continentalness is pulled towards land within about 512 blocks, so no sea opens at the valley's feet.
+  - Beyond the margin the land is free to rise into the great ranges. Seen from the pass, the valley's ring of 110-block peaks becomes the
+    foothills of mountains two or three times their height.
+  - An exit corridor declared in `world.json` keeps the way out of the pass walkable.
+- **The pass** (B08):
+  - The east side of the ring, beside the village, is already its lowest part: in relief rows 12 to 14, columns 22 and 23 are `f` and `k`,
+    heights 60 and 80 (column 21 is already `b`, height 44). They are lowered to `c` and `d`, heights 48 to 52.
+  - A road runs from the village, about x 316, z 218, to the east edge at x 383.
+  - A `paso` site and the exit corridor are added.
+  - This edits `scene.json`, which the settlement series also edited (it emptied the mountain ledge). That series merged into `main` in
+    PR #65 before B00, so B08 starts from its `scene.json` and waits for nothing but B06.
+- **Towns** (B15):
+  - An `IGroundShape` strategy inside `TerrainGenerator` chooses between the hand-drawn relief and the procedural height.
+  - A `ProceduralReliefRegion` then places a layout's sites, props and paths at an offset on procedural ground, with currents and points
+    that know their origin.
+  - The valley stays byte-identical. This is the mechanism for every later town.
+
+### 3.7 Storage, streaming and determinism
+
+- **`VoxelGrid` keeps its name and its API.** Inside, it stores chunks sparsely by `ChunkCoord3` in a dictionary, with a cache of the last
+  chunk used. All-air chunks are never allocated.
+  - **Bounded mode** is today's constructor. `SceneBuilder`, the region template and the 41 tests that build grids keep it.
+  - **Streamed mode** takes world limits from data: x and z ±30,000, y −64 to 320.
+  - Every member that assumed y ≥ 0 (`GroundFinder`, `HighestBlock`, the mesher's "below the world is stone", `BlockRay`, `TeleportTo`)
+    reads the world's minimum y instead.
+  - The dense members (`Chunks`, `ChunksX` and `ChunksZ`, `BlocksOfKind`, the full `ComputeDigest`) stay valid only on bounded grids. An
+    architecture test allow-lists their uses in `src`.
+  - About 13 production files change, and the tests barely change.
+- **Generate on read.** A read of a missing chunk inside the limits generates and installs it at once, on the game loop's thread.
+  - **Installs are not edits.** They don't bump `EditCount` and don't wake `FlowSimulation`. A separate `ResidencyVersion` and an
+    `IChunkResidencyListener` tell the renderer, the rain cover and the light index.
+  - **Only unchanged chunks are evicted.** Changed chunks are state, and they stay in memory.
+  - **Nothing in the simulation enumerates resident chunks.**
+    - Fire rings come from the region template.
+    - `WorldFacts` gets a window: the region the player stands in, which keeps the guide's answers in the valley byte-identical. Otherwise
+      it is a box of radius 128, from 64 blocks below the player to 64 above.
+  - **The residency policy lives in Core.** `ChunkStreamer` returns the wanted chunks (nearest first, with a fixed tie-break) and the
+    chunks that may be evicted. It changes performance, never results.
+- **A surface band and a near zone keep a tall world affordable.** The view radius at High covers about 1,960 columns, and a mountain column
+  can hold 20 full chunks. So:
+  - **At a distance** only the *surface band* is resident and meshed: the chunks that meet the surface heights of the column and its
+    neighbours. Those heights come from the pure height model, without generating anything.
+  - **Chunks wholly underground** are resident and meshed only within a near radius of the player (about 4 chunks), or whenever the player
+    is underground. Caves inside a distant mountain are never meshed.
+  - A cave mouth seen from afar shows as a dark opening.
+- **Threads live only in the Game project.**
+  - `ChunkPrefetcher` calls the pure source on at most 2 workers. The game loop installs what they produce, unless the chunk was already
+    generated on read; duplicates are dropped.
+  - Workers never touch `VoxelGrid`.
+  - If generation on the game loop's thread, under a per-frame budget, keeps up with walking (about 51 columns for each chunk boundary
+    crossed), the worker stays optional.
+- **Scripted runs stay deterministic.**
+  - Ticks don't depend on residency.
+  - Before each `--shot`, a settle step installs and meshes everything in view (`Remesh(budget: null)`).
+  - Residency counts stay out of the compared output.
+  - Signed coordinates in steps come with B14 (`Scripted/VoxelStep.cs:54`, now `NumberStyles.None`).
+- **The renderer.**
+  - Its arrays are keyed by coordinate.
+  - A chunk is meshed only when all 26 of its neighbours are resident. Ambient occlusion reads the diagonal cells (`ChunkMesher.cs:626`),
+    water depth reads 3 cells down, and lantern glow reaches 9 blocks.
+  - The renderer peeks without generating.
+  - A per-column light index replaces the one-off global `FindLights` (`VoxelRenderer.cs:173`).
+  - Eviction keeps one chunk of slack beyond `KeepDistance`, so a meshed chunk never loses a neighbour.
+  - The far plane and fog allow for height, so a peak at 300 isn't cut off while its foot is in view.
+  - Absolute float vertices are precise enough to ±30,000 blocks (about 1/512 of a block), so no camera-relative rendering is needed.
+  - The cloud layer stays at 168 for now, so the great peaks rise through it. Its height becomes data in B14.
+
+### 3.8 The state digest and saves (B05)
+
+- **The world's state digest.**
+  - A header comes first: the seed, the region template's digest, a `ProceduralGenerator.Version` constant, and a hash of the
+    world-generation data (`world.json`, `biomes.json` and `underground.json` only, so editing a phrase doesn't move it).
+  - Then the *changed* chunks follow, sorted, each written as its coordinates and its digest.
+  - Each chunk records a `PristineDigest` lazily, just before its first write, so an edit that is later undone counts as unchanged.
+  - Its cost grows with the number of changed chunks, not the size of the world.
+- **Saves become version 9** (`main` is at version 8 since the settlement series).
+  - `ChunkEdit(X, Y, Z, Runs, Water)` replaces the dense index, and `WorldDims` goes. Y may be negative.
+  - The pristine world copy is removed, which also removes the 0.7 s first-save hitch and the extra 38 MB.
+  - Restoring a save regenerates each edited chunk, then overwrites it.
+  - X01's migration by position stays.
+- **Old saves stop loading.** By the owner's rule of no save backward compatibility, `CurrentVersion` and `OldestReadableVersion` both
+  become 9, the `save-v8` fixture is replaced by a `save-v9` one, and existing save files stop loading.
+
+## 4. Milestones
+
+Series B, on the branch `feature/biomes`. Milestone branches are `B<nn>-<name>`; the commit prefix is `B<nn>:`. Models follow the owner's
+rule (2026-11-06): Haiku 5.5 for small work, Sonnet 5.5 at medium effort for medium work, Sonnet 5.5 at high effort for large or
+design-heavy work, and Opus only on request. Every milestone is gated with
+`GATE_TARGET=feature/biomes scripts/merge-gate.sh "B<nn>:<branch>"`.
+
+| Id | Milestone | Size | Model | Depends on | Moves |
+|---|---|---|---|---|---|
+| B00 | Register the series: D-game-34 decided; a section in `implementation-plan.md` §4; rows in `docs/README.md`, `docs/game/README.md` and `docs/open-items.md`; the handover | S | Haiku | the owner accepts | nothing |
+| B01 | Noise primitives (2D and 3D), climate with altitude, the tall height model, `BiomeTable`; `world.json` and `biomes.json` with JSON Schemas and validators; `NoBiomeIdsInSourceTests`; purity tests | L | Sonnet high | B00 | bundle hash |
+| B02 | `tools/Vocaterra.WorldPreview`: PNG maps of biomes and heights, and vertical slices, for a seed and an area. Uses BCL `ZLibStream` and a hand-written CRC32, no package. Maps for 3 seeds. **The owner reviews the maps before tuning** | S/M | Sonnet medium | B01 | nothing |
+| B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to −64. Tests: a chunk generated alone equals the same chunk generated among others; water at rest; exitable edges; time per chunk; procedural goldens | L | Sonnet high | B01 | new goldens |
+| B04a | Sparse `VoxelGrid` in both modes, with the y range from data (negative y); coordinate APIs, residency events, `PristineDigest`, `IVoxelReader`; Core consumers keyed by coordinate; the dense-API allow-list test | L | Sonnet high | B00 | nothing (byte-identical) |
+| B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index | M | Sonnet medium | B04a | nothing (identical pictures) |
+| B05 | Saves version 9 and the changed-chunk state digest | M | Sonnet medium | B04a | state digests, fixtures |
+| B06 | `WorldFactory`; the regions and `CompositeChunkSource` (copy, blend, land bias); streamed mode with generate-on-read; `ChunkStreamer`; `WorldQuery` as `IPlaceInfo`; the `WorldFacts` window. The game itself stays bounded | L | Sonnet high | B03, B05 | new tests only |
+| B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06 | pictures (owner review) |
+| B08 | The pass through the east ring, and the road out of the valley | S/M | Sonnet medium | B06 (`feature/settlement` merged in PR #65) | valley golden, bundle, runs |
+| B09 | Widen block kinds from 64 to 128 bits: `KindMask`, the mesher's grey masks, `WorldFacts` masks, the tracker | M | Sonnet medium | B04b | nothing |
+| B10 | The underground blocks: slate, granite, limestone, gravel, lava, bedrock, and iron, tin and copper ore. Code-drawn art; ores gatherable by hand with their items and nouns; lava blocks the body and glows; bedrock is unbreakable | M | Sonnet medium | B09 | bundle hash |
+| B11 | The underground generation, configured by `underground.json` (schema, validator, `NoOreIdsInSourceTests`): strata, ores, cheese and spaghetti caves on a coarse 3D lattice, entrances, lava level, the bedrock floor. Tests: chunk-locality, no cave within reach of water, no entrance in a region or on a path, ore counts per seed within ranges, lava at rest, time per chunk. Vertical slices in the preview tool | L | Sonnet high | B03, B10 | procedural goldens |
+| B12 | The underground in play: darkening by depth, lava light, a light index that follows placed torches, the near zone for underground chunks (wider when the player is underground); a scripted cave tour; a VM performance check | M/L | Sonnet high | B07, B11 | pictures (owner review) |
+| B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08, B11 | valley golden (owner review) |
+| B14 | Integration: ambient sound by biome and underground from `IPlaceInfo`; water-at-rest and exitable-edge checks over 3 seeds; signed coordinates in scripted runs; the cloud layer's height as data; a scripted tour through the pass into each biome and down a cave; documents (`architecture.md`, `saves.md`, `running.md`, and "Adding a biome" and "Adding an ore" in `content/README.md`) and findings | M | Sonnet medium | B12, B13 | new runs |
+| B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
+
+**Order,** with at most two building agents at a time (machine resources):
+1. B01 and B04a
+2. B03 and B04b
+3. B02 and B05
+4. B06 and B09
+5. B07 and B10
+6. B08 and B11
+7. B12 and B13
+8. B14
+9. B15
+
+The game stays playable at every gate. It switches to the streamed world at B07 and gains its underground at B11 and B12.
+
+**Verification across the series:**
+- **Every gate** runs `scripts/merge-gate.sh`: build with `-warnaserror`, the full test suite, format, content validation and lint, and the
+  licence scan.
+- **Scripted runs:**
+  - B04a, B04b and B06 compare exactly.
+  - B05 compares with masked lines.
+  - B07, B08, B12 and B13 are re-baselined with the owner.
+- **Owner reviews:** B02's maps and slices are reviewed by the owner.
+- **Measurement:** B07 and B12 measure, at each preset on the VM:
+  - frame medians;
+  - meshing and generation time per chunk;
+  - resident chunks;
+  - memory.
+- **The end:** B14 ends with the screenshot tour and the water and cave checks over 3 seeds.
+
+## 5. The owner's decisions
+
+**Answers given on 2026-11-15:**
+- **How far the procedural world goes:** endless and streamed. Chunks are generated round the player, far chunks are unloaded, and saves
+  keep only edited chunks. The alternative, a larger fixed world, was declined.
+- **The first biome slice:** all from existing blocks.
+  - Plains and forests (oak and birch, spruce taiga).
+  - Mountains (stone, mossy rock, snowy peaks, terraced cliffs).
+  - Rivers and lakes (at the water level, with sand banks).
+  - Beaches and sea.
+- **The valley's ring:** open a pass through it, with a road out, so leaving the valley is a deliberate journey.
+- **The code:** modular and SOLID, ready for other systems, a temperature system first.
+- **Underground:** caves and lava like Minecraft's, kept simple, with a few kinds of stone. Ores: iron, tin and copper for now.
+- **Height:** a tall world for large mountains, like Minecraft 1.18's: −64 to 320 here.
+
+**Draft of D-game-34** (to be entered in `docs/game/decisions.md` at B00): *A tall procedural world round hand-crafted regions (the B
+series, `docs/game/biomes-plan.md`).*
+- **The world:** endless and streamed, y −64 to 320. It is procedurally generated outside authored regions: biomes, great mountain ranges,
+  rivers, lakes and sea above ground; rock layers, caves, lava, and iron, tin and copper ores below.
+- **The valley:** the first region, unchanged inside until B13, opened by a pass to the east.
+- **What it amends:**
+  - the prototype brief's LEAVE FOR LATER line on procedural terrain, biomes and a large open world;
+  - D-game-22's inward-only growth;
+  - the adaptation design's decision 15 ("inside the valley for now").
+- **What it takes over:** the settlement plan's phase 7.
+
+**Questions left for B00:**
+1. **When the new land opens:** from the first day, or reached later in the story? The plan assumes it is open, with nothing gated behind
+   language (D-game-8).
+2. **Lessons:** should any lesson or objective use the new land or the ores in this series? The plan assumes none.
+3. **Digging and tools:** may the player dig rock? The plan keeps rock ungatherable (the underground is reached by cave entrances) and lets
+   ores be gathered by hand. Digging and tools could come with the activities series (`docs/game/activities-plan.md`).
+4. **Lava's harm:** in the plan, lava blocks the body. The other choice is that it costs health through the needs model.
+5. **The ore items' Spanish nouns** must pass the content gate at the A2 ceiling (D-game-10, D-game-12). «hierro» and «cobre» may fit;
+   «estaño» may not. Options: an exception, an English-only label until a B1 level exists, or another metal.
+
+## 6. What this plan does not do
+
+- **Blocks and biomes.** New biome blocks (desert, swamp, tundra, ice), cave biomes, larger ore veins, and ores beyond iron, tin and copper.
+- **Fluids.** Underground water (aquifers), lava that flows, procedural waterfalls, rivers above sea level, and currents outside the
+  valley.
+- **Underground features.** Structures such as mineshafts and abandoned camps.
+- **Crafting.** Smelting, tools, and digging rock (section 5, question 3).
+- **Rendering.** Propagated sky and block light, distant-terrain detail levels for peaks beyond the view distance, and camera-relative
+  rendering.
+- **Language.** Biome words, place names, or the guide's knowledge of procedural land.
+  - In new land, «¿dónde está el río?» can point at the sea, because "río" names water blocks (`nouns.json`).
+  - There are no labels like «bosque», «montaña» or «cueva».
+  - `IPlaceInfo` makes these possible later. They will go through the content gate and the A2 ceiling.
+- **Temperature.** The temperature system itself; section 3.3 only shows how it plugs in.
+- **Towns.** New towns' content: B15 builds the mechanism with a tiny sample only.
+
+## 7. Risks
+
+1. **Performance on the software-GL VM.** The view at High covers about 1,960 columns, 3.4 times the valley, and the world is three times
+   taller.
+   - Mitigation: the surface band and the near zone (section 3.7), the existing skipping of buried chunks, and B07's and B12's measurement
+     gates.
+   - The streamed preset distances are set by measurement. Merged meshes per column come later if needed.
+2. **Memory.** The surface band keeps about 3 to 5 chunks per distant column, so about 50 to 80 MB at High. Add the near zone, the region
+   template (about 23 MB without its empty chunks) and the meshes.
+   - Mitigation: tests stay on the bounded valley or small windows, under the 3 GB heap cap of `Vocaterra.Game.Core.Tests`.
+   - Palette storage for chunks (4 bits a block) is the next step if B07's measurements need it.
+3. **Generation time.** 3D cave noise is the heaviest pass.
+   - Mitigation: the coarse 4×8×4 lattice, the surface band (most deep chunks are never generated far away), and a time-per-chunk test
+     beside `SceneBuildTimeTests`.
+4. **The block-id ceiling.** With the settlement series' blocks (ids up to 56, on `main`) and this series' 9, ids pass 64.
+   - Mitigation: B09 comes before B10.
+5. **Conflicts with the settlement series.** Both edit `scene.json`.
+   - Mitigation: that series merged into `main` (PR #65) before B00, so B08 and B13 start from its `scene.json`. Its runtime place lookup
+     should use `IPlaceInfo` once B06 lands.
+6. **Residency leaking into determinism.**
+   - Mitigation: the dense-API allow-list test, plus a test that runs the same script under two prefetch and eviction policies and expects
+     identical state digests and saves.
+7. **Lazy caches racing on worker threads.**
+   - Mitigation: the region template is frozen into immutable arrays, and workers never touch `VoxelGrid`.
+8. **Water meeting caves.** A cave that met a river or the sea would flood through the flow simulation.
+   - Mitigation: the no-cave margin round water and under water beds, tested over sampled areas and 3 seeds.
+9. **Seams at the region border** (surface blocks, tree line, the jump from the 110-block ring to far higher peaks).
+   - Mitigation: the blend margin and the land bias, reviewed in B02's maps and B14's screenshots.
+10. **Churn of the content hash.** Re-hashes happen at B01, B08, B10, B11 and during tuning.
+    - Mitigation: the state digest hashes only the world-generation data.
+11. **Integer overflow and range.** Fixed-point positions hold to 524,288 blocks. Negative y is new to physics, rays, flow and the walk
+    planner.
+    - Mitigation: tests near ±29,000 in x and z, and at y −60 and 310.
+
+## 8. Progress
+
+| Id | Status | Gate | Notes |
+|---|---|---|---|
+| (proposal) | written 2026-11-15; caves, ores and the tall world added the same day | none (documents only) | for the owner's review |
+| (refresh) | 2026-11-15, after the fast-forward to `main` at `0db529a1` | none (documents only) | saves version 9 (not 8), block ids 0 to 56, B08 no longer waits for `feature/settlement`, line references checked; committed with D-game-34 entered as proposed |
