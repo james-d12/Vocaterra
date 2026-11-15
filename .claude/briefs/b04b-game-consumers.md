@@ -3,7 +3,7 @@ the engine Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nl
 Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's
 work is in the game, in src/Vocaterra.Game and its tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b04b, already on the local branch `B04b-game-consumers` (cut from
-`feature/biomes` at @@BASE@@, which holds B01 and B04a). Run every command from that directory. Commit after each item that builds and
+`feature/biomes` at 47f51d07, which holds B01 and B04a). Run every command from that directory. Commit after each item that builds and
 passes its tests, with the prefix `B04b: `. Do not push your branch: it stays local and the gate merges it from there. Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree you made (B04a made one
 under /tmp for its baseline; if you do the same, remove it with `git worktree remove --force` before reporting).
@@ -62,7 +62,7 @@ differs only there, capture r01 twice on the same code to show it, and report it
 if the game prints it.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,650 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes. Do not commit bin/, obj/ or artifacts/ (keep the
 captures outside the repository, for example in /tmp).
 Commit messages end with
