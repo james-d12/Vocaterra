@@ -18,6 +18,7 @@ public sealed class RegionBlendDataTests
 
         Assert.Equal((64, 3), (blend.Margin, blend.TreeClearance));
         Assert.Equal(new LandBiasSpec(100, -120, 512), blend.LandBias);
+        Assert.Equal(new EdgeSmoothingSpec(16, 16), blend.Smoothing);
         var corridor = Assert.Single(blend.ExitCorridors);
         Assert.Equal((383, 208), (corridor.FromX, corridor.FromZ)); // the pass's road ends at x 383, z about 208 (B08a)
         Assert.True(corridor.ToX > corridor.FromX);
@@ -58,6 +59,18 @@ public sealed class RegionBlendDataTests
         var bad = Shipped with { RegionBlend = Shipped.Blend with { Margin = margin, TreeClearance = clearance, LandBias = Shipped.Blend.LandBias with { Radius = radius } } };
 
         Assert.Contains(Problems(bad), p => p.Contains(part, StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(-1, 16)]
+    [InlineData(65, 16)]
+    [InlineData(16, 0)]
+    [InlineData(16, 65)]
+    public void Given_AnEdgeSmoothingOutOfRange_When_TheWorldIsValidated_Then_ItIsRefused(int blurRadius, int ease)
+    {
+        var bad = Shipped with { RegionBlend = Shipped.Blend with { EdgeSmoothing = new EdgeSmoothingSpec(blurRadius, ease) } };
+
+        Assert.Contains(Problems(bad), static p => p.Contains("edgeSmoothing", StringComparison.Ordinal));
     }
 
     [Fact]

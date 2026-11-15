@@ -143,6 +143,15 @@
             "radius": { "type": "integer", "minimum": 8, "maximum": 8192, "description": "The distance in blocks over which the floor falls from floor to shoreFloor (and at that rate beyond it); at least the margin." }
           }
         },
+        "edgeSmoothing": {
+          "type": "object",
+          "required": ["blurRadius", "ease"],
+          "additionalProperties": false,
+          "properties": {
+            "blurRadius": { "type": "integer", "minimum": 0, "maximum": 64, "description": "The radius in columns of the blur the edge's height is smoothed with; 0 for none." },
+            "ease": { "type": "integer", "minimum": 1, "description": "The blocks over which the ground eases from the edge's own height to its blurred height; at most the margin." }
+          }
+        },
         "exitCorridors": {
           "type": "array",
           "description": "Roads that continue walkable beyond an exit of a region: from a point at the edge to a point outside.",

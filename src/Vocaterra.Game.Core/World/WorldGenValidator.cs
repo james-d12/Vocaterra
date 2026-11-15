@@ -57,6 +57,12 @@ internal static class WorldGenValidator
             problems.Add($"{File}: regionBlend.landBias needs a shoreFloor no higher than the floor and a radius from the margin to 8192 blocks (they are {bias.ShoreFloor}, {bias.Floor} and {bias.Radius}).");
         }
 
+        var smoothing = blend.Smoothing;
+        if (smoothing.BlurRadius < 0 || smoothing.BlurRadius > 64 || smoothing.Ease < 1 || smoothing.Ease > blend.Margin)
+        {
+            problems.Add($"{File}: regionBlend.edgeSmoothing needs a blurRadius from 0 to 64 columns and an ease from 1 to the margin (they are {smoothing.BlurRadius} and {smoothing.Ease}).");
+        }
+
         foreach (var corridor in blend.ExitCorridors)
         {
             var length = (int)Mathematics.IntMath.ISqrt(((long)(corridor.ToX - corridor.FromX) * (corridor.ToX - corridor.FromX)) + ((long)(corridor.ToZ - corridor.FromZ) * (corridor.ToZ - corridor.FromZ)));

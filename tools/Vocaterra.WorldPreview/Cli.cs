@@ -24,12 +24,13 @@ internal static class Cli
           --out <path>     a folder, or a .png file for one picture (default: the current folder; the file is named from the seed, the centre, the size and the scale)
           --content <dir>  the content bundle (default: content/game-v1 of the checkout)
           --threads <n>    worker threads (default 4)
+          --world <free|valley>  free: the procedural world alone (default); valley: the world as the game's streamed mode makes it round the valley (B06): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land; maps then show the footprint (red), the margin (orange) and the land-bias radius (yellow)
           slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2)
         """;
 
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
-        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom",
+        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world",
     };
 
     /// <summary>Runs a command line. The exit code is 0 when the pictures were written, 2 for a bad command line.</summary>
@@ -70,7 +71,14 @@ internal static class Cli
             var outPath = Get(options, "--out", ".");
             var content = options.TryGetValue("--content", out var c) ? c : FindBundle();
             var data = Load(content);
-            var sampler = new WorldSampler(data, seed, threads);
+            var world = Get(options, "--world", "free");
+            if (world is not ("free" or "valley"))
+            {
+                throw new ArgumentException($"--world is free or valley, not '{world}'.");
+            }
+
+            var places = world == "valley" ? Vocaterra.Game.Core.World.WorldFactory.Create(data, seed, Vocaterra.Game.Core.World.WorldMode.Bounded).Places : null;
+            var sampler = new WorldSampler(data, seed, threads, places);
             var started = System.Diagnostics.Stopwatch.StartNew();
             if (command == "slice")
             {
@@ -79,7 +87,7 @@ internal static class Cli
                 var x1 = Int(options, "--x1", 2048);
                 var z1 = Int(options, "--z1", 0);
                 var image = Renderer.Slice(sampler, x0, z0, x1, z1, scale, Int(options, "--zoom", 2));
-                var path = Target(outPath, $"slice-seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
+                var path = Target(outPath, $"slice-{(places is null ? string.Empty : "valley-")}seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
                 Save(path, image);
                 output.WriteLine($"{path} ({image.Width} x {image.Height}, {started.Elapsed.TotalSeconds:0.0} s)");
                 return 0;
@@ -90,11 +98,13 @@ internal static class Cli
             var size = Int(options, "--size", 4096);
             var map = sampler.Map(cx, cz, size, scale);
             var sampled = started.Elapsed;
-            var stem = $"seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
+            var stem = $"{(places is null ? string.Empty : "valley-")}seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
             if (command is "biomes" or "maps")
             {
                 var path = Target(outPath, "biomes-" + stem, command == "biomes");
-                Save(path, Renderer.Biomes(map, sampler.Palette));
+                var picture = Renderer.Biomes(map, sampler.Palette);
+                Frame(picture, map, places, data);
+                Save(path, picture);
                 var legend = Renderer.Legend(sampler, sampler.Shares(map));
                 File.WriteAllText(Path.ChangeExtension(path, ".legend.txt"), legend);
                 output.WriteLine($"{path} ({map.Width} x {map.Height}; sampled in {sampled.TotalSeconds:0.0} s, drawn by {started.Elapsed.TotalSeconds:0.0} s)");
@@ -104,7 +114,9 @@ internal static class Cli
             if (command is "heights" or "maps")
             {
                 var path = Target(outPath, "heights-" + stem, command == "heights");
-                Save(path, Renderer.Heights(map, sampler.SeaLevel));
+                var picture = Renderer.Heights(map, sampler.SeaLevel);
+                Frame(picture, map, places, data);
+                Save(path, picture);
                 var summary = Renderer.HeightSummary(map);
                 File.WriteAllText(Path.ChangeExtension(path, ".stats.txt"), summary);
                 output.WriteLine($"{path} ({map.Width} x {map.Height}; sampled in {sampled.TotalSeconds:0.0} s, drawn by {started.Elapsed.TotalSeconds:0.0} s)");
@@ -142,6 +154,24 @@ internal static class Cli
         }
 
         throw new ArgumentException("content/game-v1 was not found; run from the checkout or give --content.");
+    }
+
+    // The valley world's maps carry the outlines of its region: the footprint, the end of the blend margin and the land bias's radius.
+    private static void Frame(Image image, WorldMap map, Vocaterra.Game.Core.World.IPlaceInfo? places, GameData data)
+    {
+        if (places is null)
+        {
+            return;
+        }
+
+        foreach (var region in new[] { places.RegionAt(0, 0) }.OfType<Vocaterra.Game.Core.World.Regions.IRegion>())
+        {
+            var b = region.Bounds;
+            var blend = data.WorldGen.Blend;
+            Overlay.Outline(image, map, b.MinX, b.MinZ, b.MaxX, b.MaxZ, blend.LandBias.Radius, Overlay.Bias, dashed: true);
+            Overlay.Outline(image, map, b.MinX, b.MinZ, b.MaxX, b.MaxZ, blend.Margin, Overlay.Margin, dashed: false);
+            Overlay.Outline(image, map, b.MinX, b.MinZ, b.MaxX, b.MaxZ, 0, Overlay.Footprint, dashed: false);
+        }
     }
 
     private static string Get(Dictionary<string, string> options, string name, string fallback) => options.TryGetValue(name, out var v) ? v : fallback;

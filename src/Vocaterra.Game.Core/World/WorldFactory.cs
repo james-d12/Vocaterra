@@ -29,7 +29,7 @@ public static class WorldFactory
     {
         ArgumentNullException.ThrowIfNull(data);
         var built = SceneBuilder.Build(layout ?? data.Scene, seed);
-        var region = AuthoredReliefRegion.Freeze(ValleyRegionId, built, keepChunks: mode == WorldMode.Streamed);
+        var region = AuthoredReliefRegion.Freeze(ValleyRegionId, built, keepChunks: mode == WorldMode.Streamed, edgeBlurRadius: data.WorldGen.Blend.Smoothing.BlurRadius);
         var composition = Compose(data, seed, new RegionCatalog([region]));
         if (mode == WorldMode.Bounded)
         {

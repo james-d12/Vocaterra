@@ -31,4 +31,12 @@ public interface IRegion
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
     int EdgeHeight(int x, int z);
+
+    /// <summary>
+    /// The edge's height blurred over the data's radius (<see cref="EdgeSmoothingSpec"/>): the ground of the footprint column nearest to the column, averaged with the columns round it. The land outside
+    /// eases from <see cref="EdgeHeight"/> at the border to this a few blocks out, so the edge's roughness does not comb the land into ridges.
+    /// </summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    int SmoothedEdgeHeight(int x, int z);
 }

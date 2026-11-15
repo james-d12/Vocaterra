@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.World.Regions;
 /// footprint (0 inside, 1 for the column beside the edge):
 /// <list type="bullet">
 /// <item>The ground of a column inside is the region's own. Outside, over <see cref="RegionBlendData.Margin"/> blocks, the procedural height eases (a smoothstep, flat at both ends) towards the
-/// height of the region's edge at the nearest edge point, so the first column outside is the edge's height and the land beyond the margin is the free procedural land. The rivers' and lakes'
+/// height of the region's edge at the nearest edge point, so the first column outside is the edge's height and the land beyond the margin is the free procedural land. The edge's own roughness
+/// is eased away over <see cref="EdgeSmoothingSpec.Ease"/> blocks (to its blurred height), so it does not comb the land into ridges. The rivers' and lakes'
 /// weights fade by the same weight, so the water gives way to the ground.</item>
 /// <item>No trunk stands inside, or within <see cref="RegionBlendData.TreeClearance"/> columns outside, so a crown never crosses the border; across the margin the trees thin out in a straight line
 /// from none at the clearance to the biome's own density at the margin.</item>
@@ -144,6 +145,17 @@ internal sealed class BlendedHeightModel : IHeightModel
         if (distance == 0)
         {
             return Own(target);
+        }
+
+        // Beside the border the ground is the edge's own height; a few blocks out it is the edge's height blurred along the border, so the edge's roughness does not comb the land into ridges.
+        var ease = _blend.Data.Smoothing.Ease;
+        if (distance < ease)
+        {
+            target = IntMath.Lerp(target, region.SmoothedEdgeHeight(x, z), IntMath.Smooth(distance * One / ease));
+        }
+        else
+        {
+            target = region.SmoothedEdgeHeight(x, z);
         }
 
         var weight = _blend.EdgeWeight(distance);

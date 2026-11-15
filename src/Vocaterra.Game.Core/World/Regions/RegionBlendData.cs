@@ -10,8 +10,12 @@ namespace Vocaterra.Game.Core.World.Regions;
 /// <param name="TreeClearance">How many columns outside the edge keep no trunk, so a crown never crosses into the region.</param>
 /// <param name="LandBias">The pull of the continentalness towards land round a region.</param>
 /// <param name="ExitCorridors">The walkable ways out: a road that continues beyond an exit of a region, at a height of its own, for a short stretch.</param>
-public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec LandBias, IReadOnlyList<ExitCorridorSpec> ExitCorridors)
+/// <param name="EdgeSmoothing">How the edge's own roughness is smoothed away from the border (<see cref="EdgeSmoothingSpec.Default"/> when <see langword="null"/>).</param>
+public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec LandBias, IReadOnlyList<ExitCorridorSpec> ExitCorridors, EdgeSmoothingSpec? EdgeSmoothing = null)
 {
+    /// <summary>The edge smoothing: the file's, or the default.</summary>
+    public EdgeSmoothingSpec Smoothing => EdgeSmoothing ?? EdgeSmoothingSpec.Default;
+
     /// <summary>The section's name in <c>game/world.json</c>.</summary>
     public const string SectionName = "regionBlend";
 
@@ -50,7 +54,10 @@ public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec
             section.GetProperty("margin").GetInt32(),
             section.GetProperty("treeClearance").GetInt32(),
             new LandBiasSpec(bias.GetProperty("floor").GetInt32(), bias.GetProperty("shoreFloor").GetInt32(), bias.GetProperty("radius").GetInt32()),
-            corridors);
+            corridors,
+            section.TryGetProperty("edgeSmoothing", out var smoothing)
+                ? new EdgeSmoothingSpec(smoothing.GetProperty("blurRadius").GetInt32(), smoothing.GetProperty("ease").GetInt32())
+                : EdgeSmoothingSpec.Default);
     }
 }
 
@@ -78,3 +85,15 @@ public sealed record LandBiasSpec(int Floor, int ShoreFloor, int Radius);
 /// <param name="Shoulder">The blocks over which the bank eases from the road to the land beside it.</param>
 /// <param name="Fade">The blocks at the far end over which the road gives way to the land.</param>
 public sealed record ExitCorridorSpec(string Id, int FromX, int FromZ, int ToX, int ToZ, int HalfWidth, int Shoulder, int Fade);
+
+/// <summary>
+/// How the blend keeps a region's rough edge from combing the land outside into ridges that run straight out from it: the ground the margin eases to is the edge's own height at the border
+/// itself, and over <see cref="Ease"/> blocks it gives way to the edge's height blurred over <see cref="BlurRadius"/> columns (the region's ground averaged in a square of 2 x radius + 1).
+/// </summary>
+/// <param name="BlurRadius">The blur's radius in columns; 0 for none.</param>
+/// <param name="Ease">The blocks over which the target goes from the edge's own height to its blurred height; at least 1.</param>
+public sealed record EdgeSmoothingSpec(int BlurRadius, int Ease)
+{
+    /// <summary>The numbers a world file with no <c>edgeSmoothing</c> gets.</summary>
+    public static EdgeSmoothingSpec Default { get; } = new(16, 16);
+}

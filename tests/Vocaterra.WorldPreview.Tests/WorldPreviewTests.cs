@@ -58,6 +58,42 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
     }
 
     [Fact]
+    public void The_valley_world_samples_the_place_query_and_the_free_world_is_not_the_valley_world()
+    {
+        var places = Vocaterra.Game.Core.World.WorldFactory.Create(_data, 42, Vocaterra.Game.Core.World.WorldMode.Bounded).Places!;
+        var valley = new WorldSampler(_data, 42, 2, places);
+        var free = new WorldSampler(_data, 42);
+
+        foreach (var (x, z) in new[] { (100, 100), (383, 208), (400, 208), (450, 300), (-20, 50), (1000, 1000) })
+        {
+            var column = valley.At(x, z);
+            Assert.Equal(places.NaturalSurfaceAt(x, z), column.Ground);
+            Assert.Equal(places.BiomeAt(x, z).Index, column.Biome);
+        }
+
+        var map = valley.Map(192, 192, 256, 4);
+        Assert.Equal(valley.At(map.BlockX(10), map.BlockZ(20)).Ground, map.Ground[(20 * map.Width) + 10]);
+        Assert.NotEqual(free.At(200, 200).Ground, valley.At(200, 200).Ground); // the valley's own ground is not the free world's
+    }
+
+    [Fact]
+    public void The_valley_option_draws_the_footprint_outline_and_refuses_an_unknown_world()
+    {
+        var folder = Path.Combine(_folder, "valley");
+        Run("heights", "--world", "valley", "--seed", "42", "--x", "192", "--z", "192", "--size", "1024", "--scale", "4", "--out", folder);
+        var file = Assert.Single(Directory.GetFiles(folder, "*.png"));
+        var (width, _, pixels) = PngDecoder.Decode(File.ReadAllBytes(file));
+        Assert.Equal(256, width);
+        var footprint = Overlay.Footprint;
+        var drawn = Enumerable.Range(0, pixels.Length / 3).Count(i => pixels[i * 3] == footprint.R && pixels[(i * 3) + 1] == footprint.G && pixels[(i * 3) + 2] == footprint.B);
+        Assert.InRange(drawn, 300, 400); // the footprint's outline: four sides of 96 pixels, less the corners drawn twice
+
+        var error = new StringWriter();
+        Assert.Equal(2, Cli.Run(["maps", "--world", "moon"], new StringWriter(), error));
+        Assert.Contains("--world", error.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void The_fill_path_and_the_one_column_path_draw_the_same_map()
     {
         var sampler = new WorldSampler(_data, 42);

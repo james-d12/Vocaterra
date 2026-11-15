@@ -96,6 +96,29 @@ public sealed class RegionBlendTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Given_TheValleysRoughEdge_When_TheGroundAlongTheBorderIsComparedAtGrowingDistances_Then_ItsRoughnessIsEasedAwaySoNoRidgesComb()
+    {
+        var world = RegionTestWorld.Composition();
+        var region = RegionTestWorld.Valley();
+        var b = region.Bounds;
+        var ease = Blend.Smoothing.Ease;
+
+        // The smoothed profile along the east edge is much calmer than the edge itself.
+        double Roughness(Func<int, int> at) => Enumerable.Range(b.MinZ, b.MaxZ - b.MinZ).Sum(z => Math.Abs(at(z + 1) - at(z)));
+        var raw = Roughness(z => region.EdgeHeight(b.MaxX, z));
+        var smooth = Roughness(z => region.SmoothedEdgeHeight(b.MaxX, z));
+        output.WriteLine($"along the east edge the heights change by {raw} in all and the smoothed ones by {smooth}");
+        Assert.True(smooth * 2 < raw, $"{smooth} against {raw}");
+
+        // On the ground: beside the border the roughness is the edge's own, a few blocks out it is gone. Outside the pass's bank, along the north and south sides.
+        double Tangential(int d) => Enumerable.Range(b.MinX, b.MaxX - b.MinX).Sum(x => Math.Abs(Height(world, x + 1, b.MinZ - d) - Height(world, x, b.MinZ - d)) + Math.Abs(Height(world, x + 1, b.MaxZ + d) - Height(world, x, b.MaxZ + d)));
+        var (near, eased, far) = (Tangential(1), Tangential(ease), Tangential(2 * ease));
+        output.WriteLine($"the change along the north and south borders: {near} at d 1, {eased} at d {ease}, {far} at d {2 * ease}");
+        Assert.True(eased * 2 < near, $"{eased} at d {ease} against {near} at d 1");
+        Assert.True(far < near, $"{far} at d {2 * ease} against {near} at d 1");
+    }
+
+    [Fact]
     public void Given_TheFirstColumnOutside_When_ItsGroundIsRead_Then_ItIsTheEdgesHeightAndBeyondTheMarginTheModelIsFree()
     {
         var world = RegionTestWorld.Composition();

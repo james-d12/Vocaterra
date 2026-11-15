@@ -13,15 +13,17 @@ public sealed class AuthoredReliefRegion : IRegion
 {
     private readonly ChunkData?[]? _chunks;
     private readonly int[] _ground;
+    private readonly int[] _smoothed;
     private readonly int _sizeX;
     private readonly int _sizeZ;
 
-    private AuthoredReliefRegion(string id, RegionBounds bounds, ChunkData?[]? chunks, int[] ground, byte[] templateDigest, TemplateBlockIndex blocks)
+    private AuthoredReliefRegion(string id, RegionBounds bounds, ChunkData?[]? chunks, int[] ground, int[] smoothed, byte[] templateDigest, TemplateBlockIndex blocks)
     {
         Id = id;
         Bounds = bounds;
         _chunks = chunks;
         _ground = ground;
+        _smoothed = smoothed;
         _sizeX = bounds.ChunksX << VoxelChunk.Shift;
         _sizeZ = bounds.ChunksZ << VoxelChunk.Shift;
         TemplateDigest = templateDigest;
@@ -51,8 +53,9 @@ public sealed class AuthoredReliefRegion : IRegion
     /// <param name="originChunkX">The first chunk column of the region in the world (0 for the valley).</param>
     /// <param name="originChunkZ">The first chunk row of the region in the world (0 for the valley).</param>
     /// <param name="keepChunks">Whether to copy the chunks into immutable arrays; false keeps only what a bounded game needs (the digest, the edge heights and the block index).</param>
+    /// <param name="edgeBlurRadius">The radius, in columns, of the blur that <see cref="SmoothedEdgeHeight"/> answers with (<see cref="EdgeSmoothingSpec.BlurRadius"/>).</param>
     /// <exception cref="ArgumentException">The scene did not come from the scene builder (it has no ground heights), or its grid is streamed.</exception>
-    internal static AuthoredReliefRegion Freeze(string id, Scene scene, int originChunkX = 0, int originChunkZ = 0, bool keepChunks = true)
+    internal static AuthoredReliefRegion Freeze(string id, Scene scene, int originChunkX = 0, int originChunkZ = 0, bool keepChunks = true, int edgeBlurRadius = 16)
     {
         ArgumentNullException.ThrowIfNull(scene);
         var grid = scene.Grid;
@@ -83,7 +86,7 @@ public sealed class AuthoredReliefRegion : IRegion
             }
         }
 
-        return new AuthoredReliefRegion(id, bounds, chunks, (int[])ground.Clone(), RegionTemplateDigest.Of(grid, originChunkX, originChunkZ), template.Shifted(originChunkX, originChunkZ));
+        return new AuthoredReliefRegion(id, bounds, chunks, (int[])ground.Clone(), Blurred(ground, bounds.ChunksX << VoxelChunk.Shift, bounds.ChunksZ << VoxelChunk.Shift, edgeBlurRadius), RegionTemplateDigest.Of(grid, originChunkX, originChunkZ), template.Shifted(originChunkX, originChunkZ));
     }
 
     /// <inheritdoc />
@@ -111,5 +114,55 @@ public sealed class AuthoredReliefRegion : IRegion
     {
         var (cx, cz) = Bounds.Clamp(x, z);
         return _ground[((cz - Bounds.MinZ) * _sizeX) + (cx - Bounds.MinX)];
+    }
+
+    /// <inheritdoc />
+    public int SmoothedEdgeHeight(int x, int z)
+    {
+        var (cx, cz) = Bounds.Clamp(x, z);
+        return _smoothed[((cz - Bounds.MinZ) * _sizeX) + (cx - Bounds.MinX)];
+    }
+
+    // The ground averaged over a square of 2 x radius + 1 columns (fewer at the footprint's edge: only the columns inside count), as two passes of a running sum, rounded to the nearest block.
+    private static int[] Blurred(int[] ground, int sizeX, int sizeZ, int radius)
+    {
+        if (radius <= 0)
+        {
+            return (int[])ground.Clone();
+        }
+
+        var across = new int[ground.Length];
+        for (var z = 0; z < sizeZ; z++)
+        {
+            for (var x = 0; x < sizeX; x++)
+            {
+                var (from, to) = (Math.Max(0, x - radius), Math.Min(sizeX - 1, x + radius));
+                var sum = 0L;
+                for (var i = from; i <= to; i++)
+                {
+                    sum += ground[(z * sizeX) + i];
+                }
+
+                across[(z * sizeX) + x] = (int)((sum * 16) / (to - from + 1)); // sixteenths, so the second pass does not round twice
+            }
+        }
+
+        var blurred = new int[ground.Length];
+        for (var x = 0; x < sizeX; x++)
+        {
+            for (var z = 0; z < sizeZ; z++)
+            {
+                var (from, to) = (Math.Max(0, z - radius), Math.Min(sizeZ - 1, z + radius));
+                var sum = 0L;
+                for (var j = from; j <= to; j++)
+                {
+                    sum += across[(j * sizeX) + x];
+                }
+
+                blurred[(z * sizeX) + x] = (int)((((sum / (to - from + 1)) + 8) >> 4));
+            }
+        }
+
+        return blurred;
     }
 }
