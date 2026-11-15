@@ -5,7 +5,7 @@ the work yourself; do not spawn subagents. Commit prefix `M96: `.
 
 ## Where to work, and committing
 Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/m96`, already on the local branch `M96-porque-noun-reading`
-(from `feature/biomes` at @@BASE@@). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree. Commit after each step that
+(from `feature/biomes` at 6d4d50b4). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree. Commit after each step that
 builds and passes its tests. Do not push; never push or merge `feature/*` or `main`. Wait for each command to finish (no wait loops on
 `pgrep -f`).
 
@@ -48,7 +48,7 @@ reading, `porque`/`porqué`); `tests/Vocaterra.Nlp.Fuzzing.Tests/README.md` (the
 5. Documents: `docs/nlp/findings.md` (an entry for M96) if your brief's rules allow it there; otherwise give its text in the report.
 
 ## Gate (from the worktree root)
-`scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4` (0 warnings); `scripts/test.sh full` (@@COUNT@@ passed before you, 3
+`scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4` (0 warnings); `scripts/test.sh full` (11,980 passed before you, 3
 skipped) after your last change; `scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes` clean; the end-to-end goldens
 unchanged unless the bug's fix moves them (then say exactly which and why). Do not commit bin/, obj/ or artifacts/.
 Commit messages end with
