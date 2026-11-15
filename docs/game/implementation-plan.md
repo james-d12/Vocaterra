@@ -555,7 +555,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | --- | --- | --- | --- | --- | --- |
 | I00 | The series registered: these rows, the activities plan's notes, D-game-23 (c) amended, the open items | acceptance | S | orchestrator | done, 2026-11-15 |
 | I01 | Items as data: `items.json` and its schema, `IItemCatalogue` in place of the static table, icons by key, the validator's item checks, the save's next version (W12 taken over) | I00 | L | Sonnet 5.5, high | done: gated at `e865a818` on `feature/inventory` (2026-11-15), 11543 passed |
-| I06 | Temperature and cold: `PlaceTemperature` and its terms, `temperature.json`, the cold bands and walk factor, the HUD's cold icon, «Tengo frío», `--temperature` | I00 | M | Sonnet 5.5, high | todo |
+| I06 | Temperature and cold: `PlaceTemperature` and its terms, `temperature.json`, the cold bands and walk factor, the HUD's cold icon, «Tengo frío», `--temperature` | I00 | M | Sonnet 5.5, high | in progress (2026-11-15) |
 | I03a | The equipment core: `equipment.json`, `Equipment`, the items' `wear`, `stats` and `look`, the equip rules, `StatSheet` and its contributors, the equip commands | I01 | L | Sonnet 5.5, high | todo |
 | I03b | The bag (base 30 plus the worn bag), the off-hand and cosmetic slots, the death rule, the state and digest, the save's next version | I03a | M | Sonnet 5.5, high | todo |
 | I02 | Interaction: `ISlotContainer`, `InventoryOps`, the held stack, swap, merge, split, shift-click, sort and trash as commands | I03b | M | Sonnet 5.5, medium | todo |
