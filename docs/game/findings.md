@@ -2593,3 +2593,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   different (the bodies matched as JSON with hex masked); r17-speak's voice-queue order is another load-dependent speech timing like
   r01's. The agent also renamed the fixture in docs/nlp/changing-the-core.md (a literal path, accepted). Open for B06: pass the region
   template's digest to `WorldStateHeader.For`. Gated: 11,748 passed, 3 skipped.
+- **B02, the world preview tool (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b02-world-preview.md`, report
+  `.claude/briefs/b02-report.md`. `tools/Vocaterra.WorldPreview` draws biome and height maps (with legends and height statistics)
+  and vertical slices from the pure model, about 1 s for a 4,096-block map; it reads only and writes PNGs by hand (no package).
+  The maps showed needle ranges, inland "ocean" basins, steep coasts with flat sea floors, snow on cold lowland and short or looping
+  rivers; the owner ruled on them (D-game-34 item 16) and B02b tunes them. Its first gate was stopped before its tests when the owner
+  stopped the work (the unverified merge was reset away); re-run at one heavy slot: 11,769 passed, 3 skipped.
