@@ -654,13 +654,4 @@ public sealed class VoxelGrid : IVoxelWriter
             throw new InvalidOperationException($"{member} needs a streamed grid: the chunks of a bounded grid never come or go.");
         }
     }
-
-    private sealed class CoordComparer : IEqualityComparer<VoxelChunkCoord>
-    {
-        public static readonly CoordComparer Instance = new();
-
-        public bool Equals(VoxelChunkCoord a, VoxelChunkCoord b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
-
-        public int GetHashCode(VoxelChunkCoord c) => unchecked((c.X * 73856093) ^ (c.Y * 19349663) ^ (c.Z * 83492791));
-    }
 }
