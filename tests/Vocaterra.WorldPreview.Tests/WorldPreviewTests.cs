@@ -94,6 +94,25 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
     }
 
     [Fact]
+    public void The_region_option_places_a_town_from_a_layout_file_and_draws_its_outline()
+    {
+        var layout = Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "sample-town.json");
+        var folder = Path.Combine(_folder, "town");
+        Run("heights", "--seed", "42", "--region", layout, "--region-x", "1264", "--region-z", "96", "--x", "1312", "--z", "144", "--size", "256", "--scale", "1", "--out", folder);
+        var file = Assert.Single(Directory.GetFiles(folder, "*.png"));
+        Assert.StartsWith("heights-town-seed42", Path.GetFileName(file), StringComparison.Ordinal);
+        var (width, _, pixels) = PngDecoder.Decode(File.ReadAllBytes(file));
+        Assert.Equal(256, width);
+        var footprint = Overlay.Footprint;
+        var drawn = Enumerable.Range(0, pixels.Length / 3).Count(i => pixels[i * 3] == footprint.R && pixels[(i * 3) + 1] == footprint.G && pixels[(i * 3) + 2] == footprint.B);
+        Assert.InRange(drawn, 300, 400); // the town's footprint, 96 blocks a side (the valley is out of the picture)
+
+        var error = new StringWriter();
+        Assert.Equal(2, Cli.Run(["maps", "--region", layout, "--world", "free"], new StringWriter(), error));
+        Assert.Contains("--region", error.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void The_fill_path_and_the_one_column_path_draw_the_same_map()
     {
         var sampler = new WorldSampler(_data, 42);
