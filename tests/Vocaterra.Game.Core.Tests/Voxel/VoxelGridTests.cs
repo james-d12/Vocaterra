@@ -157,7 +157,7 @@ public sealed class VoxelGridTests
         }
 
         Assert.Equal(Enum.GetValues<BlockId>().Length, BlockDefinition.All.Count);
-        Assert.Equal(57, BlockDefinition.All.Count);
+        Assert.Equal(66, BlockDefinition.All.Count);
 
         // The values are hashed into every golden: pinned here so a reorder cannot go unnoticed.
         Assert.Equal(0, (int)BlockId.Air);
@@ -189,7 +189,7 @@ public sealed class VoxelGridTests
         Assert.Equal(BlockDefinition.Get(BlockId.Bed), BlockDefinition.FromName("bed"));
         Assert.Equal(BlockDefinition.Get(BlockId.Bedroll), BlockDefinition.FromName("bedroll"));
         Assert.Equal(BlockDefinition.Get(BlockId.FireRing), BlockDefinition.FromName("fire-ring"));
-        Assert.Null(BlockDefinition.FromName("lava"));
+        Assert.Null(BlockDefinition.FromName("no-such-block"));
         Assert.Equal(BlockDefinition.All.Count, BlockDefinition.All.Select(d => d.Name).Distinct(StringComparer.Ordinal).Count());
     }
 
