@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Regions;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;
 
@@ -37,7 +38,7 @@ internal static class VoxelTestSupport
 
     /// <summary>
     /// A flat scene of 64 x 32 x 64 blocks: stone from y 0 to <see cref="GroundTop"/>, air above; the spawn is at (32, 10, 32) facing north.
-    /// <paramref name="customise"/> may edit the grid.
+    /// <paramref name="customise"/> may edit the grid; what it leaves is the scene's template (the rarer kinds, found as the scene builder finds them, for the fire rings and the roads).
     /// </summary>
     public static Scene FlatScene(Action<VoxelGrid>? customise = null)
     {
@@ -55,7 +56,7 @@ internal static class VoxelTestSupport
 
         customise?.Invoke(grid);
         grid.SealPristine(); // the scene as built is the world as generated: only a later write makes a chunk changed
-        return new Scene("flat", 0, grid, new SpawnPoint(new BlockPos(32, GroundTop + 1, 32), 0), [], new SortedDictionary<string, BlockPos>(StringComparer.Ordinal), 0, 0);
+        return new Scene("flat", 0, grid, new SpawnPoint(new BlockPos(32, GroundTop + 1, 32), 0), [], new SortedDictionary<string, BlockPos>(StringComparer.Ordinal), 0, 0, template: TemplateBlockIndex.Scan(grid));
     }
 
     /// <summary>A simulation on <see cref="FlatScene"/>.</summary>
