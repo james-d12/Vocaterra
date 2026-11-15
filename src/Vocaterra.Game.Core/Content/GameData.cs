@@ -182,6 +182,11 @@ public sealed class GameData
     /// <summary>The biomes: ordered rows, the first match wins (<c>game/biomes.json</c>, B01).</summary>
     public BiomeData Biomes { get; }
 
+    private Vocaterra.Game.Core.World.Pass.PassData? _pass;
+
+    /// <summary>The lock of the pass through the east ring: the required lessons, the rockfall prop and the edge site (the <c>pass</c> section of <c>game/world.json</c>, B08b).</summary>
+    public Vocaterra.Game.Core.World.Pass.PassData Pass => _pass ??= Vocaterra.Game.Core.World.Pass.PassData.Load(Bundle);
+
     /// <summary>Reads every game file of a bundle, with the support language, and checks them against each other.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language (<see cref="LocaleBundle.Text"/>).</param>
@@ -365,4 +370,8 @@ public sealed class GameData
     /// <summary>The same parts with other biomes (the validator's tests).</summary>
     /// <param name="biomes">The biomes.</param>
     internal GameData WithBiomes(BiomeData biomes) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Weather, Procedures, Stations, Actions, Land, WorldGen, biomes);
+
+    /// <summary>The same parts with another lock for the pass (the validator's tests).</summary>
+    /// <param name="pass">The pass's data.</param>
+    internal GameData WithPass(Vocaterra.Game.Core.World.Pass.PassData pass) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives, Needs, Day, Weather, Procedures, Stations, Actions, Land, WorldGen, Biomes) { _pass = pass };
 }

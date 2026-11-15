@@ -82,6 +82,7 @@ public sealed record LaunchOptions
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
         + "                          Off by default, kept in a save's settings\n"
+        + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
         + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
@@ -193,6 +194,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
     public bool RelaxedNeeds { get; init; }
+
+    /// <summary>Whether <c>--pass open</c> was given: the pass cheat is on for the run (B08b), so the pass through the east ring is open from the start. The settings menu has the same switch.</summary>
+    public bool PassOpen { get; init; }
 
     /// <summary>The <c>--needs-rate</c> value (N09): the drive rate multiplier, 0.5 to 4 in steps of 0.25; <see langword="null"/> leaves the saved setting (1 for a new game).</summary>
     public double? NeedsRate { get; init; }
@@ -660,7 +664,7 @@ public sealed record LaunchOptions
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -854,6 +858,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { NeedsRate = needsRate };
+                    break;
+                case "--pass":
+                    if (value != "open")
+                    {
+                        error = $"--pass needs open, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { PassOpen = true };
                     break;
                 case "--view-effects":
                     if (value is not ("on" or "off"))

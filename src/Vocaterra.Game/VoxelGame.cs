@@ -195,13 +195,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
         session.RelaxedNeeds = _settings.RelaxedNeeds; // half the rates, a faint for a death (N05, design decision 17)
         session.NeedsRate = _settings.NeedsRate; // the drive rate (N09)
+        session.PassCheat = _settings.PassCheat; // the pass cheat (B08b): on, the pass through the east ring opens at once
         _needsHud = new NeedsHud(session) { EffectsOn = _settings.ViewEffects };
         foreach (var (meter, value) in options.SetNeeds)
         {
@@ -1068,6 +1069,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.RelaxedNeeds:
                 _session.RelaxedNeeds = _settings.RelaxedNeeds;
                 Console.WriteLine($"relaxed needs: {(_session.RelaxedNeeds ? "on" : "off")}");
+                break;
+            case SettingId.PassCheat:
+                _session.PassCheat = _settings.PassCheat;
+                Console.WriteLine($"pass cheat: {(_settings.PassCheat ? "on" : "off")}; pass {(_session.Pass.IsOpen ? "open" : "closed")}");
                 break;
             default:
                 Console.WriteLine($"setting {id}: {_settings.Get(id)}"); // the mouse and the field of view are read each frame

@@ -90,6 +90,7 @@ public static class GameDataValidator
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
         problems.AddRange(WorldGenValidator.Validate(data.WorldGen)); // B01: the vertical range, the climate noise, the height splines, the thresholds
         problems.AddRange(BiomeValidator.Validate(data.Biomes, data.WorldGen)); // B01: the biome rows, their blocks and tree species, the catch-all
+        problems.AddRange(Vocaterra.Game.Core.World.Pass.PassValidator.Validate(data)); // B08b: the required lessons exist, the rockfall prop and the edge site are the scene's
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);

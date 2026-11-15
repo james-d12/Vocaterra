@@ -63,6 +63,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 /// <param name="DialoguePages">Each NPC's conversation lines (U08), so the panel scrolls back over earlier sessions: one page per NPC with lines, at most <see cref="Dialogue.DialogueModel.MaxLines"/> lines each. <see langword="null"/>, and left out of the file, while no NPC has a line; a save without it loads with empty pages. Optional, so it needs no save version.</param>
 /// <param name="GivenOrders">The orders the player has taken on (issue #54: a «sí» to the NPC's offer, or the step of the lesson that tells it), ordinal. <see langword="null"/>, and left out of the file, while none is; a save without it has none, and the NPCs offer them again. Optional, so it needs no save version.</param>
+/// <param name="PassOpen">True once the pass through the east ring has opened (B08b: every required lesson complete, or the cheat setting); it never closes again. Written only when true; the rockfall's removal is in the world's changed chunks. Optional, so it needs no save version.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -105,7 +106,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false);
 
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>
@@ -119,6 +121,7 @@ public sealed record SaveDocument(
 /// <param name="InvertY">True when moving the mouse up looks down (the menu). Written only when true.</param>
 /// <param name="FieldOfView">The vertical field of view in degrees (the menu), 60 to 110; 0 (and so no field) is the default 70. Written only when not 70.</param>
 /// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
+/// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -130,7 +133,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int MouseSensitivity = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool InvertY = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -208,7 +212,8 @@ public sealed record SaveSettings(
         EffectiveMouseSensitivity == Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Default ? 0 : EffectiveMouseSensitivity,
         InvertY,
         EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView,
-        EffectiveViewDistance);
+        EffectiveViewDistance,
+        PassCheat);
 }
 
 /// <summary>
