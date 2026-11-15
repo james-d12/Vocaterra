@@ -65,7 +65,7 @@ public sealed record GridBlockSource(VoxelGrid Grid, RiverCurrents? Currents = n
 
         public bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
 
-        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
 
         public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
 
@@ -172,7 +172,7 @@ public static class ChunkMesher
 
     private static byte[] BuildKindFlags()
     {
-        var flags = new byte[64];
+        var flags = new byte[BlockKinds.Capacity];
         foreach (var id in Enum.GetValues<BlockId>())
         {
             byte f = 0;

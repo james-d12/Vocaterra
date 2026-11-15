@@ -217,13 +217,14 @@ public sealed class VoxelChunk
         _pristineRecorded = false;
     }
 
+    /// <summary>Writes a block at the chunk-local position; returns whether it changed. A bedrock cell is never changed (<see cref="BlockDefinition.Indestructible"/>).</summary>
     internal bool Set(int localX, int localY, int localZ, BlockId block)
     {
         var index = Index(localX, localY, localZ);
         var old = _blocks is null ? BlockId.Air : _blocks[index];
-        if (old == block)
+        if (old == block || old == BlockId.Bedrock)
         {
-            return false;
+            return false; // bedrock is never removed or replaced, by any edit (B10); only a chunk's install (generation) writes it
         }
 
         RecordPristine();
@@ -288,6 +289,11 @@ public sealed class VoxelChunk
         {
             var index = Index(localX, y, localZ);
             var old = blocks[index];
+            if (old == BlockId.Bedrock && block != BlockId.Bedrock)
+            {
+                continue; // never removed or replaced (B10)
+            }
+
             if (old == block)
             {
                 // Filling water over water writes source: a non-source level there is reset.

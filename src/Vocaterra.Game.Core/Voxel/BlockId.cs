@@ -176,4 +176,31 @@ public enum BlockId : ushort
 
     /// <summary>The inn's counter (Y08): a block of wood one block high that a body collides with as if it were two (<see cref="BlockDefinition.Tall"/>, like a fence), so nobody steps or jumps onto it and into the keeper's cell. Not a table, so no crafting panel opens beside it. Appended in Y08.</summary>
     Counter = 56,
+
+    /// <summary>Slate: dark, banded underground rock (solid, not gatherable; nothing places it yet). Appended in B10.</summary>
+    Slate = 57,
+
+    /// <summary>Granite: speckled pink-grey underground rock (solid, not gatherable). Appended in B10.</summary>
+    Granite = 58,
+
+    /// <summary>Limestone: pale underground rock (solid, not gatherable). Appended in B10.</summary>
+    Limestone = 59,
+
+    /// <summary>Gravel: loose grey pebbles (solid, not gatherable). Appended in B10.</summary>
+    Gravel = 60,
+
+    /// <summary>Lava: a glowing fluid that stops a body (<see cref="BlockDefinition.StopsBody"/>: it cannot be walked into or fallen into), is not solid for sight and does no harm; a light kind like <see cref="Lantern"/>. Appended in B10.</summary>
+    Lava = 61,
+
+    /// <summary>Bedrock: near-black rough rock at the bottom of the world (solid, not gatherable, and never removed or replaced by any edit: <see cref="BlockDefinition.Indestructible"/>). Appended in B10.</summary>
+    Bedrock = 62,
+
+    /// <summary>Iron ore: stone with tan flecks (solid, not gatherable; no item and no noun in this series). Appended in B10.</summary>
+    IronOre = 63,
+
+    /// <summary>Tin ore: stone with pale grey flecks (solid, not gatherable; no item and no noun in this series). Appended in B10.</summary>
+    TinOre = 64,
+
+    /// <summary>Copper ore: stone with orange and green flecks (solid, not gatherable; no item and no noun in this series). Appended in B10.</summary>
+    CopperOre = 65,
 }

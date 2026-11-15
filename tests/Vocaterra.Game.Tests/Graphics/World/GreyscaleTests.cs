@@ -127,7 +127,7 @@ public sealed class GreyscaleTests
     [Fact]
     public void EveryBlockKindFitsTheKindsMask()
     {
-        Assert.All(Enum.GetValues<BlockId>(), id => Assert.True((int)id < 64, $"{id} does not fit a 64-bit mask"));
+        Assert.All(Enum.GetValues<BlockId>(), id => Assert.True((int)id < BlockKinds.Capacity, $"{id} does not fit the kind mask"));
     }
 
     [Fact]
