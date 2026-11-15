@@ -114,6 +114,7 @@
         }
       }
     },
+    "regionBlend": { "$ref": "#/definitions/regionBlend" },
     "altitude": {
       "type": "object",
       "required": ["snowBelowTemperature", "treeLineBelowTemperature"],
@@ -125,6 +126,53 @@
     }
   },
   "definitions": {
+    "regionBlend": {
+      "type": "object",
+      "required": ["margin", "treeClearance", "landBias"],
+      "additionalProperties": false,
+      "properties": {
+        "margin": { "type": "integer", "minimum": 8, "maximum": 512, "description": "How far outside a region's edge, in blocks, the ground eases towards the edge's height." },
+        "treeClearance": { "type": "integer", "minimum": 0, "description": "The columns outside the edge that keep no trunk; below the margin." },
+        "landBias": {
+          "type": "object",
+          "required": ["floor", "shoreFloor", "radius"],
+          "additionalProperties": false,
+          "properties": {
+            "floor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at the region's edge." },
+            "shoreFloor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at radius blocks out; a little inland of the sea. No higher than the floor." },
+            "radius": { "type": "integer", "minimum": 8, "maximum": 8192, "description": "The distance in blocks over which the floor falls from floor to shoreFloor (and at that rate beyond it); at least the margin." }
+          }
+        },
+        "edgeSmoothing": {
+          "type": "object",
+          "required": ["blurRadius", "ease"],
+          "additionalProperties": false,
+          "properties": {
+            "blurRadius": { "type": "integer", "minimum": 0, "maximum": 64, "description": "The radius in columns of the blur the edge's height is smoothed with; 0 for none." },
+            "ease": { "type": "integer", "minimum": 1, "description": "The blocks over which the ground eases from the edge's own height to its blurred height; at most the margin." }
+          }
+        },
+        "exitCorridors": {
+          "type": "array",
+          "description": "Roads that continue walkable beyond an exit of a region: from a point at the edge to a point outside.",
+          "items": {
+            "type": "object",
+            "required": ["id", "fromX", "fromZ", "toX", "toZ", "halfWidth", "shoulder", "fade"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "fromX": { "type": "integer" },
+              "fromZ": { "type": "integer" },
+              "toX": { "type": "integer" },
+              "toZ": { "type": "integer" },
+              "halfWidth": { "type": "integer", "minimum": 1, "maximum": 16 },
+              "shoulder": { "type": "integer", "minimum": 1, "maximum": 64 },
+              "fade": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
     "noise": {
       "type": "object",
       "required": ["cell", "octaves"],

@@ -46,6 +46,7 @@ public sealed partial class VoxelSimulation
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
+        Fires = new FireRings(scene); // made with the simulation, so it hears of every stone set from the first tick (B06)
     }
 
     /// <summary>The scene (grid, spawn, NPCs, named points).</summary>
@@ -284,7 +285,7 @@ public sealed partial class VoxelSimulation
     }
 
     /// <summary>The fire rings of the world, the one finder the session shares (N07, Y01): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
-    public FireRings Fires => _fires ??= new FireRings(Grid);
+    public FireRings Fires { get; }
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)
@@ -413,8 +414,6 @@ public sealed partial class VoxelSimulation
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
-
-    private FireRings? _fires;
 
     private bool RecipeStationInReach(Recipe recipe) =>
         recipe.Station is { } station && StationInReach(station);

@@ -59,7 +59,7 @@ public sealed partial class VoxelSession : GuideSession
             data,
             worldSeed,
             startedAt,
-            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions, scene.Grid.IsStreamed ? from => WorldWindow.For(scene, from.Cell.X, from.Cell.Y, from.Cell.Z) : null),
             playSession: 1,
             credit,
             lessons,
@@ -67,7 +67,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Day, data.Weather, worldSeed, WorldStateHeader.For(data.Bundle, scene.Seed));
+        Simulation = VoxelSimulation.Create(scene, data.Day, data.Weather, worldSeed, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest));
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
@@ -372,7 +372,11 @@ public sealed partial class VoxelSession : GuideSession
     protected override Inventory LiveInventory => Simulation.Inventory;
 
     /// <inheritdoc />
-    protected override IGuideFacts SnapshotFacts() => WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions);
+    protected override IGuideFacts SnapshotFacts()
+    {
+        var feet = Simulation.Player.FeetBlock;
+        return WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions, WorldWindow.For(Scene, feet.X, feet.Y, feet.Z));
+    }
 
     /// <inheritdoc />
     protected override string StateDigest() => Simulation.ComputeStateDigest();
@@ -1013,7 +1017,7 @@ public sealed partial class VoxelSession : GuideSession
     private void ScanFireRing(Scene scene)
     {
         var hasCampRing = scene.Points.TryGetValue(CampFireRing, out var centre);
-        foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
+        foreach (var stone in scene.CurrentBlocksOfKind(BlockId.FireRing))
         {
             if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {

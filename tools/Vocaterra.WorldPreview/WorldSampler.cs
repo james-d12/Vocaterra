@@ -70,12 +70,16 @@ internal sealed class WorldSampler
     private readonly int _snowBelow;
     private readonly int _treeLineBelow;
     private readonly int _maxThreads;
+    private readonly IPlaceInfo? _places;
 
     // The generation's fixed point (the core's IntMath.One, which is not public): 4 096 is the top of a field's range.
     private const int FixedOne = 4096;
 
-    /// <summary>Creates the sampler of a seed over the bundle's data.</summary>
-    public WorldSampler(GameData data, ulong seed, int maxThreads = 4)
+    /// <summary>
+    /// Creates the sampler of a seed over the bundle's data. With <paramref name="places"/> (a scene's <see cref="IPlaceInfo"/>, B06) the climate and the ground are the world's own round its
+    /// regions: the continentalness pulled towards land, the valley's own ground inside it and the land eased into its edge outside; without it, the free procedural world.
+    /// </summary>
+    public WorldSampler(GameData data, ulong seed, int maxThreads = 4, IPlaceInfo? places = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         _world = data.WorldGen;
@@ -85,6 +89,7 @@ internal sealed class WorldSampler
         _snowBelow = Fixed(_world.Altitude.SnowBelowTemperature);
         _treeLineBelow = Fixed(_world.Altitude.TreeLineBelowTemperature);
         _maxThreads = Math.Max(1, maxThreads);
+        _places = places;
         Palette = new Palette(_biomes.Rows);
     }
 
@@ -99,7 +104,7 @@ internal sealed class WorldSampler
     public int MaxY => _world.Vertical.MaxY;
 
     /// <summary>The column (x, z), one climate sample at a time.</summary>
-    public Column At(int x, int z) => Evaluate(x, z, _climate.At(x, z));
+    public Column At(int x, int z) => Evaluate(x, z, ClimateAt(x, z));
 
     /// <summary>
     /// The map of a square area centred on (centreX, centreZ): one column every <paramref name="scale"/> blocks. At a scale of the climate's lattice or less the climate is filled
@@ -117,7 +122,7 @@ internal sealed class WorldSampler
 
         var pixels = size / scale;
         var map = new WorldMap(centreX - (size / 2), centreZ - (size / 2), scale, pixels, pixels);
-        var fill = scale <= _world.Climate.LatticeBlocks;
+        var fill = scale <= _world.Climate.LatticeBlocks && _places is null;
         const int stripRows = 16;
         var strips = (pixels + stripRows - 1) / stripRows;
         Parallel.For(0, strips, new ParallelOptions { MaxDegreeOfParallelism = _maxThreads }, strip =>
@@ -138,7 +143,7 @@ internal sealed class WorldSampler
                 for (var px = 0; px < pixels; px++)
                 {
                     var x = map.BlockX(px);
-                    var c = filled is null ? _climate.At(x, z) : filled[(r * scale * size) + (px * scale)];
+                    var c = filled is null ? ClimateAt(x, z) : filled[(r * scale * size) + (px * scale)];
                     var column = Evaluate(x, z, c);
                     var i = (py * pixels) + px;
                     map.Ground[i] = (short)column.Ground;
@@ -165,10 +170,25 @@ internal sealed class WorldSampler
 
     private Column Evaluate(int x, int z, in ClimateSample c)
     {
-        var shape = _height.Shape(x, z, c);
+        var shape = ShapeAt(x, z, c);
         var column = _biomes.Classify(c, shape.Height, x, z);
         var snow = !shape.Water && ClimateLapse.Apply(c.Temperature, shape.Height, SeaLevel, _world.Climate.LapsePer100Blocks) < _snowBelow;
         return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow));
+    }
+
+    private ClimateSample ClimateAt(int x, int z) => _places is null ? _climate.At(x, z) : _places.ClimateAt(x, z);
+
+    // The ground of a column: the height model's, or the world's own round its regions (the natural surface; it is under water where it is below the sea).
+    private ColumnShape ShapeAt(int x, int z, in ClimateSample c)
+    {
+        if (_places is null)
+        {
+            return _height.Shape(x, z, c);
+        }
+
+        var height = _places.NaturalSurfaceAt(x, z);
+        var water = height < SeaLevel;
+        return new ColumnShape(height, height, water, water ? SeaLevel : -1, 0, 0);
     }
 
     // The lowest y at which the temperature is below the threshold (the sea level when it already is there), or null when even the top of the world is warmer.

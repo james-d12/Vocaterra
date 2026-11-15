@@ -33,7 +33,44 @@ internal static class WorldGenValidator
         var a = world.Altitude;
         Thousandths(problems, "altitude.snowBelowTemperature", a.SnowBelowTemperature);
         Thousandths(problems, "altitude.treeLineBelowTemperature", a.TreeLineBelowTemperature);
+        CheckRegionBlend(world.Blend, problems);
         return problems;
+    }
+
+    private static void CheckRegionBlend(Regions.RegionBlendData blend, List<string> problems)
+    {
+        if (blend.Margin < 8 || blend.Margin > 512)
+        {
+            problems.Add($"{File}: regionBlend.margin must be from 8 to 512 blocks (it is {blend.Margin}).");
+        }
+
+        if (blend.TreeClearance < 0 || blend.TreeClearance >= blend.Margin)
+        {
+            problems.Add($"{File}: regionBlend.treeClearance must be from 0 to below the margin (it is {blend.TreeClearance}).");
+        }
+
+        var bias = blend.LandBias;
+        Thousandths(problems, "regionBlend.landBias.floor", bias.Floor);
+        Thousandths(problems, "regionBlend.landBias.shoreFloor", bias.ShoreFloor);
+        if (bias.ShoreFloor > bias.Floor || bias.Radius < blend.Margin || bias.Radius > 8192)
+        {
+            problems.Add($"{File}: regionBlend.landBias needs a shoreFloor no higher than the floor and a radius from the margin to 8192 blocks (they are {bias.ShoreFloor}, {bias.Floor} and {bias.Radius}).");
+        }
+
+        var smoothing = blend.Smoothing;
+        if (smoothing.BlurRadius < 0 || smoothing.BlurRadius > 64 || smoothing.Ease < 1 || smoothing.Ease > blend.Margin)
+        {
+            problems.Add($"{File}: regionBlend.edgeSmoothing needs a blurRadius from 0 to 64 columns and an ease from 1 to the margin (they are {smoothing.BlurRadius} and {smoothing.Ease}).");
+        }
+
+        foreach (var corridor in blend.ExitCorridors)
+        {
+            var length = (int)Mathematics.IntMath.ISqrt(((long)(corridor.ToX - corridor.FromX) * (corridor.ToX - corridor.FromX)) + ((long)(corridor.ToZ - corridor.FromZ) * (corridor.ToZ - corridor.FromZ)));
+            if (length < 1 || length > 1024 || corridor.HalfWidth < 1 || corridor.HalfWidth > 16 || corridor.Shoulder < 1 || corridor.Shoulder > 64 || corridor.Fade < 0 || corridor.Fade > length)
+            {
+                problems.Add($"{File}: regionBlend.exitCorridors '{corridor.Id}' needs a length from 1 to 1024 blocks, a halfWidth from 1 to 16, a shoulder from 1 to 64 and a fade from 0 to its length.");
+            }
+        }
     }
 
     private static void CheckClimate(ClimateData climate, List<string> problems)

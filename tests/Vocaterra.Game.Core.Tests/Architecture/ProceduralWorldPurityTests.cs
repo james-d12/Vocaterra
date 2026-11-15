@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
+using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
 
 namespace Vocaterra.Game.Core.Tests.Architecture;
@@ -23,6 +24,7 @@ public sealed partial class ProceduralWorldPurityTests
         "src/Vocaterra.Game.Core/World/Biomes",
         "src/Vocaterra.Game.Core/World/Generation/Procedural",
         "src/Vocaterra.Game.Core/World/Streaming",
+        "src/Vocaterra.Game.Core/World/Regions",
     ];
 
     private static readonly string[] PureNamespaces =
@@ -32,6 +34,7 @@ public sealed partial class ProceduralWorldPurityTests
         "Vocaterra.Game.Core.World.Biomes",
         "Vocaterra.Game.Core.World.Generation.Procedural",
         "Vocaterra.Game.Core.World.Streaming",
+        "Vocaterra.Game.Core.World.Regions",
     ];
 
     private static IEnumerable<Type> PureTypes() =>
@@ -59,6 +62,21 @@ public sealed partial class ProceduralWorldPurityTests
         Assert.Contains(typeof(ChunkData), checkedTypes);
         Assert.Contains(typeof(StrategyRegistry), checkedTypes);
         Assert.All(new[] { typeof(IChunkSource), typeof(IColumnShaper), typeof(IChunkDecorator), typeof(ISurfaceStrategy), typeof(IDecorationStrategy) }, seam => Assert.Contains(checkedTypes, t => seam.IsAssignableFrom(t) && !t.IsInterface));
+    }
+
+    [Fact]
+    public void Given_TheRegionsAndTheCompositeSourceOfB06_When_TheTypesAreFound_Then_TheyAreAmongTheTypesChecked()
+    {
+        var checkedTypes = PureTypes().ToList();
+
+        Assert.Contains(typeof(AuthoredReliefRegion), checkedTypes);
+        Assert.Contains(typeof(RegionCatalog), checkedTypes);
+        Assert.Contains(typeof(CompositeChunkSource), checkedTypes);
+        Assert.Contains(typeof(ChunkStreamer), checkedTypes);
+        Assert.Contains(checkedTypes, t => typeof(IRegion).IsAssignableFrom(t) && !t.IsInterface);
+        Assert.Contains(checkedTypes, t => typeof(IChunkSource).IsAssignableFrom(t) && t == typeof(CompositeChunkSource));
+        Assert.Contains(checkedTypes, t => typeof(IClimateSampler).IsAssignableFrom(t) && t.Namespace == "Vocaterra.Game.Core.World.Regions");
+        Assert.Contains(checkedTypes, t => typeof(IHeightModel).IsAssignableFrom(t) && t.Namespace == "Vocaterra.Game.Core.World.Regions");
     }
 
     [Fact]

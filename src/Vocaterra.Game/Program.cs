@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Sound;
@@ -86,7 +85,7 @@ try
     }
 
     sceneLayout = layout;
-    Func<ulong, Scene> buildFor = seed => SceneBuilder.Build(layout, seed);
+    Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, WorldMode.Bounded, layout);
     if (options.LoadPath is { } loadPath)
     {
         // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.

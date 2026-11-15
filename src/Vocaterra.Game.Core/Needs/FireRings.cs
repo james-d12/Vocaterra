@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Needs;
 
@@ -11,14 +12,20 @@ namespace Vocaterra.Game.Core.Needs;
 public sealed class FireRings
 {
     private readonly VoxelGrid _grid;
+    private readonly HashSet<BlockPos> _stones;
     private IReadOnlyList<BlockPos> _middles = [];
 
-    /// <summary>Finds the rings of a world.</summary>
-    /// <param name="grid">The world (read live, so a torch put on or taken off a rim counts at once).</param>
-    public FireRings(VoxelGrid grid)
+    /// <summary>
+    /// Finds the rings of a scene: from the stones the world holds now that the region template held or that sit in a changed chunk (<see cref="Scene.CurrentBlocksOfKind"/>), and from every stone
+    /// the world has set or broken since (B06: a streamed world has no list of its chunks to scan, so the finder is told what changes, as a bounded world tells it too).
+    /// </summary>
+    /// <param name="scene">The scene (its grid is read live, so a torch put on or taken off a rim counts at once).</param>
+    public FireRings(Scene scene)
     {
-        ArgumentNullException.ThrowIfNull(grid);
-        _grid = grid;
+        ArgumentNullException.ThrowIfNull(scene);
+        _grid = scene.Grid;
+        _stones = [.. scene.CurrentBlocksOfKind(BlockId.FireRing)];
+        _grid.AddListener(new StoneListener(_stones));
         Rescan();
     }
 
@@ -27,7 +34,7 @@ public sealed class FireRings
     {
         var grid = _grid;
         var middles = new HashSet<BlockPos>();
-        foreach (var stone in grid.BlocksOfKind(BlockId.FireRing))
+        foreach (var stone in _stones.Where(s => grid.InBounds(s.X, s.Y, s.Z) && grid.GetBlock(s.X, s.Y, s.Z) == BlockId.FireRing).ToList())
         {
             for (var dx = -1; dx <= 1; dx++)
             {
@@ -101,6 +108,22 @@ public sealed class FireRings
         }
 
         return false;
+    }
+
+    // Keeps the set of cells that hold a fire-ring stone up to date: a cell that becomes one joins it, a cell that stops being one leaves it.
+    private sealed class StoneListener(HashSet<BlockPos> stones) : IBlockChangeListener
+    {
+        public void OnBlockChanged(BlockChange change)
+        {
+            if (change.NewBlock == BlockId.FireRing)
+            {
+                _ = stones.Add(change.Position);
+            }
+            else if (change.OldBlock == BlockId.FireRing)
+            {
+                _ = stones.Remove(change.Position);
+            }
+        }
     }
 
     private static bool IsMiddle(IVoxelReader grid, BlockPos cell)

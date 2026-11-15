@@ -2,7 +2,7 @@
   "$schema": "../../schema/world.schema.json",
   "schemaVersion": 1,
   "generated_by": "hand-authored",
-  "about": "The procedural world's numbers (B01, D-game-34). vertical is the range of block rows (y -64 to 320, whole 16-block chunk layers) and the sea level, which stays 32 so the valley keeps its coordinates. climate gives the six smooth fields the world is made of, each a fractal of gradient noise (cell is the first octave's size in blocks, each octave halves it; warpBlocks bends the field by that many blocks at most) sampled every latticeBlocks blocks and interpolated; temperature falls by lapsePer100Blocks thousandths for every 100 blocks above the sea, and snow and trees follow that value against the thresholds in altitude. height holds three splines (points are [input, output]; an input is thousandths of the field's range): base from the continentalness (blocks), rangeFactor from the erosion (thousandths: how much of the peaks shows) and peaks from the ridges (blocks), so height = base + factor x peaks + hills; above softCapAbove the ground rises at half rate and never passes clamp. Terraces shape the steep middle slopes, crags the highest ridges, rivers are carved where the river field is near zero down to bedHeight (below the sea) and lakes pull low calm basins down to theirs. Every number is a whole number: lengths are blocks, field values thousandths of their range (-1000 to 1000). Biomes are in biomes.json; no word of Spanish belongs here.",
+  "about": "The procedural world's numbers (B01, D-game-34). vertical is the range of block rows (y -64 to 320, whole 16-block chunk layers) and the sea level, which stays 32 so the valley keeps its coordinates. climate gives the six smooth fields the world is made of, each a fractal of gradient noise (cell is the first octave's size in blocks, each octave halves it; warpBlocks bends the field by that many blocks at most) sampled every latticeBlocks blocks and interpolated; temperature falls by lapsePer100Blocks thousandths for every 100 blocks above the sea, and snow and trees follow that value against the thresholds in altitude. height holds three splines (points are [input, output]; an input is thousandths of the field's range): base from the continentalness (blocks), rangeFactor from the erosion (thousandths: how much of the peaks shows) and peaks from the ridges (blocks), so height = base + factor x peaks + hills; above softCapAbove the ground rises at half rate and never passes clamp. Terraces shape the steep middle slopes, crags the highest ridges, rivers are carved where the river field is near zero down to bedHeight (below the sea) and lakes pull low calm basins down to theirs. Every number is a whole number: lengths are blocks, field values thousandths of their range (-1000 to 1000). Biomes are in biomes.json; no word of Spanish belongs here. regionBlend (B06) is how the land outside an authored region (the valley) is eased into its edge: over margin blocks the ground eases to the edge's height, no trunk stands within treeClearance columns of the border and the trees thin across the margin, the continentalness never falls below a floor that runs from landBias.floor at the edge to landBias.shoreFloor at landBias.radius blocks out (so no sea opens at the valley's feet), the edge's own roughness is blurred over edgeSmoothing.blurRadius columns and the ground eases from the edge's exact height to the blurred one over edgeSmoothing.ease blocks (so the edge does not comb the land into ridges), and each exit corridor is a road of halfWidth blocks each side of the line from (fromX, fromZ) to (toX, toZ), its bank easing over shoulder blocks and giving way to the land over the last fade blocks. Field values are thousandths; every number is a whole number.",
   "vertical": { "minY": -64, "maxY": 320, "seaLevel": 32 },
   "climate": {
     "latticeBlocks": 4,
@@ -26,5 +26,14 @@
     "rivers": { "width": 40, "bedHeight": 27, "fadeFromHeight": 60, "fadeToHeight": 84, "seaFadeFrom": -400, "seaFadeTo": -150 },
     "lakes": { "cell": 384, "octaves": 2, "threshold": 50, "softness": 100, "bedHeight": 29, "calmFrom": -100, "calmTo": 200, "heightFrom": 50, "heightTo": 64, "inlandFrom": -50, "inlandTo": 100 }
   },
-  "altitude": { "snowBelowTemperature": -400, "treeLineBelowTemperature": -300 }
+  "altitude": { "snowBelowTemperature": -400, "treeLineBelowTemperature": -300 },
+  "regionBlend": {
+    "margin": 64,
+    "treeClearance": 3,
+    "landBias": { "floor": 100, "shoreFloor": -120, "radius": 512 },
+    "edgeSmoothing": { "blurRadius": 16, "ease": 16 },
+    "exitCorridors": [
+      { "id": "pass", "fromX": 383, "fromZ": 208, "toX": 479, "toZ": 208, "halfWidth": 3, "shoulder": 10, "fade": 32 }
+    ]
+  }
 }
