@@ -14,10 +14,10 @@ The goal is **an endless, streamed, tall world**, like Minecraft's since 1.18.
 The world, biome and underground generation is built from small modules, so later systems can read it without changing the generator. The
 first such system is temperature.
 
-**Status (2026-11-15):** a proposal for the owner's review.
-- It registers no milestones yet. Registration is B00, done once the owner accepts.
-- The decision it needs, **D-game-34** (section 5), is entered in `docs/game/decisions.md` as proposed (2026-11-15) and is decided when
-  the owner accepts. D-game-32 is used on `main` (the settlement series), and D-game-33 is reserved on `feature/talk-sets`.
+**Status (2026-11-15):** accepted by the owner, with the answers in section 5.
+- **D-game-34** is decided (`docs/game/decisions.md`). B00 registers the milestones in `docs/game/implementation-plan.md` section 4.
+- The answers changed the scope: the pass opens only once the lessons are complete (or with a cheat setting), and nothing new can be
+  gathered, so the ores carry no items or nouns (sections 3.5, 3.6 and 4). D-game-32 is used on `main` (the settlement series), and D-game-33 is reserved on `feature/talk-sets`.
 - It lives on `feature/biomes`, cut from `main` at `9e17c9aa` and fast-forwarded to `0db529a1` on 2026-11-15, in the worktree
   `.claude/worktrees/biomes`.
 - The commit prefix is `B<nn>:`. Nothing is pushed to `main`; the owner merges by pull request.
@@ -328,12 +328,11 @@ The underground is chunk-local and a pure function of (x, y, z). It is configure
   cave passes into the valley's own stone, at least 8 blocks under the surface and away from its sites, paths, water and village. That
   re-records the valley's goldens once, with the owner's review.
 - **In play** (B10 and B12):
-  - **Gathering.** Ores can be gathered by hand, slowly (data ticks), and drop new items: iron ore, tin ore and copper ore. They are
-    materials for the crafting design (`docs/game/design/crafting-and-cooking.md`). Smelting and tools are not in this series.
-  - **What can't be gathered.** Rock stays ungatherable, as stone is today, so the underground is reached through cave entrances. Digging
-    rock and tools are an owner question (section 5).
-  - **Lava** blocks the body, so it can't be walked into. It glows.
-  - **Bedrock** can never be removed.
+  - **Nothing new can be gathered** (owner, 2026-11-15: "this is just the world generation for it"). Rock, gravel and the three ores
+    are not gatherable, so the underground is reached through cave entrances. The ores have no items and no nouns in this series; they
+    wait for the crafting design (`docs/game/design/crafting-and-cooking.md`) and for digging and tools.
+  - **Lava** blocks the body, so it can't be walked into. It glows and does no harm (owner, 2026-11-15).
+  - **Bedrock** can never be removed, for when digging comes.
 - **Light underground** (B12):
   - A face below its column's surface darkens with depth (sky exposure from the pure height model and the column's highest block), down
     to a cave minimum within about 6 blocks.
@@ -361,6 +360,14 @@ The underground is chunk-local and a pure function of (x, y, z). It is configure
     heights 60 and 80 (column 21 is already `b`, height 44). They are lowered to `c` and `d`, heights 48 to 52.
   - A road runs from the village, about x 316, z 218, to the east edge at x 383.
   - A `paso` site and the exit corridor are added.
+  - **The pass is closed until the lessons are done** (owner, 2026-11-15). It opens once every lesson in a list in `world.json` is
+    complete; the list holds all of today's lessons. A cheat setting in the settings menu (`PlayerSettings`, saved with the player's
+    settings, not the game) opens it at once. Until then:
+    - a rockfall of existing blocks fills the pass, placed by data where the road meets the ring;
+    - the valley's outer edge keeps today's invisible wall for the body, so the ring can't be climbed over; the land outside is drawn
+      but can't be reached;
+    - when the pass opens, the rockfall is removed (an event, saved like any change) and the wall lifts. It never closes again.
+  - The unlock reads the learner's completed lessons through a Core query; no lesson id appears in `src`.
   - This edits `scene.json`, which the settlement series also edited (it emptied the mountain ledge). That series merged into `main` in
     PR #65 before B00, so B08 starts from its `scene.json` and waits for nothing but B06.
 - **Towns** (B15):
@@ -453,9 +460,9 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B05 | Saves version 9 and the changed-chunk state digest | M | Sonnet medium | B04a | state digests, fixtures |
 | B06 | `WorldFactory`; the regions and `CompositeChunkSource` (copy, blend, land bias); streamed mode with generate-on-read; `ChunkStreamer`; `WorldQuery` as `IPlaceInfo`; the `WorldFacts` window. The game itself stays bounded | L | Sonnet high | B03, B05 | new tests only |
 | B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06 | pictures (owner review) |
-| B08 | The pass through the east ring, and the road out of the valley | S/M | Sonnet medium | B06 (`feature/settlement` merged in PR #65) | valley golden, bundle, runs |
+| B08 | The pass through the east ring, and the road out of the valley; the pass closed by a rockfall and the valley's edge kept as a wall until every lesson in `world.json`'s list is complete, or a cheat setting opens it | M | Sonnet medium | B06 (`feature/settlement` merged in PR #65) | valley golden, bundle, runs |
 | B09 | Widen block kinds from 64 to 128 bits: `KindMask`, the mesher's grey masks, `WorldFacts` masks, the tracker | M | Sonnet medium | B04b | nothing |
-| B10 | The underground blocks: slate, granite, limestone, gravel, lava, bedrock, and iron, tin and copper ore. Code-drawn art; ores gatherable by hand with their items and nouns; lava blocks the body and glows; bedrock is unbreakable | M | Sonnet medium | B09 | bundle hash |
+| B10 | The underground blocks: slate, granite, limestone, gravel, lava, bedrock, and iron, tin and copper ore. Code-drawn art; none gatherable, no items or nouns; lava blocks the body, glows and does no harm; bedrock is unbreakable | M | Sonnet medium | B09 | nothing expected |
 | B11 | The underground generation, configured by `underground.json` (schema, validator, `NoOreIdsInSourceTests`): strata, ores, cheese and spaghetti caves on a coarse 3D lattice, entrances, lava level, the bedrock floor. Tests: chunk-locality, no cave within reach of water, no entrance in a region or on a path, ore counts per seed within ranges, lava at rest, time per chunk. Vertical slices in the preview tool | L | Sonnet high | B03, B10 | procedural goldens |
 | B12 | The underground in play: darkening by depth, lava light, a light index that follows placed torches, the near zone for underground chunks (wider when the player is underground); a scripted cave tour; a VM performance check | M/L | Sonnet high | B07, B11 | pictures (owner review) |
 | B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08, B11 | valley golden (owner review) |
@@ -505,7 +512,7 @@ The game stays playable at every gate. It switches to the streamed world at B07 
 - **Underground:** caves and lava like Minecraft's, kept simple, with a few kinds of stone. Ores: iron, tin and copper for now.
 - **Height:** a tall world for large mountains, like Minecraft 1.18's: −64 to 320 here.
 
-**Draft of D-game-34** (to be entered in `docs/game/decisions.md` at B00): *A tall procedural world round hand-crafted regions (the B
+**D-game-34** (decided 2026-11-15, as drafted here; the register in `docs/game/decisions.md` holds it with the answers below): *A tall procedural world round hand-crafted regions (the B
 series, `docs/game/biomes-plan.md`).*
 - **The world:** endless and streamed, y −64 to 320. It is procedurally generated outside authored regions: biomes, great mountain ranges,
   rivers, lakes and sea above ground; rock layers, caves, lava, and iron, tin and copper ores below.
@@ -516,15 +523,17 @@ series, `docs/game/biomes-plan.md`).*
   - the adaptation design's decision 15 ("inside the valley for now").
 - **What it takes over:** the settlement plan's phase 7.
 
-**Questions left for B00:**
-1. **When the new land opens:** from the first day, or reached later in the story? The plan assumes it is open, with nothing gated behind
-   language (D-game-8).
-2. **Lessons:** should any lesson or objective use the new land or the ores in this series? The plan assumes none.
-3. **Digging and tools:** may the player dig rock? The plan keeps rock ungatherable (the underground is reached by cave entrances) and lets
-   ores be gathered by hand. Digging and tools could come with the activities series (`docs/game/activities-plan.md`).
-4. **Lava's harm:** in the plan, lava blocks the body. The other choice is that it costs health through the needs model.
-5. **The ore items' Spanish nouns** must pass the content gate at the A2 ceiling (D-game-10, D-game-12). «hierro» and «cobre» may fit;
-   «estaño» may not. Options: an exception, an English-only label until a B1 level exists, or another metal.
+**The answers at B00** (owner, 2026-11-15; recorded in D-game-34):
+1. **When the new land opens:** "Its unlocked after completeing currently all the lessons. However a cheat mode in the settings should
+   bypass this." Until then a rockfall closes the pass and the valley's edge stays a wall (the owner chose this from two options; the
+   other ran the bounded valley until the unlock). Built in B08 (section 3.6).
+2. **Lessons:** none in this series uses the new land or the ores.
+3. **Digging and tools:** "Nothing can be gathered by hand yet, this is just the world generation for it." No new block is gatherable,
+   and the ores have no items (section 3.5).
+4. **Lava's harm:** none; lava blocks the body.
+5. **The ore items' Spanish nouns:** not needed in this series, since the ores have no items. None of «hierro», «cobre» or «estaño» is on
+   `cefr/a1.txt` or `a2.txt` today; when ore items come, each joins the world-words block of `cefr/a1.txt` with its reason, as
+   `content/README.md` says, or the owner decides otherwise then.
 
 ## 6. What this plan does not do
 
@@ -532,7 +541,8 @@ series, `docs/game/biomes-plan.md`).*
 - **Fluids.** Underground water (aquifers), lava that flows, procedural waterfalls, rivers above sea level, and currents outside the
   valley.
 - **Underground features.** Structures such as mineshafts and abandoned camps.
-- **Crafting.** Smelting, tools, and digging rock (section 5, question 3).
+- **Gathering and crafting.** Gathering rock, gravel or ores; ore items and their nouns; smelting, tools and digging (section 5,
+  answer 3).
 - **Rendering.** Propagated sky and block light, distant-terrain detail levels for peaks beyond the view distance, and camera-relative
   rendering.
 - **Language.** Biome words, place names, or the guide's knowledge of procedural land.
@@ -582,3 +592,4 @@ series, `docs/game/biomes-plan.md`).*
 |---|---|---|---|
 | (proposal) | written 2026-11-15; caves, ores and the tall world added the same day | none (documents only) | for the owner's review |
 | (refresh) | 2026-11-15, after the fast-forward to `main` at `0db529a1` | none (documents only) | saves version 9 (not 8), block ids 0 to 56, B08 no longer waits for `feature/settlement`, line references checked; committed with D-game-34 entered as proposed |
+| (accepted) | 2026-11-15: D-game-34 decided, the five answers recorded (section 5); B08 grows to M (the closed pass), B10 loses gathering | none (documents only) | B00 next |

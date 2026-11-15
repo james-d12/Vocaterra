@@ -35,7 +35,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
 | D-game-31 | Day, night and weather (the E series, `docs/game/weather-plan.md`) | decided (owner, 2026-11-10): a free-running day and night cycle first, then weather in spells (sunny, cloudy, rain) with a new roll on waking; the first version is the atmosphere and truthful NPC answers, no gameplay effect; built in a new worktree from `main` | nothing |
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
-| D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | proposed (2026-11-15, for the owner's review): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); five questions open (the plan's section 5) | the B series (B00 onward) |
+| D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | decided (owner, 2026-11-15): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); the pass opens once every lesson listed in `world.json` (all of today's) is complete, or at once with a cheat setting, and until then a rockfall closes it and the valley's edge stays a wall; no lesson uses the new land; nothing new can be gathered (no digging, no ore items or nouns); lava blocks the body and does no harm | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -751,7 +751,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 **Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
 the first slice; a fee, meals or comfort at the inn; more than one plot.
 
-## D-game-34: a tall procedural world round hand-crafted regions (proposed, 2026-11-15)
+## D-game-34: a tall procedural world round hand-crafted regions (decided, 2026-11-15)
 
 *Numbered D-game-34 because `main` holds D-game-32 (the settlement series) and D-game-33 is reserved on `feature/talk-sets`.*
 
@@ -760,7 +760,7 @@ village, and mountains", with basic biomes, modular SOLID code ready for a tempe
 and copper ores, and a tall world like Minecraft 1.18's. The plan is [the biomes plan](biomes-plan.md) (the B series, on `feature/biomes`);
 the owner's answers of 2026-11-15 are in its section 5.
 
-**Proposed:**
+**Decided** (the owner accepted the proposal as written, 2026-11-15):
 
 1. **The world:** endless and streamed, y −64 to 320, with the sea level kept at 32. It is generated procedurally outside authored
    regions: biomes, great mountain ranges, rivers, lakes and sea above ground; rock layers, caves, lava, and iron, tin and copper ores
@@ -773,8 +773,19 @@ the owner's answers of 2026-11-15 are in its section 5.
    inward-only growth; the adaptation design's decision 15 ("inside the valley for now").
 5. **What it takes over:** the settlement plan's phase 7 (the larger valley, a fixed 512×512 world).
 
-**Open for the owner** (the plan's section 5): when the new land opens; whether lessons use it; digging rock and tools; lava's harm; the
-ore items' Spanish nouns at the A2 ceiling (in particular «estaño»).
+**The questions and the answers** (2026-11-15; the plan's section 5):
+
+6. **When the new land opens:** "Its unlocked after completeing currently all the lessons. However a cheat mode in the settings should
+   bypass this." The pass opens once every lesson in a list in `world.json` is complete; the list holds all of today's lessons, so a
+   lesson added later does not close the pass again unless the list is edited. A cheat setting in the settings menu opens it at once.
+   Until then (the owner chose the plan's recommendation): a rockfall blocks the pass and the valley's outer edge keeps today's
+   invisible wall, so the ring cannot be climbed over; the land outside is drawn but cannot be reached. The rockfall goes and the wall
+   lifts when the pass opens. Built in B08.
+7. **Lessons:** none in this series uses the new land or the underground.
+8. **Digging and gathering:** "Nothing can be gathered by hand yet, this is just the world generation for it." Rock, gravel and the
+   ores are not gatherable; the ores have no items and no nouns in this series, so the question of «estaño» at the A2 ceiling does not
+   arise yet. Bedrock stays unbreakable for when digging comes.
+9. **Lava:** blocks the body and glows; it does no harm and the needs model does not change.
 
 ## Already decided
 
