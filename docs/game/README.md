@@ -90,6 +90,7 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [The book](book.md) | The learner's book, its pages, replay, the conjugation tables |
 | [Saves](saves.md) | Saves across content updates, autosave and the crash report |
 | [Inn, land and settlement plan](settlement-plan.md) | The proposal (inn accommodation, the first purchased campsite, usable interiors and village/map expansion), its review, and the first slice as the Y series (section 8, D-game-32) |
+| [Inventory and equipment plan](inventory-plan.md) | The I series proposal: items as data, the bag and its backpack slot, clothing, armour, cosmetic, accessory and off-hand slots, temperature and warmth, gear on the player, durability (D-game-35, proposed) |
 | [Sound and display](sound-and-display.md) | The audio system and sounds, UI scale and readable text |
 | [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |
 | [content/README.md](../../content/README.md) | Editing the content: the edit loop, lessons and their level |
