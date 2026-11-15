@@ -355,7 +355,7 @@ public sealed class PlotPurchaseTests
     public void Given_AFullBagWhoseOnlyFreeableSlotsAreTheCoinsAndTheStake_When_ThePlotIsBought_Then_TheStakesSlotMakesRoomForTheKit()
     {
         var session = AtTheSale(20); // ten coins stay: the coins' slot is not freed by the price
-        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // book, coins, stake and 37 axes fill the 40 slots
+        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // book, coins, stake and 37 axes fill the 40 slots
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
         Assert.Equal(1, Count(session, ItemId.Stake));
 
@@ -386,17 +386,17 @@ public sealed class PlotPurchaseTests
         var session = SessionTwo(20);
         _ = session.MarkPlot(Corner.X + 5, Corner.Z + 5); // no stake held: its slot would make room for the kit
         _ = session.OpenTalk(Mayor);
-        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // the book, the coins and 38 axes fill the 40 slots (with no stake to hand over); ten coins leave the coin slot occupied
+        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // the book, the coins and 38 axes fill the 40 slots (with no stake to hand over); ten coins leave the coin slot occupied
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
         var before = Snapshot(session);
-        var axes = Count(session, ItemId.Axe);
+        var axes = Count(session, TestItems.Axe);
 
         var turn = session.Say("sí");
 
         Assert.Equal("villager.no_room", LastHostEvent(session));
         Assert.Equal(["Tu bolsa está llena. No hay lugar para el equipo."], turn.FollowUp);
         Assert.Equal(before, Snapshot(session));
-        Assert.Equal(axes, Count(session, ItemId.Axe));
+        Assert.Equal(axes, Count(session, TestItems.Axe));
         Assert.NotNull(session.PendingPlot);
     }
 
@@ -404,7 +404,7 @@ public sealed class PlotPurchaseTests
     public void Given_TheExactCoinsInTheOnlyCoinSlotOfAFullBag_When_TheLearnerSaysSi_Then_PayingFreesTheSlotAndTheKitFits()
     {
         var session = AtTheSale(10);
-        _ = session.Simulation.GrantItems(ItemId.Axe, 38); // full, but the ten coins are the whole coin stack: once paid, their slot is free
+        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // full, but the ten coins are the whole coin stack: once paid, their slot is free
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
 
         _ = session.Say("sí");
@@ -575,7 +575,7 @@ public sealed class PlotPurchaseTests
     [InlineData(false, true, 11, 0, null)]
     public void Given_TheLandAndTheBag_When_ThePlotIsPriced_Then_TheMissIsTheFirstOfAlreadyOwnedNoPlotNoStakeCantPayNoRoom(bool owned, bool marked, int coins, int stakes, string? miss)
     {
-        var bag = new Inventory();
+        var bag = new Inventory(TestItems.Catalogue);
         if (coins > 0)
         {
             Assert.Equal(0, bag.Add(ItemId.Coin, coins));
@@ -594,9 +594,9 @@ public sealed class PlotPurchaseTests
     [Fact]
     public void Given_ABagWithNoRoomOnceTheCoinsAreOut_When_ThePlotIsPriced_Then_TheMissIsNoRoom()
     {
-        var bag = new Inventory();
+        var bag = new Inventory(TestItems.Catalogue);
         Assert.Equal(0, bag.Add(ItemId.Coin, 20));
-        Assert.Equal(0, bag.Add(ItemId.Axe, Inventory.SlotCount - 1)); // the coins' slot and the axes fill the bag; ten coins stay after the price
+        Assert.Equal(0, bag.Add(TestItems.Axe, Inventory.SlotCount - 1)); // the coins' slot and the axes fill the bag; ten coins stay after the price
         var effect = new NpcEffect(NpcEffectKind.SellPlot, ItemId.CampKit);
 
         Assert.Equal(NpcHostEvents.NoRoom, effect.PlotMiss(bag, new PlotFacts(false, true, 10)));
@@ -619,7 +619,7 @@ public sealed class PlotPurchaseTests
     {
         const string Table = """{ "schemaVersion": 2, "events": [ { "npc": "fisher", "event": "fisher.sell_plot", "action": { "kind": "sell_plot", "item": "camp-kit" } } ] }""";
 
-        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(Table))).Where(static p => p.Contains("fisher", StringComparison.Ordinal)).ToList();
+        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(Table, TestItems.Catalogue))).Where(static p => p.Contains("fisher", StringComparison.Ordinal)).ToList();
 
         foreach (var miss in new[] { NpcHostEvents.AlreadyOwned, NpcHostEvents.NoPlot, NpcHostEvents.NoStake, NpcHostEvents.CantPay, NpcHostEvents.NoRoom })
         {
@@ -635,13 +635,13 @@ public sealed class PlotPurchaseTests
     {
         const string Table = """{ "schemaVersion": 2, "events": [ { "npc": "villager", "event": "villager.buy_plot", "action": { "kind": "sell_plot" } } ] }""";
 
-        _ = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(Table));
+        _ = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(Table, TestItems.Catalogue));
     }
 
     [Fact]
     public void Given_TheCampKit_When_ItIsLookedUp_Then_ItIsAnItemOfStackOneWithItsNounAndItsLabel()
     {
-        Assert.Equal(("camp-kit", 1), (ItemDefinition.Get(ItemId.CampKit).Name, ItemDefinition.Get(ItemId.CampKit).MaxStack));
+        Assert.Equal(("camp-kit", 1), (TestItems.Catalogue.Get(ItemId.CampKit).Name, TestItems.Catalogue.Get(ItemId.CampKit).MaxStack));
         var noun = TestGame.Nouns.ForItem(ItemId.CampKit)!;
         Assert.Equal("equipo", noun.Lemma);
         Assert.Equal("el equipo", noun.WithDefinite);

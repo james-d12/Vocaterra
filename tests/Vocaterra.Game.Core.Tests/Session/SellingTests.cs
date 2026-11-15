@@ -158,7 +158,7 @@ public sealed class SellingTests
     }
 
     [Theory]
-    [InlineData("baker", "vendo pan", ItemId.Bread, "No, gracias. Solo compro madera.")]
+    [InlineData("baker", "vendo pan", TestItems.Bread, "No, gracias. Solo compro madera.")]
     [InlineData("farmer", "vendo madera", ItemId.Wood, "No compro eso. Compro fruta del bosque.")]
     public void AnotherItemIsNotBoughtAndTheNpcSaysWhatItBuys(string npc, string line, ItemId offered, string answer)
     {
@@ -186,7 +186,7 @@ public sealed class SellingTests
         Assert.Equal("request_item", turn.Intent);
         Assert.Empty(turn.Replies);
         Assert.Equal([answer], turn.FollowUp);
-        Assert.Equal((10, 0, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread), Count(session, ItemId.Apple)));
+        Assert.Equal((10, 0, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread), Count(session, TestItems.Apple)));
         Assert.Equal($"{npc}.wont_sell", Assert.IsType<HostTurnEnvelope>(session.Conversation.Records[^1].HostTurn).HostEvent);
     }
 
@@ -281,6 +281,6 @@ public sealed class SellingTests
         _ = session.Say("vendo fruta");
         var bought = session.Say("quiero tres manzanas");
         Assert.Equal("request_item", bought.Intent);
-        Assert.Equal((0, 0, 3), (Count(session, ItemId.Berry), Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((0, 0, 3), (Count(session, ItemId.Berry), Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
     }
 }

@@ -25,6 +25,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 
   | File | Schema | Loaded by (`Vocaterra.Game.Core`) |
   | --- | --- | --- |
+  | `game/items.json` | `items.schema.json` (the item kinds, I01: one row per item, see "Items" below) | `ItemCatalogue` (an `IItemCatalogue`) |
   | `game/nouns.json` | `nouns.schema.json` | `NounCatalog` |
   | `game/recipes.json` | `recipes.schema.json` | `RecipeBook` |
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
@@ -106,7 +107,7 @@ Everything the game says, shows and builds its world from, outside the code. The
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
-   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v8.json`); an edit of `locale/` alone moves none;
+   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v9.json`); an edit of `locale/` alone moves none;
    5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
       to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
       that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of
@@ -134,6 +135,18 @@ Everything the game says, shows and builds its world from, outside the code. The
    listening checklist, the save fixtures), and the re-recorded goldens in a commit of their own. Run the whole suite (`scripts/test.sh full`,
    or the loop with `--tier full`) before the milestone ends. The core's tests run on `game-v1` too (R02), so a failing core test is the signal
    that the edit broke something the core relies on.
+
+## Items (I01)
+
+`game/items.json` holds one row per item the player can hold, and nothing in code lists items: `GameData.Items` (an `IItemCatalogue`) is read once and passed to what needs an item's name, stack limit,
+tool or picture. A row has `name` (the stable key every other file and the saves use: `wood`, `camp-kit`; never renamed), `id` (a stable number, used by the state digest and the code's `ItemId`: the
+ids below 100 are the first game's, a new item takes the next free number from 100, and an id is never reused), `stack` (how many one slot holds), `icon` (a key of the block atlas, which has art for
+the keys `BlockAtlasLayout.IconKeys` lists; an unknown key draws the plain fallback tile and the content check reports it), `held` (how the hand shows it: `sprite`, the default, is the icon extruded into
+voxels; `log`, `torch` and `bottle` are modelled in code), `tags` (an open list of words: `tool`, `food`, `material`, `container`, `currency`, `placeable`) and, for a tool, `tool` (`class`, the material
+it works on, and `speed`, how many times faster than bare hands). The other files name an item by its `name` (the nouns' `items`, a shop row, a recipe, a gift, a procedure). The code's `ItemId` enum keeps
+only the items that behaviour refers to (the bottle fills, the book opens, coins pay, the stake and the camp kit place); the loader checks each against its row and stops on a mismatch, and an item
+that is a row alone works everywhere an item can. The later fields (`wear`, `stats`, `look`, `capacity`, `durability`) are added to `items.schema.json` and the loader as the equipment milestones need
+them. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
 
 ## Adding things
 

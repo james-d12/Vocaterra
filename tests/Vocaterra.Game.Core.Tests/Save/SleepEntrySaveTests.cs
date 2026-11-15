@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Save;
 
-/// <summary>Save version 8 and the sleep entry (Y02): the lodging given, the place last slept at and the places made in play survive a save, a load and a sleep; an older version is refused.</summary>
+/// <summary>Save version 9 (8 added the sleep entry, Y02): the lodging given, the place last slept at and the places made in play survive a save, a load and a sleep; an older version is refused.</summary>
 public sealed class SleepEntrySaveTests
 {
     private const string OtherBundle = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -150,7 +150,7 @@ public sealed class SleepEntrySaveTests
     [Fact]
     public void GivenTheFixtureWithThePlayerAtTheLitFire_When_ItLoadsAndTheyAreWokenBySleeping_Then_TheLastPlaceIsTheFire()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
         Assert.Null(SaveGame.Parse(text).Systems!.Sleep); // recorded before any sleep, with no lodging
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.True(loaded.AtSleepPlace);
@@ -271,9 +271,9 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":7}"));
 
         Assert.Contains("version 7", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 8", error.Message, StringComparison.Ordinal);
-        Assert.Equal(8, SaveGame.OldestReadableVersion);
-        Assert.Equal(8, SaveGame.CurrentVersion);
+        Assert.Contains("loads is 9", error.Message, StringComparison.Ordinal);
+        Assert.Equal(9, SaveGame.OldestReadableVersion);
+        Assert.Equal(9, SaveGame.CurrentVersion);
     }
 
     [Fact]

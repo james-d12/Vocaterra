@@ -25,9 +25,14 @@ public interface IItemIcons
 /// </summary>
 public sealed class BlockAtlas : IItemIcons, IDisposable
 {
+    private readonly IItemCatalogue _items;
+
     /// <summary>Builds the atlas on the given device.</summary>
-    public BlockAtlas(GraphicsDevice device)
+    /// <param name="device">The graphics device.</param>
+    /// <param name="items">The item catalogue: an item's icon key names its picture.</param>
+    public BlockAtlas(GraphicsDevice device, IItemCatalogue items)
     {
+        _items = items ?? throw new ArgumentNullException(nameof(items));
         Texture = new Texture2D(device, BlockAtlasLayout.Width, BlockAtlasLayout.Height, true, SurfaceFormat.Color);
         var level0 = BlockArt.AtlasPixels();
         for (var level = 0; level < Math.Min(Texture.LevelCount, BlockArt.MipLevelCount); level++)
@@ -52,7 +57,7 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
     {
         // The world is drawn in full colour (D-game-6 amended): an icon is in colour at any saturation above 0. A caller that wants it grey (the book in
         // --greyscale, for a noun not known yet, S22) passes 0 and gets the cell's grey copy.
-        DrawCell(spriteBatch, BlockAtlasLayout.IconFor(item) ?? BlockCell.White, destination, saturation);
+        DrawCell(spriteBatch, _items.Find(item) is { } definition ? BlockAtlasLayout.IconFor(definition) : BlockCell.IconPlain, destination, saturation);
     }
 
     /// <inheritdoc />

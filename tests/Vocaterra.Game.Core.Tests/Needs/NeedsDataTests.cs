@@ -12,7 +12,7 @@ public sealed class NeedsDataTests
     private static IReadOnlyList<string> Problems(NeedsData needs) => GameDataValidator.Validate(TestGame.Data.WithNeeds(needs));
 
     [Fact]
-    public void TheShippedNeedsHoldTogether() => Assert.Empty(NeedsValidator.Validate(Needs));
+    public void TheShippedNeedsHoldTogether() => Assert.Empty(NeedsValidator.Validate(Needs, TestItems.Catalogue));
 
     [Fact]
     public void TheShippedFoodsAreTheItemsThatExistToday()

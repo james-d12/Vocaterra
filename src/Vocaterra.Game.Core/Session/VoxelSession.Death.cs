@@ -65,7 +65,7 @@ public sealed partial class VoxelSession
 
     /// <summary>The chest and its contents for the save (<see langword="null"/> for none).</summary>
     internal ChestSave? CaptureChest() =>
-        _chest is { } chest ? new ChestSave(chest.Cell.X, chest.Cell.Y, chest.Cell.Z, chest.Items.Select(static i => new SlotSave(i.Item, i.Count)).ToArray()) : null;
+        _chest is { } chest ? new ChestSave(chest.Cell.X, chest.Cell.Y, chest.Cell.Z, chest.Items.Select(i => new SlotSave(Data.Items.Get(i.Item).Name, i.Count)).ToArray()) : null;
 
     // A save's chest back in: only the state, the block is in the world the save restored. A load never takes a chest away.
     internal void RestoreChest(ChestSave? save)
@@ -77,9 +77,12 @@ public sealed partial class VoxelSession
         }
 
         var chest = new BelongingsChest(new BlockPos(save.X, save.Y, save.Z));
-        foreach (var stack in save.Stacks)
+        foreach (var slot in save.Stacks)
         {
-            chest.Add(stack.Item, stack.Count);
+            if (slot.ToStack(Data.Items) is { IsEmpty: false } stack)
+            {
+                chest.Add(stack.Item, stack.Count);
+            }
         }
 
         _chest = chest;
@@ -130,7 +133,7 @@ public sealed partial class VoxelSession
         for (var slot = 0; slot < Inventory.SlotCount; slot++)
         {
             var stack = bag.Slots[slot];
-            if (!stack.IsEmpty && ItemDefinition.Get(stack.Item).MaxStack > 1)
+            if (!stack.IsEmpty && bag.Items.Get(stack.Item).MaxStack > 1)
             {
                 left.Add((stack.Item, stack.Count));
                 bag.SetSlot(slot, ItemStack.Empty);

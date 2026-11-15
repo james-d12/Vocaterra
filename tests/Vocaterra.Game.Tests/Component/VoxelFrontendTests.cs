@@ -136,7 +136,7 @@ public sealed class VoxelFrontendTests
     public void TheEyeRisesABlockInOneTickWhenTheBodyStepsOntoTheWorkbenchAndTheEaseHidesIt()
     {
         // The workbench at (24, 11, 17) is one block high: walking east into it steps the body up, and the camera must not jump with the eye.
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         sim.TeleportTo(new BlockPos(21, 11, 17));
         var ease = new CameraEase();
         var found = false;
@@ -195,7 +195,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void GatherAndPlaceWorkFromWhatTheCrosshairHits()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         sim.TeleportTo(new BlockPos(11, 11, 17));
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(270), Pitch(-24))]);
         var target = sim.Target;
@@ -243,7 +243,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void EveryChunkIsDueUntilMeshedAndThenNoneIsUntilAnEdit()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         var tracker = new ChunkVersionTracker(sim.Grid);
         Assert.Equal(72, tracker.Due().Count);
         foreach (var chunk in sim.Grid.Chunks)
@@ -257,7 +257,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void AnEditInTheMiddleOfAChunkMakesOnlyThatChunkDue()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         var tracker = new ChunkVersionTracker(sim.Grid);
         foreach (var chunk in sim.Grid.Chunks)
         {
@@ -281,7 +281,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void AnEditOnAChunkBorderMakesTheNeighbourAcrossThatBorderDueAndNoOtherChunk()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         var tracker = new ChunkVersionTracker(sim.Grid);
         foreach (var chunk in sim.Grid.Chunks)
         {
@@ -306,7 +306,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void AnEditOnTheTopEdgeOfAChunkMakesTheChunkAboveDue()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         var tracker = new ChunkVersionTracker(sim.Grid);
         foreach (var chunk in sim.Grid.Chunks)
         {
@@ -330,7 +330,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void TheKeyOfAChunkIsZeroForNeighboursOutsideTheGridAndChangesWithTheEdgeLayer()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         var tracker = new ChunkVersionTracker(sim.Grid);
         var corner = tracker.KeyOf(new VoxelChunkCoord(0, 0, 0));
         Assert.Equal(0UL, corner.West);
@@ -425,7 +425,7 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void TheDebugOverlayTellsThePositionTheFacingAndTheTarget()
     {
-        var sim = VoxelSimulation.Create(RouteScene());
+        var sim = VoxelSimulation.Create(RouteScene(), TestItems.Catalogue);
         sim.TeleportTo(new BlockPos(11, 11, 17));
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(270), Pitch(-24))]);
         var lines = VoxelDebugText.Lines(60, sim, 42, sim.Player.Yaw, sim.Player.Pitch, 2);

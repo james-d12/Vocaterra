@@ -26,8 +26,9 @@
       }
     },
     "item": {
-      "description": "An item kind, by its stable name (ItemDefinition).",
-      "enum": ["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour", "stake", "camp-kit"]
+      "description": "An item kind, by its stable name (a row of game/items.json; the content check refuses a name the catalogue lacks).",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "block": {
       "description": "A block kind, by its stable name (BlockDefinition).",

@@ -67,7 +67,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Day, data.Weather, worldSeed);
+        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed);
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
@@ -408,13 +408,13 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.ItemPickedUp:
                     LearnItem((ItemId)e.Detail);
                     _eventAmount = e.Amount; // the objectives count a pickup's items (each gatherable block drops one today)
-                    LogWorld(WorldEvents.ItemPickedUp, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    LogWorld(WorldEvents.ItemPickedUp, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     _eventAmount = 1;
                     break;
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);
                     _eventAmount = e.Amount; // W01: a craft is a world event, counted as a pickup is (the output's count)
-                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     _eventAmount = 1;
                     break;
                 case SimulationEventKind.BlockRemoved:
@@ -778,7 +778,7 @@ public sealed partial class VoxelSession : GuideSession
         _ = Simulation.GrantItems(item, count);
         LearnItem(item);
         _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
-        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name}, {how}");
         _eventAmount = 1;
         return true;
     }
@@ -792,7 +792,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         _eventAmount = count; // an objective counting what was taken counts every item
-        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name}, {how}");
         _eventAmount = 1;
     }
 

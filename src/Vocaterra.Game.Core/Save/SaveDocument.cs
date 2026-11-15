@@ -297,10 +297,31 @@ public sealed record StepOutcomeSave(string StepId, StepOutcome Outcome);
 /// <param name="Progress">The ticks spent.</param>
 public sealed record GatherSave(BlockPos? Target, BlockId Block, int Progress);
 
-/// <summary>One inventory slot: the item and how many (0 for an empty slot).</summary>
-/// <param name="Item">The item kind.</param>
+/// <summary>
+/// One inventory slot (version 9, I01): the item by its stable name (<see cref="ItemDefinition.Name"/>, a row of <c>game/items.json</c>) and how many. An empty slot is an empty name
+/// and a count of 0.
+/// </summary>
+/// <param name="Item">The item's name, or empty for an empty slot.</param>
 /// <param name="Count">The count.</param>
-public sealed record SlotSave(ItemId Item, int Count);
+public sealed record SlotSave(string Item, int Count)
+{
+    /// <summary>The slot of a stack: an empty stack is the empty slot.</summary>
+    /// <param name="stack">The stack.</param>
+    /// <param name="items">The item catalogue that names the item.</param>
+    public static SlotSave Of(ItemStack stack, IItemCatalogue items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return stack.IsEmpty ? new SlotSave(string.Empty, 0) : new SlotSave(items.Get(stack.Item).Name, stack.Count);
+    }
+
+    /// <summary>The stack the slot holds: the empty stack for an empty slot or an item the catalogue does not have (a save of content that lost the item).</summary>
+    /// <param name="items">The item catalogue.</param>
+    public ItemStack ToStack(IItemCatalogue items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return Count > 0 && items.Find(Item) is { } definition ? new ItemStack(definition.Id, Count) : ItemStack.Empty;
+    }
+}
 
 /// <summary>The count of one step of an objective (its key is <c>&lt;objective&gt;.&lt;step&gt;</c> since version 5).</summary>
 /// <param name="Key">The step's key (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>).</param>

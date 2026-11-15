@@ -53,7 +53,7 @@ public sealed class RepliesAndExchangesTests
 
         var turn = session.Say("quiero pan");
 
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Empty(turn.Replies);
         Assert.Contains(turn.FollowUp!, static l => l is "Aquí tienes el pan." or "Toma el pan.");
@@ -63,7 +63,7 @@ public sealed class RepliesAndExchangesTests
     [Fact]
     public void TheFarmerAnswersHowMuchIsEverythingWithTheUnitPriceOutsideTheLesson()
     {
-        var session = At("farmer", (ItemId.Apple, 3));
+        var session = At("farmer", (TestItems.Apple, 3));
 
         var turn = session.Say("¿Cuánto es todo?");
 
@@ -76,17 +76,17 @@ public sealed class RepliesAndExchangesTests
         var session = At("villager");
 
         var turn = session.Say("quiero madera");
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(["Solo tengo pan."], turn.FollowUp);
 
         _ = session.Say("quiero pan");
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
     public void TheFarmerWhoBuysBerriesDoesNotRefuseApplesAsIfTheyWereNotFruit()
     {
-        var session = At("farmer", (ItemId.Apple, 2));
+        var session = At("farmer", (TestItems.Apple, 2));
 
         var turn = session.Say("vendo manzanas");
 

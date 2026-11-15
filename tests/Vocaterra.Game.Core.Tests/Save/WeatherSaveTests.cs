@@ -127,8 +127,8 @@ public sealed class WeatherSaveTests
     }
 
     [Theory]
-    [InlineData("save-v8.json")]
-    public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsEight(string fixture)
+    [InlineData("save-v9.json")]
+    public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsNine(string fixture)
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
 
@@ -136,7 +136,7 @@ public sealed class WeatherSaveTests
 
         Assert.Null(loaded.Migration);
         Assert.True(loaded.Simulation.Weather.IsInitial);
-        Assert.Equal(8, SaveGame.CurrentVersion);
+        Assert.Equal(9, SaveGame.CurrentVersion);
         Assert.DoesNotContain("weather", SaveOf(loaded), StringComparison.Ordinal);
     }
 }

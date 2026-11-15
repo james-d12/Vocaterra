@@ -224,9 +224,9 @@ public sealed class ObjectiveBookTests
     [Fact]
     public void TheFixtureWithTheFireLitFirstLoadsAndTheOutOfOrderEndingStillEnds()
     {
-        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json is a recorded run of the camp (see saves.md): the player lit their own fire (the torch step is done) while the wood and
+        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json is a recorded run of the camp (see saves.md): the player lit their own fire (the torch step is done) while the wood and
         // the fruit were not all in: the checklist completes out of the order it lists them in.
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
         var document = SaveGame.Parse(text);
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water"], document.Objective.Take(4).Select(static o => o.Key));
@@ -261,7 +261,7 @@ public sealed class ObjectiveBookTests
     [Fact]
     public void TheFixtureOfAnotherBundleKeepsItsStepsThroughTheMigration()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
         var node = JsonNode.Parse(text)!;
         node["bundleHash"] = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
         node["objective"]!.AsArray().Add(new JsonObject { ["key"] = "harvest", ["count"] = 1 }); // a step this game does not have

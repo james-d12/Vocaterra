@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
@@ -59,7 +60,7 @@ public sealed class GatheringAndPlacingTests
     {
         // village-plan V03: the smith's axe, held (the selected hotbar slot), makes a trunk 15 ticks instead of 60; in the bag it does nothing.
         var sim = WithBlock(trunk);
-        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Inventory.SetSlot(0, new ItemStack(TestItems.Axe, 1));
         sim.Step([VoxelCommand.SelectSlot(0)]);
         Assert.Equal(15, sim.GatherTicksOf(trunk)); // the axe's (Wood, 4): 60 by hand, 15 with the axe (W02)
 
@@ -71,7 +72,7 @@ public sealed class GatheringAndPlacingTests
         Assert.Equal(BlockId.Air, sim.Grid.GetBlock(Ahead.X, Ahead.Y, Ahead.Z));
 
         var inTheBag = WithBlock(trunk);
-        inTheBag.Inventory.SetSlot(Inventory.HotbarSize, new ItemStack(ItemId.Axe, 1)); // carried, not held
+        inTheBag.Inventory.SetSlot(Inventory.HotbarSize, new ItemStack(TestItems.Axe, 1)); // carried, not held
         Assert.Equal(BlockDefinition.TrunkGatherTicks, inTheBag.GatherTicksOf(trunk));
         Run(inTheBag, 15, InteractAhead);
         Assert.Equal(0, inTheBag.Inventory.Count(ItemId.Wood));
@@ -81,7 +82,7 @@ public sealed class GatheringAndPlacingTests
     public void TheAxeDoesNotHurryWhatIsNoTrunk()
     {
         var sim = WithBlock(BlockId.BerryBush);
-        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Inventory.SetSlot(0, new ItemStack(TestItems.Axe, 1));
         sim.Step([VoxelCommand.SelectSlot(0)]);
 
         Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
@@ -107,8 +108,8 @@ public sealed class GatheringAndPlacingTests
         Assert.Equal(Material.Wood, BlockDefinition.Get(BlockId.BirchTrunk).Material);
         Assert.Equal(Material.Plant, BlockDefinition.Get(BlockId.BerryBush).Material);
         Assert.Equal(Material.None, BlockDefinition.Get(BlockId.Air).Material);
-        Assert.Equal(new ToolSpec(Material.Wood, 4), ItemDefinition.Get(ItemId.Axe).Tool);
-        Assert.Null(ItemDefinition.Get(ItemId.Wood).Tool);
+        Assert.Equal(new ToolSpec(Material.Wood, 4), TestItems.Catalogue.Get(TestItems.Axe).Tool);
+        Assert.Null(TestItems.Catalogue.Get(ItemId.Wood).Tool);
     }
 
     [Fact]
@@ -116,7 +117,7 @@ public sealed class GatheringAndPlacingTests
     {
         // W02: the axe works on wood only; a stone block (no gather ticks by hand) and the berry bush keep their own ticks with it held.
         var sim = WithBlock(BlockId.BerryBush);
-        sim.Inventory.SetSlot(0, new ItemStack(ItemId.Axe, 1));
+        sim.Inventory.SetSlot(0, new ItemStack(TestItems.Axe, 1));
         sim.Step([VoxelCommand.SelectSlot(0)]);
         Assert.Equal(BlockDefinition.BerryBushGatherTicks, sim.GatherTicksOf(BlockId.BerryBush));
         Assert.Equal(0, sim.GatherTicksOf(BlockId.Stone));
@@ -223,7 +224,7 @@ public sealed class GatheringAndPlacingTests
         Assert.InRange(trunk.Count, 4, 5);
 
         // Stand on the nearest open ground cell beside the trunk and gather the whole trunk.
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var stand = new[] { (0, 1), (0, -1), (1, 0), (-1, 0) }
             .Select(o => new BlockPos(trunkBase.X + o.Item1, trunkBase.Y, trunkBase.Z + o.Item2))
             .First(c => !grid.IsSolid(c.X, c.Y, c.Z) && !grid.IsSolid(c.X, c.Y + 1, c.Z) && grid.IsSolid(c.X, c.Y - 1, c.Z));
@@ -280,7 +281,7 @@ public sealed class GatheringAndPlacingTests
     public void ATorchCraftedAtTheWorkbenchCanBePlacedInTheFireRing()
     {
         var scene = BuildRoute(42);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var torch = new Recipe(ItemId.Torch, 1, [new Ingredient(ItemId.Wood, 2)], BlockId.Table);
         sim.SetRecipes([torch]);
         sim.GrantItems(ItemId.Wood, 2);

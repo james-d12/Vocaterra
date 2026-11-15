@@ -166,12 +166,12 @@ public sealed class RenewalTests
         var session = At("villager");
         var first = session.Say("quiero pan, por favor");
         Assert.Contains("villager.give", first.HostEvents);
-        Assert.Equal(1, Count(session, ItemId.Bread));
+        Assert.Equal(1, Count(session, TestItems.Bread));
 
         var second = session.Say("quiero pan, por favor");
 
         Assert.DoesNotContain("villager.give", second.HostEvents);
-        Assert.Equal(1, Count(session, ItemId.Bread));
+        Assert.Equal(1, Count(session, TestItems.Bread));
         Assert.Contains("Hoy no tengo más pan.", Lines(second)); // N05: the villager's own line
         Assert.DoesNotContain(Lines(second), static line => line is "Aquí tienes." or "Toma.");
         Assert.Equal(["villager:bread"], session.GiftsGivenToday);
@@ -184,14 +184,14 @@ public sealed class RenewalTests
         _ = session.Say("quiero pan, por favor");
         Revisit(session, "villager");
         _ = session.Say("quiero pan, por favor");
-        Assert.Equal(1, Count(session, ItemId.Bread));
+        Assert.Equal(1, Count(session, TestItems.Bread));
 
         Night(session);
         Revisit(session, "villager");
         var third = session.Say("quiero pan, por favor");
 
         Assert.Contains("villager.give", third.HostEvents);
-        Assert.Equal(2, Count(session, ItemId.Bread));
+        Assert.Equal(2, Count(session, TestItems.Bread));
         Assert.Equal(["villager:bread"], session.GiftsGivenToday);
     }
 
@@ -202,18 +202,18 @@ public sealed class RenewalTests
         _ = session.Say("quiero agua, por favor");
         var yes = session.Say("sí, por favor");
         Assert.Contains("stall.give_bread", yes.HostEvents);
-        Assert.Equal(1, Count(session, ItemId.Bread));
+        Assert.Equal(1, Count(session, TestItems.Bread));
 
         Night(session);
         Revisit(session, "shopkeeper");
         var again = session.Say("quiero pan, por favor");
         Assert.Contains("stall.give_bread", again.HostEvents);
-        Assert.Equal(2, Count(session, ItemId.Bread));
+        Assert.Equal(2, Count(session, TestItems.Bread));
 
         Revisit(session, "shopkeeper");
         var third = session.Say("quiero pan, por favor"); // bread asked for in place of the bottle (V21b) is the bread's gift too
         Assert.DoesNotContain("stall.give_bread", third.HostEvents);
-        Assert.Equal(2, Count(session, ItemId.Bread));
+        Assert.Equal(2, Count(session, TestItems.Bread));
         Assert.Contains("Hoy no tengo más pan.", Lines(third));
     }
 
@@ -224,10 +224,10 @@ public sealed class RenewalTests
         var slots = new Dictionary<string, string>();
         var water = NpcEffect.Give(ItemId.WaterBottle);
 
-        Assert.Equal(NpcHostEvents.GiftUsed, water.GiftMiss("guide", slots, new Inventory(), TestGame.Data.Nouns, closed));
-        Assert.Null(water.GiftMiss("guide", slots, new Inventory(), TestGame.Data.Nouns, new HashSet<string>()));
-        Assert.Null(water.GiftMiss("villager", slots, new Inventory(), TestGame.Data.Nouns, closed)); // the key is the NPC's and the item's
-        Assert.Null(NpcEffect.Give(ItemId.Coin, 2).GiftMiss("fisher", slots, new Inventory(), TestGame.Data.Nouns, closed)); // a payment is no gift
+        Assert.Equal(NpcHostEvents.GiftUsed, water.GiftMiss("guide", slots, new Inventory(TestItems.Catalogue), TestGame.Data.Nouns, closed));
+        Assert.Null(water.GiftMiss("guide", slots, new Inventory(TestItems.Catalogue), TestGame.Data.Nouns, new HashSet<string>()));
+        Assert.Null(water.GiftMiss("villager", slots, new Inventory(TestItems.Catalogue), TestGame.Data.Nouns, closed)); // the key is the NPC's and the item's
+        Assert.Null(NpcEffect.Give(ItemId.Coin, 2).GiftMiss("fisher", slots, new Inventory(TestItems.Catalogue), TestGame.Data.Nouns, closed)); // a payment is no gift
         Assert.NotNull(Needs.GiftOf("guide", "water-bottle"));
         Assert.Null(Needs.GiftOf("fisher", "coin"));
     }
@@ -243,7 +243,7 @@ public sealed class RenewalTests
         _ = session.Say("quiero un pan, por favor");
         _ = session.Say("quiero un pan, por favor");
 
-        Assert.Equal(2, Count(session, ItemId.Bread));
+        Assert.Equal(2, Count(session, TestItems.Bread));
         Assert.Empty(session.GiftsGivenToday);
     }
 
@@ -256,7 +256,7 @@ public sealed class RenewalTests
         _ = session.Say("quiero pan, por favor");
         _ = session.Say("quiero pan, por favor");
 
-        Assert.Equal(2, Count(session, ItemId.Bread));
+        Assert.Equal(2, Count(session, TestItems.Bread));
         Assert.Empty(session.GiftsGivenToday);
     }
 
@@ -275,15 +275,15 @@ public sealed class RenewalTests
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
         _ = session.Say("quiero pan, por favor");
-        Assert.True(session.GiftClosed("villager", ItemId.Bread)); // given today, and no lesson asks for it
+        Assert.True(session.GiftClosed("villager", TestItems.Bread)); // given today, and no lesson asks for it
         Assert.Contains("villager:bread", session.GiftsGivenToday);
         session.EndTalk();
 
         Assert.True(session.Lessons.Start("numeros-y-pan"));
         Assert.True(session.Lessons.Engaged);
 
-        Assert.False(session.GiftClosed("villager", ItemId.Bread)); // the lesson's step waits for the villager's gift: it is given, whatever the day's count
-        Assert.False(session.GiftClosed("shopkeeper", ItemId.Bread)); // and only that NPC's
+        Assert.False(session.GiftClosed("villager", TestItems.Bread)); // the lesson's step waits for the villager's gift: it is given, whatever the day's count
+        Assert.False(session.GiftClosed("shopkeeper", TestItems.Bread)); // and only that NPC's
     }
 
     // The save and the data ----------------------------------------------------------------------------------------------------------------------------

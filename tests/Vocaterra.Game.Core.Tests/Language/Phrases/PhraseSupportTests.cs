@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -369,7 +368,7 @@ public sealed class PhraseSupportTests
         _ = session.Say("quiero agua, por favor");
         _ = session.Say("sí, por favor");
 
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(["botella"], session.TakeWordCards().Select(static c => c.Lemma)); // pan was carded already
     }
 

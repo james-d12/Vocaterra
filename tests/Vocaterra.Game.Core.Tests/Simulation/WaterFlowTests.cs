@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
@@ -255,7 +256,7 @@ public sealed class WaterFlowTests
         var pristine = scene.Grid.Clone();
         var diff = VoxelGridDiff.Capture(sim.Grid, pristine);
         VoxelGridDiff.Apply(scene.Grid, diff);
-        var restored = VoxelSimulation.Create(scene);
+        var restored = VoxelSimulation.Create(scene, TestItems.Catalogue);
         restored.Restore(state);
         return restored;
     }

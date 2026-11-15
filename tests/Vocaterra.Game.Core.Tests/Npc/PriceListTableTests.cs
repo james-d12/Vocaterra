@@ -15,7 +15,7 @@ public sealed class PriceListTableTests
     private static string File(string action) =>
         $$"""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.sell_bread", "action": {{action}} } ] }""";
 
-    private static NpcEffect Read(string action) => HostEventTable.Parse(File(action)).Of("baker", "baker.sell_bread");
+    private static NpcEffect Read(string action) => HostEventTable.Parse(File(action), TestItems.Catalogue).Of("baker", "baker.sell_bread");
 
     private static SlotMap Slots(params (string Key, string Value)[] pairs) => SlotMap.From(pairs.Select(static p => new KeyValuePair<string, string>(p.Key, p.Value)));
 
@@ -32,7 +32,7 @@ public sealed class PriceListTableTests
         Assert.Equal((NpcEffectKind.Buy, 1), (buy.Kind, buy.Prices!["madera"]));
 
         Assert.Null(Read("""{ "kind": "sell", "item": "bread", "price": 2 }""").Prices); // the fixed entry keeps its form
-        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), Read("""{ "kind": "sell", "item": "bread", "price": 2 }"""));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Bread, 2), Read("""{ "kind": "sell", "item": "bread", "price": 2 }"""));
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public sealed class PriceListTableTests
     [Fact]
     public void ANounThatIsNoCatalogueNounOrNamesNoItemFailsTheValidator()
     {
-        var bad = TestGame.Data.WithHostEvents(HostEventTable.Parse(File("""{ "kind": "sell", "slot": "item", "prices": { "pan": 2, "queso": 1, "casa": 1 } }""")));
+        var bad = TestGame.Data.WithHostEvents(HostEventTable.Parse(File("""{ "kind": "sell", "slot": "item", "prices": { "pan": 2, "queso": 1, "casa": 1 } }"""), TestItems.Catalogue));
 
         var problems = GameDataValidator.Validate(bad);
 
@@ -69,8 +69,8 @@ public sealed class PriceListTableTests
         var nouns = TestGame.Data.Nouns;
         var sell = Read(Sells);
 
-        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), sell.For(Slots(("item", "pan")), nouns));
-        Assert.Equal(NpcEffect.SellAt(ItemId.Apple, 1), sell.For(Slots(("item", "manzana")), nouns));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Bread, 2), sell.For(Slots(("item", "pan")), nouns));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Apple, 1), sell.For(Slots(("item", "manzana")), nouns));
         Assert.Equal(6, sell.For(Slots(("item", "pan"), ("qty", "3")), nouns).CostFor(Slots(("item", "pan"), ("qty", "3"))));
         Assert.Same(sell, sell.For(Slots(("item", "madera")), nouns)); // another item: unresolved
         Assert.Same(sell, sell.For(Slots(("qty", "2")), nouns)); // no item named
@@ -80,7 +80,7 @@ public sealed class PriceListTableTests
     public void AnItemNotOnTheListIsTheMissAFixedEntryGivesForAnotherItem()
     {
         var nouns = TestGame.Data.Nouns;
-        var bag = new Inventory();
+        var bag = new Inventory(TestItems.Catalogue);
         Assert.Equal(0, bag.Add(ItemId.Coin, 10));
         var sell = Read(Sells);
         var buy = Read("""{ "kind": "buy", "slot": "item", "prices": { "madera": 1 } }""");

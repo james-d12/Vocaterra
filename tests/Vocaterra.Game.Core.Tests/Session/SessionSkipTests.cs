@@ -102,12 +102,12 @@ public sealed class SessionSkipTests
         var bag = session.Simulation.Inventory;
 
         Assert.Equal(coins, bag.Count(ItemId.Coin));
-        Assert.Equal(bread, bag.Count(ItemId.Bread));
-        Assert.Equal(axes, bag.Count(ItemId.Axe));
+        Assert.Equal(bread, bag.Count(TestItems.Bread));
+        Assert.Equal(axes, bag.Count(TestItems.Axe));
         Assert.Equal(1, bag.Count(ItemId.Book));
         Assert.Equal(0, bag.Count(ItemId.Wood) + bag.Count(ItemId.Berry) + bag.Count(ItemId.Torch) + bag.Count(ItemId.Bottle));
         Assert.Equal(target <= 7 ? 1 : 0, bag.Count(ItemId.WaterBottle)); // session 1's camp filled the shopkeeper's bottle at the river; the farmer's order of session 7 takes it (V13)
-        Assert.Equal(target <= 7 ? 0 : 3, bag.Count(ItemId.Apple)); // and gives three apples (V14: what a learner holds at session 8)
+        Assert.Equal(target <= 7 ? 0 : 3, bag.Count(TestItems.Apple)); // and gives three apples (V14: what a learner holds at session 8)
 
         // What the session's order needs that only an NPC gives (coins, and the bottle of water) is in hand; what the world gives (wood, fruit) the lesson points at.
         foreach (var order in session.Objectives.Where(o => o.Spec.IsOrder && o.Spec.Session == target))
@@ -135,7 +135,7 @@ public sealed class SessionSkipTests
         // The two loaves of Números y pan, from its do step and its request "Quiero dos panes, por favor."; and El mercado's apples (V15), from its do step: no step of it
         // is a request, so the count is read from the later phrase "Compré tres manzanas." (V23a: three, not one). No session follows the market, so no skip makes that purchase.
         Assert.Equal(
-            [("numeros-y-pan", new SessionSkip.Purchase("baker", ItemId.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", ItemId.Apple, 3, 1))],
+            [("numeros-y-pan", new SessionSkip.Purchase("baker", TestItems.Bread, 2, 2)), ("el-mercado", new SessionSkip.Purchase("farmer", TestItems.Apple, 3, 1))],
             purchases);
     }
 
@@ -153,10 +153,10 @@ public sealed class SessionSkipTests
         var dearer = new Objective(TestGame.Data.Objectives.Find("axe-handle")! with { Deliver = [new OrderGoods(ItemId.Wood, 2), new OrderGoods(ItemId.Coin, 3)] });
         var error = Assert.Throws<InvalidOperationException>(() => six.SkipDeliver(dearer)); // the plan's first axe order: three coins, one more than the path leaves
         Assert.Equal("The sessions before leave 2 coins, and the order 'axe-handle' asks for 3.", error.Message);
-        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Axe))); // nothing changed hands
+        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(TestItems.Axe))); // nothing changed hands
 
         six.SkipDeliver(six.Objectives.Single(static o => o.Id == "water-for-plants")); // the bag's bottle is the one taken: none is added
-        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.WaterBottle), six.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.WaterBottle), six.Simulation.Inventory.Count(TestItems.Apple)));
     }
 
     [Fact]
@@ -166,9 +166,9 @@ public sealed class SessionSkipTests
         var six = SkippedTo(6);
         Assert.Equal(2, six.Simulation.Inventory.Count(ItemId.Coin));
 
-        var dearer = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("baker", ItemId.Bread, 3, 2))); // six coins, four more than the path leaves
+        var dearer = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("baker", TestItems.Bread, 3, 2))); // six coins, four more than the path leaves
         Assert.Equal("The skip cannot make session 6's purchase of 3 pan from baker: the sessions before leave 2 coins, and it costs 6.", dearer.Message);
-        Assert.Equal((2, 2), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Bread))); // nothing changed hands
+        Assert.Equal((2, 2), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(TestItems.Bread))); // nothing changed hands
 
         for (var slot = 0; slot < Inventory.SlotCount; slot++)
         {
@@ -178,12 +178,12 @@ public sealed class SessionSkipTests
             }
         }
 
-        var full = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("farmer", ItemId.Apple, 1, 1)));
+        var full = Assert.Throws<InvalidOperationException>(() => six.SkipBuy(new SessionSkip.Purchase("farmer", TestItems.Apple, 1, 1)));
         Assert.Equal("The skip cannot make session 6's purchase of 1 manzana from farmer: the bag has no room for them.", full.Message);
-        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((2, 0), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(TestItems.Apple)));
 
-        six.SkipBuy(new SessionSkip.Purchase("baker", ItemId.Bread, 1, 2)); // the two coins pay for a loaf, and the bread's stack has room
-        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(ItemId.Bread)));
+        six.SkipBuy(new SessionSkip.Purchase("baker", TestItems.Bread, 1, 2)); // the two coins pay for a loaf, and the bread's stack has room
+        Assert.Equal((0, 3), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(TestItems.Bread)));
     }
 
     [Fact]

@@ -37,7 +37,7 @@ public sealed class AtmosphereSaveTests
     }
 
     [Fact]
-    public void TheSaveVersionIsStillEight() => Assert.Equal(8, SaveGame.CurrentVersion);
+    public void TheSaveVersionIsNine() => Assert.Equal(9, SaveGame.CurrentVersion);
 
     [Fact]
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
@@ -109,7 +109,7 @@ public sealed class AtmosphereSaveTests
     }
 
     [Theory]
-    [InlineData("save-v8.json")]
+    [InlineData("save-v9.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
@@ -119,6 +119,6 @@ public sealed class AtmosphereSaveTests
         Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest, taken before the clock existed, is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
-        Assert.Equal(8, SaveGame.Parse(SaveOf(loaded)).Version);
+        Assert.Equal(9, SaveGame.Parse(SaveOf(loaded)).Version);
     }
 }

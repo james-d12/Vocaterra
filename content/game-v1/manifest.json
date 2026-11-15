@@ -87,6 +87,7 @@
 {"path":"game/controls.json","sha256":"c2e01ce1c3b53fa3c6fd971f5e54f20c7cf9702eee5c9c932ae3fd18ed31800b","bytes":1040},
 {"path":"game/day.json","sha256":"7b21f1b9cd2460c5cf9f3e029d0c826f88b883ab5ce34fd0a8cd94f983bc5508","bytes":830},
 {"path":"game/host-events.json","sha256":"09eb40f1e41be4a1752520ac0243c5028030369a84abd6ee27bd5fd127e56506","bytes":6399},
+{"path":"game/items.json","sha256":"4bceed45467923ac3c4072e99e0eef394c4e6f0ea0151adca8d63370de849e3f","bytes":1455},
 {"path":"game/land.json","sha256":"26300fd7a08c3a0f6b983b075cb77fc731bff3028aa49ade835d01a0fdc52f3f","bytes":1582},
 {"path":"game/lessons.json","sha256":"6a2856b0a0d4440291a3a2458f72c063eabd5af1aaa8c86ac6c55aa28adcde99","bytes":1751},
 {"path":"game/lessons/ayer-en-el-pueblo.json","sha256":"c5084170028ae59f4725a9123c7daa135223202e47e7b41a1913c74fd2eab703","bytes":4133},
@@ -138,7 +139,7 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"5cd21b0910f7c4ff4b1027423a16d6bf902791ca30afc8914c3ad304620bf8d5","bytes":2918},
 {"path":"prompts/prompts.json","sha256":"8ab921e6a201cbd2748af08b35bf9b2a89d5d197ea13aa382150ef264e40665c","bytes":29410},
-{"path":"provenance.json","sha256":"50dc4c1ebb933115a39392892958a5e1d41645cd5f745002937304d835b1225f","bytes":434528},
+{"path":"provenance.json","sha256":"4432d4f538139bc24928c95a4218a2c91a5eda160dfbefd2d50b14db4106647d","bytes":434635},
 {"path":"speech/baker/answer_accepted.1.baker.slow.wav","sha256":"ea4af283a300bf19b7b7acc8512f32fe1bb73268c908a1aef0be504427af4faf","bytes":63180},
 {"path":"speech/baker/answer_accepted.1.baker.wav","sha256":"8a1e80ac640c161ac21805c915d8ffadcd40396583b053d8729f647df4f22adc","bytes":48972},
 {"path":"speech/baker/answer_accepted.2.baker.slow.wav","sha256":"d76d6f7b88abcad9362363bce8c5382b396dfe0c59d519efea2dc0975a20aebf","bytes":45566},
@@ -1805,4 +1806,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"aa24bbdff385e2cdae558ba6ddfafe0187c8d900a6ff00a9a5d34a44d0395798"}
+],"bundleHash":"0cd7c6b1ac2dacbd3ef0abe5bce9d024b41b07ac7e480651c976ea01f336cb42"}

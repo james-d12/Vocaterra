@@ -29,7 +29,7 @@ public sealed class CampInputTests
     [Fact]
     public void TheCampKitIsAnItemOfOneThatPlacesNoBlock()
     {
-        Assert.Equal(1, ItemDefinition.Get(ItemId.CampKit).MaxStack);
+        Assert.Equal(1, TestItems.Catalogue.Get(ItemId.CampKit).MaxStack);
         Assert.Null(BlockDefinition.PlacedBy(ItemId.CampKit));
     }
 

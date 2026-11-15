@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -69,10 +70,12 @@ public static class GameDataValidator
 {
     /// <summary>Every problem between the files, in a fixed order; empty when the content holds together.</summary>
     /// <param name="data">The content, read without the checks (<see cref="GameData.Read"/>) or loaded.</param>
-    public static IReadOnlyList<string> Validate(GameData data)
+    /// <param name="iconKeys">The icon keys the front-end has art for, or <see langword="null"/> when the caller has no front-end (the host's check): an item whose icon is not among them would draw the fallback tile.</param>
+    public static IReadOnlyList<string> Validate(GameData data, IReadOnlySet<string>? iconKeys = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         var problems = new List<string>();
+        CheckItems(data, iconKeys, problems);
         CheckLocale(data, problems);
         CheckPhrases(data, problems);
         CheckChecks(data, problems);
@@ -81,7 +84,7 @@ public static class GameDataValidator
         CheckNpcs(data, problems);
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
-        problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        problems.AddRange(NeedsValidator.Validate(data.Needs, data.Items)); // N01: every food an item, every rate positive, the stages in order
         CheckSleepPlaces(data, problems);
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
@@ -91,6 +94,80 @@ public static class GameDataValidator
         CheckLessonLevels(data, problems);
         CheckActivities(data, problems);
         return problems;
+    }
+
+    // I01: game/items.json holds together (every name and id once; the ids of the code's ItemId members are the loader's), every item another file names is a row of it, and (when the
+    // caller has the front-end's art) every icon key has a picture. The loaders resolve names to ids as they read, so what they kept is checked here against the catalogue itself.
+    private static void CheckItems(GameData data, IReadOnlySet<string>? iconKeys, List<string> problems)
+    {
+        const string File = ItemCatalogue.RelativePath;
+        var items = data.Items;
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        var ids = new HashSet<ItemId>();
+        foreach (var item in items.All)
+        {
+            if (!names.Add(item.Name))
+            {
+                problems.Add($"{File}: the item name '{item.Name}' is used twice.");
+            }
+
+            if (!ids.Add(item.Id))
+            {
+                problems.Add($"{File}: the id {(ushort)item.Id} of '{item.Name}' is used twice.");
+            }
+
+            if (iconKeys is not null && !iconKeys.Contains(item.Icon))
+            {
+                problems.Add($"{File}: the icon '{item.Icon}' of '{item.Name}' has no art in the atlas (it would draw the fallback tile).");
+            }
+        }
+
+        void Named(string where, ItemId item)
+        {
+            if (items.Find(item) is null)
+            {
+                problems.Add($"{where} names the item {(ushort)item}, which is not in {File}.");
+            }
+        }
+
+        foreach (var noun in data.Nouns.Nouns)
+        {
+            foreach (var item in noun.Items)
+            {
+                Named($"{NounCatalog.RelativePath}: the noun '{noun.Lemma}'", item);
+            }
+        }
+
+        foreach (var recipe in data.Recipes.Entries)
+        {
+            Named($"{RecipeBook.RelativePath}: the recipe for '{recipe.Output.Lemma}' makes it and", recipe.Rule.Output);
+            foreach (var ingredient in recipe.Ingredients)
+            {
+                Named($"{RecipeBook.RelativePath}: the recipe for '{recipe.Output.Lemma}' uses '{ingredient.Noun.Lemma}', which", ingredient.Item);
+            }
+        }
+
+        foreach (var (npc, hostEvent) in data.HostEvents.Mapped())
+        {
+            var effect = data.HostEvents.Of(npc, hostEvent);
+            if (effect.Kind is NpcEffectKind.GiveItem or NpcEffectKind.TakeItem or NpcEffectKind.SellPlot or NpcEffectKind.Sell or NpcEffectKind.Buy && effect.Prices is null)
+            {
+                Named($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}'", effect.Item);
+            }
+        }
+
+        foreach (var item in data.Objectives.Grants)
+        {
+            Named($"{ObjectiveBook.SessionPath}: a starting item", item);
+        }
+
+        foreach (var order in data.Objectives.Objectives)
+        {
+            foreach (var goods in order.Goods)
+            {
+                Named($"{ObjectiveBook.Folder}{order.Id}.json: the order's goods", goods.Item);
+            }
+        }
     }
 
     private static void CheckLocale(GameData data, List<string> problems)
@@ -385,7 +462,7 @@ public static class GameDataValidator
             return;
         }
 
-        if (ItemDefinition.All.All(d => !string.Equals(d.Name, planting.Item, StringComparison.Ordinal)))
+        if (data.Items.Find(planting.Item) is null)
         {
             problems.Add($"{File}: the planting names '{planting.Item}', which is not an item.");
         }
@@ -448,7 +525,7 @@ public static class GameDataValidator
             }
         }
 
-        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var items = data.Items.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
         var seenGifts = new HashSet<string>(StringComparer.Ordinal);
         foreach (var gift in data.Needs.Gifts)
         {
@@ -474,7 +551,7 @@ public static class GameDataValidator
             }
 
             var gives = data.HostEvents.Mapped().Any(m => string.Equals(m.Npc, gift.Npc, StringComparison.Ordinal)
-                && data.HostEvents.Of(m.Npc, m.HostEvent) is { Kind: NpcEffectKind.GiveItem } effect && string.Equals(ItemDefinition.Get(effect.Item).Name, gift.Item, StringComparison.Ordinal));
+                && data.HostEvents.Of(m.Npc, m.HostEvent) is { Kind: NpcEffectKind.GiveItem } effect && string.Equals(data.Items.Find(effect.Item)?.Name, gift.Item, StringComparison.Ordinal));
             if (!gives)
             {
                 problems.Add($"{File}: {gift.Npc} gives no '{gift.Item}' in {HostEventTable.RelativePath}, so there is no gift to limit.");
@@ -1151,7 +1228,7 @@ public static class GameDataValidator
             problems.Add($"{file}: the procedure is {procedure.Level}, and the bundle has no list of that level (cefr/{procedure.Level}.txt).");
         }
 
-        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var items = data.Items.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
         if (!items.Contains(procedure.Makes.Item))
         {
             problems.Add($"{file}: makes the item '{procedure.Makes.Item}', which is not an item.");

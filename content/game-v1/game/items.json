@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schema/items.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "items": [
+    { "name": "wood", "id": 0, "stack": 99, "icon": "wood", "held": "log", "tags": ["material"] },
+    { "name": "torch", "id": 21, "stack": 99, "icon": "torch", "held": "torch", "tags": ["placeable"] },
+    { "name": "berry", "id": 25, "stack": 99, "icon": "berry", "tags": ["food"] },
+    { "name": "bottle", "id": 26, "stack": 99, "icon": "bottle", "held": "bottle", "tags": ["container"] },
+    { "name": "water-bottle", "id": 27, "stack": 99, "icon": "water-bottle", "held": "bottle", "tags": ["container", "drink"] },
+    { "name": "bread", "id": 28, "stack": 99, "icon": "bread", "tags": ["food"] },
+    { "name": "book", "id": 29, "stack": 1, "icon": "book", "tags": ["book"] },
+    { "name": "coin", "id": 30, "stack": 99, "icon": "coin", "tags": ["currency"] },
+    { "name": "apple", "id": 31, "stack": 99, "icon": "apple", "tags": ["food"] },
+    { "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tags": ["tool"], "tool": { "class": "wood", "speed": 4 } },
+    { "name": "roast-apple", "id": 33, "stack": 99, "icon": "roast-apple", "tags": ["food"] },
+    { "name": "flour", "id": 34, "stack": 99, "icon": "flour", "tags": ["material"] },
+    { "name": "stake", "id": 35, "stack": 1, "icon": "stake", "tags": ["tool"] },
+    { "name": "camp-kit", "id": 36, "stack": 1, "icon": "camp-kit", "tags": ["placeable"] }
+  ]
+}

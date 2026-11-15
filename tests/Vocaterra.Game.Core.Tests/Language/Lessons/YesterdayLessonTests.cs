@@ -199,7 +199,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
     {
         var session = SessionEightAtVillager();
         var bag = session.Simulation.Inventory;
-        var before = (bag.Count(ItemId.Coin), bag.Count(ItemId.Apple), bag.Count(ItemId.Bread));
+        var before = (bag.Count(ItemId.Coin), bag.Count(TestItems.Apple), bag.Count(TestItems.Bread));
         Assert.Equal((0, 3), (before.Item1, before.Item2)); // no coins, the farmer's three apples: the lesson needs neither
         var earlier = session.Events.Count;
 
@@ -250,7 +250,7 @@ public sealed class YesterdayLessonTests(ITestOutputHelper output)
         Assert.Equal(["villager", "villager", "villager", "smith", "smith", "fisher"], turns.Select(static d => d.Turn!.Npc));
 
         // Nothing changed hands: no order, no sale.
-        Assert.Equal(before, (bag.Count(ItemId.Coin), bag.Count(ItemId.Apple), bag.Count(ItemId.Bread)));
+        Assert.Equal(before, (bag.Count(ItemId.Coin), bag.Count(TestItems.Apple), bag.Count(TestItems.Bread)));
         Assert.DoesNotContain(session.Events.Skip(earlier).OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven or WorldEvents.OrderDelivered);
     }
 

@@ -253,7 +253,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
     {
         var session = SessionTenAtBakery();
         var bag = session.Simulation.Inventory;
-        Assert.Equal((0, 3, 2, 1), (bag.Count(ItemId.Coin), bag.Count(ItemId.Apple), bag.Count(ItemId.Bread), bag.Count(ItemId.Axe))); // no coins (V14, V17)
+        Assert.Equal((0, 3, 2, 1), (bag.Count(ItemId.Coin), bag.Count(TestItems.Apple), bag.Count(TestItems.Bread), bag.Count(TestItems.Axe))); // no coins (V14, V17)
         var earlier = session.Events.Count;
 
         var done = new List<LessonDriver.Done>();
@@ -311,7 +311,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         Assert.Equal(("k8-review", "shopkeeper", true), (reviews[1].Id, reviews[1].Turn!.Npc, reviews[1].Turn!.Communicated));
 
         // The coin path: no coins in; three wood sold for three coins; three apples bought for them. Out: no coins, six apples, two loaves and the axe.
-        Assert.Equal((0, 6, 2, 1, 0), (bag.Count(ItemId.Coin), bag.Count(ItemId.Apple), bag.Count(ItemId.Bread), bag.Count(ItemId.Axe), bag.Count(ItemId.Wood)));
+        Assert.Equal((0, 6, 2, 1, 0), (bag.Count(ItemId.Coin), bag.Count(TestItems.Apple), bag.Count(TestItems.Bread), bag.Count(TestItems.Axe), bag.Count(ItemId.Wood)));
         Assert.Contains(session.Events.Skip(earlier).OfType<WorldEvent>(), static e => e is { Name: WorldEvents.ItemGiven, Npc: "farmer", Detail: "manzana, request" });
     }
 
@@ -332,7 +332,7 @@ public sealed class MarketLessonTests(ITestOutputHelper output)
         _ = Through(session, "(after the last step)");
 
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf(LessonId));
-        Assert.Equal((0, 6), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((0, 6), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Apple)));
     }
 
     // ---- The tenses at their steps (V16's machinery, used as it is)

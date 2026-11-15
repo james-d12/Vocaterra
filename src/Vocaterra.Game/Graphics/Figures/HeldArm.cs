@@ -33,31 +33,31 @@ public readonly record struct HeldChoice(HeldKind Kind, BlockCell Cell)
     public static HeldChoice Nothing => new(HeldKind.None, BlockCell.White);
 }
 
-/// <summary>Which model the arm holds for the selected hotbar item (S15): wood is a log, a torch is a torch with its flame, bottles are bottles.</summary>
+/// <summary>Which model the arm holds for the selected hotbar item (S15): the item's <c>held</c> kind in <c>game/items.json</c> (I01): a log, a torch with its flame, a bottle, or its icon extruded into voxels.</summary>
 public static class HeldItems
 {
-    /// <summary>The model for the selected slot: <paramref name="empty"/> when the slot holds nothing.</summary>
-    public static HeldChoice For(bool empty, ItemId item)
+    /// <summary>The model for an item: the hand shows what its <see cref="ItemDefinition.Held"/> says, with the item's icon for the kinds that are drawn from it.</summary>
+    /// <param name="item">The item's definition.</param>
+    public static HeldChoice For(ItemDefinition item)
     {
-        if (empty)
-        {
-            return HeldChoice.Nothing;
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         // The log and the torch are built of blocks; the bottles and every other item are their icon extruded into voxels, so an item added later is never missing
-        // from the hand (issue #44: the book showed nothing).
-        return item switch
+        // from the hand (issue #44: the book showed nothing), and one whose icon has no art shows the fallback tile.
+        return item.Held switch
         {
-            ItemId.Wood => new HeldChoice(HeldKind.Log, BlockCell.TrunkSide),
-            ItemId.Torch => new HeldChoice(HeldKind.Torch, BlockCell.TorchStick),
-            ItemId.Bottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconBottle),
-            ItemId.WaterBottle => new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle),
-            _ => BlockAtlasLayout.IconFor(item) is { } icon ? new HeldChoice(HeldKind.Sprite, icon) : HeldChoice.Nothing,
+            ItemHeld.Log => new HeldChoice(HeldKind.Log, BlockCell.TrunkSide),
+            ItemHeld.Torch => new HeldChoice(HeldKind.Torch, BlockCell.TorchStick),
+            ItemHeld.Bottle => new HeldChoice(HeldKind.Bottle, BlockAtlasLayout.IconFor(item)),
+            _ => new HeldChoice(HeldKind.Sprite, BlockAtlasLayout.IconFor(item)),
         };
     }
 
-    /// <summary>The model for a stack.</summary>
-    public static HeldChoice For(ItemStack stack) => For(stack.IsEmpty, stack.Item);
+    /// <summary>The model for a stack: the empty hand for an empty slot or an item the catalogue does not have.</summary>
+    /// <param name="items">The item catalogue.</param>
+    /// <param name="stack">The stack.</param>
+    public static HeldChoice For(IItemCatalogue items, ItemStack stack) =>
+        stack.IsEmpty || items.Find(stack.Item) is not { } definition ? HeldChoice.Nothing : For(definition);
 }
 
 /// <summary>How the arm moves (S15): a lift and a push forward, and a sway in x and y, all in blocks of the view space and radians.</summary>

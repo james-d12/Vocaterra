@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/items.json",
+  "description": "The item kinds (I01): one row per item the player can hold. Code names a kind only for what it does (the bottle fills, the book opens, coins pay); every other item is a row here and nothing else. Loaded once into an IItemCatalogue by ItemCatalogue (Vocaterra.Game.Core). The other files name items by `name`.",
+  "type": "object",
+  "required": ["schemaVersion", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "items": { "type": "array", "items": { "$ref": "#/definitions/item" }, "description": "The items in catalogue order. Names and ids are unique." }
+  },
+  "definitions": {
+    "item": {
+      "type": "object",
+      "required": ["name", "id", "stack", "icon"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The item's stable key: saves and every data file name the item by it. Never renamed once released." },
+        "id": { "type": "integer", "minimum": 0, "maximum": 65535, "description": "The item's stable number (the state digest and the code's ItemId enum use it). The ids below 100 are the first game's; a new item takes the next free id from 100, and an id is never reused." },
+        "stack": { "type": "integer", "minimum": 1, "description": "How many of the item one inventory slot holds." },
+        "icon": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The atlas key of the item's picture (the hotbar, the held model). A key the atlas has no art for draws the fallback tile, and the content check reports it." },
+        "held": { "enum": ["sprite", "log", "torch", "bottle"], "description": "How the hand shows the item (default sprite: the icon extruded into voxels)." },
+        "tags": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }, "description": "What the item is, an open list of words (tool, food, material, container, currency). Rules ask for a tag, never for an id." },
+        "tool": { "$ref": "#/definitions/tool", "description": "Present when the item is a tool." }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "required": ["class", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "class": { "enum": ["wood", "plant", "stone", "soil", "water"], "description": "The material of the blocks the tool works on." },
+        "speed": { "type": "integer", "minimum": 1, "description": "How many times faster than bare hands the tool gathers that material." },
+        "yield": { "type": "integer", "minimum": 1, "description": "How many of a gather's drop the tool gives (default 1)." }
+      }
+    }
+  }
+}

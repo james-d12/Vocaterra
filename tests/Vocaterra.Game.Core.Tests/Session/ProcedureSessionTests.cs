@@ -54,7 +54,7 @@ public sealed class ProcedureSessionTests
         Assert.Equal("pan", Assert.Single(Raised(session, WorldEvents.ProcedureStarted)).Detail);
         Assert.Equal(3, Raised(session, WorldEvents.ProcedureStep).Count());
         Assert.Equal("baker", Assert.Single(Raised(session, WorldEvents.ProcedureDone)).Npc);
-        Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
     }
 
@@ -79,13 +79,13 @@ public sealed class ProcedureSessionTests
         _ = Act(loaded, order[1]);
         var done = Act(loaded, order[2]);
         Assert.Equal((ProcedureState.Done, 3), (done.State, done.Made));
-        Assert.Equal(3, loaded.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, loaded.Simulation.Inventory.Count(TestItems.Bread));
 
         // Saved after the completion and loaded: the Done run grants nothing more.
         var again = Reload(SaveGame.Capture(loaded, Pristine()));
         Assert.Equal(ProcedureState.Done, again.Procedures.State);
         Assert.Equal(ActOutcome.NotRunning, Act(again, order[0]).Outcome);
-        Assert.Equal(3, again.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, again.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -128,10 +128,10 @@ public sealed class ProcedureSessionTests
 
         Assert.Equal(CraftResult.Done, session.BakeMastered("pan"));
         var inventory = session.Simulation.Inventory;
-        Assert.Equal((2, 1, 0, 0), (inventory.Count(ItemId.Bread), inventory.Count(ItemId.Bottle), inventory.Count(ItemId.WaterBottle), inventory.Count(ItemId.Wood))); // one run's yield, no bonus
+        Assert.Equal((2, 1, 0, 0), (inventory.Count(TestItems.Bread), inventory.Count(ItemId.Bottle), inventory.Count(ItemId.WaterBottle), inventory.Count(ItemId.Wood))); // one run's yield, no bonus
         Assert.Equal("pan", Assert.Single(Raised(session, WorldEvents.ItemCrafted)).Detail);
         Assert.Equal(CraftResult.MissingIngredients, session.BakeMastered("pan"));
-        Assert.Equal(2, inventory.Count(ItemId.Bread)); // nothing changed
+        Assert.Equal(2, inventory.Count(TestItems.Bread)); // nothing changed
 
         // The guided bake stays on offer: the run starts as ever.
         Assert.Equal(StartOutcome.Started, session.StartProcedure("pan", "horno", true));

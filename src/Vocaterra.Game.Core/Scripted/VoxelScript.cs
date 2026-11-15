@@ -355,7 +355,7 @@ public sealed class VoxelScript
         {
             var gained = DropCount(_interactBlock) - _interactDrops;
             var drop = BlockDefinition.Get(_interactBlock).Drop;
-            _log($"interact {step.X},{step.Y},{step.Z}: gathered {BlockDefinition.Get(_interactBlock).Name} in {_stepTicks} ticks (now {BlockDefinition.Get(now).Name}{(gained > 0 && drop is { } item ? $", +{gained} {ItemDefinition.Get(item).Name}" : string.Empty)})");
+            _log($"interact {step.X},{step.Y},{step.Z}: gathered {BlockDefinition.Get(_interactBlock).Name} in {_stepTicks} ticks (now {BlockDefinition.Get(now).Name}{(gained > 0 && drop is { } item ? $", +{gained} {_sim.Inventory.Items.Get(item).Name}" : string.Empty)})");
             return true;
         }
 

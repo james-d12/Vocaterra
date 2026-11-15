@@ -146,7 +146,7 @@ public sealed class StationScreen
             }
             else
             {
-                things.Add(new HeldThing(StationCellKind.Bag, noun.Lemma, ItemDefinition.Get(stack.Item).Name, stack.Item, stack.Count));
+                things.Add(new HeldThing(StationCellKind.Bag, noun.Lemma, session.Data.Items.Get(stack.Item).Name, stack.Item, stack.Count));
             }
         }
 
@@ -265,7 +265,7 @@ public sealed class StationScreen
             Notice,
             Made,
             Missing,
-            Made > 0 && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal)) is { } made ? session.Nouns.ForItem(made.Id)?.WithDefinite : null,
+            Made > 0 && session.Data.Items.Find(procedure.Makes.Item) is { } made ? session.Nouns.ForItem(made.Id)?.WithDefinite : null,
             OfferOf(session, procedure, run.State));
     }
 
@@ -273,12 +273,12 @@ public sealed class StationScreen
     // when the goal row is due again.
     private BakeOffer? OfferOf(GuideSession session, ProcedureDefinition procedure, ProcedureState state)
     {
-        if (state == ProcedureState.ReadyToCollect || !session.Procedures.Progress.IsMastered(procedure.Id) || ProcedureRunner.Items(procedure) is null)
+        if (state == ProcedureState.ReadyToCollect || !session.Procedures.Progress.IsMastered(procedure.Id) || ProcedureRunner.Items(procedure, session.Data.Items) is null)
         {
             return null;
         }
 
-        var made = ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, procedure.Makes.Item, StringComparison.Ordinal));
+        var made = session.Data.Items.Find(procedure.Makes.Item);
         var label = made is null ? procedure.Makes.Item : session.Nouns.ForItem(made.Id)?.WithDefinite ?? procedure.Makes.Item;
         var guidedFirst = session.PhraseProgress.IsScaffoldDue(procedure.Goal.Row, session.StoredTime.UnixSeconds, session.Credit);
         return new BakeOffer(procedure.Id, label, guidedFirst, Picked == BakeChoice.OneClick || (Picked is null && !guidedFirst));

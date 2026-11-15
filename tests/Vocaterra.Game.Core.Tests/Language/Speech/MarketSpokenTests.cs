@@ -101,7 +101,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
 
         output.WriteLine($"baker-open: heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Intent}, errors [{string.Join(", ", turn.Errors.Select(static e => e.Tag))}]");
         Assert.Equal(("request_item", true), (turn.Intent, turn.Communicated));
-        Assert.Equal(2, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(2, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [ModelFact(needsKokoro: true)]
@@ -123,7 +123,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
 
         output.WriteLine($"baker-open: heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Intent}, errors [{string.Join(", ", turn.Errors.Select(static e => e.Tag))}]");
         Assert.Equal(("request_item", true), (turn.Intent, turn.Communicated));
-        Assert.Equal(2, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(2, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [ModelFact(needsKokoro: true)]

@@ -11,8 +11,8 @@ public sealed class ScriptItemNamesTests
     [InlineData("wood", ItemId.Wood)]
     [InlineData("WOOD", ItemId.Wood)]
     [InlineData("antorcha", ItemId.Torch)]
-    public void AnItemIsNamedByItsNounOrItsKey(string name, ItemId expected) => Assert.Equal(expected, ScriptItemNames.Resolve(TestGame.Nouns, name));
+    public void AnItemIsNamedByItsNounOrItsKey(string name, ItemId expected) => Assert.Equal(expected, ScriptItemNames.Resolve(TestGame.Nouns, TestItems.Catalogue, name));
 
     [Fact]
-    public void ANameThatIsNeitherIsNoItem() => Assert.Null(ScriptItemNames.Resolve(TestGame.Nouns, "zzz"));
+    public void ANameThatIsNeitherIsNoItem() => Assert.Null(ScriptItemNames.Resolve(TestGame.Nouns, TestItems.Catalogue, "zzz"));
 }

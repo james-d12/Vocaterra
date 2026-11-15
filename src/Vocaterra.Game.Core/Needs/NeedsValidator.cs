@@ -13,11 +13,13 @@ internal static class NeedsValidator
 
     /// <summary>Every problem of the needs, in a fixed order; empty when they hold together.</summary>
     /// <param name="needs">The needs.</param>
-    public static IReadOnlyList<string> Validate(NeedsData needs)
+    /// <param name="catalogue">The item catalogue (<c>game/items.json</c>) the foods and what they leave are checked against.</param>
+    public static IReadOnlyList<string> Validate(NeedsData needs, IItemCatalogue catalogue)
     {
         ArgumentNullException.ThrowIfNull(needs);
+        ArgumentNullException.ThrowIfNull(catalogue);
         var problems = new List<string>();
-        var items = ItemDefinition.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var items = catalogue.All.Select(static d => d.Name).ToHashSet(StringComparer.Ordinal);
         foreach (var drive in Enum.GetValues<Drive>())
         {
             var spec = needs.Drives.FirstOrDefault(d => d.Drive == drive);

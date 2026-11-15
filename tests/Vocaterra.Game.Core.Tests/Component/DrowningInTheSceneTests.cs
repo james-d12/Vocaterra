@@ -46,7 +46,7 @@ public sealed class DrowningInTheSceneTests
         var column = FindDeepColumn(scene.Grid);
         Assert.NotNull(column);
         var (x, z, floor, top) = column.Value;
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         sim.TeleportTo(new BlockPos(x, floor, z));
         var outOfAir = new List<long>();
 

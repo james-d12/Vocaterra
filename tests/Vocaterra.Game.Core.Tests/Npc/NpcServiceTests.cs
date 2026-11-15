@@ -104,7 +104,7 @@ public sealed class NpcServiceTests
         var accepted = yes.Say("sí, por favor");
         Assert.Equal("confirm", accepted.Intent);
         Assert.Contains("stall.give_bread", accepted.HostEvents);
-        Assert.Equal(1, yes.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, yes.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal("done", accepted.AgentState);
         Assert.Equal("pan", yes.TakeWordCards().Last().Lemma);
         Assert.Equal((PhraseIds.YesPlease, PhraseUseKind.Supported), (Phrases(yes).Last().PhraseId, Phrases(yes).Last().Kind));
@@ -114,7 +114,7 @@ public sealed class NpcServiceTests
         var declined = no.Say("no, gracias");
         Assert.Equal("deny", declined.Intent);
         Assert.Empty(declined.HostEvents);
-        Assert.Equal(0, no.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, no.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(1, no.Simulation.Inventory.Count(ItemId.Bottle)); // the bottle was given before the offer
         Assert.Equal((PhraseIds.NoThanks, PhraseUseKind.Supported), (Phrases(no).Last().PhraseId, Phrases(no).Last().Kind));
     }
@@ -383,15 +383,15 @@ public sealed class NpcServiceTests
         Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("baker", "baker.buy_wood"));
         Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("smith", "smith.buy_wood"));
         Assert.Equal(NpcEffect.BuyAt(ItemId.Berry, 1), table.Of("farmer", "farmer.buy_fruit"));
-        Assert.Equal(NpcEffect.Give(ItemId.Axe, 1), table.Of("smith", "smith.give_axe"));
-        Assert.Equal(NpcEffect.SellAt(ItemId.Apple, 1), table.Of("farmer", "farmer.sell_apples"));
-        Assert.Equal(NpcEffect.Give(ItemId.Apple, 3), table.Of("farmer", "farmer.give_apples"));
-        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), table.Of("baker", "baker.sell_bread"));
+        Assert.Equal(NpcEffect.Give(TestItems.Axe, 1), table.Of("smith", "smith.give_axe"));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Apple, 1), table.Of("farmer", "farmer.sell_apples"));
+        Assert.Equal(NpcEffect.Give(TestItems.Apple, 3), table.Of("farmer", "farmer.give_apples"));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Bread, 2), table.Of("baker", "baker.sell_bread"));
         Assert.Equal(NpcEffect.Give(ItemId.Coin, 4), table.Of("baker", "baker.pay"));
         Assert.Equal(NpcEffectKind.GiveItem, table.Of("shopkeeper", "stall.give_water").Kind);
         Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
-        Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
-        Assert.Equal(ItemId.Bread, table.Of("villager", "villager.give").Item);
+        Assert.Equal(TestItems.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
+        Assert.Equal(TestItems.Bread, table.Of("villager", "villager.give").Item);
         Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("villager", "villager.point")); // V02: the place the learner names (it was point_at_noun río)
         Assert.Equal(ItemId.WaterBottle, table.Of("guide", "guide.give_water").Item);
         Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("fisher", "fisher.point"));

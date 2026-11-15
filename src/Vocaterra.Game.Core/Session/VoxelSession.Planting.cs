@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Voxel;
@@ -53,7 +52,7 @@ public sealed partial class VoxelSession
             return PlantResult.NotApplied;
         }
 
-        var item = ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, rule.Item, StringComparison.Ordinal));
+        var item = Data.Items.Find(rule.Item);
         var bush = BlockDefinition.FromName(rule.Block);
         if (item is null || bush is null || Simulation.Inventory.Count(item.Id) < 1 || Scene.Grid.GetBlock(ground.X, ground.Y, ground.Z) is not (BlockId.Grass or BlockId.Dirt))
         {

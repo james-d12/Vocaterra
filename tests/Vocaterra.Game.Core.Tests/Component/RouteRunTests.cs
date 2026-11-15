@@ -117,7 +117,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
         var inventory = session.Simulation.Inventory;
         Assert.Equal(0, inventory.Count(ItemId.Bottle)); // the bottle was filled
         Assert.Equal(2, inventory.Count(ItemId.WaterBottle)); // the river's, and the guide's offer
-        Assert.Equal(2, inventory.Count(ItemId.Bread)); // the stall's, and the villager's
+        Assert.Equal(2, inventory.Count(TestItems.Bread)); // the stall's, and the villager's
         Assert.True(session.RiverPointedOut);
 
         var uses = session.Events.OfType<PhraseUse>().Select(static u => $"{u.PhraseId}/{PhraseUseKindNames.Of(u.Kind)}/{u.Npc}").ToArray();

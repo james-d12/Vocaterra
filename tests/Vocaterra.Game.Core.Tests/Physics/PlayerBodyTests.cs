@@ -43,7 +43,7 @@ public sealed class PlayerBodyTests
     public void ARouteSceneSpawnStaysPutAndLooksTheWayTheLayoutSays()
     {
         var scene = BuildRoute(42);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var before = (sim.Player.MinX, sim.Player.MinY, sim.Player.MinZ);
         Run(sim, 120);
         Assert.Equal(before, (sim.Player.MinX, sim.Player.MinY, sim.Player.MinZ));
@@ -464,7 +464,7 @@ public sealed class PlayerBodyTests
     {
         for (ulong seed = 1; seed <= 6; seed++)
         {
-            var sim = VoxelSimulation.Create(BuildRoute(seed));
+            var sim = VoxelSimulation.Create(BuildRoute(seed), TestItems.Catalogue);
             var rng = WorldRng.For(seed, "route-walk");
             var held = new List<VoxelCommand>();
             for (var tick = 0; tick < 3000; tick++)
@@ -500,7 +500,7 @@ public sealed class PlayerBodyTests
 
         string Play(int extraTick)
         {
-            var sim = VoxelSimulation.Create(BuildRoute(42));
+            var sim = VoxelSimulation.Create(BuildRoute(42), TestItems.Catalogue);
             for (var round = 0; round < 40; round++)
             {
                 foreach (var commands in script)

@@ -89,7 +89,7 @@ public sealed partial class VoxelSession
         var cost = (int)Math.Min((long)purchase.Count * purchase.Price, int.MaxValue);
         if (!Sell(purchase.Npc, purchase.Item, purchase.Count, cost, "request"))
         {
-            var item = Nouns.ForItem(purchase.Item)?.Lemma ?? ItemDefinition.Get(purchase.Item).Name;
+            var item = Nouns.ForItem(purchase.Item)?.Lemma ?? Data.Items.Get(purchase.Item).Name;
             var coins = Simulation.Inventory.Count(ItemId.Coin);
             if (coins < cost)
             {

@@ -336,7 +336,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         }
 
                         var result = session.EatItem(item);
-                        var healed = session.Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
+                        var healed = session.Data.Needs.FoodOf(session.Data.Items.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
                         Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}{healed}");
                     },
                     () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
@@ -374,7 +374,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
                     });
-                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
+                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, session.Data.Items, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
         else

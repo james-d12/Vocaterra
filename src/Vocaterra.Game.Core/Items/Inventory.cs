@@ -4,7 +4,7 @@ namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
 /// The player's inventory: <see cref="SlotCount"/> slots of stacks, the first <see cref="HotbarSize"/> of them the hotbar. Adding fills the
-/// existing stacks of the kind first (lowest slot first), then the empty slots; a stack never exceeds <see cref="ItemDefinition.MaxStack"/>.
+/// existing stacks of the kind first (lowest slot first), then the empty slots; a stack never exceeds the <see cref="ItemDefinition.MaxStack"/> of its item in the <see cref="IItemCatalogue"/> (the data's stack limit).
 /// Everything is integer arithmetic over the slots, so the same operations give the same contents on every machine.
 /// </summary>
 public sealed class Inventory
@@ -18,13 +18,19 @@ public sealed class Inventory
     private readonly ItemStack[] _slots = new ItemStack[SlotCount];
 
     /// <summary>An empty inventory.</summary>
-    public Inventory()
+    /// <param name="items">The item catalogue: where each item's stack limit is read.</param>
+    public Inventory(IItemCatalogue items)
     {
+        ArgumentNullException.ThrowIfNull(items);
+        Items = items;
         for (var i = 0; i < SlotCount; i++)
         {
             _slots[i] = ItemStack.Empty;
         }
     }
+
+    /// <summary>The item catalogue the stack limits come from.</summary>
+    public IItemCatalogue Items { get; }
 
     /// <summary>The slots, in order (the hotbar is the first <see cref="HotbarSize"/>).</summary>
     public IReadOnlyList<ItemStack> Slots => new ReadOnlyCollection<ItemStack>(_slots);
@@ -32,7 +38,7 @@ public sealed class Inventory
     /// <summary>An independent copy of this inventory (for what-if checks).</summary>
     public Inventory Copy()
     {
-        var copy = new Inventory();
+        var copy = new Inventory(Items);
         for (var i = 0; i < SlotCount; i++)
         {
             copy._slots[i] = _slots[i];
@@ -164,7 +170,7 @@ public sealed class Inventory
             return;
         }
 
-        if (stack.Count > ItemDefinition.Get(stack.Item).MaxStack)
+        if (stack.Count > Items.Get(stack.Item).MaxStack)
         {
             throw new ArgumentOutOfRangeException(nameof(stack), stack, "The count is above the stack limit of the item.");
         }
@@ -174,7 +180,7 @@ public sealed class Inventory
 
     private int Fit(ItemId item, int count, bool apply)
     {
-        var limit = ItemDefinition.Get(item).MaxStack;
+        var limit = Items.Get(item).MaxStack;
         var left = count;
         var working = apply ? null : (ItemStack[])_slots.Clone();
         for (var pass = 0; pass < 2 && left > 0; pass++)

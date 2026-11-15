@@ -16,20 +16,20 @@ public sealed class HostEventTableTests
     private static string File(string action) =>
         $$"""{ "schemaVersion": 2, "events": [ { "npc": "villager", "event": "villager.do", "action": {{action}} } ] }""";
 
-    private static NpcEffect Read(string action) => HostEventTable.Parse(File(action)).Of("villager", "villager.do");
+    private static NpcEffect Read(string action) => HostEventTable.Parse(File(action), TestItems.Catalogue).Of("villager", "villager.do");
 
     private static SlotMap Slots(params (string Key, string Value)[] pairs) => SlotMap.From(pairs.Select(static p => new KeyValuePair<string, string>(p.Key, p.Value)));
 
     [Fact]
     public void GiveItemGivesOneAFixedCountOrTheNumberTheLearnerSaid()
     {
-        Assert.Equal(NpcEffect.Give(ItemId.Bread), Read("""{ "kind": "give_item", "item": "bread" }"""));
-        Assert.Equal(NpcEffect.Give(ItemId.Bread, 3), Read("""{ "kind": "give_item", "item": "bread", "count": 3 }"""));
-        Assert.Equal(NpcEffect.GiveAsked(ItemId.Bread), Read("""{ "kind": "give_item", "item": "bread", "count": "qty" }"""));
+        Assert.Equal(NpcEffect.Give(TestItems.Bread), Read("""{ "kind": "give_item", "item": "bread" }"""));
+        Assert.Equal(NpcEffect.Give(TestItems.Bread, 3), Read("""{ "kind": "give_item", "item": "bread", "count": 3 }"""));
+        Assert.Equal(NpcEffect.GiveAsked(TestItems.Bread), Read("""{ "kind": "give_item", "item": "bread", "count": "qty" }"""));
 
         Assert.Equal(1, Read("""{ "kind": "give_item", "item": "bread" }""").CountFor(Slots(("qty", "4"))));
         Assert.Equal(3, Read("""{ "kind": "give_item", "item": "bread", "count": 3 }""").CountFor(Slots(("qty", "4")))); // a fixed count ignores the learner's number
-        Assert.Equal(4, NpcEffect.GiveAsked(ItemId.Bread).CountFor(Slots(("qty", "4"), ("item", "pan"))));
+        Assert.Equal(4, NpcEffect.GiveAsked(TestItems.Bread).CountFor(Slots(("qty", "4"), ("item", "pan"))));
     }
 
     [Theory]
@@ -47,8 +47,8 @@ public sealed class HostEventTableTests
     {
         var slots = qty is null ? Slots(("item", "pan")) : Slots(("item", "pan"), ("qty", qty));
         Assert.Equal(said, NpcEffect.Quantity(slots));
-        Assert.Equal(said, NpcEffect.SellAt(ItemId.Bread, 2).CountFor(slots));
-        Assert.Equal(given, NpcEffect.GiveAsked(ItemId.Bread).CountFor(slots));
+        Assert.Equal(said, NpcEffect.SellAt(TestItems.Bread, 2).CountFor(slots));
+        Assert.Equal(given, NpcEffect.GiveAsked(TestItems.Bread).CountFor(slots));
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class HostEventTableTests
         Assert.Equal(NpcEffect.Take(ItemId.Wood, 2), Read("""{ "kind": "take_item", "item": "wood", "count": 2 }"""));
         Assert.Equal(NpcEffect.Take(ItemId.Coin), Read("""{ "kind": "take_item", "item": "coin" }"""));
         var sell = Read("""{ "kind": "sell", "item": "bread", "price": 2 }""");
-        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), sell);
+        Assert.Equal(NpcEffect.SellAt(TestItems.Bread, 2), sell);
 
         Assert.Equal((1, 2), (sell.CountFor(Slots(("item", "pan"))), sell.CostFor(Slots(("item", "pan")))));
         Assert.Equal((3, 6), (sell.CountFor(Slots(("qty", "3"))), sell.CostFor(Slots(("qty", "3")))));
@@ -73,7 +73,7 @@ public sealed class HostEventTableTests
         Assert.Equal((0, 0), (sell.CountFor(Slots(("qty", "0"))), sell.CostFor(Slots(("qty", "0"))))); // none (R10)
         Assert.Equal(int.MaxValue, sell.CostFor(Slots(("qty", "1000000000000")))); // the price times twelve digits overflows nothing: more than any bag holds
         Assert.Equal(int.MaxValue, sell.PriceOf(int.MaxValue));
-        Assert.Equal(0, NpcEffect.Give(ItemId.Bread).CostFor(Slots(("qty", "3")))); // only a sale costs
+        Assert.Equal(0, NpcEffect.Give(TestItems.Bread).CostFor(Slots(("qty", "3")))); // only a sale costs
     }
 
     [Theory]
@@ -88,7 +88,7 @@ public sealed class HostEventTableTests
     [InlineData("""{ "kind": "point_at_slot", "slot": "" }""", "'slot' is missing")]
     public void AnActionThatDoesNotHoldTogetherIsRefused(string action, string problem)
     {
-        var error = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(File(action)));
+        var error = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(File(action), TestItems.Catalogue));
         Assert.Contains(problem, error.Message, StringComparison.Ordinal);
     }
 
@@ -103,7 +103,7 @@ public sealed class HostEventTableTests
         events.Add(Event("fisher", "fisher.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
         events.Add(Event("fisher", "fisher.buy", new JsonObject { ["kind"] = "buy", ["item"] = "wood", ["price"] = 1 }));
 
-        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
+        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString(), TestItems.Catalogue)));
 
         Assert.Contains("game/host-events.json: villager's 'villager.go' points at the place 'mill', which is not a point of the scene.", problems);
         Assert.Contains(
@@ -128,7 +128,7 @@ public sealed class HostEventTableTests
         gift["instead"] = new JsonObject { ["pan"] = "give_bred" }; // V30: a typo in the event's name
         gift["asked"] = new JsonArray("agua", "botela"); // and in a noun
 
-        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
+        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString(), TestItems.Catalogue)));
 
         Assert.Contains("game/host-events.json: shopkeeper's 'stall.give_water' answers 'pan' with 'give_bred' instead, and no state of agents/shopkeeper.json takes 'shopkeeper.give_bred'.", problems);
         Assert.Contains("game/host-events.json: shopkeeper's 'stall.give_water' names 'botela', which is not a catalogue noun.", problems);
@@ -138,7 +138,7 @@ public sealed class HostEventTableTests
     [Fact]
     public void AFileOfSchemaOneIsRefused()
     {
-        var error = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(File("""{ "kind": "give_item", "item": "bread" }""").Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal)));
+        var error = Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(File("""{ "kind": "give_item", "item": "bread" }""").Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal), TestItems.Catalogue));
         Assert.Contains("schemaVersion 2", error.Message, StringComparison.Ordinal);
     }
 }

@@ -73,7 +73,7 @@ public sealed class RecipeBook
             if (element.TryGetProperty("makes", out var makes) && makes.ValueKind == JsonValueKind.String)
             {
                 // A noun that covers several items (manzana: the apple and the roast apple) says which one the recipe makes, by the item's key.
-                var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(ItemDefinition.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
+                var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(nouns.Items.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
                 outputItem = made ?? throw new InvalidDataException($"{RelativePath}: '{outputLemma}' does not name the item '{makes.GetString()}' that its recipe makes.");
             }
 

@@ -42,13 +42,13 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 8 (Y02) adds the optional <c>sleep</c> entry of <c>systems</c> (the lodging given, the place last slept at, the places made in play) and is the oldest this
-    /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated.
+    /// The format version this code writes. Version 9 (I01) stores an inventory slot's item by its name (<c>game/items.json</c>) in place of the code's enum name, an empty slot as an empty name, and is the oldest this
+    /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
-    /// <summary>The oldest format version this code reads: 8. The game is unreleased, so a save of an older version is refused and none is migrated (Y02).</summary>
-    public const int OldestReadableVersion = 8;
+    /// <summary>The oldest format version this code reads: 9. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, I01).</summary>
+    public const int OldestReadableVersion = 9;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -154,7 +154,7 @@ public static class SaveGame
             new GatherSave(state.GatherTarget, state.GatherBlock, state.GatherProgress),
             state.NoBottleHint,
             state.Player,
-            state.Slots.Select(static slot => new SlotSave(slot.Item, slot.Count)).ToArray(),
+            state.Slots.Select(slot => SlotSave.Of(slot, session.Data.Items)).ToArray(),
             session.ObjectiveCounts().Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
@@ -372,7 +372,7 @@ public static class SaveGame
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
     private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating)
     {
-        var slots = document.Inventory.Select(static slot => new ItemStack(slot.Item, slot.Count)).ToArray();
+        var slots = document.Inventory.Select(slot => slot.ToStack(session.Data.Items)).ToArray();
         session.Simulation.Restore(new VoxelSimulationState(
             document.Tick,
             document.SelectedSlot,

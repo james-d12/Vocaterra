@@ -82,7 +82,7 @@ public abstract partial class GuideSession
     public CraftResult BakeMastered(string procedureId)
     {
         ArgumentNullException.ThrowIfNull(procedureId);
-        if (!Procedures.Progress.IsMastered(procedureId) || Data.Procedures.Find(procedureId) is not { } procedure || ProcedureRunner.Items(procedure) is not { } items)
+        if (!Procedures.Progress.IsMastered(procedureId) || Data.Procedures.Find(procedureId) is not { } procedure || ProcedureRunner.Items(procedure, Data.Items) is not { } items)
         {
             return CraftResult.NoSuchRecipe;
         }
@@ -97,7 +97,7 @@ public abstract partial class GuideSession
 
         _ = CraftingRules.Craft(recipe, LiveInventory, true);
         _ = GiveBack(LiveInventory, items);
-        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.ItemCrafted, null, Nouns.ForItem(items.Makes)?.Lemma ?? ItemDefinition.Get(items.Makes).Name));
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.ItemCrafted, null, Nouns.ForItem(items.Makes)?.Lemma ?? Data.Items.Get(items.Makes).Name));
         return CraftResult.Done;
     }
 
@@ -190,7 +190,7 @@ public abstract partial class GuideSession
     /// </summary>
     public TeachingGrant? PlanGrant()
     {
-        if (Procedures.State != ProcedureState.InRun || Procedures.Current is not { } procedure || ProcedureRunner.Items(procedure) is not { } items)
+        if (Procedures.State != ProcedureState.InRun || Procedures.Current is not { } procedure || ProcedureRunner.Items(procedure, Data.Items) is not { } items)
         {
             return null;
         }
@@ -246,7 +246,7 @@ public abstract partial class GuideSession
     /// <param name="asked">Whether the learner asked (the answer to <c>ask_craft</c>) instead of the talk opening.</param>
     internal string? BakeOfferOf(string npc, bool asked)
     {
-        if (Data.Procedures.TaughtBy(npc) is not { } procedure || Data.Stations.Find(procedure.Station) is null || ProcedureRunner.Items(procedure) is null
+        if (Data.Procedures.TaughtBy(npc) is not { } procedure || Data.Stations.Find(procedure.Station) is null || ProcedureRunner.Items(procedure, Data.Items) is null
             || TeachingNpc is not null || Procedures.State is ProcedureState.InRun or ProcedureState.ReadyToCollect || Lessons.Engaged || Review is not null || PhraseReview is not null)
         {
             return null;

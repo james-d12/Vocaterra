@@ -102,7 +102,7 @@ public sealed class VocativeTests
         Assert.Equal(line, turn.Line); // the turn keeps the line as it was said
         Assert.Equal(("request_item", true, "2"), (turn.Intent, turn.Communicated, turn.Slots["qty"]));
         Assert.Empty(turn.Errors);
-        Assert.Equal((0, 2), (named.Simulation.Inventory.Count(ItemId.Coin), named.Simulation.Inventory.Count(ItemId.Bread))); // two loaves for four coins
+        Assert.Equal((0, 2), (named.Simulation.Inventory.Count(ItemId.Coin), named.Simulation.Inventory.Count(TestItems.Bread))); // two loaves for four coins
 
         var plain = At("baker", coins: 4).Say(bare);
         Assert.Equal((plain.Intent, plain.Slots["qty"]), (turn.Intent, turn.Slots["qty"])); // as the line without the name
@@ -140,7 +140,7 @@ public sealed class VocativeTests
         var bread = baker.Say("buenos días luz quiero pan");
         Assert.Equal(("request_item", true), (bread.Intent, bread.Communicated));
         Assert.Empty(bread.Errors);
-        Assert.Equal((2, 1), (baker.Simulation.Inventory.Count(ItemId.Coin), baker.Simulation.Inventory.Count(ItemId.Bread)));
+        Assert.Equal((2, 1), (baker.Simulation.Inventory.Count(ItemId.Coin), baker.Simulation.Inventory.Count(TestItems.Bread)));
 
         var smith = At("smith");
         _ = smith.Simulation.GrantItems(ItemId.Wood, 3);
@@ -158,7 +158,7 @@ public sealed class VocativeTests
         var apples = farmer.Say("buen día león quiero tres manzanas");
         Assert.Equal(("request_item", true), (apples.Intent, apples.Communicated));
         Assert.Empty(apples.Errors);
-        Assert.Equal((2, 3), (farmer.Simulation.Inventory.Count(ItemId.Coin), farmer.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((2, 3), (farmer.Simulation.Inventory.Count(ItemId.Coin), farmer.Simulation.Inventory.Count(TestItems.Apple)));
     }
 
     [Fact]

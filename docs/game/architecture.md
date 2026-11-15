@@ -113,7 +113,8 @@ Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), t
                   GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
-Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
+Items/            Inventory, ItemDefinition (one row of game/items.json: name, id, stack, icon, held, tags, tool), IItemCatalogue and its loader ItemCatalogue (I01: the one source of
+                  items, read once into GameData.Items and passed to what needs an item), ItemHeld, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Activities/       the procedures at a station (W05 to W07): StationBook, ProcedureBook, ActionTable, ProcedureRunner (the run), and the station overlay: StationScreen (state and
                   the view it makes), StationView and StationCell (plain values: the strip, the fixtures, the targets, the page of what can be held, the selection, the verb
@@ -249,7 +250,7 @@ host events: `<npc>.accept_order` gives the order (`GiveOrder`, the world event 
 A talk that opens on an agent left in `offering_order` first raises `<npc>.offer_gone`. A class at the NPC is held back until the answer, as for the hand-over. A lesson
 step that tells an order gives it when it starts (`OnLessonStepStarted`, the objective's `lessonStep`), and while the teacher would offer that class
 (`LessonRunner.ClassOfferedAt`) the order is not offered on its own. The validator checks every order NPC's offer (`GameDataValidator.CheckOrderOffer`). The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
-moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
+moment. The three items of the economy (the coin, the apple and the axe, V03; only the coin has an `ItemId` member since I01, the others are rows of `game/items.json`) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 
 **The camp (Y12, D-game-32).** The camp kit (`camp-kit`, bought with the plot) sets up one piece on the owned plot: the scene layout's `camp` stamp (`game/scene.json`: a fire ring, a free row of ground, the tent's A-frame
@@ -330,6 +331,16 @@ Day one ends at the inn, day two offers land, and the land holds a camp (settlem
 | **The camp** (Y12): the kit sets up a fire ring, a tent and a bedroll on the owned plot, and can be packed back | `scene.json` stamp `camp` with its anchors, item `camp-kit` | `Land/CampPlan.cs`, `VoxelSession.Camp.cs`, `World/Layout/StampSpec.cs` (the turning); the section "The camp" above |
 
 The checklist `my-land` ("Mi terreno", from play session 2: `stake`, `buy`, `camp`, `fire`) never holds a session back; its steps are events (`item_picked_up`, `plot_bought`, `camp_placed`, `fire_lit` with the detail `camp.fire`), and `stake` counts the bag and one more once the plot is owned (`VoxelSession.HeldForSteps`: the mayor keeps the stake at the purchase, so the step stays done, in the run and after a load), and a load reads `buy`, `camp` and `fire` back from the save and the world (the restore hooks `plot-owned`, `camp-placed`, `camp-fire-lit`). The scripted runs that cover the series are r20 and r30 (the sleep), r40 to r43 (`scripted-runs.md`).
+
+## Items are data (I01)
+
+No code holds a table of items. `content/game-v1/game/items.json` has one row per item (`name`, `id`, `stack`, `icon`, `held`, `tags`, optional `tool`), `ItemCatalogue` reads it once into `GameData.Items`
+(an `IItemCatalogue`: by id, by name, in catalogue order), and `Inventory` (its stack limits), `VoxelSimulation` (a held tool's spec), `NounCatalog`, `HostEventTable`, the sessions, the validator and the
+front-end's icons take it as a constructor or method argument; a noun-aware caller that needs names reaches it as `NounCatalog.Items`. The `ItemId` enum keeps only the members that behaviour refers to (the
+log, the torch, the berry bush's drop, the bottle that fills, the book that opens, the coin that pays, the stake and the camp kit); `ItemCatalogue` checks each against the row of the same id and name and stops the
+load on a mismatch, and an item that is a row alone (`(ItemId)100`) works everywhere: the bag, a noun, a recipe, a shop row, a save. The draw side takes the row's `icon` key (`BlockAtlasLayout.IconForKey`, a
+fallback tile for a key without art, reported by `GameDataValidator` when the front-end passes `BlockAtlasLayout.IconKeys`) and its `held` kind (`HeldItems`). A bag slot is saved by the item's name (save
+version 9, `saves.md`); the state digest keeps the numeric id.
 
 ## Needs (N01)
 
