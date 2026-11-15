@@ -741,7 +741,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
    A1 lesson may use it too. The other three words follow the same rule unless the owner says otherwise.
 6. **(f) The innkeeper's voice:** "pf_dora, provisional". A woman's voice, the nearest to native Spanish of the three unused
    ones, and probably close to Luna's. Recorded with it now; the owner listens afterwards and may change it (the rule of
-   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree.
+   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree (moved to `artifacts/settlement/voice-trial/innkeeper/` of the main checkout on 2026-11-15, when that worktree was removed).
 7. **(g) A third building agent:** "Launch Y01 now". The weather session held both of the machine's two building agents, so
    Y01 was launched as a third: one agent of this series beside the weather session's two, with every heavy command still
    queued through `scripts/limited.sh`. The answer was given for Y01.

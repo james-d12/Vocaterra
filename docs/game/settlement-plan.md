@@ -686,7 +686,7 @@ In use (`game/npcs/<id>.json`, `voice` {`speaker`, `name`, `speed`, `gain`}): `e
 | `pm_alex` 43 | man | probably Pablo's timbre; a sixth man | 2000 |
 
 Propose **a woman** (two of seven today): `ff_siwis` to be distinct, `pf_dora` to be nearer Spanish. Rendered with `SpeechRender --trial` at 24 kHz mono (the speech folder's rate) into
-`/home/james/Dev/Vocaterra/.claude/worktrees/settlement/artifacts/voice-trial/innkeeper/`: `<speaker>-hola.wav` («¡Hola! ¿Quieres una habitación?») and `<speaker>-buenas-noches.wav`, with `trial.json`.
+`/home/james/Dev/Vocaterra/artifacts/settlement/voice-trial/innkeeper/` (moved from the settlement worktree on 2026-11-15): `<speaker>-hola.wav` («¡Hola! ¿Quieres una habitación?») and `<speaker>-buenas-noches.wav`, with `trial.json`.
 
 ### 9.6 What Y04, Y06, Y09 and Y11 take from this
 
