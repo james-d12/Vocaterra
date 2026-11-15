@@ -583,11 +583,11 @@ public sealed class LessonRunnerTests
         _ = LessonDriver.DoStep(session); // u1-welcome
         _ = LessonDriver.DoStep(session); // u1-hello
         _ = LessonDriver.DoStep(session); // u1-say-hola: a typed "Hola"
-        var saved = SaveGame.Save(session, TestGame.Route());
+        var saved = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
+        Assert.Equal(saved, SaveGame.Save(loaded));
         Assert.Equal(LessonStatus.InProgress, loaded.Lessons.StatusOf("first-words"));
         Assert.Equal(
             [("u1-welcome", StepOutcome.Done), ("u1-hello", StepOutcome.Done), ("u1-say-hola", StepOutcome.Done)],
@@ -615,7 +615,7 @@ public sealed class LessonRunnerTests
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalk("guide");
         _ = LessonDriver.CompleteAll(session);
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
         Assert.Null(loaded.Lessons.Active);
@@ -629,7 +629,7 @@ public sealed class LessonRunnerTests
     public void ASaveWithAnUnknownLessonOrAStepItDoesNotHaveIsRefused()
     {
         var session = AtGuide();
-        var doc = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var doc = SaveGame.Parse(SaveGame.Save(session));
 
         var unknown = doc with { Lessons = new LessonsSave([new LessonProgressSave("nope", LessonStatus.NotStarted, 0, [], 0, false)], null) };
         var beyond = doc with { Lessons = new LessonsSave([new LessonProgressSave("sample", LessonStatus.InProgress, 5, [], 0, false)], "sample") };

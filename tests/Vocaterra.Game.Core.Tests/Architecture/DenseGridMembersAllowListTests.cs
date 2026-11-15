@@ -15,14 +15,9 @@ public sealed class DenseGridMembersAllowListTests
     // file (from the repository root) -> member -> why the use stays and which milestone removes it.
     private static readonly Dictionary<string, Dictionary<string, string>> Allowed = new()
     {
-        ["src/Vocaterra.Game.Core/Save/SaveGame.cs"] = new() { ["ChunksX"] = "B05: the save's WorldDims are the dense chunk counts; saves version 9 key edits by chunk coordinate", ["ChunksY"] = "B05: as ChunksX", ["ChunksZ"] = "B05: as ChunksX" },
-        ["src/Vocaterra.Game.Core/Save/SaveMigration.cs"] = new() { ["ChunksX"] = "B05: decodes the dense chunk index of a version 8 save", ["ChunksY"] = "B05: as ChunksX", ["ChunksZ"] = "B05: as ChunksX" },
-        ["src/Vocaterra.Game.Core/Save/VoxelGridDiff.cs"] = new() { ["Chunks"] = "B05: the diff against a pristine copy walks the dense chunk list; the changed-chunk digest replaces it" },
-        ["src/Vocaterra.Game.Core/Simulation/VoxelSimulation.cs"] = new() { ["ComputeDigest"] = "B05: the state digest hashes the whole grid; it becomes the digest of the changed chunks" },
         ["src/Vocaterra.Game.Core/Needs/FireRings.cs"] = new() { ["BlocksOfKind"] = "B06: fire rings come from the region template, not from a scan of the world" },
         ["src/Vocaterra.Game.Core/Session/VoxelSession.cs"] = new() { ["BlocksOfKind"] = "B06: the fire rings again, from the region template" },
         ["src/Vocaterra.Game.Core/Land/LandRules.cs"] = new() { ["BlocksOfKind"] = "B06: the protection mask is built from the valley's blocks; the region template supplies them" },
-        ["src/Vocaterra.Game/VoxelGame.cs"] = new() { ["ComputeDigestHex"] = "B05: the start-up line prints the dense world digest; the digest of the changed chunks replaces it" },
     };
 
     [Fact]

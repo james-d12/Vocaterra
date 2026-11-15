@@ -17,9 +17,9 @@ public sealed class NightTests
 
     private static VoxelSession Rested() => SleepTests.EndedFirstSession();
 
-    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
-    private static void Collapse(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()), collapse: true);
+    private static void Collapse(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session), collapse: true);
 
     private static void Tick(VoxelSession session, int ticks)
     {
@@ -240,7 +240,7 @@ public sealed class NightTests
         Collapse(session);
         Assert.Equal((day + 2, sitting + 2), (session.Day, session.Sitting));
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: session.Credit);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine, credit: session.Credit);
         Assert.Equal(day + 2, loaded.Day);
         Assert.Equal(sitting + 3, loaded.Sitting);
     }
@@ -257,7 +257,7 @@ public sealed class NightTests
         Collapse(session);
         Assert.Equal(2, session.DayResetCount);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: session.Credit);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine, credit: session.Credit);
         Assert.Equal(0, loaded.DayResetCount);
     }
 
@@ -305,11 +305,11 @@ public sealed class NightTests
             Night(session);
         }
 
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: session.Credit, bumpSession: false);
 
         Assert.Equal(session.Needs.Capture(), loaded.Needs.Capture());
-        Assert.Equal(text, SaveGame.Save(loaded, Pristine()));
+        Assert.Equal(text, SaveGame.Save(loaded));
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public sealed class NightTests
                 Night(session);
             }
 
-            return SaveGame.Save(session, Pristine());
+            return SaveGame.Save(session);
         }
 
         Assert.Equal(Run(false), Run(false));

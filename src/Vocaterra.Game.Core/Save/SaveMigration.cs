@@ -80,38 +80,32 @@ public static class SaveMigration
     /// scene of this bundle may be built differently, so a stored cell is applied only when it is a change a player can make to the cell the new scene has:
     /// a gathered block (the cell now holds what a gather leaves, air or a plain bush), or a placed block (planks or a torch) in a cell of air or undergrowth that
     /// touches a block. A stored cell that differs from the new scene in any other way is the old world generation, not the player's work: it is skipped, and
-    /// the new scene's block stays. When the save names the grid's chunk counts the chunk indices are decoded with them, so a world that grew or shrank still
-    /// maps by position; a save without them (before X01) is decoded with this grid's counts.
+    /// the new scene's block stays. Edits are keyed by chunk coordinates, so a world that grew or shrank still maps by position.
     /// </summary>
     /// <param name="grid">The fresh grid of this bundle's scene (changed).</param>
     /// <param name="edits">The save's chunk edits.</param>
-    /// <param name="saved">The chunk counts of the grid the save was taken from, or <see langword="null"/> when the save does not say.</param>
     /// <param name="report">Collects what was applied and skipped.</param>
-    internal static void ApplyWorld(VoxelGrid grid, IReadOnlyList<ChunkEdit> edits, WorldDims? saved, Collector report)
+    internal static void ApplyWorld(VoxelGrid grid, IReadOnlyList<ChunkEdit> edits, Collector report)
     {
-        var dims = saved ?? new WorldDims(grid.ChunksX, grid.ChunksY, grid.ChunksZ);
         var pending = new List<(int X, int Y, int Z, BlockId Block)>();
         var skipped = new List<string>();
         foreach (var edit in edits)
         {
-            var count = dims.ChunksX * dims.ChunksY * dims.ChunksZ;
-            if ((uint)edit.Chunk >= (uint)count)
+            var corner = new VoxelChunkCoord(edit.X, edit.Y, edit.Z).Origin;
+            if (!grid.InBounds(corner.X, corner.Y, corner.Z))
             {
-                skipped.Add($"chunk {edit.Chunk} (outside the world)");
+                skipped.Add($"chunk ({edit.X}, {edit.Y}, {edit.Z}) (outside the world)");
                 continue;
             }
 
-            var cx = edit.Chunk % dims.ChunksX;
-            var cz = edit.Chunk / dims.ChunksX % dims.ChunksZ;
-            var cy = edit.Chunk / (dims.ChunksX * dims.ChunksZ);
             var position = 0;
             foreach (var run in edit.Runs)
             {
                 for (var end = position + run.Length; position < end && position < VoxelChunk.Volume; position++)
                 {
-                    var x = (cx << VoxelChunk.Shift) + (position & (VoxelChunk.Size - 1));
-                    var z = (cz << VoxelChunk.Shift) + ((position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1));
-                    var y = (cy << VoxelChunk.Shift) + (position >> (2 * VoxelChunk.Shift));
+                    var x = corner.X + (position & (VoxelChunk.Size - 1));
+                    var z = corner.Z + ((position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1));
+                    var y = corner.Y + (position >> (2 * VoxelChunk.Shift));
                     if (Enum.IsDefined(run.Block) && grid.InBounds(x, y, z) && grid.GetBlock(x, y, z) != run.Block)
                     {
                         pending.Add((x, y, z, run.Block));

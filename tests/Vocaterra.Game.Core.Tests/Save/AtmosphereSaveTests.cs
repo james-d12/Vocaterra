@@ -12,7 +12,7 @@ public sealed class AtmosphereSaveTests
 {
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
 
@@ -37,13 +37,13 @@ public sealed class AtmosphereSaveTests
     }
 
     [Fact]
-    public void TheSaveVersionIsStillEight() => Assert.Equal(8, SaveGame.CurrentVersion);
+    public void TheSaveVersionIsNine() => Assert.Equal(9, SaveGame.CurrentVersion);
 
     [Fact]
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Tick(session, 90);
         var text = SaveOf(session);
 
@@ -102,14 +102,14 @@ public sealed class AtmosphereSaveTests
     public void ASaveWhoseHeldHourIsOffTheDialDoesNotRestore()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, 40) } };
 
         Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(broken), TestGame.Data, Pristine, credit: session.Credit));
     }
 
     [Theory]
-    [InlineData("save-v8.json")]
+    [InlineData("save-v9.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
@@ -119,6 +119,6 @@ public sealed class AtmosphereSaveTests
         Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest, taken before the clock existed, is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
-        Assert.Equal(8, SaveGame.Parse(SaveOf(loaded)).Version);
+        Assert.Equal(9, SaveGame.Parse(SaveOf(loaded)).Version);
     }
 }

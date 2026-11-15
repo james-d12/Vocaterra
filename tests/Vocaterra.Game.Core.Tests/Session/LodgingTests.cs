@@ -37,7 +37,7 @@ public sealed class LodgingTests
 
     private static int Granted(VoxelSession session) => session.Events.OfType<WorldEvent>().Count(e => e.Name == WorldEvents.LodgingGranted);
 
-    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     [Fact]
     public void Given_AGrantLodgingRow_When_TheTableIsParsedAndValidated_Then_TheKindIsKnownAndNoProblemIsFound()
@@ -89,7 +89,7 @@ public sealed class LodgingTests
         var path = Path.Combine(Path.GetTempPath(), $"vocaterra-y05-{Guid.NewGuid():N}.json");
         try
         {
-            File.WriteAllText(path, SaveGame.Serialize(SaveGame.Capture(session, Pristine())));
+            File.WriteAllText(path, SaveGame.Serialize(SaveGame.Capture(session)));
             var loaded = SaveGame.Load(File.ReadAllText(path), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
             Assert.True(loaded.LodgingGiven);
             Assert.Equal("inn.bed", loaded.LastSleepPlace?.Id);

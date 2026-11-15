@@ -3,7 +3,7 @@ language core is the engine Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and
 Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's
 work is in the game, in Vocaterra.Game.Core (Save/, the state digest) and its tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b05, already on the local branch `B05-saves-v9` (cut from
-`feature/biomes` at @@BASE@@, which holds B01 and B04a). Run every command from that directory. Commit after each item that builds and
+`feature/biomes` at 47f51d07, which holds B01 and B04a). Run every command from that directory. Commit after each item that builds and
 passes its tests, with the prefix `B05: `. Do not push your branch: it stays local and the gate merges it from there. Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree you made.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call
@@ -66,7 +66,7 @@ Checks beyond the suite: capture the scripted runs before your first change and 
 r01-route's `sounds.log` voice-end tick varies between captures under load (B04a's finding); report it if it is the only difference.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,650 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes. Do not commit bin/, obj/ or artifacts/.
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>

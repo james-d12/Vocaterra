@@ -24,9 +24,9 @@ public sealed class CampLifeTests
 
     private static int Kits(VoxelSession session) => session.Simulation.Inventory.Count(ItemId.CampKit);
 
-    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
-    private static VoxelSession Reload(VoxelSession session) => SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
+    private static VoxelSession Reload(VoxelSession session) => SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
     private static void StandAt(VoxelSession session, BlockPos cell) => session.Simulation.TeleportTo(cell);
 
@@ -400,7 +400,7 @@ public sealed class CampLifeTests
         var camp = CampRig.Place(session);
         CampRig.Light(session);
         session.Step([]);
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -424,7 +424,7 @@ public sealed class CampLifeTests
         var session = CampRig.Owner();
         var camp = CampRig.Place(session, Direction.East);
 
-        using var json = JsonDocument.Parse(SaveGame.Save(session, Pristine()));
+        using var json = JsonDocument.Parse(SaveGame.Save(session));
 
         var sleep = json.RootElement.GetProperty("systems").GetProperty("sleep");
         var saved = sleep.GetProperty("camp");
@@ -442,7 +442,7 @@ public sealed class CampLifeTests
     {
         var session = CampRig.Owner();
 
-        Assert.DoesNotContain("\"camp\"", SaveGame.Save(session, Pristine()), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"camp\"", SaveGame.Save(session), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public sealed class CampLifeTests
         var again = Reload(loaded); // the kit is in the bag now: a second load gives no second one
         Assert.Equal(1, Kits(again));
         Assert.Null(again.Camp);
-        Assert.DoesNotContain("kitOwed", SaveGame.Save(again, Pristine()), StringComparison.Ordinal);
+        Assert.DoesNotContain("kitOwed", SaveGame.Save(again), StringComparison.Ordinal);
     }
 
     [Fact]

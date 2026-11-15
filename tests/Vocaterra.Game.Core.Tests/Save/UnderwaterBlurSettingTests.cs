@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 public sealed class UnderwaterBlurSettingTests
 {
     private static string Text(UnderwaterBlur? blur) =>
-        SaveGame.Serialize(SaveGame.Capture(TestGame.NewSession(), TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 100, UnderwaterBlur: blur)));
+        SaveGame.Serialize(SaveGame.Capture(TestGame.NewSession(), new SaveSettings(new SoundVolumes(), 100, UnderwaterBlur: blur)));
 
     [Theory]
     [InlineData(UnderwaterBlur.Off)]

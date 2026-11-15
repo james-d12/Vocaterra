@@ -305,7 +305,7 @@ public sealed class OrdersAndSalesTests
         _ = session.Simulation.GrantItems(ItemId.Apple, 3);
         _ = session.Simulation.GrantItems(ItemId.Axe, 1);
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         Assert.Contains("\"oven-wood.delivered\"", text, StringComparison.Ordinal);
         Assert.Contains("{\"item\":\"Coin\",\"count\":4}", text, StringComparison.Ordinal); // the inventory keeps an item by its name
         var loaded = SaveGame.Load(text, Baker, static seed => TestGame.Route(seed), bumpSession: false);
@@ -313,7 +313,7 @@ public sealed class OrdersAndSalesTests
         Assert.Equal(session.Simulation.Inventory.Slots, loaded.Simulation.Inventory.Slots);
         Assert.Equal((4, 3, 1), (loaded.Simulation.Inventory.Count(ItemId.Coin), loaded.Simulation.Inventory.Count(ItemId.Apple), loaded.Simulation.Inventory.Count(ItemId.Axe)));
         Assert.True(loaded.Objectives.Single(o => o.Id == "oven-wood").Complete);
-        Assert.Equal(text, SaveGame.Save(loaded, TestGame.Route()));
+        Assert.Equal(text, SaveGame.Save(loaded));
     }
 
     // The bundle's data with the order first in the HUD's order, then an objective of session 5 that counts wood picked up.

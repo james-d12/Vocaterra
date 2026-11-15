@@ -2573,3 +2573,23 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   of that run depends on load (not yet proven with a second baseline). The valley build is 10 to 12% slower (612 to 690 ms), its grid
   28.5 MB instead of 36.8 MB, neighbour reads 40% faster. The valley's chunks count as changed until `SealPristine()` is called (B05).
   Gated after a merge of `feature/biomes` into the branch (an architecture.md conflict with B01): 11,650 passed, 3 skipped.
+- **B03, the generation pipeline and the procedural chunk source (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b03-generation-pipeline.md`, report `.claude/briefs/b03-report.md`. Column shapers and chunk decorators in one fixed
+  order; the strategy registry (D-game-34 item 13: `surfaceStrategy` and `decorStrategy` on a biome row, faded by distance to another
+  biome); trees on a jittered 4 x 4 grid per chunk with hash priority across chunk borders; every water block a source at 32. Chunk-local
+  (a chunk alone equals the chunk among shuffled neighbours, also from many threads). Findings: trunks stood in the bank column beside
+  water and the exitable-edge scan read their crowns as the floor (31 of 144 sites failed): no trunk within one column of water now, the
+  bank cut reaches 12 (the valley's cut only 4), and a bank beside swimmable water is at most 1 above the surface; the shared scan
+  `UnexitableEdges` now treats a floor of leaves like a bridge, a crown over the water and not a bank (the valley's result unchanged).
+  Times: a surface chunk 1.3 ms median, a whole 24-layer column 1.6 ms (`GenerateColumn`, which B06 should use); a column holds about
+  8 non-empty chunks in lowland and 19 in a range. Not fixed: no slope rule for trees, no reeds by water, the shipped rows name no
+  strategy yet. Gated: 11,732 passed, 3 skipped.
+- **B05, saves version 9 and the changed-chunk state digest (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b05-saves-v9.md`,
+  report `.claude/briefs/b05-report.md`. The state digest is a header (seed, region template digest, `ProceduralGenerator.Version`, a
+  hash of world.json, biomes.json and underground.json) and the changed chunks sorted, each with its coordinates and digest; the valley's
+  build seals its chunks as pristine. Saves are version 9: `ChunkEdit(X, Y, Z, Runs, Water)`, no `WorldDims`, no pristine world copy
+  (restore builds a new world, then overwrites the edited chunks). The first save went from about 0.7 s and 38 MB to 1.2 ms and under
+  8 MB; a load is about 56 ms. Findings: `compare-runs.py` does not mask the digest lines, so a digest change reports most runs as
+  different (the bodies matched as JSON with hex masked); r17-speak's voice-queue order is another load-dependent speech timing like
+  r01's. The agent also renamed the fixture in docs/nlp/changing-the-core.md (a literal path, accepted). Open for B06: pass the region
+  template's digest to `WorldStateHeader.For`. Gated: 11,748 passed, 3 skipped.

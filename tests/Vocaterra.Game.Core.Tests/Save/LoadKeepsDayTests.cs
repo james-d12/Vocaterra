@@ -28,7 +28,7 @@ public sealed class LoadKeepsDayTests
         session.Sitting = 5;
         _ = session.Simulation.GrantItems(ItemId.Wood, 5);
 
-        var loaded = LoadOf(SaveGame.Save(session, Pristine()));
+        var loaded = LoadOf(SaveGame.Save(session));
         Assert.Equal(["oven-wood"], loaded.GivenOrders);
 
         Assert.Equal(5, loaded.Day);
@@ -44,10 +44,10 @@ public sealed class LoadKeepsDayTests
     public void ASaveMadeJustAfterASleepLoadsOnTheNewDayAndNoDayIsSkipped()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Assert.Equal(2, session.Day);
 
-        var loaded = LoadOf(SaveGame.Save(session, Pristine()));
+        var loaded = LoadOf(SaveGame.Save(session));
 
         Assert.Equal(2, loaded.Day);
         Assert.Equal(session.Sitting + 1, loaded.Sitting);
@@ -60,11 +60,11 @@ public sealed class LoadKeepsDayTests
         var session = SleepTests.EndedFirstSession();
         var (day, sitting) = (session.Day, session.Sitting);
 
-        var loaded = LoadOf(SaveGame.Save(session, Pristine()));
+        var loaded = LoadOf(SaveGame.Save(session));
         Assert.Equal((day, sitting + 1), (loaded.Day, loaded.Sitting));
-        Assert.Equal((day, sitting), (LoadOf(SaveGame.Save(session, Pristine()), bump: false).Day, session.Sitting));
+        Assert.Equal((day, sitting), (LoadOf(SaveGame.Save(session), bump: false).Day, session.Sitting));
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Assert.Equal((day + 1, sitting + 1), (session.Day, session.Sitting));
     }
 
@@ -77,7 +77,7 @@ public sealed class LoadKeepsDayTests
         session.Sitting = 3;
         var use = new PhraseUse(60_000, 1_000, "pedir-agua", PhraseUseKind.Supported, "shopkeeper", "stall-need", "quiero agua, por favor", null, InputKind.Spoken, true, SupportLevel.None, null);
         _ = session.PhraseProgress.Apply(use, credit);
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
 
         var sameSitting = LoadOf(text, bump: false);
         _ = sameSitting.PhraseProgress.Apply(use with { Time = 1_060 }, credit);
@@ -93,7 +93,7 @@ public sealed class LoadKeepsDayTests
     [Fact]
     public void ASaveFromBeforeTheSittingLoadsOnItsSavedDayAndContinuesTheSittingFromIt()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
         var document = SaveGame.Parse(text) with { Sitting = null };
         Assert.Null(document.Sitting);
 

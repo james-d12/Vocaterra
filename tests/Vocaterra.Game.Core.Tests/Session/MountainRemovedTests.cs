@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Core.Tests.Session;
 /// <summary>Y08: the mountain camp is gone from the world, the data and the code; Luna's fire is the sleep place a player without a room has, the console names where a night ended, and the innkeeper follows the lodging.</summary>
 public sealed class MountainRemovedTests
 {
-    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     private static void LightLunasRing(VoxelSession session)
     {
@@ -140,7 +140,7 @@ public sealed class MountainRemovedTests
     {
         var session = TestGame.NewSession();
         session.GrantLodging();
-        var saved = SaveGame.Save(session, TestGame.Route());
+        var saved = SaveGame.Save(session);
         var node = System.Text.Json.Nodes.JsonNode.Parse(saved)!;
         foreach (var npc in node["npcs"]!.AsArray())
         {

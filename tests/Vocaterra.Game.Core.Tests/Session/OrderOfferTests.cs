@@ -210,15 +210,15 @@ public sealed class OrderOfferTests
         _ = session.AcceptOrder();
         session.EndTalk();
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         Assert.Contains("\"givenOrders\":[\"fruit-for-mar\"]", text, StringComparison.Ordinal);
         var loaded = SaveGame.Load(text, TestGame.Data, static seed => TestGame.Route(seed), bumpSession: false);
 
         Assert.Equal(["fruit-for-mar"], loaded.GivenOrders);
         Assert.True(loaded.Shown(Order(loaded, "fruit-for-mar").Spec));
-        Assert.Contains("\"givenOrders\":[\"fruit-for-mar\"]", SaveGame.Save(loaded, TestGame.Route()), StringComparison.Ordinal);
+        Assert.Contains("\"givenOrders\":[\"fruit-for-mar\"]", SaveGame.Save(loaded), StringComparison.Ordinal);
 
-        var none = SaveGame.Save(NewSession(), TestGame.Route());
+        var none = SaveGame.Save(NewSession());
         Assert.DoesNotContain("givenOrders", none, StringComparison.Ordinal); // left out while none is taken
     }
 
@@ -227,7 +227,7 @@ public sealed class OrderOfferTests
     {
         var session = NewSession();
         _ = session.OpenTalk("fisher");
-        var text = SaveGame.Save(session, TestGame.Route()); // his agent saved in its offering state
+        var text = SaveGame.Save(session); // his agent saved in its offering state
         var loaded = SaveGame.Load(text, TestGame.Data, static seed => TestGame.Route(seed), bumpSession: false);
 
         Assert.Equal(NpcHostEvents.OrderOfferState, loaded.Conversation.StateOf("fisher"));

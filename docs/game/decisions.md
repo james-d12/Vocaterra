@@ -804,6 +804,18 @@ the owner's answers of 2026-11-15 are in its section 5.
     more custom areas added ... if I want to make that starting area twice as big, I shouldn't have to change much." Of the four changes
     proposed, the owner chose all four, as one milestone at the end: "add the 4 regions, but add them to the end of the milestones ...
     It's not important at the moment." B16, after B14 and B15.
+15. **Leaving the valley after the unlock** (2026-11-15): B08a found the ring walkable almost everywhere (a walk from the village reaches
+    the east edge over the mountains), so before the unlock the edge wall is what keeps the player in and the rockfall closes the road.
+    Asked how the player may leave once the pass opens, the owner chose "Anywhere": the edge wall lifts all the way round; the pass and
+    its road are the easy way out (from "Only through the pass" and "Make the ring unclimbable").
+16. **The review of B02's maps** (2026-11-15): ranges were needles about 50 blocks wide, most "ocean" scattered inland basins with
+    steep coasts, and snow lay on cold lowland. The owner chose, each from two or three options: "Long ranges" (chains hundreds of
+    blocks wide with foothills, peaks 200 to 300, like Minecraft 1.18), "Big seas and continents" (connected oceans, coastal shelves,
+    wide beaches, inland basins as lakes) and "Only up high" (snow on the mountains only; cold lowland stays taiga). B02b tunes to it.
+17. **One agent, then stopped** (2026-11-15, about 17:27 UTC, while playing games): "I need you to scale down resources, im playing
+    gaems right now", then "only have 1 afgent max, you can let the agents finish but going forward", then "actually im going to stop
+    the work" and "pls make sure everything is writte ndown". Item 10's three agents become one building agent at a time from now on.
+    The running agents (B03b, B04b's merge, B06 just launched) and B02's gate were stopped; their state is in the handover.
 
 ## Already decided
 

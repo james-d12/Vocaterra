@@ -269,9 +269,8 @@ public sealed class VoxelGrid : IVoxelWriter
 
     /// <summary>
     /// The world digest: the SHA-256 of the grid size (three 32-bit little-endian integers: X, Y, Z) followed by the 32-byte digest of every
-    /// chunk in <see cref="Chunks"/> order (a chunk that is not stored is a chunk of air). Every edit that changes a block changes it. Goldens and the game's state hash
-    /// use this. Cached until the next edit; chunk digests are cached per chunk, so recomputing after one edit hashes one chunk and then the 32-byte chunk digests.
-    /// Dense: bounded grids only (B05 replaces it with a digest of the changed chunks).
+    /// chunk in <see cref="Chunks"/> order (a chunk that is not stored is a chunk of air). Every edit that changes a block changes it. Goldens use this; the game's state hash is <see cref="Vocaterra.Game.Core.World.WorldStateDigest"/>. Cached until the next edit; chunk digests are cached per chunk, so recomputing after one edit hashes one chunk and then the 32-byte chunk digests.
+    /// Dense: bounded grids only; the state digest of the game and of saves (B05) is <see cref="Vocaterra.Game.Core.World.WorldStateDigest"/>, which hashes the changed chunks only.
     /// </summary>
     /// <exception cref="NotSupportedException">The grid is streamed.</exception>
     public byte[] ComputeDigest()
@@ -406,6 +405,25 @@ public sealed class VoxelGrid : IVoxelWriter
         var coords = new List<VoxelChunkCoord>(_chunks.Keys);
         coords.Sort(static (a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.Z != b.Z ? a.Z.CompareTo(b.Z) : a.X.CompareTo(b.X));
         return coords;
+    }
+
+    /// <summary>
+    /// The resident chunks that are <see cref="VoxelChunk.IsChanged"/>, sorted by coordinate (layer, then row, then column): the world's state (B05). The state digest and a save
+    /// write exactly these. The cost is one cheap test per resident chunk plus a digest per chunk that was written.
+    /// </summary>
+    internal List<VoxelChunk> ChangedChunks()
+    {
+        var changed = new List<VoxelChunk>();
+        foreach (var chunk in _chunks.Values)
+        {
+            if (chunk.IsChanged)
+            {
+                changed.Add(chunk);
+            }
+        }
+
+        changed.Sort(static (a, b) => a.Coord.Y != b.Coord.Y ? a.Coord.Y.CompareTo(b.Coord.Y) : a.Coord.Z != b.Coord.Z ? a.Coord.Z.CompareTo(b.Coord.Z) : a.Coord.X.CompareTo(b.Coord.X));
+        return changed;
     }
 
     /// <summary>Makes what every chunk holds now its pristine state (<see cref="VoxelChunk.PristineDigest"/>, <see cref="VoxelChunk.IsChanged"/>): the end of a build that wrote the world.</summary>
