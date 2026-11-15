@@ -108,15 +108,16 @@ public sealed class TemplateBlockIndex
     /// <summary>The index of the same blocks moved by whole chunks (a region placed away from the origin).</summary>
     /// <param name="chunksX">The shift along x, in chunks.</param>
     /// <param name="chunksZ">The shift along z, in chunks.</param>
-    internal TemplateBlockIndex Shifted(int chunksX, int chunksZ)
+    /// <param name="chunksY">The shift up, in chunks (0 for the valley).</param>
+    internal TemplateBlockIndex Shifted(int chunksX, int chunksZ, int chunksY = 0)
     {
-        if (chunksX == 0 && chunksZ == 0)
+        if (chunksX == 0 && chunksZ == 0 && chunksY == 0)
         {
             return this;
         }
 
-        var (dx, dz) = (chunksX << VoxelChunk.Shift, chunksZ << VoxelChunk.Shift);
-        return new TemplateBlockIndex(_byKind.ToDictionary(static p => p.Key, p => p.Value.Select(b => b with { X = b.X + dx, Z = b.Z + dz }).ToArray()), _refused);
+        var (dx, dy, dz) = (chunksX << VoxelChunk.Shift, chunksY << VoxelChunk.Shift, chunksZ << VoxelChunk.Shift);
+        return new TemplateBlockIndex(_byKind.ToDictionary(static p => p.Key, p => p.Value.Select(b => b with { X = b.X + dx, Y = b.Y + dy, Z = b.Z + dz }).ToArray()), _refused);
     }
 
     /// <summary>The positions of the blocks of a kind in the region as it was made, in a fixed order (none for a kind it did not hold).</summary>

@@ -24,19 +24,61 @@ public static class WorldFactory
     /// <param name="seed">The world seed.</param>
     /// <param name="mode">The kind of grid.</param>
     /// <param name="layout">The valley's layout when it is not the bundle's own (the game's <c>--scene</c>), or <see langword="null"/>.</param>
+    /// <param name="towns">Regions on procedural ground to add to the valley (B15), or <see langword="null"/> for none; only a streamed world can hold them. B16 reads them from <c>world.json</c>.</param>
     /// <returns>The scene: the valley's spawn, NPCs, points and labels on the grid of the mode, with <see cref="Scene.Places"/> and <see cref="Scene.TemplateDigest"/> set.</returns>
-    public static Scene Create(GameData data, ulong seed, WorldMode mode, SceneLayout? layout = null)
+    /// <exception cref="ArgumentException">A bounded world was asked for towns, or the regions overlap, crowd each other or leave the world (<see cref="RegionCatalog.Validate"/>).</exception>
+    public static Scene Create(GameData data, ulong seed, WorldMode mode, SceneLayout? layout = null, IReadOnlyList<ProceduralReliefRegion>? towns = null)
     {
         ArgumentNullException.ThrowIfNull(data);
+        towns ??= [];
+        if (towns.Count > 0 && mode == WorldMode.Bounded)
+        {
+            throw new ArgumentException("Only a streamed world can hold regions besides the valley.", nameof(towns));
+        }
+
+        if (towns.FirstOrDefault(town => town.Seed != seed) is { } foreign)
+        {
+            throw new ArgumentException($"The region '{foreign.Id}' was built for another seed ({foreign.Seed}), so its ground is not this world's ({seed}).", nameof(towns));
+        }
+
         var built = SceneBuilder.Build(layout ?? data.Scene, seed);
         var region = AuthoredReliefRegion.Freeze(ValleyRegionId, built, keepChunks: mode == WorldMode.Streamed, edgeBlurRadius: data.WorldGen.Blend.Smoothing.BlurRadius);
-        var composition = Compose(data, seed, new RegionCatalog([region]));
+        var catalog = new RegionCatalog([region, .. towns]);
+        if (towns.Count > 0)
+        {
+            var vertical = data.WorldGen.Vertical;
+            var problems = catalog.Validate(WorldLimits.Symmetric(WorldLimits.DefaultHalfExtent, vertical.MinY, vertical.MaxY), data.WorldGen.Blend.Margin);
+            if (problems.Count > 0)
+            {
+                throw new ArgumentException(string.Join(" ", problems), nameof(towns));
+            }
+        }
+
+        var composition = Compose(data, seed, catalog);
         if (mode == WorldMode.Bounded)
         {
             return built.WithWorld(built.Grid, composition.Places, region.TemplateDigest, null);
         }
 
-        return built.WithWorld(StreamedGrid(data, composition.Source), composition.Places, region.TemplateDigest, composition.Source);
+        return built.WithWorld(StreamedGrid(data, composition.Source), composition.Places, TemplateDigestOf(region, towns), composition.Source);
+    }
+
+    // The valley's digest alone while the world has no town (so a world without one keeps its digest); with towns, the SHA-256 of the valley's and then each town's, in the order given.
+    private static byte[] TemplateDigestOf(AuthoredReliefRegion valley, IReadOnlyList<ProceduralReliefRegion> towns)
+    {
+        if (towns.Count == 0)
+        {
+            return valley.TemplateDigest;
+        }
+
+        using var hash = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
+        hash.AppendData(valley.TemplateDigest);
+        foreach (var town in towns)
+        {
+            hash.AppendData(town.TemplateDigest);
+        }
+
+        return hash.GetHashAndReset();
     }
 
     /// <summary>The world's pure parts for some regions: the composite source and the place query, both over one blend and one seed.</summary>
