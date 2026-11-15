@@ -154,7 +154,7 @@ Sound/            the mixer, the cues and their mapping, the ambient beds, the f
                   SoundSetup with its SoundOptions
 Tip/              the tips (TipFeed, TipBook, TipSpec), the controls help's lines (ControlHelp), the objective line's pieces, ToastQueue
 Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
-World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
+World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder; Procedural/ the height model, B01), Noise/ (integer noise, splines, lattices, B01), Climate/ (the climate fields and the lapse with altitude, B01), Biomes/ (the biome table from game/biomes.json, B01), WorldGenData (game/world.json)
 ```
 
 **`src/Vocaterra.Game`**, folders by area with feature subfolders: the window, the drawing, the devices and the layers, and the only engine

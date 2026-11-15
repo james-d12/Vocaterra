@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/biomes.json",
+  "description": "The biomes (B01): ordered rows, the first whose when holds wins, and the last has no when. Loaded by BiomeData (Vocaterra.Game.Core); GameDataValidator checks the values (ids unique, ranges ordered, a final catch-all row, block names and tree species known).",
+  "type": "object",
+  "required": ["schemaVersion", "dither", "biomes"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "dither": {
+      "type": "object",
+      "required": ["temperature", "humidity"],
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "type": "integer", "minimum": 0, "maximum": 500, "description": "How far, in thousandths, a column's temperature is jittered either way before the rows are tried." },
+        "humidity": { "type": "integer", "minimum": 0, "maximum": 500, "description": "The same for the humidity." }
+      }
+    },
+    "biomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "top", "filler", "fillerDepth"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "Lowercase kebab-case, unique." },
+          "when": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "What a column must satisfy. Absent on the last row, which catches every column.",
+            "properties": {
+              "water": { "type": "boolean", "description": "True for columns whose ground is below the sea, false for land." },
+              "continentalness": { "$ref": "#/definitions/range" },
+              "erosion": { "$ref": "#/definitions/range" },
+              "ridges": { "$ref": "#/definitions/range" },
+              "temperature": { "$ref": "#/definitions/range" },
+              "humidity": { "$ref": "#/definitions/range" },
+              "river": { "$ref": "#/definitions/range" },
+              "height": { "$ref": "#/definitions/range" },
+              "surfaceTemperature": { "$ref": "#/definitions/range" }
+            }
+          },
+          "top": { "type": "string", "description": "The block name of the top layer of the ground." },
+          "filler": { "type": "string", "description": "The block name of the layers under it." },
+          "fillerDepth": { "type": "integer", "minimum": 0, "maximum": 16 },
+          "underwater": { "type": "string", "description": "The block name of the top layer under water, when it differs from top." },
+          "snowCap": { "type": "boolean", "description": "Snow covers the ground where the surface temperature is below the snow threshold of world.json." },
+          "baseTemperature": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "An optional base temperature in thousandths, for the temperature system to come." },
+          "trees": {
+            "type": "object",
+            "required": ["density", "species"],
+            "additionalProperties": false,
+            "properties": {
+              "density": { "type": "integer", "minimum": 0, "maximum": 100, "description": "The percent of a chunk's 4 x 4 cells that hold a tree." },
+              "species": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["species", "weight"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "species": { "type": "string", "description": "A species the code builds." },
+                    "weight": { "type": "integer", "minimum": 1 },
+                    "crown": { "type": "string", "description": "A crown shape the code builds; the species' own when absent." }
+                  }
+                }
+              }
+            }
+          },
+          "decor": {
+            "type": "object",
+            "required": ["density", "blocks"],
+            "additionalProperties": false,
+            "properties": {
+              "density": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The thousandths of the columns that hold a plant." },
+              "blocks": {
+                "type": "object",
+                "description": "Block name to a positive whole-number weight.",
+                "additionalProperties": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "integer" },
+        "max": { "type": "integer" }
+      }
+    }
+  }
+}

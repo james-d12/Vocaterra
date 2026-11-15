@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/world.json",
+  "description": "The procedural world's numbers (B01): the vertical range and sea level, the climate fields, the height model's splines and the snow and tree-line thresholds. Loaded by WorldGenData (Vocaterra.Game.Core); GameDataValidator checks the values (whole chunk layers, rising spline inputs, a river and lake bed below the sea, ordered ramps). Every number is a whole number: lengths in blocks, field values in thousandths of their range.",
+  "type": "object",
+  "required": ["schemaVersion", "vertical", "climate", "height", "altitude"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "vertical": {
+      "type": "object",
+      "required": ["minY", "maxY", "seaLevel"],
+      "additionalProperties": false,
+      "properties": {
+        "minY": { "type": "integer", "description": "The lowest block row; a multiple of 16." },
+        "maxY": { "type": "integer", "description": "One above the highest block row; a multiple of 16." },
+        "seaLevel": { "type": "integer", "description": "The water's surface; every column below it fills to it." }
+      }
+    },
+    "climate": {
+      "type": "object",
+      "required": ["latticeBlocks", "continentalness", "erosion", "ridges", "temperature", "humidity", "river", "lapsePer100Blocks"],
+      "additionalProperties": false,
+      "properties": {
+        "latticeBlocks": { "type": "integer", "minimum": 1, "maximum": 16, "description": "The spacing of the lattice the fields are sampled on and interpolated from." },
+        "continentalness": { "$ref": "#/definitions/noise" },
+        "erosion": { "$ref": "#/definitions/noise" },
+        "ridges": { "$ref": "#/definitions/noise" },
+        "temperature": { "$ref": "#/definitions/noise" },
+        "humidity": { "$ref": "#/definitions/noise" },
+        "river": { "$ref": "#/definitions/noise" },
+        "lapsePer100Blocks": { "type": "integer", "minimum": 0, "description": "The fall of the temperature, in thousandths of its range, for every 100 blocks above the sea." }
+      }
+    },
+    "height": {
+      "type": "object",
+      "required": ["base", "rangeFactor", "peaks", "detail", "softCapAbove", "clamp", "terraces", "crags", "rivers", "lakes"],
+      "additionalProperties": false,
+      "properties": {
+        "base": { "$ref": "#/definitions/spline", "description": "The base height in blocks by continentalness." },
+        "rangeFactor": { "$ref": "#/definitions/spline", "description": "How much of the peaks shows, in thousandths (0 to 1000), by erosion." },
+        "peaks": { "$ref": "#/definitions/spline", "description": "The height the ridges add, in blocks, by ridges." },
+        "detail": {
+          "type": "object",
+          "required": ["hillsCell", "hillsOctaves", "calmAmplitude", "ruggedAmplitude"],
+          "additionalProperties": false,
+          "properties": {
+            "hillsCell": { "type": "integer", "minimum": 1 },
+            "hillsOctaves": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "calmAmplitude": { "type": "integer", "minimum": 0, "description": "Hill height in blocks where the range factor is 0." },
+            "ruggedAmplitude": { "type": "integer", "minimum": 0, "description": "Hill height in blocks where the range factor is 1." }
+          }
+        },
+        "softCapAbove": { "type": "integer", "description": "Above this height the ground rises at half rate." },
+        "clamp": { "type": "integer", "description": "The highest ground in blocks." },
+        "terraces": {
+          "type": "object",
+          "required": ["step", "fromHeight", "toHeight", "ridgesFrom", "ridgesTo"],
+          "additionalProperties": false,
+          "properties": {
+            "step": { "type": "integer", "minimum": 0, "maximum": 32, "description": "The shelf height in blocks; 0 or 1 for none." },
+            "fromHeight": { "type": "integer" },
+            "toHeight": { "type": "integer" },
+            "ridgesFrom": { "type": "integer", "minimum": 0, "maximum": 1000 },
+            "ridgesTo": { "type": "integer", "minimum": 0, "maximum": 1000 }
+          }
+        },
+        "crags": {
+          "type": "object",
+          "required": ["amplitude", "cell", "ridgesFrom", "ridgesTo", "heightFrom", "heightTo"],
+          "additionalProperties": false,
+          "properties": {
+            "amplitude": { "type": "integer", "minimum": 0 },
+            "cell": { "type": "integer", "minimum": 1 },
+            "ridgesFrom": { "type": "integer", "minimum": 0, "maximum": 1000 },
+            "ridgesTo": { "type": "integer", "minimum": 0, "maximum": 1000 },
+            "heightFrom": { "type": "integer" },
+            "heightTo": { "type": "integer" }
+          }
+        },
+        "rivers": {
+          "type": "object",
+          "required": ["width", "bedHeight", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
+          "additionalProperties": false,
+          "properties": {
+            "width": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "How far from zero, in thousandths, the river field still carves." },
+            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "fadeFromHeight": { "type": "integer" },
+            "fadeToHeight": { "type": "integer" },
+            "seaFadeFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "seaFadeTo": { "type": "integer", "minimum": -1000, "maximum": 1000 }
+          }
+        },
+        "lakes": {
+          "type": "object",
+          "required": ["cell", "octaves", "threshold", "softness", "bedHeight", "calmFrom", "calmTo", "heightFrom", "heightTo", "inlandFrom", "inlandTo"],
+          "additionalProperties": false,
+          "properties": {
+            "cell": { "type": "integer", "minimum": 1 },
+            "octaves": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "softness": { "type": "integer", "minimum": 1 },
+            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "calmFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "calmTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "heightFrom": { "type": "integer" },
+            "heightTo": { "type": "integer" },
+            "inlandFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "inlandTo": { "type": "integer", "minimum": -1000, "maximum": 1000 }
+          }
+        }
+      }
+    },
+    "altitude": {
+      "type": "object",
+      "required": ["snowBelowTemperature", "treeLineBelowTemperature"],
+      "additionalProperties": false,
+      "properties": {
+        "snowBelowTemperature": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "Snow lies where the temperature at that height is below this." },
+        "treeLineBelowTemperature": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "No tree grows where the temperature at that height is below this." }
+      }
+    }
+  },
+  "definitions": {
+    "noise": {
+      "type": "object",
+      "required": ["cell", "octaves"],
+      "additionalProperties": false,
+      "properties": {
+        "cell": { "type": "integer", "minimum": 1, "description": "The first octave's size in blocks." },
+        "octaves": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Each octave halves the cell and the weight." },
+        "warpCell": { "type": "integer", "minimum": 1, "description": "The warp field's cell in blocks." },
+        "warpBlocks": { "type": "integer", "minimum": 0, "description": "The farthest the warp bends the field, in blocks; 0 or absent for none." }
+      }
+    },
+    "spline": {
+      "type": "array",
+      "minItems": 2,
+      "description": "Control points [input, output] with rising inputs; an input is thousandths of the field's range.",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": { "type": "integer" }
+      }
+    }
+  }
+}
