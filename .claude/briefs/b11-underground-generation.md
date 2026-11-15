@@ -4,7 +4,7 @@ engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterr
 Vocaterra.Game.Core (a new World/Underground folder and one wiring point in the procedural pipeline), content/game-v1 (a new
 underground.json with its schema and validator), the preview tool, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b11, already on the local branch `B11-underground-generation`
-(cut from `feature/biomes` at @@BASE@@, which holds B01 to B06, B04b, B08a, B08b, B09 and B10's nine underground blocks). Run every
+(cut from `feature/biomes` at a9dae891, which holds B01 to B06, B04b, B08a, B08b, B09 and B10's nine underground blocks). Run every
 command from that directory. Commit after each item that builds and passes its tests, with the prefix `B11: `. Do not push your branch.
 Never push or merge feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call
@@ -71,7 +71,7 @@ Deliverables:
 7. Documents: the Game.Core README (the underground) and content/README.md (editing underground.json).
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,961 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; `SceneTests.GoldenDigest` unchanged. Do not commit bin/,
 obj/ or artifacts/.
 Commit messages end with
