@@ -523,7 +523,7 @@ public sealed class VoxelGrid : IVoxelWriter
     void IVoxelWriter.FillColumn(int x, int z, int y0, int y1, BlockId block) => FillColumn(x, z, y0, y1, block);
 
     /// <summary>Registers a listener for block and level changes (<see cref="SetBlock"/>, <see cref="SetWater"/>; never <see cref="FillColumn"/>). Adding one already registered does nothing.</summary>
-    internal void AddListener(IBlockChangeListener listener)
+    public void AddListener(IBlockChangeListener listener)
     {
         ArgumentNullException.ThrowIfNull(listener);
         if (!_listeners.Contains(listener))
@@ -533,7 +533,7 @@ public sealed class VoxelGrid : IVoxelWriter
     }
 
     /// <summary>Unregisters a listener; returns whether it was registered.</summary>
-    internal bool RemoveListener(IBlockChangeListener listener) => _listeners.Remove(listener);
+    public bool RemoveListener(IBlockChangeListener listener) => _listeners.Remove(listener);
 
     private void Raise(BlockChange change)
     {

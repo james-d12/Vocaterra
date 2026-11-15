@@ -18,10 +18,6 @@ public sealed class DenseGridMembersAllowListTests
         ["src/Vocaterra.Game.Core/Needs/FireRings.cs"] = new() { ["BlocksOfKind"] = "B06: fire rings come from the region template, not from a scan of the world" },
         ["src/Vocaterra.Game.Core/Session/VoxelSession.cs"] = new() { ["BlocksOfKind"] = "B06: the fire rings again, from the region template" },
         ["src/Vocaterra.Game.Core/Land/LandRules.cs"] = new() { ["BlocksOfKind"] = "B06: the protection mask is built from the valley's blocks; the region template supplies them" },
-        ["src/Vocaterra.Game/Graphics/Weather/ColumnCover.cs"] = new() { ["ChunksX"] = "B04b: the rain cover's tiles are a dense array", ["ChunksY"] = "B04b: as ChunksX", ["ChunksZ"] = "B04b: as ChunksX" },
-        ["src/Vocaterra.Game/Graphics/World/ChunkVersionTracker.cs"] = new() { ["Chunks"] = "B04b: the tracker's arrays are indexed by the dense chunk index", ["ChunksX"] = "B04b: as Chunks", ["ChunksY"] = "B04b: as Chunks", ["ChunksZ"] = "B04b: as Chunks" },
-        ["src/Vocaterra.Game/Graphics/World/ChunkViewSet.cs"] = new() { ["Chunks"] = "B04b: the view set counts and indexes the dense chunk list", ["ChunksX"] = "B04b: as Chunks", ["ChunksY"] = "B04b: as Chunks", ["ChunksZ"] = "B04b: as Chunks" },
-        ["src/Vocaterra.Game/Graphics/World/VoxelRenderer.cs"] = new() { ["Chunks"] = "B04b: the renderer's chunk arrays are indexed by the dense chunk index" },
     };
 
     [Fact]
@@ -61,7 +57,7 @@ public sealed class DenseGridMembersAllowListTests
 
     [Fact]
     public void Given_TheAllowList_When_ItsReasonsAreRead_Then_EachNamesTheMilestoneThatRemovesIt() =>
-        Assert.All(Allowed.SelectMany(f => f.Value), entry => Assert.Matches("^B0(4b|6): ", entry.Value));
+        Assert.All(Allowed.SelectMany(f => f.Value), entry => Assert.Matches("^B0(5|6): ", entry.Value));
 
     private static bool Listed(string use)
     {

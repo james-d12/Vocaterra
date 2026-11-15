@@ -65,7 +65,7 @@ public readonly record struct MeshStats(
 /// it without a remesh: every mesh bakes the sun's light of one of three bands (<see cref="LightBand"/>) and is drawn with a tint that brings that baked light to the light of the
 /// moment, so the chunks of two bands show the same light while a change of band is built again in the background.
 /// </summary>
-public sealed class VoxelRenderer : IDisposable
+public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 {
     /// <summary>The colour of the day's haze at the horizon (<see cref="SkyPalette.Horizon"/>), which is the clear colour and the fog's at noon, so far land fades into the sky.</summary>
     public static readonly Color Sky = new(SkyPalette.Horizon.R, SkyPalette.Horizon.G, SkyPalette.Horizon.B);
@@ -102,7 +102,8 @@ public sealed class VoxelRenderer : IDisposable
     private readonly ChunkVersionTracker _tracker;
     private ChunkViewSet _view;
     private readonly IndexBuffer _indices;
-    private readonly ChunkGpu[] _chunks;
+    private readonly Dictionary<VoxelChunkCoord, ChunkGpu> _chunks = [];
+    private readonly ChunkLightIndex _lights;
     private readonly short[] _scratchIndices = new short[4096 * 6];
     private VertexPositionColorTexture[] _scratchVertices = new VertexPositionColorTexture[4096];
     private readonly List<ChunkGpu> _visible = [];
@@ -115,9 +116,10 @@ public sealed class VoxelRenderer : IDisposable
     private Vector3 _sunLight = Vector3.One;
     private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
     private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
-    private readonly HashSet<int> _resident = [];
-    private IReadOnlyList<int> _wanted = [];
+    private readonly HashSet<VoxelChunkCoord> _resident = [];
+    private IReadOnlyList<VoxelChunkCoord> _wanted = [];
     private long _checkedEdits = -1;
+    private long _checkedResidency = -1;
     private int _meshed;
     private double _totalMilliseconds;
     private double _longestMilliseconds;
@@ -170,60 +172,20 @@ public sealed class VoxelRenderer : IDisposable
         };
         _sky = new SkyRenderer(device, look);
         _rain = new PrecipitationRenderer(device, grid, log);
-        Lights = FindLights(grid);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
+        _lights = new ChunkLightIndex(grid);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band); // the lights near a chunk are put in when it is meshed (BuildChunk)
+        grid.AddResidencyListener(_tracker);
+        grid.AddResidencyListener(this);
         SetLightTints(look);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
-        _chunks = new ChunkGpu[grid.Chunks.Count];
-        for (var i = 0; i < _chunks.Length; i++)
-        {
-            var c = grid.Chunks[i].Coord;
-            var origin = new Vector3(c.X * VoxelChunk.Size, c.Y * VoxelChunk.Size, c.Z * VoxelChunk.Size);
-            _chunks[i] = new ChunkGpu(new BoundingBox(origin, origin + new Vector3(VoxelChunk.Size)));
-        }
-
         for (var i = 0; i < _scratchIndices.Length / 6; i++)
         {
             WriteQuadIndices(_scratchIndices, i);
         }
     }
 
-    /// <summary>The lanterns and post torches of the world (S15): the places the glow comes from (found once, at the start; none is ever gathered or placed).</summary>
-    public IReadOnlyList<BlockPos> Lights { get; }
-
-    /// <summary>The positions of every lantern and post torch of a grid, in a fixed order (chunk by chunk): only the chunks that hold one are looked into.</summary>
-    public static IReadOnlyList<BlockPos> FindLights(VoxelGrid grid)
-    {
-        ArgumentNullException.ThrowIfNull(grid);
-        var found = new List<BlockPos>();
-        var bit = ChunkMesher.KindBit(BlockId.Lantern) | ChunkMesher.KindBit(BlockId.PostTorch);
-        foreach (var chunk in grid.Chunks)
-        {
-            if ((chunk.KindMask & bit) == 0)
-            {
-                continue;
-            }
-
-            var x0 = chunk.Coord.X * VoxelChunk.Size;
-            var y0 = chunk.Coord.Y * VoxelChunk.Size;
-            var z0 = chunk.Coord.Z * VoxelChunk.Size;
-            for (var y = y0; y < y0 + VoxelChunk.Size; y++)
-            {
-                for (var z = z0; z < z0 + VoxelChunk.Size; z++)
-                {
-                    for (var x = x0; x < x0 + VoxelChunk.Size; x++)
-                    {
-                        if (grid.GetBlock(x, y, z) is BlockId.Lantern or BlockId.PostTorch)
-                        {
-                            found.Add(new BlockPos(x, y, z));
-                        }
-                    }
-                }
-            }
-        }
-
-        return found;
-    }
+    /// <summary>The lanterns and post torches of the world (S15): the places the glow comes from, kept current by the light index (<see cref="ChunkLightIndex"/>) as lights are placed, removed, installed or evicted.</summary>
+    public IReadOnlyList<BlockPos> Lights => _lights.All;
 
     /// <summary>The colour the target is cleared to and the fog's colour: the look's horizon colour (<see cref="SkyLook.FogColour"/>); the water's while the view is under water.</summary>
     public Color ClearColour { get; private set; }
@@ -347,7 +309,7 @@ public sealed class VoxelRenderer : IDisposable
         var fogEnd = FogEndFor(preset.ViewDistance, _look.Fog);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
         _view = new ChunkViewSet(_grid, preset.ViewDistance);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, _band);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band);
         if (remesh)
         {
             ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
@@ -361,16 +323,13 @@ public sealed class VoxelRenderer : IDisposable
     // Lets every mesh go and forgets the versions the tracker holds, so the next Remesh builds the view again, nearest first.
     private void ReleaseAllMeshes()
     {
-        foreach (var index in _resident.ToList())
+        foreach (var coord in _resident.ToList())
         {
-            _chunks[index].Release();
+            _chunks[coord].Release();
         }
 
         _resident.Clear();
-        foreach (var chunk in _grid.Chunks)
-        {
-            _tracker.Discard(chunk.Coord);
-        }
+        _tracker.DiscardAll();
     }
 
     /// <summary>
@@ -405,15 +364,15 @@ public sealed class VoxelRenderer : IDisposable
         {
             var vertices = 0;
             var quads = 0;
-            foreach (var index in _resident)
+            foreach (var coord in _resident)
             {
-                var chunk = _chunks[index];
+                var chunk = _chunks[coord];
                 vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads) * 4;
                 quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads + chunk.LitQuads + chunk.GlowQuads;
             }
 
             return new MeshStats(
-                _chunks.Length,
+                _grid.IsStreamed ? _grid.ResidentChunkCount : BoxChunks(_grid.Limits),
                 _meshed,
                 vertices,
                 quads,
@@ -463,22 +422,30 @@ public sealed class VoxelRenderer : IDisposable
     {
         var wanted = _view.Update(eye.X, eye.Y, eye.Z);
         var started = MonotonicClock.Milliseconds();
-        if (!ReferenceEquals(wanted, _wanted) || _checkedEdits != _grid.EditCount)
+        if (!ReferenceEquals(wanted, _wanted) || _checkedEdits != _grid.EditCount || _checkedResidency != _grid.ResidencyVersion)
         {
             _wanted = wanted;
             ReleaseOutOfRange(eye);
         }
 
         // Which chunks in view are due: never meshed, or edited (any edit since the last full check makes every meshed chunk's key worth comparing).
-        var recheck = _checkedEdits != _grid.EditCount;
-        var due = new List<int>();
-        var offscreen = new List<int>();
-        List<int>? stale = null;
-        List<int>? staleOffscreen = null;
-        foreach (var index in wanted)
+        // A light placed or removed (or a chunk that holds one coming or going) changes the glow of the chunks within its reach, whose blocks did not change: they are meshed again.
+        foreach (var light in _lights.TakeChanged())
         {
-            var chunk = _grid.Chunks[index];
-            var coord = chunk.Coord;
+            foreach (var reached in ChunkLightIndex.ChunksReachedBy(light))
+            {
+                _tracker.Discard(reached);
+            }
+        }
+
+        // Installing or evicting a chunk changes what the layers across its edges are (the keys of its neighbours), as an edit does.
+        var recheck = _checkedEdits != _grid.EditCount || _checkedResidency != _grid.ResidencyVersion;
+        var due = new List<VoxelChunkCoord>();
+        var offscreen = new List<VoxelChunkCoord>();
+        List<VoxelChunkCoord>? stale = null;
+        List<VoxelChunkCoord>? staleOffscreen = null;
+        foreach (var coord in wanted)
+        {
             var isDue = !_tracker.HasMesh(coord) || (recheck && _tracker.IsDue(coord));
             var isStale = !isDue && _tracker.IsBandStale(coord, _band);
             if (!isDue && !isStale)
@@ -486,22 +453,23 @@ public sealed class VoxelRenderer : IDisposable
                 continue;
             }
 
-            var inView = frustum is null || frustum.Intersects(_chunks[index].Box);
+            var inView = frustum is null || frustum.Intersects(GpuOf(coord).Box);
             if (isDue)
             {
-                (inView ? due : offscreen).Add(index);
+                (inView ? due : offscreen).Add(coord);
             }
             else if (inView)
             {
-                (stale ??= []).Add(index);
+                (stale ??= []).Add(coord);
             }
             else
             {
-                (staleOffscreen ??= []).Add(index);
+                (staleOffscreen ??= []).Add(coord);
             }
         }
 
         _checkedEdits = _grid.EditCount;
+        _checkedResidency = _grid.ResidencyVersion;
         if (stale is not null)
         {
             due.AddRange(stale);
@@ -514,14 +482,14 @@ public sealed class VoxelRenderer : IDisposable
         }
 
         var built = 0;
-        foreach (var index in due)
+        foreach (var coord in due)
         {
             if (budgetMilliseconds is { } budget && built > 0 && MonotonicClock.Milliseconds() - started >= budget)
             {
                 break;
             }
 
-            BuildChunk(index);
+            BuildChunk(coord);
             built++;
         }
 
@@ -561,9 +529,9 @@ public sealed class VoxelRenderer : IDisposable
 
         _visible.Clear();
         Array.Clear(_bandChunks);
-        foreach (var index in _wanted)
+        foreach (var coord in _wanted)
         {
-            var chunk = _chunks[index];
+            var chunk = GpuOf(coord);
             if (chunk.Visible(camera.Frustum))
             {
                 _visible.Add(chunk);
@@ -818,7 +786,10 @@ public sealed class VoxelRenderer : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var chunk in _chunks)
+        _grid.RemoveResidencyListener(_tracker);
+        _grid.RemoveResidencyListener(this);
+        _lights.Detach();
+        foreach (var chunk in _chunks.Values)
         {
             chunk.Opaque?.Dispose();
             chunk.Alpha?.Dispose();
@@ -834,22 +805,57 @@ public sealed class VoxelRenderer : IDisposable
         _rain.Dispose();
     }
 
-    private void BuildChunk(int index)
+    private static int BoxChunks(WorldLimits limits) => (limits.EndChunkX - limits.MinChunkX) * (limits.EndChunkY - limits.MinChunkY) * (limits.EndChunkZ - limits.MinChunkZ);
+
+    // The mesh drawing state of a chunk, made when first asked for.
+    private ChunkGpu GpuOf(VoxelChunkCoord coord)
+    {
+        if (!_chunks.TryGetValue(coord, out var gpu))
+        {
+            var origin = new Vector3(coord.X * VoxelChunk.Size, coord.Y * VoxelChunk.Size, coord.Z * VoxelChunk.Size);
+            _chunks[coord] = gpu = new ChunkGpu(new BoundingBox(origin, origin + new Vector3(VoxelChunk.Size)));
+        }
+
+        return gpu;
+    }
+
+    /// <summary>A chunk was installed: nothing to do here, the view set sees it (the grid's residency version moved) and it is meshed when it is in view.</summary>
+    /// <param name="coord">The chunk.</param>
+    public void OnChunkInstalled(VoxelChunkCoord coord)
+    {
+    }
+
+    /// <summary>A chunk was evicted: its mesh is let go with it.</summary>
+    /// <param name="coord">The chunk.</param>
+    public void OnChunkEvicted(VoxelChunkCoord coord)
+    {
+        if (_chunks.Remove(coord, out var gpu))
+        {
+            gpu.Release();
+        }
+
+        _resident.Remove(coord);
+    }
+
+    private void BuildChunk(VoxelChunkCoord coord)
     {
         var started = MonotonicClock.Milliseconds();
-        var chunk = _grid.Chunks[index];
-        var coord = chunk.Coord;
-        var gpu = _chunks[index];
+        if (!_grid.TryGetChunk(coord, out var chunk))
+        {
+            return; // not resident (never generated for a mesh): the view set does not list it
+        }
+
+        var gpu = GpuOf(coord);
         gpu.Release();
         if (ChunkMesher.IsBuried(_source, chunk))
         {
             _buriedSkipped++;
             _tracker.MarkMeshed(coord, chunk.KindMask, _band);
-            _resident.Remove(index);
+            _resident.Remove(coord);
             return;
         }
 
-        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions);
+        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions with { Lights = _lights.Near(coord) });
         (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
         (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
@@ -859,11 +865,11 @@ public sealed class VoxelRenderer : IDisposable
         gpu.Band = _band;
         if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
         {
-            _resident.Add(index);
+            _resident.Add(coord);
         }
         else
         {
-            _resident.Remove(index);
+            _resident.Remove(coord);
         }
 
         var spent = MonotonicClock.Milliseconds() - started;
@@ -876,13 +882,12 @@ public sealed class VoxelRenderer : IDisposable
     private void ReleaseOutOfRange(Vector3 eye)
     {
         var keep = (long)_view.KeepDistance * _view.KeepDistance;
-        List<int>? let = null;
-        foreach (var index in _resident)
+        List<VoxelChunkCoord>? let = null;
+        foreach (var c in _resident)
         {
-            var c = _grid.Chunks[index].Coord;
             if (ChunkViewSet.DistanceSquared(eye.X, eye.Y, eye.Z, c.X, c.Y, c.Z) > keep)
             {
-                (let ??= []).Add(index);
+                (let ??= []).Add(c);
             }
         }
 
@@ -891,12 +896,11 @@ public sealed class VoxelRenderer : IDisposable
             return;
         }
 
-        foreach (var index in let)
+        foreach (var c in let)
         {
-            var gpu = _chunks[index];
-            gpu.Release();
-            _tracker.Discard(_grid.Chunks[index].Coord);
-            _resident.Remove(index);
+            _chunks[c].Release();
+            _tracker.Discard(c);
+            _resident.Remove(c);
             _released++;
         }
     }
