@@ -202,6 +202,11 @@ public interface IPlaceInfo       { ClimateSample ClimateAt(int x, int z); int T
   - A biome or an ore defined only in test data must generate with no code change, as the weather series' E04 did with its fourth kind.
   - The blocks themselves stay `BlockId` values with code-drawn art; data rows name them. Tree species and crown shapes stay code
     strategies, also named by the data.
+  - **Generation behaviour stays in code** (owner, 2026-11-15: "The data should just be for basic stuff like, you know, the types of
+    biomes, but the biome generation code might be different"). Data holds the biome types and their parameters; how a kind of land is
+    shaped (dunes in a desert, crags on a range) is code. A biome row may name code strategies for its own surface shaping and
+    decoration, as it names tree species: the strategy has its own name (`dunes`, never a biome id), is registered in `WorldFactory`, and
+    fades out at the biome's border so a border never makes a cliff. B03 builds the registry with the default strategies.
 - **Purity guards.**
   - A reflection test checks that seam implementations hold only readonly fields and no static mutable state.
   - A token ban keeps `Thread`, `Task`, `lock` and `Interlocked` out of `World/Noise`, `World/Climate`, `World/Biomes`,
@@ -454,12 +459,14 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B00 | Register the series: D-game-34 decided; a section in `implementation-plan.md` §4; rows in `docs/README.md`, `docs/game/README.md` and `docs/open-items.md`; the handover | S | Haiku | the owner accepts | nothing |
 | B01 | Noise primitives (2D and 3D), climate with altitude, the tall height model, `BiomeTable`; `world.json` and `biomes.json` with JSON Schemas and validators; `NoBiomeIdsInSourceTests`; purity tests | L | Sonnet high | B00 | bundle hash |
 | B02 | `tools/Vocaterra.WorldPreview`: PNG maps of biomes and heights, and vertical slices, for a seed and an area. Uses BCL `ZLibStream` and a hand-written CRC32, no package. Maps for 3 seeds. **The owner reviews the maps before tuning** | S/M | Sonnet medium | B01 | nothing |
+| B02b | Terrain tuning after the owner's review of B02's maps (D-game-34 item 16): long ranges like Minecraft 1.18 (chains hundreds of blocks wide, foothills and high meadows, a spine of peaks at 200 to 300); big connected seas and continents with gentle coastal shelves, wide beaches and inland basins as lakes; snow only on the mountains; the cliffs at upland shelves, short and looping rivers and rugged islands fixed. Data first, code only where a number cannot express the shape. The same maps drawn again beside B02's | M | Sonnet high | B02, B03, B05 | bundle hash, procedural goldens |
 | B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to −64. Tests: a chunk generated alone equals the same chunk generated among others; water at rest; exitable edges; time per chunk; procedural goldens | L | Sonnet high | B01 | new goldens |
+| B03b | A procedural sample in the game for pictures: a test aid `--world sample` (with `--seed` and an origin) that builds a bounded box of procedural chunks above y 0, about 256 x 320 x 256, with no valley, NPCs or lessons, so the biomes can be seen and photographed in 3D before the streamed world (B07). A picture set for 3 seeds: each biome, a river, a lake, a coast and a range | S/M | Sonnet medium | B03 | pictures (owner review) |
 | B04a | Sparse `VoxelGrid` in both modes, with the y range from data (negative y); coordinate APIs, residency events, `PristineDigest`, `IVoxelReader`; Core consumers keyed by coordinate; the dense-API allow-list test | L | Sonnet high | B00 | nothing (byte-identical) |
 | B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index | M | Sonnet medium | B04a | nothing (identical pictures) |
 | B05 | Saves version 9 and the changed-chunk state digest | M | Sonnet medium | B04a | state digests, fixtures |
 | B06 | `WorldFactory`; the regions and `CompositeChunkSource` (copy, blend, land bias); streamed mode with generate-on-read; `ChunkStreamer`; `WorldQuery` as `IPlaceInfo`; the `WorldFacts` window. The game itself stays bounded | L | Sonnet high | B03, B05 | new tests only |
-| B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, the valley's edge kept as a wall for the body while the pass is locked (B08b's state) and lifted when it opens, far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06, B08b | pictures (owner review) |
+| B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, the valley's edge kept as a wall for the body while the pass is locked (B08b's state) and lifted all the way round when it opens (owner, 2026-11-15: the player may then leave anywhere; the pass is the easy road), far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06, B08b | pictures (owner review) |
 | B08a | The pass through the east ring in the bounded valley: the relief lowered, the road from the village to the east edge, the `paso` site (no label) and the rockfall that closes the pass, all in `scene.json` | S/M | Sonnet medium | B00 | valley golden, bundle, runs |
 | B08b | The pass's lock: the list of required lessons in `world.json` (all of today's), the unlock rule in Core, a cheat setting in the settings menu, the rockfall removed (saved like any change) when the pass opens | S/M | Sonnet medium | B01, B08a | bundle, runs |
 | B09 | Widen block kinds from 64 to 128 bits: `KindMask`, the mesher's grey masks, `WorldFacts` masks, the tracker | M | Sonnet medium | B04b | nothing |
@@ -469,13 +476,16 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08b, B11 | valley golden (owner review) |
 | B14 | Integration: ambient sound by biome and underground from `IPlaceInfo`; water-at-rest and exitable-edge checks over 3 seeds; signed coordinates in scripted runs; the cloud layer's height as data; a scripted tour through the pass into each biome and down a cave; documents (`architecture.md`, `saves.md`, `running.md`, and "Adding a biome" and "Adding an ore" in `content/README.md`) and findings | M | Sonnet medium | B12, B13 | new runs |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
+| B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 
-**Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once): each milestone starts as soon as
+**Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
+agent max", so one at a time from then on): each milestone starts as soon as
 its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
 the work that depends on the review waits. The first waves:
 1. B01, B04a and B08a
-2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a)
+2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a), B03b (after B03), B02b (after B02's review)
 3. then B06 (B03, B05), B09 (B04b), B10 (B09), B11 (B03, B10), B07 (B06, B08b), B15 (B06), B12 (B07, B11), B13 (B08b, B11), B14
+4. last: B16 (regions that can grow, shrink and multiply), after B14 and B15
 
 The game stays playable at every gate. It switches to the streamed world at B07 and gains its underground at B11 and B12.
 
@@ -487,6 +497,19 @@ The game stays playable at every gate. It switches to the streamed world at B07 
   - B05 compares with masked lines.
   - B07, B08, B12 and B13 are re-baselined with the owner.
 - **Owner reviews:** B02's maps and slices are reviewed by the owner.
+- **Pictures for the owner** (owner, 2026-11-15: "screenshots at important parts so that I can review the biomes and how they look and
+  what's being generated"). Every milestone that changes what is generated or drawn leaves pictures in
+  `/home/james/Dev/Vocaterra/artifacts/b-series/<id>/` (outside git) and lists them in its report; the orchestrator shows them to the
+  owner at the milestone's record:
+  - B02: maps of biomes and heights, and vertical slices, for 3 seeds;
+  - B03: maps of the generated surface blocks, from the preview tool once B02 is in;
+  - B03b: the 3D picture set of each biome, river, lake, coast and range, for 3 seeds;
+  - B06: the region's border and its blend, from the sample aid run round the valley's edge;
+  - B07: the streamed world from the pass and across the presets, beside the performance figures;
+  - B08a and B08b: the pass, the road, the rockfall, and the open pass;
+  - B10: each new block in the light of day;
+  - B11: vertical slices of the underground, and cave mouths and caverns in the sample aid;
+  - B12: the cave tour; B13: the valley's caves and ores; B14: the tour through each biome and down a cave; B15: the sample town.
 - **Measurement:** B07 and B12 measure, at each preset on the VM:
   - frame medians;
   - meshing and generation time per chunk;
@@ -592,3 +615,11 @@ series, `docs/game/biomes-plan.md`).*
 | (accepted) | 2026-11-15: D-game-34 decided, the five answers recorded (section 5); B08 grows to M (the closed pass), B10 loses gathering | none (documents only) | B00 next |
 | B00 | done 2026-11-15 | `162dec4f`: 11,498 passed, 3 skipped; the doc-link test failed on two links in the orchestrator's own brief, fixed in the next commit and re-run | section 4.14 of the game plan; open items and index rows |
 | (parallel) | 2026-11-15: the owner allows three building agents on the B series and holds only dependent work at a review stop; B08 split into B08a (the pass, now) and B08b (its lock, after B01); the edge wall moves to B07 | none (documents only) | B08a launched beside B01 and B04a |
+| (pictures) | 2026-11-15: the owner asks for screenshots at the important points; B03b added (a procedural sample in the game for 3D pictures before B07); a picture list per milestone (section 4, "Pictures for the owner") | none (documents only) | every brief from now on carries it |
+| (regions) | 2026-11-15: the owner asks that the starting area can grow or shrink and more hand-crafted areas be added with little change; B16 added at the end of the series ("It's not important at the moment") | none (documents only) | after B14 and B15 |
+| B01 | done 2026-11-15 | `94bea060`: 11,597 passed, 3 skipped | noise, climate with altitude, the height model, the biome table (14 rows: `woodland` the catch-all for the plan's "forest", which clashes with a valley pass name; `lake-basin` added), `world.json` and `biomes.json`; report `.claude/briefs/b01-report.md` |
+| B04a | done 2026-11-15 | `e6f4755e`: 11,650 passed, 3 skipped | the sparse `VoxelGrid` (bounded and streamed, `WorldLimits`, `IChunkGenerator`, residency, `PristineDigest`, `IVoxelReader`); byte-identical; report `.claude/briefs/b04a-report.md` |
+| B03 | done 2026-11-15 | `3b0d7ef6`: 11,732 passed, 3 skipped | `GenerationPipeline` (shapers `gen/relief`, `gen/banks`, `gen/waterside`; decorators `gen/surface`, `gen/water`, `gen/stone`, `gen/trees`, `gen/undergrowth`), `StrategyRegistry`, `ProceduralChunkSource`, `World/Streaming` (`IChunkSource`, `ChunkData`); report `.claude/briefs/b03-report.md` |
+| B05 | done 2026-11-15 | `707864aa`: 11,748 passed, 3 skipped | saves version 9 (`ChunkEdit` by chunk coordinates, no pristine copy), the changed-chunk state digest with its header; report `.claude/briefs/b05-report.md` |
+| (B02 review) | 2026-11-15: the owner reviewed B02's maps: long ranges, big seas and continents, snow only up high (D-game-34 item 16); B02b added | none (documents only) | B02b after B02's gate |
+| (stopped) | 2026-11-15, about 17:27 UTC: the owner, playing games, asked to scale down, then to keep one agent at most, then stopped the work | none | B03b, B04b's merge and B06 stopped; B02's gate stopped before its tests (feature/biomes reset to `3aae9dce`); B02, B04b and B08a reported and waiting to be gated; the handover lists the next steps |

@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Noise;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation;
 

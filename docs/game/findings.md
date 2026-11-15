@@ -2554,3 +2554,42 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `MarkdownLinkTests`: the brief the orchestrator had committed beside it held two relative Markdown links, and the test scans
   `.claude/briefs/` too. The agent's own run of the test passed because its branch predated the brief. Fixed by writing the links as
   code; the test re-run passed. A brief names files as code, never as Markdown links.
+- **B01, noise, climate, the height model and the biome table (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b01-noise-climate-biomes.md`, report `.claude/briefs/b01-report.md`. Integer gradient noise (2D, 3D), fBm, ridged and
+  warp, data splines (Catmull-Rom clamped), lattice samplers; the climate with its lapse; `HeightModel` and `ColumnShape` (lakes live in
+  the height model); `BiomeTable` with 14 rows. Findings: the plan's biome ids `forest`, `river` and `lake` clash with string literals in
+  `src/` (a valley pass name and scene-layout words), so the shipped ids are `woodland`, `river-channel` and `lake-basin`; a single
+  `ClimateSampler.At` costs about 12 µs, so area work must use `Fill` (256 x 256 columns of climate, height and biome in 60 ms in
+  Release); the first tuning made 14-block cliffs between neighbouring columns (fine ridged octaves and deep river canyons on uplands),
+  now held to 9 by a test over 3 seeds. Not fixed: peaks are not faded over the sea, so rugged coasts can raise islands; terrace and crag
+  risers reach 8 to 9 blocks. Gated: 11,597 passed, 3 skipped.
+- **B04a, the sparse VoxelGrid (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b04a-sparse-grid.md`, report
+  `.claude/briefs/b04a-report.md`. Chunks keyed by `VoxelChunkCoord`, none for air; a bounded and a streamed mode (`WorldLimits`, y down
+  to -64, `IChunkGenerator` for generate-on-read); installs are not edits (`ResidencyVersion`, `IChunkResidencyListener`);
+  `PristineDigest` and `IsChanged`; `IVoxelReader`; the dense members bounded-only, every use allow-listed with the milestone that
+  removes it. Byte-identical: every golden held and 33 of 35 scripted runs matched. Findings: `WalkPlanner` keyed its search by a dense
+  int index that breaks below y 0 and overflows an int on a 60,000-block world (now keyed by `BlockPos`, same order); r01-route's
+  `sounds.log` voice-end tick moved between captures of the same code (2174, 2131, 1950) while another agent built, so the speech timing
+  of that run depends on load (not yet proven with a second baseline). The valley build is 10 to 12% slower (612 to 690 ms), its grid
+  28.5 MB instead of 36.8 MB, neighbour reads 40% faster. The valley's chunks count as changed until `SealPristine()` is called (B05).
+  Gated after a merge of `feature/biomes` into the branch (an architecture.md conflict with B01): 11,650 passed, 3 skipped.
+- **B03, the generation pipeline and the procedural chunk source (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b03-generation-pipeline.md`, report `.claude/briefs/b03-report.md`. Column shapers and chunk decorators in one fixed
+  order; the strategy registry (D-game-34 item 13: `surfaceStrategy` and `decorStrategy` on a biome row, faded by distance to another
+  biome); trees on a jittered 4 x 4 grid per chunk with hash priority across chunk borders; every water block a source at 32. Chunk-local
+  (a chunk alone equals the chunk among shuffled neighbours, also from many threads). Findings: trunks stood in the bank column beside
+  water and the exitable-edge scan read their crowns as the floor (31 of 144 sites failed): no trunk within one column of water now, the
+  bank cut reaches 12 (the valley's cut only 4), and a bank beside swimmable water is at most 1 above the surface; the shared scan
+  `UnexitableEdges` now treats a floor of leaves like a bridge, a crown over the water and not a bank (the valley's result unchanged).
+  Times: a surface chunk 1.3 ms median, a whole 24-layer column 1.6 ms (`GenerateColumn`, which B06 should use); a column holds about
+  8 non-empty chunks in lowland and 19 in a range. Not fixed: no slope rule for trees, no reeds by water, the shipped rows name no
+  strategy yet. Gated: 11,732 passed, 3 skipped.
+- **B05, saves version 9 and the changed-chunk state digest (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b05-saves-v9.md`,
+  report `.claude/briefs/b05-report.md`. The state digest is a header (seed, region template digest, `ProceduralGenerator.Version`, a
+  hash of world.json, biomes.json and underground.json) and the changed chunks sorted, each with its coordinates and digest; the valley's
+  build seals its chunks as pristine. Saves are version 9: `ChunkEdit(X, Y, Z, Runs, Water)`, no `WorldDims`, no pristine world copy
+  (restore builds a new world, then overwrites the edited chunks). The first save went from about 0.7 s and 38 MB to 1.2 ms and under
+  8 MB; a load is about 56 ms. Findings: `compare-runs.py` does not mask the digest lines, so a digest change reports most runs as
+  different (the bodies matched as JSON with hex masked); r17-speak's voice-queue order is another load-dependent speech timing like
+  r01's. The agent also renamed the fixture in docs/nlp/changing-the-core.md (a literal path, accepted). Open for B06: pass the region
+  template's digest to `WorldStateHeader.For`. Gated: 11,748 passed, 3 skipped.

@@ -1,0 +1,178 @@
+using Vocaterra.Game.Core.World.Noise;
+
+namespace Vocaterra.Game.Core.World;
+
+/// <summary>
+/// The checks of <c>game/world.json</c> that need more than its shape (B01): a vertical range of whole chunk layers with the sea inside it, noise with a positive cell that
+/// the octaves can halve, splines with rising inputs inside the fields' ranges and outputs inside the world, ramps whose ends are ordered, a river bed and a lake bed below the sea,
+/// and a ceiling for the ground that the soft cap sits under. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
+/// </summary>
+internal static class WorldGenValidator
+{
+    private const string File = WorldGenData.RelativePath;
+
+    /// <summary>Every problem of the world's numbers, in a fixed order; empty when the values hold together.</summary>
+    /// <param name="world">The world's numbers.</param>
+    public static IReadOnlyList<string> Validate(WorldGenData world)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        var problems = new List<string>();
+        var v = world.Vertical;
+        if (v.MinY >= v.MaxY || v.MinY % 16 != 0 || v.MaxY % 16 != 0)
+        {
+            problems.Add($"{File}: vertical needs minY below maxY, both a multiple of 16 (whole chunk layers) (they are {v.MinY} and {v.MaxY}).");
+        }
+
+        if (v.SeaLevel <= v.MinY || v.SeaLevel >= v.MaxY)
+        {
+            problems.Add($"{File}: the seaLevel {v.SeaLevel} must lie inside the vertical range.");
+        }
+
+        CheckClimate(world.Climate, problems);
+        CheckHeight(world, problems);
+        var a = world.Altitude;
+        Thousandths(problems, "altitude.snowBelowTemperature", a.SnowBelowTemperature);
+        Thousandths(problems, "altitude.treeLineBelowTemperature", a.TreeLineBelowTemperature);
+        return problems;
+    }
+
+    private static void CheckClimate(ClimateData climate, List<string> problems)
+    {
+        if (climate.LatticeBlocks < 1 || climate.LatticeBlocks > 16)
+        {
+            problems.Add($"{File}: climate.latticeBlocks must be from 1 to 16 (it is {climate.LatticeBlocks}).");
+        }
+
+        CheckNoise(problems, "continentalness", climate.Continentalness);
+        CheckNoise(problems, "erosion", climate.Erosion);
+        CheckNoise(problems, "ridges", climate.Ridges);
+        CheckNoise(problems, "temperature", climate.Temperature);
+        CheckNoise(problems, "humidity", climate.Humidity);
+        CheckNoise(problems, "river", climate.River);
+        if (climate.LapsePer100Blocks < 0 || climate.LapsePer100Blocks > 2000)
+        {
+            problems.Add($"{File}: climate.lapsePer100Blocks must be from 0 to 2000 thousandths (it is {climate.LapsePer100Blocks}).");
+        }
+    }
+
+    private static void CheckNoise(List<string> problems, string name, NoiseSpec noise)
+    {
+        if (noise.Cell < 1 || noise.Cell > 16384)
+        {
+            problems.Add($"{File}: climate.{name}.cell must be from 1 to 16384 blocks (it is {noise.Cell}).");
+        }
+
+        if (noise.Octaves < 1 || noise.Octaves > 8)
+        {
+            problems.Add($"{File}: climate.{name}.octaves must be from 1 to 8 (it is {noise.Octaves}).");
+        }
+        else if (noise.Cell >> (noise.Octaves - 1) < 1)
+        {
+            problems.Add($"{File}: climate.{name}: {noise.Octaves} octaves halve the cell {noise.Cell} below one block.");
+        }
+
+        if (noise.WarpBlocks < 0 || noise.WarpBlocks > 1024 || (noise.WarpBlocks > 0 && noise.WarpCell < 1))
+        {
+            problems.Add($"{File}: climate.{name}: warpBlocks must be from 0 to 1024 and, above 0, come with a warpCell of at least 1 (they are {noise.WarpBlocks} and {noise.WarpCell}).");
+        }
+    }
+
+    private static void CheckHeight(WorldGenData world, List<string> problems)
+    {
+        var h = world.Height;
+        var v = world.Vertical;
+        CheckSpline(problems, "height.base", h.Base, -1000, 1000, v.MinY, v.MaxY);
+        CheckSpline(problems, "height.rangeFactor", h.RangeFactor, -1000, 1000, 0, 1000);
+        CheckSpline(problems, "height.peaks", h.Peaks, 0, 1000, 0, v.MaxY - v.MinY);
+        var d = h.Detail;
+        if (d.HillsCell < 1 || d.HillsOctaves < 1 || d.HillsOctaves > 8 || d.HillsCell >> (d.HillsOctaves - 1) < 1 || d.CalmAmplitude < 0 || d.RuggedAmplitude < 0)
+        {
+            problems.Add($"{File}: height.detail needs a hillsCell of at least 1 that its 1 to 8 octaves can halve, and amplitudes of 0 or more.");
+        }
+
+        if (h.Clamp >= v.MaxY || h.Clamp <= v.SeaLevel || h.SoftCapAbove <= v.SeaLevel || h.SoftCapAbove >= h.Clamp)
+        {
+            problems.Add($"{File}: height needs the sea level below softCapAbove below clamp below the ceiling (they are {v.SeaLevel}, {h.SoftCapAbove}, {h.Clamp}, {v.MaxY}).");
+        }
+
+        var t = h.Terraces;
+        if (t.Step < 0 || t.Step > 32 || t.FromHeight >= t.ToHeight)
+        {
+            problems.Add($"{File}: height.terraces needs a step from 0 to 32 and a fromHeight below toHeight (they are {t.Step}, {t.FromHeight}, {t.ToHeight}).");
+        }
+
+        Ordered(problems, "height.terraces.ridgesFrom/ridgesTo", t.RidgesFrom, t.RidgesTo, 0, 1000);
+        var c = h.Crags;
+        if (c.Amplitude < 0 || c.Cell < 1)
+        {
+            problems.Add($"{File}: height.crags needs an amplitude of 0 or more and a cell of at least 1 (they are {c.Amplitude} and {c.Cell}).");
+        }
+
+        Ordered(problems, "height.crags.ridgesFrom/ridgesTo", c.RidgesFrom, c.RidgesTo, 0, 1000);
+        if (c.HeightFrom >= c.HeightTo)
+        {
+            problems.Add($"{File}: height.crags needs heightFrom below heightTo (they are {c.HeightFrom} and {c.HeightTo}).");
+        }
+
+        var r = h.Rivers;
+        if (r.Width < 1 || r.Width > 1000 || r.BedHeight >= v.SeaLevel || r.BedHeight <= v.MinY || r.FadeFromHeight >= r.FadeToHeight)
+        {
+            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a bedHeight below the sea level and above the floor, and a fadeFromHeight below fadeToHeight.");
+        }
+
+        Ordered(problems, "height.rivers.seaFadeFrom/seaFadeTo", r.SeaFadeFrom, r.SeaFadeTo, -1000, 1000);
+        var l = h.Lakes;
+        if (l.Cell < 1 || l.Octaves < 1 || l.Octaves > 8 || l.Cell >> (l.Octaves - 1) < 1 || l.Softness < 1 || l.BedHeight >= v.SeaLevel || l.BedHeight <= v.MinY || l.HeightFrom >= l.HeightTo)
+        {
+            problems.Add($"{File}: height.lakes needs a cell its octaves can halve, a softness of at least 1, a bedHeight below the sea level and above the floor, and a heightFrom below heightTo.");
+        }
+
+        Thousandths(problems, "height.lakes.threshold", l.Threshold);
+        Ordered(problems, "height.lakes.calmFrom/calmTo", l.CalmFrom, l.CalmTo, -1000, 1000);
+        Ordered(problems, "height.lakes.inlandFrom/inlandTo", l.InlandFrom, l.InlandTo, -1000, 1000);
+    }
+
+    private static void CheckSpline(List<string> problems, string name, IReadOnlyList<SplinePoint> points, int minX, int maxX, int minY, int maxY)
+    {
+        if (points.Count < 2)
+        {
+            problems.Add($"{File}: {name} needs at least two control points.");
+            return;
+        }
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var p = points[i];
+            if (i > 0 && p.X <= points[i - 1].X)
+            {
+                problems.Add($"{File}: {name}: the inputs must rise ({points[i - 1].X} is followed by {p.X}).");
+            }
+
+            if (p.X < minX || p.X > maxX)
+            {
+                problems.Add($"{File}: {name}: the input {p.X} must be from {minX} to {maxX}.");
+            }
+
+            if (p.Y < minY || p.Y > maxY)
+            {
+                problems.Add($"{File}: {name}: the output {p.Y} must be from {minY} to {maxY}.");
+            }
+        }
+    }
+
+    private static void Ordered(List<string> problems, string name, int from, int to, int min, int max)
+    {
+        if (from >= to || from < min || to > max)
+        {
+            problems.Add($"{File}: {name} must be two values rising from {min} to {max} (they are {from} and {to}).");
+        }
+    }
+
+    private static void Thousandths(List<string> problems, string name, int value)
+    {
+        if (value < -1000 || value > 1000)
+        {
+            problems.Add($"{File}: {name} must be from -1000 to 1000 thousandths (it is {value}).");
+        }
+    }
+}

@@ -585,7 +585,7 @@ internal static class SceneLayoutParser
     private static SiteSpec RequireSite(Dictionary<string, SiteSpec> sites, string name, string where) =>
         sites.TryGetValue(name, out var site) ? site : throw new SceneLayoutException($"{where}: there is no site '{name}'.");
 
-    private static BlockId BlockNamed(string name, string where) =>
+    internal static BlockId BlockNamed(string name, string where) =>
         BlockDefinition.FromName(name)?.Id ?? throw new SceneLayoutException($"{where}: unknown block '{name}'.");
 
     private static Direction ParseDirection(JsonElement element, string where)

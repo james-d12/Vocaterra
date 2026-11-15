@@ -187,11 +187,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="session">The started session.</param>
     /// <param name="scene">The built scene.</param>
     /// <param name="voice">The NPCs voices.</param>
-    /// <param name="pristine">Builds a fresh scene of the session seed.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
     /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
     {
         _options = options;
         _showTips = options.ShowsTips;
@@ -424,7 +423,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
+        _saves = new SaveService(session, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -612,7 +611,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _drawer.Load(GraphicsDevice, MakeView, LayerStack.Build(_debug, _lesson, _playtest));
-        Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
+        Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {WorldStateDigest.ComputeHex(_scene.Grid, _session.Simulation.StateHeader)[..16]}");
         _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null || _options.SkipToSession is not null); // a skipped game starts where a load would (V12c)
     }
 

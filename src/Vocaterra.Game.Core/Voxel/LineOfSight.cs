@@ -11,7 +11,7 @@ public static class LineOfSight
     /// <param name="eye">The eye, in blocks.</param>
     /// <param name="target">The point looked at, in blocks.</param>
     /// <param name="distance">The distance from the eye to the point, in blocks.</param>
-    public static bool Blocked(VoxelGrid grid, (float X, float Y, float Z) eye, (float X, float Y, float Z) target, double distance)
+    public static bool Blocked(IVoxelReader grid, (float X, float Y, float Z) eye, (float X, float Y, float Z) target, double distance)
     {
         if (distance < 0.5)
         {

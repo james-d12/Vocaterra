@@ -3,41 +3,30 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.Save;
 
 /// <summary>
-/// The scene diff of a save: which chunks of the edited world differ from the freshly built scene, and how they differ. Only the edited chunks
-/// are listed, so a save of a world the player has barely changed is small; an untouched chunk is never written.
+/// The world part of a save: the chunks that differ from the world as generated (<see cref="VoxelChunk.IsChanged"/>), and how they differ. Only changed chunks are listed,
+/// so a save of a world the player has barely changed is small and an untouched chunk is never written. No second copy of the world is kept to compare against: a chunk
+/// remembers its own pristine digest.
 /// </summary>
 public static class VoxelGridDiff
 {
-    /// <summary>
-    /// The chunks of <paramref name="edited"/> whose blocks or water levels differ from <paramref name="fresh"/>, in chunk order, each as runs of its blocks and of its water levels.
-    /// Both grids must have the same size.
-    /// </summary>
-    /// <exception cref="ArgumentException">The two grids have different sizes.</exception>
-    public static IReadOnlyList<ChunkEdit> Capture(VoxelGrid edited, VoxelGrid fresh)
+    /// <summary>The changed chunks of <paramref name="grid"/>, sorted by coordinate, each as runs of its blocks and of its water levels.</summary>
+    /// <param name="grid">The grid, bounded or streamed.</param>
+    public static IReadOnlyList<ChunkEdit> Capture(VoxelGrid grid)
     {
-        ArgumentNullException.ThrowIfNull(edited);
-        ArgumentNullException.ThrowIfNull(fresh);
-        if (edited.SizeX != fresh.SizeX || edited.SizeY != fresh.SizeY || edited.SizeZ != fresh.SizeZ)
-        {
-            throw new ArgumentException("The grids have different sizes.", nameof(fresh));
-        }
-
+        ArgumentNullException.ThrowIfNull(grid);
         var edits = new List<ChunkEdit>();
-        for (var i = 0; i < edited.Chunks.Count; i++)
+        foreach (var chunk in grid.ChangedChunks())
         {
-            var chunk = edited.Chunks[i];
-            if (!chunk.Blocks.SequenceEqual(fresh.Chunks[i].Blocks) || !chunk.WaterLevels.SequenceEqual(fresh.Chunks[i].WaterLevels))
-            {
-                edits.Add(new ChunkEdit(i, Runs(chunk.Blocks), WaterRuns(chunk.WaterLevels)));
-            }
+            edits.Add(new ChunkEdit(chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z, Runs(chunk.Blocks), WaterRuns(chunk.WaterLevels)));
         }
 
         return edits;
     }
 
     /// <summary>
-    /// Writes the chunks of a diff over <paramref name="target"/> (a freshly built grid of the same scene). Refuses a diff that does not fit the grid:
-    /// a chunk index out of range, a run of an unknown block, runs that do not add up to one chunk, a water run that covers a cell that is not water or holds
+    /// Writes the chunks of a diff over <paramref name="target"/>, a world built as a new game builds it. A chunk the target does not hold yet (a streamed grid) is generated
+    /// first, by the grid's chunk generator, and then overwritten. Refuses a diff that does not fit the grid:
+    /// a chunk outside the grid's limits, a run of an unknown block, runs that do not add up to one chunk, a water run that covers a cell that is not water or holds
     /// no valid level, or a chunk listed twice.
     /// </summary>
     /// <exception cref="ArgumentException">The diff does not fit the grid.</exception>
@@ -45,21 +34,22 @@ public static class VoxelGridDiff
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(edits);
-        var seen = new HashSet<int>();
+        var seen = new HashSet<VoxelChunkCoord>();
         foreach (var edit in edits)
         {
-            if ((uint)edit.Chunk >= (uint)target.Chunks.Count || !seen.Add(edit.Chunk))
+            var origin = new VoxelChunkCoord(edit.X, edit.Y, edit.Z);
+            var corner = origin.Origin;
+            if (!target.InBounds(corner.X, corner.Y, corner.Z) || !seen.Add(origin))
             {
-                throw new ArgumentException($"Chunk {edit.Chunk} is outside the grid or listed twice.", nameof(edits));
+                throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) is outside the grid or listed twice.", nameof(edits));
             }
 
-            var origin = target.Chunks[edit.Chunk].Coord;
             var position = 0;
             foreach (var run in edit.Runs)
             {
                 if (run.Length < 1 || !Enum.IsDefined(run.Block) || position + run.Length > VoxelChunk.Volume)
                 {
-                    throw new ArgumentException($"Chunk {edit.Chunk} has a bad run.", nameof(edits));
+                    throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has a bad run.", nameof(edits));
                 }
 
                 for (var end = position + run.Length; position < end; position++)
@@ -67,17 +57,13 @@ public static class VoxelGridDiff
                     var localX = position & (VoxelChunk.Size - 1);
                     var localZ = (position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1);
                     var localY = position >> (2 * VoxelChunk.Shift);
-                    _ = target.SetBlock(
-                        (origin.X << VoxelChunk.Shift) + localX,
-                        (origin.Y << VoxelChunk.Shift) + localY,
-                        (origin.Z << VoxelChunk.Shift) + localZ,
-                        run.Block);
+                    _ = target.SetBlock(corner.X + localX, corner.Y + localY, corner.Z + localZ, run.Block);
                 }
             }
 
             if (position != VoxelChunk.Volume)
             {
-                throw new ArgumentException($"Chunk {edit.Chunk} has {position} blocks, not {VoxelChunk.Volume}.", nameof(edits));
+                throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has {position} blocks, not {VoxelChunk.Volume}.", nameof(edits));
             }
 
             ApplyWater(target, origin, edit);
@@ -108,7 +94,7 @@ public static class VoxelGridDiff
         {
             if (run.Start < covered || run.Length < 1 || run.Level is < 1 or > byte.MaxValue || run.Start + run.Length > VoxelChunk.Volume)
             {
-                throw new ArgumentException($"Chunk {edit.Chunk} has a bad water run.", nameof(edit));
+                throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has a bad water run.", nameof(edit));
             }
 
             var level = WaterLevel.FromEncoded((byte)run.Level); // refuses an encoding that is not a level
@@ -119,7 +105,7 @@ public static class VoxelGridDiff
                 var y = (origin.Y << VoxelChunk.Shift) + (position >> (2 * VoxelChunk.Shift));
                 if (target.GetBlock(x, y, z) != BlockId.Water)
                 {
-                    throw new ArgumentException($"Chunk {edit.Chunk} has a water level on a cell that is not water.", nameof(edit));
+                    throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has a water level on a cell that is not water.", nameof(edit));
                 }
 
                 _ = target.SetWater(x, y, z, level);

@@ -106,7 +106,7 @@ public sealed class NpcPatienceTests
         Assert.Contains("stall.give_water", turn.HostEvents);
         session.EndTalk();
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: true);
 
         Assert.True(loaded.Conversation.CaptureAgent("shopkeeper").BottleGiven);

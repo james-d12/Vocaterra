@@ -139,7 +139,7 @@ public sealed class FireCookingTests
         session.Simulation.GrantItems(ItemId.RoastApple, 3);
         var scene = TestGame.Route(TestGame.Seed);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, scene), TestGame.Data, TestGame.Route);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route);
 
         Assert.Equal(3, loaded.Simulation.Inventory.Count(ItemId.RoastApple));
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());

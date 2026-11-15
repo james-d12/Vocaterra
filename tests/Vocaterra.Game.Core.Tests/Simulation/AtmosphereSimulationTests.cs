@@ -102,7 +102,7 @@ public sealed class AtmosphereSimulationTests
         var state = sim.CaptureState();
 
         var restored = VoxelSimulation.Create(Route(), Short);
-        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
+        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid));
         restored.Restore(state);
 
         Assert.NotNull(state.Atmosphere);
@@ -161,7 +161,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "707fc711fdf7c500093708ebb2c9d483b709220e2955e13c1e7bcd22b7691ffb"; // B08a: re-pinned (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "a505b99ed5474cc13b0dd44fc5a1f217eaa3f1961dea7a489e270b7c4c0e7f99"; // B05: re-pinned, the state digest is the header and the changed chunks (the route as built has none); B08a: re-pinned on the merged tree (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
 
-    private const string PinnedAfterWalking = "9ae31a8773580bdda89e499af96c6632555d469a3287060fca5686ccd306a2a1"; // B08a: re-pinned with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "51f3083b0a58ef7274e4a98f79fc15fb720cf65721c423214505f6754821000d"; // B05: re-pinned with the one above; B08a: re-pinned on the merged tree with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above
 }

@@ -283,7 +283,7 @@ public sealed partial class VoxelSession
         return best;
     }
 
-    private static bool IsFreeGround(VoxelGrid grid, BlockPos cell)
+    private static bool IsFreeGround(IVoxelReader grid, BlockPos cell)
     {
         if (!grid.InBounds(cell.X, cell.Y - 1, cell.Z) || !grid.InBounds(cell.X, cell.Y + 1, cell.Z))
         {

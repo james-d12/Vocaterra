@@ -532,7 +532,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         session.Day = 3; // the sleep at the fire (V25: a load keeps the day, only a sleep moves it)
         session.Sitting = 3;
         session.BeginPlaySession();
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
@@ -548,12 +548,12 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         }
 
         loaded.EndTalk();
-        var half = SaveGame.Save(loaded, TestGame.Route());
+        var half = SaveGame.Save(loaded);
         var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf(LessonId));
         Assert.Equal(6, again.Lessons.OutcomesOf(LessonId).Count);
-        Assert.Equal(half, SaveGame.Save(again, TestGame.Route()));
+        Assert.Equal(half, SaveGame.Save(again));
     }
 
     // ---- The content

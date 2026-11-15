@@ -19,7 +19,7 @@ public sealed class SleepTests
 {
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     // A load keeps the day (V25) and a sleep moves it: the load that a sleep equals is a load and then the next day.
     private static VoxelSession LoadOf(string text, VoxelSession like)
@@ -34,7 +34,7 @@ public sealed class SleepTests
         return loaded;
     }
 
-    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     /// <summary>
     /// A new game with session 1's ending reached without the walk (the skip's ending, V12c): the guide's lesson counted, the camp done, lodging given (Y07), so the inn's
@@ -202,11 +202,11 @@ public sealed class SleepTests
     public void ASleepIsRefusedWithASaveThatIsNotTheSessionsOwnTakenNow()
     {
         var session = EndedFirstSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         session.Step([]);
 
         Assert.Throws<ArgumentException>(() => SaveGame.Sleep(session, document)); // a tick later: not the session as it is now
-        Assert.Throws<ArgumentException>(() => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()) with { Session = 3 }));
+        Assert.Throws<ArgumentException>(() => SaveGame.Sleep(session, SaveGame.Capture(session) with { Session = 3 }));
         Assert.Equal(1, session.Day);
     }
 
