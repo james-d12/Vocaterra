@@ -1,4 +1,4 @@
-B02b redo (the owner, 2026-11-15, about 22:20 UTC, D-game-34 item 20): B02b is held, not merged. Its gate passed the build and
+B02b redo (the owner, 2026-11-15, about 21:58 UTC, D-game-34 item 20): B02b is held, not merged. Its gate passed the build and
 started the suite, but the owner, shown the maps (seed 42: the 16k heights before and after, the highest range at 4k, the valley at 2k),
 chose to have it redone before it is gated. Work on in the same worktree and branch (/home/james/Dev/Vocaterra/.claude/worktrees/b02b,
 `B02b-terrain-tuning`, now at 3ccc69c6); the brief .claude/briefs/b02b-terrain-tuning.md and its rules still hold, with these changes:

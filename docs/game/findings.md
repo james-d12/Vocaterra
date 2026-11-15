@@ -2629,3 +2629,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   walk at margin 64 (96 gives 97%, 128 gives 99.5%; data, re-measured after B02b). On a streamed grid a guide snapshot outside the
   valley generates its window's missing chunks on the game thread (B07's residency). Scripted runs not run (no game windows while the
   owner plays). Gated: 11,879 passed, 3 skipped.
+- **B09, the 128-bit kind mask (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b09-kind-masks.md`, report
+  `.claude/briefs/b09-report.md`. `UInt128` everywhere a set of block kinds is held (`BlockKinds.Capacity = 128`), with a guard test at
+  id 128. Finding: `UInt128` operators cost about 20% of Debug meshing time in the two 4,096-block loops (the mesher and
+  `VoxelChunk.KindMask`); a two-`ulong` `BlockKinds.Accumulator` there brought it back to the baseline (about 4.3 s for the valley's
+  3,536 chunks). `VoxelChunk` grew from 88 to 96 bytes (alignment). The mesher's tables throw for ids with no block, so mesher coverage
+  above 63 waits for B10's real blocks. Gated: 11,885 passed, 3 skipped.
+- **This machine renders on an NVIDIA RTX 3070 (seen 2026-11-15).** The biomes plan's "software-GL VM" (llvmpipe, findings of S2 and
+  later) is out of date; B07's and B12's frame-rate measurements run on this GPU (B07's target: 60 fps at High with the far view at
+  16 km, D-game-34 item 21).
