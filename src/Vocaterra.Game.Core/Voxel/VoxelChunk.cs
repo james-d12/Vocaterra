@@ -69,13 +69,13 @@ public sealed class VoxelChunk
         {
             if (!_kindsValid)
             {
-                UInt128 mask = 0;
+                var mask = default(BlockKinds.Accumulator);
                 foreach (var block in Blocks)
                 {
-                    mask |= BlockKinds.Bit(block);
+                    mask.Add(block);
                 }
 
-                _kinds = mask;
+                _kinds = mask.Mask;
                 _kindsValid = true;
             }
 

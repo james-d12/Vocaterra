@@ -191,6 +191,18 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    public void AChunkReportsAndGreysAKindAboveSixtyThree()
+    {
+        // B09: the kind mask is 128 bits wide. Id 127 names no block (the mesher's tables would not know it), so only the mask helpers see it.
+        var high = (BlockId)127;
+        var meshes = Mesh(new MapBlocks().Set(2, 1, 1, BlockId.Stone), ChunkMesher.KindBit(high));
+        Assert.Equal(ChunkMesher.KindBit(BlockId.Stone), meshes.Kinds);
+        Assert.True(ChunkMesher.IsGrey(high, ChunkMesher.KindBit(high)));
+        Assert.False(ChunkMesher.IsGrey(BlockId.Stone, ChunkMesher.KindBit(high)));
+        Assert.False(ChunkMesher.IsGrey((BlockId)63, ChunkMesher.KindBit(high)));
+    }
+
+    [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ChangingTheGreySetMakesDueOnlyTheChunksThatHoldAChangedKind()
     {

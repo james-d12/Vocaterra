@@ -382,7 +382,7 @@ public static class ChunkMesher
         var plants = new MeshBuffer();
         var glowMesh = new MeshBuffer(); // the lanterns' light on the faces they reach (E02a): the cube faces again, drawn additively, whatever the band
         var lit = new MeshBuffer(); // the pieces that are their own light (a lantern's glass, a torch's flame): drawn with no light tint, so the day cycle never dims them (E02)
-        UInt128 kinds = 0;
+        var kinds = default(BlockKinds.Accumulator);
         var x0 = chunkX * Size;
         var y0 = chunkY * Size;
         var z0 = chunkZ * Size;
@@ -402,7 +402,7 @@ public static class ChunkMesher
                         continue;
                     }
 
-                    kinds |= KindBit(id);
+                    kinds.Add(id);
                     var x = x0 + lx;
                     var y = y0 + ly;
                     var z = z0 + lz;
@@ -447,7 +447,7 @@ public static class ChunkMesher
             }
         }
 
-        return new ChunkMeshes(opaque, alpha, kinds, plants, lit, glowMesh);
+        return new ChunkMeshes(opaque, alpha, kinds.Mask, plants, lit, glowMesh);
     }
 
     /// <summary>Appends one face of a box to a mesh, optionally moved and turned about the vertical axis (for the figures).</summary>
