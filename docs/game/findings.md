@@ -2652,3 +2652,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   for an unknown block, and four tests had a 57-block or 64-id limit written in; the mesher's `KindFlags` was sized 64. Open for the
   owner: lava collides like a solid block, so a body can stand on a lava surface (never enter it); a two-high collider would make a
   body hover over a lava lake. Gated: 11,961 passed, 3 skipped.
+- **B15, towns on procedural ground (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b15-towns.md`, report
+  `.claude/briefs/b15-report.md`. `IGroundShape` chooses the hand-drawn relief (the valley, unchanged) or the procedural height; a
+  `ProceduralReliefRegion` builds a layout on procedural ground at a `RegionPlacement`, levels only its sites and paths, and freezes
+  through the valley's code, so the catalog, blend and composite source take it unchanged; border columns equal the world's ground
+  (384 of 384 at three places, steps 1 to 6). A 96-cube town builds in 41 ms. Findings: a town on mountains is refused when its ground
+  passes the layout's ceiling; a river bed under a town is copied (only ground under the sea is refused). For B16: towns from
+  world.json, each town's digest listed separately, water in a layout, the surface block from the biome. It needed one merge for a
+  README conflict. Gated: 11,980 passed, 3 skipped.
