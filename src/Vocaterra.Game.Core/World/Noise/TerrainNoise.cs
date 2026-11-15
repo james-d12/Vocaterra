@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 
-namespace Vocaterra.Game.Core.World.Generation;
+namespace Vocaterra.Game.Core.World.Noise;
 
 /// <summary>
 /// Smooth value noise in integers, keyed by the world seed and a pass name (<see cref="WorldRng.For"/>): the lattice values are hashes
