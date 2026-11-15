@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Generation.Procedural;
@@ -24,6 +25,20 @@ internal static class RegionTestWorld
     public static WorldComposition Composition(ulong seed = Seed) =>
         Compositions.GetOrAdd(seed, static s => new Lazy<WorldComposition>(() => WorldFactory.Compose(TestGame.Data, s, new RegionCatalog([Valley(s)])))).Value;
 
+    /// <summary>A streamed scene of the valley with no chunk resident, on the shared composed world: a test reads, installs and edits its own grid.</summary>
+    public static Scene StreamedScene()
+    {
+        var composition = Composition();
+        return RouteScene.Build().WithWorld(WorldFactory.StreamedGrid(TestGame.Data, composition.Source), composition.Places, Valley().TemplateDigest, composition.Source);
+    }
+
+    /// <summary>The shipped data with the blend's exit corridors left out, for the tests of a region that is not the valley.</summary>
+    public static GameData WithoutCorridors()
+    {
+        var data = TestGame.Data;
+        return data.WithWorldGen(data.WorldGen with { RegionBlend = data.WorldGen.Blend with { ExitCorridors = [] } });
+    }
+
     /// <summary>The ground of a column as the composed world's height model makes it.</summary>
     public static ColumnShape Shape(WorldComposition world, int x, int z)
     {
@@ -34,17 +49,18 @@ internal static class RegionTestWorld
     /// <summary>The valley's footprint in blocks (0 to 383 on each side for the shipped layout), read from the region.</summary>
     public static RegionBounds Bounds => Valley().Bounds;
 
-    /// <summary>A small region of another size and place, built only here: the test world of the front-end tests (its layout widened to 128 x 64 x 96 blocks and its level ground raised to y 40), frozen at chunk (40, -30).</summary>
+    /// <summary>A small region of another size and place, built only here: the test world of the front-end tests (its layout made 64 blocks tall, 96 x 64 x 96 blocks and its level ground raised to y 40), frozen at chunk (40, -30).</summary>
     public static AuthoredReliefRegion Small() => SmallRegion.Value;
 
     private static readonly Lazy<AuthoredReliefRegion> SmallRegion = new(static () =>
     {
         var json = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Tests", "Fixtures", "clearing-route.json"))
-            .Replace("\"size\": { \"x\": 96, \"y\": 32, \"z\": 96 }", "\"size\": { \"x\": 128, \"y\": 64, \"z\": 96 }", StringComparison.Ordinal)
+            .Replace("\"size\": { \"x\": 96, \"y\": 32, \"z\": 96 }", "\"size\": { \"x\": 96, \"y\": 64, \"z\": 96 }", StringComparison.Ordinal)
             .Replace("\"waterLevel\": 4", "\"waterLevel\": 34", StringComparison.Ordinal)
             .Replace("\"valley\": 8", "\"valley\": 36", StringComparison.Ordinal)
             .Replace("\"ceiling\": 20", "\"ceiling\": 48", StringComparison.Ordinal)
-            .Replace("\"y\": 10, \"radius\": 46", "\"y\": 40, \"radius\": 46", StringComparison.Ordinal);
+            .Replace("\"y\": 10, \"radius\": 46", "\"y\": 40, \"radius\": 400", StringComparison.Ordinal)
+            .Replace("\"lake\": { \"site\": \"river\", \"rx\": 20, \"rz\": 6, \"depth\": 3 },", string.Empty, StringComparison.Ordinal); // no lake: its bed at the south edge would put the region's own edge under the sea
         var scene = SceneBuilder(SceneLayout.Parse(json));
         return AuthoredReliefRegion.Freeze("small", scene, 40, -30);
     });
