@@ -82,11 +82,11 @@ The plan is written on the review's recommendations. Each is in section 12 for t
 | Decision | Assumed | If the owner says otherwise |
 | --- | --- | --- |
 | Needs | five needs, staged effects and death with a cost; N series before the pilot (D-game-24) | resolve the detailed options in design section 18 |
-| Combat | none; gear is for places | stage 5 gains combat milestones; W26 changes |
+| Combat | none; gear is for places (amended by D-game-35, 2026-11-15: armour gives a rating for combat to come) | stage 5 gains combat milestones; W26 changes |
 | Tool tiers | hands, stone, iron (from the smith) | W02's table grows; ores need terrain work |
 | Cast | the seven NPCs; new ones only after a voice trial | stage 5 adds NPC milestones earlier |
 | Land, storage, trust | after the pilot (stage 5); the first bought plot moved up on 2026-11-10 (D-game-32, the Y series) | W22 to W25 move up |
-| Items as data | at W12, before stage 3 (not now) | W12 moves to stage 1, or never (new items then go into the enum, as V03 did) |
+| Items as data | at W12, before stage 3 (not now); taken over by the I series' I01 (D-game-35, 2026-11-15) | W12 moves to stage 1, or never (new items then go into the enum, as V03 did) |
 | The tú imperative | comprehension only; session 11 at `a2` | teaching production is a later W09 decision |
 | First activity lessons | new sessions 11 to 13; sessions 1 to 10 untouched | weaving activities into earlier sessions moves their goldens and runs |
 | The station view | an overlay panel, as crafting is | an in-world kitchen is a project of its own (block states, animation) |
@@ -179,8 +179,8 @@ Each joins `WorldEvents.All`, so tips, lessons and objectives may wait for it, a
 | W10 | Session 11 "En la panadería": the lesson, the `pan` procedure, flour, Luz's teaching, the rows and recordings, the checks, run `r27-bread` | W07, W08; W04 only for multi-item vendor pricing | M | content (decision l) | done (2026-11-07, gated at 366a6038 on `feature/bread-pilot`, 9852 passed; game plan section 5) |
 | W11 | Stage 2's documents and runs; the pilot measure (telemetry, the session summary, `playtest.md`); run `r28-bread-again` | W10 | S | Haiku | **owner's go or no-go** |
 | **Stage 3: crafting, repair and meals** | | | | | |
-| W12 | Items as data (C09 revisited): `game/items.json`, icons by key with a fallback, save version 7 (names and wear) | W02 | M | Sonnet | |
-| W13 | Durability: wear per tool slot, a worn tool at hands' speed (never lost), `tool_worn` | W12 | S/M | Haiku | |
+| W12 | Items as data (C09 revisited): `game/items.json`, icons by key with a fallback, save version 7 (names and wear) | W02 | M | Sonnet | moved to I01 ([inventory plan](inventory-plan.md), D-game-35) |
+| W13 | Durability: wear per tool slot, a worn tool at hands' speed (never lost), `tool_worn` | W12 | S/M | Haiku | moved to I07 ([inventory plan](inventory-plan.md), D-game-35) |
 | W14 | The axe's handle with Domingo: "Se rompió el mango", the `mango` procedure at the forge, `repair`, run `r30-repair` | W08, W13 | M | content (decision l) | |
 | W15 | Meals and the camp fire: cooked dishes and buffs using the N-series needs and eating rules; session 12 "En el campamento" with Luna; dinner before sleep; run `r31-dinner` | W08, W12, N07 | M | Sonnet, then content | |
 | W16 | Stage 3's documents and runs | W14, W15 | S | Haiku | |
@@ -314,7 +314,8 @@ forms and assessment rules after a separate owner decision (4.5).
 
 ### Stage 3: crafting, repair and meals
 
-**W12: items as data, C09 revisited (M, Sonnet).**
+**W12: items as data, C09 revisited (M, Sonnet).** *Moved to the I series' I01 (D-game-35, 2026-11-15); the I01 design in
+[the inventory plan](inventory-plan.md) section 3.2 replaces this one.*
 - *Why.* Stage 3 and 4 add a dozen items (tostadas, semillas, maíz, the martillo if it is carried, the stake later); by then the enum costs
   more than the move.
 - *Data.* `game/items.json` and its schema: per item a stable `name` (the key saves use), a stable numeric `id` (the ten enum values kept;
@@ -328,7 +329,8 @@ forms and assessment rules after a separate owner decision (4.5).
 - *Tests.* Catalog and enum agree; stack limits from data; every save version from 1 loads; a data-only item round-trips; the fallback icon.
 - *Done when* nothing in the game changes but the save's shape.
 
-**W13: durability (S/M, Haiku).**
+**W13: durability (S/M, Haiku).** *Moved to the I series' I07 (D-game-35, 2026-11-15); its design is
+[the inventory plan](inventory-plan.md) section 3.12, with wear from use, time worn and damage.*
 - *Code.* `ItemStack` gains `Wear` (meaningful for items with `durability`, which stack to 1); a gather with a tool adds wear; at its
   durability the tool is worn: it works at hands' speed and is never lost or destroyed; `tool_worn` (once); the hotbar draws a wear bar
   (Game). A test aid `--wear <item> <n>` for scripted runs.
@@ -411,7 +413,8 @@ about where it is; the ownership check refuses placing only in protected regions
 - **W25 Trust and "¿Lo de siempre?".** Trust derived from logged evidence with diminishing returns per session, kept per NPC; unlocks as
   data; the shortcut offered only when the order's phrase is at the last rung. Needs the free-talk follow-up first (the handover, section 5).
 - **W26 Gear for places, and the tailor.** Clothes with equipment slots; cold on the mountain slows walking, never harms; a lantern; the
-  tailor after a voice trial.
+  tailor after a voice trial. *Since D-game-35 (2026-11-15) the clothes, the cold and the lantern are the I series' (I06, I08a, I08b,
+  [the inventory plan](inventory-plan.md)); W26 keeps only the tailor and its voice trial.*
 - **W27 The healer and foraging.** Symptoms ("me duele", "tengo frío"); herbs found by description (colours and sizes from session 7); the
   healer after a voice trial.
 - **W28 Tenants and building to a description.** A tenant describes a room; the learner builds it; the check names what is missing.
@@ -541,7 +544,8 @@ through its final recall.
 **Before stage 1:**
 - (a) **Activity principle:** useful activities repeat Spanish, with support reduced by learning evidence.
 - (b) **Needs (confirmed, D-game-24):** five needs, staged effects and death with a cost, built in the N series before the pilot.
-- (c) **No combat**; gear for places (W26).
+- (c) **No combat**; gear for places (W26). *Amended by D-game-35 (2026-11-15): combat later; armour gives a rating for it and reduces
+  nothing yet ([the inventory plan](inventory-plan.md)).*
 - (d) **Tool tiers**: hands, stone and iron from the smith; no copper, steel or reforging (W02).
 - (e) **The cast**: the seven NPCs take the design plan's roles; new NPCs only after a voice trial, in stage 5.
 - (f) **Land, storage and trust in stage 5**, after the pilot. Amended 2026-11-10 (D-game-32): the first bought plot and its campsite are built now, by the Y series.

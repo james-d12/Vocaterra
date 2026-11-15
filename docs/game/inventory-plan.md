@@ -5,8 +5,9 @@ was built or run. Its goal is **a proper inventory**: a bag the player can rearr
 and backpack slots, gear that does something, and gear drawn on the player, built so that a later item, slot or effect is a row of data
 and not a new system.
 
-**Status (2026-11-15):** accepted, not started. The owner accepted D-game-35 as written ("Accept, but don't build yet") and answered its
-two questions (section 5); no milestone is registered or launched until the owner says to build. It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
+**Status (2026-11-15):** in progress. The owner accepted D-game-35 as written and answered its two questions (section 5), then said
+to build ("Work on the plan", the same day); I00 registered the series in the game plan's section 4.15; I01 and I06 wait for the owner's word to start ("stop and wait for me to tell
+you to start", while the biomes session's agent runs and the owner games). It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
 standing rule: new work in a new worktree from `main`). Milestone branches `I<nn>-<name>`, gated into `feature/inventory`; commit
 prefix `I<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
@@ -299,7 +300,7 @@ avatar in each layer; then the owner's check in the game.
 
 ## 5. The owner's decisions (2026-11-15)
 
-Recorded as D-game-35 (decided 2026-11-15; building held until the owner says).
+Recorded as D-game-35 (decided 2026-11-15; building started the same day).
 
 1. **Armour gives an armour rating for combat**, which will come in a later series; it reduces nothing now (not drowning, not lava, not
    cold), and the damage code is open so other causes can be added later. Amends D-game-23 (c) ("no combat") to "combat later".
@@ -323,7 +324,7 @@ Recorded as D-game-35 (decided 2026-11-15; building held until the owner says).
     world-words block of `cefr/a1.txt` as nouns the player handles (as D-game-32 (e) did for four words), each in the milestone that first
     uses it; the final list is settled at stop 3.
 11. **(b) The small bag:** "el saco". «La bolsa» keeps naming the whole inventory.
-12. **When to build:** "Accept, but don't build yet". I00 waits for the owner's word.
+12. **When to build:** "Accept, but don't build yet"; later the same day, "Work on the plan": I00 done; then "stop and wait for me to tell you to start" before I01 and I06.
 
 ## 6. What this plan does not do
 
@@ -358,4 +359,5 @@ Recorded as D-game-35 (decided 2026-11-15; building held until the owner says).
 |---|---|---|---|
 | (proposal) | done, 2026-11-15 | documents only | This plan, D-game-35 (proposed), the index rows and the handover. |
 | (acceptance) | done, 2026-11-15 | documents only | D-game-35 decided as written; the gear words as world words; the small bag `el saco`; building held. |
-| I00 to I10 | accepted, not started | | Wait for the owner's word to build (section 5, answer 12). |
+| I00 | done, 2026-11-15 | documents only (doc-link test) | Registered by the orchestrator: the game plan's section 4.15, the activities plan's notes (W12, W13, W26, (c)), D-game-23 (c) amended, open items. |
+| I01 to I10 | todo | | Build order in section 4; I01 and I06 wait for the owner's word. |

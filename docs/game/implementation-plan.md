@@ -545,6 +545,29 @@ the statuses below follow its table in section 8.3.
 | Y14 | QA fixes (the fail-forward's phrase, the wake card, the class offer's verdict, r30's baker) | Y13 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,463 tests) |
 | Y15 | The stake taken at the purchase (owner, 2026-11-12, on PR #65) | Y14 | S | Sonnet 5.5, medium | done, gated 2026-11-12 (11,469 tests) |
 
+### 4.15 Inventory and equipment (the I series; owner, 2026-11-15, D-game-35)
+
+Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefix `I<nn>:`. (Section 4.14 is the B series, biomes, on
+`feature/biomes`.) The design, the owner's answers, the build order and the owner-review stops are in
+[the inventory plan](inventory-plan.md); the statuses below follow its section 8.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| I00 | The series registered: these rows, the activities plan's notes, D-game-23 (c) amended, the open items | acceptance | S | orchestrator | done, 2026-11-15 |
+| I01 | Items as data: `items.json` and its schema, `IItemCatalogue` in place of the static table, icons by key, the validator's item checks, the save's next version (W12 taken over) | I00 | L | Sonnet 5.5, high | todo |
+| I06 | Temperature and cold: `PlaceTemperature` and its terms, `temperature.json`, the cold bands and walk factor, the HUD's cold icon, «Tengo frío», `--temperature` | I00 | M | Sonnet 5.5, high | todo |
+| I03a | The equipment core: `equipment.json`, `Equipment`, the items' `wear`, `stats` and `look`, the equip rules, `StatSheet` and its contributors, the equip commands | I01 | L | Sonnet 5.5, high | todo |
+| I03b | The bag (base 30 plus the worn bag), the off-hand and cosmetic slots, the death rule, the state and digest, the save's next version | I03a | M | Sonnet 5.5, high | todo |
+| I02 | Interaction: `ISlotContainer`, `InventoryOps`, the held stack, swap, merge, split, shift-click, sort and trash as commands | I03b | M | Sonnet 5.5, medium | todo |
+| I09 | Gear on the player: the avatar's layers, the bag on the back, the off-hand item, the sleeve's colour | I03b | M | Sonnet 5.5, medium | todo |
+| I05a | Stat consumers: walk speed, a drain factor per need, the stamina bonus, the `IDamageModifier` pipeline and `damage.json` | I03b, I06 | M | Sonnet 5.5, medium | todo |
+| I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | todo |
+| I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | todo |
+| I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | todo |
+| I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | todo |
+| I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | todo |
+| I10 | Close-out: the documents, the scripted runs, QA, the full gate, the screenshot tour, the pull request | all | S | Haiku 5.5 | todo |
+
 ## 5. Findings log
 
 The findings log is in [findings.md](findings.md) (moved out on 2026-11-09; "section 5" in other documents means that file). Record a
