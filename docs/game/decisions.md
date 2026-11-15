@@ -808,6 +808,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     the east edge over the mountains), so before the unlock the edge wall is what keeps the player in and the rockfall closes the road.
     Asked how the player may leave once the pass opens, the owner chose "Anywhere": the edge wall lifts all the way round; the pass and
     its road are the easy way out (from "Only through the pass" and "Make the ring unclimbable").
+16. **The review of B02's maps** (2026-11-15): ranges were needles about 50 blocks wide, most "ocean" scattered inland basins with
+    steep coasts, and snow lay on cold lowland. The owner chose, each from two or three options: "Long ranges" (chains hundreds of
+    blocks wide with foothills, peaks 200 to 300, like Minecraft 1.18), "Big seas and continents" (connected oceans, coastal shelves,
+    wide beaches, inland basins as lakes) and "Only up high" (snow on the mountains only; cold lowland stays taiga). B02b tunes to it.
 
 ## Already decided
 
