@@ -47,7 +47,7 @@ public sealed class ChunkResidency
     private bool _planUnderground;
     private bool _planDue = true;
     private int _cursor;
-    private List<(VoxelChunkCoord Chunk, bool Force)> _evictions = [];
+    private List<VoxelChunkCoord> _evictions = [];
     private int _evictCursor;
     private int _frames;
     private long _installed;
@@ -62,7 +62,7 @@ public sealed class ChunkResidency
     /// <param name="policy">The radii.</param>
     /// <param name="pool">The workers (shared with the far view); with none the driver generates inline.</param>
     /// <param name="places">The place query, to know when the player is underground; <see langword="null"/> for never.</param>
-    /// <param name="maxResident">The most chunks to keep resident: past it the farthest unchanged ones are dropped even when the plan holds them.</param>
+    /// <param name="maxResident">The most chunks to keep resident: once the grid holds this many nothing new is asked for.</param>
     /// <param name="bands">The band cache, shared with whatever else asks for bands; a new one when <see langword="null"/>.</param>
     public ChunkResidency(VoxelGrid grid, StreamedWorld world, BandStreamPolicy policy, JobPool pool, IPlaceInfo? places = null, int maxResident = int.MaxValue, ColumnBandCache? bands = null)
     {
@@ -216,12 +216,8 @@ public sealed class ChunkResidency
         _planDue = false;
         _cursor = 0;
         _plans++;
-        _evictions = [.. BandStreamer.Evictable(plan, GridResidency.Resident(_grid)).Select(static c => (c, false))];
+        _evictions = [.. BandStreamer.Evictable(plan, GridResidency.Resident(_grid))];
         _evictCursor = 0;
-        if (_grid.ResidentChunkCount > _maxResident)
-        {
-            AddCapEvictions(plan);
-        }
     }
 
     // Installs the columns the workers finished that the plan still wants.
@@ -276,6 +272,12 @@ public sealed class ChunkResidency
         {
             if (_pool.Workers == 0 ? over() : submitted >= MaxSubmitsPerFrame || _inFlight.Count >= MaxInFlight)
             {
+                break;
+            }
+
+            if (_grid.ResidentChunkCount >= _maxResident)
+            {
+                _cursor = columns.Count; // the cap: nothing new is asked for (the plan's own eviction frees room as the player moves on); a cap too low only leaves the far land to the far view
                 break;
             }
 
@@ -348,24 +350,13 @@ public sealed class ChunkResidency
         var dropped = 0;
         while (_evictCursor < _evictions.Count && dropped < MaxEvictionsPerFrame && !over())
         {
-            var (chunk, force) = _evictions[_evictCursor++];
-            if ((force || !plan.Holds(chunk)) && GridResidency.TryEvict(_grid, chunk))
+            var chunk = _evictions[_evictCursor++];
+            if (!plan.Holds(chunk) && GridResidency.TryEvict(_grid, chunk))
             {
                 _evicted++;
                 dropped++;
             }
         }
-    }
-
-    // Over the cap: the farthest chunks go whether or not the plan holds them (the nearest are installed again by the next request, so a cap too low only costs time).
-    private void AddCapEvictions(BandPlan plan)
-    {
-        var over = _grid.ResidentChunkCount - _maxResident;
-        var player = plan.Player;
-        var farthest = GridResidency.Resident(_grid)
-            .OrderByDescending(c => ((long)(c.X - player.X) * (c.X - player.X)) + ((long)(c.Z - player.Z) * (c.Z - player.Z)) + ((long)(c.Y - player.Y) * (c.Y - player.Y)))
-            .Take(over + (over / 10) + 1);
-        _evictions.AddRange(farthest.Select(static c => (c, true)));
     }
 
     // The columns of a disc round (0, 0), nearest first.

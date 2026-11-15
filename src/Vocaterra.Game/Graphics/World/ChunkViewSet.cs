@@ -7,8 +7,11 @@ namespace Vocaterra.Game.Graphics.World;
 /// eye, that are resident and that hold something at all. An empty chunk (the sky over the valley) is never in the set, nor is one the grid does not hold (it is read
 /// by <see cref="VoxelGrid.TryGetChunk"/>, which never generates). The list is nearest first, and is rebuilt only when the eye moves to another chunk, a block is edited
 /// or a chunk is installed or evicted, so asking for it every frame costs nothing. No graphics type is used, so it is tested without a window.
+/// On a streamed grid (B07) a chunk is listed only when all 26 chunks round it are resident too (the mesher reads the diagonal cells for the corner shading, three cells down for the water and nine
+/// blocks across for a lantern's glow, and a chunk that is not resident reads as air, which would draw a wall at the seam of a half-loaded world); the readiness of a chunk is kept as chunks come and go,
+/// the distance is across (the surface band, not the height, decides what is above and below), and at most <c>maxChunks</c> of the nearest are listed.
 /// </summary>
-public sealed class ChunkViewSet
+public sealed class ChunkViewSet : IChunkResidencyListener
 {
     private const int Size = VoxelChunk.Size;
     private readonly VoxelGrid _grid;
@@ -17,14 +20,89 @@ public sealed class ChunkViewSet
     private long _editCount = -1;
     private long _residency = -1;
     private float _eyeX, _eyeY, _eyeZ;
+    private readonly int _maxChunks;
+    private readonly HashSet<VoxelChunkCoord> _ready = [];
 
     /// <summary>Creates the view set of a grid for a view distance in blocks.</summary>
-    public ChunkViewSet(VoxelGrid grid, int viewDistance)
+    /// <param name="grid">The grid.</param>
+    /// <param name="viewDistance">The distance in blocks.</param>
+    /// <param name="maxChunks">The most chunks the set lists (the nearest ones): a cap on the meshes of a streamed world. A bounded grid is never capped.</param>
+    public ChunkViewSet(VoxelGrid grid, int viewDistance, int maxChunks = int.MaxValue)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentOutOfRangeException.ThrowIfLessThan(viewDistance, Size);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxChunks, 1);
         _grid = grid;
         ViewDistance = viewDistance;
+        _maxChunks = maxChunks;
+        if (grid.IsStreamed)
+        {
+            foreach (var coord in grid.ResidentChunks)
+            {
+                Refresh(coord);
+            }
+
+            grid.AddResidencyListener(this);
+        }
+    }
+
+    /// <summary>Stops listening to the grid (the renderer made another view set, or is gone).</summary>
+    public void Detach() => _grid.RemoveResidencyListener(this);
+
+    /// <summary>How many chunks are ready to mesh on a streamed grid (resident, with all 26 neighbours resident or outside the world), whether or not they are in view.</summary>
+    public int ReadyChunks => _ready.Count;
+
+    /// <summary>Whether the chunk is resident with all its 26 neighbours (the world's edge counts as present): the condition for meshing it on a streamed grid.</summary>
+    /// <param name="coord">The chunk.</param>
+    public bool IsReady(VoxelChunkCoord coord) => _ready.Contains(coord);
+
+    /// <inheritdoc />
+    public void OnChunkInstalled(VoxelChunkCoord coord) => RefreshAround(coord);
+
+    /// <inheritdoc />
+    public void OnChunkEvicted(VoxelChunkCoord coord) => RefreshAround(coord);
+
+    private void RefreshAround(VoxelChunkCoord coord)
+    {
+        for (var dz = -1; dz <= 1; dz++)
+        {
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    Refresh(new VoxelChunkCoord(coord.X + dx, coord.Y + dy, coord.Z + dz));
+                }
+            }
+        }
+    }
+
+    // A chunk is ready when it is resident and so is everything round it (a chunk outside the limits is no chunk and cannot be missing).
+    private void Refresh(VoxelChunkCoord coord)
+    {
+        if (!_grid.IsResident(coord))
+        {
+            _ = _ready.Remove(coord);
+            return;
+        }
+
+        var limits = _grid.Limits;
+        for (var dz = -1; dz <= 1; dz++)
+        {
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    var n = new VoxelChunkCoord(coord.X + dx, coord.Y + dy, coord.Z + dz);
+                    if ((dx != 0 || dy != 0 || dz != 0) && limits.Contains(n) && !_grid.IsResident(n))
+                    {
+                        _ = _ready.Remove(coord);
+                        return;
+                    }
+                }
+            }
+        }
+
+        _ = _ready.Add(coord);
     }
 
     /// <summary>The distance in blocks from the eye to the nearest point of a chunk's box within which the chunk is drawn.</summary>
@@ -71,15 +149,31 @@ public sealed class ChunkViewSet
         var z1 = Math.Min(limits.EndChunkZ - 1, eyeChunk.Item3 + reach);
         if (_grid.IsStreamed)
         {
+            // Across, not up: a column's own band decides which of its layers are resident, so the layers above and below the eye are as far as the residency goes.
             EmptyChunks = 0;
-            for (var cy = y0; cy <= y1; cy++)
+            var across = (long)ViewDistance * ViewDistance;
+            foreach (var coord in _grid.ResidentChunks)
             {
-                for (var cz = z0; cz <= z1; cz++)
+                if (Math.Abs(coord.X - eyeChunk.Item1) > reach || Math.Abs(coord.Z - eyeChunk.Item3) > reach)
                 {
-                    for (var cx = x0; cx <= x1; cx++)
-                    {
-                        Consider(new VoxelChunkCoord(cx, cy, cz), limit, ordered, countEmpty: true);
-                    }
+                    continue;
+                }
+
+                if (!_ready.Contains(coord) || !_grid.TryGetChunk(coord, out var chunk))
+                {
+                    continue;
+                }
+
+                if (chunk.IsEmpty)
+                {
+                    EmptyChunks++;
+                    continue;
+                }
+
+                var distance = AcrossDistanceSquared(_eyeX, _eyeZ, coord.X, coord.Z);
+                if (distance <= across)
+                {
+                    ordered.Add((distance + DepthGap(_eyeY, coord.Y), coord));
                 }
             }
         }
@@ -115,6 +209,11 @@ public sealed class ChunkViewSet
         ordered.Sort(static (a, b) => a.Distance != b.Distance ? a.Distance.CompareTo(b.Distance) : CompareCoords(a.Coord, b.Coord));
         foreach (var (_, coord) in ordered)
         {
+            if (_wanted.Count >= _maxChunks && _grid.IsStreamed)
+            {
+                break;
+            }
+
             _wanted.Add(coord);
         }
 
@@ -143,6 +242,21 @@ public sealed class ChunkViewSet
         {
             ordered.Add((distance, coord));
         }
+    }
+
+    /// <summary>The squared distance across, in blocks, from a point to the nearest point of the box of the chunk column (cx, cz).</summary>
+    public static long AcrossDistanceSquared(float x, float z, int cx, int cz)
+    {
+        var dx = Gap(x, cx * Size, (cx + 1) * Size);
+        var dz = Gap(z, cz * Size, (cz + 1) * Size);
+        return (long)((dx * dx) + (dz * dz));
+    }
+
+    // How much farther up or down a layer is than the eye's own, squared, so that within one column the nearer layers come first and the order is the same on every run.
+    private static long DepthGap(float eyeY, int layer)
+    {
+        var gap = (long)Math.Abs(((layer * Size) + (Size / 2)) - eyeY);
+        return gap * gap / 256;
     }
 
     private static int CompareCoords(VoxelChunkCoord a, VoxelChunkCoord b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.Z != b.Z ? a.Z.CompareTo(b.Z) : a.X.CompareTo(b.X);

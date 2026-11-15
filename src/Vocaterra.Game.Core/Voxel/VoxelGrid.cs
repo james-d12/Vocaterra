@@ -125,6 +125,9 @@ public sealed class VoxelGrid : IVoxelWriter
     /// </summary>
     public long ResidencyVersion { get; private set; }
 
+    /// <summary>The coordinates of the resident chunks (a live view, in no fixed order): a reader on the game loop's thread walks it without copying, and never while a chunk is installed or evicted.</summary>
+    public IReadOnlyCollection<VoxelChunkCoord> ResidentChunks => _chunks.Keys;
+
     /// <summary>How many chunks are resident (allocated, even if only to say that they hold air).</summary>
     public int ResidentChunkCount => _chunks.Count;
 

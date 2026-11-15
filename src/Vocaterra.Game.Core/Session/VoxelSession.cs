@@ -59,7 +59,7 @@ public sealed partial class VoxelSession : GuideSession
             data,
             worldSeed,
             startedAt,
-            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions, scene.Grid.IsStreamed ? from => WorldWindow.For(scene, from.Cell.X, from.Cell.Y, from.Cell.Z) : null),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions, scene.Grid.IsStreamed ? from => WorldWindow.For(scene, from.Cell.X, from.Cell.Y, from.Cell.Z) : null, scene.Streaming is { } streaming ? new PristineChunks(streaming) : null),
             playSession: 1,
             credit,
             lessons,
@@ -376,7 +376,7 @@ public sealed partial class VoxelSession : GuideSession
     protected override IGuideFacts SnapshotFacts()
     {
         var feet = Simulation.Player.FeetBlock;
-        return WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions, WorldWindow.For(Scene, feet.X, feet.Y, feet.Z));
+        return WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions, WorldWindow.For(Scene, feet.X, feet.Y, feet.Z), Scene.Streaming is { } streaming ? new PristineChunks(streaming) : null);
     }
 
     /// <inheritdoc />

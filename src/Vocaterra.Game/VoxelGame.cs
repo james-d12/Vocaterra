@@ -767,7 +767,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
-        var farPlane = VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance);
+        var farPlane = _scene.Grid.IsStreamed ? VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance, _scene.Grid.Limits.SizeY) : VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance); // a tall streamed world's peaks stand a view distance across and the world's height up (B07)
         var eye = _camera.Place(alpha, width, height, farPlane, canvasWidth, canvasHeight);
         var shoulder = _camera.Shoulder;
 

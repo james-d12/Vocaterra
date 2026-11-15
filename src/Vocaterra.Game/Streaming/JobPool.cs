@@ -93,7 +93,7 @@ public sealed class JobPool : IDisposable
             }
 
             _queues[(int)lane].Enqueue(new Job(isStale, work), priority);
-            _ = Monitor.Pulse(_gate);
+            Monitor.Pulse(_gate);
         }
     }
 

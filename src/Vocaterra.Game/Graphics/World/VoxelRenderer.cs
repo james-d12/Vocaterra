@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
@@ -128,6 +129,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private int _buriedSkipped;
     private int _released;
     private int _pending;
+    private FarView? _far;
+    private FarTerrainRenderer? _farRenderer;
+    private float _farRange;
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
     /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
@@ -142,11 +146,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _look = look;
         _band = look.Band;
         ClearColour = new Color(look.FogColour.R, look.FogColour.G, look.FogColour.B);
-        var fogEnd0 = FogEndFor(preset.ViewDistance, look.Fog);
-        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, fogEnd0 * FogStartFraction, fogEnd0);
+        var fogEnd0 = FogEndNow(preset.ViewDistance, look.Fog);
+        DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, FogStartOf(fogEnd0), fogEnd0);
         _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
-        _view = new ChunkViewSet(grid, preset.ViewDistance);
+        _view = new ChunkViewSet(grid, preset.ViewDistance, MeshCap(preset));
         var fogEnd = fogEnd0;
         _effect = new BasicEffect(device)
         {
@@ -155,7 +159,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             LightingEnabled = false,
             FogEnabled = true,
             FogColor = ClearColour.ToVector3(),
-            FogStart = fogEnd * FogStartFraction,
+            FogStart = FogStartOf(fogEnd),
             FogEnd = fogEnd,
             Texture = atlas.Texture,
         };
@@ -164,7 +168,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             VertexColorEnabled = true,
             FogEnabled = true,
             FogColor = ClearColour.ToVector3(),
-            FogStart = fogEnd * FogStartFraction,
+            FogStart = FogStartOf(fogEnd),
             FogEnd = fogEnd,
             Texture = atlas.Texture,
             AlphaFunction = CompareFunction.Greater,
@@ -249,8 +253,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         SetLightTints(look);
-        var fogEnd = FogEndFor(Preset.ViewDistance, look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
-        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, fogEnd * FogStartFraction, fogEnd);
+        var fogEnd = FogEndNow(Preset.ViewDistance, look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
+        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, FogStartOf(fogEnd), fogEnd);
         _sky.SetLook(look);
         ApplyFogState();
     }
@@ -306,9 +310,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
         var remesh = preset.AmbientOcclusion != Preset.AmbientOcclusion || preset.PlantKeepPercent != Preset.PlantKeepPercent;
         Preset = preset;
-        var fogEnd = FogEndFor(preset.ViewDistance, _look.Fog);
-        DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, fogEnd * FogStartFraction, fogEnd);
-        _view = new ChunkViewSet(_grid, preset.ViewDistance);
+        var fogEnd = FogEndNow(preset.ViewDistance, _look.Fog);
+        DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
+        _view.Detach();
+        _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset));
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band);
         if (remesh)
         {
@@ -343,6 +348,67 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
     /// <summary>The far plane of the camera for a view distance: past the fog's end and the last chunk's corner.</summary>
     public static float FarPlaneFor(int viewDistance) => viewDistance + (2f * VoxelChunk.Size);
+
+    /// <summary>
+    /// The far plane of the camera over a tall streamed world (B07): the chunks are drawn out to the view distance across whatever their height, so the farthest corner of a peak at the world's top
+    /// stands a view distance away across and the world's height up or down, and the plane must be past it (a peak at 300 is not cut off while its foot is in view).
+    /// </summary>
+    /// <param name="viewDistance">The view distance in blocks, across.</param>
+    /// <param name="worldHeight">The world's height in blocks (384 by default).</param>
+    public static float FarPlaneFor(int viewDistance, int worldHeight)
+    {
+        var across = viewDistance + (2f * VoxelChunk.Size);
+        return MathF.Sqrt((across * across) + ((float)worldHeight * worldHeight)) + VoxelChunk.Size;
+    }
+
+    /// <summary>The share of the fog's end where the haze starts when the far view is on: the near land stays clear and the far land fades over most of its range.</summary>
+    public const float FarFogStartFraction = 0.35f;
+
+    /// <summary>
+    /// Where the haze is complete when the far view reaches <paramref name="range"/> blocks (B07): the range itself in clear weather, so the far land fades into the sky colour as it ends, and the
+    /// weather's fog brings it in cubically towards the voxel view's own fog end (a thick fog still hides the far view first).
+    /// </summary>
+    /// <param name="viewDistance">The voxel view distance.</param>
+    /// <param name="range">The far view's range.</param>
+    /// <param name="fog">The weather's fog channel.</param>
+    public static float FarFogEnd(int viewDistance, int range, float fog = 0f)
+    {
+        var reach = SkyWeather.FogReach(fog);
+        return FogEndFor(viewDistance, fog) + (Math.Max(0f, range - (viewDistance * 0.94f)) * reach * reach * reach);
+    }
+
+    private float FogEndNow(int viewDistance, float weather) => _farRange > 0 ? FarFogEnd(viewDistance, (int)_farRange, weather) : FogEndFor(viewDistance, weather);
+
+    private float FogStartOf(float end) => end * (_farRange > 0 ? FarFogStartFraction : FogStartFraction);
+
+    private int MeshCap(QualityPreset preset) => _grid.IsStreamed ? preset.MaxMeshedChunks : int.MaxValue;
+
+    /// <summary>
+    /// Gives the renderer the far view to draw beyond the chunks (B07), or <see langword="null"/> for none (the bounded valley, or the far view off): the haze and the far plane follow its range. Call after
+    /// <see cref="SetPreset"/> when the range changes.
+    /// </summary>
+    /// <param name="far">The far view, or <see langword="null"/>.</param>
+    public void SetFarView(FarView? far)
+    {
+        _far = far;
+        var range = far is { Settings.Enabled: true } ? far.Settings.Range : 0;
+        _farRenderer ??= far is null ? null : new FarTerrainRenderer(_device, far);
+        if (range != _farRange)
+        {
+            _farRange = range;
+            SetAtmosphere(_look);
+        }
+    }
+
+    /// <summary>The far view's range in blocks now (0: none).</summary>
+    public int FarRange => (int)_farRange;
+
+    /// <summary>How many far tiles the last <see cref="DrawWorld"/> drew.</summary>
+    public int DrawnFarTiles => _farRenderer?.DrawnTiles ?? 0;
+
+    /// <summary>Frees a far tile's buffer (the far view drops it).</summary>
+    /// <param name="tile">The tile.</param>
+    public static void ReleaseFarTile(FarTile tile) => FarTerrainRenderer.Release(tile);
 
     /// <summary>
     /// Sets the NPC figures that are drawn with the world. Their meshes are built each frame into one reused buffer (the figures idle, talk and turn: S15), so a frame
@@ -512,6 +578,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null, Action? overlay = null, IReadOnlyList<MeshBuffer>? plotOutlines = null)
     {
         _sky.Draw(camera, tick, Preset.Clouds);
+
+        if (_far is { Settings.Enabled: true } && _farRenderer is not null)
+        {
+            // The far view (B07): beyond the chunks, in a pass of its own with its own depth range and the same haze, then the depth is cleared and the chunks are drawn over it.
+            _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]));
+        }
 
         _device.DepthStencilState = DepthStencilState.Default;
         _device.RasterizerState = RasterizerState.CullClockwise; // triangles run counter-clockwise seen from outside
@@ -788,6 +860,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     {
         _grid.RemoveResidencyListener(_tracker);
         _grid.RemoveResidencyListener(this);
+        _view.Detach();
+        _farRenderer?.Dispose();
         _lights.Detach();
         foreach (var chunk in _chunks.Values)
         {
@@ -885,7 +959,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         List<VoxelChunkCoord>? let = null;
         foreach (var c in _resident)
         {
-            if (ChunkViewSet.DistanceSquared(eye.X, eye.Y, eye.Z, c.X, c.Y, c.Z) > keep)
+            // A streamed world keeps what is within the view across, whatever the height (the surface band decides the layers); a bounded one measures in three dimensions as it always did.
+            var distance = _grid.IsStreamed ? ChunkViewSet.AcrossDistanceSquared(eye.X, eye.Z, c.X, c.Z) : ChunkViewSet.DistanceSquared(eye.X, eye.Y, eye.Z, c.X, c.Y, c.Z);
+            if (distance > keep)
             {
                 (let ??= []).Add(c);
             }

@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -106,8 +107,9 @@ public sealed class WorldFacts : IGuideFacts
     /// The facts over the live grid: every call reads the grid as it is now (the simulation's own thread). A bounded grid is searched whole; a streamed one needs a <paramref name="window"/>
     /// (the box a search from a viewpoint reads), because the world is too large to search, and reads the chunks of the window as they are or as they would be generated.
     /// </summary>
+    /// <param name="pristine">For a streamed grid, a reader of the chunks as generated, so that asking about a chunk that is not resident does not generate and keep it (B07); without one such a chunk is generated and installed, as a read would.</param>
     /// <exception cref="NotSupportedException">The grid is streamed and no window was given.</exception>
-    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, Func<GuideViewpoint, WorldWindow>? window = null)
+    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, Func<GuideViewpoint, WorldWindow>? window = null, PristineChunks? pristine = null)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (grid.IsStreamed && window is null)
@@ -125,7 +127,17 @@ public sealed class WorldFacts : IGuideFacts
             (cx, cy, cz) =>
             {
                 var coord = new VoxelChunkCoord(cx, cy, cz);
-                return grid.IsStreamed ? grid.GetChunk(coord).KindMask : grid.TryGetChunk(coord, out var chunk) ? chunk.KindMask : UInt128.Zero;
+                if (grid.TryGetChunk(coord, out var chunk))
+                {
+                    return chunk.KindMask;
+                }
+
+                if (!grid.IsStreamed || !grid.Limits.Contains(coord))
+                {
+                    return UInt128.Zero;
+                }
+
+                return pristine is null ? grid.GetChunk(coord).KindMask : pristine.Read(coord)?.KindMask ?? UInt128.Zero;
             });
     }
 
@@ -135,8 +147,9 @@ public sealed class WorldFacts : IGuideFacts
     /// hold the noun. Without a <paramref name="window"/> it copies the whole of a bounded grid (the valley); a streamed grid needs one (<see cref="WorldWindow.For"/>) and generates the chunks of it
     /// that are not resident, as a read would.
     /// </summary>
+    /// <param name="pristine">For a streamed grid, a reader of the chunks as generated: a chunk that is not resident is read from it and not installed, so a snapshot of thousands of chunks neither stalls on generating the ones that hold only air or stone nor fills the grid with them (B07).</param>
     /// <exception cref="NotSupportedException">The grid is streamed and no window was given.</exception>
-    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, WorldWindow? window = null)
+    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, WorldWindow? window = null, PristineChunks? pristine = null)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (grid.IsStreamed && window is null)
@@ -156,7 +169,7 @@ public sealed class WorldFacts : IGuideFacts
                     VoxelChunk? chunk;
                     if (grid.IsStreamed)
                     {
-                        chunk = grid.Limits.Contains(coord) ? grid.GetChunk(coord) : null;
+                        chunk = !grid.Limits.Contains(coord) ? null : grid.TryGetChunk(coord, out var resident) ? resident : pristine is null ? grid.GetChunk(coord) : pristine.Read(coord);
                     }
                     else
                     {
