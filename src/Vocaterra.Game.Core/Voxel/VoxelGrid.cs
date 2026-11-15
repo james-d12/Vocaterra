@@ -16,11 +16,22 @@ namespace Vocaterra.Game.Core.Voxel;
 /// </summary>
 public sealed class VoxelGrid : IVoxelWriter
 {
-    private readonly Dictionary<VoxelChunkCoord, VoxelChunk> _chunks = new(CoordComparer.Instance);
+    private readonly Dictionary<VoxelChunkCoord, VoxelChunk> _chunks = new();
+
+    // A bounded grid's chunks never come or go, so beside the dictionary (which every enumeration reads) it keeps one reference slot for each position of its chunk box:
+    // a lookup that misses the cache is an index, not a hash. Empty slots are the chunks that hold nothing and are not allocated. Null on a streamed grid.
+    private readonly VoxelChunk?[]? _slots;
     private readonly WorldLimits _limits;
     private readonly bool _streamed;
     private readonly IChunkGenerator? _generator;
-    private VoxelChunk? _lastChunk;
+
+    // The read cache: the last chunk used, its coordinates and its block array (the shared array of air for a chunk that holds nothing), so that a read inside it is a
+    // compare and an index. _cacheBlocks is null while the cache is empty.
+    private VoxelChunk? _cacheChunk;
+    private BlockId[]? _cacheBlocks;
+    private int _cacheX;
+    private int _cacheY;
+    private int _cacheZ;
     private VoxelChunk[]? _dense;
     private byte[]? _digest;
     private long _digestEdits = -1;
@@ -37,6 +48,7 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         _limits = WorldLimits.Bounded(sizeX, sizeY, sizeZ);
+        _slots = new VoxelChunk?[_limits.EndChunkX * _limits.EndChunkY * _limits.EndChunkZ];
     }
 
     /// <summary>
@@ -61,9 +73,15 @@ public sealed class VoxelGrid : IVoxelWriter
         ResidencyVersion = source.ResidencyVersion;
         _digest = source._digest;
         _digestEdits = source._digestEdits;
+        _slots = source._slots is null ? null : new VoxelChunk?[source._slots.Length];
         foreach (var (coord, chunk) in source._chunks)
         {
-            _chunks[coord] = chunk.Clone();
+            var copy = chunk.Clone();
+            _chunks[coord] = copy;
+            if (_slots is not null)
+            {
+                _slots[SlotOf(coord.X, coord.Y, coord.Z)] = copy;
+            }
         }
     }
 
@@ -136,10 +154,19 @@ public sealed class VoxelGrid : IVoxelWriter
     public bool InBounds(int x, int y, int z) => _limits.Contains(x, y, z);
 
     /// <summary>The block at (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>); <see cref="BlockId.Air"/> outside the limits. A streamed grid generates a chunk it does not hold yet.</summary>
-    public BlockId GetBlock(int x, int y, int z) =>
-        _limits.Contains(x, y, z) && ReadChunk(x >> VoxelChunk.Shift, y >> VoxelChunk.Shift, z >> VoxelChunk.Shift) is { } chunk
-            ? chunk[x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1)]
+    public BlockId GetBlock(int x, int y, int z)
+    {
+        // A cached chunk lies inside the limits, which are whole chunks, so a hit needs no limits check.
+        var blocks = _cacheBlocks;
+        if (blocks is not null && (x >> VoxelChunk.Shift) == _cacheX && (y >> VoxelChunk.Shift) == _cacheY && (z >> VoxelChunk.Shift) == _cacheZ)
+        {
+            return blocks[LocalIndex(x, y, z)];
+        }
+
+        return _limits.Contains(x, y, z) && ReadChunk(x >> VoxelChunk.Shift, y >> VoxelChunk.Shift, z >> VoxelChunk.Shift) is { } chunk
+            ? chunk.BlockArray[LocalIndex(x, y, z)]
             : BlockId.Air;
+    }
 
     /// <summary>
     /// The block at the position if its chunk is resident, <see cref="BlockId.Air"/> otherwise (and outside the limits): a peek that never generates and never
@@ -151,7 +178,16 @@ public sealed class VoxelGrid : IVoxelWriter
             : BlockId.Air;
 
     /// <summary>Whether bodies collide at the position. Everything outside the limits counts as solid (walls, floor and ceiling), so a body cannot leave the world.</summary>
-    public bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
+    public bool IsSolid(int x, int y, int z)
+    {
+        var blocks = _cacheBlocks;
+        if (blocks is not null && (x >> VoxelChunk.Shift) == _cacheX && (y >> VoxelChunk.Shift) == _cacheY && (z >> VoxelChunk.Shift) == _cacheZ)
+        {
+            return BlockDefinition.IsSolid(blocks[LocalIndex(x, y, z)]);
+        }
+
+        return !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
+    }
 
     /// <summary>
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
@@ -349,9 +385,10 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         _chunks.Remove(coord);
-        if (ReferenceEquals(_lastChunk, chunk))
+        if (ReferenceEquals(_cacheChunk, chunk))
         {
-            _lastChunk = null;
+            _cacheChunk = null;
+            _cacheBlocks = null;
         }
 
         ResidencyVersion++;
@@ -398,6 +435,7 @@ public sealed class VoxelGrid : IVoxelWriter
             if (ChunkForWrite(cx, cy, cz, block) is { } chunk)
             {
                 EditCount += chunk.FillColumn(x & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1), y0 & (VoxelChunk.Size - 1), top & (VoxelChunk.Size - 1), block);
+                Written(chunk);
             }
 
             y0 = top + 1;
@@ -423,6 +461,7 @@ public sealed class VoxelGrid : IVoxelWriter
         var changed = chunk.Set(lx, ly, lz, block);
         if (changed)
         {
+            Written(chunk);
             EditCount++;
             Raise(new BlockChange(new BlockPos(x, y, z), oldBlock, block, oldLevel, chunk.GetWater(lx, ly, lz)));
         }
@@ -490,19 +529,53 @@ public sealed class VoxelGrid : IVoxelWriter
     // The chunk if it is resident: the last one used first (a walk of reads stays in a chunk), then the dictionary.
     private VoxelChunk? Find(int cx, int cy, int cz)
     {
-        if (_lastChunk is { } last && last.Coord is var c && c.X == cx && c.Y == cy && c.Z == cz)
+        if (_cacheBlocks is not null && cx == _cacheX && cy == _cacheY && cz == _cacheZ)
         {
-            return last;
+            return _cacheChunk;
         }
 
-        if (_chunks.TryGetValue(new VoxelChunkCoord(cx, cy, cz), out var chunk))
+        VoxelChunk? chunk;
+        if (_slots is not null)
         {
-            _lastChunk = chunk;
+            chunk = _slots[SlotOf(cx, cy, cz)];
+            if (chunk is not null)
+            {
+                Cache(chunk);
+            }
+
+            return chunk;
+        }
+
+        if (_chunks.TryGetValue(new VoxelChunkCoord(cx, cy, cz), out chunk))
+        {
+            Cache(chunk);
             return chunk;
         }
 
         return null;
     }
+
+    // The slot of a chunk of the bounded box (the dense order of Chunks): layer, then row, then column. The caller has checked the limits.
+    private int SlotOf(int cx, int cy, int cz) => (((cy * _limits.EndChunkZ) + cz) * _limits.EndChunkX) + cx;
+
+    private void Cache(VoxelChunk chunk)
+    {
+        _cacheChunk = chunk;
+        _cacheBlocks = chunk.BlockArray;
+        (_cacheX, _cacheY, _cacheZ) = (chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z);
+    }
+
+    // A write may give the cached chunk its block array (a chunk of air gets one with its first block): the cache then holds the shared array of air, so it is taken again.
+    private void Written(VoxelChunk chunk)
+    {
+        if (ReferenceEquals(_cacheChunk, chunk) && ReferenceEquals(_cacheBlocks, VoxelChunk.EmptyBlocks))
+        {
+            Cache(chunk);
+        }
+    }
+
+    private static int LocalIndex(int x, int y, int z) =>
+        (((y & (VoxelChunk.Size - 1)) << VoxelChunk.Shift) + (z & (VoxelChunk.Size - 1)) << VoxelChunk.Shift) + (x & (VoxelChunk.Size - 1));
 
     // The chunk of a read inside the limits: resident, or generated and installed when the grid has a generator, else null (air).
     private VoxelChunk? ReadChunk(int cx, int cy, int cz) => Find(cx, cy, cz) ?? (_generator is null ? null : Generate(new VoxelChunkCoord(cx, cy, cz)));
@@ -524,7 +597,12 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         _chunks[coord] = chunk;
-        _lastChunk = chunk;
+        if (_slots is not null)
+        {
+            _slots[SlotOf(coord.X, coord.Y, coord.Z)] = chunk;
+        }
+
+        Cache(chunk);
         if (_streamed)
         {
             ResidencyVersion++;

@@ -20,7 +20,7 @@ public sealed class VoxelChunk
     public const int Volume = Size * Size * Size;
 
     // All-air chunks never allocate their blocks: the array appears with the first block that is not air, and a read of a chunk without one is air.
-    private static readonly BlockId[] EmptyBlocks = new BlockId[Volume];
+    internal static readonly BlockId[] EmptyBlocks = new BlockId[Volume];
     private static readonly Lazy<byte[]> AirDigest = new(() => SHA256.HashData(new byte[Volume * sizeof(ushort)]));
 
     /// <summary>The digest of a chunk of air (what a chunk that is not stored hashes as).</summary>
@@ -43,6 +43,9 @@ public sealed class VoxelChunk
 
     /// <summary>The blocks, layer by layer, row by row (index = (localY * 16 + localZ) * 16 + localX).</summary>
     public ReadOnlySpan<BlockId> Blocks => _blocks ?? EmptyBlocks;
+
+    /// <summary>The block array itself, or the shared array of air for a chunk that holds nothing: never written through (the grid's read cache holds it).</summary>
+    internal BlockId[] BlockArray => _blocks ?? EmptyBlocks;
 
     /// <summary>
     /// How many block edits this chunk has had since the grid was created. It changes whenever the content changes, so a renderer compares
@@ -268,16 +271,23 @@ public sealed class VoxelChunk
     /// <summary>Fills the chunk-local column (localX, localZ) from <paramref name="localY0"/> to <paramref name="localY1"/> inclusive with a block; returns how many blocks changed.</summary>
     internal int FillColumn(int localX, int localZ, int localY0, int localY1, BlockId block)
     {
-        var changed = 0;
-        if (_blocks is null && block == BlockId.Air)
+        var blocks = _blocks;
+        if (blocks is null)
         {
-            return 0;
+            if (block == BlockId.Air)
+            {
+                return 0;
+            }
+
+            RecordPristine();
+            blocks = _blocks = new BlockId[Volume];
         }
 
+        var changed = 0;
         for (var y = localY0; y <= localY1; y++)
         {
             var index = Index(localX, y, localZ);
-            var old = _blocks is null ? BlockId.Air : _blocks[index];
+            var old = blocks[index];
             if (old == block)
             {
                 // Filling water over water writes source: a non-source level there is reset.
@@ -292,7 +302,6 @@ public sealed class VoxelChunk
             }
 
             RecordPristine();
-            _blocks ??= new BlockId[Volume];
             if (old == BlockId.Air)
             {
                 _nonAir++;
@@ -302,7 +311,7 @@ public sealed class VoxelChunk
                 _nonAir--;
             }
 
-            _blocks[index] = block;
+            blocks[index] = block;
             ClearLevel(index);
             changed++;
         }
@@ -319,13 +328,19 @@ public sealed class VoxelChunk
 
     // Just before the first write (lazily, so a chunk nobody writes never pays for it): the digest the chunk has now is its pristine one. A write that changes nothing
     // never gets here.
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     private void RecordPristine()
     {
         if (!_pristineRecorded)
         {
-            _pristine = ComputeDigest();
-            _pristineRecorded = true;
+            RecordPristineNow();
         }
+    }
+
+    private void RecordPristineNow()
+    {
+        _pristine = ComputeDigest();
+        _pristineRecorded = true;
     }
 
     private void ClearLevel(int index)
