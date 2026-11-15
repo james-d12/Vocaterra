@@ -4,7 +4,7 @@ Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterr
 work is in the game: Vocaterra.Game (start-up, the renderer, the sky, the far view, threads) and Vocaterra.Game.Core (residency policy,
 the edge wall, pure samplers), and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b07, already on the local branch `B07-streamed-world` (cut from
-`feature/biomes` at @@BASE@@, which holds B01 to B06, B04b, B08a, B08b (the pass's lock) and B09). Run every command from that directory.
+`feature/biomes` at 660586a9, which holds B01 to B06, B04b, B08a, B08b (the pass's lock) and B09). Run every command from that directory.
 Commit after each item that builds and passes its tests, with the prefix `B07: `. Do not push your branch. Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree you made.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, and every game run, through
@@ -90,7 +90,7 @@ Deliverables (phase A unless marked B):
     the threads or the render passes change its picture.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,901 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; `SceneTests.GoldenDigest` unchanged. Do not commit bin/,
 obj/ or artifacts/.
 Commit messages end with
