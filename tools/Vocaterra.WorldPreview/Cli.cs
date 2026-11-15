@@ -25,12 +25,13 @@ internal static class Cli
           --content <dir>  the content bundle (default: content/game-v1 of the checkout)
           --threads <n>    worker threads (default 4)
           --world <free|valley>  free: the procedural world alone (default); valley: the world as the game's streamed mode makes it round the valley (B06): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land; maps then show the footprint (red), the margin (orange) and the land-bias radius (yellow)
+          --region <layout.json>  (B15) place a town from a layout file on the procedural ground (implies --world valley): its region is built at --region-x --region-z (the block of its first column, rounded down to a chunk; default 0 0) and --region-layer (its first chunk layer; default: the layer that puts its floor under its lowest ground), and the maps carry its outlines too
           slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2)
         """;
 
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
-        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world",
+        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--region", "--region-x", "--region-z", "--region-layer",
     };
 
     /// <summary>Runs a command line. The exit code is 0 when the pictures were written, 2 for a bad command line.</summary>
@@ -71,13 +72,23 @@ internal static class Cli
             var outPath = Get(options, "--out", ".");
             var content = options.TryGetValue("--content", out var c) ? c : FindBundle();
             var data = Load(content);
-            var world = Get(options, "--world", "free");
+            var world = Get(options, "--world", options.ContainsKey("--region") ? "valley" : "free");
             if (world is not ("free" or "valley"))
             {
                 throw new ArgumentException($"--world is free or valley, not '{world}'.");
             }
 
-            var places = world == "valley" ? Vocaterra.Game.Core.World.WorldFactory.Create(data, seed, Vocaterra.Game.Core.World.WorldMode.Bounded).Places : null;
+            var town = options.TryGetValue("--region", out var layoutPath) ? BuildTown(layoutPath, options, data, seed) : null;
+            if (town is not null && world != "valley")
+            {
+                throw new ArgumentException("--region needs --world valley.");
+            }
+
+            var places = world == "valley"
+                ? (town is null
+                    ? Vocaterra.Game.Core.World.WorldFactory.Create(data, seed, Vocaterra.Game.Core.World.WorldMode.Bounded)
+                    : Vocaterra.Game.Core.World.WorldFactory.Create(data, seed, Vocaterra.Game.Core.World.WorldMode.Streamed, null, [town])).Places
+                : null;
             var sampler = new WorldSampler(data, seed, threads, places);
             var started = System.Diagnostics.Stopwatch.StartNew();
             if (command == "slice")
@@ -87,7 +98,7 @@ internal static class Cli
                 var x1 = Int(options, "--x1", 2048);
                 var z1 = Int(options, "--z1", 0);
                 var image = Renderer.Slice(sampler, x0, z0, x1, z1, scale, Int(options, "--zoom", 2));
-                var path = Target(outPath, $"slice-{(places is null ? string.Empty : "valley-")}seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
+                var path = Target(outPath, $"slice-{Prefix(places, town)}seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
                 Save(path, image);
                 output.WriteLine($"{path} ({image.Width} x {image.Height}, {started.Elapsed.TotalSeconds:0.0} s)");
                 return 0;
@@ -98,12 +109,12 @@ internal static class Cli
             var size = Int(options, "--size", 4096);
             var map = sampler.Map(cx, cz, size, scale);
             var sampled = started.Elapsed;
-            var stem = $"{(places is null ? string.Empty : "valley-")}seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
+            var stem = $"{Prefix(places, town)}seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
             if (command is "biomes" or "maps")
             {
                 var path = Target(outPath, "biomes-" + stem, command == "biomes");
                 var picture = Renderer.Biomes(map, sampler.Palette);
-                Frame(picture, map, places, data);
+                Frame(picture, map, places, data, town);
                 Save(path, picture);
                 var legend = Renderer.Legend(sampler, sampler.Shares(map));
                 File.WriteAllText(Path.ChangeExtension(path, ".legend.txt"), legend);
@@ -115,7 +126,7 @@ internal static class Cli
             {
                 var path = Target(outPath, "heights-" + stem, command == "heights");
                 var picture = Renderer.Heights(map, sampler.SeaLevel);
-                Frame(picture, map, places, data);
+                Frame(picture, map, places, data, town);
                 Save(path, picture);
                 var summary = Renderer.HeightSummary(map);
                 File.WriteAllText(Path.ChangeExtension(path, ".stats.txt"), summary);
@@ -156,15 +167,30 @@ internal static class Cli
         throw new ArgumentException("content/game-v1 was not found; run from the checkout or give --content.");
     }
 
-    // The valley world's maps carry the outlines of its region: the footprint, the end of the blend margin and the land bias's radius.
-    private static void Frame(Image image, WorldMap map, Vocaterra.Game.Core.World.IPlaceInfo? places, GameData data)
+    private static string Prefix(Vocaterra.Game.Core.World.IPlaceInfo? places, Vocaterra.Game.Core.World.Regions.ProceduralReliefRegion? town) =>
+        places is null ? string.Empty : town is null ? "valley-" : "town-";
+
+    // B15: the town of a layout file, built on the procedural ground of the seed at the given block (rounded down to a chunk) and layer.
+    private static Vocaterra.Game.Core.World.Regions.ProceduralReliefRegion BuildTown(string layoutPath, Dictionary<string, string> options, GameData data, ulong seed)
+    {
+        var layout = Vocaterra.Game.Core.World.Layout.SceneLayout.Load(layoutPath);
+        var chunkX = Int(options, "--region-x", 0) >> 4;
+        var chunkZ = Int(options, "--region-z", 0) >> 4;
+        var placement = options.ContainsKey("--region-layer")
+            ? new Vocaterra.Game.Core.World.Regions.RegionPlacement(chunkX, Int(options, "--region-layer", 0), chunkZ)
+            : Vocaterra.Game.Core.World.Regions.ProceduralReliefRegion.Fit(layout, chunkX, chunkZ, data.WorldGen, seed);
+        return Vocaterra.Game.Core.World.Regions.ProceduralReliefRegion.Create(layout.Name, layout, placement, data.WorldGen, seed);
+    }
+
+    // The valley world's maps carry the outlines of its regions: the footprint, the end of the blend margin and the land bias's radius.
+    private static void Frame(Image image, WorldMap map, Vocaterra.Game.Core.World.IPlaceInfo? places, GameData data, Vocaterra.Game.Core.World.Regions.IRegion? town = null)
     {
         if (places is null)
         {
             return;
         }
 
-        foreach (var region in new[] { places.RegionAt(0, 0) }.OfType<Vocaterra.Game.Core.World.Regions.IRegion>())
+        foreach (var region in new[] { places.RegionAt(0, 0), town }.OfType<Vocaterra.Game.Core.World.Regions.IRegion>())
         {
             var b = region.Bounds;
             var blend = data.WorldGen.Blend;

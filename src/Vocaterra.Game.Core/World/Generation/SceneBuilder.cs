@@ -32,10 +32,17 @@ public static class SceneBuilder
 
     /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/>.</summary>
     /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
-    public static Scene Build(SceneLayout layout, ulong seed)
+    public static Scene Build(SceneLayout layout, ulong seed) => Build(layout, seed, null);
+
+    /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/> on the natural ground <paramref name="ground"/> chooses (B15).</summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="seed">The world seed.</param>
+    /// <param name="ground">The ground strategy, or <see langword="null"/> for the layout's hand-drawn relief (the valley).</param>
+    /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
+    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground)
     {
         ArgumentNullException.ThrowIfNull(layout);
-        var builder = new Builder(layout);
+        var builder = new Builder(layout, ground);
         return builder.Run(seed);
     }
 
@@ -52,9 +59,12 @@ public static class SceneBuilder
         private TerrainNoise _forest = new(0, ForestPassName);
         private ulong _seed;
 
-        public Builder(SceneLayout layout)
+        private readonly IGroundShape? _ground;
+
+        public Builder(SceneLayout layout, IGroundShape? ground)
         {
             _layout = layout;
+            _ground = ground;
             _grid = new VoxelGrid(layout.SizeX, layout.SizeY, layout.SizeZ);
             _reserved = new bool[layout.SizeX * layout.SizeZ];
             _hard = new bool[layout.SizeX * layout.SizeZ];
@@ -63,7 +73,7 @@ public static class SceneBuilder
         public Scene Run(ulong seed)
         {
             _seed = seed;
-            _terrain = TerrainGenerator.Generate(_layout, seed);
+            _terrain = TerrainGenerator.Generate(_layout, seed, _ground);
             _forest = new TerrainNoise(seed, ForestPassName);
             FillTerrain();
             foreach (var prop in _layout.Props)
