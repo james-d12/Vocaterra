@@ -4,8 +4,8 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
-using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Noise;
+using Vocaterra.Game.Core.World.Regions;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Regions;

@@ -1,5 +1,5 @@
-using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
