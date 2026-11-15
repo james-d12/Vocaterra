@@ -1428,3 +1428,6 @@ this file. What is still open is collected in [open-items](../open-items.md).
   analyzer reads «porque» as a plural noun); the same seed fails on `feature/settlement` without Y11, so it is the core's or the bundle's
   as it stood. The full run passed. Proposed: a core milestone that finds why «porque» gets a noun reading, fixes it at the source with a
   regression test, and records the seed; the oracle is not narrowed.
+  Met again on 2026-11-15 by B08b's gate on `feature/biomes` (the game's B series, which touched no core input): O5,
+  `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `7PcP-w7xauk1` («túneles unos porque» mutated to
+  «vebegoz unos porque»: the recast writes «porqués»); it replays with the seed. Two oracles now trip on it at random seeds.
