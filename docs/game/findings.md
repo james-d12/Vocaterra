@@ -2645,3 +2645,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   for the old-save split (the new no-lesson-id test skips it and says so). Its first gate failed on the core's known «porque» fuzz
   bug at a random seed (`RecastLoopFuzzTests`, seed `7PcP-w7xauk1`, replayed; B08b touched no core input; recorded in the core
   findings and open items); the re-run passed: 11,901 passed, 3 skipped. Not yet seen in the game (pictures wait for windows).
+- **B10, the underground blocks (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b10-underground-blocks.md`, report
+  `.claude/briefs/b10-report.md`. Slate 57, granite 58, limestone 59, gravel 60, lava 61, bedrock 62, iron 63, tin 64 and copper ore
+  65, with new `BlockDefinition` flags `StopsBody`, `Glows` and `Indestructible`; bedrock is refused in `VoxelChunk.Set` and
+  `FillColumn`, where every edit path ends; the light index takes its light kinds from `Glows`. Findings: `Footsteps.SurfaceOf` threw
+  for an unknown block, and four tests had a 57-block or 64-id limit written in; the mesher's `KindFlags` was sized 64. Open for the
+  owner: lava collides like a solid block, so a body can stand on a lava surface (never enter it); a two-high collider would make a
+  body hover over a lava lake. Gated: 11,961 passed, 3 skipped.
