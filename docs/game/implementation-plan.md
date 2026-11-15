@@ -553,24 +553,27 @@ The design, the owner's answers and the progress table are in [the biomes plan](
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | B00 | Register the series: D-game-34 decided, this section, the index rows, the handover | the owner accepts | S | Haiku 5.5 | done: gated at `162dec4f` on `feature/biomes` (2026-11-15), 11,498 passed |
-| B01 | Noise primitives, climate with altitude, the tall height model, `BiomeTable`, `world.json` and `biomes.json` with schemas and validators | B00 | L | Sonnet 5.5, high | planned |
+| B01 | Noise primitives, climate with altitude, the tall height model, `BiomeTable`, `world.json` and `biomes.json` with schemas and validators | B00 | L | Sonnet 5.5, high | in progress |
 | B02 | `tools/Vocaterra.WorldPreview`: PNG maps and vertical slices of biomes and heights for three seeds (the owner reviews the maps before tuning) | B01 | S/M | Sonnet 5.5, medium | planned |
 | B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to -64 | B01 | L | Sonnet 5.5, high | planned |
-| B04a | Sparse `VoxelGrid` in both modes, the y range from data, coordinate APIs and residency events; Core consumers keyed by coordinate (byte-identical) | B00 | L | Sonnet 5.5, high | planned |
+| B03b | A procedural sample in the game for pictures (`--world sample`, a bounded box with no valley) and a 3D picture set of each biome for 3 seeds (the owner reviews the pictures) | B03 | S/M | Sonnet 5.5, medium | planned |
+| B04a | Sparse `VoxelGrid` in both modes, the y range from data, coordinate APIs and residency events; Core consumers keyed by coordinate (byte-identical) | B00 | L | Sonnet 5.5, high | in progress |
 | B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index (identical pictures) | B04a | M | Sonnet 5.5, medium | planned |
 | B05 | Saves version 9 and the changed-chunk state digest | B04a | M | Sonnet 5.5, medium | planned |
 | B06 | `WorldFactory`, the regions and `CompositeChunkSource`, streamed mode with generate-on-read, `ChunkStreamer`, `WorldQuery` as `IPlaceInfo`; the game stays bounded | B03, B05 | L | Sonnet 5.5, high | planned |
-| B07 | The game streams the tall world by default (`--world valley` keeps the old valley); budgeted generation, residency and eviction, far plane and fog, and a performance gate on the VM (the owner reviews the pictures) | B06 | L | Sonnet 5.5, high | planned |
-| B08 | The pass through the east ring and the road out of the valley, closed until the lessons are complete or a cheat setting opens it | B06 (`feature/settlement` merged in PR #65) | M | Sonnet 5.5, medium | planned |
+| B07 | The game streams the tall world by default (`--world valley` keeps the old valley); budgeted generation, residency and eviction, far plane and fog, the valley's edge kept as a wall while the pass is locked, and a performance gate on the VM (the owner reviews the pictures) | B06, B08b | L | Sonnet 5.5, high | planned |
+| B08a | The pass through the east ring in the bounded valley: the relief, the road to the east edge, the `paso` site and the rockfall | B00 | S/M | Sonnet 5.5, medium | in progress |
+| B08b | The pass's lock: the required lessons in `world.json`, the unlock rule, a cheat setting, the rockfall removed when the pass opens (the owner reviews the pass) | B01, B08a | S/M | Sonnet 5.5, medium | planned |
 | B09 | Widen block kinds from 64 to 128 bits: `KindMask`, the mesher's masks, `WorldFacts` masks, the tracker | B04b | M | Sonnet 5.5, medium | planned |
 | B10 | The underground blocks: slate, granite, limestone, gravel, lava, bedrock, and iron, tin and copper ore (none gatherable, no items or nouns) | B09 | M | Sonnet 5.5, medium | planned |
 | B11 | The underground generation configured by `underground.json`: strata, ores, caves on a 3D lattice, entrances, lava level, the bedrock floor, with its tests | B03, B10 | L | Sonnet 5.5, high | planned |
 | B12 | The underground in play: darkening by depth, lava light, a light index for torches, the near zone underground, a scripted cave tour and a VM check (the owner reviews the pictures) | B07, B11 | M/L | Sonnet 5.5, high | planned |
-| B13 | The valley's underground: strata, ores and caves in the valley's stone, away from sites, paths, water and the village (the owner reviews the valley golden) | B08, B11 | M | Sonnet 5.5, medium | planned |
+| B13 | The valley's underground: strata, ores and caves in the valley's stone, away from sites, paths, water and the village (the owner reviews the valley golden) | B08b, B11 | M | Sonnet 5.5, medium | planned |
 | B14 | Integration: ambient sound by biome and underground, water and edge checks over three seeds, the cloud layer's height as data, a scripted tour, the documents | B12, B13 | M | Sonnet 5.5, medium | planned |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | B06 | L | Sonnet 5.5, high | planned |
+| B16 | Regions that can grow, shrink and multiply: regions declared in `world.json`, relief cells left to the generated ground, rivers and lakes as lists, the valley's trees per chunk (last in the series) | B14, B15 | L | Sonnet 5.5, high | planned |
 
-The build order is the plan's section 4 "Order" (B01 and B04a; B03 and B04b; B02 and B05; B06 and B09; B07 and B10; B08 and B11; B12 and B13; B14; B15), with at most two building agents at a time. The owner reviews at four stops: B02 (the maps, before tuning), B07 (the performance gate and the pictures), B08 (the pass) and B13 (caves and ores in the valley).
+The build order is the plan's section 4 "Order": each milestone starts once its dependencies are gated, up to three building agents at a time (owner, 2026-11-15), the critical path first. The owner reviews at four stops, and only the work that depends on a stop waits for it: B02 (the maps, before tuning), B07 (the performance gate and the pictures), B08b (the pass) and B13 (caves and ores in the valley).
 
 ## 5. Findings log
 

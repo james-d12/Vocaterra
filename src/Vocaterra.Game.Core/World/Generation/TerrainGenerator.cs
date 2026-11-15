@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Noise;
 
 namespace Vocaterra.Game.Core.World.Generation;
 
@@ -191,27 +192,8 @@ internal static class TerrainGenerator
             return IntMath.CatmullRom(column[0], column[1], column[2], column[3], tz);
         }
 
-        // Stepped faces: above the foothills the ground climbs in flat shelves of Terrace blocks joined by short risers, so a steep slope becomes a stepped cliff.
-        private int Terrace(int h16)
-        {
-            if (_spec.Terrace <= 1)
-            {
-                return h16;
-            }
-
-            var step = _spec.Terrace * 16;
-            var strength = IntMath.Ramp(h16, 64 * 16, 90 * 16);
-            if (strength == 0)
-            {
-                return h16;
-            }
-
-            var baseLevel = h16 / step * step;
-            var f = (h16 - baseLevel) * IntMath.One / step;
-            var g = IntMath.Ramp(f, 1500, 2700);
-            var stepped = baseLevel + (int)((long)g * step / IntMath.One);
-            return IntMath.Lerp(h16, stepped, strength);
-        }
+        // Stepped faces: above the foothills the ground climbs in flat shelves of Terrace blocks joined by short risers (the shared Terracing helper).
+        private int Terrace(int h16) => Terracing.Apply(h16, _spec.Terrace, 64 * 16, 90 * 16);
 
         // ---------------------------------------------------------------- the waterfall
 

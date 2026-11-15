@@ -741,7 +741,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
    A1 lesson may use it too. The other three words follow the same rule unless the owner says otherwise.
 6. **(f) The innkeeper's voice:** "pf_dora, provisional". A woman's voice, the nearest to native Spanish of the three unused
    ones, and probably close to Luna's. Recorded with it now; the owner listens afterwards and may change it (the rule of
-   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree.
+   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree (moved to `artifacts/settlement/voice-trial/innkeeper/` of the main checkout on 2026-11-15, when that worktree was removed).
 7. **(g) A third building agent:** "Launch Y01 now". The weather session held both of the machine's two building agents, so
    Y01 was launched as a third: one agent of this series beside the weather session's two, with every heavy command still
    queued through `scripts/limited.sh`. The answer was given for Y01.
@@ -786,6 +786,24 @@ the owner's answers of 2026-11-15 are in its section 5.
    ores are not gatherable; the ores have no items and no nouns in this series, so the question of «estaño» at the A2 ceiling does not
    arise yet. Bedrock stays unbreakable for when digging comes.
 9. **Lava:** blocks the body and glows; it does no harm and the needs model does not change.
+10. **Parallel work** (2026-11-15): "Let's try to do as much in parallel as we can". Asked how many building agents, the owner chose
+    "Up to three" for the B series (from four, three or two); `scripts/limited.sh` is unchanged, so at most two heavy commands still run
+    at once within its caps. The orchestrator split B08 into B08a (the pass, which needs nothing new) and B08b (its lock, after B01), and
+    moved the edge wall to B07.
+11. **Review stops** (2026-11-15): at B02, B07, B08b and B13 only the work that depends on the review waits for the owner ("Hold only
+    what depends on it"); independent milestones keep building.
+12. **Pictures** (2026-11-15): "Make sure to get the agents to provide screenshots at important parts so that I can review the biomes and
+    how they look and what's being generated." Every B milestone that changes what is generated or drawn leaves screenshots or maps for
+    the owner (the plan's section 4, "Pictures for the owner"); B03b adds a procedural sample to the game so the biomes can be seen in
+    3D before the streamed world.
+13. **Data and code** (2026-11-15): "The data should just be for basic stuff like, you know, the types of biomes, but the biome generation
+    code might be different. Like the deserts, we might have to have custom code ... I'm not expecting that stuff to be in the data."
+    Data holds biome types and parameters; biome-specific generation is code, named by a biome row as a strategy (the plan's section 3.2,
+    "Data, not code").
+14. **Regions that can change** (2026-11-15): "In the future, that custom area might expand in size, shrink in size, and there might be
+    more custom areas added ... if I want to make that starting area twice as big, I shouldn't have to change much." Of the four changes
+    proposed, the owner chose all four, as one milestone at the end: "add the 4 regions, but add them to the end of the milestones ...
+    It's not important at the moment." B16, after B14 and B15.
 
 ## Already decided
 

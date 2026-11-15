@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Noise;
 
 namespace Vocaterra.Game.Core.World.Generation;
 

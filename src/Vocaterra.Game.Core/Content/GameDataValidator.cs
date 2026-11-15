@@ -15,6 +15,8 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
@@ -86,6 +88,8 @@ public static class GameDataValidator
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
+        problems.AddRange(WorldGenValidator.Validate(data.WorldGen)); // B01: the vertical range, the climate noise, the height splines, the thresholds
+        problems.AddRange(BiomeValidator.Validate(data.Biomes, data.WorldGen)); // B01: the biome rows, their blocks and tree species, the catch-all
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);

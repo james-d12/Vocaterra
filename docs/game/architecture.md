@@ -157,7 +157,7 @@ Voxel/            the blocks, the chunks and the grid, the block ray and the lin
                   air, a read cache; a bounded grid (the valley, the tests) or a streamed one (WorldLimits, y may be negative, IChunkGenerator generates on
                   read, installs and evictions are not edits: ResidencyVersion, IChunkResidencyListener). Readers take IVoxelReader; the dense members
                   (Chunks, ChunksX/Y/Z, BlocksOfKind, ComputeDigest) are bounded-only and DenseGridMembersAllowListTests lists every use in src/
-World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
+World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder; Procedural/ the height model, B01), Noise/ (integer noise, splines, lattices, B01), Climate/ (the climate fields and the lapse with altitude, B01), Biomes/ (the biome table from game/biomes.json, B01), WorldGenData (game/world.json)
 ```
 
 **`src/Vocaterra.Game`**, folders by area with feature subfolders: the window, the drawing, the devices and the layers, and the only engine
