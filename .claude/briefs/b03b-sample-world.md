@@ -3,7 +3,7 @@ You are implementing B03b, "A procedural sample in the game, and the first 3D pi
 projects; the game is Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and
 tools/Vocaterra.SpeechRender. This milestone's work is in the game: a small Core factory and a test aid in src/Vocaterra.Game's startup.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b03b, already on the local branch `B03b-sample-world` (cut from
-`feature/biomes` at @@BASE@@, which holds B01, B04a and B03). Run every command from that directory. Commit after each item that builds and
+`feature/biomes` at 439f4ec8, which holds B01, B04a and B03). Run every command from that directory. Commit after each item that builds and
 passes its tests, with the prefix `B03b: `. Do not push your branch: it stays local and the gate merges it from there. Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree you made.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, and every screenshot run through
@@ -54,7 +54,7 @@ Deliverables:
    not level, the far plane cutting peaks), say so plainly in the index and in your report; do not tune the generator.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,732 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes. Do not commit bin/, obj/ or artifacts/.
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
