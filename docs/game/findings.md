@@ -2607,3 +2607,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   needs it made one; the light index misses `FillColumn` writes made after it is built (only the scene build uses them). It conflicted
   with B05 in the dense-member allow-list; a Haiku agent merged B05 in, leaving only the three B06 entries (its reason pattern now
   also admits a `B05:` tag, harmless with no such entry and moot when B06 empties the list). Gated: 11,779 passed, 3 skipped.
+- **B08a, the pass in the bounded valley (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b08a-the-pass.md`, reports
+  `.claude/briefs/b08a-report.md` and `b08a-merge-report.md`. The relief rows could not be lowered: the terrain samples the relief at a
+  point moved by noise (up to 86 blocks), so lowering them opened a second trench to the east edge; the pass is a graded cutting
+  instead (path `pass`, 7 wide, from the village to `paso.edge` at 383, 208, y 58), with the sites `paso.gate`, `paso.rise`,
+  `paso.foot`, `paso` and `paso.edge`, closed by a stone `rockfall` stamp (a new optional prop key `floorY`). `SceneTests.GoldenDigest`
+  moved to b189ee0a6783 (trees 1,906 to 1,851). Finding: the ring is walkable almost everywhere (a step-up-1 walk reached the east edge
+  away from the pass), which led to the edge wall and the owner's "leave anywhere" (D-game-34 items 6 and 15). B05's merge exposed a
+  stale `VoxelGridDiff.Capture` call (the pristine argument B05 removed); the atmosphere digests went back to B05's values, since a
+  fresh route has no changed chunks. Gated: 11,785 passed, 3 skipped. Not yet looked at in the game (windows wait for the owner).
