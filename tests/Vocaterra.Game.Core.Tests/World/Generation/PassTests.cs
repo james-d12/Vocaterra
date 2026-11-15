@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Xunit.Abstractions;
@@ -15,6 +16,8 @@ namespace Vocaterra.Game.Core.Tests.World.Generation;
 public sealed class PassTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
+
+    private const int RockfallFloorY = 50;
 
     /// <summary>The prop id of the rockfall (<c>scene.json</c>): B08b removes its cells when the pass opens.</summary>
     internal const string RockfallProp = "rockfall";
@@ -173,5 +176,24 @@ public sealed class PassTests(ITestOutputHelper output)
         Assert.NotEmpty(eastRoad);
         Assert.Contains(eastRoad, b => b.X >= scene.Point("paso").X - 4);
         Assert.All(eastRoad, b => Assert.True(rules.IsProtected(b.X, b.Z), $"({b.X}, {b.Z}) is a road block outside the land rules' protection"));
+    }
+
+    [Fact]
+    public void Given_TheRockfallsFloorY_When_ItsColumnsAreRead_Then_EachStandsOnSolidGroundWithNoGapUnderIt()
+    {
+        var scene = TestGame.Route(Seed);
+        var cells = scene.PropCells[RockfallProp];
+
+        var columns = cells.GroupBy(static c => (c.X, c.Z)).ToList();
+        Assert.NotEmpty(columns);
+        foreach (var column in columns)
+        {
+            var ys = column.Select(static c => c.Y).Order().ToList();
+            Assert.True(scene.Grid.IsSolid(column.Key.X, ys[0] - 1, column.Key.Z), $"({column.Key.X}, {column.Key.Z}): the heap's lowest cell {ys[0]} has no ground under it");
+            Assert.Equal(ys.Count, ys[^1] - ys[0] + 1); // one unbroken stack
+        }
+
+        Assert.Equal(RockfallFloorY, VoxelTestSupport.RouteDraft.Props.Single(static p => p.Name == RockfallProp).FloorY);
+        Assert.True(cells.Min(static c => c.Y) > RockfallFloorY);
     }
 }
