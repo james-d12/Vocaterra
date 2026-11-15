@@ -28,7 +28,7 @@ Facts every session needs:
   (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; three on the B series, 2026-11-15); every heavy command (dotnet
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; one again since 2026-11-15: "only have 1 agent max", D-game-34 item 17); every heavy command (dotnet
   restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
   once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 8 GB and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.

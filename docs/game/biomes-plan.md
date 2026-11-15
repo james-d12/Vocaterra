@@ -478,7 +478,8 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
 | B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 
-**Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once): each milestone starts as soon as
+**Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
+agent max", so one at a time from then on): each milestone starts as soon as
 its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
 the work that depends on the review waits. The first waves:
 1. B01, B04a and B08a
@@ -621,3 +622,4 @@ series, `docs/game/biomes-plan.md`).*
 | B03 | done 2026-11-15 | `3b0d7ef6`: 11,732 passed, 3 skipped | `GenerationPipeline` (shapers `gen/relief`, `gen/banks`, `gen/waterside`; decorators `gen/surface`, `gen/water`, `gen/stone`, `gen/trees`, `gen/undergrowth`), `StrategyRegistry`, `ProceduralChunkSource`, `World/Streaming` (`IChunkSource`, `ChunkData`); report `.claude/briefs/b03-report.md` |
 | B05 | done 2026-11-15 | `707864aa`: 11,748 passed, 3 skipped | saves version 9 (`ChunkEdit` by chunk coordinates, no pristine copy), the changed-chunk state digest with its header; report `.claude/briefs/b05-report.md` |
 | (B02 review) | 2026-11-15: the owner reviewed B02's maps: long ranges, big seas and continents, snow only up high (D-game-34 item 16); B02b added | none (documents only) | B02b after B02's gate |
+| (stopped) | 2026-11-15, about 17:27 UTC: the owner, playing games, asked to scale down, then to keep one agent at most, then stopped the work | none | B03b, B04b's merge and B06 stopped; B02's gate stopped before its tests (feature/biomes reset to `3aae9dce`); B02, B04b and B08a reported and waiting to be gated; the handover lists the next steps |

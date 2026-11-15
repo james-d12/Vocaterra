@@ -812,6 +812,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     steep coasts, and snow lay on cold lowland. The owner chose, each from two or three options: "Long ranges" (chains hundreds of
     blocks wide with foothills, peaks 200 to 300, like Minecraft 1.18), "Big seas and continents" (connected oceans, coastal shelves,
     wide beaches, inland basins as lakes) and "Only up high" (snow on the mountains only; cold lowland stays taiga). B02b tunes to it.
+17. **One agent, then stopped** (2026-11-15, about 17:27 UTC, while playing games): "I need you to scale down resources, im playing
+    gaems right now", then "only have 1 afgent max, you can let the agents finish but going forward", then "actually im going to stop
+    the work" and "pls make sure everything is writte ndown". Item 10's three agents become one building agent at a time from now on.
+    The running agents (B03b, B04b's merge, B06 just launched) and B02's gate were stopped; their state is in the handover.
 
 ## Already decided
 

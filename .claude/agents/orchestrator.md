@@ -90,7 +90,7 @@ milestone, at most two building agents at a time.
 The desktop crashed twice on 2026-10-22 when two agents built and tested at once with no limits (16 cores, 11 GiB of RAM, 2 GiB of
 swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's within the maximum CPU and memory usage of the machine".
 
-- **At most two building agents at a time** (three on the B series, owner 2026-11-15, D-game-34 item 10), on milestones whose dependencies are met and whose code does not overlap (both may edit
+- **At most two building agents at a time** (one at a time since 2026-11-15, the owner: "only have 1 agent max", D-game-34 item 17; it was three earlier that day), on milestones whose dependencies are met and whose code does not overlap (both may edit
   `content/game-v1`: the second to merge re-runs the content loop on its merge). An agent that runs no build, test or `dotnet run` at all
   (pure reading or writing docs) may run beside them, at most three in total. Each agent's worktree takes about 3.5 GB once built: check
   the disk before launching the second.
