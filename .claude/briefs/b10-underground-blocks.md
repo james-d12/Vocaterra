@@ -3,7 +3,7 @@ Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nlp.* test an
 engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's work is in the game:
 Vocaterra.Game.Core (Voxel/ and the body's collision), the block art in Vocaterra.Game, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b10, already on the local branch `B10-underground-blocks` (cut from
-`feature/biomes` at @@BASE@@, which holds B01 to B06, B04b, B08a and B09's 128-bit kind masks). Run every command from that directory.
+`feature/biomes` at d6bacf4c, which holds B01 to B06, B04b, B08a and B09's 128-bit kind masks). Run every command from that directory.
 Commit after each item that builds and passes its tests, with the prefix `B10: `. Do not push your branch. Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean, and remove any extra worktree you made.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run through scripts/limited.sh (for
@@ -54,7 +54,7 @@ Deliverables:
 5. Documents: docs/game/ where blocks are listed (if a block list exists) and the Game.Core README's voxel section.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,885 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; scripts/limited.sh scripts/content.sh validate passes; `SceneTests.GoldenDigest` unchanged. Do not commit bin/,
 obj/ or artifacts/.
 Commit messages end with
