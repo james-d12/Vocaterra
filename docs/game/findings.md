@@ -2638,3 +2638,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **This machine renders on an NVIDIA RTX 3070 (seen 2026-11-15).** The biomes plan's "software-GL VM" (llvmpipe, findings of S2 and
   later) is out of date; B07's and B12's frame-rate measurements run on this GPU (B07's target: 60 fps at High with the far view at
   16 km, D-game-34 item 21).
+- **B08b, the pass's lock (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b08b-pass-lock.md`, report
+  `.claude/briefs/b08b-report.md`. A `pass` section in world.json lists all 12 lessons; `PassState` opens once (lessons done or the
+  cheat setting "Open the pass (cheat)" under a new "Cheats" heading) and stays open through saves; the rockfall's cells become air
+  as changed chunks; `--pass open` for runs; B07 reads `session.Pass.IsOpen`. `LessonRunner.Classes.cs` still names two lesson ids
+  for the old-save split (the new no-lesson-id test skips it and says so). Its first gate failed on the core's known «porque» fuzz
+  bug at a random seed (`RecastLoopFuzzTests`, seed `7PcP-w7xauk1`, replayed; B08b touched no core input; recorded in the core
+  findings and open items); the re-run passed: 11,901 passed, 3 skipped. Not yet seen in the game (pictures wait for windows).
