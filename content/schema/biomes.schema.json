@@ -49,6 +49,8 @@
           "fillerDepth": { "type": "integer", "minimum": 0, "maximum": 16 },
           "underwater": { "type": "string", "description": "The block name of the top layer under water, when it differs from top." },
           "snowCap": { "type": "boolean", "description": "Snow covers the ground where the surface temperature is below the snow threshold of world.json." },
+          "surfaceStrategy": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "The name of the code strategy that shapes this biome's own ground (never a biome id); plain when absent. It fades out at the biome's border." },
+          "decorStrategy": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "The name of the code strategy that dresses this biome's ground with plants; undergrowth (the decor blocks, sown by noise) when absent." },
           "baseTemperature": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "An optional base temperature in thousandths, for the temperature system to come." },
           "trees": {
             "type": "object",

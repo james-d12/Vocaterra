@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.World.Biomes;
@@ -16,10 +17,12 @@ internal static partial class BiomeValidator
     /// <summary>Every problem of the biomes, in a fixed order; empty when the values hold together.</summary>
     /// <param name="biomes">The biomes.</param>
     /// <param name="world">The world's numbers (the heights the rows may name).</param>
-    public static IReadOnlyList<string> Validate(BiomeData biomes, WorldGenData world)
+    /// <param name="strategies">The code strategies the rows may name; <see cref="StrategyRegistry.Default"/> when <see langword="null"/>.</param>
+    public static IReadOnlyList<string> Validate(BiomeData biomes, WorldGenData world, StrategyRegistry? strategies = null)
     {
         ArgumentNullException.ThrowIfNull(biomes);
         ArgumentNullException.ThrowIfNull(world);
+        strategies ??= StrategyRegistry.Default;
         var problems = new List<string>();
         if (biomes.Rows.Count == 0)
         {
@@ -45,7 +48,7 @@ internal static partial class BiomeValidator
                 problems.Add($"{File}: the id '{row.Id}' is used twice.");
             }
 
-            CheckRow(row, world, problems);
+            CheckRow(row, world, strategies, problems);
         }
 
         if (!biomes.Rows[^1].When.IsNone)
@@ -56,7 +59,7 @@ internal static partial class BiomeValidator
         return problems;
     }
 
-    private static void CheckRow(BiomeRow row, WorldGenData world, List<string> problems)
+    private static void CheckRow(BiomeRow row, WorldGenData world, StrategyRegistry strategies, List<string> problems)
     {
         var w = row.When;
         Range(problems, row, "continentalness", w.Continentalness, -1000, 1000);
@@ -85,11 +88,21 @@ internal static partial class BiomeValidator
             problems.Add($"{File}: the baseTemperature of '{row.Id}' must be from -1000 to 1000 (it is {baseTemperature}).");
         }
 
-        CheckTrees(row, problems);
+        CheckStrategy(problems, row, "surfaceStrategy", row.SurfaceStrategy, strategies.SurfaceNames);
+        CheckStrategy(problems, row, "decorStrategy", row.DecorStrategy, strategies.DecorationNames);
+        CheckTrees(row, strategies, problems);
         CheckDecor(row, problems);
     }
 
-    private static void CheckTrees(BiomeRow row, List<string> problems)
+    private static void CheckStrategy(List<string> problems, BiomeRow row, string part, string name, IReadOnlyList<string> known)
+    {
+        if (!known.Contains(name, StringComparer.Ordinal))
+        {
+            problems.Add($"{File}: '{row.Id}' names the unknown {part} '{name}' (the code knows {string.Join(", ", known)}).");
+        }
+    }
+
+    private static void CheckTrees(BiomeRow row, StrategyRegistry strategies, List<string> problems)
     {
         var trees = row.Trees;
         if (trees.Density < 0 || trees.Density > 100)
@@ -105,14 +118,14 @@ internal static partial class BiomeValidator
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var tree in trees.Species)
         {
-            if (!TreeStrategies.Species.Contains(tree.Species, StringComparer.Ordinal))
+            if (strategies.Species(tree.Species) is null)
             {
-                problems.Add($"{File}: '{row.Id}' names the unknown tree species '{tree.Species}' (the code knows {string.Join(", ", TreeStrategies.Species)}).");
+                problems.Add($"{File}: '{row.Id}' names the unknown tree species '{tree.Species}' (the code knows {string.Join(", ", strategies.SpeciesNames)}).");
             }
 
-            if (tree.Crown is not null && !TreeStrategies.Crowns.Contains(tree.Crown, StringComparer.Ordinal))
+            if (tree.Crown is not null && strategies.Crown(tree.Crown) is null)
             {
-                problems.Add($"{File}: '{row.Id}' names the unknown crown '{tree.Crown}' (the code knows {string.Join(", ", TreeStrategies.Crowns)}).");
+                problems.Add($"{File}: '{row.Id}' names the unknown crown '{tree.Crown}' (the code knows {string.Join(", ", strategies.CrownNames)}).");
             }
 
             if (tree.Weight <= 0)
