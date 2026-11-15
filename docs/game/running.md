@@ -403,3 +403,8 @@ bash scripts/playtest-report.sh ~/.local/share/vocaterra/sessions/<folder> [<fol
 
 The report (`scripts/playtest-report.sh`) prints each folder's profile and arm as well as the gates' evidence. The folder is private: the
 speech WAVs are model output and the native code it runs is under core D2 (see the licence section).
+
+## The world preview (B02)
+
+`tools/Vocaterra.WorldPreview` draws the procedural world's climate, height and biome model as PNG pictures, so the maps can be looked at before any tuning (it only reads; README in its folder):
+`scripts/limited.sh dotnet run --project tools/Vocaterra.WorldPreview -- maps --seed 42 --size 16384 --scale 16 --out artifacts/b-series/b02` writes a biome map (with a legend text file of each biome's colour and share) and a hill-shaded height map; `biomes`, `heights` and `slice` (a vertical section between two points, y -64 to 320) draw one each.
