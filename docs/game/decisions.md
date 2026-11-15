@@ -825,6 +825,11 @@ the owner's answers of 2026-11-15 are in its section 5.
 19. **Up to four agents** (2026-11-15, about 21:45 UTC): "you can have up to 4 agents now". Item 17's one agent becomes up to four
     building agents at once; heavy commands go back to `scripts/limited.sh`'s two machine-wide slots. No game windows still waits for
     the owner's word that he has finished playing.
+20. **B02b held for a second round; sea about 35 to 45%** (2026-11-15, about 22:20 UTC, on B02b's maps: 60 to 65% sea in islands of
+    2,000 to 5,000 blocks, flat snow plateaus for mountains, the valley on a low coastal dome ringed by beach and puddles): "Hold B02b,
+    redo it" (over merging it with a follow-up, or keeping it) and "About 35 to 45%" sea (over 50% or keeping 60 to 65%). The redo
+    also asks for ranges of peaks, land rising inland round the valley, no puddled beach flats and rivers from the mountains
+    (`.claude/briefs/b02b-redo.md`).
 
 ## Already decided
 
