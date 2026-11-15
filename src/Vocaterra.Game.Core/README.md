@@ -482,6 +482,16 @@ Shared with the rest of the game: `WorldRng` (in `Mathematics/`, the scene's tre
 
 A set of block kinds is one `UInt128` (`BlockKinds`, `Voxel/BlockKinds.cs`): bit `n` stands for the `BlockId` of value `n`, so ids 0 to 127 work (`BlockKinds.Capacity`; it was a `ulong` and 64 until B09). The same type is used everywhere a set of kinds is held: `VoxelChunk.KindMask` (computed lazily after an edit and cached), `VoxelGrid.BlocksOfKind` and `Scene.CurrentBlocksOfKind`, `TemplateBlockIndex`, the `chunkKinds` callback and the noun masks of `WorldFacts`, `WordColours.GreyKinds` and `GreyscaleWorld`, and in `Vocaterra.Game` the mesher's grey and not-opaque masks, `ChunkMeshes.Kinds`, the light index's light kinds and the tracker's grey set. A loop that collects the kinds of 4 096 blocks uses `BlockKinds.Accumulator` (two `ulong` halves: no `UInt128` operator call per block, which a Debug build makes slow). `KindMaskWidthTests` fails when the id table outgrows the mask and puts ids above 63 through the mask users. The chunk object grew from 88 to 96 bytes (the field is 16 bytes, aligned); the valley's meshing and light index times did not change.
 
+### The underground blocks (B10)
+
+Nine blocks are appended after the counter (`BlockId` 57 to 65): `Slate`, `Granite`, `Limestone`, `Gravel`, `Lava`, `Bedrock`, `IronOre`, `TinOre`, `CopperOre`. Nothing places them yet (B11 generates them), so the valley and its digest are unchanged. Rock, gravel and the ores are solid and not gatherable (no drop, no item, no noun). Three new `BlockDefinition` flags carry the rest:
+
+- `StopsBody` (lava): the block is not `Solid` (sight and the block ray treat it as a fluid) but `VoxelGrid.BlocksBody` is true for it (and so are `SleepWalk`'s and the mesher's copies of the rule), so a body is stopped at its side and lands on its top like on a solid block. It does no harm. Standing on its surface is therefore possible; `CanStandOn` is false for navigation.
+- `Glows` (lantern, post torch, lava): the light kinds. `ChunkLightIndex` builds its mask and test from `BlockDefinition.IsLight`, so lava lights the faces around it like a lantern. The cube is drawn with its own tile.
+- `Indestructible` (bedrock): `VoxelChunk.Set` and `VoxelChunk.FillColumn`, the one place every edit goes through (gather, placement, the camp's removal, the chest, `FillColumn`), refuse to change a bedrock cell. A chunk's install (generation) is the only writer.
+
+The tiles are drawn in code (`BlockArtNature`), grey copies as for every cell. `UndergroundBlockTests` and `UndergroundBlockMeshTests` cover them.
+
 ### Coordinates, units, angles
 
 - **Axes:** x east, y up, z south, so row 0 of a top-down map is the north edge. Block (x, y, z) fills the cube from (x, y, z) to (x + 1, y + 1, z + 1).
