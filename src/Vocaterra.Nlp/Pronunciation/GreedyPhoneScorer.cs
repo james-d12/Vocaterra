@@ -1,5 +1,6 @@
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Pronunciation;
@@ -15,11 +16,15 @@ public sealed class GreedyPhoneScorer
     private const double InsertionPenalty = 0.5;
 
     private readonly PronunciationThresholds thresholds;
+    private readonly ErrorTagSet errorTags;
 
     /// <summary>Creates a scorer; thresholds default to <see cref="PronunciationThresholds.Default"/>.</summary>
-    public GreedyPhoneScorer(PronunciationThresholds? thresholds = null)
+    /// <param name="thresholds">The thresholds, or null for the default.</param>
+    /// <param name="errorTags">The error tag set whose rank orders tags at the same place (a pack's <c>ErrorTags</c>, M87); null means <see cref="ErrorTagSet.V1"/>.</param>
+    public GreedyPhoneScorer(PronunciationThresholds? thresholds = null, ErrorTagSet? errorTags = null)
     {
         this.thresholds = thresholds ?? PronunciationThresholds.Default;
+        this.errorTags = errorTags ?? ErrorTagSet.V1;
     }
 
     /// <summary>
@@ -49,7 +54,7 @@ public sealed class GreedyPhoneScorer
             }
         }
 
-        return ResultAssembler.Assemble(best!, predictedErrors, difficulty, thresholds, ScoreMath.FrameConfidence(posteriors), modelHash);
+        return ResultAssembler.Assemble(best!, predictedErrors, difficulty, thresholds, ScoreMath.FrameConfidence(posteriors), modelHash, errorTags);
     }
 
     /// <summary>Aligns a hypothesis to one variant and derives the discrete per-phone observations.</summary>

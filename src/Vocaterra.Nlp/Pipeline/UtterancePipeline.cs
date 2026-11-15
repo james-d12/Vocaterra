@@ -66,7 +66,7 @@ public sealed partial class UtterancePipeline
         _analyzer = new LinguisticAnalyzer(content.Lexicon, content.LanguageMorphology, content.Language, content.AnalysisRules);
         _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings, null, content.AnalysisRules);
         _planner = new ResponsePlanner(content.TemplateEngine);
-        _scorer = new PronunciationScorer();
+        _scorer = new PronunciationScorer(errorTags: content.Language.ErrorTags);
         _catalogWithSilence = WithSilentPool(content.Dialogue);
     }
 

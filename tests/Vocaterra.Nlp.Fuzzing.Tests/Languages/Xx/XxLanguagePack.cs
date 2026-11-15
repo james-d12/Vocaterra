@@ -88,6 +88,9 @@ public sealed class XxLanguagePack : ILanguagePack
         tenses: [],
         moods: []);
 
+    /// <inheritdoc />
+    public IOrthographyNotes Orthography { get; } = new XxOrthographyNotes();
+
     /// <summary>The toy language's own tags, in rank order. None of them is a Spanish tag.</summary>
     public ErrorTagSet ErrorTags { get; } = new(["vocab.unknown", "vocab.wrong", "xx.word_order"]);
 
@@ -253,6 +256,12 @@ public sealed class XxLanguagePack : ILanguagePack
             ArgumentNullException.ThrowIfNull(text);
             return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         }
+    }
+
+    /// <summary>The toy language has no accent, so its note is the accented form alone.</summary>
+    private sealed class XxOrthographyNotes : IOrthographyNotes
+    {
+        public string Describe(AccentNote note) => note.Accented;
     }
 
     /// <summary>The toy language restores no accents, so a recast keeps the words as they are.</summary>

@@ -5,8 +5,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Nlp.Es;
-using Vocaterra.Nlp.Es.Morphology;
+using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.Core.Language.Book;
 
@@ -41,7 +40,7 @@ public static class BookPages
         return page switch
         {
             BookPage.Nouns => Nouns(session.Locale, session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, session.Data.Words.Unseen, recordings),
-            BookPage.Verbs => Verbs(session.Locale, session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
+            BookPage.Verbs => Verbs(session.Locale, session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.LanguageMorphology),
             BookPage.Phrases => Phrases(session.Locale, PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit, session.Locale), recordings, ReviewLine(session)),
             BookPage.Lessons => Lessons(session.Locale, session.Lessons.Record, session.Phrases, recordings, Waits(session.Lessons)),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.Locale, session.Lessons.Record),
@@ -85,7 +84,7 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(lemma);
         var row = session.Learner.Verbs.FirstOrDefault(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma), session.Data.Words);
+        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.LanguageMorphology, session.Glosses.ForLemma(lemma), session.Data.Words);
     }
 
     /// <summary>
@@ -268,7 +267,7 @@ public static class BookPages
     /// <param name="glosses">The verbs' English.</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
     /// <param name="morphology">The bundle's morphology: an imperative reading that is an indicative present is labelled as that present (<see cref="VerbReading"/>).</param>
-    public static IReadOnlyList<BookLine> Verbs(LocaleText ui, IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet, MorphologyGenerator morphology)
+    public static IReadOnlyList<BookLine> Verbs(LocaleText ui, IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet, IMorphology morphology)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(learnerVerbs);

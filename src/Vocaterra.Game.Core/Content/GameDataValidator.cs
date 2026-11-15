@@ -16,7 +16,6 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
-using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Response.Templates;
@@ -113,7 +112,7 @@ public static class GameDataValidator
 
         // An orphan is a string the locale holds that no content or code asks for: a renamed id leaves one behind.
         var allowed = new HashSet<string>(required, StringComparer.Ordinal);
-        allowed.UnionWith(ErrorTags.All.Select(static tag => "feedback.error." + tag));
+        allowed.UnionWith(data.Bundle.Language.ErrorTags.All.Select(static tag => "feedback.error." + tag));
         allowed.UnionWith(data.Nouns.Nouns.Select(static noun => "noun." + noun.Lemma));
         allowed.UnionWith(data.Phrases.Rows.SelectMany(static row => new[] { PhraseSheet.LocaleId(row.Id, "meaning"), PhraseSheet.LocaleId(row.Id, "card") }));
         allowed.UnionWith(data.Tips.Select(static tip => "tip." + tip.Id));

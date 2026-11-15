@@ -21,7 +21,8 @@ internal static class PredictedErrorMatcher
         VariantEvidence evidence,
         IReadOnlyList<PredictedErrorVariant> predicted,
         Difficulty difficulty,
-        PronunciationThresholds thresholds)
+        PronunciationThresholds thresholds,
+        ErrorTagSet errorTags)
     {
         var reference = evidence.Variant.Phones;
         var tags = new List<ErrorTag>();
@@ -50,7 +51,7 @@ internal static class PredictedErrorMatcher
             .Distinct()
             .OrderBy(static tag => tag.Span.Start)
             .ThenBy(static tag => tag.Span.Length)
-            .ThenBy(static tag => TaxonomyOrder(tag.Tag))
+            .ThenBy(tag => errorTags.Rank(tag.Tag))
             .ThenBy(static tag => tag.Expected, StringComparer.Ordinal)
             .ThenBy(static tag => tag.Actual, StringComparer.Ordinal)
             .ToList()
@@ -102,19 +103,6 @@ internal static class PredictedErrorMatcher
         }
 
         return null;
-    }
-
-    private static int TaxonomyOrder(string tag)
-    {
-        for (var i = 0; i < ErrorTags.All.Count; i++)
-        {
-            if (string.Equals(ErrorTags.All[i], tag, StringComparison.Ordinal))
-            {
-                return i;
-            }
-        }
-
-        return ErrorTags.All.Count;
     }
 
     private static int CountReferencePhonesBefore(PhoneAlignment alignment, AlignmentStep target)

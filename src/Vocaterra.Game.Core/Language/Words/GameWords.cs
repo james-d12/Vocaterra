@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Nlp.Content;
 
@@ -64,10 +65,38 @@ public sealed record NearFutureWords(string Verb, string Joiner, IReadOnlyList<s
     }
 }
 
+/// <summary>The address pronouns by role (T02b): <c>tú</c> to a friend, <c>usted</c> to an elder, <c>ustedes</c> to more than one listener.</summary>
+/// <param name="Informal">The informal address (<c>tú</c>).</param>
+/// <param name="Formal">The formal address (<c>usted</c>).</param>
+/// <param name="Plural">The plural address (<c>ustedes</c>).</param>
+public sealed record AddressPronounWords(string Informal, string Formal, string Plural)
+{
+    /// <summary>The three pronouns, in that order.</summary>
+    public IReadOnlyList<string> All { get; } = [Informal, Formal, Plural];
+}
+
+/// <summary>
+/// The matching lists of <c>game/words.json</c> (T02b): the words a learner's line is read by, which the NPCs' code used to hold as literals. Each list keeps the
+/// order and the spelling the file gives; the greetings are phrases (<c>buenos días</c>), split and folded to plain words where they are matched.
+/// </summary>
+/// <param name="GreetingOpenings">The greetings a line may open with (<c>hola</c>, <c>buenos días</c>).</param>
+/// <param name="AddressPronouns">The address pronouns by role.</param>
+/// <param name="NameDeterminers">The words before a name that make it a common noun (<c>la</c>, <c>el</c>).</param>
+/// <param name="VocativeBinders">The words before a trailing name that make it a noun of the sentence (<c>de</c>, <c>con</c>).</param>
+/// <param name="VocativeJoiners">The words after a leading name that join it to another noun (<c>y</c>, <c>o</c>).</param>
+/// <param name="QuantityArticles">The indefinite articles that count one item when the line names no number (<c>un</c>, <c>una</c>).</param>
+public sealed record MatchingWords(
+    IReadOnlyList<string> GreetingOpenings,
+    AddressPronounWords AddressPronouns,
+    IReadOnlyList<string> NameDeterminers,
+    IReadOnlyList<string> VocativeBinders,
+    IReadOnlyList<string> VocativeJoiners,
+    IReadOnlyList<string> QuantityArticles);
+
 /// <summary>
 /// The target-language words the game itself uses (content-plan 3.3, C05), read from <c>game/words.json</c>: the guide's directions, the block unit and the
 /// list joiner, the speech buttons and the support headings, the pronouns of the conjugation tables, the help and "no sé" lines, the near future, the
-/// greeting, the letters the typing help lists, and the nouns the world's logic is about. They were constants in the code; here the grammar check sees
+/// greeting, the Alt-key map of the typing help, and the nouns the world's logic is about. They were constants in the code; here the grammar check sees
 /// them, and a later target language needs no code change for them. The key words an NPC shows first left this file for the NPC's own (schema 2,
 /// <see cref="Npc.NpcEntry.KeyWords"/>). Plain values; no clock.
 /// </summary>
@@ -94,10 +123,11 @@ public sealed class GameWords
         NearFutureWords nearFuture,
         ObligationWords obligation,
         string greeting,
-        string letters,
+        TypingMap typing,
         IReadOnlyDictionary<string, string> nouns,
         ClassAnswers classes,
-        IReadOnlyDictionary<string, string> hudLines)
+        IReadOnlyDictionary<string, string> hudLines,
+        MatchingWords matching)
     {
         Directions = directions;
         BlockUnit = blockUnit;
@@ -112,11 +142,18 @@ public sealed class GameWords
         NearFuture = nearFuture;
         Obligation = obligation;
         Greeting = greeting;
-        Letters = letters;
+        Typing = typing;
         _nouns = nouns;
         Classes = classes;
         _hudLines = hudLines;
+        Matching = matching;
     }
+
+    /// <summary>
+    /// The words the game recognises in a learner's line (T02b): the greetings it may open with, the address pronouns, the words before and after a name, and the
+    /// indefinite articles that count one. They are matched, never said, so the grammar check does not read them (<see cref="MatchingEntries"/> is the guard's list).
+    /// </summary>
+    public MatchingWords Matching { get; }
 
     /// <summary>The lines a player answers a teacher's offer of a class with, and asks for one with (L01).</summary>
     public ClassAnswers Classes { get; }
@@ -157,8 +194,8 @@ public sealed class GameWords
     /// <summary>The greeting the mic check asks for and the worker warms up with (<c>hola</c>; also the hello phrase's id).</summary>
     public string Greeting { get; }
 
-    /// <summary>The letters the typing help lists (<c>á é í ó ú ñ ¿ ¡</c>), as the hints write them.</summary>
-    public string Letters { get; }
+    /// <summary>The Alt-key map of the typing help (<c>game/words.json</c>, <c>typing</c>): the hints list it, and the text boxes type with it (G5).</summary>
+    public TypingMap Typing { get; }
 
     /// <summary>The subject pronoun the conjugation table writes for a person and number (<c>1sg</c> gives <c>yo</c>), or <see langword="null"/>.</summary>
     /// <param name="person">The person, 1 to 3.</param>
@@ -236,10 +273,17 @@ public sealed class GameWords
                 new NearFutureWords(Text(nearFuture, "verb"), Text(nearFuture, "joiner"), Texts(nearFuture, "timeWords")),
                 new ObligationWords(Text(obligation, "verb"), Text(obligation, "joiner")),
                 Text(root, "greeting"),
-                Text(root, "letters"),
+                ParseTyping(root),
                 nouns,
                 new ClassAnswers(Texts(root.GetProperty("classAnswers"), "yes"), Texts(root.GetProperty("classAnswers"), "no"), Texts(root.GetProperty("classAnswers"), "ask")),
-                OptionalMap(root, "hudLines"));
+                OptionalMap(root, "hudLines"),
+                new MatchingWords(
+                    Texts(root, "greetingOpenings"),
+                    ParseAddressPronouns(root.GetProperty("addressPronouns")),
+                    Texts(root, "nameDeterminers"),
+                    Texts(root, "vocativeBinders"),
+                    Texts(root, "vocativeJoiners"),
+                    Texts(root, "quantityArticles")));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
@@ -263,6 +307,22 @@ public sealed class GameWords
         all.AddRange(NearFuture.TimeWords.Select((word, i) => ("nearFuture.timeWords[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", word)));
         all.AddRange(NounRoles.Select(role => ("nouns." + role, _nouns[role])));
         all.AddRange(_hudLines.OrderBy(static pair => pair.Key, StringComparer.Ordinal).Select(static pair => ("hudLines." + pair.Key, pair.Value)));
+        return all;
+    }
+
+    /// <summary>
+    /// Every word of the matching lists (<see cref="Matching"/>), by a path inside the file, for the Spanish-literal guard (T02b). The grammar check does not read
+    /// them (<see cref="All"/> is its list).
+    /// </summary>
+    public IReadOnlyList<(string Path, string Text)> MatchingEntries()
+    {
+        var all = new List<(string, string)>();
+        all.AddRange(Matching.GreetingOpenings.Select((text, i) => ("greetingOpenings[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
+        all.AddRange(Matching.AddressPronouns.All.Select((text, i) => ("addressPronouns[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
+        all.AddRange(Matching.NameDeterminers.Select((text, i) => ("nameDeterminers[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
+        all.AddRange(Matching.VocativeBinders.Select((text, i) => ("vocativeBinders[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
+        all.AddRange(Matching.VocativeJoiners.Select((text, i) => ("vocativeJoiners[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
+        all.AddRange(Matching.QuantityArticles.Select((text, i) => ("quantityArticles[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]", text)));
         return all;
     }
 
@@ -299,6 +359,15 @@ public sealed class GameWords
             ? list
             : throw new InvalidDataException($"{RelativePath}: '{name}' must list at least one word, none empty.");
     }
+
+    private static AddressPronounWords ParseAddressPronouns(JsonElement element) =>
+        new(Text(element, "informal"), Text(element, "formal"), Text(element, "plural"));
+
+    private static TypingMap ParseTyping(JsonElement root) => new(root.GetProperty("typing").EnumerateArray().Select(static k =>
+        new TypingKey(
+            Text(k, "key")[0],
+            k.TryGetProperty("shifted", out _) ? Text(k, "shifted")[0] : (char?)null,
+            Text(k, "alt")[0])));
 
     private static string Text(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && value.GetString()!.Trim().Length > 0
