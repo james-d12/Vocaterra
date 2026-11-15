@@ -130,6 +130,12 @@ public sealed partial class NpcService
     /// <summary>The villager's agent id.</summary>
     public const string VillagerAgent = "villager";
 
+    /// <summary>The agent id of the NPC who gives the player a room (the innkeeper, Y06); she is in <see cref="LodgingState"/> once the room is given, whoever gave it (Y08).</summary>
+    public const string LodgingAgent = "innkeeper";
+
+    /// <summary>The state of <see cref="LodgingAgent"/> once the room is given: she greets with the goodnight line and no longer offers the room.</summary>
+    public const string LodgingState = "given";
+
     // The bundle's prompts the code itself names: the guide's (her opening line, the warm-up, the transfer offer's log) and the stall's question (the
     // fail-forward counts misses at it). Which prompt an NPC waits on in a state is its NPC file's (NpcEntry.Prompts); the tests name the others.
 
@@ -874,6 +880,7 @@ public sealed partial class NpcService
     {
         NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
         NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem => effect.GiftMiss(npc, slots, scene.Inventory, _nouns, scene.ClosedGifts),
+        NpcEffectKind.SellPlot => effect.PlotMiss(scene.Inventory, scene.Land),
         NpcEffectKind.GiveMissing => scene.Grant is { } grant ? grant.Miss : NpcHostEvents.NothingMissing, // W08: nothing to give with no run
         _ => null,
     };

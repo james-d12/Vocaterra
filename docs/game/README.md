@@ -17,7 +17,7 @@ The prototype is the Minecraft-inspired first-person voxel slice in [docs/game/d
 Design Brief, v1.2); its plan, milestone by milestone, is [docs/game/scenario-plan.md](scenario-plan.md). The scenario takes 10 to 15 minutes beside the
 guide's lesson (S17):
 
-- **The opening (S17).** The player wakes alone at their own camp on the cliff. English tips teach looking, walking, jumping, a note at the tent that says the
+- **The opening (S17).** The player wakes alone on the mountain ledge (bare since Y08: no tent; the first night is at the inn). English tips teach looking, walking, jumping, a note on the ledge that says the
   guide's camp is down the trail, collecting and the inventory, one at a time. The objective area says `Go down the trail and find the guide`.
 - **The guide's lesson (S17).** Luna, the guide, greets the player who walks up to her and teaches six short units (hello, yes and no, what is this, please and
   thank you, getting unstuck, what the camp needs), about eight minutes, with the English thinning as phrases are used again.
@@ -26,13 +26,13 @@ guide's lesson (S17):
   with `Sí, por favor.` or `No, gracias.`
 - **The villager and the river.** The player asks `¿Dónde está el río?`, follows the directions to the river and fills a bottle.
 - **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
-- **The ending (S17).** The complete checklist sends the player back up the trail with a spare torch; a torch on the rim of the fire ring at their own camp
-  lights it, the guide's closing line is said and shown in Spanish and English, and the post-check is offered (playtest).
+- **The ending (S17, Y07).** The complete checklist points the beacon at the inn and Luna sends the player there; a room from the innkeeper ends the session, her
+  closing line is said and shown in Spanish and English once the talk has closed, and the post-check is offered (playtest).
 
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in [running.md](running.md).
 
-**Later sessions.** A sleep at the player's own fire (V12c: [lessons.md](lessons.md), "The next session: sleep at the fire") begins the next day, a load keeps the day (V25), and each later
+**Later sessions.** A sleep at the inn's bed, Luna's fire or the player's own camp (V12c, Y08, Y12: [lessons.md](lessons.md), "The next session: sleep at the fire") begins the next day, and from day two the mayor sells land for a camp ("Day two offers land" there), a load keeps the day (V25), and each later
 session unlocks one lesson: sessions 2 and 3 at the villager and the stall (S26,
 S27), and since phase A of [docs/game/village-plan.md](village-plan.md) (D-game-22) sessions 4 to 6 in a village grown inside its own clearing, with four
 more people: the fisher Mar on the bridge's east landing (session 4, "El pueblo": places and the way to them), the baker Luz at the bakery (session 5,
@@ -89,7 +89,7 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [Lessons and sessions](lessons.md) | The English guidance, the guide's lesson, verbs and tenses, the village's sessions 4 to 10, sleeping into the next session, the summary card and the second try |
 | [The book](book.md) | The learner's book, its pages, replay, the conjugation tables |
 | [Saves](saves.md) | Saves across content updates, autosave and the crash report |
-| [Inn, land and settlement plan](settlement-plan.md) | Proposal for review: inn accommodation, the first purchased campsite, usable interiors and village/map expansion |
+| [Inn, land and settlement plan](settlement-plan.md) | The proposal (inn accommodation, the first purchased campsite, usable interiors and village/map expansion), its review, and the first slice as the Y series (section 8, D-game-32) |
 | [Sound and display](sound-and-display.md) | The audio system and sounds, UI scale and readable text |
 | [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |
 | [content/README.md](../../content/README.md) | Editing the content: the edit loop, lessons and their level |

@@ -67,7 +67,7 @@ public sealed class NpcFrontendTests
         var shipped = RouteScene.Shipped.Npcs.Ids;
 
         Assert.False(options.CheckTalkTargets(shipped, out var error));
-        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager, fisher, baker, smith, farmer), got 'miller'.", error);
+        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager, fisher, baker, smith, farmer, innkeeper), got 'miller'.", error);
 
         Assert.True(options.CheckTalkTargets([.. shipped, "miller"], out error)); // another NPC in the roster can be talked to with no code change (the fisher came so, V10)
         Assert.Empty(error);
@@ -179,7 +179,7 @@ public sealed class NpcFrontendTests
             Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal(["Pablo (Tendero)", "Tomás (Aldeano)", "Luna (Guía)"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
+        Assert.Equal(["Pablo (Tendero)", "Tomás (Alcalde)", "Luna (Guía)"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
     }
 
     [Fact]

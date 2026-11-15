@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -81,8 +82,10 @@ public static class GameDataValidator
         CheckHostActions(data, problems);
         CheckObjectives(data, problems);
         problems.AddRange(NeedsValidator.Validate(data.Needs)); // N01: every food an item, every rate positive, the stages in order
+        CheckSleepPlaces(data, problems);
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
+        problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);
@@ -290,6 +293,16 @@ public static class GameDataValidator
         if (!data.Scene.Sites.Any(site => site.Name == book.BeaconStart) && !data.Scene.Points.Any(point => point.Name == book.BeaconStart))
         {
             problems.Add($"{ObjectiveBook.SessionPath}: the beacon starts on '{book.BeaconStart}', which is not a site or a point of the scene.");
+        }
+
+        var needsInn = book.Objectives.Any(static o => o.OnComplete.Contains("point-inn", StringComparer.Ordinal));
+        if (needsInn && book.InnBeacon is null)
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: an objective names the hook 'point-inn', so the session needs an \"innBeacon\" (a place of the scene).");
+        }
+        else if (book.InnBeacon is { } inn && !data.Scene.PointNames.Contains(inn, StringComparer.Ordinal))
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: innBeacon is '{inn}', which is not a place of the scene.");
         }
     }
 
@@ -565,6 +578,11 @@ public static class GameDataValidator
                     problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' buys, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.NoneOffered)}' to answer an offer of none.");
                 }
             }
+
+            if (effect.Kind == NpcEffectKind.SellPlot && data.Bundle.Agents.TryGetValue(npc, out var seller))
+            {
+                CheckSellPlot(data, npc, hostEvent, seller, problems);
+            }
         }
 
         foreach (var lesson in data.Lessons.Lessons)
@@ -742,6 +760,54 @@ public static class GameDataValidator
                 {
                     problems.Add($"{file}: lessonStep '{stepId}' comes at or after the step of '{lesson}' that waits for the delivery, so the order could not be delivered before it is given.");
                 }
+            }
+        }
+    }
+
+    // Y11: the NPC that sells the plot answers each of the sale's misses (the worker raises them before the session changes anything: a sale the world cannot make is never said done),
+    // and offers the stake and the plot when the talk opens: its initial state takes <npc>.offer_stake into offering_stake and <npc>.offer_plot into offering_plot, each of which goes back
+    // to the initial state on <npc>.offer_gone and waits at a prompt that takes confirm and deny.
+    private static void CheckSellPlot(GameData data, string npc, string hostEvent, AgentStateMachine machine, List<string> problems)
+    {
+        var missing = new[] { NpcHostEvents.AlreadyOwned, NpcHostEvents.NoPlot, NpcHostEvents.NoStake, NpcHostEvents.CantPay, NpcHostEvents.NoRoom }
+            .Where(miss => !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, miss)));
+        foreach (var miss in missing)
+        {
+            problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' sells the plot, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, miss)}' to say why it did not.");
+        }
+
+        var definition = machine.Definition;
+        var initial = definition.States.FirstOrDefault(state => string.Equals(state.Id, definition.InitialState, StringComparison.Ordinal));
+        var file = $"{HostEventTable.RelativePath} ({npc}'s '{hostEvent}')";
+        foreach (var (offer, stateId) in new[] { (NpcHostEvents.OfferStake, NpcHostEvents.StakeOfferState), (NpcHostEvents.OfferPlot, NpcHostEvents.PlotOfferState) })
+        {
+            var offered = NpcHostEvents.Of(npc, offer);
+            if (initial is null || !initial.Transitions.Any(t => string.Equals(t.OnHostEvent, offered, StringComparison.Ordinal) && string.Equals(t.To, stateId, StringComparison.Ordinal)))
+            {
+                problems.Add($"{file}: the initial state of agents/{npc}.json does not take '{offered}' into '{stateId}'.");
+            }
+
+            if (definition.States.FirstOrDefault(state => string.Equals(state.Id, stateId, StringComparison.Ordinal)) is not { } offering)
+            {
+                problems.Add($"{file}: agents/{npc}.json has no state '{stateId}' to wait in for the answer to its offer.");
+                continue;
+            }
+
+            var gone = NpcHostEvents.Of(npc, NpcHostEvents.OfferGone);
+            if (!offering.Transitions.Any(t => string.Equals(t.OnHostEvent, gone, StringComparison.Ordinal) && string.Equals(t.To, definition.InitialState, StringComparison.Ordinal)))
+            {
+                problems.Add($"{file}: the state '{stateId}' of agents/{npc}.json does not take '{gone}' back to '{definition.InitialState}'.");
+            }
+
+            if (data.Npcs.Find(npc) is not { } entry || !entry.Prompts.TryGetValue(stateId, out var prompt) || !data.Bundle.Prompts.TryGetValue(prompt, out var spec))
+            {
+                problems.Add($"{file}: game/npcs/{npc}.json maps no bundle prompt to the state '{stateId}'.");
+                continue;
+            }
+
+            foreach (var intent in new[] { "confirm", "deny" }.Where(intent => !spec.AllowedIntentIds.Contains(intent, StringComparer.Ordinal)))
+            {
+                problems.Add($"{file}: the prompt '{prompt}' the state '{stateId}' waits at does not take the intent '{intent}'.");
             }
         }
     }
@@ -986,6 +1052,16 @@ public static class GameDataValidator
                     problems.Add(string.Create(CultureInfo.InvariantCulture, $"game/lessons.json: the lesson '{lesson.Id}' is said at '{npc}', whom the scene does not place."));
                 }
             }
+        }
+    }
+
+    // Y01: where a sleep place's point is not in the scene the session leaves the place out, so the bundle must not name one.
+    private static void CheckSleepPlaces(GameData data, List<string> problems)
+    {
+        var points = data.Scene.PointNames.ToHashSet(StringComparer.Ordinal);
+        foreach (var place in data.Needs.SleepPlaces.Where(place => !points.Contains(place.Point)))
+        {
+            problems.Add($"{NeedsData.RelativePath}: the sleep place '{place.Id}' stands at '{place.Point}', which is not a point of game/scene.json.");
         }
     }
 

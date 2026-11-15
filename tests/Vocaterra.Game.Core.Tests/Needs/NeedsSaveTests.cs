@@ -26,14 +26,14 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void TheSaveIsVersion7AndCarriesTheNeedsUnderSystems()
+    public void TheSaveIsVersion8AndCarriesTheNeedsUnderSystems()
     {
         var session = Played();
 
         var document = SaveGame.Capture(session, Pristine());
 
-        Assert.Equal(7, SaveGame.CurrentVersion);
-        Assert.Equal(7, document.Version);
+        Assert.Equal(8, SaveGame.CurrentVersion);
+        Assert.Equal(8, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }
@@ -65,10 +65,10 @@ public sealed class NeedsSaveTests
     }
 
     [Fact]
-    public void AVersion5SaveLoadsWithFullNeeds()
+    public void ASaveWithoutSystemsLoadsWithFullNeeds()
     {
         var session = Played();
-        var document = SaveGame.Capture(session, Pristine()) with { Version = 5, Systems = null };
+        var document = SaveGame.Capture(session, Pristine()) with { Systems = null };
 
         var loaded = SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine);
 
@@ -76,13 +76,11 @@ public sealed class NeedsSaveTests
         Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(SaveGame.Save(loaded, Pristine())).Version);
     }
 
-    [Theory]
-    [InlineData("save-v1.json")]
-    [InlineData("save-v4.json")]
-    public void TheOldFixturesLoadWithFullNeeds(string fixture)
+    [Fact]
+    public void TheFixtureLoadsWithItsNeeds()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
-        Assert.Null(SaveGame.Parse(text).Systems);
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
+        Assert.Equal(new PlayerNeeds(TestGame.Data.Needs).Capture(), SaveGame.Parse(text).Systems!.Needs); // recorded with the needs off: full
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, migrate: true);
 

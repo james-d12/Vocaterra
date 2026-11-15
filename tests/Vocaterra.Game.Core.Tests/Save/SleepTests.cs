@@ -30,19 +30,23 @@ public sealed class SleepTests
         loaded.Simulation.WakeUp(); // E01: a night wakes in the morning, which a load does not either
         loaded.SettleNeedStages();
         loaded.BeginPlaySession();
+        loaded.NoteSleptAt(); // Y02: the one thing a sleep adds to a load, the place the player slept at (none away from one)
         return loaded;
     }
 
     private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
 
-    /// <summary>A new game with session 1's ending reached without the walk (the skip's ending, V12c): the guide's lesson counted, the camp done, the fire lit.</summary>
+    /// <summary>
+    /// A new game with session 1's ending reached without the walk (the skip's ending, V12c): the guide's lesson counted, the camp done, lodging given (Y07), so the inn's
+    /// bed is a usable sleep place (Y08: there is no mountain ring to light any more).
+    /// </summary>
     internal static VoxelSession EndedFirstSession()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         session.Lessons.CountAsCompleted("first-words", 1);
         session.SkipToEnding();
         Assert.True(session.SessionComplete);
-        Assert.True(session.FireLit);
+        Assert.True(session.LodgingGiven);
         return session;
     }
 
@@ -92,7 +96,7 @@ public sealed class SleepTests
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
         _ = session.HostEvent(WorldEvents.BottleFilled);
-        OpeningAndEndingTests.PlaceTorchOnPlayersRing(session);
+        OpeningAndEndingTests.TakeTheRoom(session);
         session.Step([]);
         Assert.True(session.SessionComplete);
         session.OpenTalk("villager"); // a talk that leaves its traces: the NPC's last line, the panel's support

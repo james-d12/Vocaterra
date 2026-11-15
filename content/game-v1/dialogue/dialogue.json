@@ -636,10 +636,10 @@
         { "lineId": "guide.lesson.task.1", "text": "Necesitas madera y frutas." }
       ]
     },
-    "guide.lesson.end": {
-      "poolId": "guide.lesson.end",
+    "guide.camp.inn": {
+      "poolId": "guide.camp.inn",
       "variants": [
-        { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes fuego." }
+        { "lineId": "guide.camp.inn.1", "text": "¡Muy bien! Ahora ve a la posada." }
       ]
     },
     "guide.lesson.want": {
@@ -2337,6 +2337,211 @@
       "poolId": "farmer_receive_help",
       "variants": [
         { "lineId": "farmer_receive_help.1", "text": "Puedes decir: «Aquí tienes el agua»." }
+      ]
+    },
+    "innkeeper_offer": {
+      "poolId": "innkeeper_offer",
+      "variants": [
+        { "lineId": "innkeeper_offer.1", "text": "¡Hola! ¿Quieres una habitación?" }
+      ]
+    },
+    "innkeeper_room": {
+      "poolId": "innkeeper_room",
+      "variants": [
+        { "lineId": "innkeeper_room.1", "text": "¡Claro! La habitación es gratis. Tu cama está allí." },
+        { "lineId": "innkeeper_room.2", "text": "¡Muy bien! La habitación es gratis. Tu cama está allí." }
+      ]
+    },
+    "innkeeper_give": {
+      "poolId": "innkeeper_give",
+      "variants": [
+        { "lineId": "innkeeper_give.1", "text": "Está bien. La habitación es gratis. Tu cama está allí." }
+      ]
+    },
+    "innkeeper_night": {
+      "poolId": "innkeeper_night",
+      "variants": [
+        { "lineId": "innkeeper_night.1", "text": "Buenas noches. Tu cama está allí." },
+        { "lineId": "innkeeper_night.2", "text": "¡Buenas noches!" }
+      ]
+    },
+    "innkeeper_no": {
+      "poolId": "innkeeper_no",
+      "variants": [
+        { "lineId": "innkeeper_no.1", "text": "Está bien. La habitación es gratis." },
+        { "lineId": "innkeeper_no.2", "text": "Bueno. La habitación es gratis." }
+      ]
+    },
+    "innkeeper_help": {
+      "poolId": "innkeeper_help",
+      "variants": [
+        { "lineId": "innkeeper_help.1", "text": "Puedes decir: «Quiero una habitación, por favor»." }
+      ]
+    },
+    "innkeeper_help_given": {
+      "poolId": "innkeeper_help_given",
+      "variants": [
+        { "lineId": "innkeeper_help_given.1", "text": "Puedes decir: «Buenas noches» o «Gracias»." }
+      ]
+    },
+    "innkeeper_free": {
+      "poolId": "innkeeper_free",
+      "variants": [
+        { "lineId": "innkeeper_free.1", "text": "La habitación es gratis. ¿Quieres una habitación?" }
+      ]
+    },
+    "innkeeper_well": {
+      "poolId": "innkeeper_well",
+      "variants": [
+        { "lineId": "innkeeper_well.1", "text": "Bien, gracias." }
+      ]
+    },
+    "innkeeper_nice": {
+      "poolId": "innkeeper_nice",
+      "variants": [
+        { "lineId": "innkeeper_nice.1", "text": "¡Qué bien!" }
+      ]
+    },
+    "innkeeper_understood": {
+      "poolId": "innkeeper_understood",
+      "variants": [
+        { "lineId": "innkeeper_understood.1", "text": "Te entiendo. La habitación es gratis." }
+      ]
+    },
+    "innkeeper_yes": {
+      "poolId": "innkeeper_yes",
+      "variants": [
+        { "lineId": "innkeeper_yes.1", "text": "¡Sí!" }
+      ]
+    },
+    "innkeeper_weather": {
+      "poolId": "innkeeper_weather",
+      "variants": [
+        { "lineId": "innkeeper_weather.1", "text": "Sí, hace {weather}." }
+      ]
+    },
+    "innkeeper_sun": {
+      "poolId": "innkeeper_sun",
+      "variants": [
+        { "lineId": "innkeeper_sun.1", "text": "Hoy hace sol." }
+      ]
+    },
+    "innkeeper_cloudy": {
+      "poolId": "innkeeper_cloudy",
+      "variants": [
+        { "lineId": "innkeeper_cloudy.1", "text": "Hoy está nublado." }
+      ]
+    },
+    "innkeeper_rain": {
+      "poolId": "innkeeper_rain",
+      "variants": [
+        { "lineId": "innkeeper_rain.1", "text": "Hoy llueve." }
+      ]
+    },
+    "innkeeper_fair": {
+      "poolId": "innkeeper_fair",
+      "variants": [
+        { "lineId": "innkeeper_fair.1", "text": "Hace buen tiempo." }
+      ]
+    },
+    "innkeeper_thank": {
+      "poolId": "innkeeper_thank",
+      "variants": [
+        { "lineId": "innkeeper_thank.1", "text": "De nada." },
+        { "lineId": "innkeeper_thank.2", "text": "¡Con gusto!" }
+      ]
+    },
+    "innkeeper_bye": {
+      "poolId": "innkeeper_bye",
+      "variants": [
+        { "lineId": "innkeeper_bye.1", "text": "¡Hasta luego!" },
+        { "lineId": "innkeeper_bye.2", "text": "¡Nos vemos!" }
+      ]
+    },
+    "villager_land_stake_offer": {
+      "poolId": "villager_land_stake_offer",
+      "variants": [
+        { "lineId": "villager_land_stake_offer.1", "text": "Hola. ¿Quieres un terreno? Necesitas una estaca." }
+      ]
+    },
+    "villager_land_stake_given": {
+      "poolId": "villager_land_stake_given",
+      "variants": [
+        { "lineId": "villager_land_stake_given.1", "text": "¡Muy bien! Toma la estaca. Pon la estaca en el campo." },
+        { "lineId": "villager_land_stake_given.2", "text": "¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo." }
+      ]
+    },
+    "villager_land_stake_gave": {
+      "poolId": "villager_land_stake_gave",
+      "variants": [
+        { "lineId": "villager_land_stake_gave.1", "text": "Está bien. Toma la estaca. Pon la estaca en el campo." }
+      ]
+    },
+    "villager_land_plot_offer": {
+      "poolId": "villager_land_plot_offer",
+      "variants": [
+        { "lineId": "villager_land_plot_offer.1", "text": "El terreno cuesta diez monedas. ¿Lo quieres?" }
+      ]
+    },
+    "villager_land_sold": {
+      "poolId": "villager_land_sold",
+      "variants": [
+        { "lineId": "villager_land_sold.1", "text": "¡Muy bien! El terreno es tuyo. Toma el equipo." },
+        { "lineId": "villager_land_sold.2", "text": "¡Claro! El terreno es tuyo. Toma el equipo." }
+      ]
+    },
+    "villager_land_price": {
+      "poolId": "villager_land_price",
+      "variants": [
+        { "lineId": "villager_land_price.1", "text": "El terreno cuesta diez monedas. ¿Quieres el terreno?" }
+      ]
+    },
+    "villager_land_no_plot": {
+      "poolId": "villager_land_no_plot",
+      "variants": [
+        { "lineId": "villager_land_no_plot.1", "text": "Primero pon la estaca en el campo." }
+      ]
+    },
+    "villager_land_no_stake": {
+      "poolId": "villager_land_no_stake",
+      "variants": [
+        { "lineId": "villager_land_no_stake.1", "text": "Primero necesitas una estaca. Toma." }
+      ]
+    },
+    "villager_land_cant_pay": {
+      "poolId": "villager_land_cant_pay",
+      "variants": [
+        { "lineId": "villager_land_cant_pay.1", "text": "Necesitas diez monedas. Vende madera a Luz." }
+      ]
+    },
+    "villager_land_no_room": {
+      "poolId": "villager_land_no_room",
+      "variants": [
+        { "lineId": "villager_land_no_room.1", "text": "Tu bolsa está llena. No hay lugar para el equipo." }
+      ]
+    },
+    "villager_land_owned": {
+      "poolId": "villager_land_owned",
+      "variants": [
+        { "lineId": "villager_land_owned.1", "text": "El terreno ya es tuyo." }
+      ]
+    },
+    "villager_land_no": {
+      "poolId": "villager_land_no",
+      "variants": [
+        { "lineId": "villager_land_no.1", "text": "Está bien. Vuelve cuando quieras." }
+      ]
+    },
+    "villager_land_help_stake": {
+      "poolId": "villager_land_help_stake",
+      "variants": [
+        { "lineId": "villager_land_help_stake.1", "text": "Puedes decir: «Sí, por favor»." }
+      ]
+    },
+    "villager_land_help_sell": {
+      "poolId": "villager_land_help_sell",
+      "variants": [
+        { "lineId": "villager_land_help_sell.1", "text": "Puedes decir: «Quiero un terreno, por favor»." }
       ]
     }
   }

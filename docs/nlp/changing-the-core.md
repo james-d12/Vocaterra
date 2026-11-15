@@ -56,7 +56,7 @@ item that does apply is not.
 - [ ] No non-deterministic (N-class) code, and no LLM package, in `src/`. Build-time LLM work stays in `tools/Vocaterra.Nlp.ContentBuilder` (Freeze pattern) and every generated content file is marked and approved in `provenance.json`.
 - [ ] Every model file has a SHA-256 in `models/manifest.json`; version stamps carry the content hash and the sorted model hashes; I recorded the license of every native binary I added, not only of its package.
 - [ ] Build hygiene: nullable on, warnings as errors, `dotnet format --verify-no-changes` clean, a one-line `///` summary on every new public type.
-- [ ] If I changed `content/game-v1`: I re-ran `hash`, ran the whole suite (the core's tests run on this bundle), re-recorded the end-to-end goldens if my change moved them, and updated the bundle hash in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` (see the recipe below).
+- [ ] If I changed `content/game-v1`: I re-ran `hash`, ran the whole suite (the core's tests run on this bundle), re-recorded the end-to-end goldens if my change moved them, and updated the bundle hash in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json` (see the recipe below).
 - [ ] If I changed any stage: the same inputs still give byte-identical output, and replay logs recorded before my change still replay (or I explain why they cannot).
 ```
 
@@ -181,7 +181,7 @@ Steps:
 
      A golden of another language (a bundle whose manifest has `"language"`) is read and recorded under `Data/<lang>/` (`GoldenFiles.cs`, M35); the Spanish
      goldens keep their paths.
-   - `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
+   - `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
      `content/game-v1/manifest.json` into it.
    - The grammar cache (`content/grammar/game-v1-*`, next section) when you added or changed Spanish text.
 

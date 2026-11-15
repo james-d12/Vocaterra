@@ -20,13 +20,11 @@ public sealed partial class VoxelSession
     private const int WellRadiusBlocks = 5;
     private const int LakeRadiusBlocks = 46;
 
-    private FireRings? _fires;
-
     /// <summary>Whether the sprint key is held (set by the game each frame; the session decides whether it counts: a stage, stamina and moving all matter).</summary>
     public bool SprintHeld { get; set; }
 
     /// <summary>The fire rings of the world and which burn (design 9.4's rest).</summary>
-    public FireRings Fires => _fires ??= new FireRings(Scene.Grid);
+    public FireRings Fires => Simulation.Fires;
 
     /// <summary>Whether the crosshair is on water within reach: E then drinks by hand, with nothing held and without Spanish.</summary>
     public bool AimedAtWater => Simulation.InteractTarget is { Id: BlockId.Water };

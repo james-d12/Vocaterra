@@ -18,8 +18,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "a03be5dc938ea1d6"; // V10: the well's rim one block high
-    private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
+    private const string VillageStructureDigest = "44d687ce746f761f"; // Y08: the inn's two-cell beds and its counter block; Y04: the inn, its inside and the moved house3; V10: the well's rim one block high
+    private const string CampsStructureDigest = "98bb81aa36dff745c801126a48c72c7a"; // Y08: the ledge half changed (bare), the guide's camp half did not
 
     // The village's levelled disc, whose structure the digest covers: 24 since village-plan V04 (the bakery, the smithy, the well), 19 of the 20 before.
     private const int VillageRadius = 24;
@@ -125,7 +125,7 @@ public sealed class VillageTests(ITestOutputHelper output)
 
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X, floor + 4, centre.Z)); // the first layer is the whole footprint
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X + 2, floor + 4, centre.Z + 2));
-            Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X + 1, floor + 5, centre.Z + 1)); // the second is 3 x 3
+            Assert.Contains(grid.GetBlock(centre.X + 1, floor + 5, centre.Z + 1), new[] { BlockId.Roof, BlockId.Cobble }); // the second is 3 x 3 (the chimney, by the house's place, takes one of its corners)
             Assert.NotEqual(BlockId.Roof, grid.GetBlock(centre.X + 2, floor + 5, centre.Z)); // so the outer ring of the second layer is not roof
             Assert.Equal(BlockId.Roof, grid.GetBlock(centre.X, floor + 6, centre.Z)); // the ridge cap
             var chimneys = Count(grid, centre.X - 2, centre.X + 2, floor + 5, floor + 9, centre.Z - 2, centre.Z + 2, BlockId.Cobble);
@@ -232,16 +232,15 @@ public sealed class VillageTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void ThePlayersCampHasAColdFireRingATentAChestAndACrate()
+    public void TheMountainLedgeIsBareAndTheGuidesCampHasAColdFireRingAndAChest()
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
-        var ring = scene.Point("firering.player");
-        Assert.Equal(BlockId.Air, grid.GetBlock(ring.X, ring.Y + 1, ring.Z)); // cold: nothing in the middle (S17 lights it with a torch on the rim)
+        var ring = scene.Point("firering");
+        Assert.Equal(BlockId.Air, grid.GetBlock(ring.X, ring.Y + 1, ring.Z)); // cold: nothing in the middle (a torch on the rim lights it)
         Assert.Equal(BlockId.FireRing, grid.GetBlock(ring.X + 1, ring.Y + 1, ring.Z));
-        var tent = scene.Point("tent");
-        Assert.Equal(BlockId.Canvas, grid.GetBlock(tent.X, tent.Y + 3, tent.Z));
-        Assert.Equal(BlockId.Chest, grid.GetBlock(scene.Point("chest.player").X, scene.Point("chest.player").Y + 1, scene.Point("chest.player").Z));
+        Assert.DoesNotContain("tent", scene.Points.Keys); // Y08: the ledge keeps the "tent" stamp's definition for Y12 but places none
+        Assert.DoesNotContain("chest.player", scene.Points.Keys);
         Assert.Equal(BlockId.Chest, grid.GetBlock(scene.Point("chest.guide").X, scene.Point("chest.guide").Y + 1, scene.Point("chest.guide").Z));
     }
 
@@ -439,7 +438,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     {
         var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
         var total = 0;
-        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber))
+        // Y04 places the inn's beds, so the bed is a kind that must be there; the bedroll and the tent's canvas wait for the camp kit (Y12; Y08 took the mountain tent away) and stand nowhere yet.
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll && k != BlockId.BedrollFoot && k != BlockId.Canvas))
         {
             var count = grid.BlocksOfKind(kind).Count;
             total += count;

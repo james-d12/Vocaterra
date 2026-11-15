@@ -69,10 +69,10 @@ public sealed record LaunchOptions
         + "                          `--session 5` the baker's lesson `numeros-y-pan` once `el-pueblo` is done, `--session 6` the villager's lesson `gente-del-pueblo` once\n"
         + "                          `numeros-y-pan` is done, and so on to `--session 10` (`como-es`, `ayer-en-el-pueblo`, `manana-en-el-pueblo`, `el-mercado`, each after the one before)\n"
         + "  --skip-to-session <n>   a test aid: start a new game as play session n (2 up to the last session that has a lesson) as a learner who did everything before it:\n"
-        + "                          the earlier sessions' lessons completed, session 1's camp done and its fire lit, the earlier orders delivered and paid, no practice counted;\n"
+        + "                          the earlier sessions' lessons completed, session 1's camp done and its room at the inn given, the earlier orders delivered and paid, no practice counted;\n"
         + "                          the console, the session log and the saves say so. Not with --load, --session or --playtest (V12c)\n"
-        + "  --sleep                 sleep at the player's own fire now, as E there does, wherever the player stands: the next play session begins as a load of the save would\n"
-        + "                          begin it (the fire must be lit; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
+        + "  --sleep                 sleep at the nearest usable sleep place now (a bed with a room, a lit fire), as E there does, wherever the player stands: the next play session begins as a load of the save would\n"
+        + "                          begin it (a usable place must exist; not in a playtest; it sleeps whatever the sleep drive says, where E needs it below 75, L01); a step (V12c)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  hold the day clock at the dusk hour (21): the low orange sun, the warm light and lanterns that glow at full strength (S15, E02)\n"
@@ -86,6 +86,8 @@ public sealed record LaunchOptions
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
+        + "  --place-camp x,z,face   set up the camp with the camp kit in the bag (Y12; give one with --give equipo): the fire ring's middle goes on the ground column x,z and the camp faces\n"
+        + "                          north, east, south or west as given; the kit's use on that ground: the console says the answer and a refusal's reason, nothing changes on a refusal\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
         + "  --station <id>          open the station (horno) and start its first procedure, as E at its prop does (W07); the overlay stays open for the steps after it and the screenshot\n"
         + "  --act <use>,<on>[,<verb>] an act at the open station: the noun held, the target and, for a pair of several verbs, the verb (harina,bol  mano,horno,sacar; W07)\n"
@@ -93,8 +95,8 @@ public sealed record LaunchOptions
         + "  --proc-help             help at the open station, as H does: the English, the highlight, the row up a rung (W07)\n"
         + "  --drink                 drink by hand at the water the crosshair is on, within reach, as E does (N02); walk to the bank, --look at the water and --wait 1 first\n"
         + "  --set-need <need> <n>   set a need at launch, 0 to 100 (hunger, thirst, sleep, health; stamina up to its maximum); repeatable (a test aid, N01)\n"
-        + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
-        + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
+        + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1 to house3, inn, bed.inn, bridge, river, lake,\n"
+        + "                          waterfall, meadow.north, meadow.south...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
         + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
@@ -150,6 +152,11 @@ public sealed record LaunchOptions
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
      + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
+        + "  --lodging               a dev aid, only with --dev (Y05): the player starts with lodging, so the inn's bed can be slept at (the innkeeper gives it in play)\n"
+        + "  --own-plot <x,z>        a dev aid, only with --dev (Y09): at the start the player owns the plot whose west-north corner is this block column, if the land rules\n"
+        + "                          allow it there (the meadows' valid origins; a refusal says why and exits); no coins, no stake: the later milestones' tests and the scripted runs use it\n"
+        + "  --mark-plot <x,z>       a dev aid, only with --dev (Y10): at the start the stake's use on this block column is made (the pending plot is marked round it, the plot's middle, or the\n"
+        + "                          refusal's reason is reported and the hint says it); the console reports the answer; no stake item is needed (add --give estaca to hold one)\n"
         + "  --dev                   the debug overlay and the dialogue's developer note start on (U01); F3 toggles both; without it ordinary play starts clean\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
@@ -244,20 +251,6 @@ public sealed record LaunchOptions
         ArgumentNullException.ThrowIfNull(npcs);
         var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Talk && !npcs.Contains(step.Value, StringComparer.Ordinal));
         error = unknown is null ? string.Empty : $"--talk needs an NPC ({string.Join(", ", npcs)}), got '{unknown.Value}'.";
-        return unknown is null;
-    }
-
-    /// <summary>
-    /// Checks the <c>--set-weather</c> steps against the weather kinds the bundle has (E03). The check waits for the data, as <see cref="CheckTalkTargets"/> does for the NPCs.
-    /// </summary>
-    /// <param name="kinds">The ids of the bundle's weather kinds, in the data's order.</param>
-    /// <param name="error">The message for the first unknown id, or empty.</param>
-    /// <returns>Whether every <c>--set-weather</c> names one of the kinds (or <c>run</c>).</returns>
-    public bool CheckWeatherTargets(IReadOnlyList<string> kinds, out string error)
-    {
-        ArgumentNullException.ThrowIfNull(kinds);
-        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
-        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({string.Join(", ", kinds)}) or 'run', got '{unknown.Step!.Item}'.";
         return unknown is null;
     }
 
@@ -376,17 +369,25 @@ public sealed record LaunchOptions
     public string? WeatherId { get; init; }
 
     /// <summary>
-    /// Checks the weather kind <c>--weather</c> names against the bundle's kinds, once the data has loaded (E05): a bundle with another set of kinds takes its own ids with no code change.
+    /// Checks the weather kinds the options name against the bundle's kinds, once the data has loaded, as <see cref="CheckTalkTargets"/> does for the NPCs: the one <c>--weather</c> holds (E05)
+    /// and those the <c>--set-weather</c> steps set (E03). A bundle with another set of kinds takes its own ids with no code change.
     /// </summary>
     /// <param name="kinds">The kinds' ids, in the data's order.</param>
-    /// <param name="error">The message that lists the ids when <c>--weather</c> names an unknown one, or empty.</param>
-    /// <returns>Whether <c>--weather</c> is absent or names one of the kinds.</returns>
+    /// <param name="error">The message that lists the ids for the first unknown one, or empty.</param>
+    /// <returns>Whether <c>--weather</c> is absent or names one of the kinds, and every <c>--set-weather</c> names one of them (or <c>run</c>).</returns>
     public bool CheckWeather(IReadOnlyList<string> kinds, out string error)
     {
         ArgumentNullException.ThrowIfNull(kinds);
-        var unknown = WeatherId is not null && !kinds.Contains(WeatherId, StringComparer.Ordinal);
-        error = unknown ? $"--weather needs a weather kind ({string.Join(", ", kinds)}), got '{WeatherId}'." : string.Empty;
-        return !unknown;
+        var known = string.Join(", ", kinds);
+        if (WeatherId is not null && !kinds.Contains(WeatherId, StringComparer.Ordinal))
+        {
+            error = $"--weather needs a weather kind ({known}), got '{WeatherId}'.";
+            return false;
+        }
+
+        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Move && step.Step?.Kind == VoxelStepKind.SetWeather && !kinds.Contains(step.Step.Item, StringComparer.Ordinal));
+        error = unknown is null ? string.Empty : $"--set-weather needs a weather kind ({known}) or 'run', got '{unknown.Step!.Item}'.";
+        return unknown is null;
     }
 
     /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
@@ -409,6 +410,15 @@ public sealed record LaunchOptions
     /// both start off, in a playtest too; F3 toggles both (not in a playtest).
     /// </summary>
     public bool Dev { get; init; }
+
+    /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
+    public (int X, int Z)? OwnPlot { get; init; }
+
+    /// <summary>The column (x, z) <c>--mark-plot</c> uses the stake on at the start (Y10, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
+    public (int X, int Z)? MarkPlot { get; init; }
+
+    /// <summary>Whether <c>--lodging</c> was given (Y05, a dev aid, allowed only with <c>--dev</c>): the player starts with lodging, so the inn's bed can be slept at.</summary>
+    public bool Lodging { get; init; }
 
     /// <summary>
     /// Whether a save of another content bundle is refused (<c>--strict-save</c>, or <c>--playtest</c>, X01). Off, a <c>--load</c> across bundles keeps the progress where its ids still
@@ -487,6 +497,7 @@ public sealed record LaunchOptions
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
         var dev = false;
+        var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
         {
@@ -498,7 +509,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging")
             {
                 switch (arg)
                 {
@@ -582,6 +593,9 @@ public sealed record LaunchOptions
                     case "--greyscale":
                         greyscale = true;
                         break;
+                    case "--lodging":
+                        lodging = true;
+                        break;
                     case "--dev":
                         dev = true;
                         break;
@@ -643,8 +657,8 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -705,6 +719,24 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { SkipToSession = skipTo };
+                    break;
+                case "--own-plot":
+                    if (!VoxelStep.TryParseColumn(value, out var plotX, out var plotZ))
+                    {
+                        error = $"--own-plot needs the west-north block column of the plot, like 261,160; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { OwnPlot = (plotX, plotZ) };
+                    break;
+                case "--mark-plot":
+                    if (!VoxelStep.TryParseColumn(value, out var markX, out var markZ))
+                    {
+                        error = $"--mark-plot needs the block column the stake is used on, like 261,160; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { MarkPlot = (markX, markZ) };
                     break;
                 case "--book-practise":
                     if (string.IsNullOrWhiteSpace(value))
@@ -1229,7 +1261,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--set-weather":
-                    // Which kinds there are is the bundle's (game/weather.json): CheckWeatherTargets refuses an unknown one once the data has loaded.
+                    // Which kinds there are is the bundle's (game/weather.json): CheckWeather refuses an unknown one once the data has loaded.
                     if (value.Trim().Length == 0)
                     {
                         error = $"--set-weather needs a weather kind's id or 'run', got '{value}'.";
@@ -1268,6 +1300,15 @@ public sealed record LaunchOptions
                     }
 
                     script.Add(new ScriptStep(ScriptStepKind.Plant, Value: value.Trim()));
+                    break;
+                case "--place-camp":
+                    if (!ScenarioScript.TryParseCamp(value.Trim(), out _, out _, out _))
+                    {
+                        error = "--place-camp needs the ground column of the fire ring and the side the camp faces, like 262,166,north.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.PlaceCamp, Value: value.Trim()));
                     break;
                 case "--give":
                     if (value.Trim().Length == 0)
@@ -1323,7 +1364,25 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            return false;
+        }
+
+        if (result.OwnPlot is not null && !dev)
+        {
+            error = "--own-plot is a dev aid and needs --dev (it gives the player a plot of land at the start).";
+            return false;
+        }
+
+        if (result.MarkPlot is not null && !dev)
+        {
+            error = "--mark-plot is a dev aid and needs --dev (it uses the stake at the start).";
+            return false;
+        }
+
+        if (lodging && !dev)
+        {
+            error = "--lodging is a dev aid and needs --dev (it gives the player lodging at the inn from the start).";
             return false;
         }
 
@@ -1360,6 +1419,7 @@ public sealed record LaunchOptions
         {
             Playtest = playtest,
             Dev = dev,
+            Lodging = lodging,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
             Says = says,

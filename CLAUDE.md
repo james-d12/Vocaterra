@@ -43,7 +43,7 @@ Facts every session needs:
   command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
   suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
   (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
-  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`. No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
+  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`. No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
   `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.

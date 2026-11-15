@@ -42,17 +42,13 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
-    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07; version 7 adds the optional <c>systems</c> map with the player's needs (N01), the NPCs met (L01), and the water that is not
-    /// source in the scene diff, the cells waiting to flow and the player's air (water-plan H06). The two branches each wrote a different version 6 before they met; a save of either of those is not read).
+    /// The format version this code writes. Version 8 (Y02) adds the optional <c>sleep</c> entry of <c>systems</c> (the lodging given, the place last slept at, the places made in play) and is the oldest this
+    /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated.
     /// </summary>
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
-    /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
-    public const string UnqualifiedObjective = "camp";
-
-    /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
-    public const int OldestReadableVersion = 1;
+    /// <summary>The oldest format version this code reads: 8. The game is unreleased, so a save of an older version is refused and none is migrated (Y02).</summary>
+    public const int OldestReadableVersion = 8;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -84,7 +80,7 @@ public static class SaveGame
 
         if (document.Version < OldestReadableVersion || document.Version > CurrentVersion)
         {
-            throw new SaveException($"The save is format version {document.Version}; this game reads versions {OldestReadableVersion} to {CurrentVersion}.");
+            throw new SaveException($"The save is format version {document.Version}; the oldest this game loads is {OldestReadableVersion} (it writes {CurrentVersion}), and older saves are not migrated.");
         }
 
         return document;
@@ -180,7 +176,7 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), state.Atmosphere),
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), session.CaptureSleep(), state.Atmosphere, session.CaptureLand()),
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
@@ -248,16 +244,6 @@ public static class SaveGame
         ArgumentNullException.ThrowIfNull(scene);
         var bundle = data.Bundle;
         Check(document, bundle, null, migrate);
-        if (document.Version < 5)
-        {
-            // Before version 5 the save held the camp checklist alone, keyed by the step; the keys are the objective's now (C07). Mapped here, before the migration,
-            // which would drop a key it does not know. An old key has no dot, so a key that has one is left as it is.
-            document = document with
-            {
-                Objective = document.Objective.Select(static step => step.Key.Contains('.', StringComparison.Ordinal) ? step : step with { Key = UnqualifiedObjective + "." + step.Key }).ToArray(),
-            };
-        }
-
         var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
         var collector = migrating ? new SaveMigration.Collector() : null;
         if (document.Session < 1)
@@ -329,6 +315,9 @@ public static class SaveGame
             _ = session.Simulation.GrantItems(ItemId.Book, 1);
         }
 
+        // A camp whose blocks were gone at the load gives the camp kit back, once, after the digest check too (the bag is part of the digest); a full bag leaves it owed for a later tick.
+        session.ReturnOwedKit();
+
         // A load keeps the day as saved (V25): the objective, the orders and the lessons stand where the save left them, and only a sleep moves the day. The sitting is the
         // next one (S10), which lifts the spacing gaps; a save from before V25 has none, and its session is the sitting it continues from.
         session.Day = document.Session;
@@ -339,7 +328,7 @@ public static class SaveGame
     }
 
     /// <summary>
-    /// The sleep at the player's own fire (V12c): the running session goes on as the next day (and the next sitting, so the spacing rule sees a different play session), in the state a load of its own save would give, without a new
+    /// The sleep at a bed or a lit fire (V12c): the running session goes on as the next day (and the next sitting, so the spacing rule sees a different play session), in the state a load of its own save would give, without a new
     /// session or scene. <paramref name="document"/> is that save, captured now (<see cref="Capture"/>). What a save does not keep goes back to how a new session has it
     /// (the review question, the second tries, the warm-up, the word cards not shown, the buttons' English counts), every part of the save is put back as a load puts it
     /// back (the world is the save's already), and the session becomes the save's plus one, which lifts the spacing gaps and names the new session's lesson
@@ -367,11 +356,17 @@ public static class SaveGame
 
         session.ClearUnsaved();
         RestoreParts(session, document, migrating: false); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
+        if (!collapse)
+        {
+            session.NoteSleptAt(); // Y02: after the restore, which brought back the save taken before this sleep; a sleep at no place and a collapse leave the last place as it was
+        }
+
         session.Day = document.Session + 1;
         session.Sitting = (document.Sitting ?? document.Session) + 1;
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.Slept, null, string.Create(CultureInfo.InvariantCulture, $"session {document.Session} to {session.Day}"))); // the new session's first event
         session.ApplyNight(collapse);
         session.BeginPlaySession();
+        session.ReturnOwedKit(); // Y12: a camp the night found gone gives its kit back
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
@@ -390,6 +385,8 @@ public static class SaveGame
             document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
             document.Flow,
             document.Systems?.Atmosphere)); // E01: a save without an entry starts the clock as a new game has it
+        session.RestoreLand(document.Systems?.Land); // Y09: the pending plot and the owned one (the rules come from the scene)
+        session.RestoreSleep(document.Systems?.Sleep); // Y02: the places made in play go back before anything that asks SleepPlaces (the objective's sleep line, the arrow)
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);
@@ -416,7 +413,7 @@ public static class SaveGame
 
         if (document.Learner is { } learner)
         {
-            session.Learner.Restore(learner, checksCounted: document.Version < 3); // a version 1 save has none: the learner's history starts empty (S19); a version 2 save's rows counted the checks (S19b)
+            session.Learner.Restore(learner);
         }
 
         session.RestoreChest(document.Systems?.Chest); // N04: the chest's block is in the world's edits; here its cell and contents

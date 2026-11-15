@@ -212,7 +212,19 @@
         {"text": "harina, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "me das harina", "errors": [], "prompt": "stall-need"},
         {"text": "me da harina", "errors": [], "prompt": "stall-need"},
-        {"text": "quiero el harina", "errors": ["gender.agree"], "prompt": "stall-need"}
+        {"text": "quiero el harina", "errors": ["gender.agree"], "prompt": "stall-need"},
+        {"text": "quiero una habitación, por favor", "errors": [], "prompt": "inn-offer"},
+        {"text": "una habitación, por favor", "errors": [], "prompt": "inn-offer"},
+        {"text": "quiero una habitación", "errors": [], "prompt": "inn-offer"},
+        {"text": "quiero una cama, por favor", "errors": [], "prompt": "inn-offer"},
+        {"text": "quiero una cama", "errors": [], "prompt": "inn-offer"},
+        {"text": "quiero un habitación, por favor", "errors": ["gender.agree"], "prompt": "inn-offer"},
+        {"text": "quiero un terreno, por favor", "errors": [], "prompt": "mayor-sell"},
+        {"text": "un terreno, por favor", "errors": [], "prompt": "mayor-sell"},
+        {"text": "quiero un terreno", "errors": [], "prompt": "mayor-sell"},
+        {"text": "quiero el terreno", "errors": [], "prompt": "mayor-sell"},
+        {"text": "quiero la tierra", "errors": [], "prompt": "mayor-sell"},
+        {"text": "quiero una terreno, por favor", "errors": ["gender.agree"], "prompt": "mayor-sell"}
       ]
     },
     {
@@ -899,7 +911,12 @@
         {"text": "hay dos pan", "errors": ["noun.number"], "prompt": "baker-open"},
         {"text": "hay pans", "errors": ["noun.number"], "prompt": "baker-open"},
         "hay agua aquí",
-        "hay una tienda en el pueblo"
+        "hay una tienda en el pueblo",
+        {"text": "hay una habitación", "errors": [], "prompt": "inn-offer"},
+        {"text": "hay una habitación aquí", "errors": [], "prompt": "inn-offer"},
+        {"text": "hay una cama", "errors": [], "prompt": "inn-offer"},
+        {"text": "hay habitaciones", "errors": [], "prompt": "inn-offer"},
+        {"text": "hay un habitación", "errors": ["gender.agree"], "prompt": "inn-offer"}
       ]
     },
     {
@@ -927,6 +944,10 @@
         {"text": "cuánto cuesta", "errors": [], "prompt": "stall-need"},
         {"text": "cuánto cuesta el pan", "errors": [], "prompt": "stall-need"},
         {"text": "cuánto es", "errors": [], "prompt": "stall-need"},
+        {"text": "cuánto cuesta el terreno", "errors": [], "prompt": "mayor-sell"},
+        {"text": "cuánto cuesta un terreno", "errors": [], "prompt": "mayor-sell"},
+        {"text": "cuánto es el terreno", "errors": [], "prompt": "mayor-sell"},
+        {"text": "cuánto cuestan el terreno", "errors": ["conj.person"], "prompt": "mayor-sell"},
         "cuánto cuesta el agua",
         "cuánto cuesta una manzana"
       ]

@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.Session;
 
@@ -19,15 +18,8 @@ public sealed class NextSessionTests
 
     private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
 
-    // Stands the player on the ground three blocks south of their fire ring (where the scripted r20-sleep stands), as --teleport does.
-    private static void TeleportToFire(VoxelSession session)
-    {
-        var ring = session.Scene.Point(VoxelSession.PlayerFireRing);
-        var grid = session.Scene.Grid;
-        var (x, z) = (ring.X, ring.Z + 3);
-        var y = Enumerable.Range(1, grid.SizeY - 3).Reverse().First(y => grid.IsSolid(x, y, z) && !BlockDefinition.IsLeaves(grid.GetBlock(x, y, z)) && !grid.IsSolid(x, y + 1, z));
-        session.Simulation.TeleportTo(new BlockPos(x, y + 1, z));
-    }
+    // Stands the player at the inn's bed (the sleep place's cell; Y08: the mountain fire is gone and the player sleeps at the bed once the room is given).
+    private static void TeleportToFire(VoxelSession session) => session.Simulation.TeleportTo(session.SleepPlaces.Find("inn.bed")!.Cell);
 
     [Fact]
     public void AfterTheFirstDaysEndingTheObjectiveSaysToSleepAtTheFireAndAPlaytestKeepsItsLine()
@@ -39,10 +31,10 @@ public sealed class NextSessionTests
         Assert.True(session.SleepWanted);
         Assert.True(session.RestDue);
         var line = Assert.Single(session.ObjectiveHud());
-        Assert.Equal("Session complete: sleep at your fire to start session 2", line.Text);
+        Assert.Equal("Session complete: go to bed to start session 2", line.Text);
         Assert.Equal(ObjectivePieceKind.Support, line.Kind);
         Assert.True(line.Done);
-        Assert.True(session.AtOwnFire);
+        Assert.True(session.AtSleepPlace);
         Assert.True(session.CanSleep);
         Assert.True(SleepOffer.AtFire(session, free: true));
         Assert.False(SleepOffer.AtFire(session, free: false)); // a panel, a screen or an NPC under the crosshair comes first
@@ -52,7 +44,7 @@ public sealed class NextSessionTests
         Assert.False(SleepOffer.OnCard(session, cardUp: false, free: true));
 
         session.SleepOffered = false; // a playtest: one session per run
-        Assert.Equal("Session complete: your fire is lit", Hud(session));
+        Assert.Equal("Session complete: you have a room at the inn", Hud(session));
         Assert.False(session.CanSleep);
         Assert.False(SleepOffer.AtFire(session, free: true));
         Assert.False(SleepOffer.OnCard(session, cardUp: true, free: true));
@@ -64,9 +56,9 @@ public sealed class NextSessionTests
         var session = SleepTests.EndedFirstSession();
         Stage.TeleportToNpc(session, "guide");
 
-        Assert.False(session.AtOwnFire);
+        Assert.False(session.AtSleepPlace);
         Assert.False(SleepOffer.AtFire(session, free: true));
-        Assert.True(SleepOffer.OnCard(session, cardUp: true, free: true)); // the card offers it wherever the player stands
+        Assert.False(SleepOffer.OnCard(session, cardUp: true, free: true)); // Y01: away from a usable sleep place the card offers no sleep (the arrow says where to go)
 
         Sleep(session);
 
@@ -89,7 +81,7 @@ public sealed class NextSessionTests
         Sleep(session);
         session.SetNeed(NeedMeter.Sleep, sleep);
 
-        Assert.True(session.AtOwnFire);
+        Assert.True(session.AtSleepPlace);
         Assert.True(session.CanSleep); // nothing holds it back: the drive alone says whether the player wants it
         Assert.Equal(tired, session.SleepWanted);
         Assert.Equal(tired, SleepOffer.AtFire(session, free: true));

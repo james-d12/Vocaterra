@@ -7,7 +7,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Startup;
@@ -44,14 +43,12 @@ public sealed class OpeningFrontendTests
         _ = session.HostEvent(WorldEvents.BottleFilled);
     }
 
-    private static void LightThePlayersFire(VoxelSession session)
+    // The player takes the room at the inn (Y07): at Rosa's counter, the talk opened and «sí» said; the talk is left open.
+    private static void TakeTheRoom(VoxelSession session)
     {
-        var ring = session.Scene.Point("firering.player");
-        var stone = session.Scene.Grid.BlocksOfKind(BlockId.FireRing).First(p => Math.Abs(p.X - ring.X) <= 1 && Math.Abs(p.Z - ring.Z) <= 1);
-        var rim = new BlockPos(stone.X, stone.Y + 1, stone.Z);
-        session.Simulation.TeleportTo(new BlockPos(rim.X, rim.Y - 1, rim.Z + 3));
-        Assert.True(session.Simulation.Inventory.Count(ItemId.Torch) > 0); // the spare torch the complete checklist gave
-        session.Step([VoxelCommand.Look(0, 0), VoxelCommand.Place(ItemId.Torch, rim.X, rim.Y, rim.Z)]);
+        session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("innkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
+        _ = session.OpenTalk("innkeeper");
+        _ = session.Say("sí");
     }
 
     // ---- The guide greets the player who walks up to her.
@@ -132,15 +129,18 @@ public sealed class OpeningFrontendTests
         Assert.False(ending.Visible(100));
 
         CompleteTheChecklist(session);
-        Assert.False(ending.Update(session, 200)); // the checklist is done but the fire is not lit
+        Assert.False(ending.Update(session, 200)); // the checklist is done but the room is not taken
 
-        LightThePlayersFire(session);
+        TakeTheRoom(session);
         Assert.True(session.SessionComplete);
+        Assert.False(ending.Update(session, 250)); // her talk is still open
 
+        session.EndTalk();
         Assert.True(ending.Update(session, 300));
         Assert.False(ending.Update(session, 301)); // once
-        Assert.Equal("¡Muy bien! Ya tienes fuego.", ending.Spanish);
-        Assert.Equal("Very good! Now you have a fire.", ending.English);
+        Assert.Equal("innkeeper", ending.Speaker);
+        Assert.Equal("Buenas noches. Tu cama está allí.", ending.Spanish);
+        Assert.Equal("Good night. Your bed is over there.", ending.English);
         Assert.True(ending.Visible(300 + SessionEnding.ShowTicks - 1));
         Assert.False(ending.Visible(300 + SessionEnding.ShowTicks));
         var dismissed = new SessionEnding();
@@ -154,7 +154,8 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         CompleteTheChecklist(session);
-        LightThePlayersFire(session);
+        TakeTheRoom(session);
+        session.EndTalk();
         Assert.True(session.SessionComplete);
 
         var seen = new SessionEnding();

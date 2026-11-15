@@ -22,10 +22,10 @@ public static class BlockArtVillage
     {
         BlockCell.TimberSide or BlockCell.TimberEnd or BlockCell.Lantern or BlockCell.CrateSide or BlockCell.CrateTop or BlockCell.AwningRed
             or BlockCell.AwningWhite or BlockCell.Canvas or BlockCell.ChestSide or BlockCell.ChestTop or BlockCell.FarmlandTop or BlockCell.Wheat
-            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
+            or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.Bed or BlockCell.Bedroll or BlockCell.BedFoot or BlockCell.BedSide or BlockCell.BedrollFoot or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
-            or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer => true,
+            or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer or BlockCell.FaceInnkeeper => true,
         _ => false,
     };
 
@@ -195,6 +195,16 @@ public static class BlockArtVillage
                 return ApplesPixel(x, y, n);
             case BlockCell.Bottles:
                 return BottlesPixel(x, y, n);
+            case BlockCell.Bed:
+                return BedPixel(x, y, n);
+            case BlockCell.Bedroll:
+                return BedrollPixel(x, y, n, true);
+            case BlockCell.BedrollFoot:
+                return BedrollPixel(x, y, n, false);
+            case BlockCell.BedFoot:
+                return BedFootPixel(x, y, n);
+            case BlockCell.BedSide:
+                return BedSidePixel(y, n);
             case BlockCell.SignBoard:
                 {
                     // The post column of the signpost: the post runs through the middle, the board's plank is cut at its top and bottom.
@@ -234,6 +244,8 @@ public static class BlockArtVillage
                 return FacePixel(x, y, n, hair: new Rgba(34, 28, 26), longHair: false, beard: false, cheeks: false, eyes: new Rgba(44, 34, 30), moustache: true);
             case BlockCell.FaceFarmer:
                 return FacePixel(x, y, n, hair: new Rgba(212, 174, 92), longHair: false, beard: false, cheeks: true, eyes: new Rgba(96, 112, 48), freckles: true);
+            case BlockCell.FaceInnkeeper:
+                return FacePixel(x, y, n, hair: new Rgba(188, 184, 190), longHair: false, beard: false, cheeks: true, eyes: new Rgba(96, 64, 48));
             case BlockCell.Cloth:
                 {
                     var weave = (x + y) % 2 == 0 ? 0 : -9;
@@ -389,6 +401,78 @@ public static class BlockArtVillage
         }
 
         return y < 4 ? Clear : Jit(104, 66, 34, n, 2);
+    }
+
+    private static Rgba BedPixel(int x, int y, uint n)
+    {
+        // The top of a bed's head half from above, the head at the top of the picture (Y08: a bed is two cells long). The headboard stands over the first
+        // rows, so the picture has a wooden strip there; the pillow (rows 3 to 9, where the mesh's own pillow lies) is cream with a shaded lower edge; below
+        // it the sheet is turned down over the blanket's top edge, and the red blanket runs on to the bottom row, where the foot half's picture goes on.
+        if (y < 3 || x is 0 or 15)
+        {
+            return Jit(118, 74, 38, n, 2);
+        }
+
+        if (y <= 9)
+        {
+            return y == 9 || x is 1 or 14 ? Jit(214, 208, 196, n, 2) : Jit(252, 250, 242, n, 2);
+        }
+
+        return y switch
+        {
+            10 => Jit(240, 234, 214, n, 2), // the sheet turned down
+            11 => Jit(206, 198, 176, n, 2), // its own fold
+            12 => Jit(120, 70, 66, n, 2), // the sheet's shadow on the blanket
+            13 => Jit(188, 56, 52, n, 3),
+            _ => Jit(172, 46, 46, n, 3),
+        };
+    }
+
+    private static Rgba BedFootPixel(int x, int y, uint n)
+    {
+        // The top of a bed's foot half, the foot at the bottom of the picture: the red blanket goes on from the head half, with a fold across it (a lit ridge
+        // over a dark crease) and the footboard's planks over the last row.
+        if (y == 15 || x is 0 or 15)
+        {
+            return Jit(118, 74, 38, n, 2);
+        }
+
+        return y switch
+        {
+            8 => Jit(226, 96, 88, n, 2), // the ridge of the fold, lit
+            9 => Jit(112, 28, 30, n, 2), // the crease under it, in shade
+            _ => Jit(172, 46, 46, n, 3),
+        };
+    }
+
+    private static Rgba BedSidePixel(int y, uint n)
+    {
+        // The blanket hanging over the mattress's edge: red, a lit fold, then a darker hem near the bottom.
+        return y switch
+        {
+            < 7 => Jit(172, 46, 46, n, 3),
+            7 or 8 => Jit(188, 56, 52, n, 3),
+            9 => Jit(226, 96, 88, n, 2),
+            10 or 11 => Jit(130, 32, 34, n, 2),
+            _ => Jit(88, 56, 36, n, 2),
+        };
+    }
+
+    private static Rgba BedrollPixel(int x, int y, uint n, bool head)
+    {
+        // A mat of cloth seen from above, the head at the top of the picture: stripes across it (along the mat's length, so they run on from one half to the
+        // next), a darker border and, on the head half, the patch the rolled pillow lies on.
+        if (x is 0 or 15)
+        {
+            return Jit(104, 82, 46, n, 2);
+        }
+
+        if (head && y is >= 2 and <= 6 && x is >= 3 and <= 12)
+        {
+            return Jit(214, 196, 140, n, 2);
+        }
+
+        return x % 4 < 2 ? Jit(168, 146, 92, n, 2) : Jit(130, 108, 64, n, 2);
     }
 
     private static Rgba BottlesPixel(int x, int y, uint n)

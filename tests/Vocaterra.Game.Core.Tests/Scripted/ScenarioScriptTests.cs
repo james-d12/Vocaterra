@@ -169,7 +169,7 @@ public sealed class ScenarioScriptTests
 
         Assert.Equal(1, run.Closes); // the walk closed the shopkeeper's panel, as Esc would; the second talk found it closed
         Assert.Equal("villager", run.Dialogue.Npc);
-        Assert.Equal("Tomás (Aldeano)", run.Dialogue.NpcName);
+        Assert.Equal("Tomás (Alcalde)", run.Dialogue.NpcName);
         Assert.Equal("Hola.", Assert.Single(run.Dialogue.Lines).Text); // the shopkeeper's page is gone
         Assert.Single(run.Shots);
         Assert.StartsWith("villager.png@", run.Shots[0], StringComparison.Ordinal);

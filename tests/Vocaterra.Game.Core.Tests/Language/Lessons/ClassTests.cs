@@ -11,10 +11,12 @@ public sealed class ClassTests
 {
     private const string OfferText = "¿Una clase hoy? ¿Sí o no?";
 
-    // Day 2 at the villager: the introduction done, the villager met on day 1.
+    // Day 2 at the villager: the introduction done, the villager met on day 1. The player holds a stake (Y11): the mayor offers the stake first from day 2 while the player has none,
+    // and then the class (PlotPurchaseTests); these tests are about the class alone.
     private static VoxelSession DayTwo()
     {
         var session = TestGame.NewSessionWithShippedLessons();
+        _ = session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Stake, 1);
         session.Lessons.CountAsCompleted("first-words", 1);
         session.Day = 2;
         session.Sitting = 2;
@@ -56,6 +58,7 @@ public sealed class ClassTests
     {
         var session = Vocaterra.Game.Core.Tests.Save.SleepTests.EndedFirstSession();
         SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+        _ = session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Stake, 1); // Y11: with no stake the mayor offers it first, then the class (PlotPurchaseTests)
         Stage.TeleportToNpc(session, "villager");
 
         _ = session.OpenTalk("villager");
@@ -90,6 +93,20 @@ public sealed class ClassTests
         var yes = session.Say("Sí");
         Assert.True(yes.LessonHandled);
         Assert.True(session.Lessons.Engaged);
+        Assert.Equal("personas", session.Lessons.Active?.Id);
+    }
+
+    [Fact]
+    public void Given_AClassOfferStanding_When_TheLearnerSaysSi_Then_TheVerdictIsConfirmUnderstoodAndTheClassStarts()
+    {
+        var session = DayTwo();
+        _ = session.OpenTalk("villager");
+
+        var turn = session.Say("Sí");
+
+        Assert.True(turn.LessonHandled);
+        Assert.Equal("confirm", turn.Intent);
+        Assert.True(turn.Communicated);
         Assert.Equal("personas", session.Lessons.Active?.Id);
     }
 
@@ -182,7 +199,7 @@ public sealed class ClassTests
     }
 
     [Fact]
-    public void AnEngagedClassInAnOldSaveLoadsPausedAndAFirstWordsSaveSplitsIntoTheIntroductionAndHerFirstClass()
+    public void AnEngagedClassInASaveLoadsPaused()
     {
         var session = DayTwo();
         _ = session.OpenTalk("villager");
@@ -193,20 +210,5 @@ public sealed class ClassTests
 
         Assert.Equal("personas", loaded.Lessons.Active?.Id);
         Assert.False(loaded.Lessons.Engaged); // loaded paused
-
-        // A save of the old first-words (37 steps): mid-way in the verb unit, the introduction goes on at getting unstuck and the class is not begun...
-        var old = SaveGame.Parse(SaveGame.Save(DayTwo(), TestGame.Route()));
-        var oldLessons = old.Lessons!.Lessons.Where(static l => l.Id != "first-class").Select(static l => l.Id == "first-words"
-            ? l with { Status = LessonStatus.InProgress, Step = 20, EverCompleted = false, Outcomes = [] }
-            : l).ToArray();
-        var midway = SaveGame.Load(SaveGame.Serialize(old with { Lessons = old.Lessons with { Lessons = oldLessons, Active = "first-words" } }), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
-        Assert.Equal(("first-words", 16), (midway.Lessons.Active?.Id, midway.Lessons.StepNumber - 1));
-        Assert.Equal(LessonStatus.NotStarted, midway.Lessons.StatusOf("first-class"));
-
-        // ... and past it, the class counts as done.
-        var past = oldLessons.Select(static l => l.Id == "first-words" ? l with { Step = 30 } : l).ToArray();
-        var after = SaveGame.Load(SaveGame.Serialize(old with { Lessons = old.Lessons with { Lessons = past, Active = "first-words" } }), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
-        Assert.Equal(LessonStatus.Completed, after.Lessons.StatusOf("first-class"));
-        Assert.Equal(18, after.Lessons.StepNumber - 1);
     }
 }

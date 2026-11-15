@@ -120,19 +120,15 @@ public static class WorldEvents
     /// <summary>The player met the guide (S17): the first time the panel opened on her, or the first step of the camp's checklist, whichever came first. The objective line then stops sending the learner down the trail.</summary>
     public const string GuideMet = "guide_met";
 
-    /// <summary>A torch was set on the rim of the fire ring at the player's own camp (S17): the fire is lit.</summary>
+    /// <summary>A torch was set on the rim of the fire ring at the guide's camp (S17, Y08): the fire is lit. The sound plays; no objective waits for it.</summary>
     public const string FireLit = "fire_lit";
 
-    /// <summary>The session's ending (S17): the camp checklist is complete and the player's own fire is lit. The front-end shows the closing moment.</summary>
+    /// <summary>The session's ending (S17; Y07): the camp checklist is complete and the player has a room at the inn. The front-end shows the closing moment.</summary>
     public const string SessionComplete = "session_complete";
-
-    /// <summary>The camp's checklist was complete and the player was given a spare torch for their own fire (S17; the detail says how, or that the bag was full).</summary>
-    public const string SpareTorch = "spare_torch";
 
     /// <summary>
     /// A torch was placed at a fire ring (content-plan C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
-    /// the ring's prop name (<c>firering</c> at the guide's camp, <c>firering.player</c> at the player's own); in a scene that names no camp ring, every ring
-    /// that is not the player's counts as <c>firering</c>. The camp's checklist step waits for it.
+    /// the ring's prop name (<c>firering</c>, the guide's camp); in a scene that names no camp ring, every ring counts as <c>firering</c>. The camp's checklist step waits for it.
     /// </summary>
     public const string TorchAtRing = "torch_at_ring";
 
@@ -202,6 +198,15 @@ public static class WorldEvents
     /// <summary>A teacher taught the learner a procedure (W08, <c>teach_recipe</c>; the detail is the procedure's id).</summary>
     public const string RecipeTaught = "recipe_taught";
 
+    /// <summary>The player was first given lodging (Y05, <c>grant_lodging</c>): the inn's bed is theirs. Raised once; no NPC, no detail.</summary>
+    public const string LodgingGranted = "lodging_granted";
+
+    /// <summary>The player bought the plot from the mayor (Y11, <c>sell_plot</c>): the coins are paid, the land is owned and the camp kit is in the bag. Raised once; the NPC is the seller, the detail the plot (<c>x,z</c>).</summary>
+    public const string PlotBought = "plot_bought";
+
+    /// <summary>The player set up the camp with the camp kit on their land (Y12): the tent, the bedroll and the fire ring stand. Raised once per camp set up; the detail is the fire ring's middle cell (<c>x,y,z</c>).</summary>
+    public const string CampPlaced = "camp_placed";
+
     /// <summary>The day clock crossed into another phase (E01; the detail is the new phase: <c>dawn</c>, <c>day</c>, <c>dusk</c> or <c>night</c>). Not raised for a sleep's jump to the morning or a load.</summary>
     public const string DayPhase = "day_phase";
 
@@ -212,7 +217,7 @@ public static class WorldEvents
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
-        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
+        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, ItemCrafted, TipShown, GuideMet, FireLit, SessionComplete, SecondTryAsked, SecondTryAnswered,
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered, OrderAccepted, OrderDeclined,
@@ -220,6 +225,9 @@ public static class WorldEvents
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,
+        LodgingGranted,
+        PlotBought,
+        CampPlaced,
         DayPhase, WeatherChanged,
     ];
 }

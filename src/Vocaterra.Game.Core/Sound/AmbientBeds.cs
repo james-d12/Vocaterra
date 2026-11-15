@@ -33,16 +33,16 @@ public sealed class AmbientPlaces
     /// <param name="waterfall">The waterfall's lip, or <see langword="null"/>.</param>
     /// <param name="lake">The lake's middle, or <see langword="null"/>.</param>
     /// <param name="river">The river's path, in order from the waterfall to the lake.</param>
-    /// <param name="playerFire">The player's own fire ring, or <see langword="null"/>.</param>
+    /// <param name="fire">The fire ring the fire bed sits at when it is lit (the guide's camp ring, <c>firering</c>; Y08), or <see langword="null"/>.</param>
     /// <param name="lamps">The lamps of the village.</param>
     /// <param name="named">The named places (for the sound log).</param>
-    public AmbientPlaces(Point2? village, Point2? waterfall, Point2? lake, IReadOnlyList<Point2> river, Point2? playerFire, IReadOnlyList<Point2> lamps, IReadOnlyList<NamedPlace> named)
+    public AmbientPlaces(Point2? village, Point2? waterfall, Point2? lake, IReadOnlyList<Point2> river, Point2? fire, IReadOnlyList<Point2> lamps, IReadOnlyList<NamedPlace> named)
     {
         Village = village;
         Waterfall = waterfall;
         Lake = lake;
         River = river ?? throw new ArgumentNullException(nameof(river));
-        PlayerFire = playerFire;
+        Fire = fire;
         Lamps = lamps ?? throw new ArgumentNullException(nameof(lamps));
         Named = named ?? throw new ArgumentNullException(nameof(named));
     }
@@ -59,8 +59,8 @@ public sealed class AmbientPlaces
     /// <summary>The river's path.</summary>
     public IReadOnlyList<Point2> River { get; }
 
-    /// <summary>The player's own fire ring (<c>firering.player</c>).</summary>
-    public Point2? PlayerFire { get; }
+    /// <summary>The fire ring the fire bed sits at while it is lit: the one at the guide's camp (<c>firering</c>, Y08; the mountain ring is gone). The lamps' beds do not wait for it.</summary>
+    public Point2? Fire { get; }
 
     /// <summary>The lamps of the village (the torches of the evening).</summary>
     public IReadOnlyList<Point2> Lamps { get; }
@@ -77,13 +77,13 @@ public sealed class AmbientPlaces
         Point2? SiteAt(string name) => layout.Site(name) is { } site ? Middle(site.X, site.Z) : null;
         var river = layout.River is { } spec ? spec.Path.Select(static p => Middle(p.X, p.Z)).ToList() : new List<Point2>();
         var lamps = layout.Props.Where(static p => p.Type == "lamp").Select(static p => Middle(p.X, p.Z)).ToList();
-        var playerFire = layout.Props.FirstOrDefault(static p => p.Type == "fire_ring" && p.Name == "firering.player") is { } ring ? Middle(ring.X, ring.Z) : (Point2?)null;
+        var fire = layout.Props.FirstOrDefault(static p => p.Type == "fire_ring" && p.Name == "firering") is { } ring ? Middle(ring.X, ring.Z) : (Point2?)null;
         var named = new List<NamedPlace>();
         foreach (var site in layout.Sites)
         {
             var reach = site.Name switch
             {
-                "camp.player" or "camp.ledge" => 12,
+                "camp.player" or "camp.ledge" => 12, // the mountain ledge: wind, no fire since Y08
                 "camp.guide" => 16,
                 "village" => 22,
                 "waterfall" => 12,
@@ -97,13 +97,13 @@ public sealed class AmbientPlaces
             }
         }
 
-        return new AmbientPlaces(SiteAt("village"), SiteAt("waterfall"), SiteAt("lake"), river, playerFire, lamps, named);
+        return new AmbientPlaces(SiteAt("village"), SiteAt("waterfall"), SiteAt("lake"), river, fire, lamps, named);
     }
 }
 
 /// <summary>
 /// Where the ambient beds sit for a listener (S25): the weight of each bed, 0 to 1, and its pan. It is a pure function of the listener's place and facing, the
-/// scene's places, the atmosphere's daylight and whether the player's fire is lit, so the same route gives the same weights at the same tick.
+/// scene's places, the atmosphere's daylight and whether the guide camp's fire is lit, so the same route gives the same weights at the same tick.
 /// </summary>
 /// <remarks>
 /// The beds: <c>wind</c> on the cliff and the heights; <c>birds</c> in the lowland forest by day (scheduled chirps); <c>river</c> along the river's path and at the
@@ -268,12 +268,13 @@ public static class AmbientBeds
     /// <param name="places">The scene's places.</param>
     /// <param name="listener">The listener.</param>
     /// <param name="atmosphere">The atmosphere now: its daylight sets the birds (by day) and the insects (by night).</param>
-    /// <param name="fireLit">Whether the player's own fire is lit.</param>
+    /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">
     /// Reads the highest block of a column of the world (<c>VoxelGrid.HighestBlock</c>, the query the rain's drops use), or <see langword="null"/> for open ground everywhere: the rain is
     /// lower where the listener stands under cover. Only read when it rains, and never written.
     /// </param>
-    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null)
+    /// <param name="campFire">The middle of the fire ring of the player's own camp while it burns (Y12), or <see langword="null"/>: the fire bed follows it as it follows the guide's ring.</param>
+    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null)
     {
         ArgumentNullException.ThrowIfNull(places);
         var here = new Point2(listener.X, listener.Z);
@@ -318,10 +319,20 @@ public static class AmbientBeds
 
         var fireWeight = 0.0;
         var firePan = 0.0;
-        if (fireLit && places.PlayerFire is { } fire)
+        if (fireLit && places.Fire is { } fire)
         {
             fireWeight = Falloff(Distance(here, fire), 6, 24);
             firePan = Pan(listener, fire);
+        }
+
+        if (campFire is { } camp)
+        {
+            var campWeight = Falloff(Distance(here, camp), 6, 24); // Y12: the ring the player's camp lit, which burns as Luna's does
+            if (campWeight > fireWeight)
+            {
+                fireWeight = campWeight;
+                firePan = Pan(listener, camp);
+            }
         }
 
         foreach (var lamp in places.Lamps)

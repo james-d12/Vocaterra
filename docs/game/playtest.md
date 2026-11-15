@@ -111,8 +111,8 @@ took the same ticks and asked the same 31 items before and after it (V09).
    lessons its play session has unlocked, and always those of sessions 1 to 3 (`coreSessions: 3` in `game/checks.json`, V07): the pre-check, the
    post-check and the next-day recall of a pilot (play sessions 1 and 2) are the same 31 items as before. The 56 items of sessions 4 to 10 (24 of phase A, 32 of phase B) are not in them. Say before it starts: "Some items are hard on purpose. Guess, or say 'no sé'. There is no score for you." Do not
    help with an item. Esc ends the check (the rest is skipped; note it).
-4. **The opening, at the player's own camp on the cliff.** The tester wakes alone there; no quiz. The English tips come one at a time: look,
-   walk, jump, a note at the tent (its one Spanish word, `camino`, says the guide's camp is down the trail), collecting and the inventory. The
+4. **The opening, on the mountain ledge.** The tester wakes alone there (Y08: a bare ledge, no tent); no quiz. The English tips come one at a time: look,
+   walk, jump, a note on the ledge (its one Spanish word, `camino`, says the guide's camp is down the trail), collecting and the inventory. The
    objective reads `Go down the trail and find the guide`, and the beacon points down the trail to her camp. Say only: "Please go on as you
    would in a game. Talk out loud if you can." Do not explain the controls: the tips do that. Note whether the tester reads them.
 5. **The guide's lesson** (about 5 to 8.5 minutes, the walk down the trail included). Luna, the guide, starts the lesson by herself when the
@@ -126,8 +126,8 @@ took the same ticks and asked the same 31 items before and after it (V09).
    (`¿Quieres agua?`). Four more stand in the world since the village grew (village-plan phase A): the fisher on the bridge's east landing, on the
    road to the village, the baker at the bakery, the smith at the smithy and the farmer at the field. They answer when talked to, but their lessons
    and orders start in sessions 4 to 7 (sessions 8 to 10 have lessons and no order): the objective never points at them and nothing in the first session needs them (a tester who asks the baker
-   for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: the tester takes the spare torch back up the trail and places it on the rim of the fire ring at their own
-   camp; the fire lights, and the screen says `Session complete`. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
+   for bread hears `Necesitas más monedas.`: there are no coins before session 4). Note it if a tester spends time with them. The tip `Press E to talk to someone.` may now show on the road, when the crosshair passes the fisher, rather than at the stall. The ending: Luna sends the tester to the inn (the beacon points there); the tester asks the innkeeper for a room
+   (or says «no sé»), and once the talk is closed the screen says `Session complete` in the innkeeper's voice. The room is where day one ends in a playtest: the bed, session 2 and the land («Mi terreno», from session 2) are not part of it, which is one session. Say only: "Please go on as you would in a game." Observe (section 5). Note each time the tester asks you something; answer the game questions only with "I cannot help with the
    Spanish, but you can ask the game for help: press H, or N for 'no sé'".
 7. **The rescue rule.** The game never needs you. If the tester is stuck on the **same step for more than 5 minutes** (no progress in the
    objective, the journal, or the dialogue, and no attempt), you may help: first with the place (point at the next thing, "the river is
@@ -286,7 +286,7 @@ Before any tester (the owner, once, end to end):
 1. Build the folder with `scripts/playtest-build.sh`; keep the output; it must end with `all checks passed`.
 2. Play one full session in the build folder as a beginner would: `./playtest.sh`, the mic check (or skip), the pre-check (31 items), the
    opening at the cliff camp, the guide's lesson (about 5 to 8.5 minutes), the camp, the stall, the villager, the river, the guide's offer, the
-   ending (the torch at your own fire ring), the post-check (31 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
+   ending (the room at the inn), the post-check (31 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
    F6 (save) and F8 (a report, Ctrl+Enter to save). Note any control you had to guess. The game measures the time of each part; do not time
    it by hand: `scripts/playtest-report.sh <folder>` prints, under "Durations", the whole session, the lesson, the walk (from the end of the
    lesson to the camp's completion) and each check, from the wall-clock times of the session log (the `lesson_started`, `lesson_completed`,
@@ -333,7 +333,7 @@ Not planned: written at V09 after phase B of the village plan and checked at V24
   keeps the day and sets the sitting on (V25). A tester who saves in session 5 and loads sees session 5 again.
 - The accent note: a verb typed without the accent of its tense (`ayer compre pan`) is accepted, and a note under the reply names the accented form, in free talk as in a lesson (M70, V21b).
 - The name plates show only for the NPC the tester faces and the beacon's NPC (V22), and the stall and the market answer what was said (V21, V21b).
-- **A way in.** `--playtest` plays one session a run and offers no sleep at the fire, and a `--load` of its save runs the recall battery and ends;
+- **A way in.** `--playtest` plays one session a run and offers no sleep (at the inn's bed or a fire), and a `--load` of its save runs the recall battery and ends;
   `--skip-to-session`, the test aid that starts a later session, refuses `--playtest`. A playtest of sessions 7 to 10 needs a profile that starts a tester at
   a later session (its saves and logs marked as such, as the skip's are), or sittings that allow the sleep. That is a game milestone, not a facilitator's
   step.

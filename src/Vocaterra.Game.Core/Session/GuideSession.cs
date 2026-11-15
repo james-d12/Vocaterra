@@ -588,7 +588,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         var opening = OpenNow(npc, logOpened: true);
-        if (HandOverOpen || _orderOffer is not null)
+        if (HandOverOpen || _orderOffer is not null || _landOffer is not null)
         {
             _classAfterHandOver = true; // issues #42 and #54: no class starts, resumes or is offered while the NPC waits for the goods or for the answer to its offer; it follows in this talk
         }
@@ -607,7 +607,7 @@ public abstract partial class GuideSession : IDisposable
     // the lesson's prompt (see RetryQueue). A phrase taken here is never queued again in this session.
     private void OfferSecondTry(string npc)
     {
-        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen || _orderOffer is not null
+        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged || HandOverOpen || _orderOffer is not null || _landOffer is not null
             || !Retries.Pending.Any(item => string.Equals(item.Npc, npc, StringComparison.Ordinal)))
         {
             return;
@@ -646,6 +646,9 @@ public abstract partial class GuideSession : IDisposable
     internal bool MayOfferClass(string npc) =>
         PendingTurns == 0 && PhraseReview is null && Review is null && !_deckClaim && Deck.Status == DeckStatus.Idle && !Lessons.Engaged && !HandOverOpen
         && Bundle.Prompts.TryGetValue(_npcs.PromptOf(npc), out var prompt) && !prompt.AllowedIntentIds.Contains("confirm", StringComparer.Ordinal);
+
+    /// <summary>Whether a conversation is open (Y07: the session's ending waits for it to close).</summary>
+    public bool TalkOpen => _talkOpen;
 
     /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
     internal bool TalkOpenOn(string npc) => _talkOpen && string.Equals(CurrentNpc, npc, StringComparison.Ordinal);
@@ -839,12 +842,18 @@ public abstract partial class GuideSession : IDisposable
             {
                 EndStaleHandOver(npc);
                 EndStaleOrderOffer(npc);
+                EndStaleLandOffer(npc);
                 var orderOffer = order is null ? OrderOfferOf(npc) : null; // issue #54: an order not yet given is offered when the talk opens, and taken with «sí»
-                var offer = orderOffer?.HostEvent ?? (order is null ? BakeOfferOf(npc, asked: false) : null); // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
+                var landOffer = order is null && orderOffer is null ? LandOfferOf(npc) : null; // Y11: the mayor offers the stake, or the plot once it is marked
+                var offer = orderOffer?.HostEvent ?? landOffer ?? (order is null ? BakeOfferOf(npc, asked: false) : null); // W08: the teacher's offer to bake opens the talk, once a day until the learner has baked
                 opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest(), order is null ? null : NpcHostEvents.Of(npc, NpcHostEvents.Delivered), offer);
                 if (orderOffer is { } made && string.Equals(_npcs.StateOf(npc), NpcHostEvents.OrderOfferState, StringComparison.Ordinal))
                 {
                     NoteOrderOffer(npc, made.Order);
+                }
+                else if (landOffer is not null && IsLandOfferState(_npcs.StateOf(npc)))
+                {
+                    NoteLandOffer(npc);
                 }
                 else if (offer is not null)
                 {
@@ -925,6 +934,7 @@ public abstract partial class GuideSession : IDisposable
         _handOver = null; // the next talk asks again
         _classAfterHandOver = false;
         _orderOffer = null; // issue #54: an offer left unanswered is made again at the next talk
+        _landOffer = null; // Y11: so is the mayor's
         Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }
@@ -944,7 +954,7 @@ public abstract partial class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsFor(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory, WeatherKey: WeatherKey);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         PhraseReview? answeredReview = null;
@@ -963,6 +973,7 @@ public abstract partial class GuideSession : IDisposable
             Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
         }
 
+        turn = AsClassAnswer(turn);
         LastWordTurn = Words.RecordTurn(turn, turn.CreditKind, Credit, StoredTime.UnixSeconds);
         RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
         var afterwards = AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
@@ -1184,10 +1195,11 @@ public abstract partial class GuideSession : IDisposable
                 Pointer = new PointerMarker(pointer.Place, pointer.Target, Point: pointer.Point);
             }
 
-            words = Words.RecordTurn(turn, turn.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
+            var graded = AsClassAnswer(turn);
+            words = Words.RecordTurn(graded, graded.CreditKind, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
-            RecordTurnLine(turn, outcome.Request.Now.UnixSeconds);
-            var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
+            RecordTurnLine(graded, outcome.Request.Now.UnixSeconds);
+            var shown = AfterTurn(graded, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
             if (!ReferenceEquals(shown, turn))
             {
                 outcome = outcome with { Turn = shown }; // the lesson took the turn, or the guide says her last line again (S17)
@@ -1318,6 +1330,20 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     protected virtual IReadOnlySet<string>? ClosedGifts => null;
 
+    /// <summary>
+    /// The land's facts for the mayor's answer to a purchase (Y11), taken now for a turn's scene, or <see langword="null"/> for an NPC who sells no land (nothing of the turn reads them). The 3D scene
+    /// has the land, the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC the line is said to.</param>
+    protected virtual PlotFacts? PlotFactsFor(string npc) => null;
+
+    /// <summary>
+    /// The host event of the offer an NPC opens the talk with about the player's land (Y11: <c>&lt;npc&gt;.offer_stake</c> or <c>&lt;npc&gt;.offer_plot</c>), or <see langword="null"/> for none. The 3D scene
+    /// knows the land; the base game has none.
+    /// </summary>
+    /// <param name="npc">The NPC the panel opens on.</param>
+    protected virtual string? LandOfferAt(string npc) => null;
+
     /// <summary>The NPC thanked the player for an order (its opening was <c>&lt;npc&gt;.delivered</c>): the goods leave the inventory. The 3D scene does it.</summary>
     /// <param name="npc">The NPC.</param>
     /// <param name="order">The order's objective id (<see cref="OrderReadyAt"/>).</param>
@@ -1329,6 +1355,25 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="world">The event.</param>
     protected virtual void OnWorldEvent(WorldEvent world)
     {
+    }
+
+    // Y14: «sí» or «no» to a class offer (LessonRunner.OnClassTurn) is the answer to the offer, though the NPC's own prompt (the trade's) takes no confirm. The turn is
+    // graded as the class takes it, confirm or deny and understood, before anything records it: the learner's history, the word progress, the phrase log and the panel
+    // all see the same verdict. A turn the core understood, and a spoken one the recognizer was not sure of (D-game-9: the microphone's trouble, logged as such), are left as they are.
+    private GuideTurn AsClassAnswer(GuideTurn turn)
+    {
+        if (turn.Communicated || turn.Uncertain || IsHandOverTurn(turn) || Lessons.OfferStandingAt(turn.Npc) is null)
+        {
+            return turn;
+        }
+
+        var answer = Data.Words.Classes.Read(turn.Line);
+        if (answer is not (ClassAnswer.Yes or ClassAnswer.No))
+        {
+            return turn;
+        }
+
+        return turn with { Intent = answer == ClassAnswer.Yes ? "confirm" : "deny", Communicated = true, OffPromptIntent = null, Repair = null, RepairKind = null };
     }
 
     // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world. Returns the turn as the player is to see
@@ -1399,9 +1444,10 @@ public abstract partial class GuideSession : IDisposable
             _retry = null;
         }
 
-        if (turn.FailForward)
+        if (turn.FailForward && support.InPlay.Count > 0)
         {
-            Log(new PhraseUse(tick, time, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
+            // Y14: the phrase the learner was asked for at that prompt (the first in play there: the NPC's focus, or the lesson step's phrase), none where the prompt asks for none.
+            Log(new PhraseUse(tick, time, support.InPlay[0], PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
         }
 
         if (turn.HostEvents.Count > 0)
@@ -1458,6 +1504,7 @@ public abstract partial class GuideSession : IDisposable
 
         var waited = HandOverOpen;
         shown = HandOverAfter(turn, shown); // issue #42: the line that hands an order over, or a miss at the NPC's receiving prompt
+        LandOfferAfter(turn); // Y11: the mayor's offer is answered, or asked again
         OrderOfferAfter(turn); // issue #54: «sí» to the NPC's offer gives the order, «no» puts it off until the next day (after the lesson's turn: a class offered now waits for the next line)
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
@@ -1623,7 +1670,7 @@ public abstract partial class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? LessonPrompt, Credited: Lessons.CreditedPhrases, OrderHeld: OrderHeldAt(CurrentNpc), ClosedGifts: ClosedGifts, Grant: TeachingNpc is null ? null : PlanGrant(), Offer: BakeOfferOf(CurrentNpc, asked: true), WeatherKey: WeatherKey, Land: PlotFactsFor(CurrentNpc))
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts, WeatherKey: WeatherKey);
     }
 }

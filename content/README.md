@@ -38,10 +38,11 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks; V03: the play session it starts in, and the orders; D-game-27: an order the learner hands over in Spanish, `handOver`, whose NPC needs a `receiving` state and a `<npc>-receive` prompt) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
   | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise; schema 2, V01: the prompt of each state, the opening, the voice, the key words, the pool prefix) | `NpcRoster` |
-  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`) | `HostEventTable` |
-  | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the death rules; the stage lines' keys, not their text) | `NeedsData` |
+  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give items, point the beacon at a noun, a place or the place the learner names; schema 2, V02; W08: the teacher's kinds `procedure_repeat`, `procedure_slower`, `procedure_help`, `give_missing`, `teach_recipe`, `start_procedure`; Y05: `grant_lodging`; Y11: `sell_plot`) | `HostEventTable` |
+  | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the sleep places (Y01: where the player sleeps; not `rest`) and the death rules (`wakeAt` names a sleep place); the stage lines' keys, not their text) | `NeedsData` |
   | `game/day.json` | `day.schema.json` (the day and night cycle, E01: its length in seconds, the hours dawn, day, dusk and night begin, the start hour and the wake hour) | `DayData` |
   | `game/weather.json` | `weather.schema.json` (the weather, E04: its kinds as rows of channels (cloud cover, sunlight, fog, wind, precipitation: a kind and an intensity from 0 to 1; since E06 the kind names a row of the game's style table, `PrecipitationStyles` in `src/Vocaterra.Game/Graphics/Weather/`, which says how it looks, so a new precipitation kind needs a row there as well as in this file, and a test fails until it has one; the kind of a style the table lacks draws nothing), the range of a spell, the weighted next kinds, a morning weight; the kind a new game starts in and the transition time) | `WeatherData` |
+  | `game/land.json` | `land.schema.json` (the land rules, Y09: the discs round scene sites and the squares round the road and bridge blocks where the player may not place blocks (a torch is always allowed), each with the protection that names its hint (village, camp, road) and a margin; the discs round `meadow.north` and `meadow.south` where a plot may lie; the plot's width, depth, price in coins and the slope it allows. Site names are scene sites: the validator refuses one the scene lacks) | `LandData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
   | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
   | `game/procedures/<id>.json` | `procedure.schema.json` (one procedure each: its station, teacher, level, what it makes and uses, its steps, chunks and goal; W05) | `ProcedureBook` |
@@ -105,8 +106,7 @@ Everything the game says, shows and builds its world from, outside the code. The
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
-   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixtures `save-v1.json` and
-      `save-v4.json`); an edit of `locale/` alone moves none;
+   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v8.json`); an edit of `locale/` alone moves none;
    5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
       to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
       that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of
@@ -143,7 +143,7 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 - **A trigger.** A tip, a lesson's `do` step and an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
   session log shows each one with its NPC and detail. Since V02: `beacon_reached` (the player reached the beacon; the detail is the scene's name of the place,
-  `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`). Since E01: `day_phase` (the day clock crossed into
+  `stall`, or the word of an arrow on a noun's block) and `place_asked` (an NPC answered directions; the place found or `unknown`). Since E01: `day_phase` (the day clock crossed into Since Y05: `lodging_granted` (the player was first given lodging by the host action `grant_lodging`; no NPC, no detail). The host-event kinds are listed in `HostEventTable.Kinds`; `grant_lodging` takes no fields beyond `kind`. Since Y11: `plot_bought` (the player bought the plot from the mayor by the host action `sell_plot`; the NPC is the seller, the detail the plot's corner `x,z`; an autosave reason like `lodging_granted`).
   another phase; the detail is `dawn`, `day`, `dusk` or `night`; a sleep's jump to the morning and a load raise none) and, since E04, `weather_changed` (the weather
   changed kind: a spell's end, a morning's roll; the detail is the new kind's id, a row of `game/weather.json`; a load raises none).
   An NPC's file may list `weatherAnswers` (`["ask_weather"]`, E07): that intent is then answered with the pool its agent names on the host event `<id>.<key>`
@@ -184,6 +184,30 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).
 - **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
   reading of it with a gender.
+- **An item and its word (the stake, Y10).** An item is a row of `Items/ItemDefinition.cs` (its id, a stable English key, its stack limit; an `ItemId` number is never reused), its icon a
+  cell of the block atlas (`BlockCell.Icon…`, drawn in code in `BlockArt`, CC0 by construction; `BlockAtlasLayout.IconFor`), its Spanish noun a row of `game/nouns.json` whose `items` names the key
+  (`{"lemma": "estaca", "items": ["stake"]}`) with the English word in `locale/en/nouns.json`, so `--give estaca` and the word card work. A word the lists lack (`estaca`: in neither of the core's
+  lists) joins the end of `cefr/a1.txt` with its reason and `lexicon/game.json` with its forms (`estaca`, `estacas`, feminine); the A2 gate and `cefr-check` stay clean. A first card of a new noun
+  needs its two recordings (`content-loop.sh --grammar --speech`). `estaca` reads in the request forms (`Quiero una estaca`, `¿Me das una estaca?`: `request_item`, slot `estaca`); a bare «una estaca»
+  is `unknown`, as «una manzana» is. The camp kit (Y11, `ItemId.CampKit`, `camp-kit`, stack of one) is the second such item: its noun is `equipo` (A2, in the lexicon; `{"lemma": "equipo", "items": ["camp-kit"],
+  "labels": {"camp-kit": "equipo de campamento"}}`), so the inventory and the word card read «equipo de campamento» and the line says «Toma el equipo»; `tienda` stays the stall's word.
+- **The mayor and the plot (Y11).** Tomás, `villager`, is the `alcalde` (`label` «Alcalde», `npc.villager.role` "The mayor"; `alcalde` and `terreno` joined the end of `cefr/a1.txt` like `estaca`, but not `lexicon/game.json`: the Wiktionary import already has both as nouns, and `GeneratedLexiconTests.TheImportLeavesTheHandAuthoredWordsAlone` refuses a hand-authored entry for a lemma the import defines; `terreno` is a catalogue
+  noun with no item so a request for it can be answered). His agent keeps `idle` and `pointing` and has two states for a yes-or-no question, `offering_stake` (prompt `mayor-stake`) and `offering_plot` (prompt `mayor-sell`), the shape of an order's offer:
+  from the play session the checklist `my-land` is shown from (day 2), when the talk opens, `villager.offer_stake` while the player has no stake and no plot, and `villager.offer_plot` once a plot is marked (`LandOfferAt`; a stale offer is
+  taken back silently by `villager.offer_gone`). «Sí» in the first raises `villager.give_stake` (`give_item` of the stake; no second stake is given while one is held or once land is owned; the sale takes the stake from the bag with the coins, Y15); his `patience` (prompt `mayor-stake`, two misses, one after help) gives it
+  after «no sé» or two missed lines. «Sí» or a request for the plot in the second raises `villager.buy_plot` (the kind `sell_plot`, `{"item": "camp-kit"}`: the price is `game/land.json`'s). A request for `terreno` or `tierra` at any state goes
+  through his `villager.give` row (`instead: {"terreno": "sell_plot", "tierra": "sell_plot"}`). The sale's misses are `villager.already_owned`, `no_plot` (a stake in the bag, nothing marked or the marked plot no longer passes the land rules),
+  `no_stake` (none: his answer gives one), `cant_pay` and `no_room`; the validator wants a state that takes each, the two offers in the initial state and the two offering states with a prompt that takes «sí» and «no». «No sé» at the sale
+  gets help, never the land: the coins are the game's rule, not the language's. The checklist `my-land` («Mi terreno», `"session": 2`: it never ends a session, so it never holds sleep back) has the step `stake` (the stake in the bag, counted
+  as the camp's wood is), `buy` (`plot_bought`, restored from `systems.land.owned` by the hook `plot-owned`), `camp` (`camp_placed`, noun `campamento`, restored by `camp-placed` from the save's camp) and `fire` (`fire_lit` with the detail `camp.fire`,
+  noun `fuego`, restored by `camp-fire-lit` from the ring in the world): the checklist is done when all four are, and it still never holds sleep back. A marked plot points the arrow at the mayor, the purchase at the plot's middle.
+- **The camp the kit places (Y12).** One rigid piece, the `camp` stamp of `game/scene.json` (the stamps' format is that of `tent` and `inn_rooms`: a legend and layers from the ground up, north row first), drawn facing north: a
+  fire ring (the legend's `fire-ring` round an empty middle), a free row of ground, the tent's A-frame (the `tent` stamp's canvas cells, rows 4 to 7) and a bedroll two cells long on the ground in it (`bedroll`, the head at the back, then
+  `bedroll-foot`). It is five wide and eight deep, so it fits the 10 by 10 plot with ground to walk round it whichever way it turns. A stamp may carry `"anchors": {"name": [column, row]}`, named cells of the first layer that turn with it; the
+  camp needs `fire` (the ring's middle: the cell the player aims at and the sleep place at the fire), `bed` (the bedroll's head: the sleep place in the tent) and `wake` (the free cell, with head room, a death wakes on). I chose a stamp with
+  anchors over a new data file: the scene's own build and the placing in play turn stamps with one helper (`StampSpec.Turn`/`Cells`), and a second file would have meant a second schema, loader and validator for the same grid of characters. The validator
+  (`LandValidator`) checks the three anchors hold what the code expects and that the footprint, turned either way, leaves a block of ground on every side of the plot. The kit is used with the right click on the ground; the camp faces the player.
+  Gathering any block of it for three quarters of a second packs the whole camp back into the kit. The hint lines are `ui.camp*` in `locale/en/ui.json`.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name. The label is also the word an NPC's directions answer to (below), so a place the learner may ask for needs one.
 - **A river and its current.** The `river.path` in `game/scene.json` is listed from **upstream to downstream** (the first waypoint at the waterfall's pool, the last in
@@ -239,8 +263,8 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
   `objective.<id>.title` in `locale/en/ui.json`, and each step's label is the noun's lemma for a mass noun or a target of 1, otherwise its plural (a
   `label` overrides it). Another objective is shown by one line, `objective.<id>.hud`. Each step counts the world events its `trigger` matches, up to
   its `target`; a step whose trigger is a pickup of a noun (`item_picked_up` with a `detail`) counts the noun's items in the bag instead, so
-  crafting, eating, giving or dropping them takes it back until the objective is done (#32). What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
-  `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
+  crafting, eating, giving or dropping them takes it back until the objective is done (#32). What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`; `point-inn`: the beacon goes to the place `session.json`'s `innBeacon` names and the guide says `guide.camp.inn`, Y07) and a step's
+  `restore` (`lesson-begun`; `lodging-given`: the lodging the save's sleep entry keeps, Y07; `plot-owned`, Y11; `camp-placed` and `camp-fire-lit`, Y12: the camp the sleep entry keeps and the ring of it that burns in the world), which works the step out again from a loaded world; the save keeps its count too, so a step done before the save stays done when the world no longer shows it (a camp packed up after its fire was lit). `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
   drops its count from older saves. The session's ending (S17's closing moment) waits for the objectives with no `session` that are not orders.
 - **An order** (village-plan V03) is an objective that names the NPC the goods are brought to (`deliverTo`) and the goods (`deliver`: items by the name
@@ -282,7 +306,7 @@ specified for later in `docs/game/content-plan.md` section 3.8 (C10); it is not 
 
 An NPC is data alone since schema 2 of `game/npcs/<id>.json` (village-plan V01): no code names it. A fisher, `fisher`, takes these files, in this order (the
 fisher Mar of the lesson `el-pueblo`, village-plan V10, was added exactly so; his files are the worked example, and the baker Luz of `numeros-y-pan`, V11, with
-her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson):
+her purchase and her order, is the second; the smith Domingo and the farmer León of `gente-del-pueblo`, V12, are two more, met in the villager's lesson; the innkeeper Rosa, Y06, has no lesson: an offer on a yes-or-no prompt, `patience` and a host event that grants the room, like the shopkeeper's bottle):
 
 1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
    `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in
@@ -336,7 +360,7 @@ her purchase and her order, is the second; the smith Domingo and the farmer Leó
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
 6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); the keys drawn are `guide`,
-   `shopkeeper`, `villager` and, since village-plan V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
+   `shopkeeper`, `villager` and, since village-plan V05, `fisher`, `baker`, `smith` and `farmer`, and, since Y06, `innkeeper`. A key the game does not draw yet gets a plain grey
    figure until a milestone adds it.
 7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
    the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.

@@ -652,7 +652,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         var json = File.ReadAllText(RouteDraftPath());
         var noHeight = json.Replace("\"site\": \"camp.player\", \"yaw\": 135", "\"site\": \"village\", \"yaw\": 135", StringComparison.Ordinal);
         Assert.Contains("needs a y", Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(noHeight.Replace("\"village\": { \"x\": 292, \"z\": 218, \"y\": 37,", "\"village\": { \"x\": 292, \"z\": 218,", StringComparison.Ordinal))).Message, StringComparison.Ordinal);
-        var unknown = json.Replace("\"clearings\": [ { \"site\": \"village\"", "\"clearings\": [ { \"site\": \"nowhere\"", StringComparison.Ordinal);
+        var unknown = json.Replace("{ \"site\": \"village\", \"radius\": 36", "{ \"site\": \"nowhere\", \"radius\": 36", StringComparison.Ordinal);
         Assert.Contains("nowhere", Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(unknown)).Message, StringComparison.Ordinal);
         var percent = json.Replace("\"grass\": 100", "\"grass\": 140", StringComparison.Ordinal);
         Assert.Contains("percents", Assert.Throws<SceneLayoutException>(() => SceneLayout.Parse(percent)).Message, StringComparison.Ordinal);

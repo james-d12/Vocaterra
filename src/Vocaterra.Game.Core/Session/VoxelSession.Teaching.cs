@@ -51,6 +51,9 @@ public sealed partial class VoxelSession
                 }
 
                 break;
+            case NpcEffectKind.GrantLodging:
+                GrantLodging();
+                break;
             default:
                 break;
         }

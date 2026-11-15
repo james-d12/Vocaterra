@@ -98,7 +98,7 @@ public sealed partial class VoxelSimulation
     /// <param name="block">The block kind.</param>
     public int GatherTicksOf(BlockId block)
     {
-        var definition = BlockDefinition.Get(block);
+        var definition = GatherDefinition(block);
         if (definition.Gatherable && definition.Material != Material.None
             && SelectedStack is { IsEmpty: false } held && ItemDefinition.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
         {
@@ -279,8 +279,8 @@ public sealed partial class VoxelSimulation
         return false;
     }
 
-    /// <summary>The fire rings of the world (N07): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
-    private FireRings Fires => _fires ??= new FireRings(Grid);
+    /// <summary>The fire rings of the world, the one finder the session shares (N07, Y01): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
+    public FireRings Fires => _fires ??= new FireRings(Grid);
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)
@@ -483,6 +483,11 @@ public sealed partial class VoxelSimulation
     /// </summary>
     private void StepGather(BlockPos? target)
     {
+        if (target != _takeBackRefusedAt)
+        {
+            _takeBackRefusedAt = null; // a new hold may say again why a plank stays (Y09)
+        }
+
         if (target is not { } cell || !Grid.InBounds(cell.X, cell.Y, cell.Z) || !InReach(cell))
         {
             _noBottleHint = null;
@@ -498,8 +503,14 @@ public sealed partial class VoxelSimulation
         }
 
         _noBottleHint = null;
-        var definition = BlockDefinition.Get(id);
-        if (!definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
+        if (BuildRules?.IsCampBlock(cell) == true)
+        {
+            StepPackCamp(cell, id); // Y12: a block of the player's camp is not gathered one by one: holding on it packs the whole camp
+            return;
+        }
+
+        var definition = GatherDefinition(id);
+        if (TakeBackRefused(id, cell) || !definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
         {
             ResetGather();
             return;
@@ -594,6 +605,11 @@ public sealed partial class VoxelSimulation
             return;
         }
 
+        if (PlaceRefusedByLand(placed, cell))
+        {
+            return; // Y09: not on the village, the roads or Luna's camp (a torch is always allowed)
+        }
+
         Grid.SetBlock(cell.X, cell.Y, cell.Z, placed);
         Inventory.Remove(item, 1);
         _events.Add(new SimulationEvent(SimulationEventKind.BlockPlaced, Tick, cell.X, cell.Y, cell.Z, (int)placed, (int)item));
@@ -618,7 +634,8 @@ public sealed partial class VoxelSimulation
     }
 
     /// <summary>Whether the cell's cube overlaps the player's box (touching an edge does not count).</summary>
-    private bool OverlapsPlayer(BlockPos cell) =>
+    /// <param name="cell">The cell.</param>
+    public bool OverlapsPlayer(BlockPos cell) =>
         Player.MinX < (cell.X + 1) * U && Player.MaxX > cell.X * U
         && Player.MinY < (cell.Y + 1) * U && Player.MaxY > cell.Y * U
         && Player.MinZ < (cell.Z + 1) * U && Player.MaxZ > cell.Z * U;

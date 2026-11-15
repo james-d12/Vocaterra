@@ -146,7 +146,7 @@ first and the voice into `game/npcs/<id>.json` (section 3.7, V01) and leaves the
   Spanish word an NPC speaks must be in `cefr/a1.txt`**, and the practice since S5 has been to add world words there as provisional
   (`botella`, `madera`, `antorcha`, `fuego`, `despacio`; the sheet's notes). An A2 lesson cannot pass this gate as it is; section 3.9 changes it.
 - **The grammar gate** needs the LanguageTool server once per batch of new Spanish (`docs/game/content.md`, "Refreshing the cache").
-- **Every bundle edit** re-hashes `game-v1`, so: the goldens may move, `Fixtures/save-v1.json` takes the new hash, the scripted runs are
+- **Every bundle edit** re-hashes `game-v1`, so: the goldens may move, `Fixtures/save-v8.json` takes the new hash, the scripted runs are
   re-baselined, and the documents' counts (`README.md`, `playtest.md`) change; X06 noted that a roster test counts review lines.
 - **The sheet test** (`PhraseSheetTests`) checks every row: the variants resolve to the intent at the prompt with no error, the learner-error
   example gives exactly its codes, the audio ids exist.

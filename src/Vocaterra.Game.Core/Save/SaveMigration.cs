@@ -239,8 +239,10 @@ public static class SaveMigration
             report.Note("the block being gathered is not there in the new world: the gathering stopped");
         }
 
+        var systems = document.Systems is { Sleep: { } sleep } ? document.Systems with { Sleep = AdaptSleep(sleep, session, report) } : document.Systems;
         return document with
         {
+            Systems = systems,
             Words = words,
             Carded = carded,
             Phrases = phrases,
@@ -253,6 +255,25 @@ public static class SaveMigration
             Tips = tips,
             Gather = gather,
         };
+    }
+
+    // Y02: the lodging and the places made in play are kept (a place made in play is the player's, at a cell: kept when the cell is in the new world, else dropped); the place last slept at
+    // is let go of when it is neither a place of the new bundle nor one of the places kept.
+    private static SleepSave? AdaptSleep(SleepSave sleep, VoxelSession session, Collector report)
+    {
+        var grid = session.Scene.Grid;
+        var places = (sleep.Places ?? []).Where(p => grid.InBounds(p.X, p.Y, p.Z)).ToArray();
+        var droppedPlaces = (sleep.Places ?? []).Except(places).Select(static p => p.Id).ToArray();
+        ReportCount("sleep places made in play", (sleep.Places?.Length ?? 0), places.Length, droppedPlaces, report);
+        var last = sleep.Last;
+        if (last is not null && session.SleepPlaces.Find(last.Id) is null && !places.Any(p => string.Equals(p.Id, last.Id, StringComparison.Ordinal)))
+        {
+            report.Drop("place last slept at", last.Id);
+            last = null;
+        }
+
+        var adapted = sleep with { Last = last, Places = places.Length == 0 ? null : places };
+        return adapted.LodgingGiven || adapted.Last is not null || adapted.Places is not null || adapted.Camp is not null || adapted.KitOwed ? adapted : null;
     }
 
     // The learner's own record (history, word rows, settings) names no bundle content, so it is kept whole.

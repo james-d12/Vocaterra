@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Session;
@@ -140,8 +141,25 @@ public sealed class SceneDrawer : IDisposable
         renderer.SetUnderwater(amount);
         _underwaterPass!.Begin(amount, BlurLevel());
         device.Clear(renderer.ClearColour);
-        renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera));
+        renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera), PlotOutlines(camera));
         _underwaterPass.End(amount, _underwater.TintOpacity, renderer.WaterLight);
+    }
+
+    // The outlines of the pending and the owned plot, when the eye is near them (Y10): posts and an edge line on the ground's own height, built for the frame (a few dozen quads).
+    private List<MeshBuffer>? PlotOutlines(FirstPersonCamera camera)
+    {
+        List<MeshBuffer>? outlines = null;
+        var grid = _session.Simulation.Grid;
+        float Surface(int x, int z) => LandRules.GroundOf(grid, x, z).Y + 1f;
+        foreach (var (plot, owned) in new[] { (_session.PendingPlot, false), (_session.OwnedPlot, true) })
+        {
+            if (plot is { } p && OverlayMeshes.PlotOutlineVisible(p, camera.Eye.X, camera.Eye.Z))
+            {
+                (outlines ??= []).Add(OverlayMeshes.PlotOutline(p, Surface, owned));
+            }
+        }
+
+        return outlines;
     }
 
     // The view under water eases by the frame's time (presentation, not simulation); a scripted run counts one tick of time a frame, as its clock does.

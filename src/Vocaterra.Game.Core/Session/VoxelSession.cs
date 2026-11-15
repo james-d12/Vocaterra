@@ -2,7 +2,9 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
@@ -34,7 +36,6 @@ public sealed partial class VoxelSession : GuideSession
 
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
-    private readonly List<BlockPos> _playerFireRing = [];
     private readonly List<string> _hints = [];
     private readonly List<(Objective Objective, ObjectiveStep Step)> _pendingSteps = [];
     private IReadOnlyList<ObjectiveStep> _completed = [];
@@ -73,9 +74,11 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         Simulation.SetRecipes(Recipes.Rules);
+        InitLand(scene); // Y09: the village, the roads and Luna's camp refuse blocks
         Objectives = data.Objectives.Objectives.Select(static spec => new Objective(spec)).ToList();
         Objective = Objectives.First(static o => o.IsChecklist);
         ScanFireRing(scene);
+        SleepPlaces = new SleepPlaces(data.Needs.SleepPlaces, data.Needs.Death.WakeAt, scene, Simulation.Fires, () => LodgingGiven);
         Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
     }
 
@@ -116,9 +119,12 @@ public sealed partial class VoxelSession : GuideSession
         return dot < 0 ? null : Objectives.FirstOrDefault(o => string.Equals(o.Id, key[..dot], StringComparison.Ordinal))?.Step(key[(dot + 1)..]);
     }
 
-    /// <summary>The counts a save keeps, by <c>&lt;objective&gt;.&lt;step&gt;</c>, in the session's order: every step without a restore hook (the others are worked out again from the world, <see cref="RestoreStage"/>).</summary>
+    /// <summary>
+    /// The counts a save keeps, by <c>&lt;objective&gt;.&lt;step&gt;</c>, in the session's order: every step. A step with a restore hook is also worked out again from the world (<see cref="RestoreStage"/>),
+    /// and its saved count keeps it done when the world no longer shows it (a camp packed up after its fire was lit).
+    /// </summary>
     public IReadOnlyList<(string Key, int Count)> ObjectiveCounts() =>
-        Objectives.SelectMany(o => o.Spec.Steps.Where(static s => s.Restore is null).Select(s => (o.Id + "." + s.Id, o.Step(s.Id)!.Count))).ToList();
+        Objectives.SelectMany(o => o.Spec.Steps.Select(s => (o.Id + "." + s.Id, o.Step(s.Id)!.Count))).ToList();
 
     /// <summary>Puts back the counts a save keeps (S10): each key must be a step of an objective and appear once; the steps not named keep their count.</summary>
     /// <param name="counts">The counts by <c>&lt;objective&gt;.&lt;step&gt;</c>.</param>
@@ -182,7 +188,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var current = CurrentObjective;
-        if ((current is null || current.Spec.IsOrder) && RestLine() is { } rest)
+        if ((current is null || !current.Spec.EndsSession) && RestLine() is { } rest)
         {
             return [rest]; // the session's work is done: sleep at the fire for the next session, or every lesson is done; or the lesson to go on with (V12c)
         }
@@ -214,14 +220,14 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         var active = Objectives.Select((o, i) => (Objective: o, Index: i)).Where(x => !x.Objective.Complete && Shown(x.Objective.Spec)).ToList();
-        var hasMain = active.Any(static x => !x.Objective.Spec.IsOrder);
+        var hasMain = active.Any(static x => x.Objective.Spec.EndsSession);
         if (!hasMain && lessonLine is null && RestLine() is { } rest)
         {
             return new TrackerView([Single(rest)], 0);
         }
 
-        var main = active.FirstOrDefault(static x => !x.Objective.Spec.IsOrder); // the sequence's first undone objective; the later ones are not reached yet
-        var tracked = active.Where(x => x.Objective.Spec.IsOrder || x.Index == main.Index && main.Objective is not null);
+        var main = active.FirstOrDefault(static x => x.Objective.Spec.EndsSession); // the sequence's first undone objective; the later ones are not reached yet
+        var tracked = active.Where(x => !x.Objective.Spec.EndsSession || x.Index == main.Index && main.Objective is not null); // an order or a later session's checklist (Y11's «Mi terreno») is always tracked
         foreach (var (objective, _) in tracked.OrderByDescending(static x => x.Objective.AdvancedAt).ThenBy(static x => x.Index))
         {
             lines.Add(LineOf(objective));
@@ -256,7 +262,7 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
     public bool GuideMet => _guideMet;
 
-    /// <summary>Whether a torch stands on the rim of the fire ring at the player's own camp (<c>firering.player</c>): the fire is lit.</summary>
+    /// <summary>Whether a torch stands on the rim of the fire ring at the guide's camp (<c>firering</c>; Y08): the fire is lit. The sound beds read it.</summary>
     public bool FireLit => _fireLit;
 
     /// <summary>
@@ -268,24 +274,14 @@ public sealed partial class VoxelSession : GuideSession
     /// <summary>The scene's name for the fire ring at the guide's camp, where the checklist's torch goes (S5).</summary>
     public const string CampFireRing = "firering";
 
-    /// <summary>The scene's name for the fire ring at the player's own camp, where the closing fire is lit (S17).</summary>
-    public const string PlayerFireRing = "firering.player";
-
-    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes fuego.</c>), the first of <c>game/session.json</c>'s closing pool, or an empty text when the bundle has none.</summary>
+    /// <summary>The closing line in Spanish (<c>Buenas noches. Tu cama está allí.</c>, the innkeeper's, Y07), the first of <c>game/session.json</c>'s closing pool, or an empty text when the bundle has none.</summary>
     public string ClosingLine => Bundle.Dialogue.TryGetPoolById(Data.Objectives.ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
 
     /// <summary>The speech-line id of <see cref="ClosingLine"/> (its gloss is the locale's <c>line.&lt;id&gt;</c>), or <see langword="null"/> when the bundle has none.</summary>
     public string? ClosingLineId => Bundle.Dialogue.TryGetPoolById(Data.Objectives.ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].LineId : null;
 
-    /// <summary>
-    /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
-    /// <see cref="SessionComplete"/>).
-    /// </summary>
-    public bool HasPlayerFireRing => _playerFireRing.Count > 0;
-
-    /// <summary>Whether a cell lies at the fire ring of the player's own camp (the same square as <see cref="AtFireRing"/>, around <c>firering.player</c>).</summary>
-    /// <param name="cell">The cell.</param>
-    public bool AtPlayerFireRing(BlockPos cell) => AtRing(_playerFireRing, cell);
+    /// <summary>The speaker of <see cref="ClosingLine"/> (Y07): the NPC the closing pool belongs to (the innkeeper), else the guide.</summary>
+    public string ClosingSpeaker => SpeechSpeakers.OfPool(Data.Objectives.ClosingPool, Data.Npcs);
 
     /// <inheritdoc />
     protected override void NoteGuideMet()
@@ -325,9 +321,9 @@ public sealed partial class VoxelSession : GuideSession
     /// </summary>
     public void BeginPlaySession()
     {
-        if (RestDue && !AtOwnFire)
+        if (RestDue && !AtSleepPlace)
         {
-            PointAtFire();
+            PointAtSleepPlace();
         }
 
         SettleRest();
@@ -402,6 +398,7 @@ public sealed partial class VoxelSession : GuideSession
         Simulation.Step(commands);
         StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         StepWaterEvents();
+        ReturnOwedKit(); // Y12: a camp kit a load could not give back
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)
@@ -429,17 +426,12 @@ public sealed partial class VoxelSession : GuideSession
                         var cell = new BlockPos(e.X, e.Y, e.Z);
                         if (AtFireRing(cell))
                         {
-                            LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring but the player's)
+                            LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring)
+                            LightFire(); // the latch the sound beds read: a torch on the rim of the guide's ring
                         }
-
-                        if (AtPlayerFireRing(cell))
+                        else
                         {
-                            LogWorld(WorldEvents.TorchAtRing, null, PlayerFireRing);
-                        }
-
-                        if (AtPlayerFireRing(cell))
-                        {
-                            LightFire(); // the closing fire (S17): a torch on the rim of the ring at the player's own camp
+                            _ = TorchAtCampRing(cell); // Y12: the ring of the camp the player set up lights the same way
                         }
                     }
 
@@ -461,6 +453,19 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.WaterWithoutBottle:
                     LogWorld(WorldEvents.WaterWithoutBottle, null, null);
                     _hints.Add(Locale.Ui(NeedBottleHint));
+                    break;
+                case SimulationEventKind.PlaceRefused:
+                    if (LandHintFor((Protection)e.Detail) is { } landHint)
+                    {
+                        _hints.Add(Locale.Ui(landHint)); // Y09: the village, the road or the camp is not the player's to build on
+                    }
+
+                    break;
+                case SimulationEventKind.TakeBackRefused:
+                    _hints.Add(Locale.Ui(LandTakeBackHint));
+                    break;
+                case SimulationEventKind.CampPackRequested:
+                    _ = PackCamp(); // Y12: the gather button held on a block of the camp
                     break;
                 default:
                     break;
@@ -500,6 +505,9 @@ public sealed partial class VoxelSession : GuideSession
         return _completed;
     }
 
+    /// <summary>The short hints waiting to be shown, in order, left where they are (the console's line for a dev aid reads them; <see cref="TakeHints"/> clears them).</summary>
+    public IReadOnlyList<string> PeekHints() => _hints.ToArray();
+
     /// <summary>The short hints the world gave since the last call (water with no bottle), in order, and clears them.</summary>
     public IReadOnlyList<string> TakeHints()
     {
@@ -521,38 +529,39 @@ public sealed partial class VoxelSession : GuideSession
 
     /// <summary>
     /// Whether a cell lies at the camp's fire ring: a cell in the three-by-three square of the ring, on the layer of its stones (the empty
-    /// centre) or on top of a stone (the rim). The torch is set on the rim, where a one-block ring does not hide its flame.
+    /// centre) or on top of a stone (the rim). The torch is set on the rim, where a one-block ring does not hide its flame. It is the square <see cref="FireRings.IsLit"/>
+    /// reads, so a torch at the ring is a torch that lights it.
     /// </summary>
     public bool AtFireRing(BlockPos cell) => AtRing(_fireRing, cell);
 
-    private static bool AtRing(List<BlockPos> ring, BlockPos cell)
-    {
-        foreach (var stone in ring)
-        {
-            if ((stone.Y == cell.Y || stone.Y + 1 == cell.Y) && Math.Abs(stone.X - cell.X) <= 1 && Math.Abs(stone.Z - cell.Z) <= 1)
-            {
-                return true;
-            }
-        }
+    // The middles (FireRings) of the rings whose stones are in the list: the camp's one ring, or every ring of a scene that names none.
+    private IEnumerable<BlockPos> MiddlesOf(IReadOnlyList<BlockPos> ring) =>
+        Fires.Middles.Where(middle => ring.Any(stone => stone.Y == middle.Y && Math.Abs(stone.X - middle.X) <= 1 && Math.Abs(stone.Z - middle.Z) <= 1));
 
-        return false;
-    }
+    private bool AtRing(IReadOnlyList<BlockPos> ring, BlockPos cell) =>
+        MiddlesOf(ring).Any(middle => Math.Abs(cell.X - middle.X) <= 1 && Math.Abs(cell.Z - middle.Z) <= 1 && cell.Y - middle.Y is 0 or 1);
 
     /// <summary>
     /// Works the objectives out again from the world and the progress a save puts back (S17, C07): each step that names a restore hook asks it (<c>lesson-begun</c>: the
-    /// guide is met when a lesson was begun; <c>scan-fire-ring</c>: the fire is lit when a torch stands at the player's own ring), an objective another one's progress
+    /// guide is met when a lesson was begun; <c>lodging-given</c>: the room at the inn was given; <c>plot-owned</c>: the land was bought), an objective another one's progress
     /// completes is completed (the guide is met once the checklist moved), each done objective's hooks put their state back without acting, and the session is complete
-    /// when every objective is done. The save holds only the counts of the steps without a restore hook.
+    /// when every objective is done. A step with a restore hook that the save had done stays done (a step is never undone by a load).
     /// </summary>
     internal void RestoreStage()
     {
         _guideMet = false;
-        _fireLit = false;
+        if (LodgingGiven)
+        {
+            Conversation.FollowLodging(); // Y08: a save with the room given puts the innkeeper in her goodnight state, whatever state it kept
+        }
+
+        _fireLit = MiddlesOf(_fireRing).Any(Fires.IsLit); // the latch the sound beds read (no objective restores it)
         foreach (var objective in Objectives)
         {
             foreach (var step in objective.Spec.Steps.Where(static s => s.Restore is not null))
             {
-                objective.Set(step.Id, RestoreHook(step.Restore!) ? step.Target : 0);
+                // Done when the world shows it, or when the save had it done: a step is never undone, in the run or by a load (the camp packed up after «Mi terreno» was done).
+                objective.Set(step.Id, RestoreHook(step.Restore!) || objective.Step(step.Id)!.Count >= step.Target ? step.Target : 0);
             }
         }
 
@@ -576,7 +585,10 @@ public sealed partial class VoxelSession : GuideSession
     private bool RestoreHook(string hook) => hook switch
     {
         "lesson-begun" => Lessons.Book.Lessons.Any(l => Lessons.StatusOf(l.Id) != LessonStatus.NotStarted),
-        "scan-fire-ring" => ScanPlayerFireRing(),
+        "lodging-given" => LodgingGiven,
+        "plot-owned" => Land.Owned is not null,
+        "camp-placed" => Camp is not null,
+        "camp-fire-lit" => CampFireIsLit,
         _ => throw new InvalidOperationException($"Unknown restore hook '{hook}' (the validator lists the known ones)."),
     };
 
@@ -596,17 +608,10 @@ public sealed partial class VoxelSession : GuideSession
                 }
 
                 break;
-            case "spare-torch":
+            case "point-inn":
                 if (!restoring)
                 {
-                    GiveSpareTorch();
-                }
-
-                break;
-            case "point-own-camp":
-                if (!restoring)
-                {
-                    PointAtOwnCamp();
+                    PointAtInn();
                 }
 
                 break;
@@ -619,32 +624,7 @@ public sealed partial class VoxelSession : GuideSession
     private bool AlsoDone(Objective objective) =>
         objective.Spec.AlsoDoneBy.Any(id => Objectives.FirstOrDefault(o => string.Equals(o.Id, id, StringComparison.Ordinal)) is { Started: true });
 
-    // Whether a torch stands on the rim of the player's own fire ring; the fire is lit if so.
-    private bool ScanPlayerFireRing()
-    {
-        foreach (var stone in _playerFireRing)
-        {
-            for (var dx = -2; dx <= 2 && !_fireLit; dx++)
-            {
-                for (var dz = -2; dz <= 2 && !_fireLit; dz++)
-                {
-                    foreach (var y in new[] { stone.Y, stone.Y + 1 })
-                    {
-                        var x = stone.X + dx;
-                        var z = stone.Z + dz;
-                        if (Scene.Grid.InBounds(x, y, z) && Scene.Grid.GetBlock(x, y, z) == BlockId.Torch && AtPlayerFireRing(new BlockPos(x, y, z)))
-                        {
-                            _fireLit = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return _fireLit;
-    }
-
-    // The player's own fire is lit (S17). The session is complete once the checklist is too, in either order.
+    // The fire at a ring is lit: the latch the sound beds read, with the event that plays the lighting sound. No objective waits for it (Y07).
     private void LightFire()
     {
         if (_fireLit)
@@ -653,21 +633,20 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         _fireLit = true;
-        Pointer = null; // the way back is walked: the arrow to the player's camp (or any earlier one) goes
-        LogWorld(WorldEvents.FireLit, null, PlayerFireRing); // the light-fire objective waits for it, and the session may complete with it
+        LogWorld(WorldEvents.FireLit, null, CampFireRing);
     }
 
-    // The arrow sends the player up the trail to their own camp, where the cold ring waits (S17).
-    private void PointAtOwnCamp()
+    // The camp checklist is done (Y07): the arrow goes to the inn the session names (game/session.json, innBeacon) and the guide sends the player there. A player who
+    // has the room already (the innkeeper was asked first) is not sent.
+    private void PointAtInn()
     {
-        if (_fireLit || !Scene.Points.TryGetValue(PlayerFireRing, out var ring))
+        if (LodgingGiven || Data.Objectives.InnBeacon is not { } inn)
         {
             return;
         }
 
-        var label = Scene.LabelOf(PlayerFireRing);
-        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z), Point: PlayerFireRing);
-        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
+        PointAtPlace(NpcService.GuideAgent, inn);
+        GuideSays(InnLinePool);
     }
 
     private void CheckSessionComplete()
@@ -679,24 +658,6 @@ public sealed partial class VoxelSession : GuideSession
 
         _sessionComplete = true;
         LogWorld(WorldEvents.SessionComplete, null, Objective.Summary);
-    }
-
-    // The checklist is complete (S17): the player is sent back up the trail with a spare torch for their own fire, unless they hold one already or the fire is lit.
-    private void GiveSpareTorch()
-    {
-        if (_fireLit || Simulation.Inventory.Count(ItemId.Torch) > 0 || !HasPlayerFireRing)
-        {
-            return;
-        }
-
-        if (Simulation.GrantItems(ItemId.Torch, 1) > 0)
-        {
-            LogWorld(WorldEvents.SpareTorch, null, "bag full");
-            return;
-        }
-
-        LogWorld(WorldEvents.SpareTorch, null, Nouns.ForItem(ItemId.Torch)?.Lemma);
-        _hints.Add(Locale.Ui("spareTorch"));
     }
 
     /// <inheritdoc />
@@ -733,6 +694,9 @@ public sealed partial class VoxelSession : GuideSession
                     break;
                 case NpcEffectKind.Buy when effect.ExchangeMiss(slots, Simulation.Inventory, Nouns) is null: // a miss: wont_buy, cant_sell, none_offered, no_room
                     Buy(npc, effect, effect.SaleCountFor(slots, Simulation.Inventory.Count(effect.Item)), how);
+                    break;
+                case NpcEffectKind.SellPlot:
+                    _ = SellPlot(npc, effect, how); // Y11: the worker answered a miss already (cant_pay, no_room, …); the session checks again before anything changes hands
                     break;
                 default:
                     ApplyTeacherEffect(npc, effect, how); // W08: the teacher's kinds (VoxelSession.Teaching.cs)
@@ -792,7 +756,11 @@ public sealed partial class VoxelSession : GuideSession
     }
 
     // Whether an NPC can put items in the inventory: all of them fit, and a bottle goes only to a player who holds none (SecondBottle).
-    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && Simulation.Inventory.CanAdd(item, count);
+    private bool CanGive(ItemId item, int count) => !SecondBottle(item) && !SecondStake(item) && Simulation.Inventory.CanAdd(item, count);
+
+    // Whether the item is the stake and the player holds one (Y11) or owns land (Y15: the mayor kept the stake at the purchase, and the owner marks nothing more): the mayor gives
+    // no second one, so a repeated «sí» or a request does not fill the bag with stakes.
+    private bool SecondStake(ItemId item) => item == ItemId.Stake && (Simulation.Inventory.Count(ItemId.Stake) > 0 || Land.Owned is not null);
 
     // Whether the item is a bottle and the player holds one, empty or full: the stall's rule (S6) gives none then.
     private bool SecondBottle(ItemId item) =>
@@ -934,7 +902,7 @@ public sealed partial class VoxelSession : GuideSession
             var before = objective.Progress;
             var wasDone = objective.Steps.Select(static s => s.Done).ToArray();
             _ = objective.Record(world, _eventAmount);
-            _ = objective.Hold(HeldOfNoun); // a step that asks for items counts the bag, not the pickups (#32): the event's count gives way to it
+            _ = objective.Hold(HeldForSteps); // a step that asks for items counts the bag, not the pickups (#32): the event's count gives way to it
             var done = objective.Steps.Where((s, i) => s.Done && !wasDone[i]).ToList();
             if (objective.Progress != before)
             {
@@ -986,7 +954,7 @@ public sealed partial class VoxelSession : GuideSession
         foreach (var objective in Objectives.Where(o => !o.Complete && Shown(o.Spec)))
         {
             var before = objective.Progress;
-            var done = objective.Hold(HeldOfNoun);
+            var done = objective.Hold(HeldForSteps);
             if (objective.Progress > before)
             {
                 objective.AdvancedAt = ++_advances;
@@ -1002,6 +970,10 @@ public sealed partial class VoxelSession : GuideSession
             }
         }
     }
+
+    // What a checklist step that asks for held items counts (#32): the bag, and, once the player owns land, one more of the stake's noun: the mayor keeps the stake at the purchase
+    // (Y15), so the step "hold the stake" stays done after it, in the same run and after a load (the stake is not in the bag then).
+    private int HeldForSteps(string lemma) => HeldOfNoun(lemma) + (Land.Owned is not null && Nouns.ForLemma(lemma) is { } noun && noun.Items.Contains(ItemId.Stake) ? 1 : 0);
 
     // How many items of a noun the bag holds (all of the noun's items: fruta is berries and apples).
     private int HeldOfNoun(string lemma) => Nouns.ForLemma(lemma) is { } noun ? noun.Items.Sum(Simulation.Inventory.Count) : 0;
@@ -1037,19 +1009,13 @@ public sealed partial class VoxelSession : GuideSession
         _newCards.Add(new WordCard(noun.Lemma, noun.WithDefinite));
     }
 
-    // The objective's ring is the one at the guide's camp (the scene's point "firering"). The cold ring at the player's own camp (the point
-    // "firering.player") is for the end of the session: a torch set on it does not complete the camp's step. A scene without the point counts every ring.
+    // The objective's ring is the one at the guide's camp (the scene's point "firering"); a scene without the point counts every ring.
     private void ScanFireRing(Scene scene)
     {
         var hasCampRing = scene.Points.TryGetValue(CampFireRing, out var centre);
-        var hasOwnRing = scene.Points.TryGetValue(PlayerFireRing, out var own);
         foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
         {
-            if (hasOwnRing && Math.Abs(stone.X - own.X) <= 1 && Math.Abs(stone.Z - own.Z) <= 1)
-            {
-                _playerFireRing.Add(stone);
-            }
-            else if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
+            if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {
                 _fireRing.Add(stone);
             }

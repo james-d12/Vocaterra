@@ -35,10 +35,10 @@ public sealed class PhraseProgressTests
     {
         var progress = New();
 
-        Assert.Equal(180, progress.Records.Count);
+        Assert.Equal(184, progress.Records.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), progress.Records.Select(static r => r.Id));
         Assert.Equal(
-            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "si-por-favor", "vendo-madera"],
+            ["aqui-tienes-cinco-bloques", "aqui-tienes-el-agua", "aqui-tienes-la-madera-y-las-monedas", "aqui-tienes-tres-frutas", "como-te-llamas", "cuanto-cuesta", "cuanto-cuesta-el-terreno", "cuanto-es-todo", "donde-esta-el-rio", "donde-esta-la-herreria", "donde-esta-la-panaderia", "hay-pan", "hay-una-habitacion", "muy-bien", "no-gracias", "pedir-agua", "puedo-pagar-con-fruta", "que-haces", "que-tal", "quiero-dos-panes", "quiero-tres-manzanas-rojas", "quiero-un-terreno", "quiero-una-habitacion", "si-por-favor", "vendo-madera"],
             progress.Records.Where(static r => r.Level == SupportLevel.EnglishAndCard).Select(static r => r.Id).Order(StringComparer.Ordinal)); // the NPCs' focus: the stall's, the river's and, since V12b, the village's (the farmer's apples since V13; the hand-overs since D-game-27)
         Assert.All(progress.Records.Where(r => !progress.HasScaffold(r.Id)), static r => Assert.Equal(SupportLevel.None, r.Level));
     }

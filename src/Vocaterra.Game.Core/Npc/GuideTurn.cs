@@ -127,7 +127,16 @@ public enum NameCheck
 /// <param name="Offer">The host event of a teacher's offer to bake (W08, <c>baker.offer_craft</c>) when the teacher could make it now, or <see langword="null"/>: an off-prompt <c>ask_craft</c> is then answered by the offer instead of the NPC's one off-prompt line.</param>
 /// <param name="Grant">What the teacher could give of the run's ingredients now (W08, <see cref="TeachingGrant"/>), or <see langword="null"/> with no run at a station.</param>
 /// <param name="ClosedGifts">The gifts that are not to be given now (N06, <c>GiftRule.Key</c>: <c>shopkeeper:bread</c>), those given already today that no lesson step requires; <see langword="null"/> for none. An NPC asked for one answers <c>&lt;npc&gt;.gift_used</c>.</param>
-public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null, TeachingGrant? Grant = null, string? Offer = null, string? WeatherKey = null);
+/// <param name="Land">The player's land as it was when the line was submitted (Y11, <see cref="PlotFacts"/>), for the mayor's answer to a purchase; <see langword="null"/> for a world with no land.</param>
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null, string? PromptOverride = null, IReadOnlySet<string>? Credited = null, bool OrderHeld = false, IReadOnlySet<string>? ClosedGifts = null, TeachingGrant? Grant = null, string? Offer = null, string? WeatherKey = null, PlotFacts? Land = null);
+
+/// <summary>
+/// What the mayor's worker needs to know of the land to answer a purchase (Y11): plain values taken on the game thread when the line was submitted, so the turn never reads the world.
+/// </summary>
+/// <param name="Owned">Whether the player owns land already.</param>
+/// <param name="Marked">Whether a plot is marked (pending) and passes the land rules as the world is now.</param>
+/// <param name="Price">The plot's price in coins (<c>game/land.json</c>).</param>
+public sealed record PlotFacts(bool Owned, bool Marked, int Price);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the

@@ -47,7 +47,9 @@
         "apple",
         "axe",
         "roast-apple",
-        "flour"
+        "flour",
+        "stake",
+        "camp-kit"
       ],
       "description": "An item by the name the save gives it (ItemDefinition)."
     }
@@ -112,7 +114,10 @@
           "restore": {
             "enum": [
               "lesson-begun",
-              "scan-fire-ring"
+              "lodging-given",
+              "plot-owned",
+              "camp-placed",
+              "camp-fire-lit"
             ],
             "description": "The code hook that works the step out again from a loaded world; the save does not keep the step."
           }
@@ -132,8 +137,7 @@
       "items": {
         "enum": [
           "guide-met",
-          "spare-torch",
-          "point-own-camp"
+          "point-inn"
         ]
       },
       "description": "The code hooks run when the objective is completed."

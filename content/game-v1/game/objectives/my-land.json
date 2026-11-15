@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "my-land",
+  "title": "Mi terreno",
+  "about": "The land's steps (Y11, D-game-32): a checklist shown from play session 2 that never holds sleep back and does not end a session. stake: the player held the stake (the mayor gives it for free, villager.give_stake; the step counts the bag, and one more once the plot is owned: the mayor keeps the stake at the purchase, Y15, so the step stays done with the bag empty of it, after a load too). buy: the plot is bought from the mayor (his sell_plot raises plot_bought); a loaded game reads it from the save's land entry (systems.land.owned). While a plot is marked and not bought the arrow points at the mayor, after the purchase at the plot. camp (Y12): the camp kit has set up the tent, the bedroll and the fire ring on the plot (camp_placed; a loaded game reads it from the save's camp, systems.sleep.camp). fire: a torch is on the placed ring (fire_lit with the detail camp.fire; a loaded game reads the ring from the world). Packing the camp back into the kit does not undo a step in the same run; a load reads the camp as it then stands.",
+  "session": 2,
+  "steps": [
+    {"id": "stake", "noun": "estaca", "target": 1, "trigger": {"event": "item_picked_up", "detail": "estaca"}},
+    {"id": "buy", "noun": "terreno", "target": 1, "trigger": {"event": "plot_bought"}, "restore": "plot-owned"},
+    {"id": "camp", "noun": "campamento", "target": 1, "trigger": {"event": "camp_placed"}, "restore": "camp-placed"},
+    {"id": "fire", "noun": "fuego", "target": 1, "trigger": {"event": "fire_lit", "detail": "camp.fire"}, "restore": "camp-fire-lit"}
+  ]
+}

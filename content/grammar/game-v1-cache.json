@@ -358,6 +358,12 @@
       "matches": []
     },
     {
+      "key": "09479de7eaf9a32b5d969472a1cb07e51bd9937b46372bdee20c348b7463cd65",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesitas diez monedas. Vende madera a Luz.",
+      "matches": []
+    },
+    {
       "key": "09993789e889b111b63ecee94cb8cfa2fffe4f618173c34fa0e23e4865eab9d9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí es madera",
@@ -475,6 +481,12 @@
       "key": "0c5fa0f26cba2c48a0e4bf16eac715d7dd20eec66bd7fb4862654e92f442ff37",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz hizo pan ayer",
+      "matches": []
+    },
+    {
+      "key": "0c86ac60e37693c9286df081b954cde03e3ba2fcb4e72af0276a7e6478348cc7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay habitaciones?",
       "matches": []
     },
     {
@@ -606,6 +618,12 @@
       "key": "104e803f1a1f0ac93214177ebb1a89a508252fd59f787d18c2419c4538dca661",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Habla más despacio por favor",
+      "matches": []
+    },
+    {
+      "key": "1067c9abcb59d4a979f6ee4f4ccbe164e36ac67fbf9c06795484e7a5faf0598b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! El terreno es tuyo. Toma el equipo.",
       "matches": []
     },
     {
@@ -766,6 +784,12 @@
       "key": "14e89b665414bd0de04bfcbe5b08eea7d612e2e60d9c8361f4a7fb46580287ac",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes tres frutas.",
+      "matches": []
+    },
+    {
+      "key": "1509d965bb22057d17f5fa827a62af7b6809fc5047d33d3d46b2b8c9eb1a31f9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. Toma la estaca. Pon la estaca en el campo.",
       "matches": []
     },
     {
@@ -1168,6 +1192,18 @@
       "matches": []
     },
     {
+      "key": "1bba0c8778623cc799c98c3bf20f6c1016709f34754f963f69de43e37e1e8102",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un terreno, por favor.",
+      "matches": []
+    },
+    {
+      "key": "1bd3910c5f35b075b4da9c29652dcdd2acae5d172878102633541a52327ec192",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación, por favor",
+      "matches": []
+    },
+    {
       "key": "1c4085df1094b704233946fc6452d4d054fff1a2984a99e69cf7cf9c8726e146",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda la herrería",
@@ -1195,6 +1231,12 @@
       "key": "1c9208e9a11cd1921d46f8e1e43710aae4f05aaca830cfd76d2c5bdb98ebee96",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo voy a hacer pan",
+      "matches": []
+    },
+    {
+      "key": "1cff7591ad2e6820fe1091490821ec227ea3a60a4e47c75e91664bca3a74bb90",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La habitación es gratis. ¿Quieres una habitación?",
       "matches": []
     },
     {
@@ -1297,6 +1339,18 @@
       "key": "200236b1845b5c241864be32a6b2a12ee55db7d0737d44f49f9ecc2fc55fef65",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo un poco de sed.",
+      "matches": []
+    },
+    {
+      "key": "20536cea13665f7db30477f25b95acffeb31fbca55a672a519e324da92c9b9f8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El terreno cuesta diez monedas. ¿Quieres el terreno?",
+      "matches": []
+    },
+    {
+      "key": "20766b87e04c5b74354c6bfa61043f30ff8062c75d15c649613ec95aa6f2ebf8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Ahora ve a la posada.",
       "matches": []
     },
     {
@@ -1500,6 +1554,18 @@
       "key": "2621cd5b535014eb76a97c0cf89570d9be4d9543944c9ac7ec31432e8b71fa24",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el pueblo",
+      "matches": []
+    },
+    {
+      "key": "26488d6e6ecf108cd26857ebe1e1f02bc3a7295216582d073ffbd8c7651bcdba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una cama",
+      "matches": []
+    },
+    {
+      "key": "26998144c14d5fa673f62e068a6778bae0da26450789b4ea2183cec8a4563a39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Quiero una habitación, por favor».",
       "matches": []
     },
     {
@@ -1718,6 +1784,12 @@
       "key": "2a30ed1a8555bfec0bc566a418925c3f9a2f2f2edfb2f207954cc8ab67eb3451",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Muy bien! Tienes una fruta.",
+      "matches": []
+    },
+    {
+      "key": "2a45b6a76f6e8bf415d35718e46889ee10b7f408797d7bfe6563d922c0b90ad9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El terreno ya es tuyo.",
       "matches": []
     },
     {
@@ -1959,9 +2031,21 @@
       "matches": []
     },
     {
+      "key": "30ab11ab554abd0b7c0424971acc19c4b1ad40cb1e49ec57ae427bdfc64babac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Estás de vuelta.",
+      "matches": []
+    },
+    {
       "key": "30e4266b6d38ea99b812c7d86e0a03979c949d8ab3e503fe2cf83c7c4c4f99d5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No muchas gracias",
+      "matches": []
+    },
+    {
+      "key": "30ebe0a8c48f80a789c2dd21fbdf69d3599150ac324122f67d3757e5f69bb701",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. La habitación es gratis.",
       "matches": []
     },
     {
@@ -2153,6 +2237,12 @@
       "matches": []
     },
     {
+      "key": "35a9e4a6b98208337c2d5d19e6bc57cf04d4399581e44049a34db1dcdda2201c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una habitación?",
+      "matches": []
+    },
+    {
       "key": "364620510ba99ba2728bdf96aa2161da070a2f702709ccdaefdf7eed54751078",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Un árbol",
@@ -2271,6 +2361,12 @@
       "matches": []
     },
     {
+      "key": "3844dd8c828fdb4089be0088e4e4bbde464e13459e447885f2e7092230ea6c20",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto es el terreno?",
+      "matches": []
+    },
+    {
       "key": "384b27e4e1de5a70a33b29c39f8aab4a84dc4cf7d3f69f677ad8237b0f7c2d55",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "próxima semana",
@@ -2309,6 +2405,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "389b36aa5a841292535d3e853b2857e57170d4f4830360cde3eaf94bbcf5c4e4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te entiendo. La habitación es gratis.",
+      "matches": []
     },
     {
       "key": "389b5b80c9dc73b9d43884f5dfc6eb2d05479ab7986371c2c46653a53ba6f1e4",
@@ -2424,9 +2526,21 @@
       "matches": []
     },
     {
+      "key": "3a7139a06e6674bb30a16e7c882a4f863cb11bef7487253b9e8bbd468fdb6164",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas noches.",
+      "matches": []
+    },
+    {
       "key": "3a86e7c8dc0d6fe64e4d0cca98bf373b97e39f40c2b4cefee32a629150631f69",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, es una espada.",
+      "matches": []
+    },
+    {
+      "key": "3aad312c8301d2e0799e5e211bac827d94cbc4ddef2756c521fcde5d0a5ee650",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una habitación aquí?",
       "matches": []
     },
     {
@@ -2439,6 +2553,12 @@
       "key": "3ad2f35744e9aea3c4367cfa69100935ff827fa790f073b1c904a8921629282f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito un poco de agua",
+      "matches": []
+    },
+    {
+      "key": "3aecb56d3ea539f0e8e580394431d44f7adb518fead5554667a1574f59d250dc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El terreno cuesta diez monedas. ¿Lo quieres?",
       "matches": []
     },
     {
@@ -2720,6 +2840,12 @@
       "matches": []
     },
     {
+      "key": "429296ef5c0f6b3f031ddde1fdf3ae5f75b3e514aded0c479331a8498eb91980",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una cama, por favor",
+      "matches": []
+    },
+    {
       "key": "4297c3e61ec9a0e3ba2a4a0e42fecb83e5ace5c0d745e9ed9f854ea96fdd7f68",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer mar y yo fuimos al río",
@@ -2805,6 +2931,12 @@
       "key": "4465e28d95ecaa886cd1c2ec3d1d720b93ad01df293963718053fcfb5cafc16c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana compraré dos panes",
+      "matches": []
+    },
+    {
+      "key": "44864b44b84bca0a60f0eb0e15daa4ce3a472b00eb2071382df6692cd7712a4d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Primero pon la estaca en el campo.",
       "matches": []
     },
     {
@@ -3496,6 +3628,12 @@
       "matches": []
     },
     {
+      "key": "5401782de14a6a7fbebba35f8e850c9ac4b68c77d89b6d89155149d92cd8eecf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bueno. La habitación es gratis.",
+      "matches": []
+    },
+    {
       "key": "54a7b7825d36a9faf87000dc89d85c92ec5d6a6b51282adddb4079e6cca00ff9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes el botella",
@@ -3604,6 +3742,12 @@
       "matches": []
     },
     {
+      "key": "56fe876dbb904fccd654a880177c94ef3112eb2f021c547cc61a13443b7e7f35",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Alcalde",
+      "matches": []
+    },
+    {
       "key": "570171345d3488db60c5eb292a4bed0d62b885d56fc10b8098e8ecd5d0bafebb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hace buen tiempo",
@@ -3698,6 +3842,12 @@
       "matches": []
     },
     {
+      "key": "58fae54a2277d6617e38bdcf2d11e856b2aa2b640a416d69d78db39e769115ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación, por favor.",
+      "matches": []
+    },
+    {
       "key": "58fb599f69b00b617770bf14f1f876b73c2cd74bf6efbac1d532d2fb26946686",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto cuestan dos panes",
@@ -3757,6 +3907,12 @@
       "matches": []
     },
     {
+      "key": "5a3aaa3058c6f273765964812da07073e4edd2adcb0adc8239b1903e24bd7603",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero la tierra",
+      "matches": []
+    },
+    {
       "key": "5a4a9c2739fc5146f4981bc24b73095945c4cbd1902b9b1cddb02e8379095d81",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos agua",
@@ -3784,6 +3940,12 @@
       "key": "5ad5b83874c21eaa7313f075750a6fc161a05415cf05ef0047aebeb6c78cc77a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te faltan espada.",
+      "matches": []
+    },
+    {
+      "key": "5b611471fbf3f4ceca62ba7773e39e2ac8cd7a01170ffbac9d5bec8509c0b0b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -3891,6 +4053,12 @@
       "key": "5e0a864c864764afd721fe9f2a77a369dc2fdf67ff8204b28209b706ce076de4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El pan es más barato que la manzana",
+      "matches": []
+    },
+    {
+      "key": "5e22e5e12c9e4eaf6dd7b7a20de31ac3044c315dc175acc2e5b049e254fdb8f5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -4070,6 +4238,12 @@
       "key": "6196a0a7c04564df8bf11207b4301cde1de36e9bfc9e8dafc4bc2fcabad3620a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la tienda",
+      "matches": []
+    },
+    {
+      "key": "619947df464cbe0c1cd7624936f7cadb6fcc33dddc608df7b41d88c407c57411",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuestan el terreno",
       "matches": []
     },
     {
@@ -4692,6 +4866,12 @@
       "matches": []
     },
     {
+      "key": "6e1d4a0dfa34648530dd10a3febde63c781edf045bd2cdf34f59b2f1afa19860",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Toma la estaca. Pon la estaca en el campo.",
+      "matches": []
+    },
+    {
       "key": "6e47d641fc8799a6d22ee63b640e2ea901712681a892e420ab592af243d0a634",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Y te gustan las manzanas?",
@@ -4707,6 +4887,12 @@
       "key": "6f24023986e675e034f585c2a83d608f6fdf09a2c7bb26011638c5410d7df37f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Va a hacer un hacha hoy",
+      "matches": []
+    },
+    {
+      "key": "6f422d8be9545d87e7daa8668124c22d73294e6ba0d28dd85b3a8e2637ef63f9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero el terreno",
       "matches": []
     },
     {
@@ -4894,6 +5080,12 @@
       ]
     },
     {
+      "key": "72c4dfaab28d7fd49b2865a17a2c750d4a3cbaaed2250eda45013cea594b358d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Quiero un terreno, por favor».",
+      "matches": []
+    },
+    {
       "key": "72cc62495836a0d29e746092392180a80698055aa88807eb58b18f2996897eaf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Hoy hay mercado. Tengo quince manzanas.",
@@ -4945,6 +5137,12 @@
       "key": "73cc3a0c6b5752224dac82d0096036a103505cda89f39fb8a2b7a14d6d0b4df1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luego busco agua",
+      "matches": []
+    },
+    {
+      "key": "73dced30f457462931912654c7920d9d2da7101da064a7ec35b83933c70dd8ce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! El terreno es tuyo. Toma el equipo.",
       "matches": []
     },
     {
@@ -5161,6 +5359,12 @@
       ]
     },
     {
+      "key": "7781a01cb6590eba9de425f08c2712ced5ba36cf7c719dcdeb8907f021094399",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una habitación",
+      "matches": []
+    },
+    {
       "key": "7784c71a2da5ce9df46c7c6e2d29a73f8594257f6ad383d143599df181c14df3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesitas ayuda",
@@ -5313,6 +5517,12 @@
       ]
     },
     {
+      "key": "7a7a1d3cf197209df186b1e2feed58222ce1d28eb6a767d7205c8515bdeaca40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una habitación, por favor",
+      "matches": []
+    },
+    {
       "key": "7a8c60429054f6b7aa8e9bf1263b749d141418e9b9be1ee7741d5592735e69e8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay dos pan",
@@ -5340,6 +5550,24 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, hay pan. Es pan de Luz.",
       "matches": []
+    },
+    {
+      "key": "7b5424470df15d9c7641cc8fd2cf4ef80f2172eebada8c20e6710e192b69ac1a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un habitación, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 13,
+          "replacements": [
+            "una habitación",
+            "unas habitaciones"
+          ]
+        }
+      ]
     },
     {
       "key": "7bb9a1fade3cba807787cf67e6af7e02e07c4ce8485f03e6e667b2a5fa153d14",
@@ -5408,12 +5636,6 @@
       "matches": []
     },
     {
-      "key": "7cd1a2ed2d2fbd621b6732b280e0492191702c2933792396200c38e8dcd50ab9",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Estás en tu campamento.",
-      "matches": []
-    },
-    {
       "key": "7d65b9b480b47bbe23867db0c6f570b50e46cd4f351b12aeb51a21b33cb55401",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "tus cosas",
@@ -5464,6 +5686,12 @@
       "key": "7e4e884ce16248229b36a26f8659ab9540445a3bbbdc017b67512f4fe3ea0d6c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fuimos al río",
+      "matches": []
+    },
+    {
+      "key": "7e74839891dee3e65cfa7fa778288a0a6d3d92fcccc67271ab461eba5523a9f1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres una habitación?",
       "matches": []
     },
     {
@@ -5647,6 +5875,12 @@
       "matches": []
     },
     {
+      "key": "833a7bd2a76bfd7168bfd3a4b3e7a4582212d677ab34b96533227d02cb231974",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuesta el terreno?",
+      "matches": []
+    },
+    {
       "key": "8351448c94ab51aed24ff69ad5577e9833965b0d96129d077f29db4142c33ffc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es el herrero",
@@ -5817,6 +6051,12 @@
       "matches": []
     },
     {
+      "key": "87a6104dbb0387fab3295648ef9466317c4f98f73f30b265bbbbb191e6798db5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Quieres una habitación?",
+      "matches": []
+    },
+    {
       "key": "87c91de8f0d37f030f8cc805768f50dba0aab603a52f6c442e3c1a68c2bdda66",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el herrería",
@@ -5892,6 +6132,12 @@
       "key": "8a0c45ced20c883e207099bf4db57efe1284da390cadf778c46260788c884b77",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí fui a la panadería",
+      "matches": []
+    },
+    {
+      "key": "8a47cdc646ff95939d9ac596f548b05dabb4c5f19e5d3793f0500252cb32500a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un terreno, por favor",
       "matches": []
     },
     {
@@ -6099,6 +6345,12 @@
       "matches": []
     },
     {
+      "key": "902b0ce36cfeed5a58e5c5a52b9036d5ac08c90e21e5f1a9d2683d877a69a543",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta un terreno",
+      "matches": []
+    },
+    {
       "key": "9066633bce13d5459cd3e4aabc124eb8c3cfd258ab93ad013ac79c767156b571",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy vamos a hacer pan. ¿Me ayudas?",
@@ -6285,6 +6537,12 @@
       "matches": []
     },
     {
+      "key": "947d4548243882a3b290e3517d29ddb4813f953ef058d4ccf6248a43a4ff0e40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien. Vuelve cuando quieras.",
+      "matches": []
+    },
+    {
       "key": "94b86049a31440a0261fdcf55160818790563dea0d26686d4c094f20fe3237eb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo compraré pan",
@@ -6365,6 +6623,12 @@
       "key": "9666c7701c0823bf56c29b5e3028a6453bc44c2c16a660bf63e6f10687a90e13",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana voy al río",
+      "matches": []
+    },
+    {
+      "key": "966cf22df3f456c8394087d79c7680edb471bd4d73ef66e24b21d493dc4a1183",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto es el terreno",
       "matches": []
     },
     {
@@ -6643,6 +6907,29 @@
       "key": "9c6d50e3db5764f8a69d767dff7b3df23aeea6ae30f5b1e7624b40e1b3990554",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "9c83c46f17b8cfc9ebbd204b85dc7c50f86b7f0841a532782f4123a0e3506bfe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el campamento",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "9c9b8101be65c738d0a3b8302ab69147888617ae5f12b4b66cc140964f9ca64c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola. ¿Quieres un terreno? Necesitas una estaca.",
       "matches": []
     },
     {
@@ -7047,12 +7334,6 @@
       "matches": []
     },
     {
-      "key": "a431ac037e99a47d4a6055a4e4bded40240270c50fa5bad0b5e4ec666ea57237",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "¡Muy bien! Ya tienes fuego.",
-      "matches": []
-    },
-    {
       "key": "a434a1b341ff6a1824755b19995749a8461502ab8913e520e71885437a51b52a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Luz y mar comió pan",
@@ -7062,6 +7343,12 @@
       "key": "a50452cef8660a6ababd2b21fe0b8495c6ed117780712df1d18dbb60dcbc6d2d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hasta luego",
+      "matches": []
+    },
+    {
+      "key": "a544fc87a7d862161f534b936b20be6bd87f24b93d3183aae4874a22fe2d6530",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un terreno, por favor",
       "matches": []
     },
     {
@@ -7345,6 +7632,23 @@
       "matches": []
     },
     {
+      "key": "ac259dbd955d2ebd30305deeabb90d45226313c675ea0e308508b7b830a1895b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la estaca",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "ac6c8187e9bfea9574d26a11a60418fdfa681de000216c1244533f3d172b46cd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a hacer pan hoy",
@@ -7354,6 +7658,12 @@
       "key": "ac8f1778dfbc2f9f4be60912556793e3c29f5466960b4deaf0743dccf36efd79",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te entiendo. ¿Quieres manzanas?",
+      "matches": []
+    },
+    {
+      "key": "ac96b72261b009a9132eee17d61f04a8730dbca66bfd0574ecd9cfc19d4a4647",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Hay una cama?",
       "matches": []
     },
     {
@@ -7731,6 +8041,12 @@
       "matches": []
     },
     {
+      "key": "b55a55454c4ec15a109210f1fa108457298b2cdddc511af92cea3ad2a18a10bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Rosa",
+      "matches": []
+    },
+    {
       "key": "b6543d05cb08b01c582e2ab470402d679621309bed126e379815cb60507f8bbc",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una manzana cuesta una moneda.",
@@ -7802,6 +8118,12 @@
       "matches": []
     },
     {
+      "key": "b7b8b035f59f76b9838c8a8b4e75751feb9c4a3ca7aa2ed894d104d6e0d5377c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Buenas noches» o «Gracias».",
+      "matches": []
+    },
+    {
       "key": "b7de5b0d5cd8a75d64c27c2d5310900a16e37dd4897bdf2a6e795f884d005f46",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No gracias",
@@ -7870,6 +8192,12 @@
       "key": "b9135d1e850f57602cd50dd9073d3da08c374ca028c63f8d13ab7f9786e8d70a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ellos quieren agua.",
+      "matches": []
+    },
+    {
+      "key": "b96941653593f67bb81d5ec7aee98ee417eddd2bd05e39e12b8e787e352c25bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! La habitación es gratis. Tu cama está allí.",
       "matches": []
     },
     {
@@ -8094,6 +8422,12 @@
       ]
     },
     {
+      "key": "be627e98867e8fbbf8218702f98be02bab6a57cbeadfc9f6253eda93053d085d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas noches. Tu cama está allí.",
+      "matches": []
+    },
+    {
       "key": "bec9c7ba63b4e94e0771568d98c6f73e4b4d699ebd0e1fea0307a5d5713fe3a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuánto es todo esto",
@@ -8168,6 +8502,12 @@
       "key": "c070306a134e1b87617bf3b63c73374d4afdb16d1f04ecb18e9e8203f2310ee1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo quiero madera",
+      "matches": []
+    },
+    {
+      "key": "c0b87c6a0529f99070a51eea64e5f26688810dbb7a4eb3a104b6ef3338ac7932",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres el terreno?",
       "matches": []
     },
     {
@@ -8497,6 +8837,12 @@
       "matches": []
     },
     {
+      "key": "c96748d4d746958a2b0abcba041163efae0e3520ff6add8d81896d8170c115aa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un terreno",
+      "matches": []
+    },
+    {
       "key": "c98033c10a0fd6242fd15115bb6b296b0d1fdf697bfde5399b583c193d195654",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hace calor",
@@ -8524,6 +8870,12 @@
       "key": "ca02a7636fc8df92196fff261ef5dffd81c721fcc9461270ef9468e1f1e8c956",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo dos bloques de madera para usted",
+      "matches": []
+    },
+    {
+      "key": "ca10674fbb2a22b2700ff7469425c5380906596371cd76698e087f706bee8a38",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tu bolsa está llena. No hay lugar para el equipo.",
       "matches": []
     },
     {
@@ -8631,12 +8983,6 @@
       "key": "cc48744c748b5bc4bed379513a22527dd9f21457957ce026ffbb1753240f68ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vendo pan",
-      "matches": []
-    },
-    {
-      "key": "cc743829803400710dbdbbbc83ccbd2195e2002cffe0b6008114b19ef7f76334",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Aldeano",
       "matches": []
     },
     {
@@ -8883,6 +9229,23 @@
       ]
     },
     {
+      "key": "d278436c4b88776167a4c1113e33ade5fee00b1e3ef74ffa050ac3a01004e22a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el terreno",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d27bbb7d3a0b291c9e2ecd710c18b4605bdea11bfdac18be35cfb315177a0856",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vivo en el campamento.",
@@ -8937,6 +9300,24 @@
       "matches": []
     },
     {
+      "key": "d3a2ecb593ad12db671d5347314de2ca173c4bf4651dc86492f5baaf5e496b40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay un habitación",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 4,
+          "length": 13,
+          "replacements": [
+            "una habitación",
+            "unas habitaciones"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d3ac0ced8e798d41cc5a26a3e80de6fea2eca5f1f57d52a259e3e3423c2be9c8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Adiós, amigo! Hasta luego.",
@@ -8966,9 +9347,27 @@
       "matches": []
     },
     {
+      "key": "d42b25b4a5d898d31b6c4d159e47c417d40f4194dd510bfeea0ca33aba901894",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Cuánto cuesta un terreno?",
+      "matches": []
+    },
+    {
+      "key": "d47d0bfec70475608a2cd62acf118ea23c9bc6fa4fc76a17e4ae030679454973",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Toma esta estaca. Pon la estaca cerca del pueblo.",
+      "matches": []
+    },
+    {
       "key": "d4b0b767e5b84b68d6c431ba7f7f981fdd5febbdfae364fb7a366a7fa4571fe7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira! La espada está aquí.",
+      "matches": []
+    },
+    {
+      "key": "d4b321b4a482c84273785395b684d9667850600ad674e32c5f9db2a32e6a2e19",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Sí, por favor».",
       "matches": []
     },
     {
@@ -9411,6 +9810,18 @@
       "matches": []
     },
     {
+      "key": "df94cb5962ba6c74e58b1f2d94f741008de1439a7d32f34bcd9eb3d6b05ee556",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Buenas noches!",
+      "matches": []
+    },
+    {
+      "key": "dfeee35b392332481a9972a0d1174d897d0bd6e7985dd1179c3fc5c3b1245360",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Posadera",
+      "matches": []
+    },
+    {
       "key": "dff10562c8e6044f55adf0d1776c011d2458f3b08d66c6625eb3fbbc429a7aae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! ¿Qué tienes para mí?",
@@ -9426,6 +9837,12 @@
       "key": "e0085736dca9cac1acf016a18343cc9bcb6c133b7301745cf13476e2acfa92c8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hace buen tiempo.",
+      "matches": []
+    },
+    {
+      "key": "e030109c2612b89127c4cb93780f5896dced9fdf8df3cf42e7d21bde991d1333",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay una habitación aquí",
       "matches": []
     },
     {
@@ -9571,6 +9988,12 @@
       "matches": []
     },
     {
+      "key": "e2d08de37587be4295cc4555df2e173038ea6005413784503e5e4673fa2f4aa9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay habitaciones",
+      "matches": []
+    },
+    {
       "key": "e2d21fe473f7a990c1da71694be7b94664f7668faca098c4e2c702dffb0a9b61",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compraste dos panes. ¡Muy bien!",
@@ -9633,6 +10056,12 @@
       "key": "e42b3d6eb72c1a45e9e4655f5a2df2b1b2c570d09b43e26ccecb4c79fb95bb28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Está lejos la panadería",
+      "matches": []
+    },
+    {
+      "key": "e4e4015149ddba613ea9b571b3bb848dda9edf744b0b806777ae920269229baf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres un terreno?",
       "matches": []
     },
     {
@@ -9767,10 +10196,34 @@
       "matches": []
     },
     {
+      "key": "e7f1569bb333427251655b7a9225de3d408058d679e75ff519c454470a1ac36a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Primero necesitas una estaca. Toma.",
+      "matches": []
+    },
+    {
       "key": "e8121177b3ab360642fc7a783d57fd8a70cb26e2929ef395b15880498cf41c1c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No quiero",
       "matches": []
+    },
+    {
+      "key": "e83fd5030a1490991f5163d27908ca1f69eda7f56210a376928bddfc4440556c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una terreno, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 11,
+          "replacements": [
+            "un terreno",
+            "unos terrenos"
+          ]
+        }
+      ]
     },
     {
       "key": "e87f58c0f060bc0570d9c8f22b71aa2763522f24d242d1712c1ca5dfc0127d3c",
@@ -10008,6 +10461,12 @@
       "key": "ee0d400576cf84016a0d8684666d9e558e9370071e9b7e0702ee02815a375546",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a la herrería",
+      "matches": []
+    },
+    {
+      "key": "ee242ab9360c2f6dd6fa601f47544e65be9d2c3cad4ffbea73caa819866c7254",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una cama",
       "matches": []
     },
     {
@@ -10429,6 +10888,23 @@
       "matches": []
     },
     {
+      "key": "f66b6b4974958f5c4c01f1d241dc773dec98098ce2988aed0ec8926b6bd9579e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el equipo",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "f6cf1c0dc79b64dd0f4430a4b64825d558e2d8b74359a56aaebf0a5bab20604b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde queda el puente",
@@ -10530,6 +11006,12 @@
       "matches": []
     },
     {
+      "key": "f86db69ce70ba365808a5f5567d7dcca62fd7a656280fa20c64192508bfcf59a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuánto cuesta el terreno",
+      "matches": []
+    },
+    {
       "key": "f8738aa04c65028d36670a8e28093a66e2e23ed56ac61a624097da1d1a14af43",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, gracias. Solo compro pan.",
@@ -10623,6 +11105,12 @@
       "key": "fb2fc29a23f61c9df56fb1b02a21ce4106591c1761b6d3911a1d4e8a1a26f06c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a buscar madera luego",
+      "matches": []
+    },
+    {
+      "key": "fb7f788eaa6d6406645612653a45b8956165ee40f0290cc4decb875994b283b7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una habitación",
       "matches": []
     },
     {

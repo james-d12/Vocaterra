@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Reporting;
@@ -68,18 +69,10 @@ try
         return 2;
     }
 
-    if (!options.CheckWeatherTargets(data.Weather.Kinds.Select(static kind => kind.Id).ToList(), out var weatherError))
+    if (!options.CheckWeather([.. data.Weather.Kinds.Select(static kind => kind.Id)], out var weatherError))
     {
-        // The kinds --set-weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others (E03).
+        // The kinds --weather and --set-weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others (E03, E05).
         Console.Error.WriteLine(weatherError);
-        Console.Error.Write(LaunchOptions.Usage);
-        return 2;
-    }
-
-    if (!options.CheckWeather([.. data.Weather.Kinds.Select(static kind => kind.Id)], out var weatherIdError))
-    {
-        // The weather kinds --weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others.
-        Console.Error.WriteLine(weatherIdError);
         Console.Error.Write(LaunchOptions.Usage);
         return 2;
     }
@@ -139,6 +132,39 @@ try
 
         SessionSkip.Apply(session, skipTo);
         Console.WriteLine($"session: {SessionSkip.Line(skipTo)}");
+    }
+
+    if (options.OwnPlot is { } ownPlot)
+    {
+        // A dev aid (Y09): the plot is checked by the land rules and owned at once, with no coins and no stake; a refusal names the reason.
+        var check = session.SetPendingPlot(ownPlot.X, ownPlot.Z);
+        if (!check.Ok || !session.OwnPlot())
+        {
+            var reason = check.Ok ? "a plot is owned already" : check.Protection == Protection.None ? check.Fault.ToString() : $"{check.Fault}, {check.Protection}";
+            Console.Error.WriteLine($"--own-plot {ownPlot.X},{ownPlot.Z}: the plot cannot be owned there ({reason}).");
+            return 2;
+        }
+
+        Console.WriteLine($"land: the plot {ownPlot.X},{ownPlot.Z} ({session.OwnedPlot!.Value.Width} by {session.OwnedPlot.Value.Depth}) is owned (--own-plot)");
+    }
+
+    if (options.MarkPlot is { } markPlot)
+    {
+        // A dev aid (Y10): the stake's use on the column, with the land rules' answer on the console and the hint line.
+        var use = session.MarkPlotWithHint(markPlot.X, markPlot.Z);
+        var reason = use.Check.Protection == Protection.None ? use.Check.Fault.ToString() : $"{use.Check.Fault}, {use.Check.Protection}";
+        Console.WriteLine(use.Result switch
+        {
+            VoxelSession.StakeResult.Marked => $"land: the stake at {markPlot.X},{markPlot.Z} marked the pending plot {session.PendingPlot!.Value.X},{session.PendingPlot.Value.Z} ({session.PendingPlot.Value.Width} by {session.PendingPlot.Value.Depth}) (--mark-plot)",
+            VoxelSession.StakeResult.AlreadyOwned => $"land: the stake at {markPlot.X},{markPlot.Z} marked nothing: the plot is owned already (--mark-plot)",
+            _ => $"land: the stake at {markPlot.X},{markPlot.Z} was refused: {reason} (--mark-plot)",
+        });
+    }
+
+    if (options.Lodging)
+    {
+        session.GrantLodging(); // a dev aid (Y05): the inn's bed is usable from the start
+        Console.WriteLine("lodging: given (--lodging)");
     }
 
     if (options.Session is { } playSession)

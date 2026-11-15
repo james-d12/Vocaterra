@@ -157,7 +157,7 @@ public sealed class VoxelGridTests
         }
 
         Assert.Equal(Enum.GetValues<BlockId>().Length, BlockDefinition.All.Count);
-        Assert.Equal(52, BlockDefinition.All.Count);
+        Assert.Equal(57, BlockDefinition.All.Count);
 
         // The values are hashed into every golden: pinned here so a reorder cannot go unnoticed.
         Assert.Equal(0, (int)BlockId.Air);
@@ -178,6 +178,16 @@ public sealed class VoxelGridTests
         Assert.Equal(45, (int)BlockId.Bottles);
         Assert.Equal(50, (int)BlockId.SignMontanaB);
         Assert.Equal(51, (int)BlockId.PostTorch);
+        Assert.Equal(52, (int)BlockId.Bed); // Y03 appended the bed and the bedroll after the post torch
+        Assert.Equal(53, (int)BlockId.Bedroll);
+        Assert.Equal(54, (int)BlockId.BedFoot); // Y08 appended the foot halves of the bed and the bedroll, and the inn's counter, after them
+        Assert.Equal(55, (int)BlockId.BedrollFoot);
+        Assert.Equal(56, (int)BlockId.Counter);
+        Assert.Equal(BlockDefinition.Get(BlockId.BedFoot), BlockDefinition.FromName("bed-foot"));
+        Assert.Equal(BlockDefinition.Get(BlockId.BedrollFoot), BlockDefinition.FromName("bedroll-foot"));
+        Assert.Equal(BlockDefinition.Get(BlockId.Counter), BlockDefinition.FromName("counter"));
+        Assert.Equal(BlockDefinition.Get(BlockId.Bed), BlockDefinition.FromName("bed"));
+        Assert.Equal(BlockDefinition.Get(BlockId.Bedroll), BlockDefinition.FromName("bedroll"));
         Assert.Equal(BlockDefinition.Get(BlockId.FireRing), BlockDefinition.FromName("fire-ring"));
         Assert.Null(BlockDefinition.FromName("lava"));
         Assert.Equal(BlockDefinition.All.Count, BlockDefinition.All.Select(d => d.Name).Distinct(StringComparer.Ordinal).Count());

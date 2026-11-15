@@ -31,7 +31,7 @@ public sealed class NeedsDataTests
         Assert.Equal((3, 2, 2), (Needs.Rest.RadiusBlocks, (int)Needs.Rest.RefillFactor, (int)Needs.Rest.RecoveryFactor));
         Assert.Equal((20, 0.25), (Needs.Stamina.MinimumMaximum, Needs.Stamina.MinimumRefillFactor));
         Assert.Equal((100, 20, 15, 20, 10), (Needs.Night.SleepTo, Needs.Night.Health, Needs.Night.HungerCost, Needs.Night.ThirstCost, Needs.Night.Floor));
-        Assert.Equal(("firering.player", 50), (Needs.Death.WakeAt, Needs.Death.Health));
+        Assert.Equal(("guide.fire", 50), (Needs.Death.WakeAt, Needs.Death.Health));
     }
 
     [Fact]
@@ -89,5 +89,54 @@ public sealed class NeedsDataTests
     {
         var ex = Assert.Throws<InvalidDataException>(() => NeedsData.Parse("""{ "schemaVersion": 1, "drives": {} }"""));
         Assert.Contains("malformed", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheShippedSleepPlacesAreLunasFireAndTheInnsBedAndDeathWakesAtTheFire()
+    {
+        Assert.Equal(2, Needs.SleepPlaces.Count);
+        var place = Needs.SleepPlaces[0];
+
+        Assert.Equal(new SleepPlaceSpec("guide.fire", "firering", "fire", 5, 6, "always"), place);
+        Assert.Equal(new SleepPlaceSpec("inn.bed", "bed.inn", "bed", 2, 2, "lodging"), Needs.SleepPlaces[1]);
+        Assert.Equal(place.Id, Needs.Death.WakeAt);
+        Assert.Empty(Problems(Needs));
+    }
+
+    [Fact]
+    public void AnIdListedTwiceAnUnknownKindOrAccessAndANegativeReachAreRefused()
+    {
+        var fire = Needs.SleepPlaces[0];
+
+        Assert.Contains(Problems(Needs with { SleepPlaces = [fire, fire] }), static p => p.Contains("'guide.fire' is listed twice", StringComparison.Ordinal));
+        Assert.Contains(Problems(Needs with { SleepPlaces = [fire with { Kind = "hammock" }] }), static p => p.Contains("the kind 'hammock'", StringComparison.Ordinal));
+        Assert.Contains(Problems(Needs with { SleepPlaces = [fire with { Access = "vip" }] }), static p => p.Contains("the access 'vip'", StringComparison.Ordinal));
+        Assert.Contains(Problems(Needs with { SleepPlaces = [fire with { RadiusBlocks = -1 }] }), static p => p.Contains("negative", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AWakeAtThatNamesNoListedPlaceIsRefused()
+    {
+        var broken = Needs with { Death = Needs.Death with { WakeAt = "firering" } }; // a scene point, not a place's id
+
+        Assert.Contains(Problems(broken), static p => p.Contains("wakeAt 'firering' is not a listed sleep place", StringComparison.Ordinal));
+        Assert.Contains(Problems(Needs with { SleepPlaces = [] }), static p => p.Contains("is not a listed sleep place", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AnAuthoredPlaceWhosePointIsNotInTheSceneIsRefusedByTheBundlesValidation()
+    {
+        var lost = Needs with { SleepPlaces = [Needs.SleepPlaces[0], new SleepPlaceSpec("inn.bed", "nowhere.at.all", "bed", 2, 2, "lodging")] };
+
+        Assert.Contains(Problems(lost), static p => p.Contains("'inn.bed' stands at 'nowhere.at.all', which is not a point of game/scene.json", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheLoaderRefusesAFileWithoutSleepPlaces()
+    {
+        var json = System.Text.Json.Nodes.JsonNode.Parse(GameData.HostText(TestGame.Bundle, NeedsData.RelativePath))!.AsObject();
+        _ = json.Remove("sleepPlaces");
+
+        Assert.Throws<InvalidDataException>(() => NeedsData.Parse(json.ToJsonString()));
     }
 }

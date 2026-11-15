@@ -25,7 +25,7 @@ public sealed class ObjectiveBookTests
     {
         // The three the code held, and since village-plan V10 the fisher's order of session 4: three fruits brought to him at the bridge; since V11 the baker's of
         // session 5: five wood for her oven; since V12 the smith's of session 6: two wood and two coins for the axe.
-        Assert.Equal(["meet-guide", "camp", "light-fire", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants"], Book.Objectives.Select(static o => o.Id));
+        Assert.Equal(["meet-guide", "camp", "inn-room", "fruit-for-mar", "oven-wood", "axe-handle", "water-for-plants", "my-land"], Book.Objectives.Select(static o => o.Id)); // Y11: «Mi terreno», last, shown from session 2
         var order = Book.Find("fruit-for-mar")!;
         Assert.Equal(("fisher", (int?)4), (order.DeliverTo, order.Session));
         Assert.Equal((ItemId.Berry, 3), (Assert.Single(order.Goods).Item, Assert.Single(order.Goods).Count));
@@ -35,21 +35,29 @@ public sealed class ObjectiveBookTests
         var axe = Book.Find("axe-handle")!;
         Assert.Equal(("smith", (int?)6), (axe.DeliverTo, axe.Session));
         Assert.Equal([(ItemId.Wood, 2), (ItemId.Coin, 2)], axe.Goods.Select(static g => (g.Item, g.Count)));
-        Assert.Equal(("guide.lesson.end", "camp.guide"), (Book.ClosingPool, Book.BeaconStart));
+        var land = Book.Find("my-land")!;
+        Assert.Equal(("Mi terreno", (int?)2, false), (land.Title, land.Session, land.EndsSession)); // Y11: it never ends a session, so it never holds sleep back
+        Assert.Equal(["estaca", "terreno", "campamento", "fuego"], land.Steps.Select(static s => s.Label));
+        Assert.Equal([null, "plot-owned", "camp-placed", "camp-fire-lit"], land.Steps.Select(static s => s.Restore)); // the stake counts the bag; the purchase, the camp and its fire are worked out again from the saved land, the saved camp and the world
+        Assert.Equal(["item_picked_up", "plot_bought", "camp_placed", "fire_lit"], land.Steps.Select(static s => s.Trigger.Event));
+        Assert.Equal("camp.fire", land.Steps[3].Trigger.Detail); // Y12: the placed ring, not Luna's firering
+        Assert.Equal(("innkeeper_night", "camp.guide", "inn"), (Book.ClosingPool, Book.BeaconStart, Book.InnBeacon));
         Assert.Equal([ItemId.Book], Book.Grants);
 
         var camp = Book.Find("camp")!;
         Assert.Equal("Campamento", camp.Title);
         Assert.Equal(["madera", "frutas", "antorcha", "agua"], camp.Steps.Select(static s => s.Label)); // the label rule gives the old checklist's words
         Assert.Equal([5, 3, 1, 1], camp.Steps.Select(static s => s.Target));
-        Assert.Equal(["spare-torch", "point-own-camp"], camp.OnComplete);
+        Assert.Equal(["point-inn"], camp.OnComplete);
         Assert.All(camp.Steps, static s => Assert.Null(s.Restore)); // the save keeps the checklist's counts
 
         var guide = Book.Find("meet-guide")!;
         Assert.False(guide.IsChecklist);
         Assert.Equal(["camp"], guide.AlsoDoneBy);
         Assert.Equal(new Trigger(WorldEvents.GuideMet), Assert.Single(guide.Steps).Trigger);
-        Assert.Equal("scan-fire-ring", Assert.Single(Book.Find("light-fire")!.Steps).Restore);
+        var room = Book.Find("inn-room")!;
+        Assert.Equal(("room", new Trigger(WorldEvents.LodgingGranted), "lodging-given"), (Assert.Single(room.Steps).Id, Assert.Single(room.Steps).Trigger, Assert.Single(room.Steps).Restore));
+        Assert.Null(Book.Find("light-fire")); // Y07: lighting the player's own fire moved to the campsite
     }
 
     [Fact]
@@ -85,7 +93,7 @@ public sealed class ObjectiveBookTests
     public void AnUnknownHookAnAlsoDoneByThatIsNoOtherObjectiveAndAMissingPoolOrStartAreProblems()
     {
         var guide = Book.Find("meet-guide")!;
-        var fire = Book.Find("light-fire")!;
+        var fire = Book.Find("inn-room")!;
         var broken = new[]
         {
             guide with { AlsoDoneBy = ["meet-guide", "harvest"], OnComplete = ["dance"] },
@@ -96,13 +104,44 @@ public sealed class ObjectiveBookTests
 
         var problems = GameDataValidator.Validate(data);
 
-        Assert.Contains("game/objectives/meet-guide.json: onComplete names the hook 'dance', which the game does not have (guide-met, spare-torch, point-own-camp).", problems);
+        Assert.Contains("game/objectives/meet-guide.json: onComplete names the hook 'dance', which the game does not have (guide-met, point-inn).", problems);
         Assert.Contains("game/objectives/meet-guide.json: alsoDoneBy names 'meet-guide', which is not another objective of the session.", problems);
         Assert.Contains("game/objectives/meet-guide.json: alsoDoneBy names 'harvest', which is not another objective of the session.", problems);
-        Assert.Contains("game/objectives/light-fire.json: the step 'fire' names the restore hook 'look-around', which the game does not have (lesson-begun, scan-fire-ring).", problems);
-        Assert.Contains("game/objectives/light-fire.json: the step 'fire' waits at the NPC 'miller', which is not one of the NPCs.", problems);
+        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'look-around', which the game does not have (lesson-begun, lodging-given, plot-owned, camp-placed, camp-fire-lit).", problems);
+        Assert.Contains("game/objectives/inn-room.json: the step 'room' waits at the NPC 'miller', which is not one of the NPCs.", problems);
         Assert.Contains("game/session.json: the closing pool 'guide.no.such.pool' is not a dialogue pool with a line.", problems);
         Assert.Contains("game/session.json: the beacon starts on 'nowhere', which is not a site or a point of the scene.", problems);
+    }
+
+    [Theory]
+    [InlineData("spare-torch")]
+    [InlineData("point-own-camp")]
+    public void Given_ABundleNamingARetiredCompletionHook_When_ItIsValidated_Then_TheProblemNamesTheHookAndTheOnesTheGameHas(string hook)
+    {
+        var broken = Book.Objectives.Select(o => o.Id == "camp" ? o with { OnComplete = [hook] } : o).ToList();
+        var data = TestGame.Data.WithObjectives(ObjectiveBook.Of(broken, Book.ClosingPool, Book.Grants, Book.BeaconStart, Book.InnBeacon));
+
+        Assert.Contains($"game/objectives/camp.json: onComplete names the hook '{hook}', which the game does not have (guide-met, point-inn).", GameDataValidator.Validate(data));
+    }
+
+    [Fact]
+    public void Given_ABundleNamingTheRetiredScanFireRingRestoreHook_When_ItIsValidated_Then_TheProblemNamesIt()
+    {
+        var room = Book.Find("inn-room")!;
+        var broken = Book.Objectives.Select(o => o.Id == "inn-room" ? room with { Steps = [room.Steps[0] with { Restore = "scan-fire-ring" }] } : o).ToList();
+        var data = TestGame.Data.WithObjectives(ObjectiveBook.Of(broken, Book.ClosingPool, Book.Grants, Book.BeaconStart, Book.InnBeacon));
+
+        Assert.Contains("game/objectives/inn-room.json: the step 'room' names the restore hook 'scan-fire-ring', which the game does not have (lesson-begun, lodging-given, plot-owned, camp-placed, camp-fire-lit).", GameDataValidator.Validate(data));
+    }
+
+    [Theory]
+    [InlineData(null, "game/session.json: an objective names the hook 'point-inn', so the session needs an \"innBeacon\" (a place of the scene).")]
+    [InlineData("nowhere", "game/session.json: innBeacon is 'nowhere', which is not a place of the scene.")]
+    public void Given_TheInnBeaconIsMissingOrNotAPlace_When_ItIsValidated_Then_ItIsAProblem(string? inn, string problem)
+    {
+        var data = TestGame.Data.WithObjectives(ObjectiveBook.Of([.. Book.Objectives], Book.ClosingPool, Book.Grants, Book.BeaconStart, inn));
+
+        Assert.Contains(problem, GameDataValidator.Validate(data));
     }
 
     [Fact]
@@ -168,7 +207,7 @@ public sealed class ObjectiveBookTests
     }
 
     [Fact]
-    public void AVersionFiveSaveKeysTheChecklistsStepsByObjectiveAndLeavesTheHookedOnesToTheWorld()
+    public void AVersionFiveSaveKeysTheChecklistsStepsByObjectiveTheHookedOnesToo()
     {
         var session = TestGame.NewSessionWithShippedLessons();
         _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 2);
@@ -176,46 +215,53 @@ public sealed class ObjectiveBookTests
         var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], document.Objective.Select(static o => o.Key)); // and the orders' one step each (V10 to V13)
-        Assert.Equal(2, document.Objective[0].Count);
+        Assert.Equal(StepKeys(session), document.Objective.Select(static o => o.Key)); // every step, in the session's order: a step with a restore hook is saved too, so a load never undoes it
+        Assert.Contains("meet-guide.met", document.Objective.Select(static o => o.Key));
+        Assert.Contains("my-land.camp", document.Objective.Select(static o => o.Key));
+        Assert.Equal(2, document.Objective.Single(static o => o.Key == "camp.wood").Count);
     }
 
     [Fact]
-    public void AVersionFourSaveLoadsWithItsKeysMappedAndTheOutOfOrderEndingStillEnds()
+    public void TheFixtureWithTheFireLitFirstLoadsAndTheOutOfOrderEndingStillEnds()
     {
-        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v4.json was written by the C08 code (format 4): the player lit their own fire first, then gathered five wood
-        // and two fruit. Its keys are the checklist's alone (wood, berry, ...); loading maps them to camp.wood and the rest before anything else reads them.
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
+        // tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json is a recorded run of the camp (see saves.md): the player lit their own fire (the torch step is done) while the wood and
+        // the fruit were not all in: the checklist completes out of the order it lists them in.
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
         var document = SaveGame.Parse(text);
-        Assert.Equal(4, document.Version);
-        Assert.Equal(["wood", "berry", "torch", "water"], document.Objective.Select(static o => o.Key));
+        Assert.Equal(SaveGame.CurrentVersion, document.Version);
+        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water"], document.Objective.Take(4).Select(static o => o.Key));
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Null(loaded.Migration);
-        Assert.True(loaded.FireLit); // worked out again from the torch on the ring
-        Assert.True(loaded.GuideMet); // the checklist has moved
+        Assert.True(loaded.FireLit); // worked out again from the torch on the ring (the latch the sound beds read; no objective waits for it since Y07)
         Assert.Equal("camp", loaded.CurrentObjective?.Id);
-        Assert.Equal("Campamento: madera 5/5 · frutas 2/3 · antorcha 0/1 · agua 0/1", loaded.Objective.Summary);
         Assert.False(loaded.SessionComplete);
 
-        _ = loaded.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the bag (#32), and the fixture's bag is empty: the wood and fruit it counted are put in
+        _ = loaded.Simulation.GrantItems(ItemId.Wood, 5); // the camp counts the bag (#32)
         _ = loaded.Simulation.GrantItems(ItemId.Berry, 3);
-        _ = loaded.Objective.Record(WorldEvents.TorchAtRing, "firering");
         _ = loaded.HostEvent(WorldEvents.BottleFilled);
+
+        Assert.False(loaded.SessionComplete); // the checklist is done; since Y07 the room at the inn ends the session
+        Assert.Equal("inn-room", loaded.CurrentObjective?.Id);
+
+        Vocaterra.Game.Core.Tests.Component.OpeningAndEndingTests.TakeTheRoom(loaded);
 
         Assert.True(loaded.SessionComplete);
         Assert.Null(loaded.CurrentObjective);
-        Assert.DoesNotContain(loaded.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.SpareTorch); // the fire is lit already
         var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(SaveGame.CurrentVersion, resaved.Version);
-        Assert.Equal(["camp.wood", "camp.berry", "camp.torch", "camp.water", "fruit-for-mar.delivered", "oven-wood.delivered", "axe-handle.delivered", "water-for-plants.delivered"], resaved.Objective.Select(static o => o.Key));
+        Assert.Equal(StepKeys(loaded), resaved.Objective.Select(static o => o.Key));
     }
 
+    // The save key of every step of the session's objectives, in its order (<objective>.<step>).
+    private static List<string> StepKeys(VoxelSession session) =>
+        session.Objectives.SelectMany(static o => o.Spec.Steps.Select(s => o.Id + "." + s.Id)).ToList();
+
     [Fact]
-    public void AVersionFourSaveOfAnotherBundleKeepsItsStepsThroughTheMigration()
+    public void TheFixtureOfAnotherBundleKeepsItsStepsThroughTheMigration()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v4.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v8.json"));
         var node = JsonNode.Parse(text)!;
         node["bundleHash"] = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
         node["objective"]!.AsArray().Add(new JsonObject { ["key"] = "harvest", ["count"] = 1 }); // a step this game does not have
@@ -223,7 +269,8 @@ public sealed class ObjectiveBookTests
         var loaded = SaveGame.Load(SaveGame.Serialize(SaveGame.Parse(node.ToJsonString())), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
 
         Assert.NotNull(loaded.Migration);
-        Assert.Equal(5, loaded.Objective.Step("wood")!.Count); // mapped before the migration, so it is kept
-        Assert.Equal(2, loaded.Objective.Step("berry")!.Count);
+        Assert.Equal(3, loaded.Objective.Step("wood")!.Count);
+        Assert.Equal(3, loaded.Objective.Step("berry")!.Count);
+        Assert.Equal(1, loaded.Objective.Step("torch")!.Count);
     }
 }

@@ -95,7 +95,8 @@ public static class NpcTurnRules
                 }
             }
 
-            var refusedGift = hostEvents.Of(agentId, hostEvent).Kind == NpcEffectKind.GiveItem;
+            var kind = hostEvents.Of(agentId, hostEvent).Kind;
+            var refusedGift = kind == NpcEffectKind.GiveItem;
             if (turn is null)
             {
                 if (refusedGift)
@@ -116,6 +117,10 @@ public static class NpcTurnRules
             {
                 hostEventsOfTurn.Remove(hostEvent); // the gift the NPC refused is not made (the sales' misses are held back by the session)
                 unsaid.AddRange(actions.SkipWhile(a => a != action).Skip(1).Select(static a => a.DialogueIntent)); // and what the NPC would have said next ("¿Quieres pan?" after the bottle)
+            }
+            else if (kind == NpcEffectKind.SellPlot)
+            {
+                hostEventsOfTurn.Remove(hostEvent); // the plot sale the NPC refused is not made: a sale that reaches the session was a yes, so a refusal there is the world's (VoxelSession.SellPlot)
             }
         }
 

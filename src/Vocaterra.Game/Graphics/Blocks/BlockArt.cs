@@ -259,6 +259,10 @@ public static class BlockArt
                 return PlainIconPixel(x, y);
             case BlockCell.IconFlour:
                 return FlourIconPixel(x, y, speckle);
+            case BlockCell.IconStake:
+                return StakeIconPixel(x, y, speckle);
+            case BlockCell.IconCampKit:
+                return CampKitIconPixel(x, y, speckle);
             default:
                 return Clear;
         }
@@ -622,6 +626,48 @@ public static class BlockArt
         }
 
         return (x + y) % 5 == 0 ? Shade(236, 228, 208, speckle % 2) : Shade(246, 242, 228, speckle % 2); // the flour, pale and a little dusty
+    }
+
+    private static (byte R, byte G, byte B, byte A) StakeIconPixel(int x, int y, uint speckle)
+    {
+        // A wooden stake standing upright: a two-pixel pale shaft with a pointed foot, a red cloth flag flying from the top to the right.
+        if (y is >= 1 and <= 4 && x >= 9 && x <= 14 - y)
+        {
+            return y == 4 ? Shade(150, 40, 36, 0) : (x + y) % 4 == 0 ? Shade(214, 62, 52, 0) : Shade(196, 50, 44, 0); // the flag, with a darker hem
+        }
+
+        if (x is 7 or 8 && y is >= 1 and <= 12)
+        {
+            return x == 7 ? Shade(214, 176, 112, speckle % 2) : Shade(178, 138, 80, speckle % 2); // the shaft, lit on the left
+        }
+
+        if (y is 13 or 14 && (y == 13 ? x is 7 or 8 : x == 7))
+        {
+            return Shade(178, 138, 80, 0); // the pointed foot
+        }
+
+        return Clear;
+    }
+
+    private static (byte R, byte G, byte B, byte A) CampKitIconPixel(int x, int y, uint speckle)
+    {
+        // A small tent seen from the front: a green triangle with a pale ridge pole, a dark door, and a rolled bedroll lying in front of it.
+        if (y is 13 or 14 && x is >= 3 and <= 12)
+        {
+            return x is 5 or 6 ? Shade(196, 58, 52, 0) : y == 13 ? Shade(222, 190, 128, speckle % 2) : Shade(184, 150, 96, speckle % 2); // the roll, with a red strap
+        }
+
+        if (y is >= 2 and <= 12 && Math.Abs(x - 8) * 10 <= (y - 2) * 7 + 3)
+        {
+            if (y >= 8 && Math.Abs(x - 8) <= 1)
+            {
+                return Shade(44, 52, 40, 0); // the door
+            }
+
+            return y == 2 ? Shade(214, 176, 112, 0) : x < 8 ? Shade(86, 156, 78, speckle % 2) : Shade(62, 124, 58, speckle % 2); // the cloth, lit on the left
+        }
+
+        return Clear;
     }
 
     private static (byte R, byte G, byte B, byte A) Shade(int r, int g, int b, uint noise)

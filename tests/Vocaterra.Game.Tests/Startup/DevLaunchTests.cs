@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Dialogue;
@@ -19,6 +20,58 @@ public sealed class DevLaunchTests
         Assert.True(dev.Dev);
         Assert.True(LaunchOptions.TryParse(["--playtest"], out var playtest, out _));
         Assert.False(playtest.Dev); // a playtest stays clean
+    }
+
+    [Fact]
+    public void Given_TheLodgingFlag_When_ItIsParsed_Then_ItNeedsDevAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--lodging"], out var given, out _));
+        Assert.True(given.Lodging);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.False(none.Lodging);
+        Assert.False(LaunchOptions.TryParse(["--lodging"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.Contains("--lodging", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_TheOwnPlotFlag_When_ItIsParsed_Then_ItNeedsDevTakesAColumnAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--own-plot", "261,160"], out var given, out _));
+        Assert.Equal((261, 160), given.OwnPlot);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.Null(none.OwnPlot);
+        Assert.False(LaunchOptions.TryParse(["--own-plot", "261,160"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--dev", "--own-plot", "north"], out _, out var shape));
+        Assert.Contains("--own-plot", shape, StringComparison.Ordinal);
+        Assert.Contains("--own-plot", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_TheMarkPlotFlag_When_ItIsParsed_Then_ItNeedsDevTakesAColumnAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--mark-plot", "266,165"], out var given, out _));
+        Assert.Equal((266, 165), given.MarkPlot);
+        Assert.True(LaunchOptions.TryParse(["--dev"], out var none, out _));
+        Assert.Null(none.MarkPlot);
+        Assert.False(LaunchOptions.TryParse(["--mark-plot", "266,165"], out _, out var error));
+        Assert.Contains("--dev", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--dev", "--mark-plot", "north"], out _, out var shape));
+        Assert.Contains("--mark-plot", shape, StringComparison.Ordinal);
+        Assert.Contains("--mark-plot", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_ThePlaceCampStep_When_ItIsParsed_Then_ItIsAStepOfTheScriptWithAColumnAndASideAndIsListedInTheHelp()
+    {
+        Assert.True(LaunchOptions.TryParse(["--dev", "--give", "equipo", "--place-camp", "266,163,north", "--screenshot", "x.png"], out var given, out _));
+        Assert.Equal([(ScriptStepKind.Give, "equipo"), (ScriptStepKind.PlaceCamp, "266,163,north")], given.Script.Select(static s => (s.Kind, s.Value)));
+        Assert.False(LaunchOptions.TryParse(["--place-camp", "266,163", "--screenshot", "x.png"], out _, out var error));
+        Assert.Contains("--place-camp", error, StringComparison.Ordinal);
+        Assert.False(LaunchOptions.TryParse(["--place-camp", "266,163,north"], out _, out var needs));
+        Assert.Contains("--place-camp", needs, StringComparison.Ordinal);
+        Assert.Contains("--place-camp", LaunchOptions.Usage, StringComparison.Ordinal);
     }
 
     [Fact]

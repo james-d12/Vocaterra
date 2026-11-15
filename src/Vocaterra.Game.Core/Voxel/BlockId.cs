@@ -161,4 +161,19 @@ public enum BlockId : ushort
 
     /// <summary>A torch fixed to a post as scenery (the guide's pergola): drawn like <see cref="Torch"/> and lights its surroundings like a lantern, but it is not the item's torch (not gathered, not a noun, never found by "where is the torch"). Appended in S15.</summary>
     PostTorch = 51,
+
+    /// <summary>The head cell of a bed of the inn (Y03, Y08): the half with the headboard and the pillow; the bed is two cells long, this and <see cref="BedFoot"/> beside it. Not solid (a body walks through it), not decor (the crosshair stops on it, and nothing is placed into its cell). Appended in Y03.</summary>
+    Bed = 52,
+
+    /// <summary>The head cell of a camp's bedroll (Y03, Y08): a low mat with a rolled pillow; the bedroll is two cells long, this and <see cref="BedrollFoot"/> beside it, with the bed's rules. Appended in Y03.</summary>
+    Bedroll = 53,
+
+    /// <summary>The foot cell of a bed (Y08): the half with the footboard, beside its <see cref="Bed"/> head; the bed's rules. Appended in Y08.</summary>
+    BedFoot = 54,
+
+    /// <summary>The foot cell of a bedroll (Y08): the half of the mat beside its <see cref="Bedroll"/> head; the bed's rules. Appended in Y08.</summary>
+    BedrollFoot = 55,
+
+    /// <summary>The inn's counter (Y08): a block of wood one block high that a body collides with as if it were two (<see cref="BlockDefinition.Tall"/>, like a fence), so nobody steps or jumps onto it and into the keeper's cell. Not a table, so no crafting panel opens beside it. Appended in Y08.</summary>
+    Counter = 56,
 }

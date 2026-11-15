@@ -205,6 +205,12 @@ public enum BlockCell
     /// <summary>A group of blue glass bottles.</summary>
     Bottles,
 
+    /// <summary>The top of a bed's head half, seen from above with the head at the top of the picture: a wooden frame at the head end, the cream of the pillow, the sheet turned down and the red blanket (Y03, Y08).</summary>
+    Bed,
+
+    /// <summary>The top of a bedroll's head half: a striped mat of cloth with the darker patch the rolled pillow lies on (Y03, Y08).</summary>
+    Bedroll,
+
     /// <summary>The shop's board, first half: an arrow and TIE.</summary>
     SignTiendaA,
 
@@ -277,6 +283,15 @@ public enum BlockCell
     /// <summary>The icon of a roast apple (the item, N07): the apple, browned and cooked, with a golden highlight.</summary>
     IconRoastApple,
 
+    /// <summary>The top of a bed's foot half (Y08): the red blanket going on from the head half, with a fold across it and the frame at the foot end.</summary>
+    BedFoot,
+
+    /// <summary>The side of a bed's mattress (Y08): the blanket hanging over the edge, with a darker hem. Placed before the interface-only cells like the other world pictures.</summary>
+    BedSide,
+
+    /// <summary>The top and sides of a bedroll's foot half (Y08): the same striped mat as <see cref="Bedroll"/>, without the pillow's patch.</summary>
+    BedrollFoot,
+
     /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
     IconBowl,
 
@@ -291,6 +306,15 @@ public enum BlockCell
 
     /// <summary>The icon of flour (the item, W10): a cloth sack tied at the neck. Placed after the interface-only cells so the world's mip levels do not move.</summary>
     IconFlour,
+
+    /// <summary>The front of the innkeeper's head (Y06): silver hair pinned up, rosy cheeks. Placed last, so no other cell moves.</summary>
+    FaceInnkeeper,
+
+    /// <summary>The icon of the stake (the item, Y10): a pale wooden stake with a pointed foot and a red cloth flag. Placed last, so no other cell moves.</summary>
+    IconStake,
+
+    /// <summary>The icon of the camp kit (the item, Y11): a small green tent with a dark door and a rolled bedroll in front. Placed last, so no other cell moves.</summary>
+    IconCampKit,
 }
 
 /// <summary>
@@ -307,7 +331,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 12;
+    public const int ColourRows = 13; // Y03: 13 rows, so the bed and the bedroll fit (97 cells); 12 rows held 96
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -370,6 +394,7 @@ public static class BlockAtlasLayout
             BlockId.Timber => up || down ? BlockCell.TimberEnd : BlockCell.TimberSide,
             BlockId.Lantern => BlockCell.Lantern,
             BlockId.Crate => up || down ? BlockCell.CrateTop : BlockCell.CrateSide,
+            BlockId.Counter => up ? BlockCell.Planks : BlockCell.CrateSide,
             BlockId.AwningRed => BlockCell.AwningRed,
             BlockId.AwningWhite => BlockCell.AwningWhite,
             BlockId.Canvas => BlockCell.Canvas,
@@ -379,6 +404,10 @@ public static class BlockAtlasLayout
             BlockId.Loaves => BlockCell.Loaves,
             BlockId.Apples => BlockCell.Apples,
             BlockId.Bottles => BlockCell.Bottles,
+            BlockId.Bed => up ? BlockCell.Bed : BlockCell.BedSide,
+            BlockId.BedFoot => up ? BlockCell.BedFoot : BlockCell.BedSide,
+            BlockId.Bedroll => up ? BlockCell.Bedroll : BlockCell.BedrollFoot,
+            BlockId.BedrollFoot => BlockCell.BedrollFoot,
             BlockId.SignTiendaA => Reads(face, BlockCell.SignTiendaA),
             BlockId.SignTiendaB => Reads(face, BlockCell.SignTiendaB),
             BlockId.SignRio => Reads(face, BlockCell.SignRio),
@@ -418,6 +447,8 @@ public static class BlockAtlasLayout
         ItemId.Axe => BlockCell.IconAxe,
         ItemId.RoastApple => BlockCell.IconRoastApple,
         ItemId.Flour => BlockCell.IconFlour,
+        ItemId.Stake => BlockCell.IconStake,
+        ItemId.CampKit => BlockCell.IconCampKit,
         _ => null,
     };
 

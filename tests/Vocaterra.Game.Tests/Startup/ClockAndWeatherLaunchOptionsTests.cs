@@ -105,7 +105,7 @@ public sealed class ClockAndWeatherLaunchOptionsTests
     {
         var options = Parse("--screenshot", "x.png", "--set-weather", "third");
 
-        Assert.False(options.CheckWeatherTargets(["first", "second"], out var error));
+        Assert.False(options.CheckWeather(["first", "second"], out var error));
         Assert.Equal("--set-weather needs a weather kind (first, second) or 'run', got 'third'.", error);
     }
 
@@ -114,7 +114,7 @@ public sealed class ClockAndWeatherLaunchOptionsTests
     {
         var options = Parse("--screenshot", "x.png", "--set-weather", "second", "--set-weather", "run", "--set-time", "13");
 
-        Assert.True(options.CheckWeatherTargets(["first", "second"], out var error), error);
+        Assert.True(options.CheckWeather(["first", "second"], out var error), error);
         Assert.Empty(error);
     }
 

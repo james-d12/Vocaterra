@@ -31,6 +31,7 @@ public sealed class OffPromptTests
             ["villager"] = "Te entiendo. ¿Qué buscas?",
             ["guide"] = "Te entiendo. ¿Qué quieres aprender?",
             ["shopkeeper"] = "Te entiendo. ¿Quieres comprar algo?",
+            ["innkeeper"] = "Te entiendo. La habitación es gratis.",
         };
 
         Assert.Equal(expected.Keys.Order(StringComparer.Ordinal), TestGame.Data.Npcs.Ids.Order(StringComparer.Ordinal));

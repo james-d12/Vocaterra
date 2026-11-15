@@ -2394,3 +2394,158 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     (the Golden light is 0.9 and 0.76 in green and blue; the owner, 2026-11-11: fine, so it stays); the faces keep a fixed sun direction (out of scope, as before).
   - *Process:* the agent's report never reached the orchestrator (its session ended after the commit); the gate and the pictures were run
     by the next session.
+- **The Y series' first two milestones (the settlement plan's section 8; 2026-11-10, on `feature/settlement`).**
+  - *Y00, the brief and the probes* (documents only). Its measurements are [the settlement plan](settlement-plan.md) section 9: the inn is a
+    9 x 7 house at the village's dx -16, dz 8 with a stamp for its inside; the plot is 10 x 10 on ground that varies by at most one block, and
+    two meadows cleared of trees each take three such plots on four seeds; the price is 10 coins (the two paying orders give 6). **The
+    fisher's lesson counts the houses** («una tienda, una panadería y tres casas»), so Y04 moves `house3` instead of dropping it. The core
+    reads «Quiero una habitación, por favor.», «¿Hay una habitación?», «Quiero un terreno, por favor.» and «¿Cuánto cuesta el terreno?»
+    today; it does not read «¿Tiene una habitación?» as a question (`state_have`), «Quiero dormir aquí.» or «Quiero este terreno.», and it
+    loses the verb of «Quiero comprar un terreno.» (the plan's section 9.4; none blocks the slice).
+  - *Y01, sleep places.* `needs.json` lists the places the player sleeps at (`sleepPlaces`; one for now, the mountain fire) and
+    `death.wakeAt`, read by nothing before, names the one the player wakes at. `Session/SleepPlaces` answers whether a place is usable (a
+    fire while a lit ring stands at it, read from the world; a bed when its access is met), which one the player stands at and where the
+    arrow goes; sleeping, the E prompt, the closing card, the arrow and the waking after a death ask it and no longer read
+    `firering.player` or the "fire lit" latch. One `FireRings` is shared by the session and the simulation and has a `Rescan()`. **One
+    intended change:** the closing card's Enter sleeps only at a usable place (it slept wherever the player stood). Gate: 10,714 tests
+    passed, 3 skipped, the content gate, the grammar check and the licence scan clean; `r26-death` wakes at the same cell (152, 73, 106);
+    with the skip aid `--sleep` moves play session 2 to 3 to 4.
+  - **Found while checking Y01: `r20-sleep` and `r30-no-classes` no longer reach a sleep, on `main` too.** Their camp steps craft the torch
+    from the wood the checklist is counting, the wood step falls back to 3 of 5 (the bag is counted since issue #32), the checklist never
+    completes, no spare torch is given, `--place antorcha@153,74,105` is refused and `--sleep` answers "the player's own fire is not lit".
+    The two captures were the same before and after Y01 because both stop there. No scripted run exercises a sleep until Y08 captures
+    these runs again for the new opening; until then the sleep is covered by `SleepTests`, `SleepPlacesTests` and the skip aid.
+- **Y02, save version 8 and the sleep entry (2026-11-10, on `feature/settlement`; D-game-32 (d)).** The save's version is 8 and nothing
+  older loads: «The save is format version 7; the oldest this game loads is 8 (it writes 8), and older saves are not migrated.» The code
+  that only served older versions went with it (the objective keys before version 5, `LearnerWords.FromVersion2` with `Uncount` and
+  `Repoint`, `LessonRunner.SplitIntroduction`); the defaults of optional fields stay. `systems.sleep` is optional and written only when
+  something is set: the lodging flag (`VoxelSession.LodgingGiven`, which Y05 sets), the last place slept (its id, and its cell for a place
+  made in play) and the places made in play. **The last place is written after `RestoreParts` inside `SaveGame.Sleep`** (`NoteSleptAt`),
+  because a sleep restores the save taken just before it; a sleep at no place (the `--sleep` aid away from one) and a collapse leave it
+  as it was. A death wakes at the last place while `SleepPlaces` still has it, otherwise at `death.wakeAt`. A cross-bundle load keeps the
+  entry and lets go of a place outside the new grid and of a last place the new bundle no longer has. **One fixture:**
+  `Fixtures/save-v8.json`, a recorded run of the current game (the command is in [saves](saves.md)), replaces `save-v1.json` and
+  `save-v4.json`, which were saves of old code that could not be made again. Gate: 10,719 tests passed, 3 skipped. Checked on the merged
+  build: a sleep at the fire with the skip aid writes `"sleep": {"last": {"id": "camp.fire"}}`, the save loads with it, and a version 7
+  save is refused with the line above. Not fixed: the console's sleep line says "at the fire" wherever the player slept (Y08's strings).
+- **Y03, the bed and bedroll blocks (2026-11-10, on `feature/settlement`).** `Bed` (52) and `Bedroll` (53) follow `PostTorch`: not
+  solid, not decor (the crosshair's ray stops on them and nothing is placed into their cell), never gathered. Both are drawn with the pile
+  shape, whose height is now per block (`ChunkMesher.PileHeight`: the bed 0.5, the bedroll 0.3, the goods 0.42). **The atlas was full**
+  (96 colour cells for 97 kinds): `ColourRows` went from 12 to 13. A cell that holds a bed is not free ground to wake on. The shipped
+  scene has neither block, so its digest and the goldens did not move; `VillageTests`' check of the kinds in the village leaves the two
+  out until Y04 places a bed. Gate: 10,734 tests passed, 3 skipped. **How they look** (`artifacts/y03/` in the feature branch's
+  worktree): the bed reads as a low red box with a faint pillow, the bedroll as a flat striped mat; Y04 improves the bed where the
+  guest room shows it, the bedroll waits for Y12.
+- **Y04, the inn building and the meadows (2026-11-11, on `feature/settlement`).** The inn is a 9 x 7 `house` at the village's dx -16,
+  dz 8 (`name` `inn`, label `posada`) with the stamp `inn_rooms` for its inside: a counter, a partition with a door gap, two beds and
+  eight window gaps; the points `bed.inn` (278, 231) and `npc.innkeeper` (282, 227), the lamp `lamp.inn`. **The counter is a row of
+  `crate`:** a `table` in reach is a workbench and opened the crafting panel inside the inn, and a `stall` draws the market's awning; a
+  player can still step up onto the crate into the keeper's 2 x 2 room (a scene edit for Y08 if it matters). **`house3` moved** to dx 9,
+  dz 13 (three `casa` houses stay, so the fisher's line holds). The meadows are the sites `meadow.north` (270, 180) and `meadow.south`
+  (264, 258), cleared by `trees.clearings` at radius 22 (1,959 trees became 1,906); no trunk or leaves within 20 blocks on seeds 42, 7,
+  1234 and 2025. The bed is drawn with a mattress 0.5 high and a planks headboard against the nearest wall (`ChunkMesher.AddBed`). The
+  sleep place `inn.bed` has the access `lodging`, so nobody can use it before Y05. `posada` is in the lexicon and in the world words of
+  `cefr/a1.txt` (D-game-32 (e)'s note). The scene's digest, `VillageTests`' structure digest and `Fixtures/save-v8.json` were recorded
+  again; the goldens did not move. Gate: the first run failed only on the core's fuzz coverage floor (`OpenFallback…`, 4 of 5; the core's
+  findings), the second passed with 10,749 tests, 3 skipped. Checked on the merged build: `--teleport 280,221 --walk-to 279,230` walks from
+  the road through the door into the guest room, where the bed reads as a bed with its headboard; «¿Dónde está la posada?» at the villager
+  logs `place_asked (inn)` and sets the beacon at 280, 37, 229. `--teleport` lands on a roof at a building and `--walk-to` stops about half
+  a block short, so interior screenshots need a walk from the road.
+- **Y05, lodging (2026-11-11, on `feature/settlement`).** The host-event kind `grant_lodging` (no fields) sets
+  `VoxelSession.LodgingGiven` through the new `GrantLodging()`; a second grant does nothing. The world event `lodging_granted` is raised
+  once, is in `WorldEvents.All` (so a tip or an objective can name it) and is an autosave reason ("lodging granted"). Y02's
+  `systems.sleep` kept the flag across a sleep, a file load and a migration with no change. **A locked bed** (access not met) shows
+  "This bed is the inn's: ask for a room first" (`ui.sleepBedLocked`), and E, the card and the scripts' `--sleep` do nothing there
+  (`SleepNow` refuses: without it `--sleep` slept from the locked bed whenever the mountain fire was lit). The dev aid `--lodging`
+  (with `--dev`) gives lodging at start. game-v1 has no `grant_lodging` row yet (Y06). Gate: 10,759 tests passed, 3 skipped.
+  Checked on the merged build: `--dev --lodging --skip-to-session 2 --walk-to 278,231 --sleep` sleeps in the bed and saves
+  `{lodgingGiven: true, last: {id: "inn.bed"}}`; without `--lodging` the bed refuses. **Bug found: after a night in the bed, a death
+  woke the player at (278, 38, 233), outside the inn's south wall, where the bed's prompt also showed.** The wake search and the "at the
+  place" radius count straight distance through walls; Y05a is registered to fix both. A test of the session's effects reaches the
+  protected `ApplyHostEvents` by reflection; Y06's real row lets a test go through a talk turn instead.
+- **Y05a, indoor sleep places (2026-11-11, on `feature/settlement`).** The fix for the bug found checking Y05. "At the place"
+  (`SleepPlaces.IsAt`, behind `UsableAt` and `LockedBedAt`) is the radius and height test and then a bounded walk
+  (`Session/SleepWalk`, `VoxelWalker.FindPath`'s step rules) from the place's cell within `radius + 3` steps, so a wall says no; the
+  death's wake cell is searched first among the cells a 12-step walk reaches, in the same 2-to-5 band, and falls back to the straight
+  search. A place with no standing room in its column keeps the old tests. The walk runs only for a place that passes the radius test
+  (at most 5 steps at a bed, 8 at a fire). Gate: 10,763 tests passed, 3 skipped. Checked on the merged build: the death after a night
+  in the inn's bed wakes at (280, 38, 231), inside the guest room; outside the south wall no sleep prompt shows. A fire in the open is
+  unchanged (`r26-death` wakes at 152, 73, 106). The step bounds are constants in code, not in `needs.json`.
+- **Y06, the innkeeper (2026-11-12, on `feature/settlement`).** Rosa, «Posadera», gives the room (report
+  `.claude/briefs/y06-report.md` on the branch). The first agent stopped when its session was cleared; its uncommitted content was
+  committed as WIP and a second agent finished from the same brief. Every learner line reads at `inn-offer` with no wrong reading;
+  «Quiero dormir aquí» and «¿Puedo dormir aquí?» stay unread (Y00's gaps). The roster's tests ask every NPC for weather, wellbeing
+  and "understood" replies, which the brief did not list; she has them. `patience` counts every line at the prompt (a deny or a
+  greeting too), so «No, gracias» and one more line give the room; kept (nobody locked out), for the owner. A new fuzz flake met
+  the agent once in three runs (core findings, the last entry). Gate: 10,797 tests passed, 3 skipped. Checked on the merged build:
+  «sí» at her counter, `innkeeper.room`, `lodging_granted`, a sleep in the bed, `systems.sleep` = lodging given, last `inn.bed`.
+- **Y06m, `origin/main` (the weather series, PR #64) merged into the settlement series (2026-11-12, on `Y06m-merge-main`).** One merge commit; the save
+  stays version 8 (oldest readable 8) and `SystemsSave` carries `Sleep` then `Atmosphere`. A sleep at any usable place, the inn's bed included,
+  wakes in the morning by main's clock (`SaveGame.Sleep` restores the parts, which brings back the atmosphere, then notes the place slept at, then
+  `ApplyNight` calls `Simulation.WakeUp()`), so `systems.sleep.last` is still written after the restore; a death wakes at the last sleep place
+  (inside the guest room when that was the bed), and a death is not a night, so it does not move the clock. `ChunkMesher`: the bed's mesh takes the
+  sun tint like every opaque block. The innkeeper gained main's E07 `weatherAnswers` (`innkeeper_cloudy`, `_rain`, `_fair`, the baker's three lines,
+  six speech files in her voice). Gate: 11,221 passed, 3 skipped with models; 11,174 passed, 50 skipped without.
+  - *Changed on purpose:* `AtmosphereSaveTests` and `WeatherSaveTests` read `save-v8.json` (the version 1 and 4 fixtures are gone) and expect version 8;
+    `AtmosphereSimulationTests` re-pinned its two world digests (the route's world holds the inn now; the clock still adds nothing, as the version 8
+    fixture's strict load shows); `SpeechLinesTests` 396 pools and the innkeeper's 19; the identity baseline gained three lines
+    (`dialogue:innkeeper_cloudy.1`, `_fair.1`, `_rain.1`); the grammar cache is the union of both sides' entries, pruned.
+  - *Scripted runs (all 28 run on `origin/main` and on the merge, same work folder):* the only differences are the settlement's own (the scene digest and tree count,
+    the face count, speech 759 lines to 809, save version 7 to 8, pictures with the inn and the new meadows in view, the world digests). `r26-death` wakes at 152, 73, 106 on both,
+    with the same `systems.atmosphere`. `r10-playtest` exits 2 on both. Nothing was re-baselined.
+- **Y09, land rules (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y09-report.md` on the branch; the as-built note is
+  in the settlement plan's Y09 paragraph. Gate: 11,298 tests passed, 3 skipped. Checked on the merged build (seed 42, `--dev`): a plank
+  on the village street (282, 38, 221) refused "village: no building there"; a plank in the wild (266, 37, 165) placed, taking it back
+  refused with the land hint. Two things for later: holding gather on a scene plank (a house floor) shows the take-back hint once per
+  hold, because placed and scene planks are not told apart (saved state would be needed; Y13 records it as a known gap or Y12 tells
+  them apart when it adds the camp's own take-back rule); and the scripted steps' generic refusal ("out of reach, no item, or not
+  placeable there") also covers a target inside the player's own cell, which misled the orchestrator's first spot check.
+- **Y07, the opening's logic (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y07-report.md` on the branch; the as-built
+  note is in the settlement plan. The agent merged Y09 into its branch before its last runs, as asked, so the gate needed one run.
+  Gate: 11,304 tests passed, 3 skipped. Checked on the merged build: `--skip-to-session 2` gives lodging and a sleep in the bed works
+  with no `--lodging` (`last: inn.bed`); but Rosa still opens with the offer after a skip, because her agent's state moves only when she
+  gives the room herself: given to Y08. The CAMP steps of the scripted runs no longer finish the checklist (crafting the torch spends
+  wood below 5), and r10 never visits the innkeeper, so it no longer reaches the ending: both to Y08. The known fuzz coverage floor
+  flake met the agent once ("fallback:second-chosen").
+- **Y10, the stake and the outline (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y10-report.md` on the branch; the
+  as-built note is in the settlement plan. Launched beside Y07 once Y09 was in; it merged Y07 into its branch before its last run.
+  Gate: 11,323 tests passed, 3 skipped. Checked on the merged build: `--mark-plot 266,165` marks the plot at 261,160 and the save holds
+  it; the HUD line and the hint show; the agent's screenshots show both outlines clearly (`artifacts/y10-check/`). The first rail lay in
+  the tall grass and was hidden: an outline must stand above the undergrowth. Known: no plural key for the price ("1 coins"), and an
+  outline above about 36 × 36 would exceed one mesh's vertex limit and silently not draw.
+- **Y08, the mountain, the beds and the strings (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y08-report.md` on the
+  branch; the as-built note is in the settlement plan. The beds were added at the owner's word ("Why are the beds so short? They look
+  broken"): a one-block bed beside a player 1.8 high read as a box; two cells with a frame and boards read as a bed
+  (`artifacts/y08-check/guest-room-close.png`). The agent's first "before" capture of the scripted runs was spoiled by editing
+  `scene.json` while it ran (a hash mismatch): capture a baseline from a separate worktree, never from the one being edited. Gate:
+  11,347 tests passed, 3 skipped. Checked on the merged build: after `--skip-to-session 2` Rosa greets «Buenas noches.» with no offer,
+  and a sleep in the bed prints "session 2 ends at the inn" (`last: inn.bed`).
+- **Y11, buying the plot (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y11-report.md` on the branch; the as-built
+  note is in the settlement plan. Launched beside Y08 once Y10 was in; it merged Y08 before its last run. Gate: 11,398 tests passed, 3
+  skipped. Checked on the merged build: with a marked plot and ten coins, the mayor opens «El terreno cuesta diez monedas. ¿Lo
+  quieres?», «Quiero un terreno, por favor.» buys it (`item_taken` moneda, `item_given` equipo, `plot_bought (261,160)`, «Mi terreno»
+  complete), `systems.land` owned. Small gaps left: asking for a stake while holding one gets «Toma la estaca» and nothing; a full bag
+  at the stake's offer has no miss; «Quiero comprar un terreno» and «Quiero este terreno» stay unread (core gaps of Y00). A new fuzz
+  seed in the core, not this work's (the core findings' last entry).
+- **Y12, the campsite (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y12-report.md` on the branch; the as-built note
+  is in the settlement plan. Nothing cut, packing back included. The first gate run failed only on the known coverage floor of
+  `PipelineFuzzTests.OpenFallback…` ("The generator no longer reaches fallback:forced-same-intent", log `test-20261112-053533.log`);
+  run again by the rule, it passed (11,457 tests, 3 skipped; `test-20261112-054337.log`). That is the third time the floor has met a
+  gate in this series (Y04, Y07's agent, Y12): the core milestone proposed for it is worth registering. Checked on the merged build: a
+  camp outside the plot refused, on it placed; a torch on the rim lights it; a sleep "ends at your camp" (`last: camp.fire`). For the
+  owner's playtest: the stepped tent.
+- **Y13, close-out (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y13-report.md` on the branch. Four runs (r40 to r43),
+  the documents. Gate: 11,457 tests passed, 3 skipped. A QA agent tested progression with save and world on the same commit in a
+  separate worktree at the same time (report `docs/qa-reports/2026-11-12-progression.md`): five minor bugs; four to Y14. Its two most
+  useful notes for later runs: `--teleport` lands on the top surface (a roof, the tent), so stand beside an object with `--walk-to` or a
+  free cell; and the scripts' `--sleep` sleeps at a lit fire even before the day-one gate allows it.
+- **Y14, QA fixes (2026-11-12, on `feature/settlement`).** Report `.claude/briefs/y14-report.md` on the branch; the as-built note is in
+  the settlement plan. Gate: 11,463 tests passed, 3 skipped. Checked: «no sé» at the inn credits `quiero-una-habitacion`. The class
+  offer's verdict is a presentation fix: the turn is still graded at the NPC's own prompt and the shown verdict is rewritten when the
+  class takes the answer; a cleaner fix (grading a class offer's yes or no at its own prompt without breaking free talk) is a later
+  milestone if the owner wants it. The `pedir-agua` transfers at the baker and the mayor are an owner question (open items).
+- **Y15, the stake taken at the purchase (2026-11-12, on `feature/settlement`; the owner on PR #65).** Report `.claude/briefs/y15-report.md`.
+  The mayor keeps the stake when he sells the plot (every stake in the bag goes through `Take`; a refused sale keeps it; a stake in a
+  chest stays). The kit's room is checked with the coins and the stake out, so `no_room` needs a bag without the stake. The checklist's
+  `stake` step counts the bag plus one once the plot is owned, so it stays done after the purchase and a load (and reads 1/1 with
+  `--own-plot`). No stake is given once land is owned. Gated: 11,469 passed, 3 skipped.

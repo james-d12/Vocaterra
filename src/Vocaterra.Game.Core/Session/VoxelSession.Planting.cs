@@ -6,7 +6,8 @@ using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
 
-// Planting a berry at the camp (N08, adaptation design decision 14): the berry the player holds goes on grass or dirt inside the radius of the camp's fire ring, and the cell above
+// Planting a berry at the camp (N08, adaptation design decision 14): the berry the player holds goes on grass or dirt inside the radius of the camp's fire ring (Luna's, or from Y12 the
+// player's own plot: the plot has its own count of bushes), and the cell above
 // becomes a plain bush recorded as picked, so the night grows it into a berry bush through N06's rule. The rule is needs.json's planting; with the needs off nothing is planted.
 public sealed partial class VoxelSession
 {
@@ -36,6 +37,10 @@ public sealed partial class VoxelSession
     /// <summary>How many planted bushes stand: the camp allows the rule's <c>maxBushes</c> at once.</summary>
     public int PlantedAlive => _planted.Count(PlantedStands);
 
+    /// <summary>How many planted bushes stand on the owned plot (<paramref name="onPlot"/>) or at Luna's camp: each place allows the rule's <c>maxBushes</c> at once (Y12).</summary>
+    /// <param name="onPlot">Whether to count the bushes on the owned plot rather than those at Luna's camp.</param>
+    public int PlantedAliveOn(bool onPlot) => _planted.Count(c => PlantedStands(c) && IsOwned(c.X, c.Z) == onPlot);
+
     /// <summary>
     /// Plants the berry the player holds on the ground block the crosshair is on (a right click on grass or dirt; N08): the berry leaves the bag, the cell above becomes a
     /// plain bush and is recorded as picked. A cell outside the camp's radius, one with something on it, or the camp at its most planted bushes is refused with a line.
@@ -56,7 +61,8 @@ public sealed partial class VoxelSession
         }
 
         var cell = ground.Offset(BlockFace.Up);
-        if (!InPlantingRadius(rule, ground))
+        var onPlot = IsOwned(ground.X, ground.Z); // Y12: the owned plot takes bushes as well, apart from Luna's camp (its columns are protected, the plot never overlaps them)
+        if (!onPlot && !InPlantingRadius(rule, ground))
         {
             _hints.Add(Locale.Ui(PlantFarHint));
             return PlantResult.Refused;
@@ -69,7 +75,7 @@ public sealed partial class VoxelSession
             return PlantResult.Refused;
         }
 
-        if (PlantedAlive >= rule.MaxBushes)
+        if (PlantedAliveOn(onPlot) >= rule.MaxBushes)
         {
             _hints.Add(Locale.Ui(PlantFullHint));
             return PlantResult.Refused;

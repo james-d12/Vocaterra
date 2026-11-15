@@ -435,12 +435,13 @@ public sealed class LessonFrontendTests
         session.Lessons.CountAsCompleted("first-words", 1);
         session.Day = 2;
         session.Sitting = 2;
+        _ = session.Simulation.GrantItems(ItemId.Stake, 1); // Y11: with no stake the mayor offers it before the class
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("villager").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var lesson = new LessonFrontend(session, dialogue, _ => { });
         var opening = session.OpenTalk("villager");
         lesson.Pump(); // a frame before the panel is open: the line is kept
-        dialogue.Open(opening, "Aldeano", session.ReviewLine);
+        dialogue.Open(opening, "Alcalde", session.ReviewLine);
 
         lesson.Pump();
 

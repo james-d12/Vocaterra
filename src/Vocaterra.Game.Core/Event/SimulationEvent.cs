@@ -53,6 +53,15 @@ public enum SimulationEventKind
 
     /// <summary>(Atmosphere, E04) The weather changed kind (a spell's end, a morning roll, a forced kind): <see cref="SimulationEvent.Detail"/> is the new kind's index in the weather data. Raised once per change, not for a load.</summary>
     WeatherChanged = 14,
+
+    /// <summary>(Land, Y09) A block that would have been placed was refused because its column is protected: the cell is in X, Y, Z and <see cref="SimulationEvent.Detail"/> is the protection (a cast <c>Land.Protection</c>: village, camp or road). The item stays in the bag.</summary>
+    PlaceRefused = 15,
+
+    /// <summary>(Land, Y09) The player worked on a plank block outside their own land, where planks cannot be taken back: the position is the block. Raised once per hold, like <see cref="WaterWithoutBottle"/>.</summary>
+    TakeBackRefused = 16,
+
+    /// <summary>(Land, Y12) The player held the gather button on a block of their camp for the whole time it takes to pack it: the position is the block. The session packs the camp up.</summary>
+    CampPackRequested = 17,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

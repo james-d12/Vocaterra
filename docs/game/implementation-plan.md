@@ -298,7 +298,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   hears `a dónde está la árbol` for the synthesized `dónde está la árbol` and expects the latter. It fails identically on the pre-move
   commit `e0ab15a`; model-gated tests are skipped in agent runs without `VOCATERRA_MODELS_DIR`, so it went unnoticed. To be fixed in its
   own game milestone (the constrained grammar now offers `a dónde`; decide whether the test or the recognizer's phrase set is wrong).
-- `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
+- `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
   tests fail.
 - `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths (left untouched; the CI milestone rewrites it).
 
@@ -518,6 +518,32 @@ Branch `feature/weather`, commit prefix `E<nn>:`. The design, the owner's answer
 | E09 | A Weather volume slider for the rain (the owner's play-test, 2026-11-11) | E06 | S | Haiku 5.5 | done: gated at `dc34f897` on `feature/weather` (2026-11-11), 11108 passed |
 | E10 | The insects without the ringing (the owner's play-test) | E03 | S | Sonnet 5.5, medium | done: gated at `4d5248c1` on `feature/weather` (2026-11-11), 11111 passed |
 | E11 | A gradual day: the look by the sun's height, eased dawn and dusk, a deepening night (the owner's play-test) | E02, E05 | M | Sonnet 5.5, high | done: gated at `b4796d07` on `feature/weather` (2026-11-11), 11122 passed |
+### 4.13 The inn, bought land and the campsite (the Y series; owner, 2026-11-10, D-game-32)
+
+Branch `feature/settlement`, commit prefix `Y<nn>:`. (Section 4.12 is the E series, day, night and weather, on `feature/weather`.)
+The review, the owner's answers, each milestone's scope and the checks are in [the settlement plan](settlement-plan.md) section 8;
+the statuses below follow its table in section 8.3.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| Y00 | Brief and probes: the inn's place, the meadows, the plot's size and price, the language probe, the innkeeper's voice trial | none | S/M | Sonnet 5.5, medium | done, 2026-11-10 |
+| Y01 | Sleep places: the authored ones in `needs.json` and the run-time ones in `SleepPlaces` replace every `firering.player` assumption; behaviour unchanged | none | M | Sonnet 5.5, medium | done, gated 2026-11-10 |
+| Y02 | Save version 8 and the `sleep` entry (lodging, the last place slept); older saves refused | Y01 | M | Sonnet 5.5, medium | done, gated 2026-11-10 |
+| Y03 | Bed and bedroll blocks (the pile shape) | none | S | Haiku 5.5 | done, gated 2026-11-10 |
+| Y04 | The inn building (a `house` and an interior stamp where `house3` stands; `house3` moves) and the meadows | Y00, Y03 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,749 tests) |
+| Y05 | Lodging: the `grant_lodging` action, `lodging_granted`, the bed's access and prompt | Y02, Y04 | M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,759 tests) |
+| Y05a | Indoor sleep places: the death's wake cell and the sleep radius stop at walls (a bug found checking Y05) | Y05 | S/M | Sonnet 5.5, medium | done, gated 2026-11-11 (10,763 tests) |
+| Y06 | The innkeeper: the NPC, the lines, the phrases, the voice | Y00, Y05 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (10,797 tests) |
+| Y06m | Merge `main` (the weather series, PR #64) into `feature/settlement` and resolve the conflicts | Y06 | M | Sonnet 5.5, high | done, gated 2026-11-12 (11,221 tests) |
+| Y07 | The opening's logic: `inn-room` ends day one, `light-fire` and its hooks leave, the ending's voice and timing, the skip aid | Y06m | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,304 tests) |
+| Y08 | The mountain camp removed, the strings, the tests and scripted runs captured again | Y07 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,347 tests) |
+| Y09 | Land rules and protection: `land.json`, `LandRules`, placing refused on protected columns, planks taken back on owned land, `systems.land` | Y00, Y02, Y04 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,298 tests) |
+| Y10 | The stake and the plot's outline | Y09 | M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,323 tests) |
+| Y11 | Buying the plot from the mayor: `sell_plot`, the mayor's title and lines, the «Mi terreno» checklist | Y10 | M/L | Sonnet 5.5, high | done, gated 2026-11-12 (11,398 tests) |
+| Y12 | The campsite: the camp kit placed as one piece, the bedroll and the ring as sleep places, planting on the plot | Y03, Y11 | L | Sonnet 5.5, high | done, gated 2026-11-12 (11,457 tests) |
+| Y13 | Close-out: the scripted runs, the documents, QA, the pull request | Y08, Y12 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,457 tests) |
+| Y14 | QA fixes (the fail-forward's phrase, the wake card, the class offer's verdict, r30's baker) | Y13 | S/M | Sonnet 5.5, medium | done, gated 2026-11-12 (11,463 tests) |
+| Y15 | The stake taken at the purchase (owner, 2026-11-12, on PR #65) | Y14 | S | Sonnet 5.5, medium | done, gated 2026-11-12 (11,469 tests) |
 
 ## 5. Findings log
 

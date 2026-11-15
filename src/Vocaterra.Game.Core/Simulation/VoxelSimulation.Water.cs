@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Core.Water.Flow;
@@ -22,12 +23,12 @@ public sealed partial class VoxelSimulation
     /// A host action, like <see cref="TeleportTo"/>: puts a water source in a cell of air, undergrowth or flowing water (the scripted run's <c>--pour</c>), which then
     /// flows as water does. Not a game rule and not a command.
     /// </summary>
-    /// <returns>Whether the cell was changed (it was inside the grid and was not a source already or a block that stops water).</returns>
+    /// <returns>Whether the cell was changed (it was inside the grid, not on a column the land rules protect (<see cref="BuildRules"/>), and was not a source already or a block that stops water).</returns>
     public bool PourWater(BlockPos cell)
     {
-        if (!Grid.InBounds(cell.X, cell.Y, cell.Z))
+        if (!Grid.InBounds(cell.X, cell.Y, cell.Z) || BuildRules?.ProtectionAt(cell.X, cell.Z) is { } protection && protection != Protection.None)
         {
-            return false;
+            return false; // outside the world, or a protected column (Y09: the dev aids go through the land rules too)
         }
 
         var block = Grid.GetBlock(cell.X, cell.Y, cell.Z);

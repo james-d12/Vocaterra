@@ -1398,3 +1398,33 @@ this file. What is still open is collected in [open-items](../open-items.md).
   (`slip-in-context`, the seed in the comment). **The analyzer is unchanged and right:** «vosotras podo rastrear» gives `conj.person` →
   `podéis` and `conj.irregular` → `puedo`, two faults on one word, as `ellos quero pan` gives `quieren` and `quiero`; accepted behaviour.
   O4's assertion unchanged; the stream digest, goldens and replays did not move. 5 test cases in `HomographRerollTests`.
+- **A new fuzz seed: «nosotras vemos» is flagged off the prompt (found 2026-11-10 beside the game's Y02; not fixed, no milestone yet).**
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, oracle O3
+  (`CheckAtAPromptThatDoesNotTakeIt`): the correct sentence «nosotras vemos» (recipe `[[PRON] [VERB] [ADV]?]`, recipe seed 2850, a tab for
+  the space), graded at `farmer-open`, which takes none of its intents, gets `vocab.wrong` at 0+8, expected `nos`, actual `nosotras`.
+  CsCheck seed `0ybc3kyw33r3` (2,000 samples, 0 shrinks); **it replays every time** (`-e CsCheck_Seed=0ybc3kyw33r3`, on
+  `feature/settlement` at `2cb53da5`, whose core is `main`'s). It met a milestone agent's full run once and not the two merge gates of
+  that evening, so a gate can meet it at random. It stands beside the known `nos veo` gap ([known gaps](known-gaps.md)): something
+  proposes the reflexive reading for a subject pronoun before `ver`. Proposed: a core milestone that finds which rule answers `nos`
+  here, fixes it at the source with a regression test in the owning module, and records the seed in the fuzz suite's README; the
+  oracle is not narrowed.
+- **A fuzz coverage floor that chance can miss (found 2026-11-11 at the gate of the game's Y04; not changed, no milestone yet).**
+  `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings` ends by requiring each of
+  ten diagnostics at least `min(5, iterations / 60)` times, 5 at its 300 iterations. One gate run counted `fallback:forced-same-intent`
+  4 times and failed with "The generator no longer reaches fallback:forced-same-intent." Eight runs of the test alone on the same
+  build counted 9, 14, 6, 10, 15, 7, 7 and 10 and passed: the generator reaches the path about ten times in 300, and a random sample
+  falls under 5 now and then. The oracle itself did not fail. Not checked: whether the count was the same before Y04's content edit
+  (one word in the lexicon, the scene); the milestone agent's own full run on the same code passed. Proposed, for the owner: keep the
+  floor and make the count steady (a fixed seed for the coverage part, or more iterations for the floor), in a core milestone;
+  nothing is narrowed until then, and a gate that fails on this message alone is run again and the run recorded.
+- **A fuzz flake on an optional manifest field (found 2026-11-11 by the game's Y06 agent; not changed, no milestone yet).**
+  `ContentSchemaFuzzTests.MutatedBundles_…` failed once in three full runs: seed `2zwDo8nRB_f7` removes `supportLanguage` from
+  `manifest.json`, and oracle O15 calls that an undocumented optional field, though the field is optional and not hashed. Not caused by
+  Y06 (the manifest had the field before it); the class passed on a rerun. Proposed: a core milestone that documents the field as
+  optional for O15 (or a KnownTolerances entry with its reason); nothing is narrowed until then, and a gate that fails on it alone is
+  run again and the run recorded.
+- **A fuzz seed on «porque» (found 2026-11-12 by the game's Y11 agent; not changed, no milestone yet).**
+  `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag…` failed once with seed `dTc3W4dw5Cg2` («túneles unos porque»: the
+  analyzer reads «porque» as a plural noun); the same seed fails on `feature/settlement` without Y11, so it is the core's or the bundle's
+  as it stood. The full run passed. Proposed: a core milestone that finds why «porque» gets a noun reading, fixes it at the source with a
+  regression test, and records the seed; the oracle is not narrowed.

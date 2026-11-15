@@ -101,27 +101,28 @@ public sealed class ObjectiveBook
     /// <summary>The folder of the objective files inside the bundle folder.</summary>
     public const string Folder = "game/objectives/";
 
-    /// <summary>The restore hooks a step may name: <c>lesson-begun</c> (one once a lesson was begun), <c>scan-fire-ring</c> (one when a torch stands at the player's own ring).</summary>
-    public static IReadOnlyList<string> RestoreHooks { get; } = ["lesson-begun", "scan-fire-ring"];
+    /// <summary>The restore hooks a step may name: <c>lesson-begun</c> (one once a lesson was begun), <c>lodging-given</c> (one once the player has been given lodging, Y07), <c>plot-owned</c> (one once the player owns land, Y11).</summary>
+    public static IReadOnlyList<string> RestoreHooks { get; } = ["lesson-begun", "lodging-given", "plot-owned", "camp-placed", "camp-fire-lit"];
 
-    /// <summary>The completion hooks an objective may name: <c>guide-met</c>, <c>spare-torch</c> and <c>point-own-camp</c>.</summary>
-    public static IReadOnlyList<string> CompleteHooks { get; } = ["guide-met", "spare-torch", "point-own-camp"];
+    /// <summary>The completion hooks an objective may name: <c>guide-met</c> and <c>point-inn</c> (the beacon goes to <see cref="InnBeacon"/> and the guide sends the player there, Y07).</summary>
+    public static IReadOnlyList<string> CompleteHooks { get; } = ["guide-met", "point-inn"];
 
     /// <summary>The id of an order's one step, the delivery (the save keys it <c>&lt;order&gt;.delivered</c>).</summary>
     public const string DeliveredStep = "delivered";
 
-    private ObjectiveBook(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart)
+    private ObjectiveBook(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart, string? innBeacon)
     {
         Objectives = objectives;
         ClosingPool = closingPool;
         Grants = grants;
         BeaconStart = beaconStart;
+        InnBeacon = innBeacon;
     }
 
     /// <summary>The objectives, in the HUD's order.</summary>
     public IReadOnlyList<ObjectiveSpec> Objectives { get; }
 
-    /// <summary>The dialogue pool of the guide's closing line, said when the session is complete (<c>guide.lesson.end</c>).</summary>
+    /// <summary>The dialogue pool of the closing line, said when the session is complete (<c>innkeeper_night</c>: the innkeeper's, Y07).</summary>
     public string ClosingPool { get; }
 
     /// <summary>The items the learner starts with, one of each (the book, S20).</summary>
@@ -129,6 +130,9 @@ public sealed class ObjectiveBook
 
     /// <summary>The scene point the beacon stands on at the start of a new game (<c>camp.guide</c>, S13).</summary>
     public string BeaconStart { get; }
+
+    /// <summary>The scene place the <c>point-inn</c> hook sends the beacon to (<c>inn</c>, Y07), or <see langword="null"/> when the session names none.</summary>
+    public string? InnBeacon { get; }
 
     /// <summary>Reads the session and its objectives from the bundle's verified host files.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
@@ -168,7 +172,7 @@ public sealed class ObjectiveBook
             var grants = root.TryGetProperty("grants", out var grantsElement)
                 ? grantsElement.EnumerateArray().Select(static e => ItemNamed(e.GetString() ?? string.Empty)).ToList()
                 : [];
-            return new ObjectiveBook(objectives, Text(root, "closingPool", SessionPath), grants, Text(root, "beaconStart", SessionPath));
+            return new ObjectiveBook(objectives, Text(root, "closingPool", SessionPath), grants, Text(root, "beaconStart", SessionPath), root.TryGetProperty("innBeacon", out var inn) ? inn.GetString() : null);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
@@ -295,8 +299,8 @@ public sealed class ObjectiveBook
     /// <param name="closingPool">The closing line's pool.</param>
     /// <param name="grants">The starting items.</param>
     /// <param name="beaconStart">The beacon's start.</param>
-    internal static ObjectiveBook Of(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart) =>
-        new(objectives, closingPool, grants, beaconStart);
+    internal static ObjectiveBook Of(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart, string? innBeacon = null) =>
+        new(objectives, closingPool, grants, beaconStart, innBeacon);
 
     /// <summary>The objective with this id, or <see langword="null"/>.</summary>
     /// <param name="id">The objective's id.</param>

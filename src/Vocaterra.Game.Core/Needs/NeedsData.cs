@@ -93,7 +93,7 @@ public sealed record SleepChange(double SleepTo, double Health, double HungerCos
 public sealed record NeedFood(string Item, double Hunger, double Thirst, double Healing, string? Leaves);
 
 /// <summary>What happens at a death (design 9.7). The rules about repeated deaths and an occupied chest site are N04's.</summary>
-/// <param name="WakeAt">The scene point the player wakes at.</param>
+/// <param name="WakeAt">The id of the sleep place (<see cref="SleepPlaceSpec"/>) the player wakes at.</param>
 /// <param name="Health">Health on waking.</param>
 /// <param name="Hunger">Hunger on waking.</param>
 /// <param name="Thirst">Thirst on waking.</param>
@@ -101,6 +101,37 @@ public sealed record NeedFood(string Item, double Hunger, double Thirst, double 
 /// <param name="KeepInBag">What stays in the bag (<c>stacksOfOne</c>).</param>
 /// <param name="ChestLastsUntil">When the chest goes (<c>night</c>).</param>
 public sealed record DeathSpec(string WakeAt, double Health, double Hunger, double Thirst, double Sleep, string KeepInBag, string ChestLastsUntil);
+
+/// <summary>
+/// A place where the player can sleep (Y01, <c>game/needs.json</c>'s <c>sleepPlaces</c>; not <see cref="RestSpec"/>, which is resting by a lit fire): a fire is usable while its ring burns, a bed
+/// when its <see cref="Access"/> is met. A place whose <see cref="Point"/> the scene lacks is left out.
+/// </summary>
+/// <param name="Id">The place's id (<c>guide.fire</c>), which <see cref="DeathSpec.WakeAt"/> names.</param>
+/// <param name="Point">The scene point the place stands at (<c>firering</c>, Luna's fire ring).</param>
+/// <param name="Kind"><see cref="SleepPlaceSpec.KindFire"/> or <see cref="SleepPlaceSpec.KindBed"/>.</param>
+/// <param name="RadiusBlocks">How far across, in blocks, of the point the player may stand to sleep there.</param>
+/// <param name="HeightBlocks">How far in height, in blocks, of the point.</param>
+/// <param name="Access"><see cref="SleepPlaceSpec.AccessAlways"/> or <see cref="SleepPlaceSpec.AccessLodging"/> (met once lodging is given).</param>
+public sealed record SleepPlaceSpec(string Id, string Point, string Kind, int RadiusBlocks, int HeightBlocks, string Access)
+{
+    /// <summary>A fire: usable while a lit ring stands at the place.</summary>
+    public const string KindFire = "fire";
+
+    /// <summary>A bed: usable when its access is met.</summary>
+    public const string KindBed = "bed";
+
+    /// <summary>Access that is always met.</summary>
+    public const string AccessAlways = "always";
+
+    /// <summary>Access met once the session has lodging.</summary>
+    public const string AccessLodging = "lodging";
+
+    /// <summary>The known kinds.</summary>
+    public static IReadOnlyList<string> Kinds { get; } = [KindFire, KindBed];
+
+    /// <summary>The known accesses.</summary>
+    public static IReadOnlyList<string> Accesses { get; } = [AccessAlways, AccessLodging];
+}
 
 /// <summary>A block that grows back (N06, design 9.6): what the player gathered by hand returns after the next night.</summary>
 /// <param name="Block">The block's name (<c>berry-bush</c>): the block the world has before a gather. The gathered cell holds the block's <c>BecomesWhenGathered</c> until it grows back.</param>
@@ -148,6 +179,7 @@ public sealed record GiftRule(string Npc, string Item, string Per)
 /// <param name="DrinkByHandThirst">Thirst restored by a drink by hand.</param>
 /// <param name="Foods">What each food gives.</param>
 /// <param name="Death">The death rules.</param>
+/// <param name="SleepPlaces">The places the player can sleep at (Y01).</param>
 /// <param name="Regrowth">The blocks that grow back after a night (N06); none when the file has no <c>regrowth</c>.</param>
 /// <param name="Gifts">The gifts given once a day (N06); none when the file has no <c>gifts</c>.</param>
 /// <param name="Planting">The berry planted at the camp (N08), or <see langword="null"/> when the file has no <c>planting</c>.</param>
@@ -162,6 +194,7 @@ public sealed record NeedsData(
     double DrinkByHandThirst,
     IReadOnlyList<NeedFood> Foods,
     DeathSpec Death,
+    IReadOnlyList<SleepPlaceSpec> SleepPlaces,
     IReadOnlyList<RegrowRule> Regrowth,
     IReadOnlyList<GiftRule> Gifts,
     PlantingRule? Planting = null)
@@ -235,6 +268,8 @@ public sealed record NeedsData(
                 Number(root.GetProperty("drinkByHand"), "thirst"),
                 root.GetProperty("foods").EnumerateArray().Select(FoodOf).ToList(),
                 new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), Text(death, "keepInBag"), Text(death, "chestLastsUntil")),
+                root.GetProperty("sleepPlaces").EnumerateArray().Select(static p => new SleepPlaceSpec(
+                    Text(p, "id"), Text(p, "point"), Text(p, "kind"), (int)Number(p, "radiusBlocks"), (int)Number(p, "heightBlocks"), Text(p, "access"))).ToList(),
                 root.TryGetProperty("regrowth", out var regrowth) ? regrowth.EnumerateArray().Select(static r => new RegrowRule(Text(r, "block"), Text(r, "after"))).ToList() : [],
                 root.TryGetProperty("gifts", out var gifts) ? gifts.EnumerateArray().Select(static g => new GiftRule(Text(g, "npc"), Text(g, "item"), Text(g, "per"))).ToList() : [],
                 root.TryGetProperty("planting", out var planting)

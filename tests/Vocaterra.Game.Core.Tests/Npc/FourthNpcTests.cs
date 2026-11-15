@@ -65,7 +65,7 @@ public sealed class FourthNpcTests
     {
         var npc = Miller.Value.Npcs.Find("miller")!;
 
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "miller"], Miller.Value.Npcs.Ids);
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper", "miller"], Miller.Value.Npcs.Ids);
         Assert.Equal(new NpcVoiceSpec(53, "em_santa", 0.9f), npc.Voice);
         Assert.Equal(new NpcOpeningRule("miller.greet", OpeningWhen.First), npc.Opening);
 
@@ -104,7 +104,7 @@ public sealed class FourthNpcTests
         Assert.Equal("miller", speech["miller_point.1"].Speaker);
         Assert.Equal("miller", speech["guide.lesson.miller.near.1"].Speaker); // a lesson line named guide.lesson.<id>.* is his too
         Assert.Equal("miller", speech["prompt.miller-open"].Speaker);
-        Assert.Equal(SpeechSpeakers.Guide, speech["guide.lesson.end.1"].Speaker);
+        Assert.Equal(SpeechSpeakers.Guide, speech["guide.camp.inn.1"].Speaker);
     }
 
     // The bundle with the miller: copied without the speech folder, the five files edited or added, the manifest computed again, loaded by the core and read by

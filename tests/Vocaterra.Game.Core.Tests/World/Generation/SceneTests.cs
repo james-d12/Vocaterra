@@ -18,7 +18,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "b699324f68f071a65b8fcc715fc593f3ea91a4945a0ed49d6ac1b208869c7d3a"; // village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "ab4035358a106d1dc191cfaef216646d2af002aef32a39dff0c09e886baeaa5c"; // Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -198,7 +198,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
-        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "firering.player", "signpost", "house1", "house2", "house3", "camp", "tent" })
+        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "signpost", "house1", "house2", "house3", "camp", "bed.inn", "npc.innkeeper" })
         {
             Assert.True(scene.Points.ContainsKey(name), $"missing point {name}");
         }
@@ -213,26 +213,25 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(BlockId.Stall, grid.GetBlock(scene.Point("stall").X, scene.Point("stall").Y + 1, scene.Point("stall").Z));
         Assert.Equal(BlockId.Table, grid.GetBlock(scene.Point("workbench").X, scene.Point("workbench").Y + 1, scene.Point("workbench").Z));
         Assert.Equal(BlockId.Sign, grid.GetBlock(scene.Point("signpost").X, scene.Point("signpost").Y + 3, scene.Point("signpost").Z));
-        foreach (var ring in new[] { "firering", "firering.player" })
+        var centre = scene.Point("firering");
+        Assert.Equal(BlockId.Air, grid.GetBlock(centre.X, centre.Y + 1, centre.Z)); // cold: nothing in the middle
+        Assert.Equal(BlockId.FireRing, grid.GetBlock(centre.X + 1, centre.Y + 1, centre.Z));
+
+        // Y08: the mountain's points (the ring, the tent, the chest) are gone; the workbench and the guide's ring are at the guide's camp.
+        foreach (var gone in new[] { "firering.player", "tent", "chest.player" })
         {
-            var centre = scene.Point(ring);
-            Assert.Equal(BlockId.Air, grid.GetBlock(centre.X, centre.Y + 1, centre.Z)); // cold: nothing in the middle
-            Assert.Equal(BlockId.FireRing, grid.GetBlock(centre.X + 1, centre.Y + 1, centre.Z));
+            Assert.False(scene.Points.ContainsKey(gone), $"{gone} is still a point");
         }
 
-        // The cold fire ring and the tent are at the player's camp, the workbench and the guide at the guide's.
-        Assert.InRange(Distance(scene.Point("firering.player"), scene.Point("camp.player")), 1, 12);
-        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.ledge")), 1, 10);
-        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.player")), 1, 18);
         Assert.InRange(Distance(scene.Point("workbench"), scene.Point("camp.guide")), 1, 12);
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
-        Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
-        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
+        Assert.Equal(["guide", "shopkeeper", "villager", "fisher", "baker", "smith", "farmer", "innkeeper"], scene.Npcs.Select(n => n.Name)); // V10: the fisher stands at npc.fisher, facing the river
         Assert.Equal(scene.Point("npc.fisher"), scene.Npcs.Single(static n => n.Name == "fisher").Feet with { Y = scene.Point("npc.fisher").Y });
         Assert.Equal(scene.Point("npc.baker"), scene.Npcs.Single(static n => n.Name == "baker").Feet with { Y = scene.Point("npc.baker").Y }); // V11: the baker at npc.baker
         Assert.Equal(scene.Point("npc.smith"), scene.Npcs.Single(static n => n.Name == "smith").Feet with { Y = scene.Point("npc.smith").Y }); // V12: the smith at npc.smith
         Assert.Equal(scene.Point("npc.farmer"), scene.Npcs.Single(static n => n.Name == "farmer").Feet with { Y = scene.Point("npc.farmer").Y }); // and the farmer at npc.farmer
+        Assert.Equal(scene.Point("npc.innkeeper"), scene.Npcs.Single(static n => n.Name == "innkeeper").Feet with { Y = scene.Point("npc.innkeeper").Y }); // Y06: the innkeeper behind the inn's counter at npc.innkeeper
         Assert.InRange(Distance(scene.Npc("guide").Feet, scene.Point("camp.guide")), 0, 12);
         Assert.InRange(Distance(scene.Npc("shopkeeper").Feet, scene.Point("village")), 0, 20);
         Assert.InRange(Distance(scene.Npc("villager").Feet, scene.Point("village")), 0, 20);
@@ -246,12 +245,12 @@ public sealed class SceneTests(ITestOutputHelper output)
 
         var counts = CountBlocks(grid);
         Assert.True(counts[BlockId.BerryBush] >= 3, "the camp needs at least three berry bushes for the objective");
-        Assert.Equal((3 * 5 * 5) + (6 * 5) + (5 * 5), counts[BlockId.Planks]); // three 5 x 5 house floors, the bakery's 6 x 5 and the smithy's 5 x 5 (V04)
-        Assert.Equal(5 * 2, counts[BlockId.Door]); // a two-block doorway each
+        Assert.Equal((3 * 5 * 5) + (6 * 5) + (5 * 5) + (9 * 7), counts[BlockId.Planks]); // three 5 x 5 house floors, the bakery's 6 x 5, the smithy's 5 x 5 (V04) and the inn's 9 x 7 (Y04)
+        Assert.Equal(6 * 2, counts[BlockId.Door]); // a two-block doorway each (the five houses and the inn, Y04)
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
         Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells
-        Assert.Equal(3 * 8, counts[BlockId.FireRing]); // three rings of eight stones: the two camps' and the smith's forge (V04)
+        Assert.Equal(2 * 8, counts[BlockId.FireRing]); // two rings of eight stones: the guide's camp and the smith's forge (V04; Y08: the mountain ring is gone)
         Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
     }
 

@@ -13,6 +13,7 @@
     "collapse",
     "drinkByHand",
     "foods",
+    "sleepPlaces",
     "death"
   ],
   "additionalProperties": false,
@@ -316,6 +317,59 @@
         }
       }
     },
+    "sleepPlaces": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Where the player can sleep (not rest, which is resting by a lit fire). Each place has a unique id; a place whose point the scene lacks is left out in play, and the bundle's validation refuses one.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "point",
+          "kind",
+          "radiusBlocks",
+          "heightBlocks",
+          "access"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The place's id (guide.fire), which death.wakeAt names."
+          },
+          "point": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A scene point (a prop's name or a point of scene.json) the place stands at."
+          },
+          "kind": {
+            "enum": [
+              "fire",
+              "bed"
+            ],
+            "description": "A fire is usable while a lit ring stands at the point; a bed when its access is met."
+          },
+          "radiusBlocks": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "How far across, in blocks, of the point the player may stand to sleep there."
+          },
+          "heightBlocks": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "How far in height, in blocks, of the point."
+          },
+          "access": {
+            "enum": [
+              "always",
+              "lodging"
+            ],
+            "description": "always is met; lodging is met once the player has been given a room."
+          }
+        }
+      }
+    },
     "death": {
       "type": "object",
       "required": [
@@ -329,7 +383,7 @@
         "wakeAt": {
           "type": "string",
           "minLength": 1,
-          "description": "The scene point the player wakes at."
+          "description": "The id of the sleep place (sleepPlaces) the player wakes at. The validator refuses an id that is not listed."
         },
         "wake": {
           "type": "object",

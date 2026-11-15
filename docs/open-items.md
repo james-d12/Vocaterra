@@ -32,7 +32,7 @@ Last checked against `main`: 2026-11-09 (after pull requests #46, #47, #48 and #
 | German | Seven decisions: bundle shape, saves, register, voices, scope | T01 to T10 (part 1 is pull request #51) | [German in the game](research/2026-11-04-german-in-the-game.md) |
 | Mobile | Six questions, in no decision register | Nothing planned | [mobile feasibility](research/2026-10-30-mobile-feasibility.md) section 6 |
 | Core systems | Items as data, instructions as content, the learner signal; the cast's size; specialist words against the A2 gate | W12 onward | [core systems review](research/2026-11-01-core-systems-review.md) section 5 |
-| Settlement proposal | Review inn accommodation, first land purchase, free site selection, interiors and village/map expansion; proposed defaults in section 7 | Milestone registration and implementation | [settlement plan](game/settlement-plan.md) |
+| Settlement, after the first slice | The larger village with more interiors and the larger valley (the proposal's phases 6 and 7): register them or not, after a playtest of the first slice. The first slice's own choices were answered on 2026-11-10 (D-game-32) | Those phases' milestones | [settlement plan](game/settlement-plan.md) sections 7 and 8.6 |
 | Playtest | Sessions 7 to 10: a late-start profile, the battery's size, testers with A1 Spanish | "Not planned" | [playtest](game/playtest.md) section 14 |
 | Content | Should `content/PHRASES.md` be generated from data? | Nothing | [content plan](game/content-plan.md) |
 
@@ -61,7 +61,8 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Core | M36 to M48, German | recorded only on `main`; in progress on `feature/german` | [core plan](nlp/implementation-plan.md) §11 |
 | Core | M68, CI timing budgets | only if a timed test fails on CI | [core plan](nlp/implementation-plan.md) §5 |
 | Game W | W12 to W21: items as data, durability, the axe handle, dishes, the beacon, farming, the notice board, prices | planned | [activities plan](game/activities-plan.md) |
-| Game W | W22 to W29 | held until the pilot's data | [activities plan](game/activities-plan.md) |
+| Game W | W22 to W29 | held until the pilot's data; the first bought plot and the stake moved to the Y series (D-game-32) | [activities plan](game/activities-plan.md) |
+| Game Y | Y00 to Y13: the inn and its bed, the first night there, land bought from the mayor, the campsite | registered 2026-11-10 (D-game-32); in progress on `feature/settlement` | [settlement plan](game/settlement-plan.md) section 8 |
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |
@@ -76,11 +77,18 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Source | Items | Detail |
 | --- | --- | --- |
 | GitHub issues | Bugs #52, #53, #54, #55; features #14, #23, #49 | GitHub |
-| QA triage | QA-language-5 and 10 parked (M67b); QA-2026-11-06-ui-3 partly fixed | [QA reports](qa-reports/README.md) |
+| QA triage | QA-language-5 and 10 parked (M67b); QA-2026-11-06-ui-3 partly fixed; QA-2026-11-12-progression-3 (the scripted walker gives up at a tree on one long leg) open; whether «quiero …» at the baker or the mayor should count as a transfer of `pedir-agua` (the phrase mapping, Y14) is the owner's; the class offer's shown verdict is rewritten, not graded at its own prompt (Y14) | [QA reports](qa-reports/README.md) |
+| Settlement (the Y series) | «mi campamento» unanswered in directions (the placed camp has no point or label) and the camp is no destination for the dialogue worker or navigation; one plot and one camp; no meals, comfort or warmth at the camp, no meals at the inn; planting needs the needs on; the take-back hint on scene planks; no plural key for the price; the outline's size limit (about 36 × 36) and its light; no reach limit for the stake beyond the aim; `patience` at the inn counts every line; the mayor says «Toma la estaca» and gives nothing while one is held, has no `no_room` at the stake's offer, and a miss ends his offer; the tent's steps can be climbed; a repeated "bag full" hint while packing; no scripted step uses the stake; `--sleep` sleeps anywhere while a fire is lit; the stepped tent's look; Rosa's and the mayor's speech wait for the owner's listening | [settlement plan](game/settlement-plan.md) §8.3 (the as-built notes), [game findings](game/findings.md) (Y04 to Y13) |
+| Core intents (settlement) | «Quiero dormir aquí», «¿Puedo dormir aquí?», «Quiero comprar un terreno», «Quiero este terreno» are unread; «¿Tiene(s) una habitación?» reads as `state_have` | [settlement plan](game/settlement-plan.md) §9.4 |
 | Core intents | «¿Tienes manzanas?» reads as `state_have`; «quiero algo de beber», «¿me enseñas a hacer pan?», «soy Pedro» and «Gracias, adiós.» are unknown | [game findings](game/findings.md) (W04b, W08), [core findings](nlp/findings.md) (M78) |
 | Core analysis | `fue` (ir or ser) not told apart; `nos veo`; `[WORD]` takes a mis-conjugated verb; recasts drop ¿ ? | [known gaps](nlp/known-gaps.md), [core findings](nlp/findings.md) |
 | Core robustness | The replay envelope's copies are not cross-checked; the WAV sample-rate range; silent content defaults; the ONNX Runtime native collision | [known gaps](nlp/known-gaps.md) |
+| Fuzz | The seed `0ybc3kyw33r3`: the correct «nosotras vemos» gets `vocab.wrong` (expected `nos`) at `farmer-open`; it replays every time and can fail a gate at random; a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
+| Fuzz | `PipelineFuzzTests.OpenFallback…` asks for each fallback path 5 times in 300 random samples; `forced-same-intent` comes about ten times and fell to 4 once (the gate of Y04, 2026-11-11) and failed the first gate run of Y12 (2026-11-12) and one of Y07's agent's runs; a gate that fails on that message alone is run again; a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
+| Fuzz | The seed `2zwDo8nRB_f7`: `ContentSchemaFuzzTests` (O15) calls removing the optional `supportLanguage` from the manifest undocumented; met once in three runs (Y06, 2026-11-11); a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
+| Fuzz | The seed `dTc3W4dw5Cg2`: «túneles unos porque», «porque» read as a plural noun, `MutationTagFuzzTests` (met by Y11, 2026-11-12, and on the branch without it); a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
 | Fuzz | The seed family `2tpLGUOSqj41`, kept recorded by the owner's choice; it can fail a gate | [village plan](game/village-plan.md) section 5 |
 | Game, "not fixed" | The session card on an early quit; saves on the game loop; no `crash.save` inside a dialogue; colour-only signals; the unread `controls.json` | [game findings](game/findings.md) (X04, X05, X08, Menu) |
+| Scripted runs | `r20-sleep` and `r30-no-classes` stop before the sleep (the camp checklist's wood step falls back when the torch is crafted, so no spare torch is given); captured again for the new opening in Y08 | [game findings](game/findings.md) (the Y series' first two milestones) |
 | Village | The open points after the follow-ups | [village plan](game/village-plan.md) section 5 |
 | Water | The open points after H12 | [water plan](game/water-plan.md) section 8 |

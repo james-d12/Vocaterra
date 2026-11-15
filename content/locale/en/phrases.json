@@ -541,6 +541,18 @@
     "phrase.aqui-tienes-la-madera-y-las-monedas.meaning": "Here are the wood and the coins.",
     "phrase.aqui-tienes-el-agua.card": "Aquí tienes el agua. = Here is the water. · el agua = the water",
     "phrase.aqui-tienes-el-agua.explain": "Hand León the water: aquí tienes, then what you give. Agua is feminine but takes el: el agua.",
-    "phrase.aqui-tienes-el-agua.meaning": "Here is the water."
+    "phrase.aqui-tienes-el-agua.meaning": "Here is the water.",
+    "phrase.quiero-una-habitacion.card": "Quiero una habitación, por favor. = I want a room, please. · una habitación = a room",
+    "phrase.quiero-una-habitacion.explain": "Ask the innkeeper for a room: quiero, una and the noun, habitación. The room is free; the innkeeper gives it for good.",
+    "phrase.quiero-una-habitacion.meaning": "I want a room, please.",
+    "phrase.hay-una-habitacion.card": "¿Hay una habitación? = Is there a room? · hay = is there",
+    "phrase.hay-una-habitacion.explain": "Ask if there is a room: hay, there is, and una habitación.",
+    "phrase.hay-una-habitacion.meaning": "Is there a room?",
+    "phrase.quiero-un-terreno.card": "Quiero un terreno, por favor. = I want a plot of land, please. · un terreno = a plot of land",
+    "phrase.quiero-un-terreno.explain": "Ask the mayor for the plot you marked with the stake: quiero, un and the noun, terreno. It costs ten coins, and he gives you the camp kit with it.",
+    "phrase.quiero-un-terreno.meaning": "I want a plot of land, please.",
+    "phrase.cuanto-cuesta-el-terreno.card": "¿Cuánto cuesta el terreno? = How much does the plot cost? · cuesta = costs",
+    "phrase.cuanto-cuesta-el-terreno.explain": "Ask the price of the plot: cuánto cuesta, how much does it cost, and el terreno.",
+    "phrase.cuanto-cuesta-el-terreno.meaning": "How much does the plot cost?"
   }
 }

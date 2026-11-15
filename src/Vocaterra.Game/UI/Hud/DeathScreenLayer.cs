@@ -10,7 +10,7 @@ namespace Vocaterra.Game.UI.Hud;
 /// <summary>What the short screen after a death or a faint says (N05).</summary>
 /// <param name="Spanish">The line in Spanish (<c>Estás en tu campamento.</c>).</param>
 /// <param name="English">Its English.</param>
-/// <param name="Cause">The cause line (<c>You fainted from thirst and woke by your fire...</c>).</param>
+/// <param name="Cause">The cause line (<c>You fainted from thirst and woke where you sleep...</c>).</param>
 public sealed record DeathScreenView(string Spanish, string English, string Cause);
 
 /// <summary>
@@ -20,6 +20,15 @@ public sealed record DeathScreenView(string Spanish, string English, string Caus
 public sealed class DeathScreenLayer : IFrameLayer
 {
     private const int PhraseSize = 32;
+
+    /// <summary>
+    /// The HUD hint (the bed's sleep prompt, the plot's line) as it is drawn while the screen may be up (Y14): none while the screen is up, so nothing is drawn over its lines
+    /// (the prompt under the crosshair stood across the cause line). The screen is short and the hint is back with the world.
+    /// </summary>
+    /// <param name="screen">The screen, or <see langword="null"/> when it is not up.</param>
+    /// <param name="hint">The hint the game would draw.</param>
+    public static string? HintWhileUp(DeathScreenView? screen, string? hint) => screen is null ? hint : null;
+
     private static readonly Color Ink = new(250, 246, 232);
     private static readonly Color Muted = new(190, 190, 205);
 

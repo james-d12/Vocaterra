@@ -15,7 +15,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 
 /// <summary>
 /// X01, saves survive content updates: a save made from another content bundle loads into this one (the progress kept where its ids exist, the rest dropped and
-/// reported), strict mode still refuses, a save of this very bundle loads exactly as before, the old versions load across bundles, and the world's digest is
+/// reported), strict mode still refuses, a save of this very bundle loads exactly as before, and the world's digest is
 /// reported rather than required. "Another bundle" is a document with another bundle hash and ids the bundle does not have (or lacks ones it has).
 /// </summary>
 public sealed class SaveMigrationTests
@@ -300,42 +300,26 @@ public sealed class SaveMigrationTests
         Assert.Contains(loaded.Migration!.Notes, static n => n.Contains("a-lesson-since-removed", StringComparison.Ordinal));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(4)]
-    [InlineData(5)]
-    [InlineData(6)]
-    public void EveryReadableVersionLoadsAcrossBundles(int version)
+    [Fact]
+    public void ASaveOfThisVersionLoadsAcrossBundles()
     {
         var document = CampDocument();
-        var steps = CampSteps(document).Select(static o => o with { Key = o.Key["camp.".Length..] }).ToArray(); // before version 5 the keys were the checklist's alone (C07), and it was the only one
-        var older = version switch
-        {
-            1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Objective = steps, Systems = null },
-            2 => document with { Version = 2, Settings = null, World = null, BookGranted = false, Objective = steps, Systems = null },
-            3 => document with { Version = 3, Settings = null, World = null, Objective = steps },
-            4 => document with { Version = 4, Objective = steps, Systems = null },
-            5 => document with { Version = 5, Systems = null },
-            _ => document,
-        };
-        older = FromOtherBundle(older) with { Words = [.. document.Words, document.Words[0] with { Lemma = "gone-noun" }] };
+        var other = FromOtherBundle(document) with { Words = [.. document.Words, document.Words[0] with { Lemma = "gone-noun" }] };
 
-        var loaded = Load(older, migrate: true);
+        var loaded = Load(other, migrate: true);
 
         Assert.NotNull(loaded.Migration);
         Assert.Contains("gone-noun", loaded.Migration!.Find("words")!.Dropped);
         Assert.Equal(CampSteps(document).Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
-        Assert.Equal(version == 1 ? 0 : document.Learner!.History.Count, loaded.Learner.History.Count);
+        Assert.Equal(document.Learner!.History.Count, loaded.Learner.History.Count);
         Assert.True(loaded.Simulation.Inventory.Count(ItemId.Book) >= 1);
-        Assert.Throws<SaveException>(() => Load(older, migrate: false));
+        Assert.Throws<SaveException>(() => Load(other, migrate: false));
     }
 
     [Fact]
-    public void TheVersionOneFixtureStillLoadsStrictAndAcrossBundles()
+    public void TheFixtureLoadsStrictAndAcrossBundles()
     {
-        var text = File.ReadAllText(FixturePath("save-v1.json"));
+        var text = File.ReadAllText(FixturePath("save-v8.json"));
 
         var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);
@@ -344,7 +328,7 @@ public sealed class SaveMigrationTests
         var loaded = SaveGame.Load(other, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
         Assert.NotNull(loaded.Migration);
         Assert.True(loaded.Migration!.WorldDigestMatched);
-        Assert.Empty(loaded.Learner.History);
+        Assert.Equal(strict.Learner.History.Count, loaded.Learner.History.Count);
         Assert.Equal(1, loaded.Day); // the day as saved (V25)
     }
 
@@ -391,7 +375,7 @@ public sealed class SaveMigrationTests
         throw new InvalidOperationException("no air in the chunk");
     }
 
-    private static string FixturePath(string name)
+    internal static string FixturePath(string name)
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {

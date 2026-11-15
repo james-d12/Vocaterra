@@ -503,23 +503,22 @@ public sealed class EatDrinkSprintTests
     }
 
     [Fact]
-    public void TheFiresOfTheWorldAreFoundByShapeAndTheCampsBurnOnlyOnceTheirTorchIsOnTheRim()
+    public void TheFiresOfTheWorldAreFoundByShapeAndTheGuidesFireBurnsOnlyOnceATorchIsOnTheRimOrInTheMiddle()
     {
         var session = TestGame.NewSession();
         var rings = session.Fires.Middles;
-        Assert.True(rings.Count >= 3, "the player's fire, the guide's camp fire and the forge");
+        Assert.True(rings.Count >= 2, "the guide's camp fire and the forge (Y08: no ring on the mountain)");
 
-        var own = session.Scene.Point(VoxelSession.PlayerFireRing);
         var camp = session.Scene.Point(VoxelSession.CampFireRing);
-        var ownMiddle = rings.Single(m => m.X == own.X && m.Z == own.Z);
         var campMiddle = rings.Single(m => m.X == camp.X && m.Z == camp.Z);
-        Assert.False(session.Fires.IsLit(ownMiddle));
         Assert.False(session.Fires.IsLit(campMiddle));
 
-        session.Scene.Grid.SetBlock(ownMiddle.X + 1, ownMiddle.Y + 1, ownMiddle.Z, BlockId.Torch); // a torch on the rim
-        session.Scene.Grid.SetBlock(campMiddle.X, campMiddle.Y, campMiddle.Z, BlockId.Torch); // and one in the middle
+        session.Scene.Grid.SetBlock(campMiddle.X + 1, campMiddle.Y + 1, campMiddle.Z, BlockId.Torch); // a torch on the rim
+        Assert.True(session.Fires.IsLit(campMiddle));
 
-        Assert.True(session.Fires.IsLit(ownMiddle));
+        session.Scene.Grid.SetBlock(campMiddle.X + 1, campMiddle.Y + 1, campMiddle.Z, BlockId.Air);
+        Assert.False(session.Fires.IsLit(campMiddle));
+        session.Scene.Grid.SetBlock(campMiddle.X, campMiddle.Y, campMiddle.Z, BlockId.Torch); // and one in the middle
         Assert.True(session.Fires.IsLit(campMiddle));
     }
 

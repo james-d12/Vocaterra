@@ -364,7 +364,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         _stationPanel.Help(); // --proc-help: H at the station
                         Console.WriteLine(StationLine("proc-help"));
                     },
-                    StationSayFromScript);
+                    StationSayFromScript,
+                    (x, z, facing) =>
+                    {
+                        // A test aid (Y12): --place-camp x,z,facing is the camp kit's use on the ground of that column, the camp facing the side given
+                        var ground = new BlockPos(x, Vocaterra.Game.Core.Land.CampPlan.GroundOf(session.Scene.Grid, x, z), z);
+                        var hintsBefore = session.PeekHints().Count;
+                        var result = session.UseCampKit(ground, facing);
+                        var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
+                        Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
+                    });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -445,7 +454,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             [_menu, _micScreen, _checks, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel],
             [_menu, _checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _stationPanel]);
         var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
-        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell));
+        _worldInput = new WorldInput(_sim, _look, _live, openBook, new DelegateCommand(() => _session.EatSelected()), session.Data.Needs, cell => _session.PlantOn(cell), cell => _session.UseStake(cell), cell => _session.UseCampKit(cell));
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
@@ -575,10 +584,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The player is free for the sleep's offer (V12c): the world on screen, no screen, panel or report up, no voice recorded.
     private bool SleepFree => WorldRunning && _screens.Top is null && !_dialogue.IsOpen && !_listen.Listening && !_report.Paused;
 
-    // The player's own lit fire offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
+    // A usable sleep place (today the player's own lit fire) offers the sleep: E sleeps there, after an NPC under the crosshair and the workbench (V12c).
     private bool FireOffersSleep => SleepOffer.AtFire(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
-    // L01: at the fire and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
+    // Y05: at a bed that is not the player's yet, the prompt says a room must be asked for; E does nothing (SleepNow refuses, nothing is usable).
+    private bool BedLocked => SleepOffer.AtLockedBed(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
+
+    // L01: at a sleep place and not tired, E says the player's line «No tengo sueño.» (text only) and sleeps nothing.
     private bool FireNotTired => SleepOffer.AtFireNotTired(_session, SleepFree && _aimed is null && !AimedAtWorkbench());
 
     // The session's closing card offers the sleep: Enter sleeps while it is up (V12c).
@@ -780,10 +792,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var (headingStep, headingOffer) = _lesson.State();
         view.LessonHeading = headingStep is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingStep) : headingOffer is not null ? LessonStripLayout.HeadingParts(view.Session.Locale, headingOffer) : null; // the panel's header (U02)
         view.SleepPrompt = FireOffersSleep && !_ending.Visible(_sim.Tick) ? SleepOffer.PromptText(_session) : null; // the fire's prompt; the card says it while it is up (V12c)
+        view.PlotLine = _session.PlotHudLine(); // Y10: the plot's size and price, or "Your land", near it or with the stake in hand
+        view.SleepPrompt ??= BedLocked && !_ending.Visible(_sim.Tick) ? SleepOffer.LockedBedText(_session) : null; // Y05: at the inn's bed before lodging, the bed says it is the inn's
         view.EndingSleep = CardOffersSleep ? SleepOffer.CardText(_session) : null;
         view.FadeAlpha = (float)_collapseFade;
         view.Needs = _needsHud;
         view.DeathScreen = _deathHold > 0 ? new DeathScreenView(_session.Data.Words.HudLine("hud.camp") ?? string.Empty, _session.Locale.Text("hud.camp"), _session.DeathLine ?? string.Empty) : null;
+        view.SleepPrompt = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.SleepPrompt); // Y14: the bed's prompt and the plot's line stood over the wake card's lines
+        view.PlotLine = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.PlotLine);
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
@@ -1364,13 +1380,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void AutosaveDue() =>
         _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_listen.Listening && WorldRunning && !_report.Paused);
 
-    // The sleep at the player's own fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
+    // The sleep at a bed or a lit fire (V12c), from E there, Enter on the closing card or the script's --sleep: the session's own save is restored into it as the next
     // play session (SaveGame.Sleep: the state a load of that save gives), so the session log ends the old session and starts the next as a quit and a load into the same
     // folder write them, the autosave writes the ending session (a load of it starts the session the sleep starts) and starts again as a load starts it, and the
     // front-end's own state goes back to a new run's: the closing card, the word cards not yet shown, the toasts waiting, the beacon of the start.
     private void SleepNow(string how)
     {
-        if (!_session.CanSleep || _dialogue.IsOpen)
+        if (!_session.CanSleep || _dialogue.IsOpen || _session.AtLockedBed) // Y05: a bed that is not the player's yet refuses the scripts' aid too, which sleeps from anywhere while a fire is lit
         {
             Console.WriteLine($"sleep: not now ({how}): {SleepRefusal()}");
             return;
@@ -1460,6 +1476,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void PassNight(string how, bool collapse)
     {
         var before = _session.Day;
+        var ended = SleepOffer.EndedWhere(_session, _session.CurrentSleepPlace, collapse); // the place the night ends at (Y08), read before the save is restored
         _autosave?.WriteNow(_sim.Tick, _session.Events.Count, "sleep");
         var document = _saves.Capture();
         _log.End(_session, _sim.Tick); // the session that ends
@@ -1471,13 +1488,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _beacon.Restart();
         _toasts.Clear(); // the old session's toasts are not the new one's: it opens with the morning
         _toasts.Show(SleepOffer.MorningText(_session));
-        Console.WriteLine($"sleep: {how}: session {before} ends {(collapse ? "where the player fell" : "at the fire")}, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
+        Console.WriteLine($"sleep: {how}: session {before} ends {ended}, session {_session.Day} begins (tick {_sim.Tick}, stored time {_session.StoredTime.UnixSeconds}, world digest {document.StateDigest[..16]})");
     }
 
     // Why the player may not sleep now, for the console.
     private string SleepRefusal() =>
         !_session.SleepOffered ? "a playtest plays one session per run"
-        : !_session.FireLit ? "the player's own fire is not lit"
+        : _session.AtLockedBed ? "the bed is the inn's: lodging is not given yet"
+        : !_session.SleepPlaces.AnyUsable ? "no fire is lit"
         : _dialogue.IsOpen ? "a dialogue is open"
         : "the game is not at rest";
 

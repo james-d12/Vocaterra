@@ -46,6 +46,12 @@ public enum ItemId : ushort
 
     /// <summary>Flour (<c>harina</c>, W10): the bread's first ingredient, sold at the stall for a coin.</summary>
     Flour = 34,
+
+    /// <summary>The stake (<c>estaca</c>, Y10): used on the ground it marks the pending plot (<see cref="Session.VoxelSession.SetPendingPlot"/>); the mayor gives it (Y11). It places no block.</summary>
+    Stake = 35,
+
+    /// <summary>The camp kit (<c>equipo</c>, labelled <c>equipo de campamento</c>, Y11): a tent, a bedroll and a fire ring in one piece; the mayor gives it with the plot (<see cref="Npc.NpcEffectKind.SellPlot"/>), Y12 places it on the owned land.</summary>
+    CampKit = 36,
 }
 
 /// <summary>
@@ -83,6 +89,8 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, ToolSp
         new(ItemId.Axe, "axe", 1, new ToolSpec(Material.Wood, 4)),
         new(ItemId.RoastApple, "roast-apple", DefaultStackLimit),
         new(ItemId.Flour, "flour", DefaultStackLimit),
+        new(ItemId.Stake, "stake", 1),
+        new(ItemId.CampKit, "camp-kit", 1),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

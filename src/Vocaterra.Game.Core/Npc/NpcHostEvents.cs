@@ -65,13 +65,22 @@ public enum NpcEffectKind
 
     /// <summary>The learner accepted the offer to bake (W08, <c>start_procedure</c>): the station opens for the procedure the NPC teaches, and the teacher enters teaching. Nothing happens when the NPC teaches none.</summary>
     StartProcedure,
+
+    /// <summary>The player is given lodging (Y05, <c>grant_lodging</c>): a sleep place whose access is <c>lodging</c> (the inn's bed) can be slept at from then on, for good. A second grant changes nothing.</summary>
+    GrantLodging,
+
+    /// <summary>
+    /// The player buys the plot they marked (Y11, <c>sell_plot</c>): the price in coins (<see cref="Land.LandRules.PlotPrice"/>) goes, the plot is owned and the item (the camp kit) comes, all or nothing
+    /// (<see cref="Session.VoxelSession.SellPlot"/>). The misses are <c>&lt;npc&gt;.already_owned</c>, <c>no_plot</c>, <c>no_stake</c>, <c>cant_pay</c> and <c>no_room</c> (<see cref="NpcEffect.PlotMiss"/>).
+    /// </summary>
+    SellPlot,
 }
 
 /// <summary>
 /// One entry of the host-event table: a world effect of a host event.
 /// </summary>
 /// <param name="Kind">What the effect does.</param>
-/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>, <see cref="NpcEffectKind.TakeItem"/>, <see cref="NpcEffectKind.Sell"/> and <see cref="NpcEffectKind.Buy"/>: the item.</param>
+/// <param name="Item">For <see cref="NpcEffectKind.GiveItem"/>, <see cref="NpcEffectKind.TakeItem"/>, <see cref="NpcEffectKind.Sell"/>, <see cref="NpcEffectKind.Buy"/> and <see cref="NpcEffectKind.SellPlot"/> (the camp kit that comes with the plot): the item.</param>
 /// <param name="Noun">For <see cref="NpcEffectKind.PointAtNoun"/>: the catalogue noun the beacon goes to.</param>
 /// <param name="Count">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: how many, when <paramref name="CountSlot"/> does not say.</param>
 /// <param name="CountSlot">For <see cref="NpcEffectKind.GiveItem"/> and <see cref="NpcEffectKind.TakeItem"/>: the slot of the verdict that says how many (<see cref="QuantitySlot"/>), or <see langword="null"/> for <paramref name="Count"/>.</param>
@@ -302,6 +311,45 @@ public sealed record NpcEffect(
     }
 
     /// <summary>
+    /// What the world cannot do of the sale of the plot (<see cref="NpcEffectKind.SellPlot"/>, Y11), as the miss its NPC answers, or <see langword="null"/> when it can be made and for any other effect.
+    /// The worker asks it of the turn's copy of the bag and the land, and the session asks again of the bag and the land themselves before anything changes hands
+    /// (<see cref="Session.VoxelSession.SellPlot"/>). In order: the land is owned already (<see cref="NpcHostEvents.AlreadyOwned"/>); no plot is marked, or the marked one no longer
+    /// passes the land rules (<see cref="NpcHostEvents.NoPlot"/> when the bag holds a stake, <see cref="NpcHostEvents.NoStake"/> when it holds none); too few coins
+    /// (<see cref="NpcHostEvents.CantPay"/>); no room for the item once the coins are paid and the stake handed over (<see cref="NpcHostEvents.NoRoom"/>, Y15).
+    /// </summary>
+    /// <param name="bag">The bag, or <see langword="null"/> for a turn that carries none (then it holds nothing).</param>
+    /// <param name="plot">The land's facts, or <see langword="null"/> for a world with no land (nothing is marked).</param>
+    public string? PlotMiss(Inventory? bag, PlotFacts? plot)
+    {
+        if (Kind != NpcEffectKind.SellPlot)
+        {
+            return null;
+        }
+
+        bag ??= new Inventory();
+        plot ??= new PlotFacts(false, false, 0);
+        return plot.Owned ? NpcHostEvents.AlreadyOwned
+            : !plot.Marked ? (bag.Count(ItemId.Stake) > 0 ? NpcHostEvents.NoPlot : NpcHostEvents.NoStake)
+            : bag.Count(ItemId.Coin) < plot.Price ? NpcHostEvents.CantPay
+            : !RoomForKit(bag, plot.Price) ? NpcHostEvents.NoRoom
+            : null;
+    }
+
+    // Y15: the mayor keeps the stake, so the stake's slots are free for the kit as well as the coins' (a full bag that holds the stake still takes the kit).
+    private bool RoomForKit(Inventory bag, int price)
+    {
+        var after = bag.Copy();
+        _ = after.Remove(ItemId.Coin, price);
+        var stakes = after.Count(ItemId.Stake);
+        if (stakes > 0)
+        {
+            _ = after.Remove(ItemId.Stake, stakes);
+        }
+
+        return after.CanAdd(Item, Count);
+    }
+
+    /// <summary>
     /// What the world cannot do of a gift for a verdict (N06): <see cref="ExchangeMiss"/>'s answer when it has one, else <see cref="NpcHostEvents.GiftUsed"/> when today's gift
     /// of this item by <paramref name="npc"/> is given already, and <see langword="null"/> when the gift can be made. The stall's bread asked for in place of the bottle
     /// (<see cref="Instead"/>) is the bread's gift too. Only gifts (<see cref="NpcEffectKind.GiveItem"/>) are judged here; any other effect answers as <see cref="ExchangeMiss"/>.
@@ -428,6 +476,27 @@ public static class NpcHostEvents
 
     /// <summary>What an NPC that buys is asked to answer when the learner offers none of its item (V19, the review's R10: <c>vendo cero bloques de madera</c>): <c>&lt;npc&gt;.none_offered</c>.</summary>
     public const string NoneOffered = "none_offered";
+
+    /// <summary>What the NPC that sells the plot is asked to answer when the land is the player's already (Y11, <see cref="NpcEffectKind.SellPlot"/>): <c>&lt;npc&gt;.already_owned</c>.</summary>
+    public const string AlreadyOwned = "already_owned";
+
+    /// <summary>What the NPC that sells the plot is asked to answer when no plot is marked, or the marked one no longer passes the land rules, and the bag holds a stake (Y11): <c>&lt;npc&gt;.no_plot</c>.</summary>
+    public const string NoPlot = "no_plot";
+
+    /// <summary>What the NPC that sells the plot is asked to answer when no plot is marked and the bag holds no stake (Y11): <c>&lt;npc&gt;.no_stake</c>; its answer gives the stake.</summary>
+    public const string NoStake = "no_stake";
+
+    /// <summary>The host event of the offer of the stake when the talk opens (Y11): <c>&lt;npc&gt;.offer_stake</c>. The agent asks (a yes-or-no question) and waits in <see cref="StakeOfferState"/>.</summary>
+    public const string OfferStake = "offer_stake";
+
+    /// <summary>The host event of the offer of the plot when the talk opens and a plot is marked (Y11): <c>&lt;npc&gt;.offer_plot</c>. The agent says the price and waits in <see cref="PlotOfferState"/>.</summary>
+    public const string OfferPlot = "offer_plot";
+
+    /// <summary>The state of the seller's agent file in which it waits for a yes or a no to its offer of the stake (Y11).</summary>
+    public const string StakeOfferState = "offering_stake";
+
+    /// <summary>The state of the seller's agent file in which it waits for a yes or a no to its offer of the plot (Y11).</summary>
+    public const string PlotOfferState = "offering_plot";
 
     /// <summary>
     /// What an NPC is asked to say when the learner brings the goods of its order (village-plan V03, an objective with <c>deliverTo</c>): <c>&lt;npc&gt;.delivered</c>,

@@ -50,15 +50,18 @@
   // Named places at fixed positions. A site with a radius levels the ground (to y, or to the height the land has there) out to that radius and
   // slopes it into the land over the blend; every site is also a named point of the scene.
   "sites": {
-    // The player's camp: the brink of a ledge on the mountainside (where the player wakes, with the valley falling away to the south-east) and the
-    // wider ledge behind it, where the tent and the fire ring stand.
-    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4, "label": "mi campamento" },
+    // The mountain ledge (Y08: bare since the first night moved to the inn): the brink of a ledge on the mountainside, where the player arrives with the
+    // valley falling away to the south-east, and the wider ledge behind it.
+    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4 },
     "camp.ledge": { "x": 149, "z": 109, "y": 72, "radius": 9, "blend": 4 },
     "trail": { "x": 150, "z": 118, "label": "camino" },
     "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8, "label": "campamento" },
     "bridge.west": { "x": 226, "z": 205, "y": 37, "radius": 3, "blend": 3 },
     "bridge.east": { "x": 238, "z": 205, "y": 37, "radius": 3, "blend": 3 },
     "village": { "x": 292, "z": 218, "y": 37, "radius": 24, "blend": 8, "label": "pueblo" },
+    // The two meadows (Y04): cleared of trees by trees.clearings, never levelled (no radius), where the land the player buys will lie (Y09).
+    "meadow.north": { "x": 270, "z": 180 },
+    "meadow.south": { "x": 264, "z": 258 },
     "river": { "x": 230, "z": 222, "label": "río" },
     "waterfall": { "x": 258, "z": 112, "label": "cascada" },
     "lake": { "x": 212, "z": 294, "label": "lago" }
@@ -120,6 +123,22 @@
       ]
     },
 
+    // The camp the camp kit places on the player's plot (Y12, D-game-32), one rigid piece drawn facing north (the front, with the fire, on the north side; placed in play it turns to face
+    // the player, StampSpec.Turn, the same turning the scene's own stamps get): the fire ring (a "fire-ring" square round an empty middle, three blocks from the tent's door), a free row
+    // of ground between the ring and the tent, and the "tent" stamp's A-frame (rows 4 to 7, its canvas cells as drawn above) with a bedroll two cells long on the ground inside it ("bedroll"
+    // the head at the back, "bedroll-foot" the foot towards the door). Five wide and eight deep, so it fits the 10 x 10 plot with ground to walk round it. The anchors name cells of the
+    // first layer: "fire" the ring's middle (the sleep place at the fire, and the cell the player aims at), "bed" the bedroll's head (the sleep place in the tent) and "wake" the cell
+    // the player wakes on after a death, between the ring and the door.
+    "camp": {
+      "legend": { "R": "canvas", "F": "fire-ring", "D": "bedroll", "d": "bedroll-foot" },
+      "anchors": { "fire": [2, 1], "bed": [2, 6], "wake": [2, 3] },
+      "layers": [
+        [" FFF ", " F F ", " FFF ", "     ", "R   R", "R d R", "R D R", "R   R"],
+        ["     ", "     ", "     ", "     ", " R R ", " R R ", " R R ", " R R "],
+        ["     ", "     ", "     ", "     ", "  R  ", "  R  ", "  R  ", "  R  "]
+      ]
+    },
+
     // The bakery's oven (VILLAGE_PLAN V04): a cobble vault three wide and two deep, its mouth on the south row with the fire in it (a torch of the scenery,
     // not the item's torch) and a chimney at the back.
     "oven": {
@@ -146,17 +165,28 @@
       ]
     },
 
+    // The inn's inside (Y04, SETTLEMENT_PLAN 9.1), placed after the house at its corner, facing north (col 0 is the west wall's column, row 0 the north wall's).
+    // Reception in rows 1 and 2: the counter (a "counter" block, one block high but tall for a body, so nobody climbs onto it: a table would be a workbench, a stall block a market stall and a crate a step) at col 5 with the keeper's cell behind it at cols 6 and 7, enclosed by the counter, the east wall and the
+    // partition; a partition on row 3 with a gap at col 4, on the door's axis, three high with a lintel; the guest room in rows 4 and 5 with a bed two cells long
+    // against the west wall (cols 1 and 2) and one against the east wall (cols 7 and 6): the head cell "B" at the wall, the foot cell "F" beside it (Y08); and six one-block windows at eye height, cut through
+    // the walls with the legend's "air".
+    "inn_rooms": {
+      "legend": { "W": "wall", "T": "counter", "B": "bed", "F": "bed-foot", "a": "air" },
+      "layers": [
+        ["         ", "     T   ", "     T   ", " WWW WWW ", "         ", " BF   FB ", "         "],
+        ["  a   a  ", "         ", "a       a", " WWW WWW ", "a       a", "         ", "   a a   "],
+        ["         ", "         ", "         ", " WWWWWWW ", "         ", "         ", "         "]
+      ]
+    },
+
     // A crate with its goods on top (V04): the baker's loaves and the farmer's apples.
     "crate_loaves": { "legend": { "C": "crate", "L": "loaves" }, "layers": [["C"], ["L"]] },
     "crate_apples": { "legend": { "C": "crate", "A": "apples" }, "layers": [["C"], ["A"]] }
   },
 
   "props": [
-    // The player's camp: a tent behind the spawn and a cold fire ring in front of it (lit at the end of the session).
-    {"type": "stamp", "stamp": "tent", "site": "camp.ledge", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
-    {"type": "block", "block": "chest", "site": "camp.ledge", "dx": -1, "dz": -4, "name": "chest.player"},
-    {"type": "block", "block": "crate", "site": "camp.ledge", "dx": -1, "dz": -5},
-    {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player", "label": "fuego"},
+    // The mountain ledge is bare (Y08, D-game-32): the player arrives there and walks down the trail; the first night is at the inn, and their own camp
+    // comes later on bought land (the "tent" stamp above is kept for it).
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
     {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench", "label": "mesa"},
@@ -182,7 +212,10 @@
     {"type": "stall", "site": "village", "dx": -6, "dz": -9, "width": 2, "depth": 5, "facing": "west", "name": "stall", "label": "tienda"},
     {"type": "house", "site": "village", "dx": 9, "dz": -9, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1", "label": "casa"},
     {"type": "house", "site": "village", "dx": 9, "dz": 5, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2", "label": "casa"},
-    {"type": "house", "site": "village", "dx": -13, "dz": 7, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3", "label": "casa"},
+    {"type": "house", "site": "village", "dx": 9, "dz": 13, "width": 5, "depth": 5, "height": 3, "facing": "north", "name": "house3", "label": "casa"},
+    // The inn (Y04; it stands where house3 stood, which moved to the south-east corner): nine by seven, its door in the north wall facing the road, then its inside.
+    {"type": "house", "site": "village", "dx": -16, "dz": 8, "width": 9, "depth": 7, "height": 3, "facing": "north", "name": "inn", "label": "posada"},
+    {"type": "stamp", "stamp": "inn_rooms", "site": "village", "dx": -16, "dz": 8, "facing": "north", "name": "inn.rooms"},
 
     // The village's furnishing (S15): the stone tower behind the square, the crop field between the houses, fences, crates beside the stall and lanterns on
     // posts by the doors, the square's corners and the road.
@@ -195,7 +228,7 @@
     {"type": "lamp", "site": "village", "dx": -9, "dz": -10, "name": "lamp.stall"},
     {"type": "lamp", "site": "village", "dx": 8, "dz": -5, "name": "lamp.house1"},
     {"type": "lamp", "site": "village", "dx": 8, "dz": 4, "name": "lamp.house2"},
-    {"type": "lamp", "site": "village", "dx": -8, "dz": 8, "name": "lamp.house3"},
+    {"type": "lamp", "site": "village", "dx": -10, "dz": 7, "name": "lamp.inn"},
     {"type": "lamp", "site": "village", "dx": -12, "dz": 1, "name": "lamp.road"},
     {"type": "lamp", "site": "village", "dx": 0, "dz": -6, "name": "lamp.square"},
 
@@ -246,7 +279,9 @@
     // The smith Domingo (VILLAGE_PLAN V12) between his forge and the paved strip by the smithy's door (the point npc.smith), facing south over the square.
     {"name": "smith", "site": "village", "dx": 10, "dz": -12, "facing": "south"},
     // The farmer León (VILLAGE_PLAN V12) at the wheat field's west fence (the point npc.farmer), facing the wheat.
-    {"name": "farmer", "site": "village", "dx": 8, "dz": 0, "facing": "east"}
+    {"name": "farmer", "site": "village", "dx": 8, "dz": 0, "facing": "east"},
+    // The innkeeper Rosa (SETTLEMENT_PLAN Y06) behind the inn's counter (the point npc.innkeeper), facing west to the player's talk cell (280, 227).
+    {"name": "innkeeper", "site": "village", "dx": -10, "dz": 9, "facing": "west"}
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.
@@ -263,7 +298,10 @@
     "npc.baker": { "x": 281, "z": 208 },
     "npc.smith": { "x": 302, "z": 206, "label": "herrero" },
     "npc.farmer": { "x": 300, "z": 218, "label": "granjero" },
-    "npc.fisher": { "x": 240, "z": 208, "label": "pescador" }
+    "npc.fisher": { "x": 240, "z": 208, "label": "pescador" },
+    // The inn's points (Y04): the stand cell at the foot of the west bed (the bed covers cols 1 and 2 of row 5; this is col 3), where the player sleeps (Y05), and the cell behind the counter where the innkeeper Rosa stands (Y06).
+    "bed.inn": { "x": 279, "z": 231, "label": "cama" },
+    "npc.innkeeper": { "x": 282, "z": 227 }
   },
 
   // The forest: a tree tried in every 3 x 3 square, kept on the valley floor with this chance, thinner higher up and gone above the tree line.
@@ -273,7 +311,11 @@
     "cell": 3, "chance": 90, "spacing": 2, "margin": 3, "minTrunk": 4, "maxTrunk": 5, "treeLine": 80,
     "spruceFrom": 48, "birch": 10, "birchAway": 30,
     "shoreClear": 9, "shoreFade": 14, "shoreKeep": 8,
-    "clearings": [ { "site": "village", "radius": 36, "fade": 24, "keep": 5 } ],
+    "clearings": [
+      { "site": "village", "radius": 36, "fade": 24, "keep": 5 },
+      { "site": "meadow.north", "radius": 22, "fade": 12, "keep": 0 },
+      { "site": "meadow.south", "radius": 22, "fade": 12, "keep": 0 }
+    ],
     "vistas": [ { "site": "camp.player", "yaw": 135, "half": 58, "radius": 66, "down": 25 } ]
   },
 

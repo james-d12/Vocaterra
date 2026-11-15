@@ -108,7 +108,7 @@ Content/          GameData (every game file of the bundle, read once from its ve
 Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
                   or an objective waits for, C06)
 Needs/            PlayerNeeds (the five meters and the exhaustion timer, stages and effects worked out from them), NeedsData (game/needs.json), NeedsValidator,
-                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape and which burn) and NeedActionResult (N02)
+                  the Drive, NeedMeter, NeedActivity and PlayPause kinds (N01), FireRings (the world's fire rings found by shape, with a `Rescan()`, and which burn; one finder shared by the session and the simulation, Y01), SleepPlaces (Session/: where the player can sleep, Y01) and NeedActionResult (N02)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
@@ -121,6 +121,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
+Land/             where the player may build and where land is bought (Y09, D-game-32 (c)): LandData (game/land.json) and LandValidator, LandRules (a mask per column built once from the scene and the file: protected, eligible; `CheckPlot` reads the grid for water, trees, the ground on top and the slope and answers a PlotCheck: yes or a PlotFault), Plot, Protection (village, camp, road), LandRegister (the pending and the owned plot, and the IBuildRules hook the simulation asks: protected columns refuse any block but a torch, planks come back only on owned land) and LandSave (`systems.land`)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
                   (U02: the panel's rows, `DialogueModel.PanelRows`: the current exchange from the learner's last line, the one `CoachingLine`
@@ -251,6 +252,39 @@ step that tells an order gives it when it starts (`OnLessonStepStarted`, the obj
 moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 
+**The camp (Y12, D-game-32).** The camp kit (`camp-kit`, bought with the plot) sets up one piece on the owned plot: the scene layout's `camp` stamp (`game/scene.json`: a fire ring, a free row of ground, the tent's A-frame
+and a two-cell bedroll in it, with the anchors `fire`, `bed` and `wake`), turned by `StampSpec.Turn`, the same turning the scene's own build uses (`SceneBuilder.BuildStamp` and the camp share it, so they put blocks down alike). Core's
+`Land/CampPlan` names the cells and checks them against the grid without changing it (`Check`: every column owned, the ground at one height, every cell free or undergrowth, the ground plain; `HasWake`: a cell to wake on reached on foot from the bed
+and a walk out of the footprint, read with the camp's blocks set and put back); `VoxelSession.UseCampKit` (`Session/VoxelSession.Camp.cs`) adds the player's own check (stand clear of the camp), then sets the blocks directly (never `TryPlace`,
+which refuses all but planks and torches on protected ground), takes the kit, rescans the fire rings, adds the sleep places `camp.bed` and `camp.fire` (made in play, saved with their cells and the wake cell) and raises `camp_placed`.
+A torch on the ring lights it through the same hook as Luna's (`torch_at_ring` and, the first time, `fire_lit`, both with the detail `camp.fire`); the fire cooks and rests as every ring does (`Fires`), and the fire bed of the sound follows
+it (`AmbientBeds.At`'s `campFire`). Holding the gather button on any block of the camp (`IBuildRules.IsCampBlock`, `VoxelSimulation.StepPackCamp`, 45 ticks) raises `CampPackRequested` and the session packs the whole camp back
+(`PackCamp`: the kit and the ring's torches into the bag, the places dropped, the last place slept falling back). A load keeps a camp whose blocks all stand and otherwise drops its places and gives the kit back once. Planting works on the plot
+as well as at Luna's camp, each with its own count of bushes.
+
+**Land rules (Y09, D-game-32 (c)).** Core's `Land/` holds the rules and the player's plots; the simulation only asks. `game/land.json` names the protected regions by scene site
+(the village's disc, Luna's camp), the protected squares round the `path` and `bridge` blocks, the meadows and the plot's size, price and slope; `LandRules.Create` turns them and the scene into one byte per column
+when the session starts (`VoxelSession.InitLand`), and `CheckPlot` reads the grid for the rest. `VoxelSimulation.BuildRules` (an `IBuildRules`, set by the session to its `LandRegister`; a host setting like `WalkPermille`, not state, not in the digest)
+is asked by `TryPlace` (a protected column refuses every block but a torch: a `PlaceRefused` event, which the session turns into the hint `ui.landVillage`, `landCamp` or `landRoad`), by `PourWater` (the dev aid) and by the gather (a plank block is gatherable
+only where the hook exists, for `PlankTakeBackTicks`, and only on owned land; elsewhere a `TakeBackRefused` event says `ui.landTakeBack` once per hold). Every other gather, trees, berries, stone, is as it was. `VoxelSession.SetPendingPlot`, `OwnPlot`,
+`IsOwned` and the save entry `systems.land` are what the stake (Y10) and the mayor (Y11) call; a simulation with no hook behaves as before the rules.
+
+**The stake and the plot's outline (Y10).** The item `stake` (`ItemId.Stake`, stack of one, places no block) is used with the right click on a block: `Input/HeldItemUse.Applies` with `ItemId.Stake` (Core, as `PlantingUse` is; the camp kit uses it too) says the frame is
+a use (mouse captured, so no talk or panel is open; stake selected; a block aimed at), `WorldInput` then calls the session's `UseStake(BlockPos)`, which marks the pending plot with the aimed column as the plot's **middle**
+(`LandRules.PlotAround`: the 10 by 10 plot spans five columns west and north of it and four east and south; the outline lands round the cell the player points at) and says the answer on the hint line: `ui.plotMarked`, or the
+refusal's own line (`plotVillage`, `plotCamp`, `plotRoad`, `plotOutside`, `plotWater`, `plotTree`, `plotNotGround`, `plotSteep`), or `plotOwnedHere` / `plotOwnedAlready` once land is owned (the stake then marks nothing). A refusal keeps the
+old pending plot; marking again moves it and costs nothing. `PlotHudLine()` is the HUD text (`ui.plotHud` with size and price from `land.json`, or `ui.plotHudOwned`), shown by `PlotHudLayer` under the crosshair while the player is within
+24 blocks of a plot or holds the stake. The outline is Game's: `OverlayMeshes.PlotOutline(plot, surface, owned)` builds four corner posts and a low rail round the plot, each at the ground height of its own column (`LandRules.GroundOf`);
+the pending plot has bare amber posts and a broken rail (every second column), the owned plot white posts with a green flag each and a solid rail, so the two differ by shape as well as colour. `SceneDrawer.DrawWorld` builds the meshes
+for plots within 64 blocks of the eye and `VoxelRenderer.DrawWorld` draws them after the figures in the sun's light (the figures' diffuse colour, so they dim at night). The dev aid `--mark-plot x,z` is `MarkPlotWithHint`.
+
+**Buying the plot (Y11).** The mayor's sale is one exchange that cannot half happen: `VoxelSession.SellPlot` (called by `ApplyHostEvents` for the kind `sell_plot`, the `NpcEffectKind.SellPlot` row of `game/host-events.json`) first asks the exchange's checks
+(`NpcEffect.PlotMiss`: owned already, no plot marked or the marked one no longer passes `CheckPlot`, the coins short of `Land.Rules.PlotPrice`, no room for the camp kit once the coins are out: `Inventory.CanExchange`), then `OwnPlot()`, which checks the world once
+more and may refuse, and only then takes the coins and the stake (the mayor keeps it, Y15; the room check counts its slot as freed, so a full bag that holds the stake still takes the kit; a stake in a chest stays there) and gives the kit, logs `plot_bought` and puts the arrow on the plot. A refusal at any step leaves coins, bag and land as they were, and the repeated «sí», a reload and a second talk meet
+the land owned (`already_owned`). The same `PlotMiss` runs on the worker over the turn's copies (`GuideScene.Land`, a `PlotFacts` taken on the game thread at submit, and the bag's copy), so the mayor never says «El terreno es tuyo» for a sale the
+world cannot make; the session asks again of the bag and the land themselves. His offers at the talk's opening are the session's (`GuideSession.LandOffer`: `LandOfferAt`, the stake while the player has none and no plot, the sale once a plot is marked, from the
+play session the checklist `my-land` is shown from) and follow the order offer's shape (`offering_stake`, `offering_plot`, `offer_gone`).
+
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
 - **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GuideSession.StoredTime`); nothing reads the clock, so a scripted
@@ -281,6 +315,22 @@ exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and 
 a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
 `systems.atmosphere` entry (`saves.md`).
 
+## The settlement series (Y00 to Y13): where to look
+
+Day one ends at the inn, day two offers land, and the land holds a camp (settlement-plan, D-game-32). Each piece is data in `content/game-v1/game/` plus a small amount of code; this is the map, the details are in the sections named.
+
+| Piece | Data | Code |
+| --- | --- | --- |
+| **Sleep places** (Y01, Y02, Y08): Luna's fire `guide.fire`, the inn's bed `inn.bed`, and the camp's two places made in play; each has a kind (`fire` or `bed`), a reach, an access (`always` or `lodging`) and optionally a wake cell | `needs.json` `sleepPlaces` and `death.wakeAt` | `Session/SleepPlaces.cs` (the list, `Add` for places made in play), `SleepOffer.cs`, `SleepWalk.cs`, `VoxelSession.Sleep.cs`, `VoxelSession.Death.cs` (the wake) |
+| **Lodging** (Y05, Y06, Y07): the innkeeper Rosa gives the room once; the inn's bed is usable only after it | `agents/innkeeper.json`, `game/host-events.json` row `innkeeper.room` with the action `grant_lodging`, `game/session.json` `innBeacon` | `VoxelSession.GrantLodging` (raises `lodging_granted`), `systems.sleep.lodgingGiven` in the save, the dev aid `--lodging` |
+| **The inn and the meadows** (Y04): the `inn` house with the `inn_rooms` stamp (two-block beds), the sites `meadow.north` and `meadow.south` where land is sold | `scene.json` | `World/Generation/` (the scene build), the land rules' eligible regions |
+| **Land rules** (Y09): where one may build and where a plot may lie | `land.json` | `Land/LandRules.cs`, `LandRegister.cs` (an `IBuildRules` the simulation asks), `LandValidator.cs`; the section "Land rules" above |
+| **The stake and the outline** (Y10): the stake marks the pending plot, the outline is drawn round it | item `stake`, `ui.json` plot lines | `Input/HeldItemUse.cs`, `VoxelSession.Land.cs` (`UseStake`, `SetPendingPlot`), `OverlayMeshes.PlotOutline` in Game; the section "The stake" above |
+| **The exchange** (Y11): the mayor gives the stake and sells the plot; coins, plot and camp kit change hands in one step that cannot half happen | `host-events.json` kinds `give_item` and `sell_plot` (`villager.give_stake`, `villager.sell_plot`), the villager's agent (`offering_stake`, `offering_plot`), `objectives/my-land.json` | `VoxelSession.SellPlot`, `NpcEffect.PlotMiss`, `GuideSession.LandOffer.cs`; the section "Buying the plot" above |
+| **The camp** (Y12): the kit sets up a fire ring, a tent and a bedroll on the owned plot, and can be packed back | `scene.json` stamp `camp` with its anchors, item `camp-kit` | `Land/CampPlan.cs`, `VoxelSession.Camp.cs`, `World/Layout/StampSpec.cs` (the turning); the section "The camp" above |
+
+The checklist `my-land` ("Mi terreno", from play session 2: `stake`, `buy`, `camp`, `fire`) never holds a session back; its steps are events (`item_picked_up`, `plot_bought`, `camp_placed`, `fire_lit` with the detail `camp.fire`), and `stake` counts the bag and one more once the plot is owned (`VoxelSession.HeldForSteps`: the mayor keeps the stake at the purchase, so the step stays done, in the run and after a load), and a load reads `buy`, `camp` and `fire` back from the save and the world (the restore hooks `plot-owned`, `camp-placed`, `camp-fire-lit`). The scripted runs that cover the series are r20 and r30 (the sleep), r40 to r43 (`scripted-runs.md`).
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
@@ -297,7 +347,7 @@ The player's hunger, thirst, sleep, health and stamina (adaptation design sectio
   book, the inventory, crafting, a station, the report (F8), a menu, the check battery, and speech being recorded or processed. The world's ticks go on under most of
   these and the stored time counts them all, so the needs count active ticks themselves. The activity of a tick is read from the simulation (a gather tick, the body
   moved, standing still within the rest radius of a lit fire). `need_stage` is raised when a stage changes. What the stages do to the player: N02 below; sleep, the collapse
-  and death are N03 and N04's.
+  and death are N03 and N04's. Sleeping, the prompt, the closing card, the arrow to bed and the waking after a death ask `SleepPlaces` (Y01: `needs.json`'s `sleepPlaces`, Luna's fire `guide.fire` and the inn's bed since Y08, a fire usable while its ring is lit, a bed by its access; `death.wakeAt` names the place the player wakes at), not a scene point.
 - **Eating, drinking, sprinting (N02)** are the partial `Session/VoxelSession.Eat.cs`. `EatSelected`/`EatItem` use a food of `needs.json` through `PlayerNeeds.Eat` (the bottle
   comes back empty; at full hunger or thirst the food is kept and the ui line `foodKept` or `drinkKept` is a hint), `DrinkByHand` drinks at the water under the crosshair
   (`AimedAtWater`), and they raise `meal_eaten` (the food's noun) and `water_drunk` (`botella`, or `pozo`, `lago`, the river's noun). The game binds the right click to
@@ -306,7 +356,7 @@ The player's hunger, thirst, sleep, health and stamina (adaptation design sectio
   stamina above 0) and `GatherPermille` (the data's `gatherSlowFactor` at zero stamina: gathering slows and never stops); neither is state or in the digest. The tick's activity
   is Sprinting, Gathering (a gathered block; filling the bottle is no labour), Walking, Resting (still within the radius of a lit ring of `FireRings`) or Idle. With the needs
   off the sprint is free and the speed factors are 1.
-- **The save** (version 7, the needs' and the water's fields together): the optional `systems` map, with `systems.needs` holding the five meters and the two timers; versions 1 to 5 start with full needs. Water adds the player's `air` and the `flow` of the scene diff; the underwater blur is an optional field of the settings. The needs
+- **The save** (version 8, the oldest and only one read: the needs', the water's and the sleep places' fields together): the optional `systems` map, with `systems.needs` holding the five meters and the two timers (a save without it starts with full needs) and `systems.sleep` the lodging, the last place slept and the places made in play (Y02). Water adds the player's `air` and the `flow` of the scene diff; the underwater blur is an optional field of the settings. The needs
   are not in the world's digest; a load clamps a value out of range and refuses one that is not a number.
 - **Drowning (water-plan H11):** `Breath` reports `OutOfAir` once a second at zero air; `DrowningDamage` takes 10 health through `IPlayerHealth`, which `NeedsHealth` joins to `PlayerNeeds.Hurt`. While the air is gone `PlayerNeeds.RecoveryHeld` stops health's recovery. The session runs the death flow after the damage (`DieIfDead`): the death names `player_drowned` (the `diedDrowned` / `faintedDrowned` line). With the needs off (or while play is paused) the adapter takes nothing, as hunger and thirst take nothing then. The underwater blur level (`Off`, `Low`, `Medium`, `High`) is a setting (row 4 of the F8 panel, `SaveSettings.UnderwaterBlur`, `--underwater-blur` for a run) and is forced off with the view effects. The bubble row (`BreathHudLayout.RaiseAbove`) lifts above the stage line or the needs block where they would overlap.
 - **Test aids:** `--needs off` freezes the needs (every scripted run passes it), `--set-need <need> <value>` sets one at launch.
