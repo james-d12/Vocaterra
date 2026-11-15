@@ -3,7 +3,7 @@ engine Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nlp.* 
 (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's work is in the
 game, in Vocaterra.Game.Core and its tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b04a, already on the local branch `B04a-sparse-grid` (cut from
-`feature/biomes` at @@BASE@@). Run every command from that directory. Commit after each item that builds and passes its tests, with the
+`feature/biomes` at 55e26c41). Run every command from that directory. Commit after each item that builds and passes its tests, with the
 prefix `B04a: `. Do not push your branch: it stays local and the gate merges it from there (owner, 2026-11-05). Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
@@ -68,7 +68,7 @@ Checks beyond the suite: capture the scripted runs before your first change (`sc
 Report the scene build time (`SceneBuildTimeTests`) and the grid's memory for the valley before and after.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean;
+(11,498 passed before your change, plus your new tests); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean;
 scripts/limited.sh scripts/content.sh validate passes; `SceneTests.GoldenDigest` and every golden unchanged. Do not commit bin/, obj/ or
 artifacts/ (keep the scripted-run captures outside the repository, for example in /tmp).
 Commit messages end with

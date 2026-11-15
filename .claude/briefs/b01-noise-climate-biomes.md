@@ -3,7 +3,7 @@ repository (C#, .NET 10). The language core is the engine Vocaterra.Nlp, the Spa
 and tool projects; the game is Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and
 tools/Vocaterra.SpeechRender. This milestone's work is in the game, in Vocaterra.Game.Core, its tests and content/game-v1.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b01, already on the local branch `B01-noise-climate-biomes` (cut
-from `feature/biomes` at @@BASE@@). Run every command from that directory. Commit after each item that builds and passes its tests, with
+from `feature/biomes` at 55e26c41). Run every command from that directory. Commit after each item that builds and passes its tests, with
 the prefix `B01: `. Do not push your branch: it stays local and the gate merges it from there (owner, 2026-11-05). Never push or merge
 feature/biomes or main. When you finish, leave the worktree on your branch, clean.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
@@ -79,7 +79,7 @@ Deliverables (all in Vocaterra.Game.Core unless named; the folder names and seam
 Measure and report: the time to sample climate, height and biome for a 256 x 256 area, and for one 16 x 16 chunk column.
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean;
+(11,498 passed before your change, plus your new tests); scripts/limited.sh dotnet format Vocaterra.sln --verify-no-changes clean;
 scripts/limited.sh scripts/content.sh validate passes; `SceneTests.GoldenDigest` unchanged. Do not commit bin/, obj/ or artifacts/.
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
