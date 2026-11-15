@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Biomes;
+using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
 
 namespace Vocaterra.Game.Core.World.Generation.Procedural;
@@ -28,12 +29,21 @@ public sealed class ProceduralChunkSource : IChunkSource
 
     /// <summary>A source whose window is wider than it needs to be by <paramref name="extraMargin"/> columns: the tests use it to show that the margin is enough, because a chunk must come out the same however wide the window.</summary>
     internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin)
+        : this(world, biomes, seed, strategies, extraMargin, null)
+    {
+    }
+
+    /// <summary>A source whose ground is eased into the edges of authored regions (B06): the composite source's procedural half.</summary>
+    internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin, RegionBlend? blend)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(biomes);
-        _world = new GenerationWorld(world, biomes, seed, strategies ?? StrategyRegistry.Default, extraMargin);
+        _world = new GenerationWorld(world, biomes, seed, strategies ?? StrategyRegistry.Default, extraMargin, blend);
         _pipeline = GenerationPipeline.Standard(_world);
     }
+
+    /// <summary>The world being generated (climate, height model, biome table), which the place query reads.</summary>
+    internal GenerationWorld World => _world;
 
     /// <summary>The lowest chunk layer of the world (y -64 is layer -4).</summary>
     public int MinChunkY => _world.MinY >> VoxelChunk.Shift;

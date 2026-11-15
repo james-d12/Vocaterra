@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.World.Noise;
+using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.World;
@@ -124,8 +125,12 @@ public sealed record AltitudeData(int SnowBelowTemperature, int TreeLineBelowTem
 /// <param name="Climate">The climate fields.</param>
 /// <param name="Height">The height model.</param>
 /// <param name="Altitude">The snow and tree-line thresholds.</param>
-public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, HeightData Height, AltitudeData Altitude)
+/// <param name="RegionBlend">How the land is eased towards an authored region's edge (the <c>regionBlend</c> section, B06; the default when the file has none).</param>
+public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, HeightData Height, AltitudeData Altitude, RegionBlendData? RegionBlend = null)
 {
+    /// <summary>The blend's numbers: the file's <c>regionBlend</c> section, or <see cref="Regions.RegionBlendData.Default"/>.</summary>
+    public RegionBlendData Blend => RegionBlend ?? RegionBlendData.Default;
+
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/world.json";
 
@@ -168,7 +173,8 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                     Noise(climate, "river"),
                     Int(climate, "lapsePer100Blocks")),
                 ParseHeight(height),
-                new AltitudeData(Int(altitude, "snowBelowTemperature"), Int(altitude, "treeLineBelowTemperature")));
+                new AltitudeData(Int(altitude, "snowBelowTemperature"), Int(altitude, "treeLineBelowTemperature")),
+                RegionBlendData.Read(root));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

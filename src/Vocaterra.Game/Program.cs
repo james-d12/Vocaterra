@@ -86,7 +86,7 @@ try
     }
 
     sceneLayout = layout;
-    Func<ulong, Scene> buildFor = seed => SceneBuilder.Build(layout, seed);
+    Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, WorldMode.Bounded, layout);
     if (options.LoadPath is { } loadPath)
     {
         // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.

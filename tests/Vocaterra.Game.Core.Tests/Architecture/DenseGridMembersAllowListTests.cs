@@ -12,13 +12,9 @@ public sealed class DenseGridMembersAllowListTests
     // A use is a dense member read off something named like a grid (grid, Grid, _grid, scene.Grid) or off the diff's edited, fresh and target grids.
     private static readonly Regex Use = new(@"(?<![\w])(?:\w*[Gg]rid|edited|fresh|target)\.(Chunks[XYZ]?|BlocksOfKind|ComputeDigest(?:Hex)?)\b", RegexOptions.Compiled);
 
-    // file (from the repository root) -> member -> why the use stays and which milestone removes it.
-    private static readonly Dictionary<string, Dictionary<string, string>> Allowed = new()
-    {
-        ["src/Vocaterra.Game.Core/Needs/FireRings.cs"] = new() { ["BlocksOfKind"] = "B06: fire rings come from the region template, not from a scan of the world" },
-        ["src/Vocaterra.Game.Core/Session/VoxelSession.cs"] = new() { ["BlocksOfKind"] = "B06: the fire rings again, from the region template" },
-        ["src/Vocaterra.Game.Core/Land/LandRules.cs"] = new() { ["BlocksOfKind"] = "B06: the protection mask is built from the valley's blocks; the region template supplies them" },
-    };
+    // file (from the repository root) -> member -> why the use stays and which later milestone removes it. Empty since B06: the fire rings and the land rules read the region template
+    // (Scene.Template), so nothing in src enumerates a grid's chunks. A new entry must name a milestone after B06 that removes it.
+    private static readonly Dictionary<string, Dictionary<string, string>> Allowed = new();
 
     [Fact]
     public void Given_TheSources_When_TheDenseGridMembersAreSearched_Then_EveryUseIsListedWithTheMilestoneThatRemovesIt()
@@ -56,8 +52,29 @@ public sealed class DenseGridMembersAllowListTests
     }
 
     [Fact]
-    public void Given_TheAllowList_When_ItsReasonsAreRead_Then_EachNamesTheMilestoneThatRemovesIt() =>
-        Assert.All(Allowed.SelectMany(f => f.Value), entry => Assert.Matches("^B0(5|6): ", entry.Value));
+    public void Given_TheAllowList_When_ItsReasonsAreRead_Then_EachNamesALaterMilestoneThanB06ThatRemovesIt() =>
+        Assert.All(Allowed.SelectMany(f => f.Value), entry => Assert.Matches(@"^B(0[7-9]|[1-9]\d): ", entry.Value));
+
+    [Theory]
+    [InlineData("B05: a stale tag", false)]
+    [InlineData("B06: the milestone that already landed", false)]
+    [InlineData("B07: a milestone still to come", true)]
+    [InlineData("B12: a later one", true)]
+    [InlineData("later", false)]
+    public void Given_AReason_When_ItIsChecked_Then_OnlyAMilestoneAfterB06IsAccepted(string reason, bool accepted) =>
+        Assert.Equal(accepted, System.Text.RegularExpressions.Regex.IsMatch(reason, @"^B(0[7-9]|[1-9]\d): "));
+
+    [Fact]
+    public void Given_ThePatternOfTheDenseMembers_When_ItIsRunOverNewUses_Then_ItStillFindsThem()
+    {
+        // The list is empty, so the guard must still fail on a new use of a dense member: the pattern has to see each of them off a grid-like name.
+        foreach (var line in new[] { "var a = grid.BlocksOfKind(kind);", "var b = scene.Grid.Chunks;", "var c = _grid.ChunksX;", "var d = world.Grid.ComputeDigestHex();", "var e = fresh.ComputeDigest();" })
+        {
+            Assert.Matches(Use, line);
+        }
+
+        Assert.DoesNotMatch(Use, "var f = template.Of(kind);");
+    }
 
     private static bool Listed(string use)
     {

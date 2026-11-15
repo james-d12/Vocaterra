@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Regions;
+using Vocaterra.Game.Core.World.Streaming;
 using Vocaterra.Game.Core.Water.Currents;
 
 namespace Vocaterra.Game.Core.World;
@@ -26,8 +28,12 @@ public sealed class Scene
         int plantCount = 0,
         IReadOnlyDictionary<string, string>? labels = null,
         IReadOnlyDictionary<string, IReadOnlyList<BlockPos>>? propCells = null,
-        RiverCurrents? currents = null)
+        RiverCurrents? currents = null,
+        int[]? groundHeights = null,
+        TemplateBlockIndex? template = null)
     {
+        GroundHeights = groundHeights;
+        Template = template;
         Currents = currents ?? RiverCurrents.None;
         Labels = labels ?? new Dictionary<string, string>(StringComparer.Ordinal);
         PropCells = propCells ?? new Dictionary<string, IReadOnlyList<BlockPos>>(StringComparer.Ordinal);
@@ -58,9 +64,80 @@ public sealed class Scene
         WaterLevel = source.WaterLevel;
         PlantCount = source.PlantCount;
         Currents = source.Currents;
+        GroundHeights = source.GroundHeights;
+        Template = source.Template;
+        Places = source.Places;
+        TemplateDigest = source.TemplateDigest;
+        ChunkSource = source.ChunkSource;
     }
 
     private readonly Dictionary<BlockPos, string> _propOf;
+
+    /// <summary>The ground height of every column the scene builder made, row by row (x fastest), with trees left out: the edge profile of the region the scene is (B06); <see langword="null"/> for a scene that was not built from a layout.</summary>
+    internal int[]? GroundHeights { get; }
+
+    /// <summary>Where the rarer kinds of block stood as the builder left them (the fire rings' stones, the roads), for the finders that must not read the world's chunks (B06).</summary>
+    public TemplateBlockIndex? Template { get; }
+
+    /// <summary>
+    /// The positions of the blocks of a kind that stand in the world now, found without reading the world's chunks: the template's positions that still hold the kind, then those of the kind
+    /// in the chunks that were changed (the player's edits, a loaded save's), which are the only other places a block of the kind can be (B06: a streamed world has no chunk list to scan).
+    /// A scene with no template has none of the first.
+    /// </summary>
+    /// <param name="kind">The block kind (not air; not a kind that fills many chunks).</param>
+    public IReadOnlyList<BlockPos> CurrentBlocksOfKind(BlockId kind)
+    {
+        var found = new List<BlockPos>();
+        var seen = new HashSet<BlockPos>();
+        foreach (var cell in Template?.Of(kind) ?? [])
+        {
+            if (Grid.GetBlock(cell.X, cell.Y, cell.Z) == kind && seen.Add(cell))
+            {
+                found.Add(cell);
+            }
+        }
+
+        var bit = 1UL << (int)kind;
+        foreach (var chunk in Grid.ChangedChunks())
+        {
+            if ((chunk.KindMask & bit) == 0)
+            {
+                continue;
+            }
+
+            var origin = chunk.Coord.Origin;
+            var blocks = chunk.Blocks;
+            for (var i = 0; i < blocks.Length; i++)
+            {
+                if (blocks[i] == kind)
+                {
+                    var cell = new BlockPos(origin.X + (i & (VoxelChunk.Size - 1)), origin.Y + (i >> (2 * VoxelChunk.Shift)), origin.Z + ((i >> VoxelChunk.Shift) & (VoxelChunk.Size - 1)));
+                    if (seen.Add(cell))
+                    {
+                        found.Add(cell);
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    /// The place query of the world (B06, <see cref="IPlaceInfo"/>): climate, temperature, biome, region, natural surface and whether a point is underground, read from the pure model and never from
+    /// the edited grid, so any thread may ask. <see langword="null"/> for a scene that <see cref="WorldFactory"/> did not make (a test's own).
+    /// </summary>
+    public IPlaceInfo? Places { get; private init; }
+
+    /// <summary>The digest of the region template the world copies its valley from (<see cref="WorldStateHeader.TemplateDigest"/>), or <see langword="null"/> for a scene <see cref="WorldFactory"/> did not make.</summary>
+    public byte[]? TemplateDigest { get; private init; }
+
+    /// <summary>The pure source of the streamed world's chunks, or <see langword="null"/> for a bounded scene.</summary>
+    public IChunkSource? ChunkSource { get; private init; }
+
+    /// <summary>A scene like this one on another grid, with the world's place query, template digest and chunk source set (<see cref="WorldFactory"/>).</summary>
+    internal Scene WithWorld(VoxelGrid grid, IPlaceInfo places, byte[] templateDigest, IChunkSource? source) =>
+        new(this, grid) { Places = places, TemplateDigest = templateDigest, ChunkSource = source };
 
     /// <summary>The layout's name.</summary>
     public string Name { get; }

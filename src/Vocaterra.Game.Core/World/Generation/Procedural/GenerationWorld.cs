@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
+using Vocaterra.Game.Core.World.Regions;
 
 namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
@@ -18,13 +19,14 @@ internal sealed class GenerationWorld
     /// <summary>How close two trunks may stand, squared (the trees' spacing).</summary>
     public const int TreeSpacingSquared = 9;
 
-    public GenerationWorld(WorldGenData data, BiomeData biomes, ulong seed, StrategyRegistry strategies, int extraMargin)
+    public GenerationWorld(WorldGenData data, BiomeData biomes, ulong seed, StrategyRegistry strategies, int extraMargin, RegionBlend? blend = null)
     {
         Data = data;
         Biomes = biomes;
         Seed = seed;
-        Climate = new ClimateSampler(data, seed);
-        Height = new HeightModel(data, seed);
+        Climate = blend is null ? new ClimateSampler(data, seed) : new BlendedClimateSampler(new ClimateSampler(data, seed), blend);
+        Blended = blend is null ? null : new BlendedHeightModel(new HeightModel(data, seed), Climate, blend);
+        Height = Blended is null ? new HeightModel(data, seed) : Blended;
         Table = new BiomeTable(biomes, data, seed);
         Strategies = strategies.Resolve(new StrategyContext(seed, data, biomes));
         SeaLevel = data.Vertical.SeaLevel;
@@ -49,6 +51,9 @@ internal sealed class GenerationWorld
 
     /// <summary>The height model.</summary>
     public IHeightModel Height { get; }
+
+    /// <summary>The height model with the regions' edges blended in, or <see langword="null"/> in a world with no region (it is <see cref="Height"/> when there is one).</summary>
+    public BlendedHeightModel? Blended { get; }
 
     /// <summary>The biome table.</summary>
     public BiomeTable Table { get; }

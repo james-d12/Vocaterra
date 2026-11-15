@@ -539,7 +539,7 @@ public sealed class EatDrinkSprintTests
                 }
             }
         });
-        var fires = new FireRings(scene.Grid);
+        var fires = new FireRings(scene);
         var middle = Assert.Single(fires.Middles);
         Assert.Equal(new BlockPos(20, GroundTop + 1, 20), middle);
         Assert.False(fires.IsLit(middle));

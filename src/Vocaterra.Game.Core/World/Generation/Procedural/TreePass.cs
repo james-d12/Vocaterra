@@ -187,6 +187,11 @@ internal sealed class TreePass : IChunkDecorator
             return null;
         }
 
+        if (world.Blended is { } blended && !blended.TreeAllowed(c.X, c.Z, c.Priority))
+        {
+            return null; // inside an authored region, beside its border or on an exit road: no trunk, so no crown crosses into the region (B06)
+        }
+
         var ground = ctx.SurfaceAt(c.X, c.Z);
         if (ground.Water || !BlockDefinition.IsSolid(ground.Top) || BesideWater(ctx, c.X, c.Z))
         {
