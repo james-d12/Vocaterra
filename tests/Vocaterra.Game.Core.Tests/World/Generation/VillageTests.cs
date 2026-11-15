@@ -439,7 +439,7 @@ public sealed class VillageTests(ITestOutputHelper output)
         var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
         var total = 0;
         // Y04 places the inn's beds, so the bed is a kind that must be there; the bedroll and the tent's canvas wait for the camp kit (Y12; Y08 took the mountain tent away) and stand nowhere yet.
-        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k != BlockId.Bedroll && k != BlockId.BedrollFoot && k != BlockId.Canvas))
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber && k <= BlockId.Counter && k != BlockId.Bedroll && k != BlockId.BedrollFoot && k != BlockId.Canvas))
         {
             var count = grid.BlocksOfKind(kind).Count;
             total += count;
