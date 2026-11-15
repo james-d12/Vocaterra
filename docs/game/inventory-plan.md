@@ -5,8 +5,8 @@ was built or run. Its goal is **a proper inventory**: a bag the player can rearr
 and backpack slots, gear that does something, and gear drawn on the player, built so that a later item, slot or effect is a row of data
 and not a new system.
 
-**Status (2026-11-15):** proposed. D-game-35 is proposed; no milestone is registered and nothing is built until the owner accepts it
-(section 5). It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
+**Status (2026-11-15):** accepted, not started. The owner accepted D-game-35 as written ("Accept, but don't build yet") and answered its
+two questions (section 5); no milestone is registered or launched until the owner says to build. It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
 standing rule: new work in a new worktree from `main`). Milestone branches `I<nn>-<name>`, gated into `feature/inventory`; commit
 prefix `I<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
@@ -98,8 +98,8 @@ checks every item a noun, a recipe, a shop row, a gift or a planting names. **Do
 
 ### 3.3 The bag and the backpack slot (I03b)
 
-The bag becomes **the hotbar's 10 slots plus 20** (base 30). The backpack slot takes a bag item whose `capacity` adds slots: a small bag
-10, the large bag (`la mochila`) 20, so at most 50. The array is sized to the maximum and the active count follows the worn bag. A bag
+The bag becomes **the hotbar's 10 slots plus 20** (base 30). The backpack slot takes a bag item whose `capacity` adds slots: the small bag
+(`el saco`) 10, the large bag (`la mochila`) 20, so at most 50. The array is sized to the maximum and the active count follows the worn bag. A bag
 cannot come off while any of its slots holds an item (the panel says why); swapping one bag for another is allowed when the slots the
 swap would drop are empty. The simulation's state and digest carry the active count.
 
@@ -224,7 +224,7 @@ A draft list (the owner settles names, numbers and prices at stop 3, section 4):
 | Armour | two tiers, leather and iron: `el casco`, `la armadura`, a leg piece (`las grebas` or `las rodilleras`, to choose) and armoured boots (named so they do not clash with the clothes' `botas`) |
 | Accessories | `el anillo` (max stamina), `la pulsera` (walk speed), `el cinturón` (slower hunger), `el collar` (slower thirst), `el amuleto` (light at night) |
 | Off-hand | `el escudo` (armour), `la antorcha` (today's torch, light), `el farol` (lantern, more light) |
-| Bags | a small bag (not `la bolsa`, which names the inventory; to choose) and `la mochila` |
+| Bags | `el saco` (10 slots; answer 11) and `la mochila` (20) |
 
 The words on neither list join the marked block of world words at the end of `cefr/a1.txt`, each with a one-line reason, the rule of
 `content/README.md` for a noun the player handles (as `harina`, `estaca` and `terreno` did); lessons and phrases stay at the A2 ceiling.
@@ -285,7 +285,7 @@ the whole suite, the goldens recorded again if they moved, and the hash in the s
 
 **Owner-review stops** (the work waits for the owner at each):
 
-1. **Acceptance:** D-game-35 (section 5).
+1. **Acceptance:** D-game-35 (section 5; accepted 2026-11-15, building held until the owner says).
 2. **After I06:** how the temperature feels at night, in the rain and by a fire, before any warmth numbers are set.
 3. **Before I08a:** the gear list: the Spanish names, the world words, the numbers and the prices.
 4. **After I04 and I09:** pictures of the panel and of the player in gear.
@@ -299,7 +299,7 @@ avatar in each layer; then the owner's check in the game.
 
 ## 5. The owner's decisions (2026-11-15)
 
-Recorded as D-game-35 (proposed until the owner accepts it).
+Recorded as D-game-35 (decided 2026-11-15; building held until the owner says).
 
 1. **Armour gives an armour rating for combat**, which will come in a later series; it reduces nothing now (not drowning, not lava, not
    cold), and the damage code is open so other causes can be added later. Amends D-game-23 (c) ("no combat") to "combat later".
@@ -316,13 +316,14 @@ Recorded as D-game-35 (proposed until the owner accepts it).
    sort button and a trash slot.
 9. **The work is done in a new git worktree cut from `main`** (the standing rule).
 
-**Open for the owner** with the acceptance:
+**Answered with the acceptance** (2026-11-15):
 
-- **(a) The world words:** the gear nouns on neither CEFR list (`chaqueta`, `abrigo`, `pantalones`, `botas`, `gorro`, `mochila`, `escudo`,
-  `tela`, `cuero`, `hierro`, `cinturón`, `collar`, `amuleto`, `farol`, and the armour's leg piece) join the world-words block of
-  `cefr/a1.txt` as nouns the player handles (as D-game-32 (e) did for four words), with the final list settled at stop 3.
-- **(b) The small bag's name:** `la bolsa` already means the whole inventory («Tu bolsa está llena»), so the small bag needs another word
-  (for example `el saco`, or keep `la bolsa` and rename the inventory's line).
+10. **(a) The gear words:** "World words". The gear nouns on neither CEFR list (`chaqueta`, `abrigo`, `pantalones`, `botas`, `gorro`,
+    `mochila`, `escudo`, `tela`, `cuero`, `hierro`, `cinturón`, `collar`, `amuleto`, `farol`, the armour's leg piece and `saco`) join the
+    world-words block of `cefr/a1.txt` as nouns the player handles (as D-game-32 (e) did for four words), each in the milestone that first
+    uses it; the final list is settled at stop 3.
+11. **(b) The small bag:** "el saco". «La bolsa» keeps naming the whole inventory.
+12. **When to build:** "Accept, but don't build yet". I00 waits for the owner's word.
 
 ## 6. What this plan does not do
 
@@ -349,11 +350,12 @@ Recorded as D-game-35 (proposed until the owner accepts it).
 - **The weather kinds' ids.** Temperature reads channels; no kind's id goes into `src/`.
 - **Saves and goldens.** Three save versions in one series; each records the fixtures again. The icon atlas keeps its order through the
   `icon` key so screenshot goldens do not move.
-- **Words.** Fifteen nouns above A2 join the world words; armour's leg piece has no common A2-friendly name.
+- **Words.** About sixteen nouns above A2 join the world words (answer 10); armour's leg piece has no common A2-friendly name.
 
 ## 8. Progress
 
 | Id | Status | Gate | Notes |
 |---|---|---|---|
 | (proposal) | done, 2026-11-15 | documents only | This plan, D-game-35 (proposed), the index rows and the handover. |
-| I00 to I10 | proposed | | Wait for the owner's acceptance of D-game-35. |
+| (acceptance) | done, 2026-11-15 | documents only | D-game-35 decided as written; the gear words as world words; the small bag `el saco`; building held. |
+| I00 to I10 | accepted, not started | | Wait for the owner's word to build (section 5, answer 12). |

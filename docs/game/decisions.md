@@ -35,7 +35,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
 | D-game-31 | Day, night and weather (the E series, `docs/game/weather-plan.md`) | decided (owner, 2026-11-10): a free-running day and night cycle first, then weather in spells (sunny, cloudy, rain) with a new roll on waking; the first version is the atmosphere and truthful NPC answers, no gameplay effect; built in a new worktree from `main` | nothing |
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
-| D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | proposed (2026-11-15, for the owner's review): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag adds 10 or 20; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; saves break; amends D-game-23 (c); two questions open (world words, the small bag's name) | I00 to I10 |
+| D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | decided (owner, 2026-11-15; building held until the owner says): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag (`el saco` 10, `la mochila` 20) adds slots; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; gear nouns above A2 join the world words; saves break; amends D-game-23 (c) | I00 to I10 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -751,7 +751,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 **Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
 the first slice; a fee, meals or comfort at the inn; more than one plot.
 
-## D-game-35: inventory and equipment (proposed, 2026-11-15)
+## D-game-35: inventory and equipment (decided, 2026-11-15)
 
 *Numbered D-game-35 because `main` holds D-game-32 (the settlement series), D-game-33 is reserved on `feature/talk-sets` and
 `feature/biomes` holds D-game-34.*
@@ -761,7 +761,8 @@ backpack slot. Kind of like minecraft", and pointed to the Core Systems Design D
 [the inventory plan](inventory-plan.md) (the I series, on `feature/inventory`); the owner's answers of 2026-11-15, given while it was
 planned, are in its section 5.
 
-**Proposed:**
+**Decided** (the owner accepted the proposal as written, 2026-11-15, "Accept, but don't build yet"; the answers to its two
+questions are below). No milestone is launched until the owner says to build.
 
 1. **Armour gives an armour rating for combat**, which a later series adds. It reduces nothing now (not drowning, lava or cold); the
    damage code is a pipeline whose causes and rules are data, so later causes need no code change.
@@ -785,8 +786,15 @@ planned, are in its section 5.
 **What it changes:** D-game-23 (c), proposed as "no combat; gear is for places", becomes "combat later"; the activities plan's W12 and
 W13 move to this series, and W26 keeps only the tailor and its voice trial.
 
-**Open for the owner** (the plan's section 5): (a) the gear nouns on neither CEFR list join the world-words block of `cefr/a1.txt`,
-the final list settled before I08a; (b) a name for the small bag, since «la bolsa» already means the whole inventory.
+**The two questions, answered the same day:**
+
+10. **(a) The gear words:** "World words". The gear nouns on neither CEFR list (`chaqueta`, `abrigo`, `pantalones`, `botas`, `gorro`,
+    `mochila`, `escudo`, `tela`, `cuero`, `hierro`, `cinturón`, `collar`, `amuleto`, `farol`, the armour's leg piece and `saco`) join the
+    marked world-words block at the end of `cefr/a1.txt`, each with a one-line reason, in the milestone that first uses it (the rule of
+    `content/README.md`, as D-game-32 (e) did). Lessons and phrases stay at the A2 ceiling. The final list is settled at the plan's stop 3,
+    before I08a.
+11. **(b) The small bag:** "el saco". The small bag (10 slots) is `el saco`; the large one stays `la mochila` (20). «La bolsa» keeps
+    naming the whole inventory («Tu bolsa está llena»).
 
 ## Already decided
 
