@@ -63,7 +63,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Game W | W12 to W21: items as data, durability, the axe handle, dishes, the beacon, farming, the notice board, prices | planned | [activities plan](game/activities-plan.md) |
 | Game W | W22 to W29 | held until the pilot's data; the first bought plot and the stake moved to the Y series (D-game-32) | [activities plan](game/activities-plan.md) |
 | Game Y | Y00 to Y13: the inn and its bed, the first night there, land bought from the mayor, the campsite | registered 2026-11-10 (D-game-32); in progress on `feature/settlement` | [settlement plan](game/settlement-plan.md) section 8 |
-| Game B | B00 to B15: a tall procedural world round hand-crafted regions (biomes, ranges, rivers, lakes and sea; caves, lava, rock layers and ores; the pass out of the valley, opened by the lessons) | registered 2026-11-15 (D-game-34); in progress on `feature/biomes` | [biomes plan](game/biomes-plan.md) section 4 |
+| Game B | B00 to B16: a tall procedural world round hand-crafted regions (biomes, ranges, rivers, lakes and sea; caves, lava, rock layers and ores; the pass out of the valley, opened by the lessons) | registered 2026-11-15 (D-game-34); in progress on `feature/biomes` | [biomes plan](game/biomes-plan.md) section 4 |
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |

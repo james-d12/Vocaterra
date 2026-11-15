@@ -571,6 +571,7 @@ The design, the owner's answers and the progress table are in [the biomes plan](
 | B13 | The valley's underground: strata, ores and caves in the valley's stone, away from sites, paths, water and the village (the owner reviews the valley golden) | B08b, B11 | M | Sonnet 5.5, medium | planned |
 | B14 | Integration: ambient sound by biome and underground, water and edge checks over three seeds, the cloud layer's height as data, a scripted tour, the documents | B12, B13 | M | Sonnet 5.5, medium | planned |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | B06 | L | Sonnet 5.5, high | planned |
+| B16 | Regions that can grow, shrink and multiply: regions declared in `world.json`, relief cells left to the generated ground, rivers and lakes as lists, the valley's trees per chunk (last in the series) | B14, B15 | L | Sonnet 5.5, high | planned |
 
 The build order is the plan's section 4 "Order": each milestone starts once its dependencies are gated, up to three building agents at a time (owner, 2026-11-15), the critical path first. The owner reviews at four stops, and only the work that depends on a stop waits for it: B02 (the maps, before tuning), B07 (the performance gate and the pictures), B08b (the pass) and B13 (caves and ores in the valley).
 

@@ -800,6 +800,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     code might be different. Like the deserts, we might have to have custom code ... I'm not expecting that stuff to be in the data."
     Data holds biome types and parameters; biome-specific generation is code, named by a biome row as a strategy (the plan's section 3.2,
     "Data, not code").
+14. **Regions that can change** (2026-11-15): "In the future, that custom area might expand in size, shrink in size, and there might be
+    more custom areas added ... if I want to make that starting area twice as big, I shouldn't have to change much." Of the four changes
+    proposed, the owner chose all four, as one milestone at the end: "add the 4 regions, but add them to the end of the milestones ...
+    It's not important at the moment." B16, after B14 and B15.
 
 ## Already decided
 

@@ -475,6 +475,7 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08b, B11 | valley golden (owner review) |
 | B14 | Integration: ambient sound by biome and underground from `IPlaceInfo`; water-at-rest and exitable-edge checks over 3 seeds; signed coordinates in scripted runs; the cloud layer's height as data; a scripted tour through the pass into each biome and down a cave; documents (`architecture.md`, `saves.md`, `running.md`, and "Adding a biome" and "Adding an ore" in `content/README.md`) and findings | M | Sonnet medium | B12, B13 | new runs |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
+| B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 
 **Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once): each milestone starts as soon as
 its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
@@ -482,6 +483,7 @@ the work that depends on the review waits. The first waves:
 1. B01, B04a and B08a
 2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a), B03b (after B03)
 3. then B06 (B03, B05), B09 (B04b), B10 (B09), B11 (B03, B10), B07 (B06, B08b), B15 (B06), B12 (B07, B11), B13 (B08b, B11), B14
+4. last: B16 (regions that can grow, shrink and multiply), after B14 and B15
 
 The game stays playable at every gate. It switches to the streamed world at B07 and gains its underground at B11 and B12.
 
@@ -612,3 +614,4 @@ series, `docs/game/biomes-plan.md`).*
 | B00 | done 2026-11-15 | `162dec4f`: 11,498 passed, 3 skipped; the doc-link test failed on two links in the orchestrator's own brief, fixed in the next commit and re-run | section 4.14 of the game plan; open items and index rows |
 | (parallel) | 2026-11-15: the owner allows three building agents on the B series and holds only dependent work at a review stop; B08 split into B08a (the pass, now) and B08b (its lock, after B01); the edge wall moves to B07 | none (documents only) | B08a launched beside B01 and B04a |
 | (pictures) | 2026-11-15: the owner asks for screenshots at the important points; B03b added (a procedural sample in the game for 3D pictures before B07); a picture list per milestone (section 4, "Pictures for the owner") | none (documents only) | every brief from now on carries it |
+| (regions) | 2026-11-15: the owner asks that the starting area can grow or shrink and more hand-crafted areas be added with little change; B16 added at the end of the series ("It's not important at the moment") | none (documents only) | after B14 and B15 |
