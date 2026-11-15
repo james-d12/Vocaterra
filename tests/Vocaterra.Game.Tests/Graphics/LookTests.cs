@@ -18,7 +18,7 @@ namespace Vocaterra.Game.Tests.Graphics;
 /// </summary>
 public sealed class LookTests
 {
-    private static ChunkMeshes Mesh(MapBlocks blocks, MeshOptions? options = null, ulong grey = 0) => ChunkMesher.Build(blocks, 0, 0, 0, grey, options);
+    private static ChunkMeshes Mesh(MapBlocks blocks, MeshOptions? options = null, UInt128 grey = default) => ChunkMesher.Build(blocks, 0, 0, 0, grey, options);
 
     private static (int R, int G, int B, int A) Channels(uint colour) => ((int)(colour & 0xFF), (int)((colour >> 8) & 0xFF), (int)((colour >> 16) & 0xFF), (int)(colour >> 24));
 

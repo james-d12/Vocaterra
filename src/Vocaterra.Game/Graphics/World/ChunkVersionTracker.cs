@@ -43,7 +43,7 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
     /// The block kinds drawn grey (one bit per <see cref="BlockId"/>, see <see cref="ChunkMesher.KindBit"/>): the mesh builds use it. It changes
     /// only through <see cref="SetGreyKinds"/>.
     /// </summary>
-    public ulong GreyKinds { get; private set; }
+    public UInt128 GreyKinds { get; private set; }
 
     /// <summary>The key of a chunk as the grid is now (a chunk that is not resident has the version 0 and layers of air on every side it would show).</summary>
     public ChunkKey KeyOf(VoxelChunkCoord coord) => new(
@@ -112,7 +112,7 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
     }
 
     /// <summary>Records that a chunk was meshed from the blocks as they are now, with the given block kinds (<see cref="ChunkMeshes.Kinds"/>) and in the given light band.</summary>
-    public void MarkMeshed(VoxelChunkCoord coord, ulong kinds = 0, LightBand band = LightBand.Day)
+    public void MarkMeshed(VoxelChunkCoord coord, UInt128 kinds = default, LightBand band = LightBand.Day)
     {
         var key = KeyOf(coord);
         var entry = EntryOf(coord);
@@ -137,7 +137,7 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
     /// the same set again changes nothing.
     /// </summary>
     /// <returns>How many chunks became due.</returns>
-    public int SetGreyKinds(ulong greyKinds)
+    public int SetGreyKinds(UInt128 greyKinds)
     {
         var changed = greyKinds ^ GreyKinds;
         GreyKinds = greyKinds;
@@ -256,7 +256,7 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
     {
         public ChunkKey? Meshed { get; set; }
 
-        public ulong Kinds { get; set; } // the block kinds the chunk was meshed with (ChunkMeshes.Kinds)
+        public UInt128 Kinds { get; set; } // the block kinds the chunk was meshed with (ChunkMeshes.Kinds)
 
         public LightBand Band { get; set; } // the light band the chunk was meshed in (E02)
 

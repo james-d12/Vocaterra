@@ -401,7 +401,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     /// meshed again by the next <see cref="Remesh"/>; the other chunks keep their meshes.
     /// </summary>
     /// <param name="greyKinds">One bit per block kind (<see cref="ChunkMesher.KindBit"/>); 0 draws the whole world in colour.</param>
-    public void SetGreyKinds(ulong greyKinds)
+    public void SetGreyKinds(UInt128 greyKinds)
     {
         if (_tracker.SetGreyKinds(greyKinds) > 0)
         {

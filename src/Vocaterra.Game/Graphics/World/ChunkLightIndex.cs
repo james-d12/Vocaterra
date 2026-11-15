@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Graphics.World;
 /// </summary>
 public sealed class ChunkLightIndex : IChunkResidencyListener, IBlockChangeListener
 {
-    private static readonly ulong LightKinds = ChunkMesher.KindBit(BlockId.Lantern) | ChunkMesher.KindBit(BlockId.PostTorch);
+    private static readonly UInt128 LightKinds = ChunkMesher.KindBit(BlockId.Lantern) | ChunkMesher.KindBit(BlockId.PostTorch);
 
     private readonly VoxelGrid _grid;
     private readonly Dictionary<(int X, int Z), List<BlockPos>> _columns = [];
@@ -189,7 +189,7 @@ public sealed class ChunkLightIndex : IChunkResidencyListener, IBlockChangeListe
     // Reads the chunk's light blocks into its column (replacing what the column held of that chunk).
     private void Scan(VoxelChunkCoord coord, bool recordChange)
     {
-        if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & LightKinds) == 0)
+        if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & LightKinds) == UInt128.Zero)
         {
             return;
         }
