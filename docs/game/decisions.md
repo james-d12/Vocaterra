@@ -830,6 +830,11 @@ the owner's answers of 2026-11-15 are in its section 5.
     redo it" (over merging it with a follow-up, or keeping it) and "About 35 to 45%" sea (over 50% or keeping 60 to 65%). The redo
     also asks for ranges of peaks, land rising inland round the valley, no puddled beach flats and rivers from the mountains
     (`.claude/briefs/b02b-redo.md`).
+21. **The far view, folded into B07** (2026-11-15, about 22:35 UTC; the owner: "we need high render distance, performance is important",
+    "like say horizons mod in minecraft, without taking big performance hits"): beyond the voxel chunks (High 400 blocks today), level-
+    of-detail terrain tiles read straight from the pure height model and biome table, coarser with distance and built on worker
+    threads, show the land **to 16 km at 60 fps on the High preset** on his machine. "Fold it into B07" (over a separate milestone
+    after B07, or a later series); "16 km" (over 8 or 4 km). The plan's "does not do" loses distant-terrain detail levels.
 
 ## Already decided
 
