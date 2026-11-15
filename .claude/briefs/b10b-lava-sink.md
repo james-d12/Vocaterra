@@ -3,7 +3,7 @@ Vocaterra.Nlp, the Spanish pack Vocaterra.Nlp.Es and the Vocaterra.Nlp.* test an
 engine-free logic), Vocaterra.Game (MonoGame), Vocaterra.Host and tools/Vocaterra.SpeechRender. This milestone's work is in the game: the
 body's movement in Vocaterra.Game.Core, any view effect and the ores' art in Vocaterra.Game, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b10b, already on the local branch `B10b-lava-sink` (cut from
-`feature/biomes` at @@BASE@@, which holds B10's lava). Run every command from that directory. Commit after each item that builds and passes
+`feature/biomes` at e0b8c168, which holds B10's lava). Run every command from that directory. Commit after each item that builds and passes
 its tests, with the prefix `B10b: `. Do not push your branch. Never push or merge feature/biomes or main. When you finish, leave the
 worktree on your branch, clean, and remove any extra worktree you made.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run through scripts/limited.sh
@@ -53,7 +53,7 @@ Deliverables:
 6. Documents: docs/game/running.md (or where movement in water is described).
 
 Gate (from the worktree root): scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); scripts/test.sh full
-(@@COUNT@@ passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
+(11,980 passed before your change, plus your new tests) run after your last change; scripts/limited.sh dotnet format Vocaterra.sln
 --verify-no-changes clean; `SceneTests.GoldenDigest` unchanged. Do not commit bin/, obj/ or artifacts/.
 Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
