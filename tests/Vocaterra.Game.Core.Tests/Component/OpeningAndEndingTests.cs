@@ -220,7 +220,7 @@ public sealed class OpeningAndEndingTests
     {
         var session = CompletedCamp();
         TakeTheRoom(session);
-        var saved = SaveGame.Save(session, TestGame.Route());
+        var saved = SaveGame.Save(session);
         Assert.Contains("\"lodgingGiven\":true", saved.Replace(" ", string.Empty, StringComparison.Ordinal));
 
         var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
@@ -231,14 +231,14 @@ public sealed class OpeningAndEndingTests
         Assert.Null(loaded.CurrentObjective);
         Assert.DoesNotContain(loaded.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.LodgingGranted); // restored, not raised
         Assert.Empty(loaded.TakeSpoken());
-        Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
+        Assert.Equal(saved, SaveGame.Save(loaded));
     }
 
     [Fact]
     public void Given_ASaveBeforeTheRoom_When_ItLoads_Then_TheObjectiveLineIsTheInn()
     {
         var session = CompletedCamp();
-        var saved = SaveGame.Save(session, TestGame.Route());
+        var saved = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 

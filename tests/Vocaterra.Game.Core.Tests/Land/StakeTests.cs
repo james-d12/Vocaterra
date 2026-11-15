@@ -38,7 +38,7 @@ public sealed class StakeTests
         Assert.Equal(new Plot(Corner.X, Corner.Z, 10, 10), session.PendingPlot);
         Assert.Equal(Middle, session.PendingPlot!.Value.Centre); // the aimed column is the plot's middle
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Stake)); // the stake stays in the bag
-        var text = SaveGame.Save(session, TestGame.Route(LandTestScene.Seed));
+        var text = SaveGame.Save(session);
         Assert.Equal(new PlotSave(Corner.X, Corner.Z, 10, 10), SaveGame.Parse(text).Systems!.Land!.Pending);
         Assert.Contains(session.Locale.Ui("plotMarked", ("width", "10"), ("depth", "10"), ("price", "10")), session.TakeHints());
     }
@@ -65,7 +65,7 @@ public sealed class StakeTests
         Assert.Equal(VoxelSession.StakeResult.Refused, session.UseStake(GroundAt(session, 285, 206)));
 
         Assert.Null(session.PendingPlot);
-        Assert.Null(SaveGame.Parse(SaveGame.Save(session, TestGame.Route(LandTestScene.Seed))).Systems!.Land);
+        Assert.Null(SaveGame.Parse(SaveGame.Save(session)).Systems!.Land);
     }
 
     [Fact]

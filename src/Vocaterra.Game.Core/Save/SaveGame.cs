@@ -42,13 +42,14 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 8 (Y02) adds the optional <c>sleep</c> entry of <c>systems</c> (the lodging given, the place last slept at, the places made in play) and is the oldest this
+    /// The format version this code writes. Version 9 (B05) keys the world edits by chunk coordinates (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the
+    /// dense chunk index, drops <c>world</c> (the chunk counts), and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only). It is the oldest this
     /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated.
     /// </summary>
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
-    /// <summary>The oldest format version this code reads: 8. The game is unreleased, so a save of an older version is refused and none is migrated (Y02).</summary>
-    public const int OldestReadableVersion = 8;
+    /// <summary>The oldest format version this code reads: 9. The game is unreleased, so a save of an older version is refused and none is migrated (B05).</summary>
+    public const int OldestReadableVersion = 9;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -114,27 +115,18 @@ public static class SaveGame
 
     /// <summary>
     /// Captures a session as a save. The session must be at rest (<see cref="GuideSession.CanSave"/>: no turn on the worker, no key words standing,
-    /// no opening waiting). <paramref name="pristine"/> is a freshly built scene of the same seed and layout, which the scene diff is taken against.
-    /// The session is not changed.
+    /// no opening waiting). The world part lists the chunks that differ from the world as generated (<see cref="VoxelGridDiff.Capture"/>). The session is not changed.
     /// </summary>
     /// <param name="session">The running game.</param>
-    /// <param name="pristine">The scene as it was built for the session's seed (a new build, never the session's own scene).</param>
     /// <param name="settings">The player's settings to keep in the save (S24: the sound volumes), or <see langword="null"/> for none.</param>
     /// <param name="dialoguePages">The NPCs' conversation pages (U08, <see cref="DialoguePageSave.Capture"/>), or <see langword="null"/> for none.</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
-    /// <exception cref="ArgumentException">The pristine scene is not this session's scene.</exception>
-    public static SaveDocument Capture(VoxelSession session, Scene pristine, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
+    public static SaveDocument Capture(VoxelSession session, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
     {
         ArgumentNullException.ThrowIfNull(session);
-        ArgumentNullException.ThrowIfNull(pristine);
         if (!session.CanSave)
         {
             throw new InvalidOperationException("The game is not at rest: the guide is still thinking, the key words are on show or an opening waits. Save in a moment.");
-        }
-
-        if (pristine.Seed != session.WorldSeed || !string.Equals(pristine.Name, session.Scene.Name, StringComparison.Ordinal))
-        {
-            throw new ArgumentException("The pristine scene is not built from this session's seed and layout.", nameof(pristine));
         }
 
         var state = session.Simulation.CaptureState();
@@ -166,13 +158,12 @@ public static class SaveGame
             session.LastRepairs().Select(static step => new LastRepairSave(step.Npc, step.Repair)).ToArray(),
             session.NextTurnId,
             session.Data.Npcs.Ids.Select(session.Conversation.CaptureAgent).ToArray(),
-            VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
+            VoxelGridDiff.Capture(session.Scene.Grid),
             session.Lessons.Capture(),
             session.Tips.Capture(),
             session.Learner.Capture(),
             BookGranted: true,
             Settings: settings is null ? null : settings.Clamped(),
-            World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
@@ -186,9 +177,8 @@ public static class SaveGame
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
     /// <param name="session">The running game (at rest).</param>
-    /// <param name="pristine">A freshly built scene of the same seed and layout.</param>
     /// <param name="settings">The player's settings to keep in the save (S24), or <see langword="null"/>.</param>
-    public static string Save(VoxelSession session, Scene pristine, SaveSettings? settings = null) => Serialize(Capture(session, pristine, settings));
+    public static string Save(VoxelSession session, SaveSettings? settings = null) => Serialize(Capture(session, settings));
 
     /// <summary>
     /// Reads a save's text, checks it against the bundle and the requested seed, builds its scene with <paramref name="buildPristine"/> and restores
@@ -265,7 +255,7 @@ public static class SaveGame
             }
             else
             {
-                SaveMigration.ApplyWorld(scene.Grid, document.Chunks, document.World, collector);
+                SaveMigration.ApplyWorld(scene.Grid, document.Chunks, collector);
             }
 
             session = new VoxelSession(data, document.WorldSeed, document.StartedAt, scene, credit);

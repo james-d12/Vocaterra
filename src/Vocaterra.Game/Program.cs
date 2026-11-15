@@ -48,7 +48,6 @@ if (!LaunchOptions.TryParse(args, out var options, out var error))
 VoxelSession session;
 Scene scene;
 NpcVoice voice;
-Func<Scene> pristine;
 SaveSettings? savedSettings = null; // the settings a loaded save holds: the menu's (the volumes, the text size, the graphics, the mouse and the needs' settings)
 IReadOnlyList<DialoguePageSave>? savedDialogue = null; // the NPCs' conversation pages a loaded save holds (U08)
 SceneLayout? sceneLayout = null; // the scene's layout: the ambient beds read its places (S25)
@@ -176,8 +175,6 @@ try
         Console.WriteLine($"session: this run is play session {playSession}");
     }
 
-    // The fresh scene a save is taken against: a new build of the session's seed and layout (the session's own scene is changed by the play).
-    pristine = () => buildFor(session.WorldSeed);
     Console.WriteLine($"scene: {layoutFile} built in {MonotonicClock.Milliseconds() - sceneStarted:0} ms");
     Console.WriteLine($"bundle: loaded in {MonotonicClock.Milliseconds() - started:0} ms; typed credit {(options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full")}, spoken credit full");
 
@@ -198,7 +195,7 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice, pristine, savedSettings: savedSettings, savedDialogue: savedDialogue);
+using var game = new VoxelGame(options, session, scene, voice, savedSettings: savedSettings, savedDialogue: savedDialogue);
 crash.Attach(game.CrashSource); // the crash report, the last-chance save and the state come from the game (X05)
 try
 {

@@ -16,8 +16,8 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
   the step changed). A lesson that is gone is dropped, and so is an active mark or a replay that named it.
 - **Dropped and logged:** records whose phrase row, noun, lesson, step, tip or step key is not in this bundle. **New** content (a phrase row, a lesson, a
   noun) starts empty, as in a fresh game.
-- **World edits are applied by position.** The save holds whole chunks of the world it was made from (and, since X01, the grid's chunk counts, so a grid that
-  changed size still maps by position). A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
+- **World edits are applied by position.** The save holds whole chunks of the world it was made from, keyed by chunk coordinates (since version 9), so a grid that
+  changed size still maps by position. A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
   (the cell now holds what a gather leaves) or a placed block (planks or a torch) in air or undergrowth that touches a block. Anything else is the old world
   generation, not the player's work: it is skipped and counted in the report. The world's digest is then **reported, not required** (it still matches, and
   the log says so, when the generation did not change). A player who would stand inside a block of the new world starts where a new game starts. A save of
@@ -36,11 +36,29 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 9: the world edits by chunk coordinate (B05)
+
+A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a version 9 save:
+
+- **`chunks`: one `ChunkEdit` per changed chunk**, `{"x", "y", "z", "runs", "water"}`, sorted by layer (`y`), then row (`z`), then column (`x`). The coordinates are chunk
+  coordinates (block position divided by 16, rounded down), so `y` is negative below block 0. `runs` is the chunk's 4 096 blocks, run-length encoded in storage order
+  (x fastest, then z, then y); `water` holds the cells whose level is not source, as runs `{"start", "length", "level"}`, and is left out when there are none. The dense
+  chunk index and the `world` entry (the chunk counts, X01) are gone, and so is the second copy of the world the first save used to build (0.6 to 0.7 s and about 38 MB).
+- **A changed chunk** is one whose content differs from what it held just before its first write (`VoxelChunk.IsChanged`: each chunk records its own pristine digest lazily, and
+  `VoxelGrid.SealPristine()` at the end of the scene build makes the built world the pristine one). A block gathered and put back is not a change.
+- **The state digest** (`stateDigest`, `WorldStateDigest`) hashes, in order: the header (the world seed, the region template's digest, `ProceduralGenerator.Version`, and the
+  SHA-256 of the world-generation files, `game/world.json`, `game/biomes.json` and `game/underground.json` where the bundle has it, so editing a phrase does not move it), the number
+  of changed chunks, and for each changed chunk, in the same order, its three coordinates and its own digest; then the tick, the body, the hotbar and the inventory as before. Its cost
+  grows with the number of changed chunks, not with the size of the world, and it does not depend on which chunks are resident. `hostStateHash`, the save's check and the start-up line use it.
+- **Restoring** builds the world as a new game does (the scene builder for the bounded valley), then writes each saved chunk over it cell by cell (`VoxelGridDiff.Apply`); a grid that
+  generates on read (`IChunkGenerator`) regenerates a chunk the first time a write touches it, so a streamed world needs no code of its own here (B06 supplies the chunk source).
+  The restored world's state digest must equal the save's, or the save is refused. A save across bundles applies the edits by position as above.
+
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
-The current version is 8, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;
-the oldest this game loads is 8 (it writes 8), and older saves are not migrated.") and nothing migrates it: the code that read versions 1 to 7 is gone (the branches on the
-version number, the version 2 word rows, the first-words split). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, is the version 8 save the tests read. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+The format below, version 8 (before B05), is the one the `systems` map and the entries on it were written in; the current version is 9, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;
+the oldest this game loads is 9 (it writes 9), and older saves are not migrated.") and nothing migrates it: the code that read versions 1 to 8 is gone (the branches on the
+version number, the version 2 word rows, the first-words split, the dense chunk index). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`, is the version 9 save the tests read. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
@@ -152,7 +170,7 @@ The game saves itself at its safe points, and a crash leaves a report instead of
   Its path is printed at the start (`autosave: <path> (...)`), and each write is printed (`autosave: <path> written at <reason> (session, tick, stored time, digest, bytes)`).
 - **How.** The document goes to `<file>.tmp`, is flushed to the disk, and is renamed over the save (`SaveFile.Write`). A crash or a failed write before the rename
   leaves the last autosave intact; a stale `.tmp` is overwritten by the next write. The save is taken on the game loop (the state must not move during it):
-  the first one builds the fresh scene it is diffed against (about 0.7 s on the valley, once per run, then kept); later saves take about 20 ms.
+  every save lists the changed chunks (B05: no second copy of the world is built, so the first save has no 0.7 s hitch).
 - **The feedback.** A small "Saved" toast, four seconds, as the other toasts show. Nothing else on the screen changes, and no save changes the world, the digest or the replay:
   a save only reads the session.
 - **Off.** `--no-autosave` writes no autosave (a playtest still writes `playtest.save` at its end). Scripted and test runs write their autosave into their session folder

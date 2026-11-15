@@ -25,7 +25,7 @@ public sealed class SaveGameTests
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session, ulong seed = TestGame.Seed) => SaveGame.Save(session, Pristine(seed));
+    private static string SaveOf(VoxelSession session, ulong seed = TestGame.Seed) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, CreditRules? credit = null, bool bump = true) =>
         SaveGame.Load(text, TestGame.Data, Pristine, credit: credit ?? CreditRules.FullTyped, bumpSession: bump);
@@ -70,7 +70,7 @@ public sealed class SaveGameTests
         }
 
         Assert.Equal(session.Conversation.GuideState, loaded.Conversation.GuideState);
-        Assert.Equal(VoxelGridDiff.Capture(session.Scene.Grid, Pristine().Grid).Count, VoxelGridDiff.Capture(loaded.Scene.Grid, Pristine().Grid).Count);
+        Assert.Equal(VoxelGridDiff.Capture(session.Scene.Grid).Count, VoxelGridDiff.Capture(loaded.Scene.Grid).Count);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class SaveGameTests
         var second = SaveOf(session);
 
         Assert.Equal(first, second);
-        Assert.Equal(SaveGame.Serialize(SaveGame.Capture(session, Pristine())), first);
+        Assert.Equal(SaveGame.Serialize(SaveGame.Capture(session)), first);
     }
 
     // A save as S19 wrote it, before S20 gave the learner the book: no book in the slots and no "bookGranted" field (S22).
@@ -224,11 +224,11 @@ public sealed class SaveGameTests
         var session = TestGame.NewSession();
         session.OpenTalk(NpcService.ShopkeeperAgent, teachKeyWords: true);
 
-        Assert.Throws<InvalidOperationException>(() => SaveGame.Capture(session, Pristine()));
+        Assert.Throws<InvalidOperationException>(() => SaveGame.Capture(session));
         session.FinishKeyWords();
-        Assert.Throws<InvalidOperationException>(() => SaveGame.Capture(session, Pristine())); // the opening waits
+        Assert.Throws<InvalidOperationException>(() => SaveGame.Capture(session)); // the opening waits
         _ = session.TakeOpening();
-        _ = SaveGame.Capture(session, Pristine());
+        _ = SaveGame.Capture(session);
     }
 
     [Fact]
@@ -282,10 +282,15 @@ public sealed class SaveGameTests
     public void TheSceneDiffHoldsOnlyTheChunksTheGameEdited()
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
-        var document = SaveGame.Capture(session, Pristine());
-        var differing = VoxelGridDiff.Capture(session.Scene.Grid, Pristine().Grid);
+        var document = SaveGame.Capture(session);
+        var fresh = Pristine().Grid;
+        var differing = session.Scene.Grid.Chunks // an independent oracle: every chunk whose blocks or water differ from a fresh build of the scene
+            .Where(chunk => !chunk.Blocks.SequenceEqual(fresh.GetChunk(chunk.Coord).Blocks) || !chunk.WaterLevels.SequenceEqual(fresh.GetChunk(chunk.Coord).WaterLevels))
+            .Select(static chunk => chunk.Coord)
+            .OrderBy(static c => c.Y).ThenBy(static c => c.Z).ThenBy(static c => c.X)
+            .ToList();
 
-        Assert.Equal(differing.Select(static edit => edit.Chunk), document.Chunks.Select(static edit => edit.Chunk));
+        Assert.Equal(differing, document.Chunks.Select(static edit => new VoxelChunkCoord(edit.X, edit.Y, edit.Z)));
         Assert.NotEmpty(document.Chunks);
         Assert.True(document.Chunks.Count < session.Scene.Grid.Chunks.Count / 4, $"{document.Chunks.Count} of {session.Scene.Grid.Chunks.Count} chunks");
     }

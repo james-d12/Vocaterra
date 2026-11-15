@@ -308,7 +308,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         session.Sitting = 2;
         session.BeginPlaySession();
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var document = SaveGame.Parse(text);
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
@@ -402,13 +402,13 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
         Assert.True(session.Lessons.RequestReplay("first-class"));
-        var asked = SaveGame.Save(session, TestGame.Route());
+        var asked = SaveGame.Save(session);
 
         var restored = SaveGame.Load(asked, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal("first-class", restored.Lessons.ReplayPending);
         Assert.True(restored.Lessons.IsDone("first-class"));
-        Assert.Equal(asked, SaveGame.Save(restored, TestGame.Route()));
+        Assert.Equal(asked, SaveGame.Save(restored));
 
         // and half way through the replay: the lesson is in progress and still done
         Stage.TeleportToNpc(restored, "guide");
@@ -419,13 +419,13 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         }
 
         restored.EndTalk();
-        var half = SaveGame.Save(restored, TestGame.Route());
+        var half = SaveGame.Save(restored);
         var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf("first-class"));
         Assert.True(again.Lessons.IsDone("first-class"));
         Assert.Null(again.Lessons.ReplayPending);
-        Assert.Equal(half, SaveGame.Save(again, TestGame.Route()));
+        Assert.Equal(half, SaveGame.Save(again));
         Assert.Equal(5, again.Lessons.OutcomesOf("first-class").Count);
     }
 
@@ -435,7 +435,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var session = AtGuide();
         _ = LessonDriver.CompleteAll(session, "first-class");
         session.EndTalk();
-        var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var document = SaveGame.Parse(SaveGame.Save(session));
         var old = document with
         {
             Lessons = document.Lessons! with

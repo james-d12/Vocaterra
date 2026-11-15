@@ -54,6 +54,7 @@ internal static class VoxelTestSupport
         }
 
         customise?.Invoke(grid);
+        grid.SealPristine(); // the scene as built is the world as generated: only a later write makes a chunk changed
         return new Scene("flat", 0, grid, new SpawnPoint(new BlockPos(32, GroundTop + 1, 32), 0), [], new SortedDictionary<string, BlockPos>(StringComparer.Ordinal), 0, 0);
     }
 

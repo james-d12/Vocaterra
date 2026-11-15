@@ -161,7 +161,7 @@ public sealed class InnkeeperTests
         _ = session.Say("sí");
         session.EndTalk();
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.True(loaded.LodgingGiven);
         Assert.Equal(Given, loaded.Conversation.PromptOf("innkeeper"));

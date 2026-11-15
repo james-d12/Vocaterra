@@ -85,17 +85,17 @@ public sealed class NeedsRateTests
         Tick(a, 30 * Tps);
         Tick(b, 30 * Tps);
         Assert.Equal(a.Needs.Value(NeedMeter.Thirst), b.Needs.Value(NeedMeter.Thirst));
-        var saved = SaveGame.Serialize(SaveGame.Capture(a, TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 100, NeedsRate: 1.75)));
+        var saved = SaveGame.Serialize(SaveGame.Capture(a, new SaveSettings(new SoundVolumes(), 100, NeedsRate: 1.75)));
         var restored = SaveGame.Parse(saved);
         Assert.Equal(1.75, restored.Settings!.NeedsRate);
-        Assert.Equal(SaveGame.Parse(SaveGame.Serialize(SaveGame.Capture(b, TestGame.Route(TestGame.Seed), null))).StateDigest, restored.StateDigest);
+        Assert.Equal(SaveGame.Parse(SaveGame.Serialize(SaveGame.Capture(b, null))).StateDigest, restored.StateDigest);
     }
 
     [Fact]
     public void TheDefaultWritesNoFieldAndAHandEditedValueIsClampedAndSnapped()
     {
         var session = TestGame.NewSession();
-        string Text(double rate) => SaveGame.Serialize(SaveGame.Capture(session, TestGame.Route(TestGame.Seed), new SaveSettings(new SoundVolumes(), 100, NeedsRate: rate)));
+        string Text(double rate) => SaveGame.Serialize(SaveGame.Capture(session, new SaveSettings(new SoundVolumes(), 100, NeedsRate: rate)));
 
         Assert.DoesNotContain("needsRate", Text(0), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("needsRate", Text(1), StringComparison.OrdinalIgnoreCase);
