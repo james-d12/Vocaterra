@@ -148,6 +148,57 @@ internal static class Renderer
         return text.ToString();
     }
 
+    /// <summary>
+    /// The height map's numbers as text: the lowest and highest ground and where the highest is, the share of the columns under water, and the share of the land above 100, 150, 200
+    /// and 250 blocks (to read the ranges' height without the picture).
+    /// </summary>
+    public static string HeightSummary(WorldMap map)
+    {
+        var text = new StringBuilder();
+        var land = 0L;
+        var water = 0L;
+        var min = int.MaxValue;
+        var max = int.MinValue;
+        var at = 0;
+        int[] marks = [100, 150, 200, 250];
+        var above = new long[marks.Length];
+        for (var i = 0; i < map.Ground.Length; i++)
+        {
+            var h = map.Ground[i];
+            min = Math.Min(min, h);
+            if (h > max)
+            {
+                max = h;
+                at = i;
+            }
+
+            if (map.Water[i])
+            {
+                water++;
+                continue;
+            }
+
+            land++;
+            for (var k = 0; k < marks.Length; k++)
+            {
+                if (h > marks[k])
+                {
+                    above[k]++;
+                }
+            }
+        }
+
+        var inv = CultureInfo.InvariantCulture;
+        text.AppendLine(string.Create(inv, $"ground: lowest {min}, highest {max} at x {map.BlockX(at % map.Width)}, z {map.BlockZ(at / map.Width)}"));
+        text.AppendLine(string.Create(inv, $"under water: {100.0 * water / map.Ground.Length:0.00}% of the columns"));
+        for (var k = 0; k < marks.Length; k++)
+        {
+            text.AppendLine(string.Create(inv, $"land above {marks[k]}: {(land == 0 ? 0 : 100.0 * above[k] / land):0.00}% of the land"));
+        }
+
+        return text.ToString();
+    }
+
     private static int? Line(Image image, int x, int? y, int? previous, Rgb colour, Func<int, int> row, int maxY)
     {
         if (y is not { } line || line > maxY)

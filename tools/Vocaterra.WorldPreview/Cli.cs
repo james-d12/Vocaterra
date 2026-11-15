@@ -12,7 +12,7 @@ internal static class Cli
 
         usage: WorldPreview <command> [options]
           biomes    each column in its biome row's colour, with a legend text file (id, colour, share)
-          heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded
+          heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded, with a stats text file (lowest and highest ground, shares above 100 to 250)
           maps      both of them for the same area
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level
 
@@ -105,7 +105,10 @@ internal static class Cli
             {
                 var path = Target(outPath, "heights-" + stem, command == "heights");
                 Save(path, Renderer.Heights(map, sampler.SeaLevel));
+                var summary = Renderer.HeightSummary(map);
+                File.WriteAllText(Path.ChangeExtension(path, ".stats.txt"), summary);
                 output.WriteLine($"{path} ({map.Width} x {map.Height}; sampled in {sampled.TotalSeconds:0.0} s, drawn by {started.Elapsed.TotalSeconds:0.0} s)");
+                output.Write(summary);
             }
 
             return 0;

@@ -49,7 +49,7 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
         }
 
         var names = Directory.GetFiles(a).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToArray();
-        Assert.Equal(4, names.Length); // the biome map and its legend, the height map, the slice
+        Assert.Equal(5, names.Length); // the biome map and its legend, the height map and its stats, the slice
         Assert.Equal(names, Directory.GetFiles(b).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToArray());
         foreach (var name in names)
         {
