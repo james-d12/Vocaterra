@@ -2616,3 +2616,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   away from the pass), which led to the edge wall and the owner's "leave anywhere" (D-game-34 items 6 and 15). B05's merge exposed a
   stale `VoxelGridDiff.Capture` call (the pristine argument B05 removed); the atmosphere digests went back to B05's values, since a
   fresh route has no changed chunks. Gated: 11,785 passed, 3 skipped. Not yet looked at in the game (windows wait for the owner).
+- **B06, regions, the blend, the composite chunk source and the streamed mode (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b06-regions-streaming.md`, report `.claude/briefs/b06-report.md`. The valley is a region built by the unchanged
+  `SceneBuilder` and frozen, its bounds from its layout; outside it the procedural world eases to the region's edge over a 64-block
+  margin (data in `regionBlend`), with the edge blurred over 16 columns (the agent's addition: without it ridges combed straight out
+  from the border), trees thinned, a land bias that leaves no sea within 512 blocks on seeds 42, 7 and 2026, and an exit corridor from
+  the pass. The streamed valley equals the bounded one chunk by chunk (4,608 chunks), and three streaming policies give the same
+  state digest and save. Largest step across the border 6 to 8 (bound 9). Bugs fixed: `FireRings` lost camp stones restored from a
+  save (the save applies its edits before the session exists); `LandRules` sized its mask by the grid (an overflow on a streamed
+  grid). Seen in its pictures: rivers stop at the margin in a rounded end and seed 7 has a lake cut straight by it (the owner: rivers
+  start in the hills, D-game-34 item 18, in B02b); seed 7 has a steep ridge on the valley's east side that blocks about 6% of the ring
+  walk at margin 64 (96 gives 97%, 128 gives 99.5%; data, re-measured after B02b). On a streamed grid a guide snapshot outside the
+  valley generates its window's missing chunks on the game thread (B07's residency). Scripted runs not run (no game windows while the
+  owner plays). Gated: 11,879 passed, 3 skipped.

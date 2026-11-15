@@ -816,6 +816,12 @@ the owner's answers of 2026-11-15 are in its section 5.
     gaems right now", then "only have 1 afgent max, you can let the agents finish but going forward", then "actually im going to stop
     the work" and "pls make sure everything is writte ndown". Item 10's three agents become one building agent at a time from now on.
     The running agents (B03b, B04b's merge, B06 just launched) and B02's gate were stopped; their state is in the handover.
+    Resumed at about 18:37 UTC ("continue"), still one building agent, every heavy command at one machine-wide slot while he plays;
+    and no game windows (screenshots, game runs, scripted runs) until he says he has finished ("After you finish", about 19:10 UTC).
+18. **Rivers near a region start in the hills** (2026-11-15, on B06's pictures, where rivers stop in a rounded end at the blend
+    margin): near a region a river narrows and shallows to a stream and starts at a spring or a small pond on the slopes outside the
+    margin, and flows away to a lake or the sea; no river or lake water inside the margin, and no lake cut straight by it. Chosen over
+    bending rivers round the valley and over rivers flowing through it (which would change the hand-made valley). B02b does it.
 
 ## Already decided
 
