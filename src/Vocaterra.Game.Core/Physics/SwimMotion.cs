@@ -108,7 +108,7 @@ internal static class SwimMotion
     /// water. Flowing water (<see cref="FlowVector"/>) pushes at <see cref="FlowPush"/>; still water in a river column (<paramref name="currents"/>) at
     /// <see cref="RiverPush"/>; any other water not at all.
     /// </summary>
-    public static (int X, int Z, int Pull) Push(VoxelGrid grid, RiverCurrents? currents, int cellX, int cellY, int cellZ)
+    public static (int X, int Z, int Pull) Push(IVoxelReader grid, RiverCurrents? currents, int cellX, int cellY, int cellZ)
     {
         var flow = FlowVector.At(grid, cellX, cellY, cellZ);
         if (flow.IsHorizontal || flow.Y < 0)

@@ -73,9 +73,9 @@ public sealed record PlotSave(int X, int Z, int Width, int Depth)
 {
     internal static PlotSave Of(Plot plot) => new(plot.X, plot.Z, plot.Width, plot.Depth);
 
-    internal Plot ToPlot(VoxelGrid grid, string which)
+    internal Plot ToPlot(IVoxelReader grid, string which)
     {
-        if (Width < 1 || Depth < 1 || !grid.InBounds(X, 0, Z) || !grid.InBounds(X + Width - 1, 0, Z + Depth - 1))
+        if (Width < 1 || Depth < 1 || !grid.InBounds(X, grid.Limits.MinY, Z) || !grid.InBounds(X + Width - 1, grid.Limits.MinY, Z + Depth - 1))
         {
             throw new ArgumentException($"The {which} plot ({X}, {Z}, {Width} by {Depth}) is empty or outside the world.");
         }

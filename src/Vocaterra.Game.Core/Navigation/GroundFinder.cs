@@ -12,15 +12,15 @@ public static class GroundFinder
     /// <param name="grid">The world.</param>
     /// <param name="x">The block column's x.</param>
     /// <param name="z">The block column's z.</param>
-    public static BlockPos? StandingAt(VoxelGrid grid, int x, int z)
+    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        if (!grid.InBounds(x, 0, z))
+        if (!grid.InBounds(x, grid.Limits.MinY, z))
         {
             return null;
         }
 
-        for (var y = grid.SizeY - 3; y >= 1; y--)
+        for (var y = grid.Limits.EndY - 3; y > grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
             if (block is BlockId.Air or BlockId.Water || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(x, y, z))

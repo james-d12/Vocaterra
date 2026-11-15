@@ -103,7 +103,7 @@ public sealed class FireRings
         return false;
     }
 
-    private static bool IsMiddle(VoxelGrid grid, BlockPos cell)
+    private static bool IsMiddle(IVoxelReader grid, BlockPos cell)
     {
         if (grid.InBounds(cell.X, cell.Y, cell.Z) && grid.GetBlock(cell.X, cell.Y, cell.Z) == BlockId.FireRing)
         {

@@ -12,7 +12,7 @@ public sealed partial class PlayerBody
     /// jump and step-up. Swimming (water at the waist or higher): the slow horizontal speed, the drag, jump held to swim up, and a hop out
     /// onto a bank when a wall blocks the way. Swimming never reports a jump or a landing.
     /// </summary>
-    private (bool Jumped, bool Landed) StepInWater(VoxelGrid grid, int intentX, int intentZ, bool jump, Immersion immersion, RiverCurrents? currents, int speedPermille)
+    private (bool Jumped, bool Landed) StepInWater(IVoxelReader grid, int intentX, int intentZ, bool jump, Immersion immersion, RiverCurrents? currents, int speedPermille)
     {
         var wasGrounded = Grounded;
         SteppedUp = false;
@@ -54,10 +54,10 @@ public sealed partial class PlayerBody
     /// Whether the horizontal move of this tick is blocked by a wall whose top is within <see cref="SwimMotion.HopReach"/> above the feet and
     /// the body fits on top of it: the bank a swimmer can hop out onto.
     /// </summary>
-    private bool HasLedgeAhead(VoxelGrid grid) =>
+    private bool HasLedgeAhead(IVoxelReader grid) =>
         (VelocityX != 0 && LedgeAt(grid, MinX + VelocityX, MinZ)) || (VelocityZ != 0 && LedgeAt(grid, MinX, MinZ + VelocityZ));
 
-    private bool LedgeAt(VoxelGrid grid, int x, int z)
+    private bool LedgeAt(IVoxelReader grid, int x, int z)
     {
         if (VoxelCollider.IsFree(grid, x, MinY, z))
         {
