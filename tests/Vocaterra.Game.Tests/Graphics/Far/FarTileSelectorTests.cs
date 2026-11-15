@@ -83,7 +83,7 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
 
             if (key.Level < Settings.TopLevel)
             {
-                Assert.True(key.Parent.NearestDistance(Settings, ex, ez) < Settings.SplitFactor * Settings.SizeOf(key.Level + 1), $"{key}'s parent would not have been split");
+                Assert.True(key.GetParent().NearestDistance(Settings, ex, ez) < Settings.SplitFactor * Settings.SizeOf(key.Level + 1), $"{key}'s parent would not have been split");
             }
         });
         var byLevel = leaves.GroupBy(static l => l.Level).ToDictionary(static g => g.Key, g => g.Min(l => l.NearestDistance(Settings, ex, ez)));
@@ -145,7 +145,7 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
         Assert.All(key.Children(), child =>
         {
             Assert.Equal(1, child.Level);
-            Assert.Equal(key, child.Parent);
+            Assert.Equal(key, child.GetParent());
             Assert.True(child.MinX(Settings) >= key.MinX(Settings) && child.MinX(Settings) < key.MinX(Settings) + Settings.SizeOf(2));
         });
         Assert.Equal(4, key.Children().Distinct().Count());

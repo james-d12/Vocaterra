@@ -818,7 +818,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             new WindowSizes(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
             _timings,
             _drawer.Renderer,
-            _drawer.Preset);
+            _drawer.Preset,
+            _drawer.Streaming);
     }
 
     /// <inheritdoc />

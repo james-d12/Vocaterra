@@ -267,7 +267,7 @@ public sealed class FarView
             var ancestor = key;
             for (var step = 0; step < FallbackSteps && ancestor.Level < Settings.TopLevel; step++)
             {
-                ancestor = ancestor.Parent;
+                ancestor = ancestor.GetParent();
                 if (_tiles.TryGetValue(ancestor, out var stand) && stand.IsBuilt)
                 {
                     if (standIns.Add(ancestor))

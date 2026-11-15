@@ -25,6 +25,7 @@ public sealed partial class ProceduralWorldPurityTests
         "src/Vocaterra.Game.Core/World/Generation/Procedural",
         "src/Vocaterra.Game.Core/World/Streaming",
         "src/Vocaterra.Game.Core/World/Regions",
+        "src/Vocaterra.Game.Core/World/Far",
     ];
 
     private static readonly string[] PureNamespaces =
@@ -35,6 +36,7 @@ public sealed partial class ProceduralWorldPurityTests
         "Vocaterra.Game.Core.World.Generation.Procedural",
         "Vocaterra.Game.Core.World.Streaming",
         "Vocaterra.Game.Core.World.Regions",
+        "Vocaterra.Game.Core.World.Far",
     ];
 
     private static IEnumerable<Type> PureTypes() =>

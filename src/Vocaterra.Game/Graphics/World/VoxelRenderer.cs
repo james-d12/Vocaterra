@@ -400,6 +400,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
     }
 
+    /// <summary>Whether the renderer draws a streamed world (its counts of chunks depend on how it was loaded).</summary>
+    public bool IsStreamed => _grid.IsStreamed;
+
     /// <summary>The far view's range in blocks now (0: none).</summary>
     public int FarRange => (int)_farRange;
 

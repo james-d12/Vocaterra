@@ -83,6 +83,7 @@ public sealed record LaunchOptions
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
         + "                          Off by default, kept in a save's settings\n"
         + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
+        + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
         + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
         + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
@@ -427,6 +428,9 @@ public sealed record LaunchOptions
     /// </summary>
     public bool Dev { get; init; }
 
+    /// <summary>Whether <c>--stream-stats</c> was given: a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of their own (B07). They are left out otherwise, so the compared output of a run does not hold them.</summary>
+    public bool StreamStats { get; init; }
+
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
 
@@ -513,6 +517,7 @@ public sealed record LaunchOptions
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
         var dev = false;
+        var streamStats = false;
         var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
@@ -525,7 +530,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats")
             {
                 switch (arg)
                 {
@@ -614,6 +619,9 @@ public sealed record LaunchOptions
                         break;
                     case "--dev":
                         dev = true;
+                        break;
+                    case "--stream-stats":
+                        streamStats = true;
                         break;
                     case "--playtest":
                         playtest = true;
@@ -1478,6 +1486,7 @@ public sealed record LaunchOptions
         {
             Playtest = playtest,
             Dev = dev,
+            StreamStats = streamStats,
             Lodging = lodging,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,

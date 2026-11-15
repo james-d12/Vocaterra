@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Graphics.Far;
 public readonly record struct FarTileKey(int Level, int Tx, int Tz)
 {
     /// <summary>The parent tile one level up, which covers this one and its three siblings.</summary>
-    public FarTileKey Parent => new(Level + 1, Tx >> 1, Tz >> 1);
+    public FarTileKey GetParent() => new(Level + 1, Tx >> 1, Tz >> 1);
 
     /// <summary>The first block column of the tile.</summary>
     /// <param name="settings">The settings (the tile size of the level).</param>
