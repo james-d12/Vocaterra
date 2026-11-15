@@ -6,8 +6,7 @@ and backpack slots, gear that does something, and gear drawn on the player, buil
 and not a new system.
 
 **Status (2026-11-15):** in progress. The owner accepted D-game-35 as written and answered its two questions (section 5), then said
-to build ("Work on the plan", the same day); I00 registered the series in the game plan's section 4.15; I01 and I06 wait for the owner's word to start ("stop and wait for me to tell
-you to start", while the biomes session's agent runs and the owner games). It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
+to build ("Work on the plan", the same day); I00 registered the series in the game plan's section 4.15; the owner then said to start ("you can start the work"), one agent from this series at a time while he games; I01 is done. It is built on `feature/inventory`, cut from `main` at `0db529a1`, in the worktree `.claude/worktrees/inventory` (the
 standing rule: new work in a new worktree from `main`). Milestone branches `I<nn>-<name>`, gated into `feature/inventory`; commit
 prefix `I<nn>:`. As with every feature branch, nothing is pushed to `main`; the owner merges by pull request.
 
@@ -360,4 +359,5 @@ Recorded as D-game-35 (decided 2026-11-15; building started the same day).
 | (proposal) | done, 2026-11-15 | documents only | This plan, D-game-35 (proposed), the index rows and the handover. |
 | (acceptance) | done, 2026-11-15 | documents only | D-game-35 decided as written; the gear words as world words; the small bag `el saco`; building held. |
 | I00 | done, 2026-11-15 | documents only (doc-link test) | Registered by the orchestrator: the game plan's section 4.15, the activities plan's notes (W12, W13, W26, (c)), D-game-23 (c) amended, open items. |
-| I01 to I10 | todo | | Build order in section 4; I01 and I06 wait for the owner's word. |
+| I01 | done, 2026-11-15 | `e865a818`, 11,543 passed, 3 skipped | Items as data: `items.json` (14 rows), `IItemCatalogue` passed to every consumer, icons by key with a fallback, the validator's item checks, save version 9 (items by name; an empty slot is `""`). The enum keeps nine behavioural members; Bread, Apple, Axe, RoastApple and Flour are rows only. Report: `.claude/briefs/i01-report.md`. |
+| I02 to I10 | todo | | Build order in section 4. |

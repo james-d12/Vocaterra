@@ -2549,3 +2549,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   chest stays). The kit's room is checked with the coins and the stake out, so `no_room` needs a bag without the stake. The checklist's
   `stake` step counts the bag plus one once the plot is owned, so it stays done after the purchase and a load (and reads 1/1 with
   `--own-plot`). No stake is given once land is owned. Gated: 11,469 passed, 3 skipped.
+- **I01, items as data (2026-11-15, on `feature/inventory`).** Report `.claude/briefs/i01-report.md`. Gated at `e865a818`: 11,543
+  passed, 3 skipped; no digest, golden or fuzz baseline moved. `items.json` holds the 14 items; `IItemCatalogue` replaces the static
+  table in about 25 consumers; the enum keeps nine members code needs by behaviour, and a data-only item (id from 100) works in the bag,
+  saves, nouns, recipes and shops (`DataOnlyItemTests`). Save version 9 stores items by name. Two limits: the host's
+  `--validate-content` cannot check icon keys (the host does not reference the game; the game's start and the tests do), and items named
+  by a script resolve only at run time. Spot-checked: «quiero pan, por favor» at `stall-need` sells the bread; `--validate-content` clean.
