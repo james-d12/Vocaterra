@@ -70,13 +70,13 @@ public sealed class WorldFactsTests
     {
         var near = Facts((17, 1, 16, BlockId.Trunk)).NearestOfNoun(Standing(16, 16, 0), "árbol");
         Assert.Equal(1, near!.Blocks);
-        Assert.Equal("uno", near.BlocksInWords);
+        Assert.Equal("uno", TestGame.Bundle.Language.Numbers.ToWords(near.Blocks));
         Assert.Equal("a la derecha", near.Direction);
 
         var here = Facts((16, 3, 16, BlockId.Leaves)).NearestOfNoun(Standing(16, 16, 0), "árbol"); // the canopy over the player's head
         Assert.Equal(0, here!.Blocks);
         Assert.Equal(string.Empty, here.Direction);
-        Assert.Equal("cero", here.BlocksInWords);
+        Assert.Equal("cero", TestGame.Bundle.Language.Numbers.ToWords(here.Blocks));
     }
 
     [Theory]
@@ -277,7 +277,6 @@ public sealed class WorldFactsTests
 
         Assert.NotNull(river);
         Assert.InRange(river.Blocks, 80, 400);
-        Assert.Equal(Vocaterra.Nlp.Es.Normalization.SpanishNumbers.ToWords(river.Blocks), river.BlocksInWords);
         Assert.Contains(river.Direction, new[] { "adelante", "a la izquierda", "adelante, a la izquierda", "a la derecha", "adelante, a la derecha", "detrás", "detrás, a la izquierda", "detrás, a la derecha" });
 
         // The direction words and the rounding hold at any distance: 250 blocks ahead and 130 to the right (the other side reaches half the lead), and the number in words.

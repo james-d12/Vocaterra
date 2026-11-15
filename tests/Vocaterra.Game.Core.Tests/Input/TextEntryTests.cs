@@ -5,6 +5,41 @@ namespace Vocaterra.Game.Core.Tests.Input;
 /// <summary>The dialogue panel's text box, its Spanish characters and the accent shortcuts, without a window.</summary>
 public sealed class TextEntryTests
 {
+    // The Spanish map (game/words.json, typing) as the fixture writes it; the game reads the same list from the file.
+    private static readonly TypingMap Spanish = new(
+    [
+        new TypingKey('a', null, 'á'), new TypingKey('e', null, 'é'), new TypingKey('i', null, 'í'), new TypingKey('o', null, 'ó'),
+        new TypingKey('u', null, 'ú'), new TypingKey('n', null, 'ñ'), new TypingKey('/', '?', '¿'), new TypingKey('1', '!', '¡'),
+    ]);
+
+    // A German map: the same keys, its own letters (ä, ö, ü and ß), with no code change.
+    private static readonly TypingMap German = new(
+    [
+        new TypingKey('a', null, 'ä'), new TypingKey('o', null, 'ö'), new TypingKey('u', null, 'ü'), new TypingKey('s', null, 'ß'),
+    ]);
+
+    [Fact]
+    public void AGermanMapTypesItsOwnLettersAndItsHintListsThem()
+    {
+        Assert.Equal('Ä', German.ForTyped('A', alt: true));
+        Assert.Equal('ß', German.ForTyped('s', alt: true));
+        Assert.Equal('e', German.ForTyped('e', alt: true)); // no key for it on this map
+        Assert.Null(German.Map('e', false));
+        Assert.Equal("Alt+a o u s: ä ö ü ß", German.Hint());
+    }
+
+    [Fact]
+    public void TheSpanishHintListsTheLettersAndTheMarks()
+    {
+        Assert.Equal("Alt+a e i o u n: á é í ó ú ñ   Alt+/: ¿   Alt+1: ¡", Spanish.Hint());
+    }
+
+    [Fact]
+    public void AKeyGivenTwiceIsRefused()
+    {
+        Assert.Throws<ArgumentException>(() => new TypingMap([new TypingKey('a', null, 'á'), new TypingKey('A', null, 'Á')]));
+    }
+
     [Fact]
     public void LettersAndSpacesAreInsertedInOrder()
     {
@@ -165,7 +200,7 @@ public sealed class TextEntryTests
     [InlineData('!', true, '¡')]
     public void AltPlusAKeyTypesTheSpanishLetter(char key, bool shift, char expected)
     {
-        Assert.Equal(expected, AccentShortcuts.Map(key, shift));
+        Assert.Equal(expected, Spanish.Map(key, shift));
     }
 
     [Theory]
@@ -174,7 +209,7 @@ public sealed class TextEntryTests
     [InlineData(' ')]
     public void OtherKeysHaveNoShortcut(char key)
     {
-        Assert.Null(AccentShortcuts.Map(key, false));
+        Assert.Null(Spanish.Map(key, false));
     }
 
     [Fact]
@@ -184,7 +219,7 @@ public sealed class TextEntryTests
         {
             foreach (var shift in new[] { false, true })
             {
-                var typed = AccentShortcuts.Map(key, shift);
+                var typed = Spanish.Map(key, shift);
                 Assert.NotNull(typed);
                 Assert.True(TextEntry.IsAccepted(typed.Value));
             }

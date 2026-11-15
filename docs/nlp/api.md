@@ -88,6 +88,21 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
   `Vocaterra.Nlp.Language.Packs`.
 
+### The surface a host reads from a pack (M87)
+
+Additive, except the first line. A host that implements `ILanguagePack` (a test double, a pack) adds one member.
+
+- **`ILanguagePack.Orthography`** (breaking for an implementer): an `IOrthographyNotes` (`Vocaterra.Nlp.Language.Packs`) with `Describe(AccentNote)`, the pack's
+  line for an accent the learner left out. Spanish: `SpanishOrthographyNotes` (`Vocaterra.Nlp.Es.Text`), the same text as `SpanishAccentNotes.Describe`; the CLI reads it from the bundle.
+- **`IMorphology.Paradigm`** (default `ParadigmLayout.Default`): a `ParadigmLayout(Persons, Tenses)` (`Vocaterra.Nlp.Language.Morphology`): the person and number of each row
+  (`ParadigmPerson(Person, Number)`) and the tense ids of the columns the morphology generates. Spanish: five rows (no `vosotros`) and `pres`, `pret`, `fut`. The default is six persons and `pres`.
+- **`IMorphology.ParadigmOf(lemma)`** (default member): the `ParadigmCell(Person, Tense, Form)` list, tense by tense, built from `Conjugate` (`Form` is null where none is generated).
+  `MorphologyGenerator.Paradigm` is public.
+- **`PronunciationScorer`, `GopScorer`, `GreedyPhoneScorer`** take an optional `ErrorTagSet errorTags` (default `ErrorTagSet.V1`); the pipeline passes the pack's `ErrorTags`, so
+  tags at the same place are ordered by the pack's rank, not `ErrorTags.All`.
+- Numbers (`ILanguagePack.Numbers`: `ToWords`, `TryParsePrefix`) and the normalizer (`ILanguagePack.Normalizer`) already cover the game's calls. `ContentLoader` already reads
+  lexicon files with the pack's `LexiconProfile` (M34).
+
 ### The analysis side of the pack (M34)
 
 All of this is additive unless it says breaking. The game compiles and passes unchanged.

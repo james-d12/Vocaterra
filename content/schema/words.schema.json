@@ -19,7 +19,13 @@
     "nearFuture",
     "obligation",
     "greeting",
-    "letters",
+    "greetingOpenings",
+    "addressPronouns",
+    "nameDeterminers",
+    "vocativeBinders",
+    "vocativeJoiners",
+    "quantityArticles",
+    "typing",
     "nouns",
     "classAnswers"
   ],
@@ -209,9 +215,66 @@
       "$ref": "#/definitions/word",
       "description": "The greeting the mic check asks for (hola)."
     },
-    "letters": {
-      "$ref": "#/definitions/word",
-      "description": "The letters the typing help lists."
+    "greetingOpenings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The greetings a learner's line may open with (NpcTurnRules' Greeting, V15): each phrase is matched word by word, without accents and case. Matching only; the grammar check does not read it."
+    },
+    "addressPronouns": {
+      "type": "object",
+      "required": [
+        "informal",
+        "formal",
+        "plural"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "informal": {
+          "$ref": "#/definitions/word"
+        },
+        "formal": {
+          "$ref": "#/definitions/word"
+        },
+        "plural": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The address pronouns by role (tú, usted, ustedes), matched against the core's lemmas (V28, the off-prompt rule). Matching only."
+    },
+    "nameDeterminers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words before a name that make it a common noun (la luz, el domingo; RecastNames, V20). Matching only."
+    },
+    "vocativeBinders": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words before a trailing name that make it a noun of the sentence (el pan de Luz; Vocative, V14). Matching only."
+    },
+    "vocativeJoiners": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The words after a leading name that join it to another noun (Luz y Domingo comieron pan; Vocative, V14). Matching only."
+    },
+    "quantityArticles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The indefinite articles that count one item when the line names no number (vendo un bloque de madera; NpcEffect.CountedSlots, V15b). Matching only."
     },
     "nouns": {
       "type": "object",
@@ -268,6 +331,39 @@
         "$ref": "#/definitions/word"
       },
       "description": "The player's own words on the HUD (N05): the needs' stage lines by the key game/needs.json names (need.thirst.3), the death screen (hud.camp), the beacon's label on the chest (hud.belongings) and the words of the inventory's needs list (hud.fine, hud.name.<need>). Text only, never recorded (D-game-13); each key has its English in the locale under the same id."
+    },
+    "typing": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The Alt-key map of the typing help (G5): with Alt held, the key types the character; with Shift and a shifted key, the shifted character. Letters are the capitals with Shift; a German map gives ä, ö, ü, ß.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "alt"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "The key, as it types without modifiers."
+          },
+          "shifted": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "What the key types with Shift, when it is not the capital (the question mark on the / key)."
+          },
+          "alt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+            "description": "What Alt and the key type."
+          }
+        }
+      }
     }
   },
   "definitions": {

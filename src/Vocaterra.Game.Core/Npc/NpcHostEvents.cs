@@ -179,11 +179,13 @@ public sealed record NpcEffect(
     /// </summary>
     /// <param name="slots">The verdict's slots.</param>
     /// <param name="line">What the learner said.</param>
-    public static IReadOnlyDictionary<string, string> CountedSlots(IReadOnlyDictionary<string, string> slots, string line)
+    /// <param name="words">The game's words (the indefinite articles that count one, <c>game/words.json</c>, quantityArticles).</param>
+    public static IReadOnlyDictionary<string, string> CountedSlots(IReadOnlyDictionary<string, string> slots, string line, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(line);
-        if (slots.ContainsKey(QuantitySlot) || !PhraseSheet.Plain(line).Split(' ').Any(static w => w is "un" or "una"))
+        ArgumentNullException.ThrowIfNull(words);
+        if (slots.ContainsKey(QuantitySlot) || !PhraseSheet.Plain(line).Split(' ').Any(w => words.Matching.QuantityArticles.Contains(w, StringComparer.Ordinal)))
         {
             return slots;
         }

@@ -40,11 +40,11 @@ public sealed class FontTests
         var cmap = TrueTypeCmap.Load(CommittedFont);
         var strings = new List<string>
         {
-            DialoguePanel.KeyHints(RouteScene.Shipped.Locale), RouteScene.Shipped.Objectives.Find("camp")!.Title!, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", RouteScene.Shipped.Locale.Ui("craftingTitle"), RouteScene.Shipped.Locale.Ui("craftingHints"), "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", "Tendero: ", "Aldeano: ",
+            DialoguePanel.KeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), RouteScene.Shipped.Objectives.Find("camp")!.Title!, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", RouteScene.Shipped.Locale.Ui("craftingTitle"), RouteScene.Shipped.Locale.Ui("craftingHints"), "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", "Tendero: ", "Aldeano: ",
             DialoguePanel.ListeningText(RouteScene.Shipped.Locale), DialoguePanel.ThinkingText(RouteScene.Shipped.Locale), DialoguePanel.SpokenPrefix(RouteScene.Shipped.Locale), LoadingLayer.Text(RouteScene.Shipped.Locale), PushToTalkSpeechCapture.NoMicrophone, PushToTalkSpeechCapture.Silence,
             "heard at 96 %, Could not open the microphone: ", "Speech model vosk-model-small-es-0.42 is missing from /ruta. You can still type.", "Speech off: the recogniser is not loaded. Type your answer.", "I didn't hear anything.",
             // S7: the speech UX (the buttons, the heard-versus-expected line, the mic check, the typing offer).
-            DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale), RouteScene.Shipped.Words.TypeOffer, "not understood",
+            DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale, RouteScene.Shipped.Words.Typing), RouteScene.Shipped.Words.TypeOffer, "not understood",
             "Esc: skip", "Loading speech…", "Speech is not available.",
             string.Join(' ', SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => b.Text)), "[1] Quiero agua, por favor. [2] Ayuda. [3] Sí, por favor. No, gracias. Adiós. «…»",
         };

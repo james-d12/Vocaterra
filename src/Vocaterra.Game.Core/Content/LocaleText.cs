@@ -504,8 +504,8 @@ public sealed class LocaleText
     /// <param name="tag">The core's error code.</param>
     public bool HasErrorLine(string tag) => Has("feedback.error." + tag);
 
-    /// <summary>The error codes of the core the locale has no line of its own for: the tests use this to keep the strings in step with <see cref="ErrorTags"/>.</summary>
-    public IReadOnlyList<string> MissingErrorTags() => ErrorTags.All.Where(tag => !HasErrorLine(tag)).ToList();
+    /// <summary>The error codes of the core the locale has no line of its own for: the tests use this to keep the strings in step with <paramref name="tags"/> (the bundle's <c>Language.ErrorTags</c>).</summary>
+    public IReadOnlyList<string> MissingErrorTags(ErrorTagSet tags) => tags.All.Where(tag => !HasErrorLine(tag)).ToList();
 
     private string Outcome(string key, params (string Name, string Value)[] values) => Text("feedback.outcome." + key, values);
 

@@ -31,6 +31,25 @@ public sealed class GameWordsTests
         Assert.Equal("río", Words.Noun("river"));
     }
 
+    // T02b: the lists the NPCs' code read a learner's line by, moved into the file in their order and spelling.
+    [Fact]
+    public void TheMatchingListsAreTheOnesTheCodeHeld()
+    {
+        Assert.Equal(["hola", "buenos días", "buenas tardes", "buenas noches", "buenas días", "buen día"], Words.Matching.GreetingOpenings);
+        Assert.Equal(["tú", "usted", "ustedes"], Words.Matching.AddressPronouns.All);
+        Assert.Equal(["el", "la", "los", "las", "lo", "un", "una", "unos", "unas", "al", "del"], Words.Matching.NameDeterminers.Take(11));
+        Assert.Equal(["a", "al", "con", "de", "del", "en", "para", "por", "sin"], Words.Matching.VocativeBinders.Take(9));
+        Assert.Equal(["y", "e", "o", "u", "ni"], Words.Matching.VocativeJoiners);
+        Assert.Equal(["un", "una"], Words.Matching.QuantityArticles);
+    }
+
+    [Fact]
+    public void AMatchingListWithNoWordIsRefused()
+    {
+        Assert.Throws<InvalidDataException>(() => WordsFile.WithList("quantityArticles"));
+        Assert.Throws<InvalidDataException>(() => WordsFile.WithList("greetingOpenings"));
+    }
+
     [Fact]
     public void AFileThatLacksAWordIsRefused()
     {

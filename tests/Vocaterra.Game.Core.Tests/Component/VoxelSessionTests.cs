@@ -49,7 +49,7 @@ public sealed class VoxelSessionTests
         Assert.Equal(expected.Blocks, turn.Pointer.Blocks);
         Assert.Equal(expected.Direction, turn.Pointer.Direction);
         Assert.Contains(expected.Direction, turn.WorldLine, StringComparison.Ordinal);
-        Assert.Contains(expected.BlocksInWords, turn.WorldLine, StringComparison.Ordinal);
+        Assert.Contains(TestGame.Bundle.Language.Numbers.ToWords(expected.Blocks), turn.WorldLine, StringComparison.Ordinal);
 
         // The arrow is out, and it is the beacon's block.
         Assert.Equal(new PointerMarker("río", expected.Cell), session.Pointer);

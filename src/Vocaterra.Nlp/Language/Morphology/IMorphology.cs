@@ -62,6 +62,33 @@ public interface IMorphology
     /// <param name="tense">The tense.</param>
     string? Conjugate(string lemma, string person, string number, string tense);
 
+    /// <summary>
+    /// The persons and tenses of the conjugation table of the language (M87): what a host shows as the rows and the columns of a verb's table. The default is
+    /// <see cref="ParadigmLayout.Default"/>; a pack overrides it with its own persons and tenses.
+    /// </summary>
+    ParadigmLayout Paradigm => ParadigmLayout.Default;
+
+    /// <summary>
+    /// The cells of a verb's table (M87): for each tense of <see cref="Paradigm"/> in order, one cell for each person in order, each with the form
+    /// <see cref="Conjugate"/> generates (null where it generates none).
+    /// </summary>
+    /// <param name="lemma">The verb lemma.</param>
+    IReadOnlyList<ParadigmCell> ParadigmOf(string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        var layout = Paradigm;
+        var cells = new List<ParadigmCell>(layout.Tenses.Count * layout.Persons.Count);
+        foreach (var tense in layout.Tenses)
+        {
+            foreach (var person in layout.Persons)
+            {
+                cells.Add(new ParadigmCell(person, tense, Conjugate(lemma, person.Person, person.Number, tense)));
+            }
+        }
+
+        return cells;
+    }
+
     /// <summary>Detects a form that is the regular paradigm cell of an irregular lexicon verb (Spanish: <c>sabo</c>, <c>tení</c>).</summary>
     /// <param name="form">The word as typed.</param>
     /// <param name="lemma">The irregular verb when the method returns true.</param>

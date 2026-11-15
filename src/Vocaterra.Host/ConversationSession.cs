@@ -35,6 +35,7 @@ public sealed class ConversationSession
     private readonly HostEventTable _hostEvents;
     private readonly NounCatalog _nouns;
     private readonly NpcRoster _roster;
+    private readonly GameWords _words;
     private ConversationContext _context;
 
     /// <summary>
@@ -58,6 +59,7 @@ public sealed class ConversationSession
         _hostEvents = HostEventTable.Load(bundle);
         _nouns = NounCatalog.Load(bundle);
         _roster = NpcRoster.Load(bundle);
+        _words = GameWords.Load(bundle); // the game's own words (game/words.json): the greetings, the binders and the articles a line is read by (T02b)
 
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _names = listenerNames ?? new Dictionary<string, string>(StringComparer.Ordinal);
@@ -72,6 +74,9 @@ public sealed class ConversationSession
 
     /// <summary>The content bundle the conversation runs on.</summary>
     public ContentBundle Bundle { get; }
+
+    /// <summary>The game's words, as the bundle's <c>game/words.json</c> gives them (the host reads a line as the game does).</summary>
+    public GameWords Words => _words;
 
     /// <summary>
     /// The context the next utterance starts from: the agent the last utterance spoke to and its state, the learner model, the repeat counts
@@ -118,7 +123,7 @@ public sealed class ConversationSession
 
         // The listener's name said as a vocative is taken out (V14), and a greeting that opens a line with something else to say is answered by the rest (V15): the game's
         // own reading of a line (LineReading, V19).
-        var result = LineReading.Read(transcript, _names.GetValueOrDefault(agentId), prompt, line => _evaluator.Evaluate(line, prompt, utterance), static r => r.Verdict);
+        var result = LineReading.Read(_words, transcript, _names.GetValueOrDefault(agentId), prompt, line => _evaluator.Evaluate(line, prompt, utterance), static r => r.Verdict);
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);
@@ -134,7 +139,7 @@ public sealed class ConversationSession
     // and the one reply of the turn. The bag is only read; nothing changes hands in the host.
     private ExchangeAnswer AnswerTurn(string agentId, PipelineResult result, string transcript, StoredTimestamp now, string promptId, long counter)
     {
-        var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript);
+        var slots = NpcEffect.CountedSlots(result.Verdict.Slots, transcript, _words);
         var verdict = result.Verdict;
         var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
         var events = NpcTurnRules.HostEventsOf(result);
@@ -157,6 +162,7 @@ public sealed class ConversationSession
             understood,
             answers.Unsaid,
             _names.Values,
+            _words,
             NpcTurnRules.SkipLineOfBottleGift(_bag, events),
             npc?.FreeTalkPools,
             bundle: Bundle,

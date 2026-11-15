@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
@@ -26,7 +27,7 @@ public sealed class ReportLayer : IFrameLayer
 
     /// <summary>The second hints line: the accents, as the dialogue's.</summary>
     /// <param name="ui">The support language.</param>
-    public static string HintsSecond(LocaleText ui) => Ui(ui).Ui("reportHintsSecond");
+    public static string HintsSecond(LocaleText ui, TypingMap typing) => Ui(ui).Ui("reportHintsSecond", ("typing", typing.Hint()));
 
     /// <summary>The text box's placeholder while it is empty.</summary>
     /// <param name="ui">The support language.</param>
@@ -56,7 +57,7 @@ public sealed class ReportLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var layout = LayoutFor(view.ViewportWidth, view.ViewportHeight, font, view.Session.Locale);
+        var layout = LayoutFor(view.ViewportWidth, view.ViewportHeight, font, view.Session.Locale, view.Session.Data.Words.Typing);
         spriteBatch.Draw(pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), Scrim);
         var box = ToRectangle(layout.Panel);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, box, 9, Background, PanelEdge, 2);
@@ -91,10 +92,11 @@ public sealed class ReportLayer : IFrameLayer
     /// <param name="viewportHeight">The canvas's height.</param>
     /// <param name="font">The font the panel draws with.</param>
     /// <param name="ui">The support language (the hints).</param>
-    public static ReportLayout LayoutFor(int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font, LocaleText ui)
+    /// <param name="typing">The language's typing map (the second hint row lists its Alt keys).</param>
+    public static ReportLayout LayoutFor(int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font, LocaleText ui, TypingMap typing)
     {
         ArgumentNullException.ThrowIfNull(font);
-        return new ReportLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), HintsFirst(ui), HintsSecond(ui));
+        return new ReportLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), HintsFirst(ui), HintsSecond(ui, typing));
     }
 
     private static LocaleText Ui(LocaleText ui) => ui ?? throw new ArgumentNullException(nameof(ui));

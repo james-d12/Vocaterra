@@ -45,6 +45,8 @@ public class PackSeamTests
 
         public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => Spanish.LexiconProfile;
 
+        public IOrthographyNotes Orthography => Spanish.Orthography;
+
         public Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet ErrorTags => Spanish.ErrorTags;
 
         public Vocaterra.Nlp.Language.Morphology.IMorphology CreateMorphology(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon) => Spanish.CreateMorphology(lexicon);

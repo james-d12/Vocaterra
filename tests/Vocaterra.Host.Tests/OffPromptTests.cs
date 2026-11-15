@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Host.Tests;
@@ -12,7 +13,7 @@ public sealed class OffPromptTests
         var session = new ConversationSession(GameContent.Bundle);
         var result = session.Evaluate(line, prompt, Now);
         using var writer = new StringWriter();
-        VerdictReport.Write(writer, prompt, line, result, session.LastExchange);
+        VerdictReport.Write(writer, prompt, line, result, GameContent.Bundle.Language.Orthography, GameWords.Load(GameContent.Bundle), session.LastExchange);
         return writer.ToString();
     }
 

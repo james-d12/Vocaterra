@@ -258,7 +258,7 @@ public sealed class CheckBattery : IScreen
 
         if (!char.IsControl(character))
         {
-            _ = Screen!.Entry.Insert(AccentShortcuts.ForTyped(character, alt));
+            _ = Screen!.Entry.Insert(_session.Data.Words.Typing.ForTyped(character, alt));
         }
     }
 
