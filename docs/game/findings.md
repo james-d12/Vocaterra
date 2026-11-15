@@ -2554,3 +2554,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `MarkdownLinkTests`: the brief the orchestrator had committed beside it held two relative Markdown links, and the test scans
   `.claude/briefs/` too. The agent's own run of the test passed because its branch predated the brief. Fixed by writing the links as
   code; the test re-run passed. A brief names files as code, never as Markdown links.
+- **B01, noise, climate, the height model and the biome table (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b01-noise-climate-biomes.md`, report `.claude/briefs/b01-report.md`. Integer gradient noise (2D, 3D), fBm, ridged and
+  warp, data splines (Catmull-Rom clamped), lattice samplers; the climate with its lapse; `HeightModel` and `ColumnShape` (lakes live in
+  the height model); `BiomeTable` with 14 rows. Findings: the plan's biome ids `forest`, `river` and `lake` clash with string literals in
+  `src/` (a valley pass name and scene-layout words), so the shipped ids are `woodland`, `river-channel` and `lake-basin`; a single
+  `ClimateSampler.At` costs about 12 µs, so area work must use `Fill` (256 x 256 columns of climate, height and biome in 60 ms in
+  Release); the first tuning made 14-block cliffs between neighbouring columns (fine ridged octaves and deep river canyons on uplands),
+  now held to 9 by a test over 3 seeds. Not fixed: peaks are not faded over the sea, so rugged coasts can raise islands; terrace and crag
+  risers reach 8 to 9 blocks. Gated: 11,597 passed, 3 skipped.
