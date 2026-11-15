@@ -21,29 +21,55 @@ public interface IBlockSource
 }
 
 /// <summary>
-/// The blocks of a <see cref="VoxelGrid"/> as a mesher source. The floor under the world (y below zero) reads as stone so the underside of the
+/// The blocks of a <see cref="VoxelGrid"/> as a mesher source, read by peeking (<see cref="VoxelGrid.PeekBlock"/>, <see cref="VoxelGrid.TryGetChunk"/>): a chunk that is not resident reads as air and
+/// nothing is generated or installed. The floor under the world (below <see cref="WorldLimits.MinY"/>) reads as stone so the underside of the
 /// world is not meshed; the other three sides read as air, so the edge of the world shows its layers.
 /// </summary>
 /// <param name="Grid">The grid to read.</param>
 /// <param name="Currents">The river's currents (still-looking source water in a river runs downstream), or <see langword="null"/> for none.</param>
 public sealed record GridBlockSource(VoxelGrid Grid, RiverCurrents? Currents = null) : IBlockSource
 {
-    /// <inheritdoc />
-    public BlockId Get(int x, int y, int z) => y < 0 ? BlockId.Stone : Grid.GetBlock(x, y, z);
+    private readonly PeekReader _peek = new(Grid);
 
     /// <inheritdoc />
-    public WaterLevel GetWater(int x, int y, int z) => Grid.GetWater(x, y, z);
+    public BlockId Get(int x, int y, int z) => y < Grid.Limits.MinY ? BlockId.Stone : Grid.PeekBlock(x, y, z);
+
+    /// <inheritdoc />
+    public WaterLevel GetWater(int x, int y, int z) => _peek.GetWater(x, y, z);
 
     /// <inheritdoc />
     public FlowVector FlowAt(int x, int y, int z)
     {
-        var flow = FlowVector.At(Grid, x, y, z);
-        if (flow.IsHorizontal || Currents is null || Grid.GetBlock(x, y, z) != BlockId.Water || !Grid.GetWater(x, y, z).IsSource)
+        var flow = FlowVector.At(_peek, x, y, z);
+        if (flow.IsHorizontal || Currents is null || Grid.PeekBlock(x, y, z) != BlockId.Water || !_peek.GetWater(x, y, z).IsSource)
         {
             return flow;
         }
 
         return Currents.At(x, z);
+    }
+
+    // The grid as <see cref="FlowVector"/> reads it, without generating a chunk: the two reads it makes (a block, a level) peek.
+    private sealed class PeekReader(VoxelGrid grid) : IVoxelReader
+    {
+        public WorldLimits Limits => grid.Limits;
+
+        public bool InBounds(int x, int y, int z) => grid.InBounds(x, y, z);
+
+        public BlockId GetBlock(int x, int y, int z) => grid.PeekBlock(x, y, z);
+
+        public WaterLevel GetWater(int x, int y, int z) =>
+            grid.InBounds(x, y, z) && grid.TryGetChunk(VoxelChunkCoord.FromBlock(x, y, z), out var chunk)
+                ? chunk.GetWater(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1))
+                : WaterLevel.Source;
+
+        public bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
+
+        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+
+        public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+
+        public int HighestBlock(int x, int z) => throw new NotSupportedException("The mesher does not ask for the highest block of a column.");
     }
 }
 

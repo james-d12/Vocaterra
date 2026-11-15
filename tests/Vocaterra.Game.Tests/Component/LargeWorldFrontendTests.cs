@@ -26,9 +26,9 @@ public sealed class LargeWorldFrontendTests
         Assert.InRange(wanted.Count, 100, 900);
         Assert.True(wanted.Count < grid.Chunks.Count / 4, "a view of 96 blocks is a small part of the world");
         long last = -1;
-        foreach (var index in wanted)
+        foreach (var coord in wanted)
         {
-            var chunk = grid.Chunks[index];
+            var chunk = grid.GetChunk(coord);
             Assert.False(chunk.IsEmpty);
             var distance = ChunkViewSet.DistanceSquared(eye.X + 0.5f, eye.Y + 1.6f, eye.Z + 0.5f, chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z);
             Assert.InRange(distance, last, 96L * 96);

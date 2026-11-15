@@ -174,7 +174,8 @@ Scripted/         ScriptedRunEnd (it saves the pictures)
 Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Camera/         FirstPersonCamera, PlayerCamera, CameraEase, ViewMath (CameraBasis, EdgeArrow), PlayerView
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
-  World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
+  World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, ChunkLightIndex, MeshVertex, OverlayMeshes, Greyscale (B04b: the renderer, tracker, view set, light index and
+                  rain cover are keyed by VoxelChunkCoord, read by peeking (TryGetChunk, PeekBlock; nothing is generated for the picture) and listen to residency and block changes)
   Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
   Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe (the five keyframes: noon, golden, twilight, night, deep night), SkyBlend (their weights by the phase, the daylight and the sun's height), SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
