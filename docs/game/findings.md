@@ -2573,3 +2573,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   of that run depends on load (not yet proven with a second baseline). The valley build is 10 to 12% slower (612 to 690 ms), its grid
   28.5 MB instead of 36.8 MB, neighbour reads 40% faster. The valley's chunks count as changed until `SealPristine()` is called (B05).
   Gated after a merge of `feature/biomes` into the branch (an architecture.md conflict with B01): 11,650 passed, 3 skipped.
+- **B03, the generation pipeline and the procedural chunk source (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b03-generation-pipeline.md`, report `.claude/briefs/b03-report.md`. Column shapers and chunk decorators in one fixed
+  order; the strategy registry (D-game-34 item 13: `surfaceStrategy` and `decorStrategy` on a biome row, faded by distance to another
+  biome); trees on a jittered 4 x 4 grid per chunk with hash priority across chunk borders; every water block a source at 32. Chunk-local
+  (a chunk alone equals the chunk among shuffled neighbours, also from many threads). Findings: trunks stood in the bank column beside
+  water and the exitable-edge scan read their crowns as the floor (31 of 144 sites failed): no trunk within one column of water now, the
+  bank cut reaches 12 (the valley's cut only 4), and a bank beside swimmable water is at most 1 above the surface; the shared scan
+  `UnexitableEdges` now treats a floor of leaves like a bridge, a crown over the water and not a bank (the valley's result unchanged).
+  Times: a surface chunk 1.3 ms median, a whole 24-layer column 1.6 ms (`GenerateColumn`, which B06 should use); a column holds about
+  8 non-empty chunks in lowland and 19 in a range. Not fixed: no slope rule for trees, no reeds by water, the shipped rows name no
+  strategy yet. Gated: 11,732 passed, 3 skipped.

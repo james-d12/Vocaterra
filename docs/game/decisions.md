@@ -804,6 +804,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     more custom areas added ... if I want to make that starting area twice as big, I shouldn't have to change much." Of the four changes
     proposed, the owner chose all four, as one milestone at the end: "add the 4 regions, but add them to the end of the milestones ...
     It's not important at the moment." B16, after B14 and B15.
+15. **Leaving the valley after the unlock** (2026-11-15): B08a found the ring walkable almost everywhere (a walk from the village reaches
+    the east edge over the mountains), so before the unlock the edge wall is what keeps the player in and the rockfall closes the road.
+    Asked how the player may leave once the pass opens, the owner chose "Anywhere": the edge wall lifts all the way round; the pass and
+    its road are the easy way out (from "Only through the pass" and "Make the ring unclimbable").
 
 ## Already decided
 
