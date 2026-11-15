@@ -125,7 +125,11 @@ public sealed class SceneDrawer : IDisposable
         var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);
         var fogStart = fogEnd * (_renderer.FarRange > 0 ? VoxelRenderer.FarFogStartFraction : VoxelRenderer.FogStartFraction);
         _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {fogStart:0} to {fogEnd:0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
-        _console(_streaming is null ? "world: the bounded valley (--world valley)" : $"world: streamed, {_streaming.Pool.Workers} worker thread(s), far view {(_renderer.FarRange > 0 ? $"to {_renderer.FarRange} blocks" : "off")}");
+        if (_streaming is not null)
+        {
+            _console($"world: streamed, {_streaming.Pool.Workers} worker thread(s), far view {(_renderer.FarRange > 0 ? $"to {_renderer.FarRange} blocks" : "off")}"); // the bounded valley prints nothing: its runs compare byte for byte
+        }
+
         _console($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {device.PresentationParameters.DepthStencilFormat}, {(device.PresentationParameters.IsFullScreen ? "full screen" : "window")} {device.PresentationParameters.BackBufferWidth}x{device.PresentationParameters.BackBufferHeight}");
         if (_options.Greyscale)
         {

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Graphics.Far;
 
@@ -146,7 +147,7 @@ public static class FarTileMesher
     {
         ArgumentNullException.ThrowIfNull(sampler);
         ArgumentNullException.ThrowIfNull(settings);
-        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var started = MonotonicClock.Milliseconds();
         var n = settings.TileCells;
         var cell = settings.CellOf(key.Level);
         var x0 = key.MinX(settings);
@@ -190,7 +191,7 @@ public static class FarTileMesher
 
         var size = n * cell;
         var box = new BoundingBox(new Vector3(x0, minY, z0), new Vector3(x0 + size, maxY, z0 + size));
-        return new FarTileMesh(key, vertices, box, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        return new FarTileMesh(key, vertices, box, MonotonicClock.Milliseconds() - started);
     }
 
     /// <summary>The colour of a column shaded by <paramref name="shade"/>: its top block's, the sea's under water, white under snow, mixed with the leaves' by the forest on it.</summary>

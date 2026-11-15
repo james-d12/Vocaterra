@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Streaming;
+using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Streaming;
 
@@ -54,7 +54,7 @@ public sealed class ChunkResidency
     private long _evicted;
     private long _dropped;
     private long _plans;
-    private long _generateTicks;
+    private long _generateMicroseconds;
 
     /// <summary>Creates the driver of a streamed grid.</summary>
     /// <param name="grid">The streamed grid; only the game loop's thread touches it.</param>
@@ -97,7 +97,7 @@ public sealed class ChunkResidency
     public bool IsSettled => _planNow is { } plan && !_planDue && _inFlight.Count == 0 && _done.IsEmpty && _cursor >= plan.Columns.Count && _evictCursor >= _evictions.Count;
 
     /// <summary>What the driver has done.</summary>
-    public ResidencyStats Stats => new(_grid.ResidentChunkCount, _planNow?.Columns.Count ?? 0, _inFlight.Count, _installed, _evicted, _dropped, _plans, TimeSpan.FromTicks(Interlocked.Read(ref _generateTicks)).TotalMilliseconds);
+    public ResidencyStats Stats => new(_grid.ResidentChunkCount, _planNow?.Columns.Count ?? 0, _inFlight.Count, _installed, _evicted, _dropped, _plans, Interlocked.Read(ref _generateMicroseconds) / 1000.0);
 
     /// <summary>
     /// One frame's work, from the player's eye: plans when the player's chunk (or whether they are underground) changed, installs what the workers finished, asks for the missing columns nearest first and drops
@@ -109,8 +109,8 @@ public sealed class ChunkResidency
     /// <param name="budgetMilliseconds">The most time to spend on the game loop's thread, or <see langword="null"/> for as much as it takes (the settle step).</param>
     public void Update(float eyeX, float eyeY, float eyeZ, double? budgetMilliseconds)
     {
-        var started = Stopwatch.GetTimestamp();
-        bool Over() => budgetMilliseconds is { } budget && Stopwatch.GetElapsedTime(started).TotalMilliseconds >= budget;
+        var started = MonotonicClock.Milliseconds();
+        bool Over() => budgetMilliseconds is { } budget && MonotonicClock.Milliseconds() - started >= budget;
         _frames++;
         var feet = VoxelChunkCoord.FromBlock((int)MathF.Floor(eyeX), (int)MathF.Floor(eyeY), (int)MathF.Floor(eyeZ));
         var underground = _places?.IsUnderground((int)MathF.Floor(eyeX), (int)MathF.Floor(eyeY), (int)MathF.Floor(eyeZ)) ?? false;
@@ -143,7 +143,7 @@ public sealed class ChunkResidency
     /// <returns>Whether the world settled before the timeout.</returns>
     public bool Settle(float eyeX, float eyeY, float eyeZ, double timeoutMilliseconds = 120_000)
     {
-        var started = Stopwatch.GetTimestamp();
+        var started = MonotonicClock.Milliseconds();
         while (true)
         {
             Update(eyeX, eyeY, eyeZ, null);
@@ -152,7 +152,7 @@ public sealed class ChunkResidency
                 return true;
             }
 
-            if (Stopwatch.GetElapsedTime(started).TotalMilliseconds > timeoutMilliseconds)
+            if (MonotonicClock.Milliseconds() - started > timeoutMilliseconds)
             {
                 return false;
             }
@@ -244,7 +244,7 @@ public sealed class ChunkResidency
                 _dropped++;
             }
 
-            if (installs >= 256 || over())
+            if (installs >= 96 || over())
             {
                 return;
             }
@@ -313,11 +313,12 @@ public sealed class ChunkResidency
             _ = _inFlight.Add(key);
             var distance = ((long)(column.ChunkX - _planFor.X) * (column.ChunkX - _planFor.X)) + ((long)(column.ChunkZ - _planFor.Z) * (column.ChunkZ - _planFor.Z));
             var (cx, cz, lo, hi) = (column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer);
+            // A column the player has moved away from by the time a worker reaches it is not made, but its package still comes back (empty), so the game loop forgets that it asked.
             _pool.Submit(
                 JobLane.Residency,
                 distance,
-                () => _planNow is not { } current || !current.TryGetLayers(cx, cz, out _, out _),
-                () => _done.Enqueue(new ColumnPackage(cx, cz, Generate(cx, cz, lo, hi))));
+                static () => false,
+                () => _done.Enqueue(new ColumnPackage(cx, cz, _planNow is not { } current || !current.TryGetLayers(cx, cz, out _, out _) ? [] : Generate(cx, cz, lo, hi))));
             submitted++;
             _cursor++;
         }
@@ -325,9 +326,9 @@ public sealed class ChunkResidency
 
     private IReadOnlyList<ChunkData> Generate(int chunkX, int chunkZ, int minLayer, int maxLayer)
     {
-        var started = Stopwatch.GetTimestamp();
+        var started = MonotonicClock.Milliseconds();
         var layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer);
-        _ = Interlocked.Add(ref _generateTicks, Stopwatch.GetElapsedTime(started).Ticks);
+        _ = Interlocked.Add(ref _generateMicroseconds, (long)((MonotonicClock.Milliseconds() - started) * 1000));
         return layers;
     }
 

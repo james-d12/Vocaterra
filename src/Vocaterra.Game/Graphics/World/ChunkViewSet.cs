@@ -152,14 +152,9 @@ public sealed class ChunkViewSet : IChunkResidencyListener
             // Across, not up: a column's own band decides which of its layers are resident, so the layers above and below the eye are as far as the residency goes.
             EmptyChunks = 0;
             var across = (long)ViewDistance * ViewDistance;
-            foreach (var coord in _grid.ResidentChunks)
+            foreach (var coord in _ready)
             {
-                if (Math.Abs(coord.X - eyeChunk.Item1) > reach || Math.Abs(coord.Z - eyeChunk.Item3) > reach)
-                {
-                    continue;
-                }
-
-                if (!_ready.Contains(coord) || !_grid.TryGetChunk(coord, out var chunk))
+                if (Math.Abs(coord.X - eyeChunk.Item1) > reach || Math.Abs(coord.Z - eyeChunk.Item3) > reach || !_grid.TryGetChunk(coord, out var chunk))
                 {
                     continue;
                 }

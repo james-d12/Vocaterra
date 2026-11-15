@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Graphics.Far;
@@ -179,7 +180,7 @@ public sealed class FarView
     /// <returns>Whether every leaf was built in time.</returns>
     public bool Settle(double eyeX, double eyeZ, int voxelViewDistance, Action<FarTile> dispose, double timeoutMilliseconds = 180_000)
     {
-        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var started = MonotonicClock.Milliseconds();
         while (true)
         {
             Update(eyeX, eyeZ, voxelViewDistance, dispose, null);
@@ -188,7 +189,7 @@ public sealed class FarView
                 return true;
             }
 
-            if (System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds > timeoutMilliseconds)
+            if (MonotonicClock.Milliseconds() - started > timeoutMilliseconds)
             {
                 return false;
             }

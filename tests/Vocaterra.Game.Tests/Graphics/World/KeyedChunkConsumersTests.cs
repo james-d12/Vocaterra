@@ -163,9 +163,17 @@ public sealed class KeyedChunkConsumersTests
         var ground = new VoxelChunkCoord(9, 4, 6);
         Assert.True(valley.TryGetChunk(ground, out var source) && !source.IsEmpty);
         _ = grid.GetChunk(ground); // installs it
+        Assert.DoesNotContain(ground, set.Update(eye.X, eye.Y, eye.Z)); // B07: a chunk of a streamed grid is meshed only when all 26 of its neighbours are resident too
+        var neighbours = Enumerable.Range(-1, 3).SelectMany(dz => Enumerable.Range(-1, 3).SelectMany(dy => Enumerable.Range(-1, 3).Select(dx => new VoxelChunkCoord(ground.X + dx, ground.Y + dy, ground.Z + dz))))
+            .Where(c => c != ground && grid.Limits.Contains(c)).ToList();
+        foreach (var neighbour in neighbours)
+        {
+            _ = grid.GetChunk(neighbour);
+        }
+
         var wanted = set.Update(eye.X, eye.Y, eye.Z);
 
-        Assert.Contains(ground, wanted); // a newly installed chunk is wanted, and due
+        Assert.Contains(ground, wanted); // a newly installed chunk with its neighbourhood is wanted, and due
         Assert.True(tracker.IsDue(ground));
         tracker.MarkMeshed(ground);
         Assert.False(tracker.IsDue(ground));
@@ -175,6 +183,11 @@ public sealed class KeyedChunkConsumersTests
 
         Assert.DoesNotContain(ground, set.Update(eye.X, eye.Y, eye.Z)); // an evicted chunk is no longer wanted, and its mesh is forgotten
         Assert.False(tracker.HasMesh(ground));
+        foreach (var neighbour in neighbours)
+        {
+            Assert.True(grid.TryEvictChunk(neighbour));
+        }
+
         Assert.Equal(0, grid.ResidentChunkCount);
     }
 

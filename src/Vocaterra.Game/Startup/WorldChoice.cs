@@ -14,7 +14,7 @@ public enum WorldChoice
 public static class WorldChoices
 {
     /// <summary>The names, for a usage error.</summary>
-    public const string Names = "streamed or valley";
+    public static string Names => string.Join(" or ", Enum.GetNames<WorldChoice>().Select(static name => name.ToLowerInvariant()));
 
     /// <summary>The world a name stands for, or <see langword="null"/>.</summary>
     /// <param name="value">The name.</param>

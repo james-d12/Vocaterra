@@ -507,8 +507,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             }
         }
 
-        // Installing or evicting a chunk changes what the layers across its edges are (the keys of its neighbours), as an edit does.
-        var recheck = _checkedEdits != _grid.EditCount || _checkedResidency != _grid.ResidencyVersion;
+        // Installing or evicting a chunk changes what the layers across its edges are (the keys of its neighbours), as an edit does, on a grid whose chunks are not all there; on a streamed grid a chunk
+        // is listed only once its whole neighbourhood is resident, and what a chunk holds when it comes back is what it held when it went (a changed chunk is never dropped), so a residency change
+        // alone leaves every mesh's key as it was and only an edit asks for the keys to be compared.
+        var recheck = _checkedEdits != _grid.EditCount || (!_grid.IsStreamed && _checkedResidency != _grid.ResidencyVersion);
         var due = new List<VoxelChunkCoord>();
         var offscreen = new List<VoxelChunkCoord>();
         List<VoxelChunkCoord>? stale = null;

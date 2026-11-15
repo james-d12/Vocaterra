@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
-using Vocaterra.Game.Tests.Streaming;
 using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Graphics.Far;
+using Vocaterra.Game.Tests.Streaming;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests.Graphics.Far;

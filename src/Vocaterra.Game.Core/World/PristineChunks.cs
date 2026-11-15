@@ -16,7 +16,7 @@ public sealed class PristineChunks
     private static readonly BlockId[] StoneBlocks = Enumerable.Repeat(BlockId.Stone, VoxelChunk.Volume).ToArray();
 
     private readonly StreamedWorld _world;
-    private readonly Dictionary<long, ColumnBand> _bands = [];
+    private readonly Dictionary<long, Column> _columns = [];
 
     /// <summary>Creates a reader over a streamed world.</summary>
     /// <param name="world">The pure parts of the world.</param>
@@ -36,26 +36,32 @@ public sealed class PristineChunks
         }
 
         var key = ((long)coord.X << 32) | (uint)coord.Z;
-        if (!_bands.TryGetValue(key, out var band))
+        if (!_columns.TryGetValue(key, out var column))
         {
-            _bands[key] = band = _world.Bands.Of(coord.X, coord.Z);
+            var band = _world.Bands.Of(coord.X, coord.Z);
+            // The band's layers of a column are made together from one window (about what one chunk costs alone), the first time one of them is asked for.
+            _columns[key] = column = new Column(band, band.IsEmpty ? null : _world.GenerateLayers(coord.X, coord.Z, band.MinLayer, band.MaxLayer));
         }
 
-        if (!band.IsEmpty)
+        if (!column.Band.IsEmpty)
         {
-            if (coord.Y > band.MaxLayer)
+            if (coord.Y > column.Band.MaxLayer)
             {
                 return null;
             }
 
-            if (coord.Y < band.MinLayer)
+            if (coord.Y < column.Band.MinLayer)
             {
                 return Make(coord, new ChunkContent(StoneBlocks, null));
             }
+
+            return Make(coord, GridResidency.ContentOf(column.Layers![coord.Y - column.Band.MinLayer]));
         }
 
         return Make(coord, GridResidency.ContentOf(_world.Source.Generate(coord)));
     }
+
+    private sealed record Column(ColumnBand Band, IReadOnlyList<ChunkData>? Layers);
 
     private static VoxelChunk? Make(VoxelChunkCoord coord, ChunkContent? content)
     {

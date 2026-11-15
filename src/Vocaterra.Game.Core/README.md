@@ -409,7 +409,7 @@ Tests: `World/Streaming` and `World/Generation/Procedural` (the chunk-locality, 
 
 ## Regions, the blend, the streamed world and the place query (B06, `World/Regions`, `World/Streaming`, `World`)
 
-The valley becomes the first **region** of a world that can be streamed. The game still plays on the bounded valley: `WorldFactory.Create(data, seed, WorldMode.Bounded)` is `Program.cs`'s one scene call, and it returns the scene the scene builder makes with two additions (`Scene.Places`, `Scene.TemplateDigest`). `WorldMode.Streamed` returns the same scene on a sparse grid; B07 wires that into the renderer.
+The valley becomes the first **region** of a world that can be streamed. `WorldFactory.Create(data, seed, mode)` is `Program.cs`'s one scene call: `WorldMode.Bounded` (`--world valley`) returns the scene the scene builder makes with two additions (`Scene.Places`, `Scene.TemplateDigest`), `WorldMode.Streamed` (the default since B07) returns the same scene on a sparse grid, with the valley's edge wall and `Scene.Streaming`.
 
 | Type | Role |
 |---|---|
@@ -425,6 +425,21 @@ The valley becomes the first **region** of a world that can be streamed. The gam
 Fire rings and the land rules no longer scan the world: `FireRings` and `LandRules` read `Scene.CurrentBlocksOfKind` (the template's positions that still hold the kind, and the kind in the changed chunks) and `FireRings` hears of the stones set or broken afterwards from the grid's change listener. The dense-member allow-list (`DenseGridMembersAllowListTests`) is empty; the test stays and fails on any new use of `Chunks`, `ChunksX/Y/Z`, `BlocksOfKind` or `ComputeDigest` on a grid. The state header carries the template digest (`WorldStateHeader.For(bundle, seed, scene.TemplateDigest)`).
 
 Tests: `tests/.../World/Regions` (the region, the composite source, the blend, the ring walk, the trees at the border, the factory, the streamer, the policy determinism, the place query, the window, another size of region, the data and the timing); `ProceduralWorldPurityTests` covers `World/Regions` as well.
+
+## The streamed world's residency, far land and edge wall (B07, `World/Streaming`, `World/Far`, `Voxel/BodyBarrier.cs`, `World/PristineChunks.cs`)
+
+B07 makes the streamed world the game's. Core adds the pure parts; the threads, the renderer and the far tiles are in `Vocaterra.Game` (`Streaming/`, `Graphics/Far/`).
+
+| Type | Role |
+|---|---|
+| `SurfaceBands`, `ColumnBand` | which chunk layers of a column meet the ground, decided from the shaped heights with no chunk generated (`ProceduralChunkSource.SurfaceBand` mirrors the generator's own shortcuts exactly: air above the highest ground, the sea and the tallest tree, solid stone under the lowest ground less the deepest filler); inside a region, the region's layers that hold something and are not one solid block. A test generates sample columns (valley, coast, plain, range) and holds every layer outside the band to all air or all one solid block |
+| `BandStreamer`, `BandStreamPolicy`, `BandPlan`, `WantedColumn` | the residency policy of the tall world: the band of every column in a disc of `LoadRadius` columns, padded by a layer and a column (each column holds the hull of its 3 x 3 columns' bands, one layer wider each way, so every band chunk has all 26 neighbours), every layer under the player within `NearRadius` columns (`UndergroundNearRadius` when underground), nearest first; `Holds` says what stays (the keep radius and one column of slack, one layer of slack). It reads no grid and keeps no state |
+| `StreamedWorld`, `GridResidency`, `Scene.Streaming` | what a host drives the world from: the composite source, the bands, the far sampler and the regions, and the one place a host installs a generated `ChunkData` into the grid, drops an unchanged chunk and lists the resident ones (installs and evictions are not edits; a duplicate install is dropped; a changed chunk is never dropped). `GenerateLayers` makes some layers of one column from one shared window |
+| `World/Far`: `FarTerrainSampler`, `FarSample` | the land as the far view sees it: height, water level, top block, snow and a forest density for a column, from the same climate, blended height and biome table the generator uses (`Fill` over a grid of columns), and from the region's own chunks inside a region (past the crowns and the water, to the first solid block). Pure and thread-safe; no biome id is in code. Against the generated surface of 120 columns outside the valley: height within 3 blocks in 119, same water in 120, same top block in 120 |
+| `BodyBarrier`, `VoxelGrid.Barrier` | the valley's edge as an invisible wall for the body: while locked every column outside the footprint blocks `VoxelGrid.BlocksBody` (the collider, the walk planner), never `IsSolid` (rays, placement and the renderer see the world as it is). `WorldFactory` sets it round the valley's footprint on a streamed grid; `VoxelSession.SyncPassBarrier` follows the pass (locked while it is closed, lifted all round once it opens, each tick and after a load) |
+| `PristineChunks` | the chunks as generated, read without installing: a region's chunk straight, air above a column's band, one shared array of stone under it, generation only for the band. `WorldFacts.Snapshot` and `Live` take it, so a guide's question outside the valley neither stalls generating the thousands of chunks of its window nor fills the grid with them (B06's finding) |
+
+`VoxelGrid` gains `ResidentChunks` (a live view of the resident coordinates) and the barrier. `ProceduralWorldPurityTests` now covers `World/Far`. Tests: `World/Streaming` (`SurfaceBandsTests`, `BandStreamerTests`, `PristineChunksTests`), `World/Far` (`FarTerrainSamplerTests`), `Voxel/BodyBarrierTests`.
 
 ## The pass's lock (B08b, `World/Pass`, `Session/VoxelSession.Pass.cs`)
 

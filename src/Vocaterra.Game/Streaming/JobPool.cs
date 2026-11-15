@@ -1,3 +1,5 @@
+using Vocaterra.Game.Diagnostics;
+
 namespace Vocaterra.Game.Streaming;
 
 /// <summary>Which queue a job waits in: the residency's jobs always go before the far view's.</summary>
@@ -105,7 +107,7 @@ public sealed class JobPool : IDisposable
     /// <returns>How many jobs it took.</returns>
     public int RunInline(double? budgetMilliseconds)
     {
-        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var started = MonotonicClock.Milliseconds();
         var ran = 0;
         while (true)
         {
@@ -122,7 +124,7 @@ public sealed class JobPool : IDisposable
 
             Run(job);
             ran++;
-            if (budgetMilliseconds is { } budget && System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds >= budget)
+            if (budgetMilliseconds is { } budget && MonotonicClock.Milliseconds() - started >= budget)
             {
                 return ran;
             }

@@ -159,6 +159,42 @@ public sealed class ChunkResidencyTests
         Assert.True(compared > 50);
     }
 
+    private sealed class ThreadRecorder : IChunkResidencyListener
+    {
+        public HashSet<int> Threads { get; } = [];
+
+        public int Events { get; private set; }
+
+        public void OnChunkInstalled(VoxelChunkCoord coord) => Note();
+
+        public void OnChunkEvicted(VoxelChunkCoord coord) => Note();
+
+        private void Note()
+        {
+            _ = Threads.Add(Environment.CurrentManagedThreadId);
+            Events++;
+        }
+    }
+
+    [Fact]
+    public void Given_TwoWorkers_When_TheWorldStreamsIn_Then_EveryInstallAndEvictionHappensOnTheCallersThreadAndNeverOnAWorker()
+    {
+        var scene = StreamedWorlds.Scene();
+        var recorder = new ThreadRecorder();
+        scene.Grid.AddResidencyListener(recorder);
+        using var pool = new JobPool(2);
+        var residency = Make(scene, pool);
+        var (x, y, z) = Eye(scene);
+
+        Assert.True(residency.Settle(x, y, z));
+        Assert.True(residency.Settle(x + 500, y, z));
+
+        Assert.True(recorder.Events > 500);
+        Assert.Equal([Environment.CurrentManagedThreadId], recorder.Threads);
+        Assert.True(residency.Stats.Evicted > 0);
+        Assert.Null(pool.Failure);
+    }
+
     // ------------------------------------------------------------------ residency never changes a result
 
     // The player's walk, out of the valley through the pass and round, as eye positions.
