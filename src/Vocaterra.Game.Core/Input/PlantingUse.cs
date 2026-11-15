@@ -13,12 +13,14 @@ public static class PlantingUse
     /// <param name="selected">The hotbar's selected stack.</param>
     /// <param name="target">The block under the crosshair within reach, or <see langword="null"/>.</param>
     /// <param name="needs">The needs, with the planting rule (optional in the file).</param>
-    public static bool Applies(IInputFrame input, bool captured, ItemStack selected, BlockRayHit? target, NeedsData needs)
+    /// <param name="items">The item catalogue (the rule names its item by key).</param>
+    public static bool Applies(IInputFrame input, bool captured, ItemStack selected, BlockRayHit? target, NeedsData needs, IItemCatalogue items)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(needs);
+        ArgumentNullException.ThrowIfNull(items);
         return captured && input.RightClicked && !selected.IsEmpty && needs.Planting is { } rule
-            && string.Equals(ItemDefinition.Get(selected.Item).Name, rule.Item, StringComparison.Ordinal)
+            && string.Equals(items.Get(selected.Item).Name, rule.Item, StringComparison.Ordinal)
             && target is { Id: BlockId.Grass or BlockId.Dirt };
     }
 }

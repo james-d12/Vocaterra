@@ -217,7 +217,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
             {
                 // Asked before the order, the learner has no coins: nothing changes hands, and Luz says so after the lesson's own line.
                 Assert.Contains("Necesitas más monedas.", done[^1].Shown);
-                Assert.Equal((0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Bread)));
+                Assert.Equal((0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Bread)));
                 Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven && e.Npc == "baker");
             }
 
@@ -240,7 +240,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         var purchase = done.Single(static d => d.Id == "n6-buy");
         Assert.Equal(("request_item", false), (purchase.Turn!.Intent, purchase.Turn.LessonHandled)); // said to Luz, not taken by the lesson
         Assert.Contains(purchase.Turn.GuideLines, static l => l.EndsWith("¡Gracias!", StringComparison.Ordinal));
-        Assert.Equal((0, 2), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Bread)));
+        Assert.Equal((0, 2), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Bread)));
 
         var turns = done.Where(static d => d.Turn is not null && d.Id != "n6-buy").ToList();
         Assert.Equal(
@@ -358,13 +358,13 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         var short1 = session.Say("Quiero dos panes, por favor"); // two loaves are four coins
         Assert.Equal(("request_item", "2"), (short1.Intent, short1.Slots["qty"]));
         Assert.Equal(["Necesitas más monedas."], short1.GuideLines); // her line of the sale is not said; cant_pay is
-        Assert.Equal((3, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Bread)));
+        Assert.Equal((3, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Bread)));
         Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven && e.Npc == "baker");
 
         _ = session.Simulation.GrantItems(ItemId.Coin, 1);
         var bought = session.Say("Quiero dos panes, por favor");
         Assert.Single(bought.GuideLines, static l => l.EndsWith("¡Gracias!", StringComparison.Ordinal));
-        Assert.Equal((0, 2), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Bread)));
+        Assert.Equal((0, 2), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Bread)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken && e.Npc == "baker" && e.Detail == "moneda, request");
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemGiven && e.Npc == "baker" && e.Detail == "pan, request");
     }
@@ -497,7 +497,7 @@ public sealed class BakeryLessonTests(ITestOutputHelper output)
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
         _ = session.Say("Sí, por favor"); // the bread the stall offers is still a gift: no coins, and none asked for
 
-        Assert.Equal((1, 0), (session.Simulation.Inventory.Count(ItemId.Bread), session.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.Equal((1, 0), (session.Simulation.Inventory.Count(TestItems.Bread), session.Simulation.Inventory.Count(ItemId.Coin)));
         Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken);
     }
 }

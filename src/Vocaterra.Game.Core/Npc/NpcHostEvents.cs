@@ -264,7 +264,7 @@ public sealed record NpcEffect(
     {
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(nouns);
-        bag ??= new Inventory();
+        bag ??= new Inventory(nouns.Items);
         if (Prices is not null)
         {
             // W04: a price list sells or buys what the line names when it is listed; any other item, and a line that names none, is the same refusal as another item at a fixed entry
@@ -326,12 +326,11 @@ public sealed record NpcEffect(
             return null;
         }
 
-        bag ??= new Inventory();
         plot ??= new PlotFacts(false, false, 0);
         return plot.Owned ? NpcHostEvents.AlreadyOwned
-            : !plot.Marked ? (bag.Count(ItemId.Stake) > 0 ? NpcHostEvents.NoPlot : NpcHostEvents.NoStake)
-            : bag.Count(ItemId.Coin) < plot.Price ? NpcHostEvents.CantPay
-            : !RoomForKit(bag, plot.Price) ? NpcHostEvents.NoRoom
+            : !plot.Marked ? ((bag?.Count(ItemId.Stake) ?? 0) > 0 ? NpcHostEvents.NoPlot : NpcHostEvents.NoStake)
+            : (bag?.Count(ItemId.Coin) ?? 0) < plot.Price ? NpcHostEvents.CantPay
+            : bag is not null && !RoomForKit(bag, plot.Price) ? NpcHostEvents.NoRoom
             : null;
     }
 
@@ -371,11 +370,11 @@ public sealed record NpcEffect(
 
         if (miss is null)
         {
-            return closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(Item).Name)) ? NpcHostEvents.GiftUsed : null;
+            return closedGifts.Contains(Needs.GiftRule.KeyOf(npc, nouns.Items.Get(Item).Name)) ? NpcHostEvents.GiftUsed : null;
         }
 
         var instead = Instead is not null && Instead.Values.Contains(miss) && slots.TryGetValue(ItemSlot, out var word) && word is not null ? nouns.ForLemma(word) : null;
-        return instead is not null && instead.Items.Any(item => closedGifts.Contains(Needs.GiftRule.KeyOf(npc, ItemDefinition.Get(item).Name))) ? NpcHostEvents.GiftUsed : miss;
+        return instead is not null && instead.Items.Any(item => closedGifts.Contains(Needs.GiftRule.KeyOf(npc, nouns.Items.Get(item).Name))) ? NpcHostEvents.GiftUsed : miss;
     }
 
     /// <summary>

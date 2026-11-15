@@ -27,7 +27,7 @@ public sealed partial class VoxelSession
     /// <param name="npc">The agent id.</param>
     /// <param name="item">The item.</param>
     public bool GiftClosed(string npc, ItemId item) =>
-        NeedsEnabled && Data.Needs.GiftOf(npc, ItemDefinition.Get(item).Name) is { } rule && _giftsGiven.Contains(rule.Key) && !GiftRequired(npc);
+        NeedsEnabled && Data.Needs.GiftOf(npc, Data.Items.Get(item).Name) is { } rule && _giftsGiven.Contains(rule.Key) && !GiftRequired(npc);
 
     /// <inheritdoc />
     protected override IReadOnlySet<string>? ClosedGifts =>
@@ -41,7 +41,7 @@ public sealed partial class VoxelSession
     // An NPC's gift was made: a gift of the rules counts for the day, unless a lesson step required it.
     private void CountGift(string npc, ItemId item)
     {
-        if (NeedsEnabled && Data.Needs.GiftOf(npc, ItemDefinition.Get(item).Name) is { } rule && !GiftRequired(npc))
+        if (NeedsEnabled && Data.Needs.GiftOf(npc, Data.Items.Get(item).Name) is { } rule && !GiftRequired(npc))
         {
             _ = _giftsGiven.Add(rule.Key);
         }

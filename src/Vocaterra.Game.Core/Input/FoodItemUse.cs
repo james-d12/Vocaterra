@@ -11,10 +11,12 @@ public static class FoodItemUse
     /// <param name="captured">Whether the mouse is captured (the world has the input).</param>
     /// <param name="selected">The hotbar's selected stack.</param>
     /// <param name="needs">The foods of <c>needs.json</c>.</param>
-    public static bool Applies(IInputFrame input, bool captured, ItemStack selected, NeedsData needs)
+    /// <param name="items">The item catalogue (a food is named by its key).</param>
+    public static bool Applies(IInputFrame input, bool captured, ItemStack selected, NeedsData needs, IItemCatalogue items)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(needs);
-        return captured && input.RightClicked && !selected.IsEmpty && needs.FoodOf(ItemDefinition.Get(selected.Item).Name) is not null;
+        ArgumentNullException.ThrowIfNull(items);
+        return captured && input.RightClicked && !selected.IsEmpty && needs.FoodOf(items.Get(selected.Item).Name) is not null;
     }
 }

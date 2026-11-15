@@ -1,4 +1,4 @@
-using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Graphics.Blocks;
 
 namespace Vocaterra.Game.Tests.Graphics.Blocks;
@@ -37,7 +37,7 @@ public sealed class StationIconTests
         Assert.Equal(BlockCell.IconPlain, BlockAtlasLayout.IconForKey("hand"));
         Assert.Equal(BlockCell.IconPlain, BlockAtlasLayout.IconForKey(string.Empty));
         Assert.InRange(Painted(BlockCell.IconPlain), 100, 220);
-        Assert.All(ItemDefinition.All, static d => Assert.NotEqual(BlockCell.IconPlain, BlockAtlasLayout.IconForKey(d.Name)));
+        Assert.All(TestItems.Catalogue.All, static d => Assert.NotEqual(BlockCell.IconPlain, BlockAtlasLayout.IconForKey(d.Name)));
     }
 
     [Fact]

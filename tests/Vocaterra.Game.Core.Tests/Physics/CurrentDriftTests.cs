@@ -100,7 +100,7 @@ public sealed class CurrentDriftTests
         (int X, int Z, string Digest) Drift()
         {
             var scene = RouteScene.Build();
-            var sim = VoxelSimulation.Create(scene);
+            var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
             var spot = scene.Point("river");
             sim.TeleportTo(new BlockPos(spot.X, spot.Y - 1, spot.Z));
             for (var i = 0; i < 180; i++)

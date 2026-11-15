@@ -73,13 +73,13 @@ public sealed class EatDrinkSprintTests
     {
         var session = Eating(40);
         session.SetNeed(NeedMeter.Health, 80);
-        session.Simulation.GrantItems(ItemId.Bread, 2);
+        session.Simulation.GrantItems(TestItems.Bread, 2);
 
-        Assert.Equal(NeedActionResult.Done, session.EatItem(ItemId.Bread));
+        Assert.Equal(NeedActionResult.Done, session.EatItem(TestItems.Bread));
 
         Assert.Equal(65, Meter(session, NeedMeter.Hunger), 6); // bread: hunger +25
         Assert.Equal(85, Meter(session, NeedMeter.Health), 6); // and healing +5
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
 
         session.SetNeed(NeedMeter.Hunger, 95);
         session.Simulation.GrantItems(ItemId.Berry, 1);
@@ -92,14 +92,14 @@ public sealed class EatDrinkSprintTests
     public void ARightClickEatsTheSelectedFoodAndNothingElse()
     {
         var session = Eating(40);
-        session.Simulation.GrantItems(ItemId.Apple, 1);
-        var slot = Enumerable.Range(0, Inventory.HotbarSize).First(i => session.Simulation.Inventory.Slots[i] is { IsEmpty: false, Item: ItemId.Apple });
+        session.Simulation.GrantItems(TestItems.Apple, 1);
+        var slot = Enumerable.Range(0, Inventory.HotbarSize).First(i => session.Simulation.Inventory.Slots[i] is { IsEmpty: false, Item: TestItems.Apple });
         session.Step([VoxelCommand.SelectSlot(slot)]);
 
         Assert.Equal(NeedActionResult.Done, session.EatSelected());
 
         Assert.Equal(52, Meter(session, NeedMeter.Hunger), 1); // apple: hunger +12 (the tick before it cost a hair)
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Apple));
+        Assert.Equal(0, session.Simulation.Inventory.Count(TestItems.Apple));
         Assert.Equal(NeedActionResult.Nothing, session.EatSelected()); // an empty slot is no food
 
         session.Step([VoxelCommand.SelectSlot(0)]);
@@ -111,17 +111,17 @@ public sealed class EatDrinkSprintTests
     public void AtFullHungerTheFoodIsKeptWithALineAndNoEvent()
     {
         var session = TestGame.NewSession();
-        session.Simulation.GrantItems(ItemId.Bread, 1);
+        session.Simulation.GrantItems(TestItems.Bread, 1);
 
-        Assert.Equal(NeedActionResult.Kept, session.EatItem(ItemId.Bread));
+        Assert.Equal(NeedActionResult.Kept, session.EatItem(TestItems.Bread));
 
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal([session.Locale.Ui(VoxelSession.FoodKeptHint)], session.TakeHints());
         Assert.Empty(Named(session, WorldEvents.MealEaten));
 
         session.SetNeed(NeedMeter.Thirst, 10); // a thirsty player who is not hungry still keeps the bread
-        Assert.Equal(NeedActionResult.Kept, session.EatItem(ItemId.Bread));
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(NeedActionResult.Kept, session.EatItem(TestItems.Bread));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -151,13 +151,13 @@ public sealed class EatDrinkSprintTests
     public void AMealRaisesMealEatenWithTheFoodsNoun()
     {
         var session = Eating(40);
-        session.Simulation.GrantItems(ItemId.Bread, 1);
+        session.Simulation.GrantItems(TestItems.Bread, 1);
         session.Simulation.GrantItems(ItemId.Berry, 1);
 
-        session.EatItem(ItemId.Bread);
+        session.EatItem(TestItems.Bread);
         session.EatItem(ItemId.Berry);
 
-        Assert.Equal([Noun(ItemId.Bread), Noun(ItemId.Berry)], Named(session, WorldEvents.MealEaten).Select(static e => e.Detail).ToList());
+        Assert.Equal([Noun(TestItems.Bread), Noun(ItemId.Berry)], Named(session, WorldEvents.MealEaten).Select(static e => e.Detail).ToList());
     }
 
     [Fact]
@@ -220,17 +220,17 @@ public sealed class EatDrinkSprintTests
     {
         var session = Eating(40, 30);
         session.NeedsEnabled = false;
-        session.Simulation.GrantItems(ItemId.Bread, 1);
+        session.Simulation.GrantItems(TestItems.Bread, 1);
         session.Simulation.GrantItems(ItemId.WaterBottle, 1);
 
-        Assert.Equal(NeedActionResult.Done, session.EatItem(ItemId.Bread));
+        Assert.Equal(NeedActionResult.Done, session.EatItem(TestItems.Bread));
         Assert.Equal(NeedActionResult.Done, session.EatItem(ItemId.WaterBottle));
         AtTheRiver(session);
         Assert.Equal(NeedActionResult.Done, session.DrinkByHand());
 
         Assert.Equal(40, Meter(session, NeedMeter.Hunger));
         Assert.Equal(30, Meter(session, NeedMeter.Thirst));
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Single(Named(session, WorldEvents.MealEaten));
         Assert.Equal(["botella", TestGame.Data.Words.Noun("river")], Named(session, WorldEvents.WaterDrunk).Select(static e => e.Detail).ToList());
@@ -377,8 +377,8 @@ public sealed class EatDrinkSprintTests
         var handCost = 100 - Meter(byHand, NeedMeter.Stamina);
 
         var withAxe = TestGame.NewSession();
-        withAxe.Simulation.GrantItems(ItemId.Axe, 1);
-        var slot = Enumerable.Range(0, Inventory.HotbarSize).First(i => withAxe.Simulation.Inventory.Slots[i] is { IsEmpty: false, Item: ItemId.Axe });
+        withAxe.Simulation.GrantItems(TestItems.Axe, 1);
+        var slot = Enumerable.Range(0, Inventory.HotbarSize).First(i => withAxe.Simulation.Inventory.Slots[i] is { IsEmpty: false, Item: TestItems.Axe });
         withAxe.Step([VoxelCommand.SelectSlot(slot)]);
         var axeTicks = GatherTicks(withAxe, TrunkNear(withAxe));
         var axeCost = 100 - Meter(withAxe, NeedMeter.Stamina);
@@ -560,11 +560,11 @@ public sealed class EatDrinkSprintTests
             var session = TestGame.NewSession();
             session.SetNeed(NeedMeter.Hunger, 40);
             session.SetNeed(NeedMeter.Thirst, 30);
-            session.Simulation.GrantItems(ItemId.Bread, 1);
+            session.Simulation.GrantItems(TestItems.Bread, 1);
             session.Simulation.GrantItems(ItemId.WaterBottle, 1);
             session.SprintHeld = true;
             Walked(session, 90);
-            session.EatItem(ItemId.Bread);
+            session.EatItem(TestItems.Bread);
             session.EatItem(ItemId.WaterBottle);
             Tick(session, 600);
             return (session.Needs.Capture(), string.Join(';', session.Events.OfType<WorldEvent>().Select(static e => e.Name + e.Text + e.Tick)));
@@ -577,9 +577,9 @@ public sealed class EatDrinkSprintTests
     public void ASaveAfterEatingAndDrinkingRoundTrips()
     {
         var session = Eating(40, 30);
-        session.Simulation.GrantItems(ItemId.Bread, 1);
+        session.Simulation.GrantItems(TestItems.Bread, 1);
         session.Simulation.GrantItems(ItemId.WaterBottle, 1);
-        session.EatItem(ItemId.Bread);
+        session.EatItem(TestItems.Bread);
         session.EatItem(ItemId.WaterBottle);
         Tick(session, 300);
 
@@ -587,7 +587,7 @@ public sealed class EatDrinkSprintTests
 
         Assert.Equal(session.Needs.Capture(), loaded.Needs.Capture());
         Assert.Equal(1, loaded.Simulation.Inventory.Count(ItemId.Bottle));
-        Assert.Equal(0, loaded.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, loaded.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -595,11 +595,11 @@ public sealed class EatDrinkSprintTests
     {
         var click = new TestInputFrame { RightDown = true };
         var needs = TestGame.Data.Needs;
-        Assert.True(FoodItemUse.Applies(click, true, new ItemStack(ItemId.Bread, 1), needs));
-        Assert.True(FoodItemUse.Applies(click, true, new ItemStack(ItemId.WaterBottle, 1), needs));
-        Assert.False(FoodItemUse.Applies(click, false, new ItemStack(ItemId.Bread, 1), needs)); // the mouse is free
-        Assert.False(FoodItemUse.Applies(click, true, new ItemStack(ItemId.Book, 1), needs));
-        Assert.False(FoodItemUse.Applies(click, true, ItemStack.Empty, needs));
-        Assert.False(FoodItemUse.Applies(new TestInputFrame { RightDown = true, PreviousRightDown = true }, true, new ItemStack(ItemId.Bread, 1), needs)); // held, not a click
+        Assert.True(FoodItemUse.Applies(click, true, new ItemStack(TestItems.Bread, 1), needs, TestItems.Catalogue));
+        Assert.True(FoodItemUse.Applies(click, true, new ItemStack(ItemId.WaterBottle, 1), needs, TestItems.Catalogue));
+        Assert.False(FoodItemUse.Applies(click, false, new ItemStack(TestItems.Bread, 1), needs, TestItems.Catalogue)); // the mouse is free
+        Assert.False(FoodItemUse.Applies(click, true, new ItemStack(ItemId.Book, 1), needs, TestItems.Catalogue));
+        Assert.False(FoodItemUse.Applies(click, true, ItemStack.Empty, needs, TestItems.Catalogue));
+        Assert.False(FoodItemUse.Applies(new TestInputFrame { RightDown = true, PreviousRightDown = true }, true, new ItemStack(TestItems.Bread, 1), needs, TestItems.Catalogue)); // held, not a click
     }
 }

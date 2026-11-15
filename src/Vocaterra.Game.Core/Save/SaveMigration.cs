@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
@@ -229,7 +230,7 @@ public static class SaveMigration
             report.Drop("arrow", document.Pointer.Place);
         }
 
-        var inventory = AdaptInventory(document.Inventory, report);
+        var inventory = AdaptInventory(document.Inventory, session.Data.Items, report);
         var lessons = document.Lessons is { } l ? AdaptLessons(l, session, report) : null;
         var tips = document.Tips is { } t ? AdaptTips(t, session, report) : null;
         var gather = document.Gather;
@@ -346,17 +347,17 @@ public static class SaveMigration
         return [.. result];
     }
 
-    // Items are an enum of the game's code, not of the bundle: a slot with an item this build does not know becomes an empty slot.
-    private static SlotSave[] AdaptInventory(IReadOnlyList<SlotSave> slots, Collector report)
+    // Items are rows of the bundle (game/items.json): a slot with an item this bundle does not have becomes an empty slot.
+    private static SlotSave[] AdaptInventory(IReadOnlyList<SlotSave> slots, IItemCatalogue items, Collector report)
     {
         var dropped = new List<string>();
         var kept = 0;
         var result = slots.Select(slot =>
         {
-            if (slot.Count > 0 && !Enum.IsDefined(slot.Item))
+            if (slot.Count > 0 && items.Find(slot.Item) is null)
             {
-                dropped.Add(slot.Item.ToString());
-                return new SlotSave(default, 0);
+                dropped.Add(slot.Item);
+                return new SlotSave(string.Empty, 0);
             }
 
             kept += slot.Count > 0 ? 1 : 0;

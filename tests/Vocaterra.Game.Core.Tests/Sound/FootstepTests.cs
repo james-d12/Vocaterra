@@ -254,7 +254,7 @@ public sealed class FootstepTests
     public void AScriptedJumpInTheSimulationSoundsAJumpAndALanding()
     {
         var scene = RouteScene.Build();
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var footsteps = new Footsteps();
         var cues = new List<SoundCue>();
 

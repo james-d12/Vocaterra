@@ -229,7 +229,7 @@ public sealed class LargeWorldFrontendTests
     public void TheTeleportStepStandsThePlayerOnTheGroundOfAColumnAndRefusesWhereThereIsNone()
     {
         var scene = RouteScene.Clearing();
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var log = new List<string>();
         var script = new VoxelScript(sim, new LookControl(), [VoxelStep.Teleport(40, 30), VoxelStep.Teleport(500, 30), VoxelStep.Teleport(9, 17)], static _ => null, log.Add);
         var commands = new List<VoxelCommand>();

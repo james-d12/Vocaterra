@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.World;
 
@@ -31,7 +32,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ThePhaseEventIsRaisedOnceAtEachBoundaryAndNotOtherwise()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
 
         var events = PhaseEvents(sim, 1600);
 
@@ -41,7 +42,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ANewSimulationRaisesNoEventForTheStartingPhase()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
 
         Assert.Equal(DayPhase.Night, sim.Phase);
         sim.Step();
@@ -52,7 +53,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ASimulationBuiltWithoutGameDataUsesTheDefaultValues()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
 
         Assert.Equal(DayData.Default, sim.Clock.Data);
         Assert.Equal(8, sim.Clock.HourAt(sim.Tick), 6);
@@ -61,7 +62,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AWakeUpAndAHeldHourRaiseNoPhaseEventAndTheClockRunsOnFromThem()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelTestSupport.Run(sim, 100); // dawn
 
         sim.WakeUp();
@@ -78,8 +79,8 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void TwoSimulationsGivenTheSameCommandsHaveTheSameClockAndDigest()
     {
-        var a = VoxelSimulation.Create(Route(), Short);
-        var b = VoxelSimulation.Create(Route(), Short);
+        var a = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
+        var b = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         foreach (var sim in new[] { a, b })
         {
             VoxelTestSupport.Run(sim, 200, VoxelCommand.Move(1, 0), VoxelCommand.Look(Angles.FromDegrees(80), 0));
@@ -95,13 +96,13 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ASimulationRestoredAfterAWakeUpHasTheSameHourAndContinuesTheSameWay()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelTestSupport.Run(sim, 250, VoxelCommand.Move(1, 0));
         sim.WakeUp();
         VoxelTestSupport.Run(sim, 40, VoxelCommand.Move(1, 0));
         var state = sim.CaptureState();
 
-        var restored = VoxelSimulation.Create(Route(), Short);
+        var restored = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
         restored.Restore(state);
 
@@ -118,7 +119,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AStateOfADefaultClockCarriesNoClockAndRestoringItGivesTheDefault()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         VoxelTestSupport.Run(sim, 30);
 
         Assert.Null(sim.CaptureState().Atmosphere);
@@ -133,7 +134,7 @@ public sealed class AtmosphereSimulationTests
     public void TheDigestOfAClockNobodyMovedIsTheDigestBeforeTheClockExisted()
     {
         // The digest is pinned for a fresh route and for the route after 120 ticks of walking: both were taken before the clock was added to the digest.
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var fresh = sim.ComputeStateDigest();
         VoxelTestSupport.Run(sim, 120, VoxelCommand.Move(1, 0));
 
@@ -144,7 +145,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AMovedOrHeldClockChangesTheDigestAndMovingItBackRestoresIt()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var before = sim.ComputeStateDigest();
 
         sim.FreezeClock(12);

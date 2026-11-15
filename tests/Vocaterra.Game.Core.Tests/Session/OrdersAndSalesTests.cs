@@ -51,7 +51,7 @@ public sealed class OrdersAndSalesTests
         Assert.Equal([new OrderGoods(ItemId.Wood, 5)], order.Goods);
         var delivery = Assert.Single(order.Steps);
         Assert.Equal((ObjectiveBook.DeliveredStep, 1, new Trigger(WorldEvents.OrderDelivered, "baker", "oven-wood")), (delivery.Id, delivery.Target, delivery.Trigger));
-        Assert.Equal(NpcEffect.SellAt(ItemId.Bread, 2), Baker.HostEvents.Of("baker", "baker.sell_bread"));
+        Assert.Equal(NpcEffect.SellAt(TestItems.Bread, 2), Baker.HostEvents.Of("baker", "baker.sell_bread"));
         Assert.Empty(GameDataValidator.Validate(Baker)); // what the order and the sale need of her agent is there (the validator checks the cant_pay and delivered turns)
     }
 
@@ -70,7 +70,7 @@ public sealed class OrdersAndSalesTests
         Assert.Equal("request_item", turn.Intent);
         Assert.EndsWith("¡Gracias!", Assert.Single(turn.Replies), StringComparison.Ordinal); // "Aquí tienes el pan." or "Toma tu pan.", and her thanks
         Assert.Empty(turn.FollowUp ?? []);
-        Assert.Equal(loaves, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(loaves, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(20 - (2 * loaves), session.Simulation.Inventory.Count(ItemId.Coin));
         var paid = Assert.Single(WorldEventsOf(session, WorldEvents.ItemTaken));
         Assert.Equal(("baker", "moneda, request"), (paid.Npc, paid.Detail));
@@ -90,7 +90,7 @@ public sealed class OrdersAndSalesTests
         Assert.Empty(turn.Replies); // not "Aquí tienes el pan.": nothing is handed over
         Assert.Equal(["Necesitas más monedas."], turn.FollowUp);
         Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Coin));
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Empty(WorldEventsOf(session, WorldEvents.ItemTaken));
         Assert.Empty(WorldEventsOf(session, WorldEvents.ItemGiven));
         Assert.Equal(records + 2, session.Conversation.RecordCount);
@@ -98,7 +98,7 @@ public sealed class OrdersAndSalesTests
 
         var one = session.Say("quiero pan, por favor"); // two coins: enough for one
         Assert.EndsWith("¡Gracias!", Assert.Single(one.Replies), StringComparison.Ordinal);
-        Assert.Equal((1, 1), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Bread)));
+        Assert.Equal((1, 1), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Bread)));
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public sealed class OrdersAndSalesTests
         var turn = session.Say("Aquí tienes las monedas.");
 
         Assert.Equal(["¡Gracias! Toma el hacha."], turn.FollowUp);
-        Assert.Equal((0, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.Equal((0, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Axe)));
         Assert.True(session.Objectives.Single(o => o.Id == "axe-handle").Complete);
     }
 
@@ -302,16 +302,16 @@ public sealed class OrdersAndSalesTests
         _ = session.Simulation.GrantItems(ItemId.Wood, 5);
         _ = session.OpenTalkForClass("baker");
         session.EndTalk();
-        _ = session.Simulation.GrantItems(ItemId.Apple, 3);
-        _ = session.Simulation.GrantItems(ItemId.Axe, 1);
+        _ = session.Simulation.GrantItems(TestItems.Apple, 3);
+        _ = session.Simulation.GrantItems(TestItems.Axe, 1);
 
         var text = SaveGame.Save(session, TestGame.Route());
         Assert.Contains("\"oven-wood.delivered\"", text, StringComparison.Ordinal);
-        Assert.Contains("{\"item\":\"Coin\",\"count\":4}", text, StringComparison.Ordinal); // the inventory keeps an item by its name
+        Assert.Contains("{\"item\":\"coin\",\"count\":4}", text, StringComparison.Ordinal); // the inventory keeps an item by its name
         var loaded = SaveGame.Load(text, Baker, static seed => TestGame.Route(seed), bumpSession: false);
 
         Assert.Equal(session.Simulation.Inventory.Slots, loaded.Simulation.Inventory.Slots);
-        Assert.Equal((4, 3, 1), (loaded.Simulation.Inventory.Count(ItemId.Coin), loaded.Simulation.Inventory.Count(ItemId.Apple), loaded.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.Equal((4, 3, 1), (loaded.Simulation.Inventory.Count(ItemId.Coin), loaded.Simulation.Inventory.Count(TestItems.Apple), loaded.Simulation.Inventory.Count(TestItems.Axe)));
         Assert.True(loaded.Objectives.Single(o => o.Id == "oven-wood").Complete);
         Assert.Equal(text, SaveGame.Save(loaded, TestGame.Route()));
     }

@@ -42,7 +42,7 @@ public sealed class LodgingTests
     [Fact]
     public void Given_AGrantLodgingRow_When_TheTableIsParsedAndValidated_Then_TheKindIsKnownAndNoProblemIsFound()
     {
-        var table = HostEventTable.Parse(Table);
+        var table = HostEventTable.Parse(Table, TestItems.Catalogue);
 
         Assert.Equal(NpcEffectKind.GrantLodging, table.Of("innkeeper", "innkeeper.room").Kind);
         Assert.Contains("grant_lodging", HostEventTable.Kinds);

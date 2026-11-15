@@ -21,7 +21,7 @@ public sealed class BagTests
 
     private static Inventory Bag(params (ItemId Item, int Count)[] stacks)
     {
-        var bag = new Inventory();
+        var bag = new Inventory(GameContent.Data.Items);
         foreach (var (item, count) in stacks)
         {
             Assert.Equal(0, bag.Add(item, count));

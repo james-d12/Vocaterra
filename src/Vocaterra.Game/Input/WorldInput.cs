@@ -139,7 +139,7 @@ public sealed class WorldInput
 
         // A berry on grass or dirt is planted at the camp (N08); the click in the air still eats it (N02).
         var planted = active && _plant is not null && _needs is not null && target is { } ground
-            && PlantingUse.Applies(input, captured, _sim.SelectedStack, target, _needs) && _plant(ground.Block) != VoxelSession.PlantResult.NotApplied;
+            && PlantingUse.Applies(input, captured, _sim.SelectedStack, target, _needs, _sim.Inventory.Items) && _plant(ground.Block) != VoxelSession.PlantResult.NotApplied;
         if (active && _stake is not null && target is { } aimed && HeldItemUse.Applies(input, captured, _sim.SelectedStack, target, ItemId.Stake))
         {
             _ = _stake(aimed.Block); // the stake marks the pending plot round the aimed column (Y10); the session says the answer on the hint line
@@ -150,7 +150,7 @@ public sealed class WorldInput
             _ = _camp(campAim.Block); // the kit sets the camp up on the aimed ground (Y12); the session says the answer on the hint line
         }
 
-        if (!planted && active && _eat is not null && _needs is not null && FoodItemUse.Applies(input, captured, _sim.SelectedStack, _needs))
+        if (!planted && active && _eat is not null && _needs is not null && FoodItemUse.Applies(input, captured, _sim.SelectedStack, _needs, _sim.Inventory.Items))
         {
             _eat.Execute(); // a food item is eaten, the water bottle drunk (N02)
         }

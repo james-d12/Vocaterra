@@ -95,6 +95,7 @@
     { "path": "answer-sets/lesson-market.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/lessons/el-mercado.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "lexicon/world.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/items.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/nouns.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/recipes.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "prompts/prompts.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },

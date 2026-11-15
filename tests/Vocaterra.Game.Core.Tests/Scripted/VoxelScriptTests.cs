@@ -17,7 +17,7 @@ public sealed class VoxelScriptTests
         public Run(params VoxelStep[] steps)
         {
             Scene = RouteScene.Clearing();
-            Sim = VoxelSimulation.Create(Scene);
+            Sim = VoxelSimulation.Create(Scene, TestItems.Catalogue);
             Look = new LookControl();
             Look.Set(Scene.Spawn.Yaw, 0);
             Script = new VoxelScript(Sim, Look, steps, ResolveItem, Log.Add);

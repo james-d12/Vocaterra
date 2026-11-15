@@ -12,7 +12,7 @@ public sealed class PlayerCameraTests
     [Fact]
     public void TheCameraStartsAtTheBodysEyeAndAFrameDrawsThePointBetweenTheLastTwoTicks()
     {
-        var sim = VoxelSimulation.Create(RouteScene.Clearing());
+        var sim = VoxelSimulation.Create(RouteScene.Clearing(), TestItems.Catalogue);
         var camera = new PlayerCamera(sim, new LookControl(), new ViewModeState(), sim.Grid.IsSolid);
         var start = camera.CurrentEye;
         Assert.Equal(sim.Player.EyeX / (float)VoxelPhysics.UnitsPerBlock, start.X, 4);
@@ -36,7 +36,7 @@ public sealed class PlayerCameraTests
     [Fact]
     public void OverTheShoulderTheCameraStandsBehindTheEyeAndTheFrameStillReturnsTheEye()
     {
-        var sim = VoxelSimulation.Create(RouteScene.Clearing());
+        var sim = VoxelSimulation.Create(RouteScene.Clearing(), TestItems.Catalogue);
         var viewMode = new ViewModeState();
         var camera = new PlayerCamera(sim, new LookControl(), viewMode, sim.Grid.IsSolid);
         AssertNear(camera.Place(1f, 1280, 720, 400f, 1280, 720), camera.Camera.Eye); // first person: the camera is at the eye

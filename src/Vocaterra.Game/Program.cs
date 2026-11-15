@@ -60,7 +60,7 @@ try
     // Every game file is read once, from the bytes the bundle's load verified, and checked against the others (content-plan C02): the scene too,
     // unless --scene names a file of its own, which is read from disk and skips the bundle's check.
     var locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(directory));
-    var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)));
+    var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)), Vocaterra.Game.Graphics.Blocks.BlockAtlasLayout.IconKeys); // I01: an item whose icon has no art is reported at start
     if (!options.CheckTalkTargets(data.Npcs.Ids, out var talkError))
     {
         // The NPCs --talk may name are the bundle's (game/npcs.json), so the check waits for the roster: a usage error like the others.

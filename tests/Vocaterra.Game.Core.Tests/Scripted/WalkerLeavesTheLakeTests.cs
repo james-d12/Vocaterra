@@ -14,7 +14,7 @@ public sealed class WalkerLeavesTheLakeTests
 {
     private static (VoxelSimulation Sim, List<string> Log) Go(params VoxelStep[] steps)
     {
-        var sim = VoxelSimulation.Create(TestGame.Route(TestGame.Seed));
+        var sim = VoxelSimulation.Create(TestGame.Route(TestGame.Seed), TestItems.Catalogue);
         var log = new List<string>();
         var script = new VoxelScript(sim, new LookControl(), steps, static _ => null, log.Add);
         var commands = new List<VoxelCommand>();

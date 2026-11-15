@@ -276,7 +276,7 @@ public sealed class TeacherLoopTests
         Assert.True(rig.Open());
         rig.Drop(ItemId.Wood);
         var bag = rig.Session.Simulation.Inventory;
-        var filler = ItemDefinition.All.Where(static d => d.Id is not (ItemId.Wood or ItemId.WaterBottle or ItemId.Bottle or ItemId.Bread)).ToList();
+        var filler = TestItems.Catalogue.All.Where(static d => d.Id is not (ItemId.Wood or ItemId.WaterBottle or ItemId.Bottle or TestItems.Bread)).ToList();
         foreach (var item in filler)
         {
             while (bag.Add(item.Id, item.MaxStack) == 0)
@@ -617,16 +617,16 @@ public sealed class TeacherLoopTests
               { "npc": "baker", "event": "baker.d", "action": { "kind": "give_missing" } },
               { "npc": "baker", "event": "baker.e", "action": { "kind": "teach_recipe", "procedure": "pan" } },
               { "npc": "baker", "event": "baker.f", "action": { "kind": "start_procedure" } } ] }
-            """);
+            """, TestItems.Catalogue);
         Assert.Equal(NpcEffectKind.ProcedureRepeat, table.Of("baker", "baker.a").Kind);
         Assert.Equal(NpcEffectKind.ProcedureSlower, table.Of("baker", "baker.b").Kind);
         Assert.Equal(NpcEffectKind.ProcedureHelp, table.Of("baker", "baker.c").Kind);
         Assert.Equal(NpcEffectKind.GiveMissing, table.Of("baker", "baker.d").Kind);
         Assert.Equal((NpcEffectKind.TeachRecipe, "pan"), (table.Of("baker", "baker.e").Kind, table.Of("baker", "baker.e").Procedure));
         Assert.Equal((NpcEffectKind.StartProcedure, string.Empty), (table.Of("baker", "baker.f").Kind, table.Of("baker", "baker.f").Procedure));
-        Assert.Throws<InvalidDataException>(() => HostEventTable.Parse("""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.a", "action": { "kind": "teach_everything" } } ] }"""));
+        Assert.Throws<InvalidDataException>(() => HostEventTable.Parse("""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.a", "action": { "kind": "teach_everything" } } ] }""", TestItems.Catalogue));
 
-        var data = ProcedureRig.Data().WithHostEvents(HostEventTable.Parse("""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.teach_recipe", "action": { "kind": "teach_recipe", "procedure": "no-such" } } ] }"""));
+        var data = ProcedureRig.Data().WithHostEvents(HostEventTable.Parse("""{ "schemaVersion": 2, "events": [ { "npc": "baker", "event": "baker.teach_recipe", "action": { "kind": "teach_recipe", "procedure": "no-such" } } ] }""", TestItems.Catalogue));
         Assert.Contains(GameDataValidator.Validate(data), static problem => problem.Contains("names the procedure 'no-such'", StringComparison.Ordinal));
     }
 }

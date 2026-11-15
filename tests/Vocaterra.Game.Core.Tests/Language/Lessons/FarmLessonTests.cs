@@ -232,7 +232,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
     public void TheLessonRunsFromTheFieldToTheStallAndTheRiverAndBackWithTypedAnswersAndEveryStepEndsDone()
     {
         var session = SessionSevenAtFarmer();
-        Assert.Equal((0, 0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple), session.Simulation.Inventory.Count(ItemId.WaterBottle)));
+        Assert.Equal((0, 0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Apple), session.Simulation.Inventory.Count(ItemId.WaterBottle)));
 
         var done = new List<LessonDriver.Done>();
         while (session.Lessons.StatusOf(LessonId) == LessonStatus.InProgress)
@@ -258,14 +258,14 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
             {
                 // Asked with no coins: nothing changes hands, and León says so after the lesson's own line; the step is done all the same (the Spanish was right).
                 Assert.Contains("Necesitas más monedas. Una manzana cuesta una moneda.", done[^1].Shown);
-                Assert.Equal((0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple)));
+                Assert.Equal((0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Apple)));
                 Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven && e.Npc == "farmer");
             }
 
             if (step.Id == "c5-back")
             {
                 // The water went and the apples came, the moment the talk opened.
-                Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+                Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(TestItems.Apple)));
             }
         }
 
@@ -319,7 +319,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         var session = SessionSevenAtFarmer(water: 1);
         Assert.Equal(LessonId, session.Lessons.Active!.Id);
         Assert.False(session.HasOrder("water-for-plants"));
-        Assert.Equal((1, 0), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((1, 0), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(TestItems.Apple)));
 
         while (session.Lessons.Current is { Id: not "c5-thanks" } step)
         {
@@ -328,7 +328,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
 
         Assert.True(session.HasOrder("water-for-plants"));
         Assert.True(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
-        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(TestItems.Apple)));
         Assert.Equal("c5-thanks", session.Lessons.Current!.Id);
     }
 
@@ -347,7 +347,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.EndTalk();
         Assert.Equal(["¡Hola! ¿Qué tienes para mí?"], session.OpenTalk("farmer").Lines);
         Assert.Equal(["¡Gracias! Toma tres manzanas."], session.HandOverGoods()!.FollowUp);
-        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(TestItems.Apple)));
 
         var early = TestGame.NewSessionWithShippedLessons();
         early.Day = 6;
@@ -522,13 +522,13 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         Assert.Equal(("request_item", "3"), (short1.Intent, short1.Slots["qty"]));
         Assert.Empty(short1.Errors);
         Assert.Equal(["Necesitas más monedas. Una manzana cuesta una moneda."], short1.GuideLines); // his line of the sale is not said; cant_pay is
-        Assert.Equal((2, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((2, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Apple)));
         Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.ItemGiven && e.Npc == "farmer");
 
         _ = session.Simulation.GrantItems(ItemId.Coin, 1);
         var bought = session.Say("Quiero tres manzanas rojas");
         Assert.Single(bought.GuideLines, static l => l.EndsWith("¡Gracias!", StringComparison.Ordinal));
-        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((0, 3), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Apple)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken && e.Npc == "farmer" && e.Detail == "moneda, request");
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemGiven && e.Npc == "farmer" && e.Detail == "manzana, request");
 
@@ -554,7 +554,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         var turn = session.Say("Aquí tienes la botella."); // the bottle names the goods as well as the water
 
         Assert.Equal(["¡Gracias! Toma tres manzanas."], turn.FollowUp);
-        Assert.Equal((1, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(ItemId.Apple)));
+        Assert.Equal((1, 3), (session.Simulation.Inventory.Count(ItemId.WaterBottle), session.Simulation.Inventory.Count(TestItems.Apple)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "farmer" && e.Detail == "water-for-plants");
         Assert.True(session.Objectives.Single(static o => o.Id == "water-for-plants").Complete);
         Assert.Equal(1, session.ObjectiveStep("water-for-plants.delivered")!.Count);
@@ -563,7 +563,7 @@ public sealed class FarmLessonTests(ITestOutputHelper output)
         session.EndTalk();
         Assert.False(session.OpenTalkForClass("farmer").Delivered);
         Assert.False(session.HandOverOpen);
-        Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Apple));
+        Assert.Equal(3, session.Simulation.Inventory.Count(TestItems.Apple));
     }
 
     [Fact]

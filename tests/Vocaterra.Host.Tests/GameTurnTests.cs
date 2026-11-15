@@ -24,7 +24,7 @@ public sealed class GameTurnTests
     [Fact]
     public void AMissedGiftDropsTheOfferOfBreadWithAnEmptyBag()
     {
-        var bag = new Inventory();
+        var bag = new Inventory(GameContent.Data.Items);
 
         var lines = AgentLines(Agent("quiero madera", "stall-need", bag));
 

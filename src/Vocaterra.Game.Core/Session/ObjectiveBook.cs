@@ -170,7 +170,7 @@ public sealed class ObjectiveBook
             }
 
             var grants = root.TryGetProperty("grants", out var grantsElement)
-                ? grantsElement.EnumerateArray().Select(static e => ItemNamed(e.GetString() ?? string.Empty)).ToList()
+                ? grantsElement.EnumerateArray().Select(e => ItemNamed(nouns.Items, e.GetString() ?? string.Empty)).ToList()
                 : [];
             return new ObjectiveBook(objectives, Text(root, "closingPool", SessionPath), grants, Text(root, "beaconStart", SessionPath), root.TryGetProperty("innBeacon", out var inn) ? inn.GetString() : null);
         }
@@ -218,7 +218,7 @@ public sealed class ObjectiveBook
             }
 
             var deliverTo = root.TryGetProperty("deliverTo", out _) ? Text(root, "deliverTo", path) : null;
-            var goods = Goods(root, path);
+            var goods = Goods(root, path, nouns.Items);
             if (deliverTo is null != (goods.Count == 0))
             {
                 throw new InvalidDataException($"{path}: an order names the NPC it is brought to (deliverTo) and its goods (deliver), both or neither.");
@@ -306,12 +306,12 @@ public sealed class ObjectiveBook
     /// <param name="id">The objective's id.</param>
     public ObjectiveSpec? Find(string id) => Objectives.FirstOrDefault(o => string.Equals(o.Id, id, StringComparison.Ordinal));
 
-    private static ItemId ItemNamed(string name, string where = SessionPath) =>
-        ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id
+    private static ItemId ItemNamed(IItemCatalogue items, string name, string where = SessionPath) =>
+        items.Find(name)?.Id
         ?? throw new InvalidDataException($"{where} names an unknown item '{name}'.");
 
     // An order's goods (V03): each { "item", "count" }, an item by the name the save gives it, once, and a count from 1. Empty when the file has none.
-    private static List<OrderGoods> Goods(JsonElement root, string path)
+    private static List<OrderGoods> Goods(JsonElement root, string path, IItemCatalogue items)
     {
         var goods = new List<OrderGoods>();
         if (!root.TryGetProperty("deliver", out var deliver))
@@ -321,7 +321,7 @@ public sealed class ObjectiveBook
 
         foreach (var element in deliver.EnumerateArray())
         {
-            var item = ItemNamed(Text(element, "item", path), path);
+            var item = ItemNamed(items, Text(element, "item", path), path);
             var count = element.GetProperty("count").GetInt32();
             if (count < 1 || goods.Any(g => g.Item == item))
             {

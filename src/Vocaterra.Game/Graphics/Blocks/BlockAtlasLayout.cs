@@ -432,38 +432,45 @@ public static class BlockAtlasLayout
     /// <param name="row">The cell's row within the colour block (a grey copy's row minus <see cref="ColourRows"/>).</param>
     public static bool IsUiOnly(int column, int row) => (row * Columns) + column >= (int)BlockCell.IconBowl;
 
-    /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
-    public static BlockCell? IconFor(ItemId item) => item switch
+    // The art by icon key (I01): the keys of game/items.json and of the station fixtures (W07). An item's `icon` names one; a key with no art draws the fallback tile.
+    private static readonly Dictionary<string, BlockCell> IconCells = new(StringComparer.Ordinal)
     {
-        ItemId.Wood => BlockCell.IconWood,
-        ItemId.Berry => BlockCell.IconBerry,
-        ItemId.Torch => BlockCell.IconTorch,
-        ItemId.Bottle => BlockCell.IconBottle,
-        ItemId.WaterBottle => BlockCell.IconWaterBottle,
-        ItemId.Bread => BlockCell.IconBread,
-        ItemId.Book => BlockCell.IconBook,
-        ItemId.Coin => BlockCell.IconCoin,
-        ItemId.Apple => BlockCell.IconApple,
-        ItemId.Axe => BlockCell.IconAxe,
-        ItemId.RoastApple => BlockCell.IconRoastApple,
-        ItemId.Flour => BlockCell.IconFlour,
-        ItemId.Stake => BlockCell.IconStake,
-        ItemId.CampKit => BlockCell.IconCampKit,
-        _ => null,
+        ["wood"] = BlockCell.IconWood,
+        ["berry"] = BlockCell.IconBerry,
+        ["torch"] = BlockCell.IconTorch, // S15: a stick with its flame, not the flame's square
+        ["bottle"] = BlockCell.IconBottle,
+        ["water-bottle"] = BlockCell.IconWaterBottle,
+        ["bread"] = BlockCell.IconBread,
+        ["book"] = BlockCell.IconBook,
+        ["coin"] = BlockCell.IconCoin,
+        ["apple"] = BlockCell.IconApple,
+        ["axe"] = BlockCell.IconAxe,
+        ["roast-apple"] = BlockCell.IconRoastApple,
+        ["flour"] = BlockCell.IconFlour,
+        ["stake"] = BlockCell.IconStake,
+        ["camp-kit"] = BlockCell.IconCampKit,
+        ["bowl"] = BlockCell.IconBowl,
+        ["spoon"] = BlockCell.IconSpoon,
+        ["oven"] = BlockCell.IconOven,
     };
 
-    /// <summary>
-    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
-    /// fixture added to the content never shows as a hole.
-    /// </summary>
-    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, or any other).</param>
-    public static BlockCell IconForKey(string key) => key switch
+    /// <summary>The icon keys the atlas has art for: what an item's <c>icon</c> in <c>game/items.json</c> may name (the content check reports any other).</summary>
+    public static IReadOnlySet<string> IconKeys { get; } = IconCells.Keys.ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>The cell that draws an item as an icon (the hotbar and the held item): the one its <see cref="ItemDefinition.Icon"/> key names, or the fallback tile (<see cref="BlockCell.IconPlain"/>) when the atlas has no art for the key.</summary>
+    /// <param name="item">The item's definition.</param>
+    public static BlockCell IconFor(ItemDefinition item)
     {
-        "bowl" => BlockCell.IconBowl,
-        "spoon" => BlockCell.IconSpoon,
-        "oven" => BlockCell.IconOven,
-        _ => ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, key, StringComparison.Ordinal)) is { } item && IconFor(item.Id) is { } cell ? cell : BlockCell.IconPlain,
-    };
+        ArgumentNullException.ThrowIfNull(item);
+        return IconForKey(item.Icon);
+    }
+
+    /// <summary>
+    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, an item's <c>icon</c> in <c>items.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
+    /// fixture or an item added to the content never shows as a hole.
+    /// </summary>
+    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, an item's key, or any other).</param>
+    public static BlockCell IconForKey(string key) => IconCells.TryGetValue(key, out var cell) ? cell : BlockCell.IconPlain;
 
     /// <summary>The cell's rectangle in pixels of the atlas texture (x, y, width, height).</summary>
     public static (int X, int Y, int Width, int Height) PixelRectangle(BlockCell cell)

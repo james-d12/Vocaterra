@@ -39,10 +39,10 @@ public sealed partial class VoxelSimulation
     private IReadOnlyList<Recipe> _recipes = [];
     private BlockPos? _noBottleHint;
 
-    private VoxelSimulation(Scene scene)
+    private VoxelSimulation(Scene scene, IItemCatalogue items)
     {
         Scene = scene;
-        Inventory = new Inventory();
+        Inventory = new Inventory(items);
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
@@ -100,7 +100,7 @@ public sealed partial class VoxelSimulation
     {
         var definition = GatherDefinition(block);
         if (definition.Gatherable && definition.Material != Material.None
-            && SelectedStack is { IsEmpty: false } held && ItemDefinition.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
+            && SelectedStack is { IsEmpty: false } held && Inventory.Items.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
         {
             return Math.Max(1, definition.GatherTicks / tool.Speed);
         }
@@ -119,13 +119,15 @@ public sealed partial class VoxelSimulation
 
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
     /// <param name="scene">The scene.</param>
+    /// <param name="items">The item catalogue (<c>game/items.json</c>): the bag's stack limits and the tools' specs are read from it.</param>
     /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
     /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
     /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
-    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
+    public static VoxelSimulation Create(Scene scene, IItemCatalogue items, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        var simulation = new VoxelSimulation(scene);
+        ArgumentNullException.ThrowIfNull(items);
+        var simulation = new VoxelSimulation(scene, items);
         simulation.StartAtmosphere(day, weather, worldSeed);
         return simulation;
     }

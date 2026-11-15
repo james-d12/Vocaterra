@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water.Flow;
 
@@ -12,7 +13,7 @@ public sealed class WaterAtRestTests
     [Fact]
     public void Given_TheBuiltScene_When_EveryWaterCellIsWokenAndTheFlowRunsToStandstill_Then_NoBlockOrLevelChanged()
     {
-        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42));
+        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42), TestItems.Catalogue);
         var log = new ChangeLog();
         sim.Grid.AddListener(log);
 
@@ -27,7 +28,7 @@ public sealed class WaterAtRestTests
     [Fact]
     public void Given_TheBuiltScene_When_EveryWaterCellIsWoken_Then_NoStepGoesPastTheBudgetAndTheWorstStepIsReported()
     {
-        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42));
+        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42), TestItems.Catalogue);
 
         var result = WakeAllAndRun(sim);
 

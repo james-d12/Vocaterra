@@ -103,7 +103,7 @@ public sealed class PhraseSheetLookupTests
             npcs.Find("guide")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-name" }, ReviewPrompt = null },
             npcs.Find("villager")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-unstuck" } },
         ]);
-        var sheet = PhraseSheet.Load(TestGame.Bundle, TestGame.Locale, roster);
+        var sheet = PhraseSheet.Load(TestGame.Bundle, TestGame.Locale, roster, TestGame.Nouns);
         Assert.Equal(["otra-vez", "mas-despacio"], sheet.PhrasesAt("lesson-name").Select(static r => r.Id));
         Assert.Empty(sheet.PhrasesAt("guide-offer")); // no NPC waits on it here
     }

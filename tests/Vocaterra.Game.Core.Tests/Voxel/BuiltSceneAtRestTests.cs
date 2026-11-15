@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;
 
@@ -8,7 +9,7 @@ public sealed class BuiltSceneAtRestTests
     [Fact]
     public void Given_TheBuiltScene_When_ASimulationStartsOnIt_Then_NothingWaitsToFlow()
     {
-        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42));
+        var sim = VoxelSimulation.Create(VoxelTestSupport.BuildRoute(42), TestItems.Catalogue);
 
         Assert.Equal(0, sim.Flow.Queue.Count);
     }
@@ -17,7 +18,7 @@ public sealed class BuiltSceneAtRestTests
     public void Given_TheBuiltScene_When_ManyStepsRunWithNoEdits_Then_EveryBlockAndLevelIsAsBuilt()
     {
         var scene = VoxelTestSupport.BuildRoute(42);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var built = sim.Grid.ComputeDigestHex();
         var withLevels = sim.Grid.Chunks.Where(static chunk => chunk.HasWaterLevels).Select(static chunk => chunk.Coord).ToList(); // the falls and the rapids (H07a)
         var edits = sim.Grid.EditCount;

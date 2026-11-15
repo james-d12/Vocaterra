@@ -221,7 +221,7 @@ public sealed class NpcFrontendTests
     private static (VoxelSimulation Sim, List<string> Log, VoxelScript Script) AtTheWater(Func<BlockPos, VoxelStep[]> steps)
     {
         var scene = RouteScene.Clearing();
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var river = scene.Point("river");
         var water = river;
         while (scene.Grid.GetBlock(water.X - 1, water.Y, water.Z) == BlockId.Water)

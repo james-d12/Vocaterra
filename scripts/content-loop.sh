@@ -436,7 +436,7 @@ step_fixtures() {
     end_step passed "bundle ${new:0:8}…, which the fixtures hold already"
   else
     fail "no file under tests/ holds the bundle's new value (${new:0:8}…) or an old one this worktree has had" \
-      "put $new into the save fixture that pins it (tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json) by hand, then run the loop again"
+      "put $new into the save fixture that pins it (tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json) by hand, then run the loop again"
   fi
 }
 

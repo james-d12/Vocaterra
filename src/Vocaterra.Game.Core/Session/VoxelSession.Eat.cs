@@ -43,7 +43,7 @@ public sealed partial class VoxelSession
     /// <param name="item">The food.</param>
     public NeedActionResult EatItem(ItemId item)
     {
-        if (Simulation.Inventory.Count(item) < 1 || Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is not { } food || Needs.IsDead)
+        if (Simulation.Inventory.Count(item) < 1 || Data.Needs.FoodOf(Data.Items.Get(item).Name) is not { } food || Needs.IsDead)
         {
             return NeedActionResult.Nothing;
         }
@@ -57,7 +57,7 @@ public sealed partial class VoxelSession
 
         Simulation.TakeItems(item, 1);
         var kept = item; // what stays in the bag, and names a drink in the event: the empty bottle after the water bottle
-        if (food.Leaves is { } leaves && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, leaves, StringComparison.Ordinal)) is { } left)
+        if (food.Leaves is { } leaves && Data.Items.Find(leaves) is { } left)
         {
             Simulation.GrantItems(left.Id, 1);
             kept = left.Id;
@@ -101,7 +101,7 @@ public sealed partial class VoxelSession
     }
 
     // The noun of an item for an event's detail: the catalogue's lemma, else the item's own key (as a pickup does).
-    private string NounOf(ItemId item) => Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name;
+    private string NounOf(ItemId item) => Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name;
 
     // Where the water is: the well's label near the well's point, the lake's label near the lake's, else the river's noun.
     private string WaterPlaceAt(BlockPos water)

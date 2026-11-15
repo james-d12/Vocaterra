@@ -28,7 +28,7 @@ public sealed class StationBakeOfferTests
         Assert.True(rig.Panel.Open("horno"));
         Assert.Null(rig.View.Offer);
         rig.Press(GameKey.B); // nothing to bake at once
-        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(0, Crafted(rig));
     }
 
@@ -59,7 +59,7 @@ public sealed class StationBakeOfferTests
         Assert.False(offer.OneClickSelected);
 
         rig.Press(GameKey.Enter); // the guided bake is selected: Enter does not bake at once
-        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(0, Crafted(rig));
     }
 
@@ -72,14 +72,14 @@ public sealed class StationBakeOfferTests
         var inventory = rig.Session.Simulation.Inventory;
 
         rig.Press(GameKey.B);
-        Assert.Equal((2, 1, 0, 0), (inventory.Count(ItemId.Bread), inventory.Count(ItemId.Bottle), inventory.Count(ItemId.WaterBottle), inventory.Count(ItemId.Wood)));
+        Assert.Equal((2, 1, 0, 0), (inventory.Count(TestItems.Bread), inventory.Count(ItemId.Bottle), inventory.Count(ItemId.WaterBottle), inventory.Count(ItemId.Wood)));
         Assert.Equal(1, Crafted(rig));
         Assert.Equal(StationNotice.Done, rig.View.Notice);
         Assert.Equal(ProcedureState.InRun, rig.View.State); // the run stays where it was
         Assert.NotNull(rig.View.Offer); // the guided bake stays on offer
 
         rig.Press(GameKey.B); // nothing left to use: refused, nothing made
-        Assert.Equal(2, inventory.Count(ItemId.Bread));
+        Assert.Equal(2, inventory.Count(TestItems.Bread));
         Assert.Equal(StationNotice.NotEnough, rig.View.Notice);
         Assert.Equal(1, Crafted(rig));
     }
@@ -94,7 +94,7 @@ public sealed class StationBakeOfferTests
         Assert.False(rig.View.Offer!.OneClickSelected);
         rig.Press(GameKey.Enter); // Enter makes the guided act (right or wrong), never the one-click bake
         Assert.Equal(0, Crafted(rig));
-        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(0, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class StationBakeOfferTests
         rig.Session.RestoreProcedures(Mastered());
         Assert.True(rig.Panel.Open("horno"));
         rig.Press(GameKey.Enter);
-        Assert.Equal(2, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(2, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(1, Crafted(rig));
     }
 
@@ -116,7 +116,7 @@ public sealed class StationBakeOfferTests
         Assert.True(rig.Panel.Open("horno"));
         var clicked = new StationPanel(rig.Screen, rig.Session, rig.Audio, (_, _) => new StationHit(StationRegion.BakeOneClick, 0), static () => false);
         clicked.Click(new TestInputFrame { LeftDown = true });
-        Assert.Equal(2, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(2, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
         Assert.Equal(1, Crafted(rig));
     }
 

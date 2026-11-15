@@ -103,7 +103,7 @@ public sealed class HostActionTests
         var turn = session.Say(line);
 
         Assert.Equal("request_item", turn.Intent);
-        Assert.Equal(expected, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(expected, session.Simulation.Inventory.Count(TestItems.Bread));
         var given = Assert.Single(WorldEventsOf(session, WorldEvents.ItemGiven));
         Assert.Equal(("villager", "pan, request"), (given.Npc, given.Detail));
     }
@@ -115,7 +115,7 @@ public sealed class HostActionTests
 
         _ = session.Say("quiero dos panes, por favor");
 
-        Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -155,6 +155,6 @@ public sealed class HostActionTests
     {
         var root = JsonNode.Parse(File.ReadAllText(Repo.Path("content", "game-v1", "game", "host-events.json")))!;
         root["events"]!.AsArray().First(e => e!["event"]!.GetValue<string>() == "villager.give")!["action"] = action;
-        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString()));
+        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString(), TestItems.Catalogue));
     }
 }

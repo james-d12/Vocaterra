@@ -61,14 +61,14 @@ public sealed class FireCookingTests
 
         Assert.Equal("fuego", roast.Station!.Lemma);
         Assert.Equal(BlockId.FireRing, roast.Rule.Station);
-        Assert.Equal(ItemId.RoastApple, roast.Rule.Output);
+        Assert.Equal(TestItems.RoastApple, roast.Rule.Output);
         Assert.Equal([("manzana", 1)], roast.Ingredients.Select(static i => (i.Noun.Lemma, i.Count)).ToArray());
         Assert.Equal("mesa", session.Recipes.Entries[TorchIndex(session)].Station!.Lemma);
 
         // At the fire the torch is not craftable (its station is the table); at the table the roast is not.
         var fire = AtTheFire();
         fire.Simulation.GrantItems(ItemId.Wood, 2);
-        fire.Simulation.GrantItems(ItemId.Apple, 1);
+        fire.Simulation.GrantItems(TestItems.Apple, 1);
         Assert.Equal(CraftResult.MissingStation, fire.Simulation.CanCraft(TorchIndex(fire)));
         Assert.Equal(CraftResult.Done, fire.Simulation.CanCraft(RoastIndex(fire)));
     }
@@ -77,12 +77,12 @@ public sealed class FireCookingTests
     public void AnAppleAtALitFireBecomesARoastAppleAndTheCraftIsLoggedWithTheNounManzana()
     {
         var session = AtTheFire();
-        session.Simulation.GrantItems(ItemId.Apple, 1);
+        session.Simulation.GrantItems(TestItems.Apple, 1);
 
         session.Step([VoxelCommand.Craft(RoastIndex(session))]);
 
-        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Apple));
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.RoastApple));
+        Assert.Equal(0, session.Simulation.Inventory.Count(TestItems.Apple));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.RoastApple));
         var crafted = session.Events.OfType<WorldEvent>().Single(static e => e.Name == WorldEvents.ItemCrafted);
         Assert.Equal("manzana", crafted.Detail);
     }
@@ -92,14 +92,14 @@ public sealed class FireCookingTests
     {
         var bare = AtTheFire();
         bare.Step([VoxelCommand.Craft(RoastIndex(bare))]);
-        Assert.Equal(0, bare.Simulation.Inventory.Count(ItemId.RoastApple));
+        Assert.Equal(0, bare.Simulation.Inventory.Count(TestItems.RoastApple));
         Assert.DoesNotContain(bare.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemCrafted);
 
         var cold = At(UnlitMiddle(TestGame.NewSession()));
-        cold.Simulation.GrantItems(ItemId.Apple, 1);
+        cold.Simulation.GrantItems(TestItems.Apple, 1);
         cold.Step([VoxelCommand.Craft(RoastIndex(cold))]);
-        Assert.Equal(1, cold.Simulation.Inventory.Count(ItemId.Apple));
-        Assert.Equal(0, cold.Simulation.Inventory.Count(ItemId.RoastApple));
+        Assert.Equal(1, cold.Simulation.Inventory.Count(TestItems.Apple));
+        Assert.Equal(0, cold.Simulation.Inventory.Count(TestItems.RoastApple));
     }
 
     [Fact]
@@ -108,16 +108,16 @@ public sealed class FireCookingTests
         var roast = TestGame.NewSession();
         roast.SetNeed(NeedMeter.Hunger, 40);
         roast.SetNeed(NeedMeter.Health, 50);
-        roast.Simulation.GrantItems(ItemId.RoastApple, 1);
-        Assert.Equal(NeedActionResult.Done, roast.EatItem(ItemId.RoastApple));
+        roast.Simulation.GrantItems(TestItems.RoastApple, 1);
+        Assert.Equal(NeedActionResult.Done, roast.EatItem(TestItems.RoastApple));
         Assert.Equal(60, roast.Needs.Value(NeedMeter.Hunger), 6);
         Assert.Equal(55, roast.Needs.Value(NeedMeter.Health), 6);
 
         var raw = TestGame.NewSession();
         raw.SetNeed(NeedMeter.Hunger, 40);
         raw.SetNeed(NeedMeter.Health, 50);
-        raw.Simulation.GrantItems(ItemId.Apple, 1);
-        Assert.Equal(NeedActionResult.Done, raw.EatItem(ItemId.Apple));
+        raw.Simulation.GrantItems(TestItems.Apple, 1);
+        Assert.Equal(NeedActionResult.Done, raw.EatItem(TestItems.Apple));
         Assert.Equal(52, raw.Needs.Value(NeedMeter.Hunger), 6);
         Assert.Equal(50, raw.Needs.Value(NeedMeter.Health), 6);
         Assert.Contains(roast.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.MealEaten && e.Detail == "manzana");
@@ -126,9 +126,9 @@ public sealed class FireCookingTests
     [Fact]
     public void TheRoastAppleIsLabelledAsaAndTheAppleKeepsItsLemma()
     {
-        Assert.Equal("manzana asada", TestGame.Nouns.LabelOf(ItemId.RoastApple));
-        Assert.Equal("manzana", TestGame.Nouns.LabelOf(ItemId.Apple));
-        Assert.Equal("manzana", TestGame.Nouns.ForItem(ItemId.RoastApple)!.Lemma);
+        Assert.Equal("manzana asada", TestGame.Nouns.LabelOf(TestItems.RoastApple));
+        Assert.Equal("manzana", TestGame.Nouns.LabelOf(TestItems.Apple));
+        Assert.Equal("manzana", TestGame.Nouns.ForItem(TestItems.RoastApple)!.Lemma);
         Assert.Equal("fuego", TestGame.Nouns.ForBlock(BlockId.FireRing)!.Lemma);
     }
 
@@ -136,12 +136,12 @@ public sealed class FireCookingTests
     public void ASaveHoldingARoastAppleRoundTripsAndTheSameWorldDigestsTheSame()
     {
         var session = AtTheFire();
-        session.Simulation.GrantItems(ItemId.RoastApple, 3);
+        session.Simulation.GrantItems(TestItems.RoastApple, 3);
         var scene = TestGame.Route(TestGame.Seed);
 
         var loaded = SaveGame.Load(SaveGame.Save(session, scene), TestGame.Data, TestGame.Route);
 
-        Assert.Equal(3, loaded.Simulation.Inventory.Count(ItemId.RoastApple));
+        Assert.Equal(3, loaded.Simulation.Inventory.Count(TestItems.RoastApple));
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
     }
 }

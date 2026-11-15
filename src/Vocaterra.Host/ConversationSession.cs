@@ -56,8 +56,9 @@ public sealed class ConversationSession
         // A bag makes a sale or a purchase follow it (V23a); a gift is refused for what the NPC does not give with or without one. The NPC answers a miss as it does in the
         // game, through the same code (NpcTurnRules, V21b).
         _bag = bag;
-        _hostEvents = HostEventTable.Load(bundle);
-        _nouns = NounCatalog.Load(bundle);
+        var items = ItemCatalogue.Load(bundle);
+        _hostEvents = HostEventTable.Load(bundle, items);
+        _nouns = NounCatalog.Load(bundle, items);
         _roster = NpcRoster.Load(bundle);
         _words = GameWords.Load(bundle); // the game's own words (game/words.json): the greetings, the binders and the articles a line is read by (T02b)
 

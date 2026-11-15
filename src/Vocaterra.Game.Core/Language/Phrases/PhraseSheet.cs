@@ -87,18 +87,20 @@ public sealed class PhraseSheet
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language, which holds each row's meaning and card (<c>phrase.&lt;id&gt;.meaning</c>, <c>.card</c>).</param>
     /// <param name="npcs">The NPCs: the prompts they wait on that no row names are answered with the rows of one that accepts the same answers (<see cref="PhrasesAt"/>).</param>
+    /// <param name="nouns">The noun catalogue the sheet looks nouns up in.</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, or a row's meaning or card is not in the locale.</exception>
-    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale, NpcRoster npcs)
+    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale, NpcRoster npcs, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(npcs);
+        ArgumentNullException.ThrowIfNull(nouns);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
         {
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
         var rows = Parse(Encoding.UTF8.GetString(bytes.Span), locale)._rows;
-        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs), NounCatalog.Load(bundle));
+        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs), nouns);
     }
 
     /// <summary>The locale id of a row's support-language text: <c>phrase.&lt;id&gt;.&lt;field&gt;</c> (meaning, card, explain).</summary>

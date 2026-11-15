@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
@@ -21,10 +22,10 @@ public sealed class BottleTests
     {
         Assert.Equal(26, (int)ItemId.Bottle);
         Assert.Equal(27, (int)ItemId.WaterBottle);
-        Assert.Equal(28, (int)ItemId.Bread);
-        Assert.Equal("bottle", ItemDefinition.Get(ItemId.Bottle).Name);
-        Assert.Equal("water-bottle", ItemDefinition.Get(ItemId.WaterBottle).Name);
-        Assert.Equal("bread", ItemDefinition.Get(ItemId.Bread).Name);
+        Assert.Equal(28, (int)TestItems.Bread);
+        Assert.Equal("bottle", TestItems.Catalogue.Get(ItemId.Bottle).Name);
+        Assert.Equal("water-bottle", TestItems.Catalogue.Get(ItemId.WaterBottle).Name);
+        Assert.Equal("bread", TestItems.Catalogue.Get(TestItems.Bread).Name);
         Assert.Null(BlockDefinition.PlacedBy(ItemId.Bottle));
     }
 

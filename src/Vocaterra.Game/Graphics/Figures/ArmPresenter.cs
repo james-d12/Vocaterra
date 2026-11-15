@@ -40,7 +40,7 @@ public sealed class ArmPresenter : ITickObserver
     /// <param name="look">The sky's look at this moment of the cycle: the sun's light and the lanterns' strength.</param>
     public ArmFrame Frame(Vector3 eye, IReadOnlyList<BlockPos> lights, in SkyLook look)
     {
-        var held = HeldItems.For(_sim.SelectedStack);
+        var held = HeldItems.For(_sim.Inventory.Items, _sim.SelectedStack);
         var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
         var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
         var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, look.SunLight, look.LanternStrength);

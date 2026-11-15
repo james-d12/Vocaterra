@@ -11,7 +11,7 @@ public sealed class NounCatalogTests
     [Fact]
     public void EveryItemKindIsNamedByANounWithAGenderAndANounReading()
     {
-        foreach (var definition in ItemDefinition.All)
+        foreach (var definition in TestItems.Catalogue.All)
         {
             var noun = TestGame.Nouns.ForItem(definition.Id);
             Assert.True(noun is not null, $"Item {definition.Name} has no catalogue noun.");
@@ -78,7 +78,7 @@ public sealed class NounCatalogTests
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("agua")!.Blocks);
         Assert.Equal([ItemId.WaterBottle], TestGame.Nouns.ForLemma("agua")!.Items);
         Assert.Equal([ItemId.Bottle], TestGame.Nouns.ForLemma("botella")!.Items);
-        Assert.Equal([ItemId.Bread], TestGame.Nouns.ForLemma("pan")!.Items);
+        Assert.Equal([TestItems.Bread], TestGame.Nouns.ForLemma("pan")!.Items);
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("río")!.Blocks);
         Assert.Equal([BlockId.Bridge], TestGame.Nouns.ForLemma("puente")!.Blocks);
         Assert.Equal([BlockId.Stall, BlockId.Roof], TestGame.Nouns.ForLemma("tienda")!.Blocks);
@@ -96,20 +96,20 @@ public sealed class NounCatalogTests
     public void AnItemNamedTwiceOrAnUnknownItemOrBlockIsRefused()
     {
         var twice = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["wood"]},{"lemma":"madera","items":["wood"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice, TestItems.Catalogue));
 
         var unknownItem = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["rock"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownItem));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownItem, TestItems.Catalogue));
 
         var unknownBlock = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":[],"blocks":["rock"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownBlock));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownBlock, TestItems.Catalogue));
     }
 
     [Fact]
     public void ASourceThatIsNotACatalogueNounIsRefused()
     {
         var json = """{"schemaVersion":1,"nouns":[{"lemma":"madera","items":["wood"],"sources":["cueva"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json, TestItems.Catalogue));
     }
 
     [Fact]

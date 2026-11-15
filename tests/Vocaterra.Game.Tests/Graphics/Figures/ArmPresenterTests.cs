@@ -13,7 +13,7 @@ public sealed class ArmPresenterTests
     [Fact]
     public void APlacementSwingsTheArmAndOtherCommandsDoNot()
     {
-        var sim = VoxelSimulation.Create(RouteScene.Clearing());
+        var sim = VoxelSimulation.Create(RouteScene.Clearing(), TestItems.Catalogue);
         var placed = new ArmPresenter(sim, sim.Grid.IsSolid);
         var still = new ArmPresenter(sim, sim.Grid.IsSolid);
         sim.Step([]);

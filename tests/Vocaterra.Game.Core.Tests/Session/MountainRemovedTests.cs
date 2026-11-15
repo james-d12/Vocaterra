@@ -92,7 +92,7 @@ public sealed class MountainRemovedTests
         var needs = TestGame.Data.Needs;
         var broken = needs with { Death = needs.Death with { WakeAt = "camp.fire" } };
 
-        Assert.Contains(NeedsValidator.Validate(broken), static p => p.Contains("wakeAt 'camp.fire' is not a listed sleep place", StringComparison.Ordinal));
+        Assert.Contains(NeedsValidator.Validate(broken, TestItems.Catalogue), static p => p.Contains("wakeAt 'camp.fire' is not a listed sleep place", StringComparison.Ordinal));
     }
 
     [Fact]

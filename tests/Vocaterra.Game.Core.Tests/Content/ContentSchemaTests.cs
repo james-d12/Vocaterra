@@ -67,7 +67,7 @@ public sealed class ContentSchemaTests
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "nouns.schema.json"));
         Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "items": ["bread"] }] }"""));
         Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "itmes": ["bread"] }] }"""));
-        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "items": ["loaf"] }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "nouns": [{ "lemma": "pan", "items": ["Loaf Bread"] }] }""")); // not an item key (I01: whether it names an item is the content check's)
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public sealed class ContentSchemaTests
         Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "session": 2, "steps": [ { "id": "s", "target": 1, "trigger": { "event": "fire_lit" } } ] }"""));
         Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5", "\"session\": 0", StringComparison.Ordinal)));
         Assert.NotEmpty(schema.Validate(Order.Replace(", \"deliver\": [ { \"item\": \"wood\", \"count\": 5 } ]", string.Empty, StringComparison.Ordinal)));
-        Assert.NotEmpty(schema.Validate(Order.Replace("\"wood\"", "\"madera\"", StringComparison.Ordinal)));
+        Assert.NotEmpty(schema.Validate(Order.Replace("\"wood\"", "\"Madera Seca\"", StringComparison.Ordinal)));
         Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"title\": \"Horno\",", StringComparison.Ordinal)));
         Assert.NotEmpty(schema.Validate(Order.Replace("\"session\": 5,", "\"steps\": [ { \"id\": \"s\", \"target\": 1, \"trigger\": { \"event\": \"fire_lit\" } } ],", StringComparison.Ordinal)));
         Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a" }"""));
@@ -200,16 +200,45 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
-    public void TheItemAndBlockNamesOfTheNounSchemaAreTheGamesTables()
+    public void TheBlockNamesOfTheNounSchemaAreTheGamesTableAndNoSchemaListsItems()
     {
-        // The schema lists the stable names for the editors' completion; the code's tables are the authority.
+        // The schema lists the stable block names for the editors' completion; the code's table is the authority. Items are rows of game/items.json (I01): every schema that names
+        // an item takes a key-shaped string, and the content check says whether the catalogue has it.
         var definitions = ReadJson(Path.Combine(SchemaFolder, "nouns.schema.json"))["definitions"]!;
-        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(definitions["item"]!));
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
-        var hostEvents = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["definitions"]!;
-        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(hostEvents["item"]!)); // C08: a host event gives an item by the same names
-        var objective = ReadJson(Path.Combine(SchemaFolder, "objective.schema.json"))["definitions"]!;
-        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(objective["item"]!)); // V03: and an order asks for them by the same names
+        foreach (var schema in new[] { "nouns.schema.json", "host-events.schema.json", "objective.schema.json" })
+        {
+            var item = ReadJson(Path.Combine(SchemaFolder, schema))["definitions"]!["item"]!;
+            Assert.Null(item["enum"]);
+            Assert.Equal("string", item["type"]!.GetValue<string>());
+            Assert.NotNull(item["pattern"]);
+        }
+    }
+
+    [Fact]
+    public void TheHeldKindsAndToolMaterialsOfTheItemSchemaAreTheCodesTables()
+    {
+        var definitions = ReadJson(Path.Combine(SchemaFolder, "items.schema.json"))["definitions"]!;
+        Assert.Equal(ItemHeld.All, Names(definitions["item"]!["properties"]!["held"]!));
+        Assert.Equal(Enum.GetValues<Material>().Where(static m => m != Material.None).Select(static m => m.ToString().ToLowerInvariant()), Names(definitions["tool"]!["properties"]!["class"]!));
+    }
+
+    [Fact]
+    public async Task TheItemSchemaAcceptsARowAndRefusesWhatIsNotOne()
+    {
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "items.schema.json"));
+        static string Items(string row) => $$"""{ "schemaVersion": 1, "items": [ {{row}} ] }""";
+        const string Gem = """{ "name": "gem", "id": 100, "stack": 20, "icon": "gem", "held": "sprite", "tags": ["material"] }""";
+        Assert.Empty(schema.Validate(Items(Gem)));
+        Assert.Empty(schema.Validate(Items("""{ "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tool": { "class": "wood", "speed": 4, "yield": 2 } }""")));
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"name\": \"gem\", ", string.Empty, StringComparison.Ordinal)))); // no name
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"gem\"", "\"Gem Stone\"", StringComparison.Ordinal))));
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"stack\": 20", "\"stack\": 0", StringComparison.Ordinal))));
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"id\": 100", "\"id\": 70000", StringComparison.Ordinal))));
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"sprite\"", "\"wand\"", StringComparison.Ordinal))));
+        Assert.NotEmpty(schema.Validate(Items(Gem.Replace("\"tags\"", "\"tagz\"", StringComparison.Ordinal)))); // a misspelled field
+        Assert.NotEmpty(schema.Validate(Items("""{ "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tool": { "class": "granite", "speed": 4 } }""")));
+        Assert.NotEmpty(schema.Validate(Items("""{ "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tool": { "class": "wood" } }""")));
     }
 
     // Schemas written before the files that use them: procedure.schema.json is the shape of game/procedures/<id>.json, which W10 adds (W05 has none).

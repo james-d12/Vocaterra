@@ -9,8 +9,8 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
 
 - **Kept where the id still exists in this bundle:** the learner's record (history, word rows), the settings and the session number, the word records
   (by lemma), the carded nouns, the phrase records (one per sheet row, by id), the objective's counts (by step key), each NPC's conversation state and its
-  learner-model skills (`word.<noun>` and `phrase.<id>` skills of content that is gone are dropped), the tips, the arrow, the inventory (items are an enum
-  of the code, not of the bundle) and the lessons. A **lesson** is mapped by step id: a completed lesson stays completed (and `EverCompleted` stays) with the
+  learner-model skills (`word.<noun>` and `phrase.<id>` skills of content that is gone are dropped), the tips, the arrow, the inventory (items are rows of
+  the bundle's `game/items.json`, saved by name since version 9: a slot whose item this bundle lacks becomes an empty slot) and the lessons. A **lesson** is mapped by step id: a completed lesson stays completed (and `EverCompleted` stays) with the
   outcomes of the steps that still exist; a lesson in progress keeps the longest run of its steps, from the first, that are all among the finished ones,
   goes on at the next step, and does again a finished step that follows one the lesson has not finished (the tries on the step in progress reset when
   the step changed). A lesson that is gone is dropped, and so is an active mark or a replay that named it.
@@ -36,11 +36,20 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 9: items by name (I01)
+
+The current version is 9, and it is the only one read (the rule of version 8, below, holds: a save of an older version, version 8 included, is refused with "The save is format version N; the oldest
+this game loads is 9 (it writes 9), and older saves are not migrated.", and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
+of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), where version 8 wrote the code's enum name
+(`"Wood"`, `"WaterBottle"`). **An empty slot is `{"item": "", "count": 0}`**, where version 8 wrote `{"item": "Wood", "count": 0}`. `SlotSave.Of` and `SlotSave.ToStack` do the translation with the
+bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state
+digest still reads the item's numeric id, so no digest moved. One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`, is the version 9 save the tests read (the version 8 one, with its
+version and its slots translated, and the bundle hash `scripts/content-loop.sh` writes).
+
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
-The current version is 8, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;
-the oldest this game loads is 8 (it writes 8), and older saves are not migrated.") and nothing migrates it: the code that read versions 1 to 7 is gone (the branches on the
-version number, the version 2 word rows, the first-words split). One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`, is the version 8 save the tests read. The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+Version 8 added the rule that only the current version is read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`) and nothing migrates it: the code that read
+versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split). The version 8 save the tests read was `save-v8.json`, now `save-v9.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
