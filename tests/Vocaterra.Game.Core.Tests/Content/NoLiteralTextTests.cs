@@ -30,6 +30,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Land/LandValidator.cs"] = "the content authors' problem list (game/land.json)",
         ["src/Vocaterra.Game.Core/World/WorldGenValidator.cs"] = "the content authors' problem list (game/world.json)",
         ["src/Vocaterra.Game.Core/World/Biomes/BiomeValidator.cs"] = "the content authors' problem list (game/biomes.json)",
+        ["src/Vocaterra.Game.Core/World/Generation/Procedural/StrategyRegistry.cs"] = "the content authors' error for a biome row that names a strategy the code does not have (game/biomes.json)",
         ["src/Vocaterra.Game.Core/Content/GameData.cs"] = "a load error for the content authors",
         ["src/Vocaterra.Game.Core/Content/LocaleBundle.cs"] = "load errors for the content authors",
         ["src/Vocaterra.Game.Core/Language/Lessons/LessonBook.cs"] = "load errors for the content authors",
