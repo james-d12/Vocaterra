@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.Water.Flow;
 public readonly record struct FlowCell(BlockId Block, WaterLevel Level)
 {
     /// <summary>Reads the cell at the position (air outside the grid).</summary>
-    public static FlowCell Read(VoxelGrid grid, int x, int y, int z)
+    public static FlowCell Read(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var block = grid.GetBlock(x, y, z);

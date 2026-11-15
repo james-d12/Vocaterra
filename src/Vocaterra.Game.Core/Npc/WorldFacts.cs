@@ -84,56 +84,61 @@ public sealed class WorldFacts : IGuideFacts
         _nouns = nouns ?? throw new ArgumentNullException(nameof(nouns));
     }
 
-    /// <summary>The facts over the live grid: every call reads the grid as it is now (the simulation's own thread).</summary>
+    /// <summary>The facts over the live grid: every call reads the grid as it is now (the simulation's own thread). Valid over the box from the origin (the search is not windowed yet: B06).</summary>
     public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, directions, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
+        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, directions, (cx, cy, cz) => grid.TryGetChunk(new VoxelChunkCoord(cx, cy, cz), out var chunk) ? chunk.KindMask : 0UL);
     }
 
     /// <summary>
     /// A copy of the blocks, as facts that no later edit can reach (the turn worker reads these). Only the chunks that hold something are copied
-    /// (a chunk of air costs nothing), with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
-    /// hold the noun.
+    /// (a chunk of air costs nothing), keyed by chunk coordinate, with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
+    /// hold the noun. It copies the box from the origin to the grid's size (the valley); a window around the player replaces that in B06.
     /// </summary>
     public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        var chunksX = grid.ChunksX;
-        var chunksY = grid.ChunksY;
-        var chunksZ = grid.ChunksZ;
-        var blocks = new BlockId[grid.Chunks.Count][];
-        var kinds = new ulong[grid.Chunks.Count];
-        for (var i = 0; i < blocks.Length; i++)
+        var limits = grid.Limits;
+        if (limits is not { MinX: 0, MinY: 0, MinZ: 0 })
         {
-            var chunk = grid.Chunks[i];
-            if (!chunk.IsEmpty)
+            throw new NotSupportedException("A snapshot copies the box from the origin: a world with a negative corner needs a window around the player (B06).");
+        }
+
+        var copied = new Dictionary<VoxelChunkCoord, (BlockId[] Blocks, ulong Kinds)>();
+        for (var cy = 0; cy < limits.EndChunkY; cy++)
+        {
+            for (var cz = 0; cz < limits.EndChunkZ; cz++)
             {
-                blocks[i] = chunk.Blocks.ToArray();
-                kinds[i] = chunk.KindMask;
+                for (var cx = 0; cx < limits.EndChunkX; cx++)
+                {
+                    var coord = new VoxelChunkCoord(cx, cy, cz);
+                    if (grid.TryGetChunk(coord, out var chunk) && !chunk.IsEmpty)
+                    {
+                        copied[coord] = (chunk.Blocks.ToArray(), chunk.KindMask);
+                    }
+                }
             }
         }
 
-        var sizeX = grid.SizeX;
-        var sizeY = grid.SizeY;
-        var sizeZ = grid.SizeZ;
         return new WorldFacts(
-            sizeX,
-            sizeY,
-            sizeZ,
+            limits.SizeX,
+            limits.SizeY,
+            limits.SizeZ,
             (x, y, z) =>
             {
-                if (x < 0 || y < 0 || z < 0 || x >= sizeX || y >= sizeY || z >= sizeZ)
+                if (x < 0 || y < 0 || z < 0 || x >= limits.SizeX || y >= limits.SizeY || z >= limits.SizeZ)
                 {
                     return BlockId.Air;
                 }
 
-                var chunk = blocks[((((y >> ChunkShift) * chunksZ) + (z >> ChunkShift)) * chunksX) + (x >> ChunkShift)];
-                return chunk is null ? BlockId.Air : chunk[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))];
+                return copied.TryGetValue(VoxelChunkCoord.FromBlock(x, y, z), out var chunk)
+                    ? chunk.Blocks[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))]
+                    : BlockId.Air;
             },
             nouns,
             directions,
-            (cx, cy, cz) => kinds[(((cy * chunksZ) + cz) * chunksX) + cx]);
+            (cx, cy, cz) => copied.TryGetValue(new VoxelChunkCoord(cx, cy, cz), out var chunk) ? chunk.Kinds : 0UL);
     }
 
     /// <summary>The block at a cell; air outside the scene.</summary>

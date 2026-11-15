@@ -153,7 +153,10 @@ Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, cra
 Sound/            the mixer, the cues and their mapping, the ambient beds, the footsteps, the NPC voice, SoundFrame, SoundTickObserver,
                   SoundSetup with its SoundOptions
 Tip/              the tips (TipFeed, TipBook, TipSpec), the controls help's lines (ControlHelp), the objective line's pieces, ToastQueue
-Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
+Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight. The grid is sparse (B04a): chunks keyed by VoxelChunkCoord, none for
+                  air, a read cache; a bounded grid (the valley, the tests) or a streamed one (WorldLimits, y may be negative, IChunkGenerator generates on
+                  read, installs and evictions are not edits: ResidencyVersion, IChunkResidencyListener). Readers take IVoxelReader; the dense members
+                  (Chunks, ChunksX/Y/Z, BlocksOfKind, ComputeDigest) are bounded-only and DenseGridMembersAllowListTests lists every use in src/
 World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder; Procedural/ the height model, B01), Noise/ (integer noise, splines, lattices, B01), Climate/ (the climate fields and the lapse with altitude, B01), Biomes/ (the biome table from game/biomes.json, B01), WorldGenData (game/world.json)
 ```
 

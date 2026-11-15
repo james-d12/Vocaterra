@@ -14,7 +14,7 @@ internal static class VoxelCollider
     private const int H = VoxelPhysics.PlayerHeight;
 
     /// <summary>Whether the box with minimum corner (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>) overlaps no solid block.</summary>
-    public static bool IsFree(VoxelGrid grid, int x, int y, int z)
+    public static bool IsFree(IVoxelReader grid, int x, int y, int z)
     {
         var x0 = FloorDiv(x, U);
         var x1 = FloorDiv(x + W - 1, U);
@@ -40,13 +40,13 @@ internal static class VoxelCollider
     }
 
     /// <summary>Moves the box by <paramref name="dx"/> along X; returns true (and snaps to the block edge) if a solid block stopped it.</summary>
-    public static bool MoveX(VoxelGrid grid, ref int x, int y, int z, int dx) => MoveAxis(grid, 0, ref x, y, z, dx);
+    public static bool MoveX(IVoxelReader grid, ref int x, int y, int z, int dx) => MoveAxis(grid, 0, ref x, y, z, dx);
 
     /// <summary>Moves the box by <paramref name="dy"/> along Y (positive is up); returns true (and snaps) if a solid block stopped it.</summary>
-    public static bool MoveY(VoxelGrid grid, int x, ref int y, int z, int dy) => MoveAxis(grid, 1, ref y, x, z, dy);
+    public static bool MoveY(IVoxelReader grid, int x, ref int y, int z, int dy) => MoveAxis(grid, 1, ref y, x, z, dy);
 
     /// <summary>Moves the box by <paramref name="dz"/> along Z; returns true (and snaps to the block edge) if a solid block stopped it.</summary>
-    public static bool MoveZ(VoxelGrid grid, int x, int y, ref int z, int dz) => MoveAxis(grid, 2, ref z, x, y, dz);
+    public static bool MoveZ(IVoxelReader grid, int x, int y, ref int z, int dz) => MoveAxis(grid, 2, ref z, x, y, dz);
 
     /// <summary>The floor division of a by a positive b (rounds towards negative infinity).</summary>
     public static int FloorDiv(int a, int b)
@@ -56,7 +56,7 @@ internal static class VoxelCollider
     }
 
     // For axis 0 the other two coordinates are (y, z); for axis 1 they are (x, z); for axis 2 they are (x, y).
-    private static bool MoveAxis(VoxelGrid grid, int axis, ref int pos, int other1, int other2, int delta)
+    private static bool MoveAxis(IVoxelReader grid, int axis, ref int pos, int other1, int other2, int delta)
     {
         if (delta == 0)
         {
@@ -101,7 +101,7 @@ internal static class VoxelCollider
         return false;
     }
 
-    private static bool Blocked(VoxelGrid grid, int axis, int cell, int lo1, int hi1, int lo2, int hi2)
+    private static bool Blocked(IVoxelReader grid, int axis, int cell, int lo1, int hi1, int lo2, int hi2)
     {
         for (var i = lo1; i <= hi1; i++)
         {

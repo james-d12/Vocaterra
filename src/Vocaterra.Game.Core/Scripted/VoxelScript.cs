@@ -253,7 +253,7 @@ public sealed class VoxelScript
     // The player's feet go to the ground of a column (GroundFinder, also the menu's teleport).
     private bool TeleportNow(VoxelStep step)
     {
-        if (!_sim.Grid.InBounds(step.X, 0, step.Z))
+        if (!_sim.Grid.InBounds(step.X, _sim.Grid.Limits.MinY, step.Z))
         {
             _log($"teleport {step.X},{step.Z}: outside the world");
             return true;

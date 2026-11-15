@@ -130,7 +130,7 @@ public sealed class LandRules
     /// </summary>
     /// <param name="grid">The world as it is now.</param>
     /// <param name="plot">The plot to check (the rules' size is not enforced here: the caller makes it with <see cref="PlotAt"/> or <see cref="PlotAround"/>).</param>
-    public PlotCheck CheckPlot(VoxelGrid grid, Plot plot)
+    public PlotCheck CheckPlot(IVoxelReader grid, Plot plot)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var outside = false;
@@ -193,11 +193,11 @@ public sealed class LandRules
     /// <param name="grid">The world.</param>
     /// <param name="x">The column's x.</param>
     /// <param name="z">The column's z.</param>
-    public static (int Y, BlockId Block, bool TreeAbove) GroundOf(VoxelGrid grid, int x, int z)
+    public static (int Y, BlockId Block, bool TreeAbove) GroundOf(IVoxelReader grid, int x, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var lowestTree = int.MaxValue;
-        for (var y = Math.Min(grid.HighestBlock(x, z), grid.SizeY - 1); y >= 0; y--)
+        for (var y = Math.Min(grid.HighestBlock(x, z), grid.Limits.EndY - 1); y >= grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
             if (block == BlockId.Air || BlockDefinition.IsDecor(block))
@@ -214,7 +214,7 @@ public sealed class LandRules
             return (y, block, lowestTree != int.MaxValue && lowestTree <= y + TreeProbeHeight);
         }
 
-        return (-1, BlockId.Air, false);
+        return (grid.Limits.MinY - 1, BlockId.Air, false);
     }
 
     private bool InWorld(int x, int z) => (uint)x < (uint)_sizeX && (uint)z < (uint)_sizeZ;
