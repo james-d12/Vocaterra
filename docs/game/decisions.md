@@ -792,6 +792,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     moved the edge wall to B07.
 11. **Review stops** (2026-11-15): at B02, B07, B08b and B13 only the work that depends on the review waits for the owner ("Hold only
     what depends on it"); independent milestones keep building.
+12. **Pictures** (2026-11-15): "Make sure to get the agents to provide screenshots at important parts so that I can review the biomes and
+    how they look and what's being generated." Every B milestone that changes what is generated or drawn leaves screenshots or maps for
+    the owner (the plan's section 4, "Pictures for the owner"); B03b adds a procedural sample to the game so the biomes can be seen in
+    3D before the streamed world.
 
 ## Already decided
 

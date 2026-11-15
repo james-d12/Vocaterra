@@ -556,6 +556,7 @@ The design, the owner's answers and the progress table are in [the biomes plan](
 | B01 | Noise primitives, climate with altitude, the tall height model, `BiomeTable`, `world.json` and `biomes.json` with schemas and validators | B00 | L | Sonnet 5.5, high | in progress |
 | B02 | `tools/Vocaterra.WorldPreview`: PNG maps and vertical slices of biomes and heights for three seeds (the owner reviews the maps before tuning) | B01 | S/M | Sonnet 5.5, medium | planned |
 | B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to -64 | B01 | L | Sonnet 5.5, high | planned |
+| B03b | A procedural sample in the game for pictures (`--world sample`, a bounded box with no valley) and a 3D picture set of each biome for 3 seeds (the owner reviews the pictures) | B03 | S/M | Sonnet 5.5, medium | planned |
 | B04a | Sparse `VoxelGrid` in both modes, the y range from data, coordinate APIs and residency events; Core consumers keyed by coordinate (byte-identical) | B00 | L | Sonnet 5.5, high | in progress |
 | B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index (identical pictures) | B04a | M | Sonnet 5.5, medium | planned |
 | B05 | Saves version 9 and the changed-chunk state digest | B04a | M | Sonnet 5.5, medium | planned |

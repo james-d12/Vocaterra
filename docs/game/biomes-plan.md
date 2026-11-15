@@ -455,6 +455,7 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B01 | Noise primitives (2D and 3D), climate with altitude, the tall height model, `BiomeTable`; `world.json` and `biomes.json` with JSON Schemas and validators; `NoBiomeIdsInSourceTests`; purity tests | L | Sonnet high | B00 | bundle hash |
 | B02 | `tools/Vocaterra.WorldPreview`: PNG maps of biomes and heights, and vertical slices, for a seed and an area. Uses BCL `ZLibStream` and a hand-written CRC32, no package. Maps for 3 seeds. **The owner reviews the maps before tuning** | S/M | Sonnet medium | B01 | nothing |
 | B03 | `GenerationPipeline`, the surface passes and `ProceduralChunkSource`, with solid stone down to −64. Tests: a chunk generated alone equals the same chunk generated among others; water at rest; exitable edges; time per chunk; procedural goldens | L | Sonnet high | B01 | new goldens |
+| B03b | A procedural sample in the game for pictures: a test aid `--world sample` (with `--seed` and an origin) that builds a bounded box of procedural chunks above y 0, about 256 x 320 x 256, with no valley, NPCs or lessons, so the biomes can be seen and photographed in 3D before the streamed world (B07). A picture set for 3 seeds: each biome, a river, a lake, a coast and a range | S/M | Sonnet medium | B03 | pictures (owner review) |
 | B04a | Sparse `VoxelGrid` in both modes, with the y range from data (negative y); coordinate APIs, residency events, `PristineDigest`, `IVoxelReader`; Core consumers keyed by coordinate; the dense-API allow-list test | L | Sonnet high | B00 | nothing (byte-identical) |
 | B04b | Game consumers keyed by coordinate: renderer, version tracker, view set, rain cover, light index | M | Sonnet medium | B04a | nothing (identical pictures) |
 | B05 | Saves version 9 and the changed-chunk state digest | M | Sonnet medium | B04a | state digests, fixtures |
@@ -474,7 +475,7 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 its dependencies are gated, with the critical path first (B04a, B05, B06, B07, B12, B14; and B01, B03, B06). At an owner-review stop only
 the work that depends on the review waits. The first waves:
 1. B01, B04a and B08a
-2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a)
+2. as they merge: B03 and B02 (after B01), B04b and B05 (after B04a), B08b (after B01 and B08a), B03b (after B03)
 3. then B06 (B03, B05), B09 (B04b), B10 (B09), B11 (B03, B10), B07 (B06, B08b), B15 (B06), B12 (B07, B11), B13 (B08b, B11), B14
 
 The game stays playable at every gate. It switches to the streamed world at B07 and gains its underground at B11 and B12.
@@ -487,6 +488,19 @@ The game stays playable at every gate. It switches to the streamed world at B07 
   - B05 compares with masked lines.
   - B07, B08, B12 and B13 are re-baselined with the owner.
 - **Owner reviews:** B02's maps and slices are reviewed by the owner.
+- **Pictures for the owner** (owner, 2026-11-15: "screenshots at important parts so that I can review the biomes and how they look and
+  what's being generated"). Every milestone that changes what is generated or drawn leaves pictures in
+  `/home/james/Dev/Vocaterra/artifacts/b-series/<id>/` (outside git) and lists them in its report; the orchestrator shows them to the
+  owner at the milestone's record:
+  - B02: maps of biomes and heights, and vertical slices, for 3 seeds;
+  - B03: maps of the generated surface blocks, from the preview tool once B02 is in;
+  - B03b: the 3D picture set of each biome, river, lake, coast and range, for 3 seeds;
+  - B06: the region's border and its blend, from the sample aid run round the valley's edge;
+  - B07: the streamed world from the pass and across the presets, beside the performance figures;
+  - B08a and B08b: the pass, the road, the rockfall, and the open pass;
+  - B10: each new block in the light of day;
+  - B11: vertical slices of the underground, and cave mouths and caverns in the sample aid;
+  - B12: the cave tour; B13: the valley's caves and ores; B14: the tour through each biome and down a cave; B15: the sample town.
 - **Measurement:** B07 and B12 measure, at each preset on the VM:
   - frame medians;
   - meshing and generation time per chunk;
@@ -592,3 +606,4 @@ series, `docs/game/biomes-plan.md`).*
 | (accepted) | 2026-11-15: D-game-34 decided, the five answers recorded (section 5); B08 grows to M (the closed pass), B10 loses gathering | none (documents only) | B00 next |
 | B00 | done 2026-11-15 | `162dec4f`: 11,498 passed, 3 skipped; the doc-link test failed on two links in the orchestrator's own brief, fixed in the next commit and re-run | section 4.14 of the game plan; open items and index rows |
 | (parallel) | 2026-11-15: the owner allows three building agents on the B series and holds only dependent work at a review stop; B08 split into B08a (the pass, now) and B08b (its lock, after B01); the edge wall moves to B07 | none (documents only) | B08a launched beside B01 and B04a |
+| (pictures) | 2026-11-15: the owner asks for screenshots at the important points; B03b added (a procedural sample in the game for 3D pictures before B07); a picture list per milestone (section 4, "Pictures for the owner") | none (documents only) | every brief from now on carries it |
