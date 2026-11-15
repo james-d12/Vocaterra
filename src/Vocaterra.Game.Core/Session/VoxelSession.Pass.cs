@@ -50,6 +50,20 @@ public sealed partial class VoxelSession
         {
             _ = Pass.Update(Lessons.IsDone, _passCheat);
         }
+
+        SyncPassBarrier();
+    }
+
+    /// <summary>
+    /// Puts the valley's edge wall as the pass has it (B07): a streamed world's body barrier stands while the pass is closed and lifts, all the way round, once it is open, and stays lifted
+    /// after a load (a save restores <see cref="PassState.IsOpen"/>). A bounded grid has no barrier (its limits are its wall).
+    /// </summary>
+    internal void SyncPassBarrier()
+    {
+        if (Scene.Grid.Barrier is { } barrier)
+        {
+            barrier.Locked = !Pass.IsOpen;
+        }
     }
 
     // The pass opened: the rockfall's blocks become what the valley has there without it (the road's ground and air: the heap stands over the ground, so every cell is air), set like any
@@ -64,6 +78,7 @@ public sealed partial class VoxelSession
             }
         }
 
+        SyncPassBarrier();
         LogWorld(WorldEvents.PassOpened, null, Pass.Data.RequiredLessons.All(Lessons.IsDone) ? "lessons" : "cheat");
     }
 }

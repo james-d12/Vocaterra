@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Layout;
@@ -36,7 +37,9 @@ public static class WorldFactory
             return built.WithWorld(built.Grid, composition.Places, region.TemplateDigest, null);
         }
 
-        return built.WithWorld(StreamedGrid(data, composition.Source), composition.Places, region.TemplateDigest, composition.Source);
+        var grid = StreamedGrid(data, composition.Source);
+        grid.Barrier = new BodyBarrier(region.Bounds.MinX, region.Bounds.MinZ, region.Bounds.MaxX, region.Bounds.MaxZ); // B07: the valley's edge is a wall for the body while the pass is closed
+        return built.WithWorld(grid, composition.Places, region.TemplateDigest, composition.Source, composition.World);
     }
 
     /// <summary>The world's pure parts for some regions: the composite source and the place query, both over one blend and one seed.</summary>
@@ -48,7 +51,9 @@ public static class WorldFactory
     {
         var blend = new RegionBlend(regions, data.WorldGen.Blend, data.WorldGen.Vertical.SeaLevel);
         var procedural = new ProceduralChunkSource(data.WorldGen, data.Biomes, seed, strategies, 0, blend);
-        return new WorldComposition(new CompositeChunkSource(regions, procedural), new WorldQuery(procedural.World, regions), procedural);
+        var source = new CompositeChunkSource(regions, procedural);
+        var streamed = new StreamedWorld(source, new SurfaceBands(procedural, regions), new FarTerrainSampler(procedural.World, regions), regions);
+        return new WorldComposition(source, new WorldQuery(procedural.World, regions), procedural, streamed);
     }
 
     /// <summary>A streamed grid over the world's limits (x and z plus and minus 30 000, the data's vertical range) that generates what is read from a source.</summary>
@@ -89,8 +94,7 @@ public static class WorldFactory
     {
         public ChunkContent? Generate(VoxelChunkCoord coord) => ContentOf(source.Generate(coord));
 
-        public static ChunkContent? ContentOf(ChunkData data) =>
-            data.IsEmpty ? null : new ChunkContent(data.Blocks.ToArray(), data.HasWaterLevels ? data.WaterLevels.ToArray() : null);
+        public static ChunkContent? ContentOf(ChunkData data) => GridResidency.ContentOf(data);
     }
 }
 
@@ -98,4 +102,5 @@ public static class WorldFactory
 /// <param name="Source">The composite chunk source.</param>
 /// <param name="Places">The place query.</param>
 /// <param name="Procedural">The procedural half of the source, blended into the regions.</param>
-internal sealed record WorldComposition(CompositeChunkSource Source, WorldQuery Places, ProceduralChunkSource Procedural);
+/// <param name="World">The parts a host drives residency and the far view from.</param>
+internal sealed record WorldComposition(CompositeChunkSource Source, WorldQuery Places, ProceduralChunkSource Procedural, StreamedWorld World);

@@ -69,6 +69,7 @@ public sealed class VoxelGrid : IVoxelWriter
         _limits = source._limits;
         _streamed = source._streamed;
         _generator = source._generator;
+        Barrier = source.Barrier is { } wall ? new BodyBarrier(wall.MinX, wall.MinZ, wall.MaxX, wall.MaxZ) { Locked = wall.Locked } : null;
         EditCount = source.EditCount;
         ResidencyVersion = source.ResidencyVersion;
         _digest = source._digest;
@@ -193,7 +194,10 @@ public sealed class VoxelGrid : IVoxelWriter
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
     /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+    public bool BlocksBody(int x, int y, int z) => (Barrier is { } barrier && barrier.Blocks(x, z)) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+
+    /// <summary>The invisible wall a body cannot cross while it is locked (<see cref="BodyBarrier"/>), or <see langword="null"/> for none (a bounded grid has its limits). Only <see cref="BlocksBody"/> reads it.</summary>
+    public BodyBarrier? Barrier { get; internal set; }
 
     /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
     public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
@@ -398,6 +402,9 @@ public sealed class VoxelGrid : IVoxelWriter
 
         return true;
     }
+
+    /// <summary>The resident chunks' coordinates in no fixed order (a snapshot), for a host's residency driver (<see cref="World.Streaming.GridResidency"/>); the simulation never enumerates them.</summary>
+    internal List<VoxelChunkCoord> ResidentCoordinateList() => new(_chunks.Keys);
 
     /// <summary>The resident chunks' coordinates in a fixed order (layer, then row, then column), for the streamer's policy; the simulation never enumerates them.</summary>
     internal List<VoxelChunkCoord> ResidentCoordinates()

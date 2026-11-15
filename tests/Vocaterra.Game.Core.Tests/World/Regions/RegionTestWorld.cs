@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Layout;
@@ -29,7 +30,9 @@ internal static class RegionTestWorld
     public static Scene StreamedScene()
     {
         var composition = Composition();
-        return RouteScene.Build().WithWorld(WorldFactory.StreamedGrid(TestGame.Data, composition.Source), composition.Places, Valley().TemplateDigest, composition.Source);
+        var grid = WorldFactory.StreamedGrid(TestGame.Data, composition.Source);
+        grid.Barrier = new BodyBarrier(Bounds.MinX, Bounds.MinZ, Bounds.MaxX, Bounds.MaxZ); // as the factory sets it (B07)
+        return RouteScene.Build().WithWorld(grid, composition.Places, Valley().TemplateDigest, composition.Source, composition.World);
     }
 
     /// <summary>The shipped data with the blend's exit corridors left out, for the tests of a region that is not the valley.</summary>

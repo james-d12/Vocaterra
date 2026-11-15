@@ -78,6 +78,22 @@ public sealed class ProceduralChunkSource : IChunkSource
         return ctx;
     }
 
+    /// <summary>
+    /// The chunk layers of a chunk column that the generator does not shortcut (B07): the shaped ground decides, exactly as <see cref="Layer"/> does. Chunks above the band are air, chunks under it are
+    /// stone; nothing is decorated to find out, so it costs the window's heights and the shapers, not the passes.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    internal ColumnBand SurfaceBand(int chunkX, int chunkZ)
+    {
+        var ctx = ShapedColumn(chunkX, chunkZ);
+        var top = Math.Max(ctx.HighestInWindow(), _world.SeaLevel) + _world.Strategies.MaxTreeHeight;
+        var bottom = ctx.LowestOwn() - _world.MaxFillerDepth - 1;
+        var min = Math.Max(bottom >> VoxelChunk.Shift, MinChunkY);
+        var max = Math.Min(top >> VoxelChunk.Shift, MaxChunkY - 1);
+        return min > max ? ColumnBand.Empty : new ColumnBand(min, max);
+    }
+
     /// <summary>The chunk made by running every pass, with no shortcut for the chunks that are all air or all stone: the tests compare it with <see cref="Generate"/>.</summary>
     /// <param name="coord">The chunk's position.</param>
     internal ChunkData GenerateWithoutShortcuts(VoxelChunkCoord coord) => Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shaped: false, shortcuts: false);

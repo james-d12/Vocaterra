@@ -80,6 +80,7 @@ public sealed partial class VoxelSession : GuideSession
         ScanFireRing(scene);
         SleepPlaces = new SleepPlaces(data.Needs.SleepPlaces, data.Needs.Death.WakeAt, scene, Simulation.Fires, () => LodgingGiven);
         Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
+        SyncPassBarrier(); // B07: a streamed world's edge wall stands while the pass is closed
     }
 
     /// <summary>The built scene (the world the facts read).</summary>
