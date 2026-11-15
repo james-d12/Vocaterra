@@ -231,9 +231,9 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
             var column = sampler.At(-512 + (i * 4), 0);
             var row = (sampler.MaxY - Math.Clamp(column.Ground, sampler.MinY, sampler.MaxY)) * 2;
             var expected = sampler.Palette.Of(column.Biome);
-            // The top of the ground, unless a snow or tree line passes over it (white or green).
+            // The top of the ground, unless a snow or tree line passes over it (white or green), or the ground is at the sea level and the dashed mark is drawn over it.
             var pixel = image.Get(i, row);
-            Assert.True(pixel == expected || pixel == new Rgb(255, 255, 255) || pixel == new Rgb(60, 230, 80), $"column {i}: {pixel}, expected {expected}, ground {column.Ground}, row {row}");
+            Assert.True(pixel == expected || pixel == new Rgb(255, 255, 255) || pixel == new Rgb(60, 230, 80) || (column.Ground == sampler.SeaLevel && pixel == new Rgb(255, 214, 64)), $"column {i}: {pixel}, expected {expected}, ground {column.Ground}, row {row}");
         }
 
         var seaRow = (sampler.MaxY - sampler.SeaLevel) * 2;

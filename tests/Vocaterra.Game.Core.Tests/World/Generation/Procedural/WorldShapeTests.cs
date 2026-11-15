@@ -54,6 +54,6 @@ public sealed class WorldShapeTests
             Assert.True(counts.GetValueOrDefault(row.Id) > 0, $"the biome '{row.Id}' never appears in {samples} columns of three seeds");
         }
 
-        Assert.True(counts.Values.Max() < samples * 0.5, "no biome covers half the world");
+        Assert.True(counts.Where(static c => c.Key != "ocean").Max(static c => c.Value) < samples * 0.5, "no land biome covers half the world"); // the sea does: about two thirds of the tuned map (B02b)
     }
 }
