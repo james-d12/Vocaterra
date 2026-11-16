@@ -24,7 +24,7 @@ public sealed class FarTerrainRenderer : IDisposable
     public const float NearPlane = 12f;
 
     // The most bytes of meshes one frame hands to the card: the coarse levels first, so a settled view reaches its horizon in a few frames, and a walk's few new tiles never make a hitch.
-    private const long MaxUploadBytesPerFrame = 16L * 1024 * 1024;
+    private const long MaxUploadBytesPerFrame = 8L * 1024 * 1024;
 
     private static readonly RasterizerState Fallback = new() { CullMode = CullMode.CullClockwiseFace, DepthBias = 2f, SlopeScaleDepthBias = 2f };
 
