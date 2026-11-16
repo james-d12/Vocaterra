@@ -179,11 +179,11 @@ public static class GrassMesher
     {
         var h = CellHash(tuft.X, tuft.Y, tuft.Z);
         var h2 = BlockArtNature.Mix((uint)tuft.Z, (uint)tuft.X + 0x3c6e, (uint)tuft.Y + 0xa54f);
-        var jitterX = (((h2 & 15) / 15f) - 0.5f) * 0.24f;
+        var jitterX = (((h2 & 15) / 15f) - 0.5f) * 0.24f; // at most 0.12 off the middle, and half at most 0.37: a tuft stays inside its own cell
         var jitterZ = ((((h2 >> 4) & 15) / 15f) - 0.5f) * 0.24f;
         var variant = (int)((h2 >> 8) % 3);
-        var height = (variant switch { 0 => 0.26f, 1 => 0.38f, _ => 0.52f }) + ((((h2 >> 12) & 7) / 7f) * 0.08f);
-        var half = 0.27f + ((((h2 >> 16) & 3) / 3f) * 0.07f);
+        var height = (variant switch { 0 => 0.34f, 1 => 0.5f, _ => 0.68f }) + ((((h2 >> 12) & 7) / 7f) * 0.1f);
+        var half = 0.31f + ((((h2 >> 16) & 3) / 3f) * 0.06f);
         var tint = ((h >> 28) % 3) switch { 0 => (1f, 1f, 1f), 1 => (0.93f, 1f, 0.86f), _ => (0.86f, 0.97f, 0.92f) };
         var light = sky is null ? 1f : sky.FactorAt(tuft.X, tuft.Y + 1, tuft.Z);
         var root = MeshVertex.Pack(Channel(184, sun.R, tint.Item1, light), Channel(206, sun.G, tint.Item2, light), Channel(196, sun.B, tint.Item3, light));

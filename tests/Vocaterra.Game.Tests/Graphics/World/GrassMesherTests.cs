@@ -125,7 +125,7 @@ public sealed class GrassMesherTests
         {
             Assert.InRange(vertex.X, 4f, 5f);
             Assert.InRange(vertex.Z, 9f, 10f);
-            Assert.InRange(vertex.Y, 5.9f, 6.7f); // from a hair into the top (the grass block's top is at y 6) to the tallest tuft
+            Assert.InRange(vertex.Y, 5.9f, 6.9f); // from a hair into the top (the grass block's top is at y 6) to the tallest tuft
         }
     }
 
