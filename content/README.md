@@ -109,7 +109,7 @@ Everything the game says, shows and builds its world from, outside the code. The
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
-   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v9.json`); an edit of `locale/` alone moves none;
+   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v10.json`); an edit of `locale/` alone moves none;
    5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
       to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
       that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of
@@ -147,8 +147,7 @@ the keys `BlockAtlasLayout.IconKeys` lists; an unknown key draws the plain fallb
 voxels; `log`, `torch` and `bottle` are modelled in code), `tags` (an open list of words: `tool`, `food`, `material`, `container`, `currency`, `placeable`) and, for a tool, `tool` (`class`, the material
 it works on, and `speed`, how many times faster than bare hands). The other files name an item by its `name` (the nouns' `items`, a shop row, a recipe, a gift, a procedure). The code's `ItemId` enum keeps
 only the items that behaviour refers to (the bottle fills, the book opens, coins pay, the stake and the camp kit place); the loader checks each against its row and stops on a mismatch, and an item
-that is a row alone works everywhere an item can. The gear fields `wear`, `stats` and `look` are described under "Equipment (I03a)" below; `capacity` and `durability` are added as the later equipment milestones need
-them. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
+that is a row alone works everywhere an item can. The gear fields `wear`, `stats`, `look` and `capacity` are described under "Equipment (I03a)" below; `durability` is added when the wear milestone needs it. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
 
 ## Adding things
 
@@ -414,6 +413,12 @@ camelCase keys to numbers, added to the player's stat sheet while worn: `warmth`
 from I05a and I05b on) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
 that some group with a slot of its `wear` accepts one of its tags (so give it `clothing`, `armour`, `accessory`, `offhand` or `bag`), that stat keys are well formed and look colours parse, and that an
 item with stats or a look can be worn. A `look` only dresses the avatar; the stats count only in a group whose `statsApply` is true. Run the usual loop after an edit.
+
+**The bag (I03b).** `equipment.json`'s `bagSlots` (30) is the inventory with no bag worn: the hotbar's 10 and 20 more. A bag is an item with a fourth optional field, `capacity` (1 to 100): the slots it adds while
+worn in the `back` slot (the plan's small bag adds 10 and the large one 20, so at most 50). Only an item tagged `bag` and worn on the `back` may have one; the catalogue refuses any other, and the inventory is sized to
+`bagSlots` plus the largest capacity of `items.json`, so a new bag is one row and no code. A bag cannot come off, or be swapped for a smaller one, while a slot it would drop holds an item (the player empties those slots
+first); swapping for one at least as large is always allowed. A save records the worn bag by name and the bag at its active size, so changing a bag's `capacity` in the data between a save and a load makes the save
+load only across bundles (the migration resizes the bag and reports what was dropped).
 
 ## Adding a weather kind
 
