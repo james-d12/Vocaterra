@@ -2735,3 +2735,25 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   QA-2026-11-16-world-2, `--teleport` onto a pool stands the body on the bed, under water. Observations: the first settled shot after a
   far move waits 32 to 54 s (far tiles in a Debug build); a `--walk-to` that cannot arrive gives up only after 14,400 ticks. Not covered:
   lava (no route found), river currents, the humps in the game.
+- **B12, the underground in play (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b12-underground-in-play.md`, report
+  `.claude/briefs/b12-report.md`, pictures in `artifacts/b-series/b12/`. Faces below a column's natural surface (the pure height model,
+  so forest floors and houses are untouched) darken per corner over 6 blocks to a cave minimum of 0.28 of the sun (0.12 and 0.18 were
+  near-black); a face open to the sky is unchanged and the valley above its ground is identical (a test meshes the village both ways).
+  The placed torch is a glowing kind with a stronger, gentler profile than the lantern (about 8 blocks of warm light); lava lights a
+  cavern orange; a surface edit re-meshes the chunks beneath (`SkyExposure` listens to block changes). The near zone underground is
+  B07's (6 columns), enough across a cavern. The cave tour `r50-cave-tour` and `--teleport-to x,y,z`, signed teleport, place and pour
+  steps (part of B14). Release p95 about 10 ms underground at every preset. Findings: B11's entrances are pits about 10 deep with no
+  walkable way to the cave below (B11b); the vertical bands on a pit's cut walls are the stair-step faces' own shading, as in the
+  valley's cliffs, not the darkening; the first gate's test run was oom-killed in the shared 8 GB pool while four agents built, which
+  led the owner to raise it (D-game-34 item 28). Gated on the second run: 12,293 passed, 3 skipped.
+- **B07b, the streamed world's fixes from the QA pass (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07b-streamed-fixes.md`,
+  report `.claude/briefs/b07b-report.md`, pictures in `artifacts/b-series/b07b/`. QA-2026-11-16-world-1: the teleport and the next step
+  ran in one script tick, so a shot was drawn before the world round the new place was made; a step after a teleport now ends the tick
+  until the world is ready (`ScenarioHooks.WorldReady`). The far teleport's seconds of sky came from the old place's queue (thousands of
+  band jobs, stale in-flight requests holding every slot, the old plan still requesting): a jump of more than 8 columns now puts the old
+  jobs behind (an epoch), clears the stale ones and makes the near zone at once within a bound, then spends larger budgets for 2 s; one
+  frame of 0.8 to 1 s replaces about 3 s of sky, for a teleport, the menu's teleport, a respawn and a load; the start's first frame is
+  now 1.0 to 1.6 s. QA-2026-11-16-world-2: the ground finder skipped water; a teleport onto water now stands at the surface. Gates: the
+  first failed on a docs conflict with B12 and a fuzz test's OutOfMemoryException in the 6 GB command cap (seed `1jXdUcl8JBe8` passes
+  alone at 1.7 GB; the owner raised the cap to 10 GB, D-game-34 item 28); one `SaveServiceTests` case failed once under load in the
+  agent's run and passed alone and in the gate. Gated: 12,305 passed, 3 skipped.

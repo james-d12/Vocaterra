@@ -34,7 +34,9 @@ public sealed class ChunkResidency
 
     private const int RescanFrames = 20;
     private const int PartialPlanFrames = 12;
-    private const long NearPlanRadiusSquared = 10 * 10;
+    private const long NearPlanRadiusSquared = 6 * 6;
+    private const int JumpColumns = 8; // a plan for a place farther than this many columns from the last one is a jump
+    private const long JumpPriorityStep = 1_000_000;
 
     private readonly VoxelGrid _grid;
     private readonly StreamedWorld _world;
@@ -49,6 +51,7 @@ public sealed class ChunkResidency
     private readonly (int Dx, int Dz)[] _reach;
     private volatile BandPlan? _planNow; // read by the workers' staleness checks
     private VoxelChunkCoord _planFor;
+    private int _epoch; // counts the jumps (a new plan for a place far from the last): the jobs of an older epoch queue behind every job of the newer one (B07b)
     private bool _planUnderground;
     private bool _planDue = true;
     private int _cursor;
@@ -152,6 +155,13 @@ public sealed class ChunkResidency
         var underground = _places?.IsUnderground((int)MathF.Floor(eyeX), (int)MathF.Floor(eyeY), (int)MathF.Floor(eyeZ)) ?? false;
         if (_planNow is null || feet != _planFor || underground != _planUnderground)
         {
+            if (_planNow is not null && Math.Max(Math.Abs(feet.X - _planFor.X), Math.Abs(feet.Z - _planFor.Z)) > JumpColumns)
+            {
+                _epoch++; // a jump, not a walk: what was asked for at the old place goes behind what the new place needs, and no longer holds a request slot
+                _inFlight.Clear();
+                (_planNow, _cursor, _evictions, _evictCursor) = (null, 0, [], 0); // the old place's plan asks for nothing more
+            }
+
             (_planFor, _planUnderground, _planDue) = (feet, underground, true);
         }
 
@@ -184,6 +194,42 @@ public sealed class ChunkResidency
         {
             Update(eyeX, eyeY, eyeZ, null);
             if (IsSettled)
+            {
+                return true;
+            }
+
+            if (MonotonicClock.Milliseconds() - started > timeoutMilliseconds)
+            {
+                return false;
+            }
+
+            if (_pool.Workers == 0)
+            {
+                _ = _pool.RunInline(null);
+            }
+            else
+            {
+                Thread.Sleep(1);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Makes the world round a place now, up to the point <see cref="IsNearReady"/> says the body may stand there: plans for the place and installs its nearest columns, waiting for the workers, and returns
+    /// at once when that is done or after the time limit. The rest of the plan is left to the frames (B07b: a far move makes its near zone the way a start does).
+    /// </summary>
+    /// <param name="x">The place's x in blocks.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    /// <param name="timeoutMilliseconds">The longest to wait.</param>
+    /// <returns>Whether the near zone is ready.</returns>
+    public bool SettleNear(float x, float y, float z, double timeoutMilliseconds)
+    {
+        var started = MonotonicClock.Milliseconds();
+        while (true)
+        {
+            Update(x, y, z, 6);
+            if (IsNearReady(x, y, z))
             {
                 return true;
             }
@@ -239,8 +285,9 @@ public sealed class ChunkResidency
             var key = ColumnBandCache.KeyOf(cx, cz);
             if (_bandJobs.TryAdd(key, 0))
             {
-                var distance = ((long)dx * dx) + ((long)dz * dz);
-                _pool.Submit(JobLane.Residency, distance, static () => false, () =>
+                var distance = PriorityOf(((long)dx * dx) + ((long)dz * dz));
+                var epoch = _epoch;
+                _pool.Submit(JobLane.Residency, distance, () => StaleBand(epoch, key), () =>
                 {
                     _ = _bands.Get(cx, cz);
                     _ = _bandJobs.TryRemove(key, out _);
@@ -361,7 +408,7 @@ public sealed class ChunkResidency
             }
 
             _ = _inFlight.Add(key);
-            var distance = ((long)(column.ChunkX - _planFor.X) * (column.ChunkX - _planFor.X)) + ((long)(column.ChunkZ - _planFor.Z) * (column.ChunkZ - _planFor.Z));
+            var distance = PriorityOf(((long)(column.ChunkX - _planFor.X) * (column.ChunkX - _planFor.X)) + ((long)(column.ChunkZ - _planFor.Z) * (column.ChunkZ - _planFor.Z)));
             var (cx, cz, lo, hi) = (column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer);
             // A column the player has moved away from by the time a worker reaches it is not made, but its package still comes back (empty), so the game loop forgets that it asked.
             _pool.Submit(
@@ -372,6 +419,21 @@ public sealed class ChunkResidency
             submitted++;
             _cursor++;
         }
+    }
+
+    // A job's place in the queue: its squared distance from the player, less a step for every jump since, so the newest place's jobs all go first.
+    private long PriorityOf(long distanceSquared) => distanceSquared - ((long)_epoch * JumpPriorityStep);
+
+    // A band job of an older epoch is skipped by the worker that reaches it, and its key is freed so the band is asked for again if the place is near again.
+    private bool StaleBand(int epoch, long key)
+    {
+        if (epoch == Volatile.Read(ref _epoch))
+        {
+            return false;
+        }
+
+        _ = _bandJobs.TryRemove(key, out _);
+        return true;
     }
 
     private IReadOnlyList<ChunkData> Generate(int chunkX, int chunkZ, int minLayer, int maxLayer)

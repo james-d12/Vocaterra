@@ -23,6 +23,9 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
     /// <summary>A step that puts the player at a column (a debug step).</summary>
     public static VoxelStep Teleport(int x, int z) => new(VoxelStepKind.Teleport, X: x, Z: z);
 
+    /// <summary>A step that puts the player at a column, standing on the highest ground at or below a height (a debug step, B12: it reaches a cave under the ground).</summary>
+    public static VoxelStep TeleportTo(int x, int y, int z) => new(VoxelStepKind.TeleportTo, X: x, Y: y, Z: z);
+
     /// <summary>A step that gathers a block.</summary>
     public static VoxelStep Interact(int x, int y, int z) => new(VoxelStepKind.Interact, X: x, Y: y, Z: z);
 
@@ -68,6 +71,27 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
         var parts = value.Split(',');
         return parts.Length == 3 && TryInt(parts[0], out x) && TryInt(parts[1], out y) && TryInt(parts[2], out z);
     }
+
+    /// <summary>Reads <c>x,z</c> (two integers, a minus sign allowed: the world runs on both sides of the origin, B12).</summary>
+    public static bool TryParseSignedColumn(string value, out int x, out int z)
+    {
+        x = 0;
+        z = 0;
+        var parts = value.Split(',');
+        return parts.Length == 2 && TrySigned(parts[0], out x) && TrySigned(parts[1], out z);
+    }
+
+    /// <summary>Reads <c>x,y,z</c> (three integers, a minus sign allowed).</summary>
+    public static bool TryParseSignedBlock(string value, out int x, out int y, out int z)
+    {
+        x = 0;
+        y = 0;
+        z = 0;
+        var parts = value.Split(',');
+        return parts.Length == 3 && TrySigned(parts[0], out x) && TrySigned(parts[1], out y) && TrySigned(parts[2], out z);
+    }
+
+    private static bool TrySigned(string text, out int value) => int.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value);
 
     private static bool TryInt(string text, out int value) => int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
 }
