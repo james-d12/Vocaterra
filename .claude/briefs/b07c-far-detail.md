@@ -86,3 +86,4 @@ darkening, block-texture colour with the biome tint and per-cell noise, transluc
 blocks glow far off. (5) Detail falloff: 1-block columns past the voxel zone, each level doubling over a distance band to 16 km at High;
 no overdraw under the voxel zone. (6) The brief's target, pictures and rules stand. B07d (later): LOD from loaded chunks as they unload
 (edits), the store on disk per world, detail settings; B07c's store designed for it.
+Addendum 2 (about 09:10 UTC): the owner relaxed the target: quality first, do not cut detail to reach 12 ms; measure and name the costs; keep High well inside 60 fps and no frame over 100 ms outside a start or jump.

@@ -861,7 +861,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     own columns, trees and regions; greedy box meshes, never a smooth face, tested; block-texture colour with noise; translucent water;
     stored light for night and glow; 1-block columns past the voxel zone with detail halving by distance bands); B07d adds what remains
     for parity: level of detail from loaded chunks as they unload (edits seen far off), the store saved to disk per world, the detail
-    settings on the settings page.
+    settings on the settings page. The frame-time target relaxed (about 09:10 UTC): "the performance target can degrade slightly if
+    needed ... prefer quality over performance to some degree, so don't obsess over the 12 millisecond per frame ... What we want to focus
+    on at the moment is getting it to render distant chunks properly." B07c does not cut detail to reach 12 ms; it measures and names the
+    costs for later tuning.
 
 ## Already decided
 
