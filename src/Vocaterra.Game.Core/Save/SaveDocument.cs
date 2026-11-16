@@ -63,6 +63,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Air">The player's air in ticks (version 7, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
 /// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 /// <param name="DialoguePages">Each NPC's conversation lines (U08), so the panel scrolls back over earlier sessions: one page per NPC with lines, at most <see cref="Dialogue.DialogueModel.MaxLines"/> lines each. <see langword="null"/>, and left out of the file, while no NPC has a line; a save without it loads with empty pages. Optional, so it needs no save version.</param>
+/// <param name="Worn">The worn items (version 10, I03b), each by its slot group's id, its slot's name and the item's name (<see cref="WornSave"/>); <see langword="null"/>, and left out of the file, while nothing is worn. <see cref="Inventory"/> then holds the active slots: as many as the base and the worn bag give.</param>
 /// <param name="GivenOrders">The orders the player has taken on (issue #54: a «sí» to the NPC's offer, or the step of the lesson that tells it), ordinal. <see langword="null"/>, and left out of the file, while none is; a save without it has none, and the NPCs offer them again. Optional, so it needs no save version.</param>
 public sealed record SaveDocument(
     string Format,
@@ -107,7 +108,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WornSave>? Worn = null);
 
 /// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
 /// <param name="ChunksX">Chunks along x.</param>

@@ -29,7 +29,8 @@ public sealed class ItemsSaveTests
 
         var inventory = SaveGame.Capture(session, Pristine()).Inventory;
 
-        Assert.Equal(Inventory.SlotCount, inventory.Count);
+        Assert.Equal(session.Simulation.Inventory.SlotCount, inventory.Count);
+        Assert.Equal(30, inventory.Count);
         Assert.Contains(new SlotSave("wood", 3), inventory);
         Assert.Contains(new SlotSave("axe", 1), inventory);
         Assert.Equal(new SlotSave(string.Empty, 0), inventory[^1]);
@@ -67,9 +68,9 @@ public sealed class ItemsSaveTests
     }
 
     [Fact]
-    public void Given_TheVersion9Fixture_When_ItLoads_Then_TheBagHoldsTheItemsItNames()
+    public void Given_TheVersion10Fixture_When_ItLoads_Then_TheBagHoldsTheItemsItNames()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -80,14 +81,14 @@ public sealed class ItemsSaveTests
     }
 
     [Fact]
-    public void Given_ASaveOfVersion8_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
+    public void Given_ASaveOfVersion9_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json")).Replace("\"version\":9,", "\"version\":8,", StringComparison.Ordinal);
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json")).Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
 
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 
-        Assert.Equal("The save is format version 8; the oldest this game loads is 9 (it writes 9), and older saves are not migrated.", error.Message);
-        Assert.Equal(9, SaveGame.OldestReadableVersion);
+        Assert.Equal("The save is format version 9; the oldest this game loads is 10 (it writes 10), and older saves are not migrated.", error.Message);
+        Assert.Equal(10, SaveGame.OldestReadableVersion);
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Data, Pristine));
     }
 }

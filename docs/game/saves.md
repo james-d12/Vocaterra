@@ -36,20 +36,36 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 10: the active bag and the worn items (I03b)
+
+The current version is 10, and it is the only one read: a save of version 9 or older is refused with "The save is format version N; the oldest this game loads is 10 (it writes 10), and older saves are not
+migrated." Two things changed, both from the equipment series (D-game-35):
+
+- **`inventory` holds the active slots only.** It was always 40 entries; it is now as long as the bag's active count, the `bagSlots` of `game/equipment.json` (30) plus the `capacity` of the worn bag, so 30, 40 or
+  50 entries with the small test bags of the plan. The simulation state (`VoxelSimulationState.Slots`) is the same list, so its length is the active count, and `SaveGame.Restore` refuses a save whose list does not match the count its
+  worn items give. (The belongings chest, `systems.chest`, is unchanged: it holds stacks, not slots.)
+- **`worn`, optional, new.** The worn items, one entry per worn slot in the data's order: `{"group": "clothing", "slot": "body", "item": "shirt"}`, the group's `id` and the slot's `name` from `equipment.json` (a counted slot's
+  name is its wear kind and number: `accessory2`) and the item's `name` from `items.json`. **Nothing is an index**, so reordering the groups or the items does not scramble a save. The entry is left out while nothing is
+  worn, so a save of a player in no gear differs from version 9's only in the version and the 30 slots. A group, slot or item the data lacks loads as nothing (`WornSave.ToStacks`), exactly as an unknown item in a bag slot loads as an empty slot; across bundles
+  (`--load` of a save from another bundle) `SaveMigration` reports them among the dropped `worn items`, resizes the bag to what the kept worn items give (a bag the bundle lost shrinks it to the base) and
+  reports the stacks in slots that no longer exist among the dropped `inventory slots`.
+
+The state digest changed with the first: it hashes the active slots (30 with no bag), and it adds the active count when a bag has changed it, then the worn slots as before (nothing worn adds nothing). Every digest
+a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is the version 9 fixture with
+its version, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
+
 ## Format version 9: items by name (I01)
 
-The current version is 9, and it is the only one read (the rule of version 8, below, holds: a save of an older version, version 8 included, is refused with "The save is format version N; the oldest
-this game loads is 9 (it writes 9), and older saves are not migrated.", and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
+Version 9 was the current version from I01 to I03b, and since I03b it is refused like every older one (the rule of version 8, below, holds: a save of an older version is refused and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
 of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), where version 8 wrote the code's enum name
 (`"Wood"`, `"WaterBottle"`). **An empty slot is `{"item": "", "count": 0}`**, where version 8 wrote `{"item": "Wood", "count": 0}`. `SlotSave.Of` and `SlotSave.ToStack` do the translation with the
 bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state
-digest still reads the item's numeric id, so no digest moved. One fixture, `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`, is the version 9 save the tests read (the version 8 one, with its
-version and its slots translated, and the bundle hash `scripts/content-loop.sh` writes).
+digest still reads the item's numeric id, so no digest moved. The version 9 fixture was `save-v9.json` (the version 8 one, with its version and its slots translated); it is `save-v10.json` now (above).
 
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
 Version 8 added the rule that only the current version is read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`) and nothing migrates it: the code that read
-versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split). The version 8 save the tests read was `save-v8.json`, now `save-v9.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split). The version 8 save the tests read was `save-v8.json`, then `save-v9.json`, now `save-v10.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:

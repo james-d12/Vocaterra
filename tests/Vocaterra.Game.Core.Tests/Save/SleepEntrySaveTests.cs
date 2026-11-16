@@ -150,7 +150,7 @@ public sealed class SleepEntrySaveTests
     [Fact]
     public void GivenTheFixtureWithThePlayerAtTheLitFire_When_ItLoadsAndTheyAreWokenBySleeping_Then_TheLastPlaceIsTheFire()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
         Assert.Null(SaveGame.Parse(text).Systems!.Sleep); // recorded before any sleep, with no lodging
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.True(loaded.AtSleepPlace);
@@ -271,9 +271,9 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":7}"));
 
         Assert.Contains("version 7", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 9", error.Message, StringComparison.Ordinal);
-        Assert.Equal(9, SaveGame.OldestReadableVersion);
-        Assert.Equal(9, SaveGame.CurrentVersion);
+        Assert.Contains("loads is 10", error.Message, StringComparison.Ordinal);
+        Assert.Equal(10, SaveGame.OldestReadableVersion);
+        Assert.Equal(10, SaveGame.CurrentVersion);
     }
 
     [Fact]

@@ -230,7 +230,8 @@ public static class SaveMigration
             report.Drop("arrow", document.Pointer.Place);
         }
 
-        var inventory = AdaptInventory(document.Inventory, session.Data.Items, report);
+        var worn = AdaptWorn(document.Worn, session, report);
+        var inventory = AdaptInventory(document.Inventory, session.Data.Items, report, session.Simulation.Equipment.ActiveSlotsFor(session.Simulation.Inventory, WornSave.ToStacks(worn, session.Data.Equipment, session.Data.Items)));
         var lessons = document.Lessons is { } l ? AdaptLessons(l, session, report) : null;
         var tips = document.Tips is { } t ? AdaptTips(t, session, report) : null;
         var gather = document.Gather;
@@ -252,6 +253,7 @@ public static class SaveMigration
             DeferredSkills = deferred,
             Pointer = pointer,
             Inventory = inventory,
+            Worn = worn,
             Lessons = lessons,
             Tips = tips,
             Gather = gather,
@@ -347,24 +349,52 @@ public static class SaveMigration
         return [.. result];
     }
 
-    // Items are rows of the bundle (game/items.json): a slot with an item this bundle does not have becomes an empty slot.
-    private static SlotSave[] AdaptInventory(IReadOnlyList<SlotSave> slots, IItemCatalogue items, Collector report)
+    // The worn items are named by group, slot and item (I03b): an entry whose group, slot or item this bundle lacks is dropped, and reported.
+    private static WornSave[]? AdaptWorn(IReadOnlyList<WornSave>? worn, VoxelSession session, Collector report)
+    {
+        if (worn is null)
+        {
+            return null;
+        }
+
+        var kept = worn.Where(entry => entry.Resolves(session.Data.Equipment, session.Data.Items)).ToArray();
+        ReportCount("worn items", worn.Count, kept.Length, worn.Except(kept).Select(static entry => $"{entry.Group}/{entry.Slot}: {entry.Item}"), report);
+        return kept.Length == 0 ? null : kept;
+    }
+
+    // Items are rows of the bundle (game/items.json): a slot with an item this bundle does not have becomes an empty slot. The list is made as long as the active count the worn items give (I03b):
+    // a bag this bundle lacks, or one of another size, changes the count, and the stacks in slots that no longer exist are dropped and reported.
+    private static SlotSave[] AdaptInventory(IReadOnlyList<SlotSave> slots, IItemCatalogue items, Collector report, int active)
     {
         var dropped = new List<string>();
         var kept = 0;
-        var result = slots.Select(slot =>
+        var result = new List<SlotSave>(active);
+        for (var i = 0; i < slots.Count; i++)
         {
-            if (slot.Count > 0 && items.Find(slot.Item) is null)
+            var slot = slots[i];
+            if (slot.Count > 0 && (items.Find(slot.Item) is null || i >= active))
             {
                 dropped.Add(slot.Item);
-                return new SlotSave(string.Empty, 0);
+                slot = new SlotSave(string.Empty, 0);
+            }
+            else
+            {
+                kept += slot.Count > 0 ? 1 : 0;
             }
 
-            kept += slot.Count > 0 ? 1 : 0;
-            return slot;
-        }).ToArray();
+            if (i < active)
+            {
+                result.Add(slot);
+            }
+        }
+
+        while (result.Count < active)
+        {
+            result.Add(new SlotSave(string.Empty, 0));
+        }
+
         ReportCount("inventory slots", kept + dropped.Count, kept, dropped, report);
-        return result;
+        return [.. result];
     }
 
     private static TipsSave AdaptTips(TipsSave tips, VoxelSession session, Collector report)
