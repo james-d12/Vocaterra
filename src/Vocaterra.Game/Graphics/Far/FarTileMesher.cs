@@ -232,15 +232,29 @@ public static class FarTileMesher
 
     private static readonly (float R, float G, float B) NoTint = (1f, 1f, 1f);
 
-    // The colour of a face of a run: a block that gives light is drawn as it is, the rest in the light of the face and the sky.
-    private static (Color Colour, FarBucket Bucket) FaceOf(in LodSegment run, bool side, (float R, float G, float B) tint, UInt128 greyKinds, float shade = 1f)
+    // The colour of a face of a run: a block that gives light is drawn as it is, the rest in the light of the face and the sky (the sky light of the air in front of the face).
+    private static (Color Colour, FarBucket Bucket) FaceOf(in LodSegment run, bool side, (float R, float G, float B) tint, UInt128 greyKinds, float shade = 1f, int? sky = null)
     {
         if (run.Light > 0)
         {
             return (Pack(Rgb(run.Block, side, greyKinds), NoTint, 1f), FarBucket.Lit);
         }
 
-        return (Pack(Rgb(run.Block, side, greyKinds), tint, SkyShade(run.Sky) * shade * NoiseGain), FarBucket.Opaque);
+        return (Pack(Rgb(run.Block, side, greyKinds), tint, SkyShade(sky ?? run.Sky) * shade * NoiseGain), FarBucket.Opaque);
+    }
+
+    // The sky light in front of the sides of a column's ground: that of the air over the ground's top (a run under the ground's top layer has no sky over it in its own column, but its side faces the open air).
+    private static int GroundSky(ReadOnlySpan<LodSegment> column, int groundTop)
+    {
+        foreach (var run in column)
+        {
+            if (run.Top == groundTop)
+            {
+                return run.Sky;
+            }
+        }
+
+        return 15;
     }
 
     // Which runs of a column are hidden under deep water: those whose top is more than the depth below the water's top.
@@ -446,6 +460,7 @@ public static class FarTileMesher
                         var edge = (di == 1 && i == n - 1) || (di == -1 && i == 0) || (dj == 1 && j == n - 1) || (dj == -1 && j == 0);
                         var floor = DeepFloor(self);
                         var groundTop = LodMerge.GroundTop(self);
+                        var groundSky = GroundSky(self, groundTop);
                         var skirted = edge && floor == int.MinValue;
                         foreach (var run in self)
                         {
@@ -473,7 +488,7 @@ public static class FarTileMesher
                                 continue;
                             }
 
-                            var (colour, bucket) = water ? (WaterOf(run.Thickness, tint, c.Grey).Colour, FarBucket.Water) : FaceOf(run, true, tint, c.Grey);
+                            var (colour, bucket) = water ? (WaterOf(run.Thickness, tint, c.Grey).Colour, FarBucket.Water) : FaceOf(run, true, tint, c.Grey, 1f, run.Top <= groundTop ? groundSky : run.Sky);
                             for (var p = 0; p < found; p++)
                             {
                                 var (bottom, top) = pieces[p];
