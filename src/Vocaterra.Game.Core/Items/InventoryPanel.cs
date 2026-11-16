@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Items.Containers;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Stats;
 
 namespace Vocaterra.Game.Core.Items;
 
@@ -52,9 +53,13 @@ public sealed class InventoryPanel : IScreen
             return;
         }
 
+        var equipment = _session.Simulation.Equipment;
         var lemmas = _session.Simulation.Inventory.Slots
+            .Concat(equipment.Slots)
             .Where(static s => !s.IsEmpty)
             .Select(s => _session.Nouns.ForItem(s.Item)?.Lemma)
+            .Concat(equipment.Data.AllSlots().Select(slot => equipment.Data.Spec(slot).Label)) // I04: the slots' label nouns on the doll are read too
+            .Concat(StatDisplay.Chips(_session.Simulation.Stats, hasNoun: lemma => _session.Nouns.ForLemma(lemma) is not null).Select(static chip => chip.Lemma)) // and the stats line's nouns
             .OfType<string>()
             .ToList();
         _inventory.Open(_session.Words, lemmas);
@@ -106,6 +111,7 @@ public sealed class InventoryPanel : IScreen
         var (container, slot) = hit.Kind switch
         {
             InventoryHitKind.Cell => (ContainerIds.Bag, hit.Slot),
+            InventoryHitKind.Equipment => (ContainerIds.Equipment, hit.Slot),
             InventoryHitKind.Trash => (ContainerIds.Trash, 0),
             _ => (-1, 0),
         };

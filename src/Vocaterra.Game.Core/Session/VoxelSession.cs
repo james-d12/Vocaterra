@@ -2,6 +2,8 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Containers;
+using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
@@ -37,6 +39,7 @@ public sealed partial class VoxelSession : GuideSession
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
     private readonly List<string> _hints = [];
+    private MoveNotice? _moveNotice;
     private readonly List<(Objective Objective, ObjectiveStep Step)> _pendingSteps = [];
     private IReadOnlyList<ObjectiveStep> _completed = [];
     private int _eventAmount = 1;
@@ -464,6 +467,12 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.TakeBackRefused:
                     _hints.Add(Locale.Ui(LandTakeBackHint));
                     break;
+                case SimulationEventKind.MoveRefused:
+                    NoteRefusal(MoveRefusalText.KeyFor((MoveReason)e.Detail, (EquipResult)e.Amount, e.X), e.Tick);
+                    break;
+                case SimulationEventKind.EquipRefused:
+                    NoteRefusal(MoveRefusalText.KeyFor((EquipResult)e.Detail), e.Tick);
+                    break;
                 case SimulationEventKind.CampPackRequested:
                     _ = PackCamp(); // Y12: the gather button held on a block of the camp
                     break;
@@ -503,6 +512,17 @@ public sealed partial class VoxelSession : GuideSession
         RecordObjectives(new WorldEvent(Simulation.Tick, StoredTime.UnixSeconds, worldEvent, null, detail));
         _completed = FlushObjectives();
         return _completed;
+    }
+
+    /// <summary>The last refusal of a move by hand or of an equip (I04): what the inventory panel says for a few seconds (<see cref="MoveNotice.IsShown"/>), or <see langword="null"/> when none has happened.</summary>
+    public MoveNotice? MoveNotice => _moveNotice;
+
+    private void NoteRefusal(string? key, long tick)
+    {
+        if (key is not null)
+        {
+            _moveNotice = new MoveNotice(key, tick);
+        }
     }
 
     /// <summary>The short hints waiting to be shown, in order, left where they are (the console's line for a dev aid reads them; <see cref="TakeHints"/> clears them).</summary>

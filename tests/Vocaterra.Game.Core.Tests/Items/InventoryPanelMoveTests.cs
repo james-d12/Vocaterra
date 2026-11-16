@@ -47,6 +47,35 @@ public sealed class InventoryPanelMoveTests
     }
 
     [Fact]
+    public void Given_AnEquipmentCellClicked_When_Left_Right_Or_ShiftIsUsed_Then_TheMovesNameTheEquipmentContainerAndTheFlatIndex()
+    {
+        var panel = PanelOver(new InventoryHit(InventoryHitKind.Equipment, 13));
+
+        panel.Click(Click());
+        panel.Click(Click(left: false));
+        panel.Click(Click(shift: true));
+
+        Assert.Equal(
+            [VoxelCommand.SlotMove(MoveAction.LeftClick, ContainerIds.Equipment, 13), VoxelCommand.SlotMove(MoveAction.RightClick, ContainerIds.Equipment, 13), VoxelCommand.SlotMove(MoveAction.QuickMove, ContainerIds.Equipment, 13)],
+            Take(panel));
+    }
+
+    [Fact]
+    public void Given_ThePanel_When_ItOpens_Then_TheSlotLabelNounsAndTheStatsLinesNounsAreReadToo()
+    {
+        var session = GearItems.Session();
+        session.Simulation.Equipment.Set(GearItems.Slot("armour", "body"), new ItemStack(GearItems.Plate, 1));
+        session.Simulation.RefreshStats();
+        var panel = new InventoryPanel(new InventoryScreen(), new InputFocus(), session, static () => false, static (_, _) => InventoryHit.None);
+
+        panel.Open();
+
+        Assert.True(session.Words.RecordOf("cabeza").Read > 0);
+        Assert.True(session.Words.RecordOf("armadura").Read > 0);
+        Assert.True(session.Words.RecordOf("calor").Read > 0);
+    }
+
+    [Fact]
     public void Given_TheSortButton_When_LeftClicked_Then_SortIsQueuedAndARightClickDoesNothing()
     {
         var panel = PanelOver(new InventoryHit(InventoryHitKind.Sort));

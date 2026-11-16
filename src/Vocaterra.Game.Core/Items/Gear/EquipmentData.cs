@@ -17,6 +17,7 @@ public sealed class EquipmentData
     public const int SchemaVersion = 1;
 
     private readonly int[] _offsets;
+    private EquipmentShape? _shape;
 
     /// <summary>The data of a list of groups.</summary>
     /// <param name="groups">The groups, in order; a slot's place in the commands, the digest and a save is its place in this order.</param>
@@ -41,6 +42,9 @@ public sealed class EquipmentData
 
     /// <summary>The inventory's slots with no bag worn (<c>bagSlots</c>, I03b): the hotbar and the rows under it. A worn bag adds its <see cref="ItemDefinition.Capacity"/>.</summary>
     public int BagSlots { get; }
+
+    /// <summary>The paper doll's grid of these groups (I04), made once: the equipment panel's cells and their order, from the data alone.</summary>
+    public EquipmentShape Shape => _shape ??= EquipmentShape.Of(this);
 
     /// <summary>The number of slots in every group together.</summary>
     public int SlotCount => _offsets[^1];

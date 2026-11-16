@@ -609,6 +609,40 @@
       "matches": []
     },
     {
+      "key": "0fe73121ea2088a46eac74bcf244bd4d5088b1f8c86dcaa948b48cf06ea8a20f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el pie",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "10020679bbea156cda8ed0895a383cf8d4f8f937e009103929d7ef8393188fbf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la armadura",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "102f96ce45d226cd55b9d060fc01a9d8c2a0db2eee0ec0052de832bb8f602556",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes veinte panes.",
@@ -3830,6 +3864,23 @@
       "matches": []
     },
     {
+      "key": "589526f0a5dd6ef959ca7d754e976dd95c44ff1009b9df38b9b6b04b5ca8ed1a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la cabeza",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "58c8670bacfa23ac9b1053017e27b2f4572182e69e4d9a895390fc3b06eeb02c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer Mar pesca en el río",
@@ -6033,6 +6084,23 @@
       "matches": []
     },
     {
+      "key": "8658defe4a2b597ee349510bc5e00b7425ff1c2b2def0d5d9b0952816847a5ab",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la espalda",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "866d3de21c7e3fbdcc388bef9832892f3fce39a4bc8dfdb09b6d269fa5c0f7db",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compré pan",
@@ -8005,6 +8073,23 @@
       "matches": []
     },
     {
+      "key": "b335df023b0a1c058553190448626592db180b1964e81db2cf46e92c89eefd73",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la pierna",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "b35683dd2c998ef915e130186f41a3345a7b3ad8b76aff691bb247a88b42c860",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Qué haces tú",
@@ -8491,6 +8576,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se llama usted",
       "matches": []
+    },
+    {
+      "key": "c01113889777eed521062cd6169462323a044e54ede921b4b5beb3a8b577e17e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el cuerpo",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
     },
     {
       "key": "c06aa733f97832afe7f1d68489719bacecbd059e51af7c73e887f25a0bcb5a63",
@@ -10866,6 +10968,23 @@
           "replacements": [
             "Cuánta costa",
             "Cuántas costas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f5b652a0068ee3349131adf84c7928fc388d7fc342fc28e77bca0ea5b75d765a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la calor",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
           ]
         }
       ]

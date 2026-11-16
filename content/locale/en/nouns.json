@@ -28,6 +28,13 @@
     "noun.cuchara": "spoon",
     "noun.masa": "dough",
     "noun.horno": "oven",
-    "noun.mano": "hand"
+    "noun.mano": "hand",
+    "noun.cabeza": "head",
+    "noun.cuerpo": "body",
+    "noun.pierna": "leg",
+    "noun.pie": "foot",
+    "noun.espalda": "back",
+    "noun.armadura": "armour",
+    "noun.calor": "warmth"
   }
 }

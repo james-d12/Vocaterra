@@ -2706,6 +2706,28 @@
       "Sha256": "2c7f2268a0845cd6157002e16d010c95681994e478baf1ed3843e92d613eeea8",
       "Bytes": 43244
     },
+    "speech/cards/card.armadura.slow.wav": {
+      "Text": "la armadura",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "988358b913c139c27d8b87b514c82d7249590c61ce080531feff88b3b31469ad",
+      "Bytes": 62444
+    },
+    "speech/cards/card.armadura.wav": {
+      "Text": "la armadura",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "643e9cebd24cfc3d2aab2631d7696ffc14a56cdc64153ec8c91c2831754c8fc2",
+      "Bytes": 51644
+    },
     "speech/cards/card.bol.slow.wav": {
       "Text": "el bol",
       "Speaker": "guide",
@@ -2749,6 +2771,50 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "fb2b616bafd8083cb51d60a307b77160eacb4cb6230e78e90f24f70060ca0ff7",
       "Bytes": 50444
+    },
+    "speech/cards/card.cabeza.slow.wav": {
+      "Text": "la cabeza",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "16e3620617f33f081ffa884151397b1ffaec019951e268ac3a9f6382d31d6f22",
+      "Bytes": 60044
+    },
+    "speech/cards/card.cabeza.wav": {
+      "Text": "la cabeza",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "c63d870bd0eef7c95f8d992577840e6d9d4c1d8f090aa6b0d371e2625af128df",
+      "Bytes": 46844
+    },
+    "speech/cards/card.calor.slow.wav": {
+      "Text": "la calor",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "fb5bf8764b5589dcbde21c75d5bec52b559807b0a26e24fcbc3ad96b1c858aee",
+      "Bytes": 52844
+    },
+    "speech/cards/card.calor.wav": {
+      "Text": "la calor",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "b7eb8ca00363951976421d5d55a2b6a9b4019cda0e71058a7fe94aeea9f4390c",
+      "Bytes": 42044
     },
     "speech/cards/card.camino.slow.wav": {
       "Text": "el camino",
@@ -2838,6 +2904,28 @@
       "Sha256": "c87147c47b082cbbc9dc775de7a228236a7893d3f646bb0d90e0d271e57fed1c",
       "Bytes": 51644
     },
+    "speech/cards/card.cuerpo.slow.wav": {
+      "Text": "el cuerpo",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "809c3c930a96fe7c61bf725b1c71d4014d5ff5044d20f498a19f05661db989da",
+      "Bytes": 57644
+    },
+    "speech/cards/card.cuerpo.wav": {
+      "Text": "el cuerpo",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "89d7dfb8bbdad2689963de0ab2471e5b2270efb74996bb8e84958433ae2c7d40",
+      "Bytes": 45644
+    },
     "speech/cards/card.equipo.slow.wav": {
       "Text": "el equipo",
       "Speaker": "guide",
@@ -2859,6 +2947,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "fb75889477d183cf54510d7fdd867accac24f77a2c9d6762ca13932eef6153a1",
       "Bytes": 45644
+    },
+    "speech/cards/card.espalda.slow.wav": {
+      "Text": "la espalda",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "47c31d01a07d6a79364fe5129467f484b0c58cc46aea09c9dd76a84f774d0106",
+      "Bytes": 63644
+    },
+    "speech/cards/card.espalda.wav": {
+      "Text": "la espalda",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "2f6fe592dbc2b85865d40848788081da92add1b468d5086c39680eb59bc8d662",
+      "Bytes": 49244
     },
     "speech/cards/card.estaca.slow.wav": {
       "Text": "la estaca",
@@ -3190,6 +3300,28 @@
       "Sha256": "147a2e3f5a8415f3d36d03fb2bcd849254aa4a9648c7ce3a4fddf15a69c2ea8e",
       "Bytes": 37244
     },
+    "speech/cards/card.pie.slow.wav": {
+      "Text": "el pie",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "e94b4931279e5d6358f91f9192a34501891b691c768b14f26ec4f9d8fddb72ef",
+      "Bytes": 44444
+    },
+    "speech/cards/card.pie.wav": {
+      "Text": "el pie",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "c2df5e81ce9e7f5b8de88d732347d6ae71b4aeba5c2771d648084ce3ebc19e7a",
+      "Bytes": 36044
+    },
     "speech/cards/card.piedra.slow.wav": {
       "Text": "la piedra",
       "Speaker": "guide",
@@ -3211,6 +3343,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "b6b11a10ae7749c1d7e4e76d02afd2f604760648ad4123488f862aba6a28ae4a",
       "Bytes": 43244
+    },
+    "speech/cards/card.pierna.slow.wav": {
+      "Text": "la pierna",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "77b6db791fb2d9a675647692f533fed37370ef54a799abd3b74f75da660f2d7d",
+      "Bytes": 58844
+    },
+    "speech/cards/card.pierna.wav": {
+      "Text": "la pierna",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "7c0bef41dd2141b8bfd23509bc150b88254e0c351ffe395d65949e804827a724",
+      "Bytes": 44444
     },
     "speech/cards/card.puente.slow.wav": {
       "Text": "el puente",

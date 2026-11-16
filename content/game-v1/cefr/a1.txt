@@ -422,3 +422,5 @@ estaca
 alcalde
 # terreno: the plot of land the player buys from the mayor and marks with the stake (Y11, D-game-32 (e)); in neither of the core's lists.
 terreno
+# armadura: armour, the stat the equipment panel names on its stats line (I04); in neither of the core's lists (it is in the lexicon, seed.json).
+armadura

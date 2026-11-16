@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1666 of the 1666 files have no mark (guide 498, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1680 of the 1680 files have no mark (guide 512, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -187,10 +187,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.arbol | speech/cards/card.arbol.wav | guide | 1.0 | el árbol |  |
 | card.arena | speech/cards/card.arena.slow.wav | guide | 0.8 | la arena |  |
 | card.arena | speech/cards/card.arena.wav | guide | 1.0 | la arena |  |
+| card.armadura | speech/cards/card.armadura.slow.wav | guide | 0.8 | la armadura |  |
+| card.armadura | speech/cards/card.armadura.wav | guide | 1.0 | la armadura |  |
 | card.bol | speech/cards/card.bol.slow.wav | guide | 0.8 | el bol |  |
 | card.bol | speech/cards/card.bol.wav | guide | 1.0 | el bol |  |
 | card.botella | speech/cards/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
+| card.cabeza | speech/cards/card.cabeza.slow.wav | guide | 0.8 | la cabeza |  |
+| card.cabeza | speech/cards/card.cabeza.wav | guide | 1.0 | la cabeza |  |
+| card.calor | speech/cards/card.calor.slow.wav | guide | 0.8 | la calor |  |
+| card.calor | speech/cards/card.calor.wav | guide | 1.0 | la calor |  |
 | card.camino | speech/cards/card.camino.slow.wav | guide | 0.8 | el camino |  |
 | card.camino | speech/cards/card.camino.wav | guide | 1.0 | el camino |  |
 | card.campamento | speech/cards/card.campamento.slow.wav | guide | 0.8 | el campamento |  |
@@ -199,8 +205,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
 | card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
 | card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
+| card.cuerpo | speech/cards/card.cuerpo.slow.wav | guide | 0.8 | el cuerpo |  |
+| card.cuerpo | speech/cards/card.cuerpo.wav | guide | 1.0 | el cuerpo |  |
 | card.equipo | speech/cards/card.equipo.slow.wav | guide | 0.8 | el equipo |  |
 | card.equipo | speech/cards/card.equipo.wav | guide | 1.0 | el equipo |  |
+| card.espalda | speech/cards/card.espalda.slow.wav | guide | 0.8 | la espalda |  |
+| card.espalda | speech/cards/card.espalda.wav | guide | 1.0 | la espalda |  |
 | card.estaca | speech/cards/card.estaca.slow.wav | guide | 0.8 | la estaca |  |
 | card.estaca | speech/cards/card.estaca.wav | guide | 1.0 | la estaca |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
@@ -233,8 +243,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.pan | speech/cards/card.pan.wav | guide | 1.0 | el pan |  |
 | card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.slow.wav | shopkeeper | 0.8 | el pan |  |
 | card.pan.shopkeeper | speech/shopkeeper/card.pan.shopkeeper.wav | shopkeeper | 1.0 | el pan |  |
+| card.pie | speech/cards/card.pie.slow.wav | guide | 0.8 | el pie |  |
+| card.pie | speech/cards/card.pie.wav | guide | 1.0 | el pie |  |
 | card.piedra | speech/cards/card.piedra.slow.wav | guide | 0.8 | la piedra |  |
 | card.piedra | speech/cards/card.piedra.wav | guide | 1.0 | la piedra |  |
+| card.pierna | speech/cards/card.pierna.slow.wav | guide | 0.8 | la pierna |  |
+| card.pierna | speech/cards/card.pierna.wav | guide | 1.0 | la pierna |  |
 | card.puente | speech/cards/card.puente.slow.wav | guide | 0.8 | el puente |  |
 | card.puente | speech/cards/card.puente.wav | guide | 1.0 | el puente |  |
 | card.puerta | speech/cards/card.puerta.slow.wav | guide | 0.8 | la puerta |  |
