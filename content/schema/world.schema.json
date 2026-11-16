@@ -49,6 +49,9 @@
             "coastCell": { "type": "integer", "minimum": 16, "description": "The cell in blocks of the noise that bends the coast (a warp of the plane)." },
             "coastBlocks": { "type": "integer", "minimum": 0, "description": "How far that warp moves a point, in blocks; at most a fifth of coastCell so it never folds." },
             "scaleBlocks": { "type": "integer", "minimum": 100, "maximum": 32768, "description": "The blocks that make 1000 thousandths of continentalness." },
+            "roughCell": { "type": "integer", "minimum": 16, "description": "The cell in blocks of the first octave of the noise added to the distance from the coast, so the coast wanders at every scale (B02b round 3). Optional (none)." },
+            "roughBlocks": { "type": "integer", "minimum": 0, "description": "How far that noise moves the coast, in blocks (at most a quarter of the cell); the field keeps every channel at least half its least width each side, so land cells are still never joined." },
+            "roughOctaves": { "type": "integer", "minimum": 1, "maximum": 8, "description": "The octaves of that noise." },
             "salt": { "type": "integer", "description": "A number mixed into the cells' hash: another salt is another arrangement of the same kind of world. Optional (0)." }
           }
         }
@@ -111,6 +114,8 @@
             "fadeToHeight": { "type": "integer" },
             "seaFadeFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "seaFadeTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "peakFadeFrom": { "type": "integer", "minimum": 0, "description": "The height in blocks that the ranges' peaks add to the ground, from which a river begins to fade out: a river does not cross a crest, it rises on each side in the foothills. Optional (none)." },
+            "peakFadeTo": { "type": "integer", "minimum": 1, "description": "The height the peaks add where the river is gone; above peakFadeFrom." },
             "valley": {
               "type": "object",
               "description": "How the valley of a river climbs the high ground (B02b redo): above from the river's water stands deeper under the ground the higher the ground is, and the valley widens with the height.",
@@ -281,7 +286,9 @@
         "octaves": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Each octave halves the cell and the weight." },
         "warpCell": { "type": "integer", "minimum": 1, "description": "The warp field's cell in blocks." },
         "warpBlocks": { "type": "integer", "minimum": 0, "description": "The farthest the warp bends the field, in blocks; 0 or absent for none." },
-        "round": { "type": "integer", "minimum": 0, "maximum": 500, "description": "For the ridged field: the thousandths over which the crest of each ridge is rounded; 0 or absent for a sharp crest." }
+        "round": { "type": "integer", "minimum": 0, "maximum": 500, "description": "For the ridged field: the thousandths over which the crest of each ridge is rounded; 0 or absent for a sharp crest." },
+        "chainBlocks": { "type": "integer", "minimum": 0, "maximum": 8192, "description": "For the ridges field (B02b round 3): above 0, a chain: 1 on the noise's zero lines, falling in a straight slope to 0 at this many blocks from them, so every chain has the same width; 0 or absent for the squared ridge." },
+        "chainRound": { "type": "integer", "minimum": 0, "maximum": 8192, "description": "The blocks over which the crest of a chain is rounded; at most chainBlocks." }
       }
     },
     "spline": {

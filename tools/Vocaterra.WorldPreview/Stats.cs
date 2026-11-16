@@ -204,6 +204,7 @@ internal static class Stats
         int w = map.Width, h = map.Height;
         var seen = new bool[w * h];
         var bodies = new List<(int Count, double Length, double Width)>();
+        var thin = new List<(int Count, double Length, double Width)>();
         var stack = new Stack<int>();
         for (var start = 0; start < seen.Length; start++)
         {
@@ -215,6 +216,7 @@ internal static class Stats
             seen[start] = true;
             stack.Push(start);
             long n = 0;
+            long edges = 0;
             double sx = 0, sz = 0, sxx = 0, szz = 0, sxz = 0;
             var atEdge = false;
             while (stack.Count > 0)
@@ -228,6 +230,14 @@ internal static class Stats
                 szz += (double)y * y;
                 sxz += (double)x * y;
                 atEdge |= x == 0 || y == 0 || x == w - 1 || y == h - 1;
+                foreach (var j in new[] { x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, y > 0 ? i - w : -1, y < h - 1 ? i + w : -1 })
+                {
+                    if (j < 0 || isSea[j] || map.Water[j] || map.Ground[j] <= height)
+                    {
+                        edges++;
+                    }
+                }
+
                 for (var dy = -1; dy <= 1; dy++)
                 {
                     for (var dx = -1; dx <= 1; dx++)
@@ -263,6 +273,8 @@ internal static class Stats
             var major = mean + spread;
             var minor = Math.Max(mean - spread, 0.01);
             bodies.Add(((int)n, Math.Sqrt(12 * major) * map.Scale, Math.Sqrt(12 * minor) * map.Scale));
+            var thickness = 2.0 * n / Math.Max(1, edges) * map.Scale; // 2 x area / perimeter: the width of a strip, however the strip is bent or forked
+            thin.Add(((int)n, n * map.Scale * map.Scale / Math.Max(1, thickness) / map.Scale, thickness));
         }
 
         if (bodies.Count == 0)
@@ -287,9 +299,37 @@ internal static class Stats
             return 0;
         }
 
-        var chains = bodies.Where(b => b.Length / b.Width >= 3 && b.Width < 1000).Sum(b => (long)b.Count);
-        var massifs = bodies.Where(b => b.Width >= 1000).Sum(b => (long)b.Count);
-        return string.Create(CultureInfo.InvariantCulture, $"land above {height}: {bodies.Count} bodies; area-weighted median length {Median(b => b.Length):0}, width {Median(b => b.Width):0}, aspect {Median(b => b.Length / b.Width):0.0}; {Pct(chains, total)}% of the area in chains (aspect 3 or more, under 1 000 wide), {Pct(massifs, total)}% in massifs (1 000 wide or more); the longest {bodies.Max(b => b.Length):0}");
+        double MedianThin(Func<(int Count, double Length, double Width), double> key)
+        {
+            var sorted = thin.OrderBy(key).ToList();
+            long acc = 0;
+            foreach (var b in sorted)
+            {
+                acc += b.Count;
+                if (acc * 2 >= total)
+                {
+                    return key(b);
+                }
+            }
+
+            return 0;
+        }
+
+        // A chain is a body of land whose thickness (2 x area / perimeter) is under 500 blocks and whose extent (the length from its spread) is 4 times that or more; a massif has a thickness of 500 or more.
+        var chains = 0L;
+        var massifs = 0L;
+        for (var i = 0; i < bodies.Count; i++)
+        {
+            if (thin[i].Width >= 500)
+            {
+                massifs += bodies[i].Count;
+            }
+            else if (bodies[i].Length >= 4 * thin[i].Width)
+            {
+                chains += bodies[i].Count;
+            }
+        }
+        return string.Create(CultureInfo.InvariantCulture, $"land above {height}: {bodies.Count} bodies; area-weighted median length {Median(b => b.Length):0}, width {Median(b => b.Width):0}, aspect {Median(b => b.Length / b.Width):0.0}; {Pct(chains, total)}% of the area in chains (thickness under 500 blocks, extent 4 times that or more), {Pct(massifs, total)}% in massifs (thickness 500 or more); the longest {bodies.Max(b => b.Length):0}; thickness (2 x area / perimeter, area-weighted median) {MedianThin(b => b.Width):0}, length (area / thickness) {MedianThin(b => b.Length):0}");
     }
 
     // The straightness of the coast (round 3): the land columns next to the sea are the coast; from each, in 32 directions, a line is followed while a coast column lies within one column of it; the longest such run (both ways through the column) is how far the coast

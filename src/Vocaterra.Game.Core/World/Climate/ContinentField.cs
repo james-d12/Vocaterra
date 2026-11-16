@@ -17,6 +17,9 @@ internal sealed class ContinentField
     private readonly NoiseStack _stack;
     private readonly NoiseStack _coast;
     private readonly NoiseStack _width;
+    private readonly NoiseStack _rough;
+    private readonly NoiseStack _coast2;
+    private readonly NoiseStack _coast3;
     private readonly ulong _key;
 
     /// <summary>Creates the field of one world seed.</summary>
@@ -30,6 +33,9 @@ internal sealed class ContinentField
         _stack = new NoiseStack(seed, "climate/continents");
         _coast = new NoiseStack(seed, "climate/continents/coast");
         _width = new NoiseStack(seed, "climate/continents/width");
+        _rough = new NoiseStack(seed, "climate/continents/rough");
+        _coast2 = new NoiseStack(seed, "climate/continents/coast2");
+        _coast3 = new NoiseStack(seed, "climate/continents/coast3");
         _key = WorldRng.For(seed, "climate/continents/cells").NextUInt64() ^ Mix((ulong)(uint)spec.Salt);
     }
 
@@ -40,7 +46,9 @@ internal sealed class ContinentField
     {
         var (ux, uz) = _stack.Warp(x, z, _warp.WarpCell, _warp.WarpBlocks);
         var (vx, vz) = _coast.Warp(ux, uz, _spec.CoastCell, _spec.CoastBlocks);
-        var (wx, wz) = _width.Warp(vx, vz, Math.Max(16, _spec.CoastCell / 4), _spec.CoastBlocks / 3); // a finer bend on top: bays and capes
+        var (sx, sz) = _coast2.Warp(vx, vz, Math.Max(16, _spec.CoastCell / 2), _spec.CoastBlocks / 2); // a bend of half the size and reach (round 3: no border runs straight for long)
+        var (tx, tz) = _width.Warp(sx, sz, Math.Max(16, _spec.CoastCell / 4), _spec.CoastBlocks / 3); // a finer bend on top: bays and capes
+        var (wx, wz) = _coast3.Warp(tx, tz, Math.Max(16, _spec.CoastCell / 8), _spec.CoastBlocks / 6); // and a finer still
         var size = _spec.Cell;
         int cx = IntMath.DivDown(wx, size), cz = IntMath.DivDown(wz, size);
         Span<long> px = stackalloc long[9];
@@ -85,6 +93,12 @@ internal sealed class ContinentField
         var wide = Math.Clamp((IntMath.One / 2) + ((long)_width.Fbm(wx, wz, _spec.WidthCell, 3) * 2), 0, IntMath.One); // 0 to One, spread over the noise's usual range
         var channel = _spec.ChannelMin + ((_spec.Channel - _spec.ChannelMin) * wide / IntMath.One);
         var value = land ? border - channel : -(border + channel);
+        if (_spec.RoughBlocks > 0)
+        {
+            var limit = Math.Max(0, channel - (_spec.ChannelMin / 2)); // never so far that the channel closes: the land cells stay apart by at least half the least channel each side
+            value += Math.Clamp((long)_rough.Fbm(wx, wz, _spec.RoughCell, _spec.RoughOctaves) * _spec.RoughBlocks / IntMath.One, -limit, limit); // the coast wanders at every scale from the first octave down
+        }
+
         return (int)Math.Clamp(value * IntMath.One / _spec.ScaleBlocks, -IntMath.One, IntMath.One);
     }
 

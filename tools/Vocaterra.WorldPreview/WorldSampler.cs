@@ -120,6 +120,9 @@ internal sealed class WorldSampler
 
     public int MaxY => _world.Vertical.MaxY;
 
+    /// <summary>The river field at a block (4 096 is the top of its range): a river runs where it is near zero.</summary>
+    public int RiverField(int x, int z) => ClimateAt(x, z).River;
+
     /// <summary>The column (x, z), one climate sample at a time.</summary>
     public Column At(int x, int z) => Evaluate(x, z, ClimateAt(x, z));
 

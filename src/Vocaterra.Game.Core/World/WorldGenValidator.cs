@@ -114,6 +114,11 @@ internal static class WorldGenValidator
             }
         }
 
+        if (climate.Continents is { RoughBlocks: > 0 } rough && (rough.RoughCell < 16 || rough.RoughCell > rough.Cell || rough.RoughOctaves < 1 || rough.RoughOctaves > 8 || rough.RoughBlocks > rough.Cell / 4))
+        {
+            problems.Add($"{File}: climate.continents.roughBlocks needs a roughCell from 16 to the cell, 1 to 8 roughOctaves and roughBlocks of at most a quarter of the cell (the field keeps every channel at least half its least width, so the land is still never joined across it; they are {rough.RoughCell}, {rough.RoughOctaves}, {rough.RoughBlocks} and the cell {rough.Cell}).");
+        }
+
         if (climate.LapsePer100Blocks < 0 || climate.LapsePer100Blocks > 2000)
         {
             problems.Add($"{File}: climate.lapsePer100Blocks must be from 0 to 2000 thousandths (it is {climate.LapsePer100Blocks}).");
@@ -130,6 +135,11 @@ internal static class WorldGenValidator
         if (noise.Round < 0 || noise.Round > 500)
         {
             problems.Add($"{File}: climate.{name}.round must be from 0 to 500 thousandths (it is {noise.Round}).");
+        }
+
+        if (noise.ChainBlocks < 0 || noise.ChainBlocks > 8192 || noise.ChainRound < 0 || noise.ChainRound > noise.ChainBlocks)
+        {
+            problems.Add($"{File}: climate.{name}.chainBlocks must be from 0 to 8192 blocks and chainRound from 0 to chainBlocks (they are {noise.ChainBlocks} and {noise.ChainRound}).");
         }
 
         if (noise.Octaves < 1 || noise.Octaves > 8)
@@ -191,6 +201,11 @@ internal static class WorldGenValidator
         }
 
         Ordered(problems, "height.rivers.seaFadeFrom/seaFadeTo", r.SeaFadeFrom, r.SeaFadeTo, -1000, 1000);
+        if (r.PeakFadeFrom >= r.PeakFadeTo || r.PeakFadeFrom < 0)
+        {
+            problems.Add($"{File}: height.rivers.peakFadeFrom must be 0 or more and below peakFadeTo (they are {r.PeakFadeFrom} and {r.PeakFadeTo}).");
+        }
+
         if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer10Blocks < 0 || valley.WidthPer10Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000))
         {
             problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer10Blocks from 0 to 200 and a depthGrowth from 0 to 1000 (they are {valley.From}, {valley.WidthPer10Blocks} and {valley.DepthGrowth}).");

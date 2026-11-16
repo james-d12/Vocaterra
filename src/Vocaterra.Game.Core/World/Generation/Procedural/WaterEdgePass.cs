@@ -20,6 +20,7 @@ internal sealed class WaterEdgePass : IColumnShaper
     public void Shape(ColumnContext ctx)
     {
         var size = ctx.Size;
+        EvenLevels(ctx);
         CloseCorners(ctx);
         var before = (int[])ctx.Heights.Clone();
         var tops = new int[before.Length]; // the water's top of each column as the ground stood, -1 where it is dry
@@ -55,6 +56,45 @@ internal sealed class WaterEdgePass : IColumnShaper
                     ctx.Heights[k] = Math.Max(held, cut);
                 }
             }
+        }
+    }
+
+    // A river whose surface steps down where the ground crosses a level can run along that line for a stretch, so one half of it would stand a step higher than the other. Each column of river or lake water takes the highest level of the water within a few columns
+    // (the sea's level is left alone), so the step lies across the river and not along it; the ground under the water stays, so the water is a little deeper there, and the banks are raised to hold it.
+    private static void EvenLevels(ColumnContext ctx)
+    {
+        var sea = ctx.World.SeaLevel;
+        var raised = new List<(int X, int Z, int Level)>();
+        var reach = GenerationWorld.EvenReach;
+        for (var z = ctx.OriginZ + reach; z < ctx.OriginZ + ctx.Size - reach; z++)
+        {
+            for (var x = ctx.OriginX + reach; x < ctx.OriginX + ctx.Size - reach; x++)
+            {
+                var own = ctx.WaterLevelAt(x, z);
+                if (own <= sea)
+                {
+                    continue; // dry, or the sea's level (a river meets the sea at it)
+                }
+
+                var best = own;
+                for (var dz = -reach; dz <= reach; dz++)
+                {
+                    for (var dx = -reach; dx <= reach; dx++)
+                    {
+                        best = Math.Max(best, ctx.WaterLevelAt(x + dx, z + dz));
+                    }
+                }
+
+                if (best > own)
+                {
+                    raised.Add((x, z, best));
+                }
+            }
+        }
+
+        foreach (var (x, z, level) in raised)
+        {
+            ctx.RaiseWater(x, z, level);
         }
     }
 

@@ -134,6 +134,12 @@ internal sealed class ColumnContext
         _surfaced[k] = false;
     }
 
+    /// <summary>Raises the water of a column that holds water to a higher level; the ground under it stays.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="level">The new top of the water.</param>
+    public void RaiseWater(int x, int z, int level) => _wet[Index(x, z)] = level;
+
     /// <summary>The working heights of the whole window, row by row (x fastest): a shaper changes them in place.</summary>
     public int[] Heights => _heights;
 

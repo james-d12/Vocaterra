@@ -77,6 +77,11 @@ public sealed class ClimateSampler : IClimateSampler
         return new LatticeSampler2(lattice, (x, z) =>
         {
             var (wx, wz) = stack.Warp(x, z, spec.WarpCell, spec.WarpBlocks);
+            if (ridged && spec.ChainBlocks > 0)
+            {
+                return stack.Chain(wx, wz, spec.Cell, spec.ChainBlocks, spec.ChainRound);
+            }
+
             return ridged ? stack.Ridged(wx, wz, spec.Cell, spec.Octaves, spec.Round) : stack.Fbm(wx, wz, spec.Cell, spec.Octaves);
         });
     }

@@ -69,6 +69,31 @@ internal sealed class NoiseStack
         return (int)(sum / total);
     }
 
+    /// <summary>
+    /// A chain (B02b round 3): one octave of noise measured as the distance, in blocks, to its zero line (<c>|n| / |grad n|</c>, the gradient taken over a few blocks), turned into a straight slope that is 4 096 on the line and 0 at
+    /// <paramref name="halfBlocks"/> blocks from it, so the band it makes has the same width everywhere. The crest is rounded over <paramref name="roundBlocks"/> blocks.
+    /// </summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="cell">The noise's cell in blocks.</param>
+    /// <param name="halfBlocks">The distance from the line at which the chain is gone.</param>
+    /// <param name="roundBlocks">The blocks over which the crest is rounded.</param>
+    public int Chain(int x, int z, int cell, int halfBlocks, int roundBlocks)
+    {
+        var e = Math.Clamp(cell / 128, 4, 64);
+        long n = _noise.Sample(0, x, z, cell);
+        long gx = _noise.Sample(0, x + e, z, cell) - _noise.Sample(0, x - e, z, cell);
+        long gz = _noise.Sample(0, x, z + e, cell) - _noise.Sample(0, x, z - e, cell);
+        var grad = IntMath.ISqrt((gx * gx) + (gz * gz)); // the noise's change over 2e blocks
+        var distance = grad == 0 ? halfBlocks : Math.Min(halfBlocks, Math.Abs(n) * 2 * e / grad);
+        if (roundBlocks > 0)
+        {
+            distance = IntMath.ISqrt((distance * distance) + ((long)roundBlocks * roundBlocks)) - roundBlocks;
+        }
+
+        return (int)Math.Max(0, (halfBlocks - distance) * IntMath.One / halfBlocks);
+    }
+
     /// <summary>The point a domain warp moves (x, z) to: each axis shifted by up to <paramref name="amplitudeBlocks"/> blocks by a smooth field of cell <paramref name="cell"/>.</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>

@@ -55,7 +55,8 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var coast = _data.Coast;
         var factor = _factor.Evaluate(c.Erosion);
         var inland = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.PeaksFrom), FieldScale.FromThousandths(coast.PeaksTo));
-        var h16 = _base.Evaluate(c.Continentalness) + (int)((long)(factor * (long)inland / One) * Summit(x, z, _peaks.Evaluate(c.Ridges)) / One);
+        var added16 = (int)((long)(factor * (long)inland / One) * Summit(x, z, _peaks.Evaluate(c.Ridges)) / One); // what the ranges' peaks add to the ground
+        var h16 = _base.Evaluate(c.Continentalness) + added16;
         var smooth16 = h16; // the ground without the hills, terraces and crags: the water's level follows it
 
         var detail = _data.Detail;
@@ -80,7 +81,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var natural = h16;
 
         var level = SurfaceLevel(smooth16, amplitude);
-        var riverWeight = RiverWeight(c, natural, share);
+        var riverWeight = RiverWeight(c, natural, share, added16);
         if (riverWeight > 0)
         {
             h16 = IntMath.Lerp(h16, Math.Min(h16, (level - _data.Rivers.Depth) * 16), riverWeight);
@@ -162,7 +163,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
 
     // 1 in the middle of a river, 0 beyond its width (the profile squared), faded out on high land and towards the sea.
     // Near a region the river's width and its depth are scaled by the water's share: a narrow, shallow stream whose bed rises to the ground.
-    private int RiverWeight(in ClimateSample c, int natural16, int water)
+    private int RiverWeight(in ClimateSample c, int natural16, int water, int peaks16)
     {
         var river = _data.Rivers;
         var wide = FieldScale.FromThousandths(river.Width);
@@ -187,6 +188,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
 
         var weight = core * (One - IntMath.Ramp(natural16, river.FadeFromHeight * 16, river.FadeToHeight * 16)) / One;
         weight = weight * IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(river.SeaFadeFrom), FieldScale.FromThousandths(river.SeaFadeTo)) / One;
+        weight = weight * (One - IntMath.Ramp(peaks16, river.PeakFadeFrom * 16, river.PeakFadeTo * 16)) / One; // a river does not cross a crest
         return (int)((long)weight * water / One);
     }
 

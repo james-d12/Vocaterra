@@ -18,7 +18,9 @@ public sealed record VerticalRange(int MinY, int MaxY, int SeaLevel);
 /// <param name="WarpCell">The warp field's cell in blocks (read only when <paramref name="WarpBlocks"/> is above zero).</param>
 /// <param name="WarpBlocks">The farthest the warp shifts a point, in blocks; 0 for no warp.</param>
 /// <param name="Round">For a ridged field, the thousandths of the field over which the crest of every ridge is rounded (0: a sharp crest, as in the files before B02b's redo).</param>
-public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBlocks, int Round = 0);
+/// <param name="ChainBlocks">For the ridges field (B02b round 3): above 0, the field is a chain: 1 on the noise's zero lines, falling in a straight slope to 0 at this many blocks from them whatever the noise's gradient, so every chain has the same width (a ridge of one octave is broad where the noise is flat and narrow where it is steep). 0: the squared ridge of one octave.</param>
+/// <param name="ChainRound">The blocks over which the crest of a chain is rounded (a chain's spine is not a knife edge).</param>
+public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBlocks, int Round = 0, int ChainBlocks = 0, int ChainRound = 0);
 
 /// <summary>
 /// The continents (<c>climate.continents</c>, B02b redo): the continentalness as jittered cells, a share of them sea, with a channel of sea along every border (see <see cref="Climate.ContinentField"/>).
@@ -33,8 +35,11 @@ public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBloc
 /// <param name="CoastCell">The cell, in blocks, of the noise that bends the coast (a warp of the plane, so it never joins or cuts a channel).</param>
 /// <param name="CoastBlocks">How far that warp moves a point, in blocks.</param>
 /// <param name="ScaleBlocks">The blocks that make 1 000 thousandths of continentalness.</param>
+/// <param name="RoughCell">The cell, in blocks, of the first octave of the noise added to the distance from the coast (B02b round 3: it makes the coast wander at every scale, where the cells' borders and the warps left long straight runs); 0 for none.</param>
+/// <param name="RoughBlocks">How far that noise moves the coast, in blocks (about half of it is typical), held to what a channel can spare: every channel stays at least half its least width each side, so two land cells are still never joined.</param>
+/// <param name="RoughOctaves">The octaves of that noise (each halves the cell and the weight).</param>
 /// <param name="Salt">A number mixed into the cells' hash: another salt is another arrangement of the same kind of world (the shipped one was picked so the three maps of the owner's review have the sea share asked for).</param>
-public sealed record ContinentSpec(int Cell, int Jitter, int SeaBlock, int SeaPerBlock, int Channel, int ChannelMin, int WidthCell, int CoastCell, int CoastBlocks, int ScaleBlocks, int Salt = 0);
+public sealed record ContinentSpec(int Cell, int Jitter, int SeaBlock, int SeaPerBlock, int Channel, int ChannelMin, int WidthCell, int CoastCell, int CoastBlocks, int ScaleBlocks, int Salt = 0, int RoughCell = 0, int RoughBlocks = 0, int RoughOctaves = 1);
 
 /// <summary>The climate fields and how temperature falls with height (<c>climate</c> of <c>game/world.json</c>).</summary>
 /// <param name="LatticeBlocks">The spacing, in blocks, of the lattice the fields are sampled on and interpolated from.</param>
@@ -89,7 +94,9 @@ public sealed record CragSpec(int Amplitude, int Cell, int RidgesFrom, int Ridge
 /// <param name="SeaFadeFrom">The continentalness, in thousandths, below which a river is gone (the sea needs no river).</param>
 /// <param name="SeaFadeTo">The continentalness, in thousandths, above which a river is full.</param>
 /// <param name="Valley">How the river's valley climbs the high ground to its source (the file's <c>valley</c> part; none: the river is a band of fixed width cut to the bed).</param>
-public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo, ValleySpec? Valley = null);
+/// <param name="PeakFadeFrom">The height, in blocks, that the ranges' peaks add to the ground, from which a river begins to fade out (a river does not cross a crest: it rises on each side in the foothills); with <paramref name="PeakFadeTo"/>, none by default.</param>
+/// <param name="PeakFadeTo">The height, in blocks, that the peaks add where the river is gone.</param>
+public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo, ValleySpec? Valley = null, int PeakFadeFrom = 100000, int PeakFadeTo = 100001);
 
 /// <summary>
 /// The valley of a river on high ground (B02b redo, round 3): above <see cref="From"/> the river's water stands deeper under the ground the higher the ground is (<see cref="DepthGrowth"/>), and the valley widens with the height so
@@ -248,7 +255,7 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                     Noise(climate, "river"),
                     Int(climate, "lapsePer100Blocks"),
                     climate.TryGetProperty("continents", out var continents)
-                        ? new ContinentSpec(Int(continents, "cell"), Int(continents, "jitter"), Int(continents, "seaBlock"), Int(continents, "seaPerBlock"), Int(continents, "channel"), Int(continents, "channelMin"), Int(continents, "widthCell"), Int(continents, "coastCell"), Int(continents, "coastBlocks"), Int(continents, "scaleBlocks"), continents.TryGetProperty("salt", out var salt) ? salt.GetInt32() : 0)
+                        ? new ContinentSpec(Int(continents, "cell"), Int(continents, "jitter"), Int(continents, "seaBlock"), Int(continents, "seaPerBlock"), Int(continents, "channel"), Int(continents, "channelMin"), Int(continents, "widthCell"), Int(continents, "coastCell"), Int(continents, "coastBlocks"), Int(continents, "scaleBlocks"), continents.TryGetProperty("salt", out var salt) ? salt.GetInt32() : 0, continents.TryGetProperty("roughCell", out var roughCell) ? roughCell.GetInt32() : 0, continents.TryGetProperty("roughBlocks", out var roughBlocks) ? roughBlocks.GetInt32() : 0, continents.TryGetProperty("roughOctaves", out var roughOctaves) ? roughOctaves.GetInt32() : 1)
                         : null),
                 ParseHeight(height),
                 new AltitudeData(Int(altitude, "snowBelowTemperature"), Int(altitude, "treeLineBelowTemperature")),
@@ -283,7 +290,9 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                 Int(rivers, "fadeToHeight"),
                 Int(rivers, "seaFadeFrom"),
                 Int(rivers, "seaFadeTo"),
-                rivers.TryGetProperty("valley", out var valley) ? new ValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null),
+                rivers.TryGetProperty("valley", out var valley) ? new ValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null,
+                rivers.TryGetProperty("peakFadeFrom", out var peakFadeFrom) ? peakFadeFrom.GetInt32() : 100000,
+                rivers.TryGetProperty("peakFadeTo", out var peakFadeTo) ? peakFadeTo.GetInt32() : 100001),
             new LakeSpec(
                 Int(lakes, "cell"),
                 Int(lakes, "octaves"),
@@ -317,7 +326,9 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
             Int(field, "octaves"),
             field.TryGetProperty("warpCell", out var warpCell) ? warpCell.GetInt32() : 0,
             field.TryGetProperty("warpBlocks", out var warp) ? warp.GetInt32() : 0,
-            field.TryGetProperty("round", out var round) ? round.GetInt32() : 0);
+            field.TryGetProperty("round", out var round) ? round.GetInt32() : 0,
+            field.TryGetProperty("chainBlocks", out var chain) ? chain.GetInt32() : 0,
+            field.TryGetProperty("chainRound", out var chainRound) ? chainRound.GetInt32() : 0);
     }
 
     private static List<SplinePoint> Points(JsonElement owner, string name) =>
