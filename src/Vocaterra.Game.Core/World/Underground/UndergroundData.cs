@@ -174,12 +174,16 @@ public sealed record CaveSpec(
     int BedClearance);
 
 /// <summary>
-/// The cave entrances (B11b): passages a body walks down from the surface into the cave network. The world is cut into sites <see cref="Cell"/> blocks across; <see cref="Chance"/> thousandths of
-/// them try to open a passage, from the best of <see cref="Attempts"/> spots (the one whose passage the ground covers most: a hillside beats level ground) at least <see cref="Margin"/> blocks inside the site: a straight stair of <see cref="Width"/> blocks across and <see cref="Headroom"/> blocks of air above
-/// the floor that drops one block every <see cref="Run"/> blocks, in the direction (of four) whose ground covers it best, until it meets a cave at least <see cref="MinDrop"/> blocks under the mouth
-/// (within <see cref="MaxLength"/> blocks), then a landing of <see cref="Landing"/> blocks. A site opens only on dry procedural land at least <see cref="MinHeightAboveSea"/> over the sea with no
-/// water or river bank within <see cref="WaterReach"/> columns of the passage, outside every region and its margin. The first <see cref="RimLength"/> blocks are framed by a rim of rock
-/// <see cref="RimWidth"/> blocks wide drawn from <see cref="RimBlocks"/>; no tree or plant stands on it.
+/// The cave entrances (B11b): natural passages a body walks down from the surface into the cave network. The world is cut into sites <see cref="Cell"/> blocks across; <see cref="Chance"/> thousandths of
+/// them try to open a passage, from the best of <see cref="Attempts"/> spots (the passage the ground covers most: a hillside beats level ground) at least <see cref="Margin"/> blocks inside the site.
+/// A passage is a winding path of cells (it bends by up to <see cref="Bend"/> sixteenths of a table step a block, changing its mind every <see cref="BendSegmentMin"/> to <see cref="BendSegmentMax"/> blocks and
+/// never turning more than <see cref="MaxTurn"/> table steps from its first heading) whose floor drops one block every 1 to <see cref="RunMax"/> blocks in stretches of <see cref="SegmentMin"/> to
+/// <see cref="SegmentMax"/> (and runs level for <see cref="LevelShare"/> thousandths of the stretches), so no step is over one block, until it meets a cave at least <see cref="MinDrop"/> blocks under the
+/// mouth (within <see cref="MaxLength"/> blocks), then a landing of <see cref="Landing"/> blocks. Its width runs from <see cref="WidthMin"/> to <see cref="WidthMax"/> blocks and its headroom from
+/// <see cref="HeadroomMin"/> to <see cref="HeadroomMax"/>, both drifting along the path, and its walls and ceiling are carved by a noise of <see cref="Roughness"/> thousandths of a block (cell
+/// <see cref="RoughnessCell"/>), so they bulge and are never flat; <see cref="Ledges"/> thousandths of the side columns are a block higher than the path's floor. The first <see cref="FunnelLength"/> blocks
+/// are wider by <see cref="Funnel"/> thousandths, so the mouth is a ragged dip and not a slot. A site opens only on dry procedural land at least <see cref="MinHeightAboveSea"/> over the sea with no water or
+/// river bank within <see cref="WaterReach"/> columns of the passage, outside every region and its margin. No tree or plant stands at the mouth. Gaps in a floor are filled with <see cref="FloorBlocks"/>.
 /// </summary>
 /// <param name="Cell">The sites' spacing, in blocks.</param>
 /// <param name="Chance">The share of the sites that try, in thousandths.</param>
@@ -187,15 +191,27 @@ public sealed record CaveSpec(
 /// <param name="Attempts">How many spots a site tries; the passage the ground covers most wins.</param>
 /// <param name="MinHeightAboveSea">How far over the sea the ground at the mouth must be.</param>
 /// <param name="WaterReach">How many columns round the passage hold no water and no river bank.</param>
-/// <param name="Width">The passage's width, in blocks (at least 2).</param>
-/// <param name="Headroom">The air above the floor, in blocks.</param>
-/// <param name="Run">The blocks along the passage for each block it drops (a step is one block).</param>
 /// <param name="MinDrop">How far under the mouth the passage must reach a cave.</param>
-/// <param name="MaxLength">The longest passage, in blocks along.</param>
-/// <param name="Landing">The level blocks after the passage reaches its cave.</param>
-/// <param name="RimLength">The blocks of the passage, from the mouth, that stand in the rim.</param>
-/// <param name="RimWidth">How many blocks wide the rim is round the passage.</param>
-/// <param name="RimBlocks">The rocks of the rim, drawn by weight.</param>
+/// <param name="MaxLength">The longest passage, in blocks along its path.</param>
+/// <param name="Landing">The level blocks after the passage meets its cave.</param>
+/// <param name="WidthMin">The narrowest the passage is, in blocks across (at least 2).</param>
+/// <param name="WidthMax">The widest the passage is, in blocks across.</param>
+/// <param name="HeadroomMin">The lowest the passage's roof is over its floor (at least 3).</param>
+/// <param name="HeadroomMax">The highest the passage's roof is over its floor.</param>
+/// <param name="SegmentMin">The fewest blocks of a stretch of one slope.</param>
+/// <param name="SegmentMax">The most blocks of a stretch of one slope.</param>
+/// <param name="RunMax">The gentlest slope: one block down every this many blocks along (a stretch draws from 1 to this).</param>
+/// <param name="LevelShare">The share of the stretches that run level, in thousandths.</param>
+/// <param name="Bend">The sharpest bend, in sixteenths of a step of the 64-step turn a block.</param>
+/// <param name="BendSegmentMin">The fewest blocks before the passage changes its bend.</param>
+/// <param name="BendSegmentMax">The most blocks before it changes its bend.</param>
+/// <param name="MaxTurn">The most the heading may stray from its first, in steps of the 64-step turn.</param>
+/// <param name="Roughness">How far the noise moves the walls, in thousandths of a block.</param>
+/// <param name="RoughnessCell">The noise's cell, in blocks.</param>
+/// <param name="Ledges">The share of the side columns raised one block, in thousandths.</param>
+/// <param name="Funnel">How much wider the mouth is, in thousandths.</param>
+/// <param name="FunnelLength">The blocks the widening lasts.</param>
+/// <param name="FloorBlocks">The rocks that fill a gap in the floor, drawn by weight.</param>
 public sealed record EntranceSpec(
     int Cell,
     int Chance,
@@ -203,15 +219,27 @@ public sealed record EntranceSpec(
     int Attempts,
     int MinHeightAboveSea,
     int WaterReach,
-    int Width,
-    int Headroom,
-    int Run,
     int MinDrop,
     int MaxLength,
     int Landing,
-    int RimLength,
-    int RimWidth,
-    IReadOnlyList<BlockWeight> RimBlocks);
+    int WidthMin,
+    int WidthMax,
+    int HeadroomMin,
+    int HeadroomMax,
+    int SegmentMin,
+    int SegmentMax,
+    int RunMax,
+    int LevelShare,
+    int Bend,
+    int BendSegmentMin,
+    int BendSegmentMax,
+    int MaxTurn,
+    int Roughness,
+    int RoughnessCell,
+    int Ledges,
+    int Funnel,
+    int FunnelLength,
+    IReadOnlyList<BlockWeight> FloorBlocks);
 
 /// <summary>Lava: cave air at or below the level is lava.</summary>
 /// <param name="Block">The lava's block name.</param>
@@ -345,15 +373,27 @@ public sealed record UndergroundData(
         Int(e, "attempts"),
         Int(e, "minHeightAboveSea"),
         Int(e, "waterReach"),
-        Int(e, "width"),
-        Int(e, "headroom"),
-        Int(e, "run"),
         Int(e, "minDrop"),
         Int(e, "maxLength"),
         Int(e, "landing"),
-        Int(e, "rimLength"),
-        Int(e, "rimWidth"),
-        ParseWeights(e.GetProperty("rimBlocks")));
+        Int(e, "widthMin"),
+        Int(e, "widthMax"),
+        Int(e, "headroomMin"),
+        Int(e, "headroomMax"),
+        Int(e, "segmentMin"),
+        Int(e, "segmentMax"),
+        Int(e, "runMax"),
+        Int(e, "levelShare"),
+        Int(e, "bend"),
+        Int(e, "bendSegmentMin"),
+        Int(e, "bendSegmentMax"),
+        Int(e, "maxTurn"),
+        Int(e, "roughness"),
+        Int(e, "roughnessCell"),
+        Int(e, "ledges"),
+        Int(e, "funnel"),
+        Int(e, "funnelLength"),
+        ParseWeights(e.GetProperty("floorBlocks")));
 
     private static IReadOnlyList<BlockWeight> ParseWeights(JsonElement list) => [.. list.EnumerateArray().Select(static b => new BlockWeight(Text(b, "block"), Int(b, "weight")))];
 

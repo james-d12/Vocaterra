@@ -125,7 +125,7 @@ public sealed class UndergroundWorldTests
                 }
 
                 // Under the cover, the ground is whole except at an entrance: the layers just under the top are never air.
-                if (area.Block(x, height, z) != BlockId.Air && !passages.Any(p => { p.Locate(x, z, out var along, out var lateral); return p.InPassage(along, lateral); }))
+                if (area.Block(x, height, z) != BlockId.Air && !passages.Any(p => p.Column(x, z, out _, out _, out _, out _)))
                 {
                     for (var y = height - Data.Caves.SurfaceCover + 1; y <= height; y++)
                     {

@@ -226,42 +226,51 @@ internal static partial class UndergroundValidator
             problems.Add($"{File}: entrances.waterReach must be from one over the caves' waterMargin to 24 columns (it is {e.WaterReach}).");
         }
 
-        if (e.Width < 2 || e.Width > 6)
-        {
-            problems.Add($"{File}: entrances.width must be from 2 to 6 blocks, wide enough to walk (it is {e.Width}).");
-        }
-
-        if (e.Headroom < 3 || e.Headroom > 8)
-        {
-            problems.Add($"{File}: entrances.headroom must be from 3 to 8 blocks (it is {e.Headroom}).");
-        }
-
-        if (e.Run < 1 || e.Run > 4)
-        {
-            problems.Add($"{File}: entrances.run must be from 1 to 4 blocks along for each block down, so no step is over one block (it is {e.Run}).");
-        }
-
         if (e.MinDrop < 8 || e.MinDrop > 64)
         {
             problems.Add($"{File}: entrances.minDrop must be from 8 to 64 blocks (it is {e.MinDrop}).");
         }
 
-        if (e.MaxLength < e.MinDrop * e.Run || e.MaxLength > 160)
+        if (e.MaxLength < e.MinDrop || e.MaxLength > 240)
         {
-            problems.Add($"{File}: entrances.maxLength must be from minDrop x run ({e.MinDrop * e.Run}) to 160 blocks (it is {e.MaxLength}).");
+            problems.Add($"{File}: entrances.maxLength must be from minDrop ({e.MinDrop}) to 240 blocks (it is {e.MaxLength}).");
         }
 
-        if (e.Landing < 1 || e.Landing > 12)
+        Range(problems, "entrances.landing", e.Landing, 1, 12);
+        if (e.WidthMin < 2 || e.WidthMax < e.WidthMin || e.WidthMax > 8)
         {
-            problems.Add($"{File}: entrances.landing must be from 1 to 12 blocks (it is {e.Landing}).");
+            problems.Add($"{File}: entrances needs 2 <= widthMin <= widthMax <= 8 blocks, wide enough to walk (they are {e.WidthMin} and {e.WidthMax}).");
         }
 
-        if (e.RimLength < 0 || e.RimLength > 48 || e.RimWidth < 0 || e.RimWidth > 6)
+        if (e.HeadroomMin < 3 || e.HeadroomMax < e.HeadroomMin || e.HeadroomMax > 10)
         {
-            problems.Add($"{File}: entrances.rimLength must be from 0 to 48 and rimWidth from 0 to 6 blocks (they are {e.RimLength} and {e.RimWidth}).");
+            problems.Add($"{File}: entrances needs 3 <= headroomMin <= headroomMax <= 10 blocks (they are {e.HeadroomMin} and {e.HeadroomMax}).");
         }
 
-        Weights(problems, "entrances.rimBlocks", e.RimBlocks, true); // the floor of the stair is built of them too
+        if (e.SegmentMin < 2 || e.SegmentMax < e.SegmentMin || e.SegmentMax > 40)
+        {
+            problems.Add($"{File}: entrances needs 2 <= segmentMin <= segmentMax <= 40 blocks (they are {e.SegmentMin} and {e.SegmentMax}).");
+        }
+
+        if (e.RunMax < 1 || e.RunMax > 6)
+        {
+            problems.Add($"{File}: entrances.runMax must be from 1 to 6 blocks along for each block down, so no step is over one block (it is {e.RunMax}).");
+        }
+
+        Thousandths(problems, "entrances.levelShare", e.LevelShare, 0, 900);
+        Range(problems, "entrances.bend", e.Bend, 0, 16);
+        if (e.BendSegmentMin < 2 || e.BendSegmentMax < e.BendSegmentMin || e.BendSegmentMax > 60)
+        {
+            problems.Add($"{File}: entrances needs 2 <= bendSegmentMin <= bendSegmentMax <= 60 blocks (they are {e.BendSegmentMin} and {e.BendSegmentMax}).");
+        }
+
+        Range(problems, "entrances.maxTurn", e.MaxTurn, 0, 32);
+        Range(problems, "entrances.roughness", e.Roughness, 0, 1500);
+        Range(problems, "entrances.roughnessCell", e.RoughnessCell, 1, 16);
+        Thousandths(problems, "entrances.ledges", e.Ledges, 0, 1000);
+        Range(problems, "entrances.funnel", e.Funnel, 0, 2000);
+        Range(problems, "entrances.funnelLength", e.FunnelLength, 0, 24);
+        Weights(problems, "entrances.floorBlocks", e.FloorBlocks, true);
     }
 
     private static void CheckLinings(LiningSpec linings, VerticalRange v, List<string> problems)

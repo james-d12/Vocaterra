@@ -99,7 +99,7 @@ public sealed class UndergroundUnderRegionTests
         Assert.True(ramps.Count >= 2, $"{ramps.Count} entrances round the valley");
         foreach (var ramp in ramps)
         {
-            for (var i = -ramp.RimWidth; i <= ramp.Last + 1; i++)
+            for (var i = 0; i <= ramp.Last; i++)
             {
                 var (x, z) = ramp.CentreAt(i);
                 Assert.True(regions.Nearest(x, z).Distance >= margin, $"the passage at {ramp.AnchorX},{ramp.AnchorZ} reaches {x},{z}, {regions.Nearest(x, z).Distance} blocks from the valley");

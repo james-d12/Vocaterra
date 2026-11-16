@@ -25,7 +25,7 @@ public sealed class UndergroundDataTests
         Assert.Equal(["gravel", "sand", "dirt", "granite", "limestone", "granite", "basalt"], u.Strata.Blobs.Select(static b => b.Block));
         Assert.Equal(["slate"], u.Strata.Blobs[^1].In);
         Assert.Equal((170, 12, 210), (u.Strata.Blobs[0].Threshold, -u.Strata.Blobs[0].MinY, u.Strata.Blobs[0].MaxY));
-        Assert.Equal((128, 500, 3, 4, 2, 20), (u.Entrances.Cell, u.Entrances.Chance, u.Entrances.Width, u.Entrances.Headroom, u.Entrances.Run, u.Entrances.MinDrop));
+        Assert.Equal((128, 500, 2, 5, 3, 6, 20), (u.Entrances.Cell, u.Entrances.Chance, u.Entrances.WidthMin, u.Entrances.WidthMax, u.Entrances.HeadroomMin, u.Entrances.HeadroomMax, u.Entrances.MinDrop));
         Assert.NotNull(u.Linings);
         Assert.NotNull(u.SurfaceRock);
         Assert.Equal(("bedrock", -64, 1, 4), (u.Floor.Block, u.Floor.BottomY, u.Floor.MinThickness, u.Floor.MaxThickness));
@@ -73,8 +73,8 @@ public sealed class UndergroundDataTests
 
         Assert.Equal(Shipped.Strata.Blobs.Select(Blob), parsed.Strata.Blobs.Select(Blob));
         Assert.Equal(Shipped.Caves, parsed.Caves);
-        Assert.Equal(Shipped.Entrances with { RimBlocks = [] }, parsed.Entrances with { RimBlocks = [] });
-        Assert.Equal(Shipped.Entrances.RimBlocks, parsed.Entrances.RimBlocks);
+        Assert.Equal(Shipped.Entrances with { FloorBlocks = [] }, parsed.Entrances with { FloorBlocks = [] });
+        Assert.Equal(Shipped.Entrances.FloorBlocks, parsed.Entrances.FloorBlocks);
         Assert.Equal(Shipped.Linings!.Rules.Select(static r => (r.Block, string.Join(',', r.In), r.Face, r.Zone, r.Chance, r.Patch, r.MinY, r.MaxY)), parsed.Linings!.Rules.Select(static r => (r.Block, string.Join(',', r.In), r.Face, r.Zone, r.Chance, r.Patch, r.MinY, r.MaxY)));
         Assert.Equal(Shipped.SurfaceRock!.Cliff.Bands, parsed.SurfaceRock!.Cliff.Bands);
         Assert.Equal(Shipped.SurfaceRock.Scree.Rules, parsed.SurfaceRock.Scree.Rules);
@@ -128,18 +128,26 @@ public sealed class UndergroundDataTests
     public void Given_BadEntrances_When_TheyAreValidated_Then_ThePassageMustBeWalkableAndClearOfWater()
     {
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { WaterReach = Shipped.Caves.WaterMargin } }), "waterReach"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Width = 1 } }), "width"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Run = 5 } }), "no step is over one block"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Run = 0 } }), "no step is over one block"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Headroom = 2 } }), "headroom"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { WidthMin = 1 } }), "widthMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { WidthMax = 1 } }), "widthMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RunMax = 7 } }), "no step is over one block"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RunMax = 0 } }), "no step is over one block"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { HeadroomMin = 2 } }), "headroomMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { SegmentMin = 1 } }), "segmentMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { BendSegmentMax = 1 } }), "bendSegmentMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Bend = 40 } }), "bend"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxTurn = 99 } }), "maxTurn"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Roughness = 5000 } }), "roughness"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Ledges = 2000 } }), "ledges"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Funnel = 9000 } }), "funnel"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinDrop = 4 } }), "minDrop"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxLength = 20 } }), "maxLength"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxLength = 5 } }), "maxLength"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Margin = 70 } }), "margin"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Chance = 2000 } }), "chance"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Attempts = 0 } }), "attempts"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinHeightAboveSea = -1 } }), "minHeightAboveSea"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [] } }), "rimBlocks"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [new BlockWeight("magma", 1)] } }), "magma"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { FloorBlocks = [] } }), "floorBlocks"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { FloorBlocks = [new BlockWeight("magma", 1)] } }), "magma"));
     }
 
     [Fact]

@@ -5,10 +5,10 @@ using Vocaterra.Game.Core.World.Underground;
 namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
 /// <summary>
-/// The cave entrances (B11b, <see cref="EntranceSites"/>): every passage that crosses the chunk is cut. In the passage's cross-section the cells from one above the floor up to the headroom become air, and a
-/// floor block is set where the ground is a block or more under it (the sides are filled, so the stair is as wide all along), so a body walks down on steps of one block. The first blocks of the passage
-/// stand in a rim of rock (<see cref="EntranceSpec.RimBlocks"/>) where the layers of the ground (the grass and the dirt) are replaced, so the mouth reads as an opening in stone and not a hollow in a
-/// meadow. Only the chunk's own cells are written. It runs after the caves so the passage joins their air, and before the lava and the ores.
+/// The cave entrances (B11b, <see cref="EntranceSites"/>): every passage that crosses the chunk is cut. Each column near a passage's path belongs to the nearest cell of it, and from that cell's floor up the
+/// tube of the cell (a width and a height of its own, bulged by a noise) becomes air, so the walls and the roof are rough and the passage is wide in one place and narrow in the next. Where the ground lies a
+/// block lower than a cell's floor in a cave (the landing) the floor is built of the data's floor blocks. The mouth is whatever the tube leaves of the ground: a ragged dip where the ground is flat, an
+/// opening under the rock where it rises. Only the chunk's own cells are written. It runs after the caves so the passage joins their air, and before the lava and the ores.
 /// </summary>
 internal sealed class EntrancePass : IChunkDecorator
 {
@@ -17,18 +17,18 @@ internal sealed class EntrancePass : IChunkDecorator
     private const ulong GoldenZ = 0x165667B19E3779F9UL;
 
     private readonly GenerationWorld _world;
-    private readonly BlockId[] _rim;
-    private readonly int[] _rimWeights;
-    private readonly int _rimTotal;
+    private readonly BlockId[] _floor;
+    private readonly int[] _floorWeights;
+    private readonly int _floorTotal;
     private readonly ulong _key;
 
     public EntrancePass(GenerationWorld world)
     {
         _world = world;
         var spec = world.Underground!.Data.Entrances;
-        _rim = [.. spec.RimBlocks.Select(static b => UndergroundWorld.BlockNamed(b.Block))];
-        _rimWeights = [.. spec.RimBlocks.Select(static b => b.Weight)];
-        _rimTotal = _rimWeights.Sum();
+        _floor = [.. spec.FloorBlocks.Select(static b => UndergroundWorld.BlockNamed(b.Block))];
+        _floorWeights = [.. spec.FloorBlocks.Select(static b => b.Weight)];
+        _floorTotal = _floorWeights.Sum();
         _key = WorldRng.For(world.Seed, Name).NextUInt64();
     }
 
@@ -49,96 +49,61 @@ internal sealed class EntrancePass : IChunkDecorator
                 continue;
             }
 
-            Cut(ctx, chunk, ramp);
+            Cut(chunk, ramp);
         }
     }
 
-    private void Cut(ColumnContext ctx, ChunkBuilder chunk, EntranceRamp ramp)
+    private void Cut(ChunkBuilder chunk, EntranceRamp ramp)
     {
+        var bedrock = _world.Underground!.Bedrock;
         for (var z = chunk.MinZ; z < chunk.MinZ + VoxelChunk.Size; z++)
         {
             for (var x = chunk.MinX; x < chunk.MinX + VoxelChunk.Size; x++)
             {
-                ramp.Locate(x, z, out var along, out var lateral);
-                if (!ramp.InRim(along, lateral) && !ramp.InPassage(along, lateral))
+                if (!ramp.Column(x, z, out var floor, out var node, out var forced, out var distance2) || !ramp.Carves(x, floor + 1, z, floor, node, forced, distance2))
                 {
-                    continue;
+                    continue; // the column is outside the tube, or the tube does not reach its first block
                 }
 
-                if (ramp.InRim(along, lateral) && along <= ramp.RimLength + ramp.RimWidth)
+                // The floor under the passage: a gap in it (the landing in a cave) is built up.
+                if (floor >= chunk.MinY && floor <= chunk.MaxY && !BlockDefinition.IsSolid(chunk.Get(x, floor, z)))
                 {
-                    LayRim(ctx, chunk, x, z);
+                    chunk.Set(x, floor, z, FloorBlock(x, floor, z));
                 }
 
-                if (ramp.InPassage(along, lateral))
+                var top = Math.Min(floor + 14, chunk.MaxY);
+                for (var y = Math.Max(floor + 1, chunk.MinY); y <= top; y++)
                 {
-                    CutColumn(ctx, chunk, ramp, x, z, along);
+                    if (!ramp.Carves(x, y, z, floor, node, forced, distance2))
+                    {
+                        continue;
+                    }
+
+                    var block = chunk.Get(x, y, z);
+                    if (block != BlockId.Air && block != BlockId.Water && block != bedrock)
+                    {
+                        chunk.Set(x, y, z, BlockId.Air);
+                    }
                 }
             }
         }
     }
 
-    // The ground's own layers (the top and the filler) become rock.
-    private void LayRim(ColumnContext ctx, ChunkBuilder chunk, int x, int z)
-    {
-        var column = ctx.SurfaceAt(x, z);
-        if (column.Water)
-        {
-            return;
-        }
-
-        var top = Math.Min(column.Height, chunk.MaxY);
-        for (var y = Math.Max(column.Height - column.FillerDepth, chunk.MinY); y <= top; y++)
-        {
-            if (BlockDefinition.IsSolid(chunk.Get(x, y, z)))
-            {
-                chunk.Set(x, y, z, RimRock(x, y, z));
-            }
-        }
-    }
-
-    private void CutColumn(ColumnContext ctx, ChunkBuilder chunk, EntranceRamp ramp, int x, int z, int along)
-    {
-        var floor = ramp.FloorAt(along);
-        var height = ctx.HeightAt(x, z);
-        var bedrock = _world.Underground!.Bedrock;
-
-        // Ground under the floor: a column that lies lower is built up to it, so the stair is whole.
-        for (var y = Math.Max(Math.Min(height + 1, floor), chunk.MinY); y <= Math.Min(floor, chunk.MaxY); y++)
-        {
-            chunk.Set(x, y, z, RimRock(x, y, z));
-        }
-
-        if (floor >= chunk.MinY && floor <= chunk.MaxY && !BlockDefinition.IsSolid(chunk.Get(x, floor, z)))
-        {
-            chunk.Set(x, floor, z, RimRock(x, floor, z));
-        }
-
-        for (var y = Math.Max(floor + 1, chunk.MinY); y <= Math.Min(floor + ramp.Headroom, chunk.MaxY); y++)
-        {
-            var block = chunk.Get(x, y, z);
-            if (block != BlockId.Air && block != BlockId.Water && block != bedrock)
-            {
-                chunk.Set(x, y, z, BlockId.Air);
-            }
-        }
-    }
-
-    // A rock of the rim, by weight, from a hash of the block.
-    private BlockId RimRock(int x, int y, int z)
+    // A rock of the floor, by weight, from a hash of the block.
+    private BlockId FloorBlock(int x, int y, int z)
     {
         var hash = WorldRng.Mix(_key ^ ((ulong)(uint)x * GoldenX) ^ ((ulong)(uint)y * GoldenY) ^ ((ulong)(uint)z * GoldenZ));
-        var pick = (int)(hash % (ulong)_rimTotal);
-        for (var i = 0; i < _rim.Length; i++)
+        var pick = (int)(hash % (ulong)_floorTotal);
+        for (var i = 0; i < _floor.Length; i++)
         {
-            if (pick < _rimWeights[i])
+            if (pick < _floorWeights[i])
             {
-                return _rim[i];
+                return _floor[i];
             }
 
-            pick -= _rimWeights[i];
+            pick -= _floorWeights[i];
         }
 
-        return _rim[^1];
+        return _floor[^1];
     }
 }

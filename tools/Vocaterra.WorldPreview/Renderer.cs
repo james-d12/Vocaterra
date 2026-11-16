@@ -227,7 +227,7 @@ internal static class Renderer
                         continue;
                     }
 
-                    for (var along = 0; along <= passage.Length + passage.Landing; along++)
+                    for (var along = 0; along < passage.Path.Count; along++)
                     {
                         var (x, z) = passage.CentreAt(along);
                         if (x >= left && x < left + size && z >= top && z < top + size)

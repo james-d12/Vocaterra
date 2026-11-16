@@ -208,17 +208,16 @@ internal sealed class LiningPass : IChunkDecorator
         {
             for (var i = 0; i <= ramp.Last; i++)
             {
-                var (cx, cz) = ramp.CentreAt(i);
-                var floor = ramp.FloorAt(i);
-                var (y0, y1) = (floor - _dampReach, floor + ramp.Headroom + _dampReach);
+                var node = ramp.Nodes[i];
+                var (y0, y1) = (node.Floor - _dampReach, node.Floor + node.Headroom + _dampReach);
                 if (y1 < chunk.MinY || y0 > chunk.MaxY)
                 {
                     continue;
                 }
 
-                for (var z = Math.Max(cz - _dampReach, chunk.MinZ); z <= Math.Min(cz + _dampReach, chunk.MinZ + VoxelChunk.Size - 1); z++)
+                for (var z = Math.Max(node.Z - _dampReach, chunk.MinZ); z <= Math.Min(node.Z + _dampReach, chunk.MinZ + VoxelChunk.Size - 1); z++)
                 {
-                    for (var x = Math.Max(cx - _dampReach, chunk.MinX); x <= Math.Min(cx + _dampReach, chunk.MinX + VoxelChunk.Size - 1); x++)
+                    for (var x = Math.Max(node.X - _dampReach, chunk.MinX); x <= Math.Min(node.X + _dampReach, chunk.MinX + VoxelChunk.Size - 1); x++)
                     {
                         var k = ((z - chunk.MinZ) * VoxelChunk.Size) + (x - chunk.MinX);
                         low[k] = Math.Min(low[k], y0);

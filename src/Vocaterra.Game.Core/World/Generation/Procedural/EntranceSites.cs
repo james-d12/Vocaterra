@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// a chunk's window, so every chunk column that the passage crosses finds the same ramp whichever it is generated in and in whatever order. A resolved site is remembered (the answer never changes), so
 /// the work is done once for a site.
 /// <para>
-/// The ground the ramp is planned on is the height model's own. A column the water passes or a surface strategy could change is never used: the passage keeps <see cref="EntranceSpec.WaterReach"/>
+/// The ground the passage is planned on is the height model's own. A column the water passes or a surface strategy could change is never used: the passage keeps <see cref="EntranceSpec.WaterReach"/>
 /// columns clear of any water, river or lake carve, and stands only on plain biomes, so the final ground is the model's and the passage's floor always meets it (a test reads the generated blocks to check).
 /// </para>
 /// </summary>
@@ -19,11 +19,16 @@ internal sealed class EntranceSites
 {
     private static readonly (int X, int Z)[] Directions = [(1, 0), (0, 1), (-1, 0), (0, -1)];
 
+    // The unit vectors of the 64-step turn, in 1/1024 (step 0 east, 16 south, 32 west, 48 north): the path's heading drifts between them.
+    private static readonly int[] HeadingCos = [1024, 1019, 1004, 980, 946, 903, 851, 792, 724, 650, 569, 483, 392, 297, 200, 100, 0, -100, -200, -297, -392, -483, -569, -650, -724, -792, -851, -903, -946, -980, -1004, -1019, -1024, -1019, -1004, -980, -946, -903, -851, -792, -724, -650, -569, -483, -392, -297, -200, -100, 0, 100, 200, 297, 392, 483, 569, 650, 724, 792, 851, 903, 946, 980, 1004, 1019];
+    private static readonly int[] HeadingSin = [0, 100, 200, 297, 392, 483, 569, 650, 724, 792, 851, 903, 946, 980, 1004, 1019, 1024, 1019, 1004, 980, 946, 903, 851, 792, 724, 650, 569, 483, 392, 297, 200, 100, 0, -100, -200, -297, -392, -483, -569, -650, -724, -792, -851, -903, -946, -980, -1004, -1019, -1024, -1019, -1004, -980, -946, -903, -851, -792, -724, -650, -569, -483, -392, -297, -200, -100];
+
     private readonly GenerationWorld _world;
     private readonly UndergroundWorld _underground;
     private readonly EntranceSpec _spec;
     private readonly ConcurrentDictionary<(int X, int Z), EntranceRamp?> _sites = new();
     private readonly int _dampReach;
+    private readonly int _tubeReach;
 
     /// <summary>Creates the sites of a world.</summary>
     /// <param name="world">The world; it must have an underground and its height model, climate and biome table already built.</param>
@@ -33,10 +38,11 @@ internal sealed class EntranceSites
         _underground = world.Underground ?? throw new InvalidOperationException("The world has no underground.");
         _spec = _underground.Data.Entrances;
         _dampReach = _underground.Data.Linings?.DampReach ?? 0;
+        _tubeReach = (((_spec.WidthMax - 1) * (1000 + _spec.Funnel) / 2000) + 1) + ((_spec.Roughness + 999) / 1000) + 1;
     }
 
-    /// <summary>How far, in blocks, a ramp's rim, landing and damp zone reach from its mouth.</summary>
-    public int Reach => _spec.MaxLength + _spec.Landing + _spec.RimWidth + _dampReach + 8;
+    /// <summary>How far, in blocks, a passage and its damp zone reach beyond the site it lies in.</summary>
+    public int Reach => _tubeReach + 2 + _dampReach + 4;
 
     /// <summary>The ramps of the sites near a box of columns whose cells, rim or damp zone may touch the box (the box's corners are inclusive).</summary>
     /// <param name="minX">The box's first x.</param>
@@ -81,6 +87,8 @@ internal sealed class EntranceSites
         }
 
         var inner = _spec.Cell - (2 * _spec.Margin);
+        var keep = _tubeReach + 2;
+        var box = ((site.X * _spec.Cell) + keep, (site.Z * _spec.Cell) + keep, ((site.X + 1) * _spec.Cell) - 1 - keep, ((site.Z + 1) * _spec.Cell) - 1 - keep); // a passage stays inside its own site, so two never meet
         EntranceRamp? best = null;
         var bestCover = int.MinValue;
         for (var attempt = 0; attempt < _spec.Attempts; attempt++)
@@ -97,11 +105,15 @@ internal sealed class EntranceSites
 
             for (var k = 0; k < Directions.Length; k++)
             {
-                var (dx, dz) = Directions[(first + k) % Directions.Length];
-                if (Plan(probe, ax, az, dx, dz, mouth.Height, out var cover) is { } ramp && cover > bestCover)
+                for (var variant = 0; variant < 2; variant++)
                 {
-                    best = ramp;
-                    bestCover = cover;
+                    var direction = (first + k) % Directions.Length;
+                    var path = WorldRng.For(_world.Seed, $"gen/entrances/path/{attempt}/{direction}/{variant}", site.X, site.Z);
+                    if (Plan(probe, ax, az, direction, mouth.Height, path, box, out var cover) is { } ramp && cover > bestCover)
+                    {
+                        best = ramp;
+                        bestCover = cover;
+                    }
                 }
             }
         }
@@ -109,46 +121,48 @@ internal sealed class EntranceSites
         return best;
     }
 
-    // The passage of one direction, or null when the ground, the water, a region or the lack of a cave under it forbids it; cover is how much ground the passage's first blocks lie under (a hillside has more).
-    private EntranceRamp? Plan(Probe probe, int ax, int az, int dx, int dz, int mouthY, out int cover)
+    // The path of one heading and one draw of bends and slopes, or null when the ground, the water, a region or the lack of a cave under it forbids it; cover is how much ground the first cells lie under (a
+    // hillside has more). The path is a walk of 4-connected cells along a heading that drifts, its floor drops a block at most from cell to cell, and it ends where it meets a cave deep enough, then a landing.
+    private EntranceRamp? Plan(Probe probe, int ax, int az, int direction, int mouthY, WorldRng rng, (int MinX, int MinZ, int MaxX, int MaxZ) box, out int cover)
     {
         cover = 0;
         var spec = _spec;
-        var lateralMin = -((spec.Width - 1) / 2);
-        var lateralMax = spec.Width / 2;
-        var lava = _underground.LavaLevel;
-        for (var l = lateralMin; l <= lateralMax; l++)
+        var (dx0, dz0) = Directions[direction];
+        var before = probe.At(ax - dx0, az - dz0);
+        if (!before.Usable || Math.Abs(before.Height - mouthY) > 1)
         {
-            // The block before the mouth is on the ground a body walks in from: at most one block over or under the mouth's floor, so the first step is one block.
-            var before = probe.At(ax - dx - (dz * l), az - dz + (dx * l));
-            if (!before.Usable || Math.Abs(before.Height - mouthY) > 1)
-            {
-                return null;
-            }
+            return null; // the block before the mouth is the ground a body comes from: at most one block over or under the mouth's floor, so the first step is one block
         }
 
+        var walk = new Walk(spec, rng, ax, az, direction, mouthY);
+        var lava = _underground.LavaLevel;
         var length = -1;
-        for (var i = 0; i <= spec.MaxLength && length < 0; i++)
+        while (length < 0 && walk.Nodes.Count < spec.MaxLength)
         {
-            var floor = mouthY - (i / spec.Run);
-            if (floor + 1 <= lava + 3)
-            {
-                return null; // never down into the lava's caves
-            }
-
-            if (!CrossSectionHolds(probe, ax + (dx * i), az + (dz * i), -dz, dx, lateralMin, lateralMax, floor, i % 4 == 0))
+            var from = walk.Nodes.Count;
+            if (from > 0 && !walk.Advance(descend: true))
             {
                 return null;
             }
 
-            if (i <= 12)
+            for (var i = from; i < walk.Nodes.Count; i++)
             {
-                cover += probe.At(ax + (dx * i), az + (dz * i)).Height - floor;
+                var node = walk.Nodes[i];
+                if (node.Floor + 1 <= lava + 3 || !InBox(node, box) || !NodeHolds(probe, node, i))
+                {
+                    return null;
+                }
+
+                if (i < 12)
+                {
+                    cover += probe.At(node.X, node.Z).Height - node.Floor;
+                }
             }
 
-            if (mouthY - floor >= spec.MinDrop && InCave(probe, ax + (dx * i), floor + 1, az + (dz * i)))
+            var last = walk.Nodes[^1];
+            if (mouthY - last.Floor >= spec.MinDrop && InCave(probe, last.X, last.Floor + 1, last.Z))
             {
-                length = i;
+                length = walk.Nodes.Count - 1;
             }
         }
 
@@ -157,54 +171,194 @@ internal sealed class EntranceSites
             return null;
         }
 
-        var end = mouthY - (length / spec.Run);
-        for (var i = length + 1; i <= length + spec.Landing; i++)
+        for (var i = 0; i < spec.Landing; i++)
         {
-            if (!CrossSectionHolds(probe, ax + (dx * i), az + (dz * i), -dz, dx, lateralMin, lateralMax, end, i % 4 == 0))
+            if (!walk.Advance(descend: false) || !InBox(walk.Nodes[^1], box) || !NodeHolds(probe, walk.Nodes[^1], walk.Nodes.Count - 1))
             {
                 return null;
             }
         }
 
-        if (!WaterClear(probe, ax, az, ax + (dx * (length + spec.Landing)), az + (dz * (length + spec.Landing))))
+        if (!WaterClear(probe, walk.Nodes))
         {
             return null;
         }
 
-        return new EntranceRamp(ax, az, dx, dz, mouthY, length, spec.Landing, spec.Width, spec.Headroom, spec.Run, spec.RimLength, spec.RimWidth);
+        var key = WorldRng.For(_world.Seed, "gen/entrances/shape", ax, az).NextUInt64();
+        return new EntranceRamp([.. walk.Nodes], length, ax - dx0, az - dz0, key, spec.Roughness, spec.RoughnessCell, spec.Ledges);
     }
 
-    // One cross-section of the passage: every column plain, dry, away from every region and its margin (checked on the centre every fourth block), with ground that reaches the floor (the centre) or
-    // one block under it (the sides, which the pass fills).
-    private bool CrossSectionHolds(Probe probe, int cx, int cz, int px, int pz, int lateralMin, int lateralMax, int floor, bool checkRegion)
+    // One walk of the path under construction: the heading that drifts (bends of a few blocks in a random sense, never straying far from the first heading), the floor that falls in stretches of one slope or
+    // runs level, and the width and headroom that drift between draws.
+    private sealed class Walk
     {
-        for (var l = lateralMin; l <= lateralMax; l++)
+        private readonly EntranceSpec _spec;
+        private readonly WorldRng _rng;
+        private readonly HashSet<(int, int)> _seen = [];
+        private readonly int _heading0;
+        private int _heading;
+        private int _px;
+        private int _pz;
+        private int _cx;
+        private int _cz;
+        private int _floor;
+        private int _turn;
+        private int _turnLeft;
+        private int _run;
+        private int _runLeft;
+        private int _sinceDrop;
+        private (int Half, int Head) _from;
+        private (int Half, int Head) _to;
+        private int _driftLength = 1;
+        private int _driftLeft;
+
+        public Walk(EntranceSpec spec, WorldRng rng, int ax, int az, int direction, int mouthY)
         {
-            var column = probe.At(cx + (px * l), cz + (pz * l));
-            if (!column.Usable || column.Height < floor - (l == 0 ? 0 : 1))
+            _spec = spec;
+            _rng = rng;
+            _heading0 = direction * 16 * 16; // sixteenths of a step of the 64-step turn: 0 east, 16 south, 32 west, 48 north
+            _heading = _heading0;
+            (_px, _pz) = ((ax << 10) + 512, (az << 10) + 512);
+            (_cx, _cz) = (ax, az);
+            _floor = mouthY;
+            _to = DrawSize();
+            _from = _to;
+            Add((ax, az));
+        }
+
+        public List<PathNode> Nodes { get; } = [];
+
+        // The next cell of the path (a cell between when the step is diagonal, so the path stays 4-connected); false when the path crosses itself.
+        public bool Advance(bool descend)
+        {
+            for (var tries = 0; tries < 12; tries++)
             {
-                return false;
+                var table = (_heading >> 4) & 63;
+                if (descend)
+                {
+                    Bend();
+                }
+
+                _px += HeadingCos[table];
+                _pz += HeadingSin[table];
+                var (nx, nz) = (_px >> 10, _pz >> 10);
+                if (nx == _cx && nz == _cz)
+                {
+                    continue;
+                }
+
+                if (nx != _cx && nz != _cz)
+                {
+                    var corner = _rng.NextInt(2) == 0 ? (nx, _cz) : (_cx, nz);
+                    if (!Add(corner, descend))
+                    {
+                        return false;
+                    }
+                }
+
+                (_cx, _cz) = (nx, nz);
+                return Add((nx, nz), descend);
+            }
+
+            return false;
+        }
+
+        private void Bend()
+        {
+            if (_turnLeft-- <= 0)
+            {
+                _turn = _rng.NextInt(-_spec.Bend, _spec.Bend + 1);
+                _turnLeft = _rng.NextInt(_spec.BendSegmentMin, _spec.BendSegmentMax + 1);
+            }
+
+            _heading += _turn;
+            if (Math.Abs(_heading - _heading0) > _spec.MaxTurn * 16)
+            {
+                _heading = _heading0 + (Math.Sign(_heading - _heading0) * _spec.MaxTurn * 16);
+                _turn = -_turn;
             }
         }
 
-        if (checkRegion && _world.Regions is { } blend && blend.Regions.Nearest(cx, cz).Distance < blend.Data.Margin + _spec.RimWidth + 16)
+        private bool Add((int X, int Z) cell, bool descend = true)
+        {
+            if (!_seen.Add(cell))
+            {
+                return false;
+            }
+
+            if (Nodes.Count > 0 && descend)
+            {
+                if (_runLeft-- <= 0)
+                {
+                    _run = _rng.NextInt(1000) < _spec.LevelShare ? 0 : _rng.NextInt(1, _spec.RunMax + 1);
+                    _runLeft = _run == 0 ? _rng.NextInt(2, 5) : _rng.NextInt(_spec.SegmentMin, _spec.SegmentMax + 1);
+                    _sinceDrop = 0;
+                }
+
+                if (_run > 0 && ++_sinceDrop >= _run)
+                {
+                    _floor--;
+                    _sinceDrop = 0;
+                }
+            }
+
+            if (_driftLeft <= 0)
+            {
+                _from = _to;
+                _to = DrawSize();
+                _driftLength = _rng.NextInt(4, 9);
+                _driftLeft = _driftLength;
+            }
+
+            var step = _driftLength - _driftLeft--;
+            var half = _from.Half + ((_to.Half - _from.Half) * step / _driftLength);
+            var head = _from.Head + ((_to.Head - _from.Head) * step / _driftLength);
+            if (Nodes.Count < _spec.FunnelLength)
+            {
+                half += half * _spec.Funnel * (_spec.FunnelLength - Nodes.Count) / (_spec.FunnelLength * 1000);
+            }
+
+            Nodes.Add(new PathNode(cell.X, cell.Z, _floor, Math.Max(4, half), Math.Clamp((head + 8) / 16, _spec.HeadroomMin, _spec.HeadroomMax)));
+            return true;
+        }
+
+        // A width (half of it, in sixteenths of a block) and a headroom (in sixteenths) drawn from the data's ranges.
+        private (int Half, int Head) DrawSize() => (
+            (8 * (_spec.WidthMin - 1)) + _rng.NextInt((8 * (_spec.WidthMax - _spec.WidthMin)) + 1),
+            (16 * _spec.HeadroomMin) + _rng.NextInt((16 * (_spec.HeadroomMax - _spec.HeadroomMin)) + 1));
+    }
+
+    private static bool InBox(PathNode node, (int MinX, int MinZ, int MaxX, int MaxZ) box) => node.X >= box.MinX && node.X <= box.MaxX && node.Z >= box.MinZ && node.Z <= box.MaxZ;
+
+    // One cell of the path: its centre plain and dry, with ground that reaches the floor, away from every region and its margin (checked every fourth cell).
+    private bool NodeHolds(Probe probe, PathNode node, int index)
+    {
+        var column = probe.At(node.X, node.Z);
+        if (!column.Usable || column.Height < node.Floor)
         {
             return false;
         }
 
-        return true;
+        return !(index % 4 == 0 && _world.Regions is { } blend && blend.Regions.Nearest(node.X, node.Z).Distance < blend.Data.Margin + 16);
     }
 
     // No water, river or lake carve within the water reach of the whole passage (sampled every second column), so no water pass or bank cut touches the ground it stands on and no cave of the passage comes
     // within the caves' water margin of water.
-    private bool WaterClear(Probe probe, int ax, int az, int ex, int ez)
+    private bool WaterClear(Probe probe, List<PathNode> nodes)
     {
-        var reach = _spec.WaterReach + _spec.Width;
-        var (minX, maxX) = (Math.Min(ax, ex) - reach, Math.Max(ax, ex) + reach);
-        var (minZ, maxZ) = (Math.Min(az, ez) - reach, Math.Max(az, ez) + reach);
-        for (var z = minZ; z <= maxZ; z += 2)
+        var reach = _spec.WaterReach + 4;
+        int minX = int.MaxValue, minZ = int.MaxValue, maxX = int.MinValue, maxZ = int.MinValue;
+        foreach (var node in nodes)
         {
-            for (var x = minX; x <= maxX; x += 2)
+            minX = Math.Min(minX, node.X);
+            minZ = Math.Min(minZ, node.Z);
+            maxX = Math.Max(maxX, node.X);
+            maxZ = Math.Max(maxZ, node.Z);
+        }
+
+        for (var z = minZ - reach; z <= maxZ + reach; z += 2)
+        {
+            for (var x = minX - reach; x <= maxX + reach; x += 2)
             {
                 if (probe.At(x, z).Wet)
                 {

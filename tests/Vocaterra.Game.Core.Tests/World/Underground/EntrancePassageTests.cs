@@ -7,8 +7,8 @@ using Vocaterra.Game.Core.World.Underground;
 namespace Vocaterra.Game.Core.Tests.World.Underground;
 
 /// <summary>
-/// The cave entrances (B11b): each is a passage a body walks down from the surface into a cave on steps of one block, wide enough to walk, never in or near water, with a rim of rock round its mouth and
-/// no tree or plant on it, and each is the same whichever chunk or thread makes it. The sample is the entrances of the sites nearest the origin of three seeds, read from the generated blocks.
+/// The cave entrances (B11b): each is a winding natural passage a body walks down from the surface into a cave on steps of one block, 2 blocks across at the narrowest and 3 high, its width, height and slope
+/// changing along it, never in or near water, with no tree or plant at its mouth, and each is the same whichever chunk or thread makes it. The sample is the entrances of the sites nearest the origin of three seeds, read from the generated blocks.
 /// </summary>
 public sealed class EntrancePassageTests
 {
@@ -38,20 +38,57 @@ public sealed class EntrancePassageTests
     }
 
     [Fact]
-    public void Given_ThreeSeeds_When_TheSitesRoundTheOriginAreRead_Then_EachSeedHasPassagesAndTheyAreNotAllInOneDirection()
+    public void Given_ThreeSeeds_When_TheSitesRoundTheOriginAreRead_Then_EachSeedHasPassagesThatWindAndChangeSlope()
     {
         var all = ProceduralTestWorld.Seeds.SelectMany(Sample).ToList();
 
         Assert.All(ProceduralTestWorld.Seeds, seed => Assert.NotEmpty(Sample(seed)));
         Assert.True(all.Count >= 6, $"{all.Count} passages");
-        Assert.True(all.Select(static r => (r.DirX, r.DirZ)).Distinct().Count() >= 2);
         Assert.All(all, r =>
         {
-            Assert.Equal(Data.Entrances.Width, r.Width);
-            Assert.True(r.Length - 0 >= Data.Entrances.MinDrop * Data.Entrances.Run, $"a passage of {r.Length} blocks drops {r.Length / r.Run}");
-            Assert.True(r.MouthY - r.LowestFloor >= Data.Entrances.MinDrop);
-            Assert.True(r.Length <= Data.Entrances.MaxLength);
+            Assert.True(r.MouthY - r.FloorAt(r.Length) >= Data.Entrances.MinDrop, $"a passage that drops {r.MouthY - r.FloorAt(r.Length)}");
+            Assert.True(r.Length < Data.Entrances.MaxLength);
+            for (var i = 1; i <= r.Last; i++)
+            {
+                var (a, b) = (r.Nodes[i - 1], r.Nodes[i]);
+                Assert.Equal(1, Math.Abs(a.X - b.X) + Math.Abs(a.Z - b.Z)); // 4-connected
+                Assert.InRange(a.Floor - b.Floor, 0, 1); // never a step of more than a block, never up
+            }
         });
+
+        // It winds: most paths leave the straight line from the mouth to their end by two blocks or more.
+        var winding = all.Count(r =>
+        {
+            var (ex, ez) = r.CentreAt(r.Length);
+            var (dx, dz) = (ex - r.AnchorX, ez - r.AnchorZ);
+            var norm = Math.Max(1.0, Math.Sqrt((dx * dx) + (dz * dz)));
+            return r.Nodes.Max(n => Math.Abs(((n.X - r.AnchorX) * dz) - ((n.Z - r.AnchorZ) * dx)) / norm) >= 2.0;
+        });
+        Assert.True(winding * 100 >= all.Count * 70, $"{winding} of {all.Count} passages bend");
+
+        // The slope varies: stretches of 1, 2, 3 or more cells to a block of drop, and level bits, across the sample.
+        var runs = new HashSet<int>();
+        var levels = 0;
+        foreach (var r in all)
+        {
+            var run = 1;
+            for (var i = 1; i <= r.Length; i++)
+            {
+                if (r.Nodes[i].Floor == r.Nodes[i - 1].Floor)
+                {
+                    run++;
+                }
+                else
+                {
+                    runs.Add(Math.Min(run, 6));
+                    levels += run >= 4 ? 1 : 0;
+                    run = 1;
+                }
+            }
+        }
+
+        Assert.True(runs.Count >= 3, $"{runs.Count} different runs between steps");
+        Assert.True(levels >= 3, $"{levels} level stretches");
     }
 
     [Theory]
@@ -60,51 +97,76 @@ public sealed class EntrancePassageTests
     {
         var source = ProceduralTestWorld.Source(seed);
         var caves = source.World.Underground!.Caves;
-        var checkedOne = 0;
         foreach (var ramp in Sample(seed).Take(4))
         {
             var blocks = new PassageBlocks(source, ramp);
+
             // The walk starts on the ground just outside the mouth, where a body comes from, and must pass the mouth.
-            var (bx, bz) = Cell(ramp, -1, 0);
-            var start = (X: bx, Y: blocks.Top(bx, bz) + 1, Z: bz);
+            var start = (X: ramp.ApproachX, Y: blocks.Top(ramp.ApproachX, ramp.ApproachZ) + 1, Z: ramp.ApproachZ);
             Assert.True(blocks.Standable(start.X, start.Y, start.Z), $"the ground before the mouth at {start} is not a place to stand");
             Assert.True(Math.Abs(start.Y - (ramp.MouthY + 1)) <= 1, $"the ground before the mouth is {start.Y - ramp.MouthY - 1} blocks off the mouth's floor");
 
-            var found = blocks.Walk(start, cell => ramp.MouthY + 1 - cell.Y >= 20 && caves.KindAt(cell.X, cell.Y, cell.Z) != CaveKind.None && blocks.Block(cell.X, cell.Y, cell.Z) == BlockId.Air, out var reached, out var longestStep);
+            var found = blocks.Walk(start, cell => ramp.MouthY + 1 - cell.Y >= 20 && caves.KindAt(cell.X, cell.Y, cell.Z) != CaveKind.None && blocks.Block(cell.X, cell.Y, cell.Z) == BlockId.Air, out var reached, out var longestStep, out var visited);
 
-            Assert.True(found, $"seed {seed}: no walk from the mouth {start} reaches a cave 20 blocks down");
+            Assert.True(found, $"seed {seed}: no walk from the mouth {start} reaches a cave 20 blocks down; {Stuck(ramp, blocks, visited)}");
             Assert.True(ramp.MouthY + 1 - reached.Y >= 20);
             Assert.True(longestStep <= 1, $"a step of {longestStep} blocks");
-            checkedOne++;
         }
-
-        Assert.True(checkedOne >= 1);
     }
 
-    [Theory]
-    [MemberData(nameof(Seeds))]
-    public void Given_EachPassage_When_ItsCrossSectionsAreRead_Then_EveryOneIsAsWideAsTheDataAndHasAFloorAndHeadroom(ulong seed)
+    [Fact]
+    public void Given_ThePassagesOfThreeSeeds_When_TheirCrossSectionsAreRead_Then_EveryOneIsWalkableAndTheWidthAndHeightKeepChanging()
     {
-        var source = ProceduralTestWorld.Source(seed);
-        foreach (var ramp in Sample(seed).Take(4))
+        var widths = new HashSet<int>();
+        var heights = new HashSet<int>();
+        foreach (var seed in ProceduralTestWorld.Seeds)
         {
-            var blocks = new PassageBlocks(source, ramp);
-            for (var along = 0; along <= ramp.Last; along++)
+            var source = ProceduralTestWorld.Source(seed);
+            foreach (var ramp in Sample(seed).Take(3))
             {
-                var standable = 0;
-                for (var lateral = ramp.LateralMin; lateral <= ramp.LateralMax; lateral++)
+                var blocks = new PassageBlocks(source, ramp);
+                for (var i = 0; i <= ramp.Last; i++)
                 {
-                    var (x, z) = Cell(ramp, along, lateral);
-                    standable += blocks.Standable(x, ramp.FloorAt(along) + 1, z) ? 1 : 0;
-                    for (var h = 1; h <= ramp.Headroom; h++)
-                    {
-                        Assert.False(BlockDefinition.IsSolid(blocks.Block(x, ramp.FloorAt(along) + h, z)), $"a solid block {h} over the floor at {x},{z}");
-                    }
-                }
+                    var node = ramp.Nodes[i];
+                    var (a, b) = (ramp.Nodes[Math.Max(0, i - 1)], ramp.Nodes[Math.Min(ramp.Last, i + 1)]);
+                    var alongX = Math.Abs(b.X - a.X) >= Math.Abs(b.Z - a.Z);
 
-                Assert.True(standable >= Math.Max(2, ramp.Width), $"seed {seed}: {standable} places to stand across the passage at {along} (anchor {ramp.AnchorX},{ramp.AnchorZ})");
+                    // The row of cells across the path at this cell: how many in a run from the centre have a place to stand on a floor within a block of the cell's.
+                    int Open(int dir)
+                    {
+                        var n = 0;
+                        for (var l = 1; l <= 8; l++)
+                        {
+                            var (x, z) = alongX ? (node.X, node.Z + (dir * l)) : (node.X + (dir * l), node.Z);
+                            if (!Enumerable.Range(node.Floor, 3).Any(floor => blocks.Standable(x, floor + 1, z)))
+                            {
+                                break;
+                            }
+
+                            n++;
+                        }
+
+                        return n;
+                    }
+
+                    var width = 1 + Open(1) + Open(-1);
+                    var height = 0;
+                    while (height < 14 && blocks.Passable(node.X, node.Floor + 1 + height, node.Z))
+                    {
+                        height++;
+                    }
+
+                    Assert.True(blocks.Standable(node.X, node.Floor + 1, node.Z), $"no place to stand at path cell {i} of the passage at {ramp.AnchorX},{ramp.AnchorZ}");
+                    Assert.True(width >= 2, $"seed {seed}: {width} blocks across at cell {i} of the passage at {ramp.AnchorX},{ramp.AnchorZ}");
+                    Assert.True(height >= 3, $"seed {seed}: {height} blocks of headroom at cell {i}");
+                    widths.Add(Math.Min(width, 7));
+                    heights.Add(Math.Min(height, 8));
+                }
             }
         }
+
+        Assert.True(widths.Count >= 3, $"widths {string.Join(",", widths.Order())}");
+        Assert.True(heights.Count >= 3, $"heights {string.Join(",", heights.Order())}");
     }
 
     [Theory]
@@ -116,30 +178,26 @@ public sealed class EntrancePassageTests
         foreach (var ramp in Sample(seed).Take(4))
         {
             var blocks = new PassageBlocks(source, ramp);
-            for (var along = 0; along <= ramp.Last; along += 2)
+            for (var i = 0; i <= ramp.Last; i += 2)
             {
-                for (var lateral = ramp.LateralMin; lateral <= ramp.LateralMax; lateral++)
+                var node = ramp.Nodes[i];
+                for (var y = node.Floor + 1; y <= node.Floor + node.Headroom; y += 2)
                 {
-                    var (x, z) = Cell(ramp, along, lateral);
-                    var floor = ramp.FloorAt(along);
-                    for (var y = floor + 1; y <= floor + ramp.Headroom; y += 2)
+                    for (var dz = -margin; dz <= margin; dz++)
                     {
-                        for (var dz = -margin; dz <= margin; dz++)
+                        for (var dx = -margin; dx <= margin; dx++)
                         {
-                            for (var dx = -margin; dx <= margin; dx++)
+                            for (var dy = -margin; dy <= margin; dy++)
                             {
-                                for (var dy = -margin; dy <= margin; dy++)
-                                {
-                                    Assert.NotEqual(BlockId.Water, blocks.Block(x + dx, y + dy, z + dz));
-                                }
+                                Assert.NotEqual(BlockId.Water, blocks.Block(node.X + dx, y + dy, node.Z + dz));
                             }
                         }
                     }
+                }
 
-                    for (var y = floor + 1; y <= floor + Data.Caves.BedClearance; y++)
-                    {
-                        Assert.NotEqual(BlockId.Water, blocks.Block(x, y, z));
-                    }
+                for (var y = node.Floor + 1; y <= node.Floor + Data.Caves.BedClearance; y++)
+                {
+                    Assert.NotEqual(BlockId.Water, blocks.Block(node.X, y, node.Z));
                 }
             }
         }
@@ -147,33 +205,26 @@ public sealed class EntrancePassageTests
 
     [Theory]
     [MemberData(nameof(Seeds))]
-    public void Given_EachMouth_When_TheRimIsRead_Then_ItsGroundIsRockAndNoTreeOrPlantStandsOnIt(ulong seed)
+    public void Given_EachMouth_When_ItsSurroundingsAreRead_Then_NoTreeOrPlantStandsOnIt(ulong seed)
     {
         var source = ProceduralTestWorld.Source(seed);
-        var rim = new HashSet<BlockId>(Data.Entrances.RimBlocks.Select(static b => BlockDefinition.FromName(b.Block)!.Id));
         foreach (var ramp in Sample(seed).Take(4))
         {
             var blocks = new PassageBlocks(source, ramp);
-            var rock = 0;
-            var total = 0;
-            for (var along = -ramp.RimWidth; along <= ramp.RimLength + ramp.RimWidth; along++)
+            var (mx, mz) = (ramp.AnchorX, ramp.AnchorZ);
+            for (var z = mz - 8; z <= mz + 8; z++)
             {
-                for (var lateral = ramp.LateralMin - ramp.RimWidth; lateral <= ramp.LateralMax + ramp.RimWidth; lateral++)
+                for (var x = mx - 8; x <= mx + 8; x++)
                 {
-                    var (x, z) = Cell(ramp, along, lateral);
-                    if (ramp.InPassage(along, lateral) && ramp.FloorAt(along) < ramp.MouthY)
+                    if (!ramp.Clears(x, z))
                     {
-                        continue; // the passage's own cells hold its air
+                        continue;
                     }
 
                     var top = blocks.Top(x, z);
-                    total++;
-                    rock += rim.Contains(blocks.Block(x, top, z)) ? 1 : 0;
-                    Assert.False(blocks.Block(x, top + 1, z) is BlockId.Trunk or BlockId.Leaves or BlockId.SpruceTrunk or BlockId.BirchTrunk or BlockId.SpruceLeaves or BlockId.BirchLeaves or BlockId.TallGrass or BlockId.Fern or BlockId.YellowFlower or BlockId.WhiteFlower, $"a plant over the rim at {x},{z}");
+                    Assert.False(blocks.Block(x, top + 1, z) is BlockId.Trunk or BlockId.SpruceTrunk or BlockId.BirchTrunk or BlockId.TallGrass or BlockId.Fern or BlockId.YellowFlower or BlockId.WhiteFlower, $"a trunk or plant at the mouth at {x},{z}");
                 }
             }
-
-            Assert.True(rock * 100 >= total * 90, $"seed {seed}: {rock} of {total} rim columns have a rock top");
         }
     }
 
@@ -184,16 +235,18 @@ public sealed class EntrancePassageTests
         var first = Sample(seed).Take(3).ToList();
         var fresh = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data).World.Entrances!;
 
+        static (int, int) SiteOf(EntranceRamp r) => (Vocaterra.Game.Core.Mathematics.IntMath.DivDown(r.AnchorX, Data.Entrances.Cell), Vocaterra.Game.Core.Mathematics.IntMath.DivDown(r.AnchorZ, Data.Entrances.Cell));
         foreach (var ramp in first)
         {
-            var (sx, sz) = (Vocaterra.Game.Core.Mathematics.IntMath.DivDown(ramp.AnchorX, Data.Entrances.Cell), Vocaterra.Game.Core.Mathematics.IntMath.DivDown(ramp.AnchorZ, Data.Entrances.Cell));
+            var (sx, sz) = SiteOf(ramp);
             var again = fresh.Site(sx, sz)!;
-            Assert.Equal((ramp.AnchorX, ramp.AnchorZ, ramp.DirX, ramp.DirZ, ramp.MouthY, ramp.Length), (again.AnchorX, again.AnchorZ, again.DirX, again.DirZ, again.MouthY, again.Length));
+            Assert.Equal(ramp.Nodes, again.Nodes);
+            Assert.Equal(ramp.Length, again.Length);
         }
 
         var threaded = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data).World.Entrances!;
-        var results = first.AsParallel().WithDegreeOfParallelism(8).Select(r => threaded.Site(Vocaterra.Game.Core.Mathematics.IntMath.DivDown(r.AnchorX, Data.Entrances.Cell), Vocaterra.Game.Core.Mathematics.IntMath.DivDown(r.AnchorZ, Data.Entrances.Cell))!.Length).ToList();
-        Assert.Equal(first.Select(static r => r.Length), results);
+        var results = first.AsParallel().WithDegreeOfParallelism(8).Select(r => { var (sx, sz) = SiteOf(r); return threaded.Site(sx, sz)!.Nodes.Length; }).ToList();
+        Assert.Equal(first.Select(static r => r.Nodes.Length), results);
     }
 
     [Theory]
@@ -209,8 +262,27 @@ public sealed class EntrancePassageTests
         Assert.All(listed, c => Assert.Equal((ramp.AnchorX >> 4, ramp.AnchorZ >> 4), (c.X >> 4, c.Z >> 4)));
     }
 
-    private static (int X, int Z) Cell(EntranceRamp ramp, int along, int lateral) =>
-        (ramp.AnchorX + (ramp.DirX * along) - (ramp.DirZ * lateral), ramp.AnchorZ + (ramp.DirZ * along) + (ramp.DirX * lateral));
+    // Where a walk that did not arrive stopped: the last path cell it stood on and what the next one holds.
+    private static string Stuck(EntranceRamp ramp, PassageBlocks blocks, HashSet<(int, int, int)> visited)
+    {
+        var deepest = -1;
+        for (var i = 0; i <= ramp.Last; i++)
+        {
+            if (visited.Contains((ramp.Nodes[i].X, ramp.Nodes[i].Floor + 1, ramp.Nodes[i].Z)))
+            {
+                deepest = i;
+            }
+        }
+
+        if (deepest < 0 || deepest >= ramp.Last)
+        {
+            return $"the walk reached path cell {deepest} of {ramp.Last} (length {ramp.Length})";
+        }
+
+        var (a, b) = (ramp.Nodes[deepest], ramp.Nodes[deepest + 1]);
+        string Column(PathNode n) => string.Join(" ", Enumerable.Range(n.Floor - 1, 6).Select(y => $"{y}:{blocks.Block(n.X, y, n.Z)}"));
+        return $"reached path cell {deepest} of {ramp.Last} (length {ramp.Length}) at {a.X},{a.Floor},{a.Z} [{Column(a)}]; the next {b.X},{b.Floor},{b.Z} [{Column(b)}]";
+    }
 
     /// <summary>The generated blocks round a passage, read from the chunk columns it crosses (every layer that holds it), so the checks see the world as a player would.</summary>
     internal sealed class PassageBlocks
@@ -223,8 +295,8 @@ public sealed class EntrancePassageTests
         public PassageBlocks(ProceduralChunkSource source, EntranceRamp ramp)
         {
             _source = source;
-            _minLayer = (ramp.LowestFloor - 24) >> 4;
-            _maxLayer = (ramp.MouthY + 40) >> 4;
+            _minLayer = Math.Max((ramp.LowestFloor - 24) >> 4, source.MinChunkY);
+            _maxLayer = Math.Min((ramp.MouthY + 40) >> 4, source.MaxChunkY - 1);
             var b = ramp.Bounds(8);
             for (var cz = b.MinZ >> 4; cz <= b.MaxZ >> 4; cz++)
             {
@@ -273,9 +345,10 @@ public sealed class EntrancePassageTests
         /// <summary>
         /// A flood of standable places from <paramref name="start"/> by steps to a side of at most one block up or down (the cells beside and above the step open), until one passes <paramref name="goal"/>.
         /// </summary>
-        public bool Walk((int X, int Y, int Z) start, Func<(int X, int Y, int Z), bool> goal, out (int X, int Y, int Z) reached, out int longestStep)
+        public bool Walk((int X, int Y, int Z) start, Func<(int X, int Y, int Z), bool> goal, out (int X, int Y, int Z) reached, out int longestStep, out HashSet<(int, int, int)> visited)
         {
             var seen = new HashSet<(int, int, int)> { start };
+            visited = seen;
             var queue = new Queue<(int X, int Y, int Z)>();
             queue.Enqueue(start);
             reached = start;
