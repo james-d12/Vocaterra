@@ -147,6 +147,21 @@ public sealed class Equipment
         return EquipRules.Judge(_rules, new EquipChange(slot, item, worn.IsEmpty ? null : Items.Get(worn.Item)), this, bag);
     }
 
+    /// <summary>Whether what is worn in <paramref name="slot"/> could be taken out now (a bag with items in the slots it would drop cannot): <see cref="EquipResult.Done"/> (also for an empty slot), or the first rule's reason. Nothing changes.</summary>
+    /// <param name="bag">The bag the rules read.</param>
+    /// <param name="slot">A slot of the data.</param>
+    public EquipResult CanTakeOff(Inventory bag, EquipSlot slot)
+    {
+        ArgumentNullException.ThrowIfNull(bag);
+        if (!Data.Contains(slot))
+        {
+            return EquipResult.NoSuchSlot;
+        }
+
+        var worn = Get(slot);
+        return worn.IsEmpty ? EquipResult.Done : EquipRules.Judge(_rules, new EquipChange(slot, null, Items.Get(worn.Item)), this, bag);
+    }
+
     /// <summary>
     /// Moves the item in a bag slot to <paramref name="slot"/>, the item worn there (if any) going to the bag slot it came from. Nothing changes unless the result is <see cref="EquipResult.Done"/>.
     /// </summary>
