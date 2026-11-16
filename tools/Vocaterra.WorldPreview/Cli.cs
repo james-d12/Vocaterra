@@ -18,6 +18,7 @@ internal static class Cli
           river     a river of the drainage network followed from a point on it (--x --z --length --step, --direction down, up or both): the ground, the natural ground and the water along it as one section, with a text summary of its steps and rises (there must be none)
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level; with --mode blocks, the real blocks (B11: the strata, ores, caves, lava, bedrock) each in its own colour
           drainage  the heights with the drainage network drawn over them (B02c): every reach of river as a line, thicker the more ground drains into it; with --basin-x --basin-z (a point on a river) that river's whole basin in orange
+          sites     where the drainage network has something worth a picture in the area (B02c): confluences of large rivers, the steepest stretches of river, lakes with the river that leaves them; text only
           entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
         options:
@@ -50,7 +51,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage" or "sites"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -166,6 +167,12 @@ internal static class Cli
                     File.WriteAllText(Target(outPath, "stats-" + stem, false).Replace(".png", ".txt"), report);
                 }
 
+                return 0;
+            }
+
+            if (command == "sites")
+            {
+                output.Write(Sites.Describe(sampler, map));
                 return 0;
             }
 

@@ -26,7 +26,7 @@
     "terraces": { "step": 4, "fromHeight": 100, "toHeight": 150, "ridgesFrom": 820, "ridgesTo": 950 },
     "crags": { "amplitude": 20, "cell": 100, "ridgesFrom": 700, "ridgesTo": 880, "heightFrom": 150, "heightTo": 210 },
     "rivers": { "width": 14, "depth": 3, "fadeFromHeight": 190, "fadeToHeight": 250, "seaFadeFrom": -60, "seaFadeTo": -10, "peakFadeFrom": 100, "peakFadeTo": 200, "valley": { "from": 50, "widthPer100Blocks": 25, "depthGrowth": 150 } },
-    "drainage": { "spacing": 32, "maxNodes": 1500000, "sourceArea": 400, "fullArea": 7000, "widthMax": 44, "depthMax": 5, "jitter": 8, "bow": 150, "lakeBasin": 14, "relief": 3, "reliefCell": 400, "regionClearance": 96 },
+    "drainage": { "spacing": 32, "maxNodes": 1500000, "sourceArea": 400, "fullArea": 7000, "widthMax": 44, "depthMax": 5, "jitter": 8, "bow": 150, "lakeBasin": 12, "relief": 3, "reliefCell": 400, "regionClearance": 96 },
     "water": { "step": 3, "clearance": 2 },
     "lakes": { "cell": 1400, "octaves": 1, "threshold": 190, "softness": 100, "depth": 4, "calmFrom": -300, "calmTo": 100, "heightFrom": 50, "heightTo": 68, "inlandFrom": 40, "inlandTo": 100 },
     "coast": { "peaksFrom": 40, "peaksTo": 160, "hillsFrom": 10, "hillsTo": 120, "hillsFloor": 0, "flatFrom": 46, "flatTo": 62 }

@@ -164,16 +164,18 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel, IDrainage
     {
         var c = _climate.AtLatticePoint(x, z);
         var g = SmoothGround(x, z, c);
-        var level = LevelOf(g.Smooth16, g.Amplitude);
-        if (level <= _seaLevel * 16)
+        var sea16 = _seaLevel * 16;
+        if (g.Smooth16 < sea16)
         {
-            return new DrainageNode(_seaLevel * 16, 0, true, false);
+            return new DrainageNode(sea16, sea16, true, false); // the ground is under the sea: where every river ends
         }
 
+        // A beach whose water level would be under the sea's (the ground less the hills, the clearance and the valley's depth) is level with the sea: a river crosses it at the sea level to the water.
+        var level = Math.Max(LevelOf(g.Smooth16, g.Amplitude), sea16);
         var drainage = _data.DrainageData!;
         var dent = drainage.LakeBasin > 0 ? (int)((long)LakeWeight(x, z, c, g.Smooth16, One) * drainage.LakeBasin * 16 / One) : 0;
         var relief = drainage.Relief > 0 ? (int)((long)_relief.Fbm(x, z, drainage.ReliefCell, 2) * drainage.Relief * 16 / One) : 0;
-        return new DrainageNode(level, level + relief - dent, false, _excluded?.Invoke(x, z) ?? false);
+        return new DrainageNode(level, Math.Max(level + relief - dent, sea16), false, _excluded?.Invoke(x, z) ?? false);
     }
 
     // The surface of the water a river or lake would have, in sixteenths of a block: the smooth ground less what the hills, the clearance and the valley take.
