@@ -77,7 +77,7 @@ internal sealed class EntrancePass : IChunkDecorator
                 if (floor >= chunk.MinY && floor <= chunk.MaxY)
                 {
                     var column = ctx.SurfaceAt(x, z);
-                    var layers = !column.Water && floor >= column.Height - column.FillerDepth && floor <= column.Height;
+                    var layers = !column.Water && floor >= column.Height - column.FillerDepth && floor < column.Height; // under the surface: the surface itself stays the meadow's
                     if (layers || !BlockDefinition.IsSolid(chunk.Get(x, floor, z)))
                     {
                         chunk.Set(x, floor, z, FloorBlock(x, floor, z));
