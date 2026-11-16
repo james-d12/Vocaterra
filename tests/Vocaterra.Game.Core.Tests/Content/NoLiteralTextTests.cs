@@ -20,6 +20,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game/UI/Hud/VoxelDebugText.cs"] = "the debug overlay (F3)",
         ["src/Vocaterra.Game/UI/Report/ReportScreen.cs"] = "the report file's date format",
         ["src/Vocaterra.Game/Diagnostics/CrashHandler.cs"] = "the crash file and the console",
+        ["src/Vocaterra.Game/Diagnostics/MoveProbe.cs"] = "the --stream-stats line on the console (B07b)",
         ["src/Vocaterra.Game/Graphics/World/VoxelRenderer.cs"] = "the renderer's stats on the console",
         ["src/Vocaterra.Game/Startup/SoundBootstrap.cs"] = "the sound's console lines",
         ["src/Vocaterra.Game/Sound/SoundEffectOutput.cs"] = "the sound's console lines",

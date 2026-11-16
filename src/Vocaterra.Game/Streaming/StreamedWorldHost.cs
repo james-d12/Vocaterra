@@ -29,6 +29,7 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly JobPool _pool;
     private ChunkResidency _residency;
     private double _heldSince = double.NaN;
+    private double _catchUpUntil = double.NegativeInfinity;
     private int _viewDistance;
 
     private StreamedWorldHost(Scene scene, QualityPreset preset, int workers)
@@ -87,6 +88,44 @@ public sealed class StreamedWorldHost : IDisposable
         return now - _heldSince > HoldLimitMilliseconds;
     }
 
+    /// <summary>The longest a frame waits to make the near zone of a place the body moved to (a start, a jump, a respawn, a load), in milliseconds.</summary>
+    public const double NearZoneLimitMilliseconds = 1_500;
+
+    /// <summary>How long after a move to a far place the frames spend a larger budget installing and meshing, so the view round the body fills in within a second or two and not over ten (B07b), in milliseconds.</summary>
+    public const double CatchUpMilliseconds = 2_000;
+
+    /// <summary>The install budget of a frame while catching up.</summary>
+    public const double CatchUpInstallBudgetMilliseconds = 6;
+
+    /// <summary>The mesh budget of a frame while catching up.</summary>
+    public const double CatchUpMeshBudgetMilliseconds = 10;
+
+    /// <summary>Whether the frames are still catching up after a move to a far place (<see cref="CatchUpMilliseconds"/>).</summary>
+    public bool IsCatchingUp => MonotonicClock.Milliseconds() < _catchUpUntil;
+
+    /// <summary>Whether the near zone of a place is made (<see cref="ChunkResidency.IsNearReady"/>), without the hold's clock.</summary>
+    /// <param name="x">The place's x.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    public bool IsNearReady(float x, float y, float z) => _residency.IsNearReady(x, y, z);
+
+    /// <summary>Makes the near zone of a place before the frame goes on, within <see cref="NearZoneLimitMilliseconds"/> (B07b); nothing to do when it is made.</summary>
+    /// <param name="x">The place's x.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    /// <returns>Whether the near zone was not ready and the call had to make it.</returns>
+    public bool MakeNearZone(float x, float y, float z)
+    {
+        if (_residency.IsNearReady(x, y, z))
+        {
+            return false;
+        }
+
+        _ = _residency.SettleNear(x, y, z, NearZoneLimitMilliseconds);
+        _catchUpUntil = MonotonicClock.Milliseconds() + CatchUpMilliseconds;
+        return true;
+    }
+
     /// <summary>Takes another quality: the residency's radii and the far range follow.</summary>
     /// <param name="preset">The preset.</param>
     /// <param name="dispose">Frees a far tile's buffer.</param>
@@ -108,7 +147,7 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="dispose">Frees a far tile's buffer.</param>
     public void Update(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose)
     {
-        _residency.Update(eyeX, eyeY, eyeZ, _pool.Workers == 0 ? InlineBudgetMilliseconds : InstallBudgetMilliseconds);
+        _residency.Update(eyeX, eyeY, eyeZ, _pool.Workers == 0 ? InlineBudgetMilliseconds : IsCatchingUp ? CatchUpInstallBudgetMilliseconds : InstallBudgetMilliseconds);
         Far.Update(eyeX, eyeZ, _viewDistance, dispose, InlineBudgetMilliseconds);
     }
 
