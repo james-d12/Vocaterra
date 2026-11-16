@@ -64,7 +64,7 @@
       { "block": "stone", "weight": 2 },
       { "block": "dirt", "weight": 1 }
     ],
-    "bowlDepth": 3,
+    "bowlDepth": 0,
     "bowlSlope": 1000,
     "plunge": 6
   },
