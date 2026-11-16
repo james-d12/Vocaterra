@@ -2683,3 +2683,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   peaks are byte-identical before and after. Findings: the valley's build costs 76 ms more in Release (151 to 227 ms) and buried caves
   add mesh faces (about 400 more buried chunks are meshed), for B07's measurements; `ChunkMesherTests`' skippable-chunk floor went from
   2,000 to 1,500 for that reason. `SceneTests.GoldenDigest` moved once, to 83af36d3. Gated: 12,100 passed, 3 skipped.
+- **The night's in-game verification (2026-11-16, `bb145f22` against `4fc0a00f`; no repository changes).** Report
+  `.claude/briefs/v-night-verification-report.md`, pictures in `artifacts/b-series/verify/`. All 32 scripted runs pass on both builds;
+  every difference has its milestone (B08a's notch and trees, the digest lines of B05, B06 and B11, the bundle hash); nothing from B04b,
+  B09, B10, B10b, M96 or B15 shows in the valley's pictures; the pass opens, saves and reloads as B08b designed. Findings: the road from
+  the village meets a 2 to 3 block dirt riser at (318, 217) and a walk to the gate takes a 41-turn detour, and the cutting reads as a dirt
+  staircase (B08c fixes it); `scripts/compare-runs.py` hangs on long single-line saves (a quadratic mask; B08c bounds it); the tree count
+  is 1,848 after B08a (its report said 1,851; the valley's digest did not move after B08a's gate).
