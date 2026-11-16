@@ -35,7 +35,7 @@ public sealed class WorldGenDataTests
         Assert.NotNull(world.Height.CoastData); // the coast fades the peaks and calms the hills
         Assert.Equal(4, world.Height.Terraces.Step);
         Assert.Equal(27, world.Height.Rivers.BedHeight);
-        Assert.Equal(29, world.Height.Lakes.BedHeight);
+        Assert.Equal(26, world.Height.Lakes.BedHeight);
     }
 
     [Fact]

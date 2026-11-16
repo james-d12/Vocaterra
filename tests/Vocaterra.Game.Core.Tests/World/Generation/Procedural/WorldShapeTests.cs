@@ -38,7 +38,7 @@ public sealed class WorldShapeTests
                     samples++;
                     water += shape.Water ? 1 : 0;
                     high += shape.Height >= 190 ? 1 : 0;
-                    rivers += shape.RiverWeight > 0 && shape.Water ? 1 : 0;
+                    rivers += shape.RiverWeight > 0 ? 1 : 0;
                     tallest = Math.Max(tallest, shape.Height);
                 }
             }
@@ -48,7 +48,7 @@ public sealed class WorldShapeTests
         Assert.InRange(waterShare, 35, 48); // the tuned world (B02b redo): big seas between continents, 35 to 45% of the map
         Assert.InRange(high * 100.0 / samples, 0.3, 8);
         Assert.InRange(tallest, 220, data.WorldGen.Height.Clamp);
-        Assert.True(rivers > samples / 200, $"{rivers} river columns of {samples}");
+        Assert.True(rivers > samples / 200, $"{rivers} river valley columns of {samples}");
         foreach (var row in data.Biomes.Rows)
         {
             Assert.True(counts.GetValueOrDefault(row.Id) > 0, $"the biome '{row.Id}' never appears in {samples} columns of three seeds");

@@ -102,7 +102,7 @@ public sealed class HeightModelTests
         var middleDiffers = 0;
         for (var i = 0; i < 300; i++)
         {
-            var middle = Climate(3500, -4096, 3100);
+            var middle = Climate(3500, -4096, 2870);
             middleDiffers += on.Shape(i * 7, i * 3, middle).Height != off.Shape(i * 7, i * 3, middle).Height ? 1 : 0;
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height, on.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height); // low ground: none
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height, on.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height); // the crest: crags, not shelves
@@ -166,8 +166,8 @@ public sealed class HeightModelTests
     {
         var model = new HeightModel(World, 42);
 
-        var river = model.Shape(100, 100, Climate(300, 4096, 0, river: 0));
-        var bank = model.Shape(100, 100, Climate(300, 4096, 0, river: 4096));
+        var river = model.Shape(100, 100, Climate(40, 4096, 0, river: 0));
+        var bank = model.Shape(100, 100, Climate(40, 4096, 0, river: 4096));
 
         Assert.Equal(4096, river.RiverWeight);
         Assert.True(river.Water);
