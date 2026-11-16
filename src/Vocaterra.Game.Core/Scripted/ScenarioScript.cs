@@ -445,6 +445,18 @@ public sealed class ScenarioScript
 
                 _index++;
                 break;
+            case ScriptStepKind.Equip:
+                if (_resolveItem(step.Value) is { } worn)
+                {
+                    _hooks.Equip?.Invoke(worn);
+                }
+                else
+                {
+                    _log($"equip {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
             case ScriptStepKind.Drink:
                 _hooks.Drink?.Invoke();
                 _index++;

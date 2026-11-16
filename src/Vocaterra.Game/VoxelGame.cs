@@ -373,6 +373,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var result = session.UseCampKit(ground, facing);
                         var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
+                    },
+                    item =>
+                    {
+                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal gives nothing
+                        var equipment = session.Simulation.Equipment;
+                        var result = session.Simulation.WearFromStart(item, out var slot);
+                        var name = session.Data.Items.Get(item).Name;
+                        Console.WriteLine(result == Vocaterra.Game.Core.Items.Gear.EquipResult.Done && slot is { } worn
+                            ? $"equip: {name} worn in {equipment.Data.Groups[worn.Group].Id} {equipment.Data.Spec(worn).Name}"
+                            : $"equip: {name} refused ({result})");
                     });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, session.Data.Items, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }

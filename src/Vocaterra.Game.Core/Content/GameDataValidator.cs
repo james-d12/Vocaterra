@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -90,6 +91,7 @@ public static class GameDataValidator
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
         problems.AddRange(TemperatureValidator.Validate(data.Temperature)); // I06: the terms' numbers, the bands in order, their walk factors
+        problems.AddRange(EquipmentValidator.Validate(data.Equipment, data.Items)); // I03a: the slot groups, and every worn item has a slot and a group that accepts it
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);

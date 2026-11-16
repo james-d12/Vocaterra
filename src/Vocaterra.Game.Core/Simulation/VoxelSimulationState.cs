@@ -20,6 +20,7 @@ namespace Vocaterra.Game.Core.Simulation;
 /// <param name="Air">The player's air in ticks (water-plan H03); optional, full when missing, so older saves load.</param>
 /// <param name="Flow">The cells waiting for a flow update, in queue order (water-plan H06); optional, none when missing, so older saves load.</param>
 /// <param name="Atmosphere">The day clock's offset and held hour (E01) and the weather's state (E04); <see langword="null"/> is a new game's, so older saves load.</param>
+/// <param name="Worn">The worn items, one stack per slot in the data's order (I03a); <see langword="null"/> when nothing is worn. The save does not write it until I03b gives the save its next version.</param>
 public sealed record VoxelSimulationState(
     long Tick,
     int SelectedSlot,
@@ -31,5 +32,6 @@ public sealed record VoxelSimulationState(
     IReadOnlyList<ItemStack> Slots,
     int Air = Water.Breath.MaxAir,
     IReadOnlyList<FlowEntry>? Flow = null,
-    AtmosphereState? Atmosphere = null);
+    AtmosphereState? Atmosphere = null,
+    IReadOnlyList<ItemStack>? Worn = null);
 

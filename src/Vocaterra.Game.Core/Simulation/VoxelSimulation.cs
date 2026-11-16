@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Physics;
@@ -39,10 +40,11 @@ public sealed partial class VoxelSimulation
     private IReadOnlyList<Recipe> _recipes = [];
     private BlockPos? _noBottleHint;
 
-    private VoxelSimulation(Scene scene, IItemCatalogue items)
+    private VoxelSimulation(Scene scene, IItemCatalogue items, EquipmentData equipment)
     {
         Scene = scene;
         Inventory = new Inventory(items);
+        StartEquipment(items, equipment);
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
@@ -123,11 +125,12 @@ public sealed partial class VoxelSimulation
     /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
     /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
     /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
-    public static VoxelSimulation Create(Scene scene, IItemCatalogue items, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
+    /// <param name="equipment">The bundle's slot groups (<c>game/equipment.json</c>, I03a), or <see langword="null"/> for none (a test's simulation built without game data: nothing can be worn).</param>
+    public static VoxelSimulation Create(Scene scene, IItemCatalogue items, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0, EquipmentData? equipment = null)
     {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(items);
-        var simulation = new VoxelSimulation(scene, items);
+        var simulation = new VoxelSimulation(scene, items, equipment ?? EquipmentData.Empty);
         simulation.StartAtmosphere(day, weather, worldSeed);
         return simulation;
     }
@@ -185,6 +188,12 @@ public sealed partial class VoxelSimulation
                 case VoxelCommandKind.Craft:
                     Craft(commands[i].A);
                     break;
+                case VoxelCommandKind.Equip:
+                    Equip(commands[i].A, new EquipSlot(commands[i].B, commands[i].C));
+                    break;
+                case VoxelCommandKind.Unequip:
+                    Unequip(new EquipSlot(commands[i].A, commands[i].B), commands[i].C);
+                    break;
                 default:
                     break;
             }
@@ -204,6 +213,7 @@ public sealed partial class VoxelSimulation
 
         StepWater();
         StepAtmosphere();
+        RefreshStats(); // the sheet of the end of this tick: the temperature and the walk read it on the next one
     }
 
     /// <summary>
@@ -322,7 +332,7 @@ public sealed partial class VoxelSimulation
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null, Equipment.IsEmpty ? null : Equipment.Capture());
     }
 
     /// <summary>
@@ -360,6 +370,8 @@ public sealed partial class VoxelSimulation
             Inventory.SetSlot(i, state.Slots[i]);
         }
 
+        Equipment.Restore(state.Worn);
+        RefreshStats();
         _events.Clear();
     }
 
@@ -408,6 +420,7 @@ public sealed partial class VoxelSimulation
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
         AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
+        AppendEquipmentDigest(hash); // nothing worn adds nothing
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }

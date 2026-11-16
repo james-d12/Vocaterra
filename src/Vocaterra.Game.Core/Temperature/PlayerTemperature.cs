@@ -33,7 +33,7 @@ public sealed class PlayerTemperature
     /// <summary>The place's temperature and its terms.</summary>
     public PlaceTemperature Place => _place;
 
-    /// <summary>The player's warmth: <see cref="NoWarmth"/> until the equipment gives one (I03a).</summary>
+    /// <summary>The player's warmth: the session sets the stat sheet's (<see cref="StatWarmth"/>, I03a); <see cref="NoWarmth"/> where there is no sheet (a test).</summary>
     public IWarmthSource Warmth { get; set; }
 
     /// <summary>The place's temperature held at this many tenths of a degree (<c>--temperature</c>), or <see langword="null"/> when it is worked out from the world. The warmth is still added.</summary>

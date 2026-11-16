@@ -89,6 +89,7 @@ public sealed record LaunchOptions
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
+        + "  --equip <item>          give the item and wear it in the first slot that takes it (repeatable; a test aid, I03a); an item that cannot be worn is reported and left in the bag\n"
         + "  --place-camp x,z,face   set up the camp with the camp kit in the bag (Y12; give one with --give equipo): the fire ring's middle goes on the ground column x,z and the camp faces\n"
         + "                          north, east, south or west as given; the kit's use on that ground: the console says the answer and a refusal's reason, nothing changes on a refusal\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
@@ -663,7 +664,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--equip" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
@@ -1325,6 +1326,15 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.PlaceCamp, Value: value.Trim()));
                     break;
+                case "--equip":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--equip needs an item, like camisa.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Equip, Value: value.Trim()));
+                    break;
                 case "--give":
                     if (value.Trim().Length == 0)
                     {
@@ -1379,7 +1389,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --equip, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
