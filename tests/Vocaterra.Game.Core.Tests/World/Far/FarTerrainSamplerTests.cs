@@ -114,15 +114,10 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
             if (sample.IsWater)
             {
                 sea++;
-                Assert.True(sample.Height < Sampler.SeaLevel);
-                Assert.Equal(Sampler.SeaLevel, sample.WaterLevel);
+                Assert.True(sample.Height < sample.WaterLevel, "the bed is under the water's top");
+                Assert.True(sample.WaterLevel >= Sampler.SeaLevel, "a river or a lake stands at its own level, never under the sea's");
                 Assert.Equal(0, sample.Forest);
             }
-            else
-            {
-                Assert.True(sample.Height >= Sampler.SeaLevel);
-            }
-
             if (sample.Snow)
             {
                 snow++;
@@ -137,6 +132,56 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
         output.WriteLine($"sea {sea}, snow {snow}, forest {forest}");
         Assert.True(sea > 0 || snow > 0 || forest > 0);
         Assert.True(forest > 0);
+    }
+
+    [Fact]
+    public void Given_RiverAndLakeColumnsAboveTheSea_When_TheyAreSampled_Then_TheWaterIsAtItsOwnLevelAsTheGeneratorLeavesIt()
+    {
+        var world = RegionTestWorld.Composition().World;
+        var found = new List<(int X, int Z, FarSample Sample)>();
+        for (var z = -3000; z <= 3000 && found.Count < 60; z += 29)
+        {
+            for (var x = -3000; x <= 3000 && found.Count < 60; x += 31)
+            {
+                if ((x is < -100 or > 480 || z is < -100 or > 480) && world.Far.At(x, z) is { IsWater: true } sample && sample.WaterLevel > world.Far.SeaLevel)
+                {
+                    found.Add((x, z, sample));
+                }
+            }
+        }
+
+        Assert.True(found.Count >= 20, $"{found.Count} columns of water above the sea were found: the world has rivers and lakes of their own level");
+        var same = 0;
+        var worst = 0;
+        foreach (var (x, z, sample) in found)
+        {
+            var top = GeneratedWaterTop(world, x, z);
+            var gap = Math.Abs(top - sample.WaterLevel);
+            worst = Math.Max(worst, gap);
+            same += gap == 0 ? 1 : 0;
+        }
+
+        output.WriteLine($"{found.Count} columns of river and lake water above the sea: the sampled level equals the generated water top in {same}, the widest gap is {worst} blocks");
+        Assert.True(same >= found.Count * 0.8, $"{same} of {found.Count}");
+        Assert.True(worst <= 6, $"the widest gap is {worst} blocks");
+    }
+
+    // The y of the top water block of a column in the generated chunks (-1 where there is none).
+    private static int GeneratedWaterTop(Vocaterra.Game.Core.World.Streaming.StreamedWorld world, int x, int z)
+    {
+        var column = world.Source.GenerateColumn(x >> 4, z >> 4);
+        for (var i = column.Count - 1; i >= 0; i--)
+        {
+            for (var ly = 15; ly >= 0; ly--)
+            {
+                if (!column[i].IsEmpty && column[i][x & 15, ly, z & 15] == BlockId.Water)
+                {
+                    return ((world.Source.MinChunkY + i) << 4) + ly;
+                }
+            }
+        }
+
+        return -1;
     }
 
     [Fact]
