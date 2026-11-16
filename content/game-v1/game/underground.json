@@ -59,9 +59,8 @@
     "funnel": 600,
     "funnelLength": 8,
     "floorBlocks": [
-      { "block": "gravel", "weight": 4 },
-      { "block": "cobble", "weight": 2 },
-      { "block": "stone", "weight": 2 },
+      { "block": "gravel", "weight": 5 },
+      { "block": "stone", "weight": 3 },
       { "block": "mossy-stone", "weight": 1 },
       { "block": "dirt", "weight": 1 }
     ],
