@@ -116,7 +116,7 @@ public sealed class VoxelScript
                 return; // a step that sent a command takes its tick
             }
 
-            if (step.Kind == VoxelStepKind.Teleport && _worldReady is not null && !_worldReady())
+            if (step.Kind is VoxelStepKind.Teleport or VoxelStepKind.TeleportTo && _worldReady is not null && !_worldReady())
             {
                 EndedForWorld = true; // B07b: the world round the new place is still being made: the next step waits for the tick the game holds until it is, so a shot is not taken of the old view
                 return;
@@ -170,6 +170,8 @@ public sealed class VoxelScript
                 return WalkTick(step, commands);
             case VoxelStepKind.Teleport:
                 return TeleportNow(step);
+            case VoxelStepKind.TeleportTo:
+                return TeleportToNow(step);
             case VoxelStepKind.Interact:
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
@@ -280,6 +282,27 @@ public sealed class VoxelScript
 
         _sim.TeleportTo(feet);
         _log($"teleport {step.X},{step.Z}: standing at {feet.X},{feet.Y},{feet.Z}");
+        return true;
+    }
+
+    // Puts the player on the highest ground at or below a height, which is how a script reaches a cave under the ground (B12): the first column read from that height down.
+    private bool TeleportToNow(VoxelStep step)
+    {
+        var label = $"teleport-to {step.X},{step.Y},{step.Z}";
+        if (!_sim.Grid.InBounds(step.X, _sim.Grid.Limits.MinY, step.Z))
+        {
+            _log($"{label}: outside the world");
+            return true;
+        }
+
+        if (GroundFinder.StandingAt(_sim.Grid, step.X, step.Z, step.Y) is not { } feet)
+        {
+            _log($"{label}: no ground to stand on there");
+            return true;
+        }
+
+        _sim.TeleportTo(feet);
+        _log($"{label}: standing at {feet.X},{feet.Y},{feet.Z}");
         return true;
     }
 

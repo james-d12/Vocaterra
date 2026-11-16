@@ -153,7 +153,8 @@ public sealed record LaunchOptions
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
         + "  --set-time <hour|run>   a step: hold the clock at an hour from 0 to 24 from this step on, or 'run' to let it run on (E03)\n"
         + "  --set-weather <id|run>  a step: hold a weather kind by its id (the ids of game/weather.json) from this step on, or 'run' to let it run on (E03)\n"
-        + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
+        + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots; a minus sign is allowed); a step\n"
+        + "  --teleport-to <x,y,z>   a step: put the player at this column on the highest ground at or below the height y (a debug step to reach a cave, B12)\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
@@ -690,7 +691,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -1162,13 +1163,24 @@ public sealed record LaunchOptions
                     result = result with { ViewDistance = viewDistance };
                     break;
                 case "--teleport":
-                    if (!VoxelStep.TryParseColumn(value, out var teleportX, out var teleportZ))
+                    if (!VoxelStep.TryParseSignedColumn(value, out var teleportX, out var teleportZ))
                     {
-                        error = $"--teleport needs a block column and row, like 230,222; got '{value}'.";
+                        error = $"--teleport needs a block column and row, like 230,222 (a minus sign is allowed); got '{value}'.";
                         return false;
                     }
 
                     steps.Add(VoxelStep.Teleport(teleportX, teleportZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
+                case "--teleport-to":
+                    if (!VoxelStep.TryParseSignedBlock(value, out var toX, out var toY, out var toZ))
+                    {
+                        error = $"--teleport-to needs a block like 230,-40,222 (x,y,z; a minus sign is allowed); got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(VoxelStep.TeleportTo(toX, toY, toZ));
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
@@ -1285,7 +1297,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--interact":
-                    if (!VoxelStep.TryParseBlock(value, out var interactX, out var interactY, out var interactZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var interactX, out var interactY, out var interactZ))
                     {
                         error = $"--interact needs a block, like 9,11,17; got '{value}'.";
                         return false;
@@ -1297,7 +1309,7 @@ public sealed record LaunchOptions
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);
-                    if (at <= 0 || !VoxelStep.TryParseBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
+                    if (at <= 0 || !VoxelStep.TryParseSignedBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
                     {
                         error = $"--place needs an item and a block, like antorcha@22,12,21; got '{value}'.";
                         return false;
@@ -1308,7 +1320,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--pour":
-                    if (!VoxelStep.TryParseBlock(value, out var pourX, out var pourY, out var pourZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var pourX, out var pourY, out var pourZ))
                     {
                         error = $"--pour needs a block, like 9,11,17; got '{value}'.";
                         return false;
@@ -1439,7 +1451,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

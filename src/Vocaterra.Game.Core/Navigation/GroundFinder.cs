@@ -14,7 +14,16 @@ public static class GroundFinder
     /// <param name="grid">The world.</param>
     /// <param name="x">The block column's x.</param>
     /// <param name="z">The block column's z.</param>
-    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z)
+    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z) => StandingAt(grid, x, z, int.MaxValue);
+
+    /// <summary>
+    /// The same, reading from <paramref name="highestFeet"/> down: the cell the feet go to for the highest ground whose standing cell is at or below that height (a cave's floor under the ground, B12).
+    /// </summary>
+    /// <param name="grid">The world.</param>
+    /// <param name="x">The block column's x.</param>
+    /// <param name="z">The block column's z.</param>
+    /// <param name="highestFeet">The highest y the feet may be at.</param>
+    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z, int highestFeet)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (!grid.InBounds(x, grid.Limits.MinY, z))
@@ -22,7 +31,7 @@ public static class GroundFinder
             return null;
         }
 
-        for (var y = grid.Limits.EndY - 3; y > grid.Limits.MinY; y--)
+        for (var y = Math.Min(grid.Limits.EndY - 3, highestFeet - 1); y > grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
             if (block == BlockId.Water)

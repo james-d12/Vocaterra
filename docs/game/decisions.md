@@ -846,6 +846,45 @@ the owner's answers of 2026-11-15 are in its section 5.
     stands only at sea level, broad massifs, polygon coasts): "Another round first" (over merging round 2 with a follow-up B02c, or
     merging it as it is). Round 3: rivers hold water all the way down (a water level per column, generated at rest), thinner chains,
     smoother coasts; then the whole tuning is gated once (`.claude/briefs/b02b-round3.md`).
+25. **The far view gets detail like the Distant Horizons mod (B07c)** (2026-11-16, about 08:50 UTC, on B07's pictures: "that looks
+    pretty crap, just a big green swath"; he asked for better distant quality that keeps the performance). Chosen: "Blocks, trees,
+    colour" (over adding real-chunk level of detail for built things now, or a design note first): blocky far land (box columns with
+    tops and sides, flat runs merged), trees in the far view from the tree pass's own deterministic placement (single canopies out to
+    about 1 to 2 km, a raised canopy layer beyond), colour from each block's texture with per-cell variation, rock on steep slopes,
+    top and side shading, rivers at least a cell wide, finer cells near (2 blocks) and coarse beyond about 8 km; High held at about
+    12 ms a frame on the RTX 3070. Real-chunk level of detail (towns, the valley's buildings, edits seen far off) is a later step.
+26. **The far view works like Distant Horizons, "one-to-one parity ideally"; the world stays block-based** (2026-11-16, about 09:00
+    UTC): "the world is block-based, not kind of smooth voxel-based, right? So we need to make sure that is true ... it should operate
+    like the horizons mod ... if we can get one-to-one parity with that, ideally would be great, so that we can basically see in the
+    distance and it still has the high level of detail. Because currently having just the smooth, it looks terrible." Widens item 25:
+    B07c builds Distant Horizons' model (level-of-detail columns of vertical segments with block and light, built from the generator's
+    own columns, trees and regions; greedy box meshes, never a smooth face, tested; block-texture colour with noise; translucent water;
+    stored light for night and glow; 1-block columns past the voxel zone with detail halving by distance bands); B07d adds what remains
+    for parity: level of detail from loaded chunks as they unload (edits seen far off), the store saved to disk per world, the detail
+    settings on the settings page. The frame-time target relaxed (about 09:10 UTC): "the performance target can degrade slightly if
+    needed ... prefer quality over performance to some degree, so don't obsess over the 12 millisecond per frame ... What we want to focus
+    on at the moment is getting it to render distant chunks properly." B07c does not cut detail to reach 12 ms; it measures and names the
+    costs for later tuning.
+27. **More rock variety, in caves and on bare stone** (2026-11-16, about 09:25 UTC): "We probably need some more rock variation, like
+    gravel, sand stuff. So, for example, in a cave, rather than just all being stone, it should have different mixtures of stone to break
+    things up ... perhaps some segments of gravel in there or something to break it up." Added to B11b: pockets and bands of gravel,
+    sand, dirt and the stone kinds (granite, limestone, slate, mossy stone, new kinds if they read better) in cave walls and floors and on
+    exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
+28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
+    8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
+    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay. Raised again about 11:55 UTC: "We have a decent amount
+    of memory on this machine so i would increase to 16gb": the default is 16G.
+29. **The far view built like the Voxy mod** (2026-11-16, about 11:45 UTC, with three screenshots of Voxy: individual tree crowns, lakes,
+    rivers and snowy ranges as blocks kilometres out): "For the LODS we want something like https://modrinth.com/mod/voxy. Of course ignore
+    shaders that is not part of this work." Replaces item 26's Distant Horizons columns: B07c builds a 3D voxel level of detail (cubic
+    sections, each level 2^L blocks a cell, mipped 8 to 1) from real chunks as they are generated or loaded (edits included) and, beyond a
+    ring of real chunks, from the generator's own model in the same format; kept on disk per world; greedy textured block faces with the
+    stored light; culled by a node tree on the CPU (MonoGame has no compute shaders). Voxy's code is All Rights Reserved: ideas only.
+    B07d: the detail settings, a world import or pre-generation command, performance tuning.
+30. **Custom shaders planned, not built** (2026-11-16, about 12:05 UTC, after hearing that the processor bakes all light into vertex
+    colours and the card only draws, because MonoGame's shader compiler needs Wine on Linux): "yes plan the custom shaders milestone.
+    Dont do any work but just document it." B17 in the biomes plan (section 3.9): light, fog and water in the game's own shaders; not to be
+    launched until he says.
 
 ## Already decided
 

@@ -244,6 +244,18 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheTeleportStepsTakeSignedCoordinatesAndTeleportToTakesAHeight()
+    {
+        var options = Parse("--screenshot", "x.png", "--teleport", "-230,-222", "--teleport-to", "-40,-54,120", "--shot", "a.png");
+        Assert.Equal([VoxelStepKind.Teleport, VoxelStepKind.TeleportTo], options.VoxelSteps.Select(static s => s.Kind));
+        Assert.Equal((-230, -222), (options.VoxelSteps[0].X, options.VoxelSteps[0].Z));
+        Assert.Equal((-40, -54, 120), (options.VoxelSteps[1].X, options.VoxelSteps[1].Y, options.VoxelSteps[1].Z));
+        Assert.Contains("--teleport-to needs a block", Refuse("--screenshot", "x.png", "--teleport-to", "1,2"), StringComparison.Ordinal);
+        Assert.Contains("need --screenshot", Refuse("--teleport-to", "1,2,3"), StringComparison.Ordinal);
+        Assert.Contains("--teleport-to", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheTeleportStepIsOneOfTheScriptsStepsInTheOrderGiven()
     {
         var options = Parse("--screenshot", "x.png", "--teleport", "230,222", "--look", "10,5", "--walk-to", "1,2");

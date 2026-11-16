@@ -4,7 +4,7 @@ This milestone's work is in the game: the scripted steps and the teleport in src
 world's first install round a new place (src/Vocaterra.Game/Streaming, Vocaterra.Game.Core World/Streaming), the respawn's place, and
 their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b07b, already on the local branch `B07b-streamed-fixes` (cut from
-`feature/biomes` at @@BASE@@, which holds the streamed world (B07) and the final terrain (B02b)). Run every command from that directory.
+`feature/biomes` at 2ec710fd, which holds the streamed world (B07) and the final terrain (B02b)). Run every command from that directory.
 Commit after each item that builds and passes its tests, with the prefix `B07b: `. Do not push. Never push or merge feature/biomes or
 main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test, format and run, every game run, screenshot and scripted run through scripts/limited.sh
@@ -55,7 +55,7 @@ Deliverables:
    after a teleport; a far teleport at 1 s on the live path; the teleport onto the pool).
 5. Documents: docs/game/running.md and docs/game/scripted-runs.md where the steps' timing or the teleport's rule changes.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,267 passed before, plus your new tests); format clean; content
 validate. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
