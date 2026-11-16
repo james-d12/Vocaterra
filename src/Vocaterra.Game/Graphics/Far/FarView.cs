@@ -80,6 +80,9 @@ public sealed class FarView
 {
     private const int FallbackSteps = 4;
 
+    // From this level up (cells of 16 blocks and more) tiles are made before the finer ones that are as near.
+    private const int CoarseFirstFrom = 4;
+
     private readonly FarTerrainSampler _sampler;
     private readonly LodStore _store;
     private readonly JobPool _pool;
@@ -340,7 +343,8 @@ public sealed class FarView
                 _ = _rebuilding.Add(key);
             }
 
-            var distance = (long)key.NearestDistance(settings, eyeX, eyeZ);
+            // The coarse levels are cheap and cover the horizon: they are made early (their distance counts a sixteenth), so a view that has just begun shows the far land at once and the detail comes in from the near out.
+            var distance = (long)key.NearestDistance(settings, eyeX, eyeZ) / (key.Level >= CoarseFirstFrom ? 16 : 1);
             var captured = key;
             _pool.Submit(
                 JobLane.Tiles,
