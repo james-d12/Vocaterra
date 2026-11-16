@@ -92,7 +92,8 @@ public sealed partial class ProceduralWorldPurityTests
         Assert.Contains(typeof(StrataTable), checkedTypes);
         Assert.Contains(typeof(OreTable), checkedTypes);
         Assert.Contains(typeof(CaveField), checkedTypes);
-        Assert.Contains(typeof(EntranceMask), checkedTypes);
+        Assert.Contains(typeof(EntranceSites), checkedTypes);
+        Assert.Contains(typeof(SurfaceRock), checkedTypes);
         Assert.Contains(typeof(BedrockFloor), checkedTypes);
         Assert.Contains(typeof(UndergroundWorld), checkedTypes);
         Assert.All(new[] { typeof(IStrataSelector), typeof(ICaveField) }, seam => Assert.Contains(checkedTypes, t => seam.IsAssignableFrom(t) && !t.IsInterface));

@@ -1438,8 +1438,8 @@ this file. What is still open is collected in [open-items](../open-items.md).
   Fix: a conjunction or preposition falling back to a singular noun sibling stays as typed when the word right before it is a plural determiner (and likewise a
   plural noun after a singular one); every other fallback is as before. No API change. Tests: `PorqueNounReadingTests` (both seeds' inputs and the neighbours:
   «quiero pan porque tengo hambre», «no sé el porqué», «no sé el porque», «no sé los porqués», «por qué porque sí», all clean as before).
-- **A fuzz seed on a plural the recast drops (found 2026-11-16 by B02b's full run on the game's `B02b-terrain-tuning`; not changed, no
-  milestone yet).** O5, `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `2LxdNIrNHnQ6`: «cuanto
+- **A fuzz seed on a plural the recast drops (found 2026-11-16 by B02b's full run on the game's `B02b-terrain-tuning`; resolved by M97, gated
+  at `63acefae`).** O5, `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `2LxdNIrNHnQ6`: «cuanto
   almuerzos veintiocho señoras transportan» (pattern `[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]`), mutated to
   «cuanto almuerzos veintiocho zeponefu transportan»; the recast normalizes to «cuanto almuerzo 28 zeponefu transportan» instead of the
   corrected «cuanto almuerzos 28 zeponefu transportan». The seed fails the same way on `feature/biomes` at `1f087456` without B02b (the
@@ -1447,9 +1447,31 @@ this file. What is still open is collected in [open-items](../open-items.md).
   the suite passed. Proposed: a core milestone like M96 that finds why the plural is lost once the unknown word follows the number, fixes
   it at the source with a regression test and records the seed; the oracle is not narrowed.
 - **A second fuzz seed: «que me» flagged as a wrong word at a prompt that takes no intent (found 2026-11-16 by B07c's full run on the
-  game's `B07c-far-detail`; not changed, no milestone yet).** O3, `CorrectSentenceFuzzTests`, seed `9kz6LGNo8tf2`: a correct sentence
+  game's `B07c-far-detail`; resolved by M97, gated at
+  `63acefae`).** O3, `CorrectSentenceFuzzTests`, seed `9kz6LGNo8tf2`: a correct sentence
   graded at `smith-receive` (which takes none of its intents) gets `vocab.wrong@4+2 expected 'tal' actual 'me'` (intent unknown, off the
   prompt none). It fails the same way on `feature/biomes` at `388f6d5d` without B07c (the orchestrator's replay, 2026-11-16 about 14:30
   UTC). Also seen that day: `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone...` ("the generator no longer reaches
   fallback:second-chosen", count 4) failed once in B11b's full run under load and passes alone (a coverage oracle that depends on how
   many samples a loaded run draws: to check). Proposed with the `2LxdNIrNHnQ6` entry above: one core milestone for the fuzz findings.
+- **M97, three fuzz findings resolved (2026-11-16; seeds `2LxdNIrNHnQ6` (O5), `9kz6LGNo8tf2` (O3) and a coverage floor; the entries above).**
+  (1) `2LxdNIrNHnQ6`: a generator fix, no engine change. The realiser drew `cuanto` (a noun, and the determiner `cuánto`) for `[NOUN:item]` right before the noun
+  `almuerzos`; the grammar binds it as a noun, so the sentence is clean, but the mutation `zeponefu` left the grammar unmatched and the analyzer, rightly, read `cuanto`
+  as `almuerzos`' determiner (`noun.number`, `almuerzo`), so the recast lost the plural. Such a noun right before another noun is re-rolled
+  (`skip:noun-reads-as-determiner`). (2) `9kz6LGNo8tf2`: an engine fix. `AnswerNearMisses` took `me` and `tal` for a pronoun slip pair (`que me` a near miss of the answer
+  `qué tal`), because `tal` has a pronoun reading with no person; a pronoun pair now needs a reading with a person on each side. O6's model follows; documented in
+  `api.md` and `pipeline.md`. (3) The coverage floor of `OpenFallback_...` (`forced-same-intent`, `second-chosen`, 4 each in two gate runs): not load. Nothing in the
+  sampling reads a clock or the machine (CsCheck's `time` is off; the count is the environment's or 300); the run draws a fresh seed and a path's count (about 10 in 300)
+  falls under 5 now and then. The test is two now: the random-seed run checks every case with no floor, and `OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`
+  asserts the same floor `min(5, iterations / 60)` for the same ten paths on a fixed seed (the lowest count 9). All three oracles check what they checked. The goldens did not
+  move. Regression: `HomographRerollTests` (6), `AnswerNearMissesTests`. Plan row text proposed: "M97 done: two fuzz seeds fixed (a realiser re-roll for a noun that reads as
+  the next noun's determiner; a pronoun slip pair needs a person) and the open fallback's coverage floor asserted on a fixed seed."
+- **A fuzz seed on the content schema's supportLanguage (seen 2026-11-16 by M97's agent; not changed, no milestone yet).**
+  `ContentSchemaFuzzTests` failed once with seed `2zwDo8nRB_f7` (a supportLanguage mutation); outside M97's scope. To replay and triage
+  (an oracle fault or a loader fault) before any change; earlier the same test threw OutOfMemoryException in a gate's crowded run
+  (seed `1jXdUcl8JBe8`, passing alone), which the owner's 10 GB command cap addressed.
+- **A fuzz seed on a silent h (found 2026-11-16 by B11b's third gate on `feature/biomes`; not changed, no milestone yet).** O9,
+  `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`, seed `a2RKk5N6Ibt4`: «ah hambrientos»
+  with `pron.silent_h` injected at «ah» (heard [a h a m b ɾ j e n t o s] for [a a m b ɾ j e n t o s]); the scorer reports `pron.silent_h`
+  twice, at «ah» and again on the h of «hambrientos». It replays on `feature/biomes` at `e9798005` (the orchestrator, about 17:10 UTC),
+  so it is the core's. Proposed: a fix like M97 (the alignment of two silent h's in a row), with the owner's yes.

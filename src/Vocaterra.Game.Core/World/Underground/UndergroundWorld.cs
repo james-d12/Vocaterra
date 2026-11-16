@@ -3,8 +3,8 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Core.World.Underground;
 
 /// <summary>
-/// One world's underground, built once from the data and the seed (B11): the rock layers, the bedrock floor, the ores, the caves with their lava, and the entrance mask. The passes hold a reference and
-/// read it; nothing here changes after construction.
+/// One world's underground, built once from the data and the seed (B11): the rock layers, the bedrock floor, the ores and the caves with their lava (the entrances' passages are
+/// <see cref="Generation.Procedural.EntranceSites"/>, which read this). The passes hold a reference and read it; nothing here changes after construction.
 /// </summary>
 internal sealed class UndergroundWorld
 {
@@ -22,7 +22,6 @@ internal sealed class UndergroundWorld
         Ores = new OreTable(data.Ores, seed);
         Lava = BlockNamed(data.Lava.Block);
         Caves = new CaveField(data.Caves, data.Lava.Level, seed);
-        Entrances = new EntranceMask(data.Entrances, seed);
     }
 
     /// <summary>The data.</summary>
@@ -46,14 +45,11 @@ internal sealed class UndergroundWorld
     /// <summary>The caves.</summary>
     public CaveField Caves { get; }
 
-    /// <summary>The entrance mask.</summary>
-    public EntranceMask Entrances { get; }
-
     /// <summary>The highest y that holds lava.</summary>
     public int LavaLevel => Data.Lava.Level;
 
-    /// <summary>How many columns round a chunk the generator must see final heights for: the water rule's reach and the entrances' reach.</summary>
-    public int WaterReach => Math.Max(Data.Caves.WaterMargin, Data.Entrances.WaterReach);
+    /// <summary>How many columns round a chunk the generator must see final heights and water for: the caves' water rule and the linings' wet zone (the entrances read the height model directly).</summary>
+    public int WaterReach => Math.Max(Data.Caves.WaterMargin, Data.Linings?.WetReach ?? 0);
 
     /// <summary>The block a name stands for.</summary>
     /// <param name="name">The block's name.</param>

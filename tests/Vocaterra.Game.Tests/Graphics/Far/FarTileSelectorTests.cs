@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Menu;
+using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Far;
 using Xunit.Abstractions;
 
@@ -78,12 +80,12 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
             var nearest = key.NearestDistance(Settings, ex, ez);
             if (key.Level > 0)
             {
-                Assert.True(nearest >= Settings.SplitFactor * Settings.SizeOf(key.Level), $"{key} is near enough to be split");
+                Assert.True(nearest >= Settings.SplitDistance(key.Level, 304), $"{key} is near enough to be split");
             }
 
             if (key.Level < Settings.TopLevel)
             {
-                Assert.True(key.GetParent().NearestDistance(Settings, ex, ez) < Settings.SplitFactor * Settings.SizeOf(key.Level + 1), $"{key}'s parent would not have been split");
+                Assert.True(key.GetParent().NearestDistance(Settings, ex, ez) < Settings.SplitDistance(key.Level + 1, 304), $"{key}'s parent would not have been split");
             }
         });
         var byLevel = leaves.GroupBy(static l => l.Level).ToDictionary(static g => g.Key, g => g.Min(l => l.NearestDistance(Settings, ex, ez)));
@@ -101,17 +103,18 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
 
         var cells = (long)leaves.Count * high.TileCells * high.TileCells;
         output.WriteLine($"16 km: {leaves.Count} tiles, {cells} cells ({cells * 2} triangles), by level {string.Join(", ", leaves.GroupBy(static l => l.Level).OrderBy(static g => g.Key).Select(static g => $"L{g.Key}={g.Count()}"))}");
-        Assert.InRange(leaves.Count, 100, 2000);
+        Assert.InRange(leaves.Count, 100, 4000);
         Assert.Equal(high.Range > 0, high.Enabled);
     }
 
     [Fact]
-    public void Given_AWalkOfSixHundredBlocks_When_TheLeavesAreChosenEachBlock_Then_OnlyTheTilesAtTheEdgesOfTheRingsAreNew()
+    public void Given_AWalkOfSixHundredBlocks_When_TheLeavesAreChosenEachBlock_Then_OnlyAFewTilesAtTheEdgesOfTheBandsAreNewEachBlock()
     {
         var first = FarTileSelector.Select(Settings, 37.5, 91.5, 304).ToHashSet();
         var everything = new HashSet<FarTileKey>(first);
         var previous = first;
         var changes = 0;
+        var fresh = 0;
         for (var x = 1; x <= 600; x++)
         {
             var now = FarTileSelector.Select(Settings, 37.5 + x, 91.5, 304).ToHashSet();
@@ -119,15 +122,16 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
             {
                 changes++;
                 Assert.True(now.Except(previous).Count() <= 64, $"{now.Except(previous).Count()} new tiles at x = {x}");
+                fresh += now.Except(previous).Count();
             }
 
             everything.UnionWith(now);
             previous = now;
         }
 
-        output.WriteLine($"{first.Count} tiles at the start, {everything.Count} used in all, the set changed {changes} times in 600 blocks");
-        Assert.True(changes < 60);
-        Assert.True(everything.Count < first.Count * 2);
+        output.WriteLine($"{first.Count} tiles at the start, {everything.Count} used in all, the set changed {changes} times in 600 blocks, {fresh} tiles came new");
+        Assert.True(fresh < 600 * 4, $"{fresh} new tiles in 600 blocks");
+        Assert.True(everything.Count < first.Count * 3);
     }
 
     [Fact]
@@ -152,5 +156,40 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
         Assert.Equal(2 * Settings.SizeOf(1), Settings.SizeOf(2));
         Assert.Equal(2 * Settings.CellOf(1), Settings.CellOf(2));
         Assert.True(Settings.SkirtOf(4) > Settings.SkirtOf(0));
+    }
+
+    [Fact]
+    public void Given_ThePresets_When_TheirFarSettingsAreRead_Then_TheRingsFollowTheVoxelZoneAndTheTreesReachFurtherAtHigher()
+    {
+        var rings = new List<(QualityLevel Level, double Trees)>();
+        foreach (var level in new[] { QualityLevel.Low, QualityLevel.Medium, QualityLevel.High })
+        {
+            var preset = QualityPreset.For(level);
+            var far = preset.Far;
+            var voxel = preset.ViewDistance;
+            Assert.Equal(preset.FarRange, far.Range);
+            Assert.Equal(1, far.CellOf(0));
+            Assert.Equal(128, far.CellOf(far.TopLevel));
+            Assert.Equal(preset.FarTreeLevels, far.TreeLevels);
+            Assert.Equal(preset.FarRealRadius, far.RealRadius);
+            Assert.Equal(2.5 * voxel, far.RealRadius, 1); // the ring of real chunks reaches where level 2 ends
+            Assert.Equal(2, far.TexturedLevels); // the voxels of 1 and 2 blocks carry the atlas's textures
+
+            // Level 0, block by block, is the ring just past the voxel zone; the next level starts at a tenth beyond it.
+            var leaves = FarTileSelector.Select(far, 192, 192, voxel);
+            var finest = leaves.Where(static k => k.Level == 0).Select(k => k.NearestDistance(far, 192, 192)).ToList();
+            Assert.NotEmpty(finest);
+            Assert.True(finest.Min() <= voxel, $"{level}: the finest tiles start at {finest.Min():0}");
+            Assert.True(finest.Max() < far.SplitDistance(1, voxel) + far.SizeOf(1), $"{level}: the finest tiles reach {finest.Max():0}");
+            Assert.InRange(far.SplitDistance(1, voxel) / voxel, 1.05, 1.2);
+
+            // The cells grow with distance out to the range, and no leaf is drawn under the voxel zone's inner radius.
+            Assert.True(leaves.Max(static k => k.Level) >= 4);
+            rings.Add((level, far.SplitDistance(far.TreeLevels, voxel)));
+        }
+
+        Assert.True(rings[0].Trees < rings[1].Trees && rings[1].Trees < rings[2].Trees, string.Join(", ", rings));
+        Assert.InRange(rings[2].Trees, 1400, 2400); // about 2 km at High
+        Assert.InRange(rings[0].Trees, 300, 800);
     }
 }

@@ -286,7 +286,7 @@ public static class SaveGame
         var digestMatched = string.Equals(digest, document.StateDigest, StringComparison.Ordinal);
         if (!digestMatched && collector is null)
         {
-            throw new SaveException("The restored world does not match the save's digest: the save is damaged or was made by another build.");
+            throw new SaveException($"The restored world does not match the save's digest: the save is damaged or was made by another build (the restored digest is {digest}, the save says {document.StateDigest}).");
         }
 
         if (collector is not null)

@@ -525,7 +525,7 @@ verdict derives a `vocab.wrong` to explain the miss, only where it can name a wo
 - **A near miss of an answer** (M75; the owner, 2026-11-02, D-game-22: "a near miss must name its word"): the line resolved no intent, or a keyword rule
   or the embedding rung (not a slot grammar) understood it, and it misses the answer phrase nearest it (a canonical phrase or an alias, at the matcher's
   distance) by one word of a slip pair: the same number of words, exactly one differing (accents ignored), the two words close in spelling (within the
-  answer word's own fuzzy budget) or both question words, articles, prepositions or pronouns. The tag is on that word, a word the lexicon knows, and its
+  answer word's own fuzzy budget) or both question words, articles, prepositions or personal pronouns (M97: a pronoun reading with a person on each side; `tal` has none, so `que me` is no near miss of `qué tal`). The tag is on that word, a word the lexicon knows, and its
   `expected` is the answer's word, never empty: `cuál es esto` at `lesson-what` gives `vocab.wrong` on `cuál` (span 0+4), expected `qué`. Before M75 (M67's
   rule: the distance within the fuzzy budget taken for the line's own length) the tag sat on the first content word (`es`) with an empty expected word, and
   it fell on correct Spanish that the agent praised: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` at

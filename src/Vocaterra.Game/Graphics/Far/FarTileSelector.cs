@@ -2,7 +2,7 @@ namespace Vocaterra.Game.Graphics.Far;
 
 /// <summary>
 /// Which far-view tiles are drawn from where the eye stands (B07): a quadtree over the top level's tiles. A tile beyond the range, or wholly inside the inner radius where the voxel chunks stand,
-/// is left out; a tile above level 0 that is nearer than <see cref="FarViewSettings.SplitFactor"/> times its size is replaced by its four children; the rest are leaves. The leaves cover the ground
+/// is left out; a tile above level 0 that is nearer than <see cref="FarViewSettings.SplitDistance"/> of its level is replaced by its four children; the rest are leaves. The leaves cover the ground
 /// between the inner radius and the range exactly once, so there is no gap and no overlap between levels, and the choice depends on the eye's place alone (the tiles are cached by key, so walking
 /// only builds the tiles that newly become leaves). Pure, with no graphics type.
 /// </summary>
@@ -33,7 +33,7 @@ public static class FarTileSelector
         {
             for (var tx = x0; tx <= x1; tx++)
             {
-                Visit(settings, new FarTileKey(top, tx, tz), eyeX, eyeZ, inner, leaves);
+                Visit(settings, new FarTileKey(top, tx, tz), eyeX, eyeZ, inner, voxelViewDistance, leaves);
             }
         }
 
@@ -43,7 +43,7 @@ public static class FarTileSelector
         return [.. leaves.Select(static l => l.Key)];
     }
 
-    private static void Visit(FarViewSettings settings, FarTileKey key, double x, double z, double inner, List<(double, FarTileKey)> leaves)
+    private static void Visit(FarViewSettings settings, FarTileKey key, double x, double z, double inner, int voxel, List<(double, FarTileKey)> leaves)
     {
         var nearest = key.NearestDistance(settings, x, z);
         if (nearest > settings.Range || key.FarthestDistance(settings, x, z) < inner)
@@ -51,11 +51,11 @@ public static class FarTileSelector
             return;
         }
 
-        if (key.Level > 0 && nearest < settings.SplitFactor * settings.SizeOf(key.Level))
+        if (key.Level > 0 && nearest < settings.SplitDistance(key.Level, voxel))
         {
             foreach (var child in key.Children())
             {
-                Visit(settings, child, x, z, inner, leaves);
+                Visit(settings, child, x, z, inner, voxel, leaves);
             }
 
             return;

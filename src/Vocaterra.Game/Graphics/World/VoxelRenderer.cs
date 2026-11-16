@@ -614,7 +614,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _far = far;
         far?.SetGreyKinds(_tracker.GreyKinds, FarTerrainRenderer.Release);
         var range = far is { Settings.Enabled: true } ? far.Settings.Range : 0;
-        _farRenderer ??= far is null ? null : new FarTerrainRenderer(_device, far);
+        _farRenderer ??= far is null ? null : new FarTerrainRenderer(_device, far, _atlas.Texture);
         if (range != _farRange)
         {
             _farRange = range;

@@ -4,7 +4,10 @@ using Vocaterra.Game.Core.World.Underground;
 
 namespace Vocaterra.Game.Core.Tests.World.Underground;
 
-/// <summary>The rock layers (B11): stone above the dither, slate below it, a ragged change between, blobs of granite and limestone in the stone, and a chunk's rocks equal the block-by-block ones.</summary>
+/// <summary>
+/// The rock layers (B11, B11b): stone above the dither, slate below it, a ragged change between, pockets of gravel, sand, dirt, granite and limestone in the stone and of granite and basalt in the slate, and a
+/// chunk's rocks equal the block-by-block ones.
+/// </summary>
 public sealed class StrataTableTests
 {
     private static StrataTable Table(ulong seed = 42) => new(TestGame.Data.Underground!.Strata, seed);
@@ -12,7 +15,7 @@ public sealed class StrataTableTests
     private static readonly StrataSpec Spec = TestGame.Data.Underground!.Strata;
 
     [Fact]
-    public void Given_TheStrata_When_RocksAreReadAboveTheDither_Then_OnlyStoneAndItsBlobsAppear()
+    public void Given_TheStrata_When_RocksAreReadAboveTheDither_Then_OnlyStoneAndItsPocketsAppear()
     {
         var table = Table();
         var seen = new HashSet<BlockId>();
@@ -27,23 +30,31 @@ public sealed class StrataTableTests
             }
         }
 
-        Assert.Equal([BlockId.Stone, BlockId.Granite, BlockId.Limestone], seen.Order());
+        Assert.Equal(new[] { BlockId.Stone, BlockId.Sand, BlockId.Dirt, BlockId.Granite, BlockId.Limestone, BlockId.Gravel }.Order(), seen.Order());
     }
 
     [Fact]
-    public void Given_TheStrata_When_RocksAreReadBelowTheDither_Then_ItIsAlwaysSlate()
+    public void Given_TheStrata_When_RocksAreReadBelowTheDither_Then_ItIsSlateWithPocketsOfBasaltAndGranite()
     {
         var table = Table();
-        for (var y = -64; y < Spec.DitherFromY; y++)
+        var counts = new Dictionary<BlockId, int>();
+        for (var y = -64; y < Spec.DitherFromY; y += 2)
         {
-            for (var z = -20; z < 20; z++)
+            for (var z = -120; z < 120; z += 3)
             {
-                for (var x = -20; x < 20; x++)
+                for (var x = -120; x < 120; x += 3)
                 {
-                    Assert.Equal(BlockId.Slate, table.RockAt(x, y, z));
+                    var rock = table.RockAt(x, y, z);
+                    counts[rock] = counts.GetValueOrDefault(rock) + 1;
                 }
             }
         }
+
+        Assert.Equal(new[] { BlockId.Slate, BlockId.Granite, BlockId.Basalt }.Order(), counts.Keys.Order());
+        var total = counts.Values.Sum();
+        Assert.InRange(counts[BlockId.Basalt] * 100.0 / total, 3, 30);
+        Assert.InRange(counts[BlockId.Granite] * 100.0 / total, 1, 20);
+        Assert.True(counts[BlockId.Slate] * 100.0 / total > 45, "slate is still the deep rock");
     }
 
     [Fact]
@@ -60,7 +71,7 @@ public sealed class StrataTableTests
                 for (var x = 0; x < N; x++)
                 {
                     var rock = table.RockAt(x, y, z);
-                    Assert.Contains(rock, new[] { BlockId.Slate, BlockId.Stone, BlockId.Granite, BlockId.Limestone }); // the blobs lie in the stone of the band as well
+                    Assert.Contains(rock, new[] { BlockId.Slate, BlockId.Stone, BlockId.Granite, BlockId.Limestone, BlockId.Basalt, BlockId.Gravel, BlockId.Sand, BlockId.Dirt }); // the pockets lie in the rock of the band as well
                     slate[y - Spec.DitherFromY] += rock == BlockId.Slate ? 1 : 0;
                 }
             }
@@ -69,7 +80,7 @@ public sealed class StrataTableTests
         for (var i = 0; i < span; i++)
         {
             var expected = (span - i) * N * N / span; // the whole of the lowest row, none of the row at ditherToY
-            Assert.InRange(slate[i], expected - 400, expected + 400);
+            Assert.InRange(slate[i], expected - 400 - (N * N / 3), expected + 400); // basalt and granite pockets take a good part of the slate
         }
 
         // Ragged: within one column slate and stone alternate in the band, so the boundary is not a plane.
@@ -92,7 +103,7 @@ public sealed class StrataTableTests
     }
 
     [Fact]
-    public void Given_TheBlobs_When_TheStoneLayerIsSampled_Then_GraniteAndLimestoneFormLargePatchesOfASensibleShare()
+    public void Given_TheBlobs_When_TheStoneLayerIsSampled_Then_EveryPocketFormsLargePatchesOfASensibleShare()
     {
         var table = Table();
         var counts = new Dictionary<BlockId, int>();
@@ -110,10 +121,12 @@ public sealed class StrataTableTests
             }
         }
 
-        foreach (var blob in new[] { BlockId.Granite, BlockId.Limestone })
+        foreach (var blob in new[] { BlockId.Granite, BlockId.Limestone, BlockId.Gravel, BlockId.Sand, BlockId.Dirt })
         {
-            Assert.InRange(counts[blob] * 100.0 / total, 3, 25);
+            Assert.InRange(counts[blob] * 100.0 / total, 2, 25);
         }
+
+        Assert.InRange(counts[BlockId.Stone] * 100.0 / total, 35, 75); // the stone no longer fills the layer
 
         // Blobs are big: the rock at a block and at the next one across agrees nearly always.
         var agree = 0;
@@ -127,7 +140,7 @@ public sealed class StrataTableTests
             }
         }
 
-        Assert.True(agree * 100 / tested >= 95);
+        Assert.True(agree * 100 / tested >= 88, $"{agree} of {tested}");
     }
 
     [Theory]

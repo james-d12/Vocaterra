@@ -27,6 +27,28 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Given_ARangeOfMountains_When_TheFarViewReadsItsColumns_Then_TheCliffBandsAndTheScreeShowInTheirTopBlocks()
+    {
+        // B11b: the far view reads the column's top block, so the cliffs' banded rock and the steep ground's gravel show from afar as they do in the generated chunks.
+        var rocks = new HashSet<BlockId> { BlockId.Granite, BlockId.Limestone, BlockId.Slate, BlockId.Gravel };
+        var counts = new Dictionary<BlockId, int>();
+        var total = 0;
+        foreach (var (x, z) in OutsideColumns(11))
+        {
+            var sample = Sampler.At(x, z);
+            total++;
+            if (!sample.IsWater && rocks.Contains(sample.Top))
+            {
+                counts[sample.Top] = counts.GetValueOrDefault(sample.Top) + 1;
+            }
+        }
+
+        output.WriteLine($"{total} columns: " + string.Join(", ", counts.Select(static c => $"{c.Key} {c.Value}")));
+        Assert.True(counts.Values.Sum() >= 20, $"{counts.Values.Sum()} of {total} far columns show cliff rock or scree");
+        Assert.True(counts.Count >= 2, "more than one kind of rock shows");
+    }
+
+    [Fact]
     public void Given_TheSameColumnsAskedTwiceAndFromManyThreads_When_TheyAreSampled_Then_TheAnswersAreIdentical()
     {
         var columns = new List<(int X, int Z)>(OutsideColumns(97).Take(300)) { (200, 200), (390, 208), (-5, 100) };

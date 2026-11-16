@@ -65,6 +65,16 @@ internal sealed class BlockWorld
         _ => [],
     };
 
+    /// <summary>The cave entrances whose mouth lies in a chunk column, with their direction and depth.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<CaveEntrance> Passages(int chunkX, int chunkZ) => _source switch
+    {
+        ProceduralChunkSource procedural => procedural.CaveEntrances(chunkX, chunkZ),
+        CompositeChunkSource composite => composite.CaveEntrances(chunkX, chunkZ),
+        _ => [],
+    };
+
     private IReadOnlyList<ChunkData> Column(int chunkX, int chunkZ)
     {
         if (!_columns.TryGetValue((chunkX, chunkZ), out var column))
@@ -98,6 +108,9 @@ internal static class BlockColours
         ["iron-ore"] = new Rgb(232, 196, 160),
         ["tin-ore"] = new Rgb(210, 230, 236),
         ["copper-ore"] = new Rgb(40, 190, 140),
+        ["basalt"] = new Rgb(54, 54, 62),
+        ["mossy-stone"] = new Rgb(92, 126, 92),
+        ["cobble"] = new Rgb(142, 136, 128),
         ["grass"] = new Rgb(92, 160, 70),
         ["dirt"] = new Rgb(124, 88, 56),
         ["sand"] = new Rgb(218, 204, 140),

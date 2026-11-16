@@ -4,7 +4,7 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// The passes that turn a world's climate into blocks, in a fixed order registered in one place (B03, biomes plan section 3.2). The column shapers run once for a chunk column and settle the
 /// heights: the biomes' surface strategies, the river banks, the edge of the water. The chunk decorators then write each chunk of the column: the ground's layers, the water, the stone, the
 /// trees, the undergrowth. Every pass has a unique <see cref="IColumnShaper.PassName"/> or <see cref="IChunkDecorator.PassName"/>, which is also the key of its random draws and noise, so adding a
-/// pass never reshuffles another. With an underground (B11) the strata, the floor, the caves, the lava and the ores go between the stone and the trees.
+/// pass never reshuffles another. With an underground (B11) the strata, the floor, the caves, the lava and the ores go between the stone and the trees (B11b adds the cliffs, the entrances and the linings).
 /// </summary>
 internal sealed class GenerationPipeline
 {
@@ -29,9 +29,29 @@ internal sealed class GenerationPipeline
         [new ReliefPass(world), new RiverBankPass(world), new WaterEdgePass()],
         [new SurfacePass(), new WaterPass(), new StonePass(), .. UndergroundPasses(world), new TreePass(), new UndergrowthPass(world)]);
 
-    // The underground's passes, after the stone: the rock layers, the floor, the caves cut into them, the lava that fills the deep caves, then the ores in the rock that is left.
-    private static IChunkDecorator[] UndergroundPasses(GenerationWorld world) =>
-        world.Underground is null ? [] : [new StrataPass(world), new FloorPass(world), new CavePass(world), new LavaPass(world), new OrePass(world)];
+    // The underground's passes, after the stone: the rock layers, the banded rock of the cliffs (B11b), the floor, the caves cut into them, the entrances' passages down to them (B11b), the lava that fills the
+    // deep caves, the ores in the rock that is left, then the linings of the caves' walls and floors (B11b).
+    private static IChunkDecorator[] UndergroundPasses(GenerationWorld world)
+    {
+        if (world.Underground is null)
+        {
+            return [];
+        }
+
+        List<IChunkDecorator> passes = [new StrataPass(world)];
+        if (world.SurfaceRock is not null)
+        {
+            passes.Add(new CliffPass(world));
+        }
+
+        passes.AddRange([new FloorPass(world), new CavePass(world), new EntrancePass(world), new LavaPass(world), new OrePass(world)]);
+        if (world.Underground.Data.Linings is not null)
+        {
+            passes.Add(new LiningPass(world));
+        }
+
+        return [.. passes];
+    }
 
     /// <summary>Runs the shapers over a chunk column's window.</summary>
     /// <param name="ctx">The column.</param>

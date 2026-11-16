@@ -33,9 +33,9 @@ internal sealed class UndergrowthPass : IChunkDecorator
                     continue;
                 }
 
-                if (_world.Underground is { } underground && underground.Entrances.InZone(x, z))
+                if (column.Bare || ctx.ClearsEntrance(x, z))
                 {
-                    continue; // a zone may be cut open to a cave (B11): nothing is sown over it
+                    continue; // bare rock, or the rim of a cave entrance (B11b): nothing is sown over it
                 }
 
                 var row = ctx.BiomeAt(x, z).Row;

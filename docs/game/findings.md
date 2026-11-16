@@ -2757,3 +2757,40 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   first failed on a docs conflict with B12 and a fuzz test's OutOfMemoryException in the 6 GB command cap (seed `1jXdUcl8JBe8` passes
   alone at 1.7 GB; the owner raised the cap to 10 GB, D-game-34 item 28); one `SaveServiceTests` case failed once under load in the
   agent's run and passed alone and in the gate. Gated: 12,305 passed, 3 skipped.
+- **B07c, the far view like Voxy (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07c-far-detail.md` (re-scoped twice: Distant
+  Horizons, then Voxy, D-game-34 items 26 and 29), report `.claude/briefs/b07c-report.md`, review `.claude/briefs/b07c-review.md` (Opus 5.5
+  at high effort, item 32), pictures in `artifacts/b-series/b07c/`. The far land is 32^3 voxel sections at 8 levels (1 to 128 blocks a
+  voxel) mipped 8 to 1, filled from the generator's model (height, water, snow, strata, the tree pass's placement as a shared pure query,
+  211 of 211 trees equal, the regions' blocks) and from real chunks (a ring of 560 / 760 / 1,000 blocks at Low / Medium / High, edits kept
+  over generator data), stored in region files per world (real sections only, validated, synced), drawn as greedy block faces (textured
+  at levels 0 and 1, averaged atlas colours beyond), with stored light and translucent water. The owner's look at the first pictures and
+  the review found the same faults: the horizon past 3.4 km built but never uploaded (8 tiles a frame nearest first), water lost under
+  half a voxel (lakes as brown beds, a hole in the sea at L7), the top block lost (grey snow caps), peaks eroded by majority rules, the
+  ring forgetting its plan on a move, store races, the ring overwriting edits, mips never real above level 1, corrupt data freezing a
+  tile, unbounded memory; all fixed but region compaction (B07d). Measured at load 7 to 11: p95 about 3 to 4 ms and p99 6 to 9 ms above
+  B07 at each preset, a tile about 33 ms of worker time at High, far memory 177 to 292 MB. Open: the thin sea strip on one horizon reads
+  as haze; the right-hand peaks a little greyer than B07's; a quiet re-measure; B07d (settings, pre-generation, compaction, performance).
+  Gated: 12,370 passed, 3 skipped.
+- **The owner's visual bugs in play (2026-11-16 about 18:00 UTC, `feature/biomes` with B07c, seed 42; his document
+  `~/Downloads/bugs.odt`, screenshots copied to `artifacts/owner-bugs/2026-11-16/`).** (1) Random holes: three small pits in a diagonal
+  row in a meadow at (857, 71, 227), dirt walls, stone and gravel at the bottom: caves breaking the surface on their 4-block lattice
+  (B11c, after B11b). (2) The far view visible before what is in front of it: from the pass at (382.8, 59, 209.9) looking west, trees and
+  dark shapes float above the valley: far geometry shows where near chunks are not yet made (the far pass drawn first, the near chunks
+  missing in front). (3) Gaps in the distant levels while chunks draw at full resolution: from (812, 100, 762) looking east, a grey band
+  across the middle distance and mountains like arches with sky under them: a ring between the voxel zone and the far view that neither
+  draws, and missing vertical sections in far mountains. (4) Distant edges crammed and merged: from (881.9, 85, 674.7) looking east, far
+  hills squashed into jagged steps at the horizon where levels meet. (2) to (4) are B07c's far view: B07e. The owner, a few minutes
+  later: "running with --configuration Release fixed most of the issues ... take note that it was in Debug mode which could explain the
+  slow rendering": (2) to (4) are mostly the far view not yet built in a slow Debug build; B07e reproduces each in Release, fixes what
+  persists once settled, and makes the in-between state while the far view builds tidy. (1) is generation and stays (B11c).
+- **B11b, natural cave entrances and rock variety (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11b-entrances-and-rock.md`,
+  report `.claude/briefs/b11b-report.md`, pictures in `artifacts/b-series/b11b/` (and `tour/`). B11's entrances were pits with no walkable
+  way down (B12's finding); the first rework built straight 3-wide stairs with slab rims, which the owner held as man-made (D-game-34 item
+  31); the second makes each entrance a winding passage (width 2 to 6, headroom 3 to 7, noise-carved walls, an uneven floor, a ragged
+  mouth with no rim), walkable to a cave 20 or more blocks down (tested from every sampled mouth). Rock variety (item 27): plain stone on
+  cave faces from 88 to 96% to 48 to 57% (gravel, sand, dirt, granite, limestone, the new basalt; linings near passages and water),
+  cliff bands and scree at the surface, all as data; generator version 3. Merges: four (B12's cave tour moved onto a natural entrance;
+  B07c's `TreePlacement` kept as the one source with the mouths cleared in the shared query; the far view shows cliff bands and scree).
+  Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
+  worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
+  mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.

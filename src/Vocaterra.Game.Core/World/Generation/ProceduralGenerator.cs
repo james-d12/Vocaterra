@@ -7,5 +7,5 @@ namespace Vocaterra.Game.Core.World.Generation;
 public static class ProceduralGenerator
 {
     /// <summary>The generator's version.</summary>
-    public const int Version = 2;
+    public const int Version = 3;
 }
