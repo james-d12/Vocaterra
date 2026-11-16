@@ -2561,3 +2561,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   unreachable in the valley until a climate term or `--temperature`. Three choices for the owner at stop 2: cloud cools at night as by
   day; with `--needs off` the cold has no effect (so the language runs keep their baselines); shelter counts the covered share of the nine
   columns round the feet (no flicker at an eave). The snowflake has not been seen in a window yet.
+- **I03a, the equipment core (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i03a-report.md`. Gated at `1627482f`:
+  11,751 passed, 3 skipped; no golden or digest moved (worn slots join the digest only when something is worn). The six slot groups are
+  rows of `equipment.json`, and code names none of them, so the off-hand and cosmetic slots came with the generic rules (I03b checks them
+  rather than building them). Rules are `IEquipRule`s, so I03b's bag rule is one class. Stat values are doubles, as the walk factor already
+  is; nothing in the digest reads them. A process note for briefs: the agent left a `pgrep -f` wait loop that matched itself, as the
+  standard brief warns; the orchestrator killed it.
