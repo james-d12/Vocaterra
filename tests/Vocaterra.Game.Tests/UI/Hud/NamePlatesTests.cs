@@ -68,12 +68,12 @@ public sealed class NamePlatesTests
 
     private static byte[] Shot(string dll, string folder, string name, string teleport, string look)
     {
-        var png = Path.Combine(folder, name + ".png");
+        var png = Path.Combine(folder, name + ".png"); // the far view is off: these pictures are about name plates, and a settled run would wait for thousands of far tiles
         var start = new ProcessStartInfo("dotnet") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
         foreach (var argument in new[]
         {
             dll, "--seed", "42", "--mute", "--session-dir", Path.Combine(folder, "session-" + name), "--content", GameBundle.ResolveDirectory(),
-            "--skip-to-session", "10", "--book-practise", "el-mercado", "--wait", "5", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
+            "--far-view", "off", "--skip-to-session", "10", "--book-practise", "el-mercado", "--wait", "5", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
         })
         {
             start.ArgumentList.Add(argument);

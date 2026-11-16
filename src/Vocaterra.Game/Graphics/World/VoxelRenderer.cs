@@ -947,6 +947,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _grid.RemoveResidencyListener(_tracker);
         _grid.RemoveResidencyListener(this);
         _view.Detach();
+        _far?.Clear(FarTerrainRenderer.Release); // the far tiles' GPU buffers are freed with the device still alive, not left to finalizers that run after it is gone (a native crash at exit)
         _farRenderer?.Dispose();
         _lights.Detach();
         foreach (var chunk in _chunks.Values)
