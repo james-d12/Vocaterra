@@ -67,8 +67,8 @@
     "lake": { "x": 212, "z": 294, "label": "lago" },
     // The pass through the east ring (B08a, biomes-plan 3.6): "paso.gate" is where the road leaves the village's levelled ground (the road's first block, at 38), "paso.rise" where it has climbed the slope that blends the village into the land (at 45, the land's own height there); "paso.foot" is where it starts to climb through the ring (at 46); "paso" is the top of the pass, on the road, with no label (no
     // word in content yet); "paso.edge" is where the road meets the valley's east edge, at 58. None levels anything (no radius).
-    "paso.gate": { "x": 316, "z": 217, "y": 38 },
-    "paso.rise": { "x": 326, "z": 217, "y": 45 },
+    "paso.gate": { "x": 318, "z": 217, "y": 38 },
+    "paso.rise": { "x": 332, "z": 217, "y": 45 },
     "paso.foot": { "x": 340, "z": 212, "y": 46 },
     "paso": { "x": 372, "z": 208 },
     "paso.edge": { "x": 383, "z": 208, "y": 58 }
@@ -104,11 +104,11 @@
     // high on both sides of the cutting, 10 to 25 blocks over the road, so the pass has steep banks and one way in. (Lowering relief rows 12 to 14 instead was tried: the noise bends the relief by
     // up to 86 blocks away from a road, so the same notch opened a second time to the south, a trench to the east edge.)
     {
-      "name": "pass.rise", "from": "paso.gate", "to": "paso.rise", "mode": "grade", "halfWidth": 1
+      "name": "pass.rise", "from": "paso.gate", "to": "paso.rise", "mode": "grade", "halfWidth": 2
     },
     {
-      "name": "pass.floor", "from": "paso.rise", "to": "paso.foot", "mode": "follow", "halfWidth": 1,
-      "via": [[334, 215]]
+      "name": "pass.floor", "from": "paso.rise", "to": "paso.foot", "mode": "follow", "halfWidth": 2,
+      "via": [[336, 215]]
     },
     {
       "name": "pass", "from": "paso.foot", "to": "paso.edge", "mode": "grade", "halfWidth": 3,

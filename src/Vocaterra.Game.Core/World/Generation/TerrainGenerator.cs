@@ -496,13 +496,33 @@ internal static class TerrainGenerator
                         }
                         else if (dist < r16 + b16)
                         {
+                            _terrain.Flags[i] |= Terrain.RouteFlag;
+                            if ((_terrain.Flags[i] & Terrain.PathFlag) != 0 && PassesThrough(site.Name, i))
+                            {
+                                continue; // the surface of a path that does not end at the site keeps its own height across the site's blend (B08c): the blend would put a riser in the road
+                            }
+
                             var weight = IntMath.One - IntMath.Smooth((dist - r16) * IntMath.One / b16);
                             _h16[i] = IntMath.Lerp(_h16[i], y16, weight);
-                            _terrain.Flags[i] |= Terrain.RouteFlag;
                         }
                     }
                 }
             }
+        }
+
+        // Whether the surface of a path that neither starts nor ends at the site lies on the column (a path that ends at a site is levelled into it).
+        private bool PassesThrough(string site, int column)
+        {
+            foreach (var raster in _paths)
+            {
+                var spec = raster.Spec;
+                if (!string.Equals(spec.From, site, StringComparison.Ordinal) && !string.Equals(spec.To, site, StringComparison.Ordinal) && raster.Dist[column] <= (spec.HalfWidth * 16) + 8)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // ---------------------------------------------------------------- the result
