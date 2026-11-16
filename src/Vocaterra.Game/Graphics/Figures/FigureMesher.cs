@@ -129,6 +129,46 @@ public static class FigureMesher
         }
     }
 
+    /// <summary>
+    /// Appends a mesh made in blocks (an item's extruded icon, <see cref="ItemModels"/>) carried by one group of the figure: the mesh's origin is put at <paramref name="origin"/> in figure pixels, and it
+    /// then turns with the group (the left hand's item swings with the left arm), the breath and the facing, as the parts do. The vertices keep their baked shade, tinted by <paramref name="light"/>.
+    /// </summary>
+    /// <param name="buffer">The mesh to append to.</param>
+    /// <param name="source">The carried mesh, in blocks, unposed.</param>
+    /// <param name="group">The group that carries it.</param>
+    /// <param name="origin">Where the mesh's origin is, in figure pixels (x, y, z).</param>
+    /// <param name="pose">The pose.</param>
+    /// <param name="x">The middle of the feet, east.</param>
+    /// <param name="y">The feet, up.</param>
+    /// <param name="z">The middle of the feet, south.</param>
+    /// <param name="yawRadians">The facing about the vertical axis.</param>
+    /// <param name="light">The colour the scene's light gives the figure.</param>
+    public static void AppendAttached(MeshBuffer buffer, MeshBuffer source, FigureGroup group, (float X, float Y, float Z) origin, in FigurePose pose, float x, float y, float z, float yawRadians, (float R, float G, float B) light)
+    {
+        ArgumentNullException.ThrowIfNull(buffer);
+        ArgumentNullException.ThrowIfNull(source);
+        var sin = MathF.Sin(yawRadians);
+        var cos = MathF.Cos(yawRadians);
+        var vertices = source.Vertices;
+        for (var i = 0; i + 3 < vertices.Length; i += 4)
+        {
+            buffer.AddQuad(
+                Attached(vertices[i], group, origin, pose, x, y, z, sin, cos, light),
+                Attached(vertices[i + 1], group, origin, pose, x, y, z, sin, cos, light),
+                Attached(vertices[i + 2], group, origin, pose, x, y, z, sin, cos, light),
+                Attached(vertices[i + 3], group, origin, pose, x, y, z, sin, cos, light));
+        }
+    }
+
+    private static MeshVertex Attached(in MeshVertex v, FigureGroup group, (float X, float Y, float Z) origin, in FigurePose pose, float fx, float fy, float fz, float sin, float cos, (float R, float G, float B) light)
+    {
+        var r = (byte)Math.Min(255f, (v.Color & 0xFF) * light.R);
+        var g = (byte)Math.Min(255f, ((v.Color >> 8) & 0xFF) * light.G);
+        var b = (byte)Math.Min(255f, ((v.Color >> 16) & 0xFF) * light.B);
+        var moved = Vertex(group, pose, origin.X + (v.X / Pixel), origin.Y + (v.Y / Pixel), origin.Z + (v.Z / Pixel), fx, fy, fz, sin, cos, MeshVertex.Pack(r, g, b, (byte)(v.Color >> 24)), v.U, v.V);
+        return moved;
+    }
+
     // The angle a group turns about its joint, and the joint (a point in figure pixels, as y and z; the arms and legs turn about the x axis).
     private static (float Pitch, float PivotY) Joint(FigureGroup group, in FigurePose pose) => group switch
     {

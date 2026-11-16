@@ -11,15 +11,18 @@ public sealed class ArmPresenter : ITickObserver
 {
     private readonly VoxelSimulation _sim;
     private readonly Func<int, int, int, bool> _isSolid;
+    private readonly PlayerGear _gear;
     private long _lastPlaceTick = long.MinValue / 2;
 
     /// <summary>Creates the arm of the simulation's body.</summary>
     /// <param name="sim">The simulation: the selected stack, the walk and the gathering.</param>
     /// <param name="isSolid">Whether a block is solid, for the light that reaches the hand.</param>
-    public ArmPresenter(VoxelSimulation sim, Func<int, int, int, bool> isSolid)
+    /// <param name="gear">What the worn gear looks like, or <see langword="null"/> to watch the simulation's own equipment.</param>
+    public ArmPresenter(VoxelSimulation sim, Func<int, int, int, bool> isSolid, PlayerGear? gear = null)
     {
         _sim = sim;
         _isSolid = isSolid;
+        _gear = gear ?? new PlayerGear(sim.Equipment);
     }
 
     /// <summary>Once a tick, after the step: a placement in the tick's commands swings the arm once.</summary>
@@ -44,6 +47,8 @@ public sealed class ArmPresenter : ITickObserver
         var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
         var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
         var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), lights, held.Kind == HeldKind.Torch, look.SunLight, look.LanternStrength);
-        return new ArmFrame(held, motion, light);
+        _gear.Refresh();
+        var sleeve = _gear.Appearance.Sleeve is { } c ? (c.R, c.G, c.B) : ((byte R, byte G, byte B)?)null;
+        return new ArmFrame(held, motion, light, sleeve, _gear.OffHandHeld);
     }
 }

@@ -239,8 +239,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _debug.Visible = options.Dev; // U01: clean by default; --dev (or F3, not in a playtest) shows the overlay and the developer note
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
-        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
-        _arm = new ArmPresenter(_sim, _isSolid);
+        var gear = new PlayerGear(_sim.Equipment); // one appearance for the avatar and the arm (I09)
+        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs, gear);
+        _arm = new ArmPresenter(_sim, _isSolid, gear);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _reportScreen = new ReportScreen(

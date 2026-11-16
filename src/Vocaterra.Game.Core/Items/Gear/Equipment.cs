@@ -29,6 +29,9 @@ public sealed class Equipment
         Array.Fill(_slots, ItemStack.Empty);
     }
 
+    /// <summary>Counts every change of what is worn (I09): a drawing that caches what it made from the worn items rebuilds when this number moved.</summary>
+    public int Revision { get; private set; }
+
     /// <summary>The slot groups.</summary>
     public EquipmentData Data { get; }
 
@@ -201,6 +204,7 @@ public sealed class Equipment
         }
 
         _slots[Data.FlatIndex(slot)] = stack;
+        Revision++;
         bag.SetSlot(bagSlot, worn); // the swapped item takes the freed place; an empty stack empties it
         SyncBag(bag); // a bag that went on gives its slots; one swapped for a smaller one dropped empty slots (the rule saw to that)
         return EquipResult.Done;
@@ -258,6 +262,7 @@ public sealed class Equipment
 
         bag.SetSlot(target, worn);
         _slots[Data.FlatIndex(slot)] = ItemStack.Empty;
+        Revision++;
         SyncBag(bag);
         return EquipResult.Done;
     }
@@ -269,6 +274,7 @@ public sealed class Equipment
     public void Set(EquipSlot slot, ItemStack stack)
     {
         var flat = Data.FlatIndex(slot);
+        Revision++;
         if (stack.Count <= 0)
         {
             _slots[flat] = ItemStack.Empty;
@@ -291,6 +297,7 @@ public sealed class Equipment
         if (slots is null or { Count: 0 })
         {
             Array.Fill(_slots, ItemStack.Empty);
+            Revision++;
             return;
         }
 

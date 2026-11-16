@@ -177,7 +177,7 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Camera/         FirstPersonCamera, PlayerCamera, CameraEase, ViewMath (CameraBasis, EdgeArrow), PlayerView
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
   World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
-  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
+  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter, PlayerGear, GearFigureParts
   Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe (the five keyframes: noon, golden, twilight, night, deep night), SkyBlend (their weights by the phase, the daylight and the sun's height), SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
 UI/
@@ -373,6 +373,15 @@ came from when that is empty, else into the bag (merging, then the first free sl
 of a command that runs a tick later, and dropping into the trash would lose it): the panel draws it again when it opens, and a save (`SaveGame.Capture`) returns the held stack first and refuses, like a session not at rest, while it cannot.
 A script sends the same commands with `--move left,bag,12`, `--move shift,bag,3`, `--move right,trash,0`, `--move sort`, `--move return`.
 **To add a container (a chest, W24):** implement `ISlotContainer` (and `IQuickTarget` if shift-click should send items to it), give it a new id, and `VoxelSimulation.Containers.Add` it; no move changes (`TestContainerTests` is the proof).
+
+**Gear on the player (I09, inventory-plan 3.11).** `Items/Gear/AppearanceBuilder.Of(equipment)` turns the worn items into an `Appearance`: one `LookColour` per body part, the sleeve colour, the item on the back and the item in the off-hand. The
+**layer order is data**: the groups of `equipment.json` that carry a `layer` are asked from the highest number down (cosmetic 3, armour 2, clothing 1), and for each part key (`head`, `body`, `legs`, `feet`, `sleeve`, an open word) the first worn
+item whose `look` covers it gives the colour. The back and the off-hand are the slots whose `wear` kind is `AppearanceRoles.BackWear` (`back`) and `OffHandWear` (`offhand`), never a group id; the sleeves are the `sleeve` part or, without one, the `body`
+part. `Equipment.Revision` moves on every change, so the front-end rebuilds only then: `Graphics/Figures/PlayerGear` keeps the `Appearance`, the figure's parts with the gear on them (`GearFigureParts.Dress`: each covered part is a slightly inflated box
+over the body in its colour, the bag a fixed pack box on the back with the backpack flap picture, tinted by the bag's `back` look colour or leather) and the off-hand item extruded from its icon (`FigureMesher.AppendAttached` carries it with the
+left arm). Nothing worn gives the figure's own parts array and no extra mesh; at most 9 boxes (54 faces) are added, and the off-hand item's voxel faces. In first person `ArmMeshes.Arm(sleeve)` keeps one arm mesh per sleeve colour and `ArmFrame`
+carries the colour and the off-hand item, which `VoxelRenderer.DrawArm` shows as a mirrored left arm at the bottom left. **To add a layer:** a group row with a `layer` number above the others, and items with a matching tag and `look`; no code.
+**To make a new part visible:** one row in `GearFigureParts.Shapes` (its key and boxes) and items whose `look` names the key. **To give a bag its own shape (later):** replace the fixed `Pack` box by a lookup on the bag's look or id.
 
 **Death keeps the worn gear (I03b, inventory-plan 3.14).** `VoxelSession.LeaveBelongings` asks `DeathSpec.Keeps(item)` (the `death.keepInBag` rule of `needs.json`, `stacksOfOne`: the items that stack to one stay; the loader
 refuses a value the code does not know) and moves the rest of the bag to the belongings chest. What is worn, the worn bag included, is not in the bag and stays worn; a kept stack stays in its own slot, so the kept
