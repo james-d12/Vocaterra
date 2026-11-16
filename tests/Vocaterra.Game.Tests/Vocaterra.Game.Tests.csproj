@@ -29,6 +29,7 @@
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\Repo.cs" Link="TestSupport\Repo.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\RouteScene.cs" Link="TestSupport\RouteScene.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestGame.cs" Link="TestSupport\TestGame.cs" />
+    <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\ValleyBuild.cs" Link="TestSupport\ValleyBuild.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestSpeed.cs" Link="TestSupport\TestSpeed.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\LocaleFixture.cs" Link="TestSupport\LocaleFixture.cs" />
   </ItemGroup>
