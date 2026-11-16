@@ -872,7 +872,19 @@ the owner's answers of 2026-11-15 are in its section 5.
     exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
 28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
     8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
-    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay.
+    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay. Raised again about 11:55 UTC: "We have a decent amount
+    of memory on this machine so i would increase to 16gb": the default is 16G.
+29. **The far view built like the Voxy mod** (2026-11-16, about 11:45 UTC, with three screenshots of Voxy: individual tree crowns, lakes,
+    rivers and snowy ranges as blocks kilometres out): "For the LODS we want something like https://modrinth.com/mod/voxy. Of course ignore
+    shaders that is not part of this work." Replaces item 26's Distant Horizons columns: B07c builds a 3D voxel level of detail (cubic
+    sections, each level 2^L blocks a cell, mipped 8 to 1) from real chunks as they are generated or loaded (edits included) and, beyond a
+    ring of real chunks, from the generator's own model in the same format; kept on disk per world; greedy textured block faces with the
+    stored light; culled by a node tree on the CPU (MonoGame has no compute shaders). Voxy's code is All Rights Reserved: ideas only.
+    B07d: the detail settings, a world import or pre-generation command, performance tuning.
+30. **Custom shaders planned, not built** (2026-11-16, about 12:05 UTC, after hearing that the processor bakes all light into vertex
+    colours and the card only draws, because MonoGame's shader compiler needs Wine on Linux): "yes plan the custom shaders milestone.
+    Dont do any work but just document it." B17 in the biomes plan (section 3.9): light, fog and water in the game's own shaders; not to be
+    launched until he says.
 
 ## Already decided
 

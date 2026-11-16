@@ -30,7 +30,7 @@ Facts every session needs:
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
 - **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; one again on 2026-11-15, "only have 1 agent max", D-game-34 item 17; up to four since that evening, "you can have up to 4 agents now", item 19); every heavy command (dotnet
   restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
-  once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 12 GB (8 GB until 2026-11-16, raised by the owner) and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
+  once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 16 GB (8 GB until 2026-11-16, raised by the owner) and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
   `dotnet format Vocaterra.sln --verify-no-changes`. `Vocaterra.Nlp.slnf` builds the core alone (its pack and licence scan use it).
