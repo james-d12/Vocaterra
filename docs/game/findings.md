@@ -2597,3 +2597,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   draws exactly as before (a mesh test checks the vertices); gear adds at most 9 boxes plus the off-hand item's extruded faces. Not yet seen:
   no shipped item can be worn, so the pictures need a test-only content folder with `look` rows, and they wait for the owner's windows
   (stop 4, with I04's).
+- **I04, the equipment panel (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i04-report.md`. Gated at `0cf31798`:
+  12,102 passed, 3 skipped. The doll's columns and rows come from equipment.json (layered groups in layer order, slots in first-seen
+  order), so a seventh group gets cells with no layout edit. A real bug found and fixed: the quit, menu Exit and F6 saves threw when a stack
+  was held with a full bag (only the autosave caught it); `SaveService.Write` now returns the stack first and declines to write if it
+  cannot. For stop 3: `accesorio` is not in the lexicon (accessory cells unlabelled); walk speed, hunger, thirst and stamina have no noun on
+  the stats line (icons only); the eleven refusal lines are English; the inventory key hints still say "left click: mine, place", stale
+  since I02. Known gap: 50 slots plus the needs list at 533x400 overflows the canvas foot, as before. Screenshots wait for the owner (stop 4,
+  with I09's): they need a test-only content copy with wearable rows, since nothing shipped can be worn.

@@ -562,7 +562,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I09 | Gear on the player: the avatar's layers, the bag on the back, the off-hand item, the sleeve's colour | I03b | M | Sonnet 5.5, medium | done: gated at `50ae2330` (11,996 passed); screenshots wait for the owner |
 | I05a | Stat consumers: walk speed, a drain factor per need, the stamina bonus, the `IDamageModifier` pipeline and `damage.json` | I03b, I06 | M | Sonnet 5.5, medium | done: gated at `b9aac8c9` (11,977 passed) |
 | I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | todo |
-| I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | in progress (2026-11-16; screenshots wait for the owner) |
+| I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | done: gated at `0cf31798` (12,102 passed); screenshots wait for the owner |
 | I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | todo |
 | I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | todo |
 | I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | todo |
