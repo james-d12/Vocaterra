@@ -2584,3 +2584,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   one; a wearable the rules refuse does not fall through to the hotbar move; right-click into the trash refuses a different item. The
   `--move` step opens a window, like every scripted step, so it was proved by tests only. Process note: the orchestrator's `git worktree
   add` used a relative path, so this worktree nested under the inventory worktree; later ones use an absolute path.
+- **I05a, the stat consumers (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i05a-report.md`. Gated at `b9aac8c9`:
+  11,977 passed, 3 skipped; no digest or baseline moved (nothing worn gives factors of 1). Each stat key has one rule in `StatRules`: the
+  factors (`walkSpeed`, `hungerDrain`, `thirstDrain`) multiply so that two items never sum past a whole, the rest add. Numbers for stop 3
+  and I08b to weigh: armour takes 4% per point, capped at 80% (20 points); the walk factor is clamped to 0.1 to 2.5; item ranges are 0.5
+  to 1.5 for walk speed and 0.25 to 2 for drains. Walk speed from gear applies with `--needs off` (unlike the cold), while drains and
+  stamina follow the needs. Damage causes are data ids now; armour applies to no cause, as the owner said, and a row in `damage.json`
+  would change that. A cause unknown at run time passes through unmodified (the validator refuses unknown ones at load).
