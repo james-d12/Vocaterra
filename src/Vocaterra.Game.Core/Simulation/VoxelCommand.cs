@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Containers;
 using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Mathematics;
 
@@ -44,4 +45,13 @@ public readonly record struct VoxelCommand(VoxelCommandKind Kind, int A = 0, int
 
     /// <summary>Take off what is worn in <paramref name="slot"/> into bag slot <paramref name="bagSlot"/>, or into the first free one when it is -1 (I03a).</summary>
     public static VoxelCommand Unequip(EquipSlot slot, int bagSlot = -1) => new(VoxelCommandKind.Unequip, slot.Group, slot.Index, bagSlot);
+
+    /// <summary>A move by hand at a slot of a container (I02): see <see cref="VoxelCommandKind.SlotMove"/>.</summary>
+    public static VoxelCommand SlotMove(MoveAction action, int container, int slot) => new(VoxelCommandKind.SlotMove, (int)action, container, slot);
+
+    /// <summary>Sort the pack (I02).</summary>
+    public static VoxelCommand SortPack() => SlotMove(MoveAction.Sort, ContainerIds.Bag, 0);
+
+    /// <summary>Put the held stack back where it came from, or into the bag (I02).</summary>
+    public static VoxelCommand ReturnHeld() => SlotMove(MoveAction.ReturnHeld, ContainerIds.Bag, 0);
 }

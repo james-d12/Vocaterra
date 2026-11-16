@@ -45,6 +45,7 @@ public sealed partial class VoxelSimulation
         Scene = scene;
         Inventory = new Inventory(items, equipment.BagSlots);
         StartEquipment(items, equipment);
+        StartInteraction(items);
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
@@ -193,6 +194,9 @@ public sealed partial class VoxelSimulation
                     break;
                 case VoxelCommandKind.Unequip:
                     Unequip(new EquipSlot(commands[i].A, commands[i].B), commands[i].C);
+                    break;
+                case VoxelCommandKind.SlotMove:
+                    ApplySlotMove(commands[i]);
                     break;
                 default:
                     break;
@@ -371,6 +375,8 @@ public sealed partial class VoxelSimulation
             Inventory.SetSlot(i, ItemStack.Empty); // the bag that stands now may be larger than the one restored
         }
 
+        Held.Clear(); // a save holds nothing and keeps no trash (I02)
+        Trash.Clear();
         Equipment.Restore(state.Worn);
         Equipment.SyncBag(Inventory);
         for (var i = 0; i < Inventory.SlotCount; i++)
@@ -435,6 +441,7 @@ public sealed partial class VoxelSimulation
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
         AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
         AppendEquipmentDigest(hash); // nothing worn adds nothing (the active count is in the inventory's slots above: its length follows the worn bag)
+        AppendInteractionDigest(hash); // nothing held and an empty trash add nothing (I02)
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
