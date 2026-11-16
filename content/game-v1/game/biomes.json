@@ -7,12 +7,12 @@
   "biomes": [
     {
       "id": "river-channel",
-      "when": { "water": true, "continentalness": { "min": 45 }, "river": { "max": 40 } },
+      "when": { "water": true, "continentalness": { "min": 20 }, "river": { "max": 40 } },
       "top": "sand", "filler": "dirt", "fillerDepth": 3
     },
     {
       "id": "ocean",
-      "when": { "water": true, "continentalness": { "max": 125 } },
+      "when": { "water": true, "continentalness": { "max": 20 } },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "id": "beach",
-      "when": { "water": false, "continentalness": { "max": 145 }, "height": { "max": 36 } },
+      "when": { "water": false, "continentalness": { "max": 16 }, "height": { "max": 36 } },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {

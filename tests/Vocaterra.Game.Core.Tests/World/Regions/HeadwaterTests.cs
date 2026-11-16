@@ -35,7 +35,7 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
     private static int Share(RegionBlendData blend, int distance) =>
         distance <= blend.Margin ? 0 : IntMath.Smooth((distance - blend.Margin) * IntMath.One / blend.Headwater.Distance);
 
-    private sealed record Counts(int Water, int Spring, int Samples, int WidestStep, string Where, int NearestWater);
+    private sealed record Counts(int Water, int Spring, int Samples, int WidestStep, string Where, int NearestWater, int Carved);
 
     private static RegionBlendData Blend(GameData data) => data.WorldGen.Blend;
 
@@ -45,7 +45,7 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
         var reach = blend.Margin + blend.Headwater.Distance + 8;
         var free = new HeightModel(data.WorldGen, seed);
         var climate = world.Procedural.World.Climate;
-        var (water, spring, samples, widest, where, nearest) = (0, 0, 0, 0, string.Empty, int.MaxValue);
+        var (water, spring, samples, widest, where, nearest, carved) = (0, 0, 0, 0, string.Empty, int.MaxValue, 0);
         for (var z = b.MinZ - reach; z <= b.MaxZ + reach; z += 2)
         {
             for (var x = b.MinX - reach; x <= b.MaxX + reach; x += 2)
@@ -67,6 +67,12 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
                 // The water is only ever the free world's, thinned: a river or lake weight never exceeds the share, and a column is under water only where the free world has water there.
                 Assert.InRange(shape.RiverWeight, 0, share + 1);
                 Assert.InRange(shape.LakeWeight, 0, share + 1);
+                if (shape.RiverWeight > 0 && d > blend.Margin)
+                {
+                    carved++;
+                    Assert.InRange(shape.NaturalHeight - shape.Height, 0, 2 + (int)((long)share * 55 / IntMath.One)); // the channel's floor rises to the ground towards the region: a valley that shallows to nothing, not a trench
+                }
+
                 if (shape.Water && d > blend.Margin)
                 {
                     Assert.True(free.Shape(x, z, climate.At(x, z)).Water, $"water at {x},{z} (d {d}) where the free world has none");
@@ -90,7 +96,7 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
             }
         }
 
-        return new Counts(water, spring, samples, widest, where, nearest);
+        return new Counts(water, spring, samples, widest, where, nearest, carved);
     }
 
     [Theory]
@@ -108,14 +114,14 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
     [Theory]
     [InlineData("valley", 42UL)]
     [InlineData("valley", 7UL)]
-    public void Given_AValleyWhoseRingHasRivers_When_TheHeadwatersAreRead_Then_ThereIsWaterBeyondTheMarginAndItStartsShallow(string which, ulong seed)
+    public void Given_AValleyWhoseRingHasRiverValleys_When_TheHeadwatersAreRead_Then_TheyBeginWellBeyondTheMarginAndShallowToNothingTowardsIt(string which, ulong seed)
     {
         var (world, bounds, data) = Setup(which, seed);
 
         var counts = Scan(world, bounds, data, seed);
 
-        Assert.True(counts.Water > 200, $"{counts.Water} water columns in the headwaters: the seed was chosen for its rivers near the valley");
-        Assert.True(counts.NearestWater > Blend(data).Margin + 20, $"the nearest water is {counts.NearestWater} blocks from the footprint, well beyond the margin: the stream begins at a spring");
+        Assert.True(counts.Carved > 200, $"{counts.Carved} carved columns in the headwaters: the seed was chosen for its river valleys near the valley");
+        Assert.True(counts.Water == 0 || counts.NearestWater > Blend(data).Margin + 20, $"the nearest water is {counts.NearestWater} blocks from the footprint, well beyond the margin: the stream begins at a spring");
     }
 
     [Fact]

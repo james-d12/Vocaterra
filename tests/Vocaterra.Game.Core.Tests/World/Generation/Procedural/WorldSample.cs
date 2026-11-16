@@ -28,6 +28,9 @@ internal sealed class WorldSample
         Snow = new bool[n];
         Biome = new byte[n];
         Temperature = new short[n];
+        Carve = new byte[n];
+        Natural = new short[n];
+        Continentalness = new short[n];
         Parallel.For(0, Size, new ParallelOptions { MaxDegreeOfParallelism = 2 }, j =>
         {
             for (var i = 0; i < Size; i++)
@@ -42,6 +45,9 @@ internal sealed class WorldSample
                 Snow[k] = column.Snow;
                 Biome[k] = (byte)column.Row.Index;
                 Temperature[k] = (short)(c.Temperature * 1000 / 4096);
+                Carve[k] = (byte)Math.Min(255, shape.RiverWeight * 255 / 4096);
+                Natural[k] = (short)shape.NaturalHeight;
+                Continentalness[k] = (short)(c.Continentalness * 1000 / 4096);
             }
         });
     }
@@ -71,6 +77,15 @@ internal sealed class WorldSample
 
     /// <summary>The sea-level temperature in thousandths.</summary>
     public short[] Temperature { get; }
+
+    /// <summary>How much a river carved the column, 0 to 255.</summary>
+    public byte[] Carve { get; }
+
+    /// <summary>The ground before the rivers and lakes carved it.</summary>
+    public short[] Natural { get; }
+
+    /// <summary>The continentalness in thousandths.</summary>
+    public short[] Continentalness { get; }
 
     /// <summary>The position of a biome row by id.</summary>
     public int Row(string id) => Rows.ToList().IndexOf(id);
@@ -122,7 +137,7 @@ internal sealed class WorldSample
                 }
             }
 
-            bodies.Add(new Body(count, (maxX - minX + 1) * Step, (maxZ - minZ + 1) * Step));
+            bodies.Add(new Body(count, (maxX - minX + 1) * Step, (maxZ - minZ + 1) * Step, minX == 0 || minZ == 0 || maxX == Size - 1 || maxZ == Size - 1));
         }
 
         bodies.Sort(static (a, b) => b.Count.CompareTo(a.Count));
@@ -181,6 +196,6 @@ internal sealed class WorldSample
         return (labels, [.. touching]);
     }
 
-    /// <summary>One connected body of samples: how many, and the width and depth of its bounding box in blocks.</summary>
-    public readonly record struct Body(int Count, int WidthBlocks, int DepthBlocks);
+    /// <summary>One connected body of samples: how many, the width and depth of its bounding box in blocks, and whether it reaches the edge of the square (so its far end is not in it).</summary>
+    public readonly record struct Body(int Count, int WidthBlocks, int DepthBlocks, bool AtEdge = false);
 }

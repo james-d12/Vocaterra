@@ -27,9 +27,10 @@ public sealed class WorldGenDataTests
         Assert.Equal(Shipped.Height.Peaks, world.Height.Peaks);
         Assert.Equal(Shipped.Height with { Base = [], RangeFactor = [], Peaks = [] }, world.Height with { Base = [], RangeFactor = [], Peaks = [] });
         Assert.Equal(new VerticalRange(-64, 320, 32), world.Vertical);
-        Assert.Equal(new NoiseSpec(4096, 3, 1024, 384), world.Climate.Continentalness);
-        Assert.Equal(new NoiseSpec(5120, 3, 0, 0), world.Climate.Erosion);
-        Assert.Equal(new SplinePoint(-1000, -56), world.Height.Base[0]);
+        Assert.Equal(new NoiseSpec(4096, 3, 4500, 1300), world.Climate.Continentalness);
+        Assert.Equal(new ContinentSpec(8000, 800, 2, 1, 700, 120, 1800, 3000, 600, 6000, 23), world.Climate.Continents);
+        Assert.Equal(new NoiseSpec(12288, 2, 0, 0), world.Climate.Erosion);
+        Assert.Equal(new SplinePoint(-1000, -58), world.Height.Base[0]);
         Assert.Equal(Shipped.Height.Coast, world.Height.Coast);
         Assert.NotNull(world.Height.CoastData); // the coast fades the peaks and calms the hills
         Assert.Equal(4, world.Height.Terraces.Step);
@@ -104,6 +105,13 @@ public sealed class WorldGenDataTests
         Assert.True(Names(Problems(With(Shipped, static h => h with { Detail = h.Detail with { HillsOctaves = 0 } })), "height.detail"));
         Assert.True(Names(Problems(Shipped with { Altitude = new AltitudeData(-2000, -300) }), "snowBelowTemperature"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(200, 100, 0, 100, 500) })), "height.coast.peaksFrom/peaksTo"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 0, 100, 500, 60, 40) })), "height.coast.flatFrom"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { Rivers = h.Rivers with { Valley = new ValleySpec(10, 2, 150) } })), "height.rivers.valley"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { Rivers = h.Rivers with { Valley = new ValleySpec(50, 2, 150, 40, 20) } })), "waterFrom below a waterTo"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { PeakVariation = new PeakVariationSpec(0, 2, 500) })), "height.peakVariation"));
+        Assert.True(Names(Problems(Shipped with { Climate = Shipped.Climate with { Continents = Shipped.Climate.Continents! with { ChannelMin = 0 } } }), "climate.continents"));
+        Assert.True(Names(Problems(Shipped with { Climate = Shipped.Climate with { Continents = Shipped.Climate.Continents! with { SeaPerBlock = 4 } } }), "climate.continents"));
+        Assert.True(Names(Problems(Shipped with { Climate = Shipped.Climate with { Ridges = Shipped.Climate.Ridges with { Round = 600 } } }), "ridges.round"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 100, 100, 500) })), "height.coast.hillsFrom/hillsTo"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 0, 100, 1500) })), "height.coast.hillsFloor"));
     }

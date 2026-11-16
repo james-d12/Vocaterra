@@ -72,9 +72,34 @@ internal sealed class RegionBlend
         var floor = _floor - (int)((long)(_floor - _shoreFloor) * distance / Data.LandBias.Radius);
         return Math.Max(continentalness, floor);
     }
+
+    /// <summary>The climate of a column after the regions' bias: the continentalness pulled towards land and the erosion shaped (calm near a region, rugged in a belt beyond).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="c">The free world's climate.</param>
+    public ClimateSample Bias(int x, int z, in ClimateSample c)
+    {
+        var (region, distance) = Regions.Nearest(x, z);
+        if (region is null)
+        {
+            return c;
+        }
+
+        var floor = _floor - (int)((long)(_floor - _shoreFloor) * distance / Data.LandBias.Radius);
+        var erosion = c.Erosion;
+        if (Data.LandBias.Erosion is { } e)
+        {
+            var open = IntMath.Ramp(distance, e.FromRadius, e.ToRadius);
+            erosion = IntMath.Lerp(Math.Max(erosion, FieldScale.FromThousandths(e.Near)), erosion, open);
+            var rugged = (int)((long)open * (IntMath.One - IntMath.Ramp(distance, e.ToRadius, e.FadeRadius)) / IntMath.One);
+            erosion = IntMath.Lerp(erosion, Math.Min(erosion, FieldScale.FromThousandths(e.Far)), rugged);
+        }
+
+        return c with { Continentalness = Math.Max(c.Continentalness, floor), Erosion = erosion };
+    }
 }
 
-/// <summary>The climate with the continentalness pulled towards land round the regions (<see cref="RegionBlend"/>); the rest of the climate is the inner sampler's.</summary>
+/// <summary>The climate with the continentalness pulled towards land and the erosion shaped round the regions (<see cref="RegionBlend"/>); the rest of the climate is the inner sampler's.</summary>
 internal sealed class BlendedClimateSampler : IClimateSampler
 {
     private readonly IClimateSampler _inner;
@@ -89,8 +114,7 @@ internal sealed class BlendedClimateSampler : IClimateSampler
     /// <inheritdoc />
     public ClimateSample At(int x, int z)
     {
-        var c = _inner.At(x, z);
-        return c with { Continentalness = _blend.PullTowardsLand(x, z, c.Continentalness) };
+        return _blend.Bias(x, z, _inner.At(x, z));
     }
 
     /// <inheritdoc />
@@ -105,7 +129,7 @@ internal sealed class BlendedClimateSampler : IClimateSampler
             for (var i = 0; i < width; i++)
             {
                 var k = (j * width) + i;
-                into[k] = into[k] with { Continentalness = _blend.PullTowardsLand(x0 + i, z0 + j, into[k].Continentalness) };
+                into[k] = _blend.Bias(x0 + i, z0 + j, into[k]);
             }
         }
     }

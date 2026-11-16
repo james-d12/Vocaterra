@@ -13,7 +13,6 @@ internal static class Stats
 {
     private const string SeaId = "ocean";
     private const string LakeId = "lake-basin";
-    private const string RiverId = "river-channel";
     private static readonly int[] Bands = [16, 48, 128, 384, 1024];
 
     /// <summary>The report of a map.</summary>
@@ -67,7 +66,7 @@ internal static class Stats
         var top = string.Join(", ", sizes.Take(5).Select(s => $"{Pct(s, sea)}%"));
         text.AppendLine(string.Create(inv, $"sea bodies: {sizes.Count}; the largest is {Pct(sizes.Count == 0 ? 0 : sizes[0], sea)}% of the sea columns; the five largest: {top}"));
 
-        text.AppendLine(Rivers(sampler, map, seaRow, lakeRow, Index(sampler, RiverId)));
+        text.AppendLine(Rivers(map));
         var distance = DistanceFromOtherKind(map);
         text.AppendLine("coast profile (mean ground by distance from the shore, blocks):");
         text.Append("  land: ");
@@ -77,8 +76,8 @@ internal static class Stats
         return text.ToString();
     }
 
-    // The rivers as bodies of river-channel columns (eight neighbours): how many reach the sea or a lake (a column of one within two columns of the body), and how many do not.
-    private static string Rivers(WorldSampler sampler, WorldMap map, int seaRow, int lakeRow, int riverRow)
+    // The rivers as bodies of columns under water that a river carved (eight neighbours): how many reach other water, the sea or a lake (a column of it within two columns of the body), and how many do not (a body that runs off the map is left out: its end is not on it).
+    private static string Rivers(WorldMap map)
     {
         int w = map.Width, h = map.Height;
         var seen = new bool[w * h];
@@ -87,15 +86,19 @@ internal static class Stats
         int bodies = 0;
         int loose = 0;
         long looseColumns = 0;
+        var looseList = new List<(long Size, int X, int Z)>();
         var stack = new Stack<int>();
         for (var start = 0; start < seen.Length; start++)
         {
-            if (map.Biome[start] != riverRow || seen[start])
+            if (!IsRiver(map, start) || seen[start])
             {
                 continue;
             }
 
             long size = 0;
+            var atEdge = false;
+            long sumX = 0;
+            long sumY = 0;
             var touches = false;
             seen[start] = true;
             stack.Push(start);
@@ -105,6 +108,9 @@ internal static class Stats
                 size++;
                 var x = i % w;
                 var y = i / w;
+                sumX += x;
+                sumY += y;
+                atEdge |= x == 0 || y == 0 || x == w - 1 || y == h - 1;
                 for (var dy = -2; dy <= 2; dy++)
                 {
                     for (var dx = -2; dx <= 2; dx++)
@@ -116,11 +122,11 @@ internal static class Stats
                         }
 
                         var j = (ny * w) + nx;
-                        if (map.Biome[j] == seaRow || map.Biome[j] == lakeRow)
+                        if (map.Water[j] && !IsRiver(map, j))
                         {
                             touches = true;
                         }
-                        else if (Math.Abs(dx) <= 1 && Math.Abs(dy) <= 1 && map.Biome[j] == riverRow && !seen[j])
+                        else if (Math.Abs(dx) <= 1 && Math.Abs(dy) <= 1 && IsRiver(map, j) && !seen[j])
                         {
                             seen[j] = true;
                             stack.Push(j);
@@ -129,9 +135,9 @@ internal static class Stats
                 }
             }
 
-            if (size < 4)
+            if (size < 4 || atEdge)
             {
-                continue;
+                continue; // a body that runs off the map has an end the map does not show
             }
 
             bodies++;
@@ -144,11 +150,16 @@ internal static class Stats
             {
                 loose++;
                 looseColumns += size;
+                looseList.Add((size, map.BlockX((int)(sumX / size)), map.BlockZ((int)(sumY / size))));
             }
         }
 
-        return string.Create(CultureInfo.InvariantCulture, $"rivers: {bodies} bodies; {Pct(reaching, total)}% of the river columns lie in bodies that reach the sea or a lake; {loose} bodies ({Pct(looseColumns, total)}% of the columns) reach neither");
+        return string.Create(CultureInfo.InvariantCulture, $"rivers: {bodies} bodies; {Pct(reaching, total)}% of the river columns lie in bodies that reach the sea or a lake; {loose} bodies ({Pct(looseColumns, total)}% of the columns) reach neither")
+            + (looseList.Count == 0 ? string.Empty : "; the largest of them (columns at x, z): " + string.Join(", ", looseList.OrderByDescending(b => b.Size).Take(4).Select(b => $"{b.Size} at {b.X}, {b.Z}")));
     }
+
+    // A river column: under water and carved by the river (a lake or the sea is water that is not).
+    private static bool IsRiver(WorldMap map, int i) => map.Water[i] && map.River[i] > 1000;
 
     private static string Profile(WorldMap map, int[] distance, bool onLand)
     {

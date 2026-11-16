@@ -102,7 +102,7 @@ public sealed class HeightModelTests
         var middleDiffers = 0;
         for (var i = 0; i < 300; i++)
         {
-            var middle = Climate(3500, -4096, 2600);
+            var middle = Climate(3500, -4096, 3100);
             middleDiffers += on.Shape(i * 7, i * 3, middle).Height != off.Shape(i * 7, i * 3, middle).Height ? 1 : 0;
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height, on.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height); // low ground: none
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height, on.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height); // the crest: crags, not shelves
@@ -136,7 +136,7 @@ public sealed class HeightModelTests
         var (highestFaded, highestUnfaded) = (int.MinValue, int.MinValue);
         for (var i = 0; i < 300; i++)
         {
-            var sea = Climate(150, -4096, 4096); // the shore is at 75 thousandths, so 150 of 4096 is the sea; the erosion and ridges are the highest range's
+            var sea = Climate(-300, -4096, 4096); // the shore is at 0 thousandths, so -300 of 4096 is the sea; the erosion and ridges are the highest range's
             highestFaded = Math.Max(highestFaded, faded.Shape(i * 11, i * 7, sea).Height);
             highestUnfaded = Math.Max(highestUnfaded, unfaded.Shape(i * 11, i * 7, sea).Height);
         }
@@ -155,9 +155,9 @@ public sealed class HeightModelTests
             return heights.Max() - heights.Min();
         }
 
-        var coast = Spread(300); // the coast's hills: a quarter of their amplitude
+        var coast = Spread(40); // the coast's hills: none at the shore
         var inland = Spread(1600);
-        Assert.True(coast <= 5, $"hills at the coast span {coast} blocks");
+        Assert.True(coast <= 2, $"hills at the coast span {coast} blocks");
         Assert.True(inland >= coast + 3, $"hills far inland span {inland} blocks, at the coast {coast}");
     }
 
@@ -166,8 +166,8 @@ public sealed class HeightModelTests
     {
         var model = new HeightModel(World, 42);
 
-        var river = model.Shape(100, 100, Climate(820, 4096, 0, river: 0));
-        var bank = model.Shape(100, 100, Climate(820, 4096, 0, river: 4096));
+        var river = model.Shape(100, 100, Climate(300, 4096, 0, river: 0));
+        var bank = model.Shape(100, 100, Climate(300, 4096, 0, river: 4096));
 
         Assert.Equal(4096, river.RiverWeight);
         Assert.True(river.Water);
@@ -178,11 +178,54 @@ public sealed class HeightModelTests
     }
 
     [Fact]
+    public void Given_ARiverOnHighGround_When_TheColumnIsShaped_Then_ItsValleyIsCutUnderTheGroundAboveTheSeaAndNoRiverBeginsAboveTheSources()
+    {
+        var valley = new HeightModel(Flat(150), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
+        var below = new HeightModel(Flat(150), 42).Shape(0, 0, Climate(0, 0, 0, river: 4096));
+        var source = new HeightModel(Flat(235), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
+        var gone = new HeightModel(Flat(262), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
+
+        Assert.False(valley.Water); // the water is the sea's: the valley's floor is far above it
+        Assert.InRange(valley.NaturalHeight - valley.Height, 25, 50); // a valley, as deep under the ground as the model says, not a trench to the sea
+        Assert.Equal(0, below.RiverWeight);
+        Assert.InRange(source.RiverWeight, 1, 2000); // near the sources the river is faint
+        Assert.Equal(0, gone.RiverWeight);
+    }
+
+    [Fact]
+    public void Given_ALowlandRiver_When_ItIsNearTheCoastAndFarInland_Then_ItHasWaterOnlyInItsLowerReach()
+    {
+        var model = new HeightModel(Flat(42), 42);
+
+        var near = model.Shape(0, 0, Climate(40, 4096, 0, river: 0)); // 10 thousandths: a few blocks from the shore
+        var inland = model.Shape(0, 0, Climate(900, 4096, 0, river: 0)); // 220 thousandths: far inland of the shore
+
+        Assert.True(near.Water, "the river's mouth holds water");
+        Assert.False(inland.Water, "inland the floor is a block over the sea: a dry valley");
+        Assert.True(inland.RiverWeight > 0 && inland.Height < inland.NaturalHeight, "but it is still a valley");
+    }
+
+    [Fact]
+    public void Given_ThePeakVariation_When_ColumnsOfARidgeAreShaped_Then_TheSpineRisesAndFallsAlongItAndIsFlatWithoutIt()
+    {
+        var on = new HeightModel(World, 42);
+        var off = new HeightModel(World with { Height = World.Height with { PeakVariation = null, Crags = World.Height.Crags with { Amplitude = 0 } } }, 42);
+        int Spread(HeightModel model)
+        {
+            var heights = Enumerable.Range(0, 300).Select(i => model.Shape(i * 40, 7, Climate(2500, -4096, 4096)).Height).ToArray();
+            return heights.Max() - heights.Min();
+        }
+
+        var (varied, level) = (Spread(on), Spread(off));
+        Assert.True(varied >= level + 40, $"along a ridge of 12 000 blocks the crest spans {varied} blocks with the variation and {level} without");
+    }
+
+    [Fact]
     public void Given_RiversOnHighLandAndInTheSea_When_ColumnsAreShaped_Then_TheyFadeOut()
     {
         var model = new HeightModel(World, 42);
 
-        Assert.Equal(0, model.Shape(0, 0, Climate(4096, 4096, 0, river: 0)).RiverWeight); // the plateau is above the fade
+        Assert.Equal(0, new HeightModel(Flat(300), 42).Shape(0, 0, Climate(0, 0, 0, river: 0)).RiverWeight); // the ground above the sources: no river begins there
         Assert.True(model.Shape(0, 0, Climate(-250, 4096, 0, river: 0)).RiverWeight < 4096 || true);
         Assert.Equal(0, model.Shape(0, 0, Climate(-4096, 4096, 0, river: 0)).RiverWeight); // the open sea needs none
         var seaFloor = model.Shape(0, 0, Climate(-4096, 4096, 0, river: 0));
@@ -198,7 +241,7 @@ public sealed class HeightModelTests
         {
             for (var x = -3000; x < 3000; x += 16)
             {
-                var shape = model.Shape(x, z, Climate(900, 3000, 0));
+                var shape = model.Shape(x, z, Climate(400, 3000, 0));
                 if (shape.LakeWeight > 0 && shape.Water)
                 {
                     lakes++;
@@ -213,7 +256,7 @@ public sealed class HeightModelTests
         }
 
         Assert.True(lakes > 100, $"{lakes} lake columns in a 6000-block square of lowland");
-        Assert.Equal(0, model.Shape(0, 0, Climate(900, -4096, 0)).LakeWeight); // rugged land holds no lake
+        Assert.Equal(0, model.Shape(0, 0, Climate(400, -4096, 0)).LakeWeight); // rugged land holds no lake
         Assert.Equal(0, model.Shape(0, 0, Climate(4096, 3000, 0)).LakeWeight); // and neither does the high plateau
     }
 

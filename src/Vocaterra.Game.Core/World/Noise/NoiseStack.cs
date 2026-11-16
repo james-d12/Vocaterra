@@ -51,15 +51,17 @@ internal sealed class NoiseStack
     /// <param name="z">The block's z.</param>
     /// <param name="baseCell">The first octave's cell in blocks.</param>
     /// <param name="octaves">The number of octaves (at least 1).</param>
-    public int Ridged(int x, int z, int baseCell, int octaves)
+    /// <param name="round">The thousandths over which the crest of each ridge is rounded: the fold <c>|n|</c> becomes <c>sqrt(n^2 + r^2) - r</c>, smooth at the crest (0: sharp).</param>
+    public int Ridged(int x, int z, int baseCell, int octaves, int round = 0)
     {
+        var r = (long)round * IntMath.One / 1000;
         long sum = 0;
         long total = 0;
         for (var o = 0; o < octaves; o++)
         {
             var weight = IntMath.One >> o;
             var n = _noise.Sample(o, x, z, Math.Max(1, baseCell >> o));
-            var ridge = IntMath.One - Math.Abs(n);
+            var ridge = IntMath.One - (r == 0 ? Math.Abs(n) : (int)(IntMath.ISqrt(((long)n * n) + (r * r)) - r));
             sum += ((long)ridge * ridge / IntMath.One) * weight;
             total += weight;
         }

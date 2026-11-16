@@ -14,7 +14,8 @@ namespace Vocaterra.WorldPreview;
 /// <param name="Snow">Whether the ground is above the snow line (temperature at the ground below the snow threshold), on land.</param>
 /// <param name="SnowLine">The lowest y at which snow lies in this column, or null when it is never cold enough.</param>
 /// <param name="TreeLine">The lowest y above which no tree grows in this column, or null when it is never cold enough.</param>
-internal readonly record struct Column(int Ground, bool Water, int WaterLevel, int Biome, bool Snow, int? SnowLine, int? TreeLine);
+/// <param name="RiverWeight">How much a river carved the column, 0 to 4 096 (0 in the valley world, which has no weights).</param>
+internal readonly record struct Column(int Ground, bool Water, int WaterLevel, int Biome, bool Snow, int? SnowLine, int? TreeLine, int RiverWeight = 0);
 
 /// <summary>The columns of a square area, one for each pixel.</summary>
 internal sealed class WorldMap
@@ -30,6 +31,7 @@ internal sealed class WorldMap
         Water = new bool[width * height];
         Snow = new bool[width * height];
         Biome = new short[width * height];
+        River = new short[width * height];
     }
 
     /// <summary>The block x of the first pixel.</summary>
@@ -52,6 +54,9 @@ internal sealed class WorldMap
     public bool[] Snow { get; }
 
     public short[] Biome { get; }
+
+    /// <summary>How much a river carved each column, 0 to 4 096.</summary>
+    public short[] River { get; }
 
     /// <summary>The block x of a pixel column.</summary>
     public int BlockX(int px) => Left + (px * Scale);
@@ -150,6 +155,7 @@ internal sealed class WorldSampler
                     map.Water[i] = column.Water;
                     map.Snow[i] = column.Snow;
                     map.Biome[i] = (short)column.Biome;
+                    map.River[i] = (short)column.RiverWeight;
                 }
             }
         });
@@ -173,7 +179,7 @@ internal sealed class WorldSampler
         var shape = ShapeAt(x, z, c);
         var column = _biomes.Classify(c, shape.Height, x, z);
         var snow = column.Snow;
-        return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow));
+        return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow), shape.RiverWeight);
     }
 
     private ClimateSample ClimateAt(int x, int z) => _places is null ? _climate.At(x, z) : _places.ClimateAt(x, z);

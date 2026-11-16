@@ -57,7 +57,13 @@ public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec
         return new RegionBlendData(
             section.GetProperty("margin").GetInt32(),
             section.GetProperty("treeClearance").GetInt32(),
-            new LandBiasSpec(bias.GetProperty("floor").GetInt32(), bias.GetProperty("shoreFloor").GetInt32(), bias.GetProperty("radius").GetInt32()),
+            new LandBiasSpec(
+                bias.GetProperty("floor").GetInt32(),
+                bias.GetProperty("shoreFloor").GetInt32(),
+                bias.GetProperty("radius").GetInt32(),
+                bias.TryGetProperty("erosion", out var erosion)
+                    ? new ErosionBiasSpec(erosion.GetProperty("near").GetInt32(), erosion.GetProperty("far").GetInt32(), erosion.GetProperty("fromRadius").GetInt32(), erosion.GetProperty("toRadius").GetInt32(), erosion.GetProperty("fadeRadius").GetInt32())
+                    : null),
             corridors,
             section.TryGetProperty("edgeSmoothing", out var smoothing)
                 ? new EdgeSmoothingSpec(smoothing.GetProperty("blurRadius").GetInt32(), smoothing.GetProperty("ease").GetInt32())
@@ -76,7 +82,20 @@ public sealed record RegionBlendData(int Margin, int TreeClearance, LandBiasSpec
 /// <param name="Floor">The least continentalness, in thousandths, at the region's edge.</param>
 /// <param name="ShoreFloor">The least continentalness, in thousandths, at <paramref name="Radius"/> blocks out: a little inland of the sea.</param>
 /// <param name="Radius">The distance, in blocks, over which the floor falls from <paramref name="Floor"/> to <paramref name="ShoreFloor"/>.</param>
-public sealed record LandBiasSpec(int Floor, int ShoreFloor, int Radius);
+/// <param name="Erosion">How the erosion round a region is shaped (the file's <c>erosion</c> part; none: the erosion is the free world's).</param>
+public sealed record LandBiasSpec(int Floor, int ShoreFloor, int Radius, ErosionBiasSpec? Erosion = null);
+
+/// <summary>
+/// The erosion round a region (B02b redo): calm (never below <see cref="Near"/>) out to <see cref="FromRadius"/> blocks from the region's edge, so the ground round the valley is gentle hills; then rugged (never above <see cref="Far"/>)
+/// from <see cref="ToRadius"/>, so ranges can stand in the land beyond; the ruggedness gives way to the free world's erosion again between <see cref="ToRadius"/> and <see cref="FadeRadius"/>. The ridges stay the free world's, so the ranges that
+/// rise are chains along its ridge lines.
+/// </summary>
+/// <param name="Near">The least erosion, in thousandths, in the calm ring.</param>
+/// <param name="Far">The most erosion, in thousandths, in the rugged belt (low erosion is rugged).</param>
+/// <param name="FromRadius">The distance from the edge, in blocks, where the calm ring ends and the belt begins.</param>
+/// <param name="ToRadius">The distance where the belt is full.</param>
+/// <param name="FadeRadius">The distance beyond which the free world's erosion is back.</param>
+public sealed record ErosionBiasSpec(int Near, int Far, int FromRadius, int ToRadius, int FadeRadius);
 
 /// <summary>
 /// A walkable way out of a region: a straight road from (<see cref="FromX"/>, <see cref="FromZ"/>), at the region's edge, to (<see cref="ToX"/>, <see cref="ToZ"/>) outside it. Its ground starts

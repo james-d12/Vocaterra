@@ -17,7 +17,7 @@ public sealed class RegionBlendDataTests
         var blend = Shipped.Blend;
 
         Assert.Equal((64, 3), (blend.Margin, blend.TreeClearance));
-        Assert.Equal(new LandBiasSpec(150, 105, 512), blend.LandBias);
+        Assert.Equal(new LandBiasSpec(450, 150, 3000, new ErosionBiasSpec(250, -250, 800, 1800, 8000)), blend.LandBias);
         Assert.Equal(new EdgeSmoothingSpec(16, 16), blend.Smoothing);
         Assert.Equal(new HeadwaterSpec(320), blend.Headwater); // a few hundred blocks beyond the margin (B02b)
         var corridor = Assert.Single(blend.ExitCorridors);
@@ -93,6 +93,18 @@ public sealed class RegionBlendDataTests
 
         Assert.Equal(HeadwaterSpec.Default, world.Blend.Headwater);
         Assert.Empty(Problems(world));
+    }
+
+    [Theory]
+    [InlineData(-250, 250, 800, 1800, 8000)] // far above near
+    [InlineData(250, -250, 1800, 800, 8000)] // the radii fall
+    [InlineData(250, -250, 800, 1800, 20000)] // too far
+    [InlineData(2000, -250, 800, 1800, 8000)] // out of range
+    public void Given_AnErosionBiasOutOfRange_When_TheWorldIsValidated_Then_ItIsRefused(int near, int far, int from, int to, int fade)
+    {
+        var bad = Shipped with { RegionBlend = Shipped.Blend with { LandBias = Shipped.Blend.LandBias with { Erosion = new ErosionBiasSpec(near, far, from, to, fade) } } };
+
+        Assert.Contains(Problems(bad), static p => p.Contains("landBias.erosion", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -45,7 +45,7 @@ public sealed class WorldShapeTests
         }
 
         var waterShare = water * 100.0 / samples;
-        Assert.InRange(waterShare, 50, 80); // the tuned world (B02b): big seas round continents, about two thirds of the map
+        Assert.InRange(waterShare, 35, 48); // the tuned world (B02b redo): big seas between continents, 35 to 45% of the map
         Assert.InRange(high * 100.0 / samples, 0.3, 8);
         Assert.InRange(tallest, 220, data.WorldGen.Height.Clamp);
         Assert.True(rivers > samples / 200, $"{rivers} river columns of {samples}");

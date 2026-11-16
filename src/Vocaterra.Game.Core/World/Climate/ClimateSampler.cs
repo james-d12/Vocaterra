@@ -27,7 +27,8 @@ public sealed class ClimateSampler : IClimateSampler
         _data = world.Climate;
         _seaLevel = world.Vertical.SeaLevel;
         var lattice = _data.LatticeBlocks;
-        _continentalness = Field(seed, "continentalness", _data.Continentalness, lattice, false);
+        var field = _data.Continents is { } continents ? new ContinentField(seed, continents, _data.Continentalness) : null;
+        _continentalness = field is null ? Field(seed, "continentalness", _data.Continentalness, lattice, false) : new LatticeSampler2(lattice, field.At);
         _erosion = Field(seed, "erosion", _data.Erosion, lattice, false);
         _ridges = Field(seed, "ridges", _data.Ridges, lattice, true);
         _temperature = Field(seed, "temperature", _data.Temperature, lattice, false);
@@ -76,7 +77,7 @@ public sealed class ClimateSampler : IClimateSampler
         return new LatticeSampler2(lattice, (x, z) =>
         {
             var (wx, wz) = stack.Warp(x, z, spec.WarpCell, spec.WarpBlocks);
-            return ridged ? stack.Ridged(wx, wz, spec.Cell, spec.Octaves) : stack.Fbm(wx, wz, spec.Cell, spec.Octaves);
+            return ridged ? stack.Ridged(wx, wz, spec.Cell, spec.Octaves, spec.Round) : stack.Fbm(wx, wz, spec.Cell, spec.Octaves);
         });
     }
 }

@@ -23,6 +23,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
     private readonly NoiseStack _hills;
     private readonly NoiseStack _crags;
     private readonly NoiseStack _lakes;
+    private readonly NoiseStack _summits;
 
     /// <summary>Creates the height model of one world seed.</summary>
     /// <param name="world">The world's numbers.</param>
@@ -39,6 +40,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         _hills = new NoiseStack(seed, "surface/hills");
         _crags = new NoiseStack(seed, "surface/crags");
         _lakes = new NoiseStack(seed, "surface/lakes");
+        _summits = new NoiseStack(seed, "surface/summits");
     }
 
     /// <inheritdoc />
@@ -53,12 +55,13 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var coast = _data.Coast;
         var factor = _factor.Evaluate(c.Erosion);
         var inland = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.PeaksFrom), FieldScale.FromThousandths(coast.PeaksTo));
-        var h16 = _base.Evaluate(c.Continentalness) + (int)((long)(factor * (long)inland / One) * _peaks.Evaluate(c.Ridges) / One);
+        var h16 = _base.Evaluate(c.Continentalness) + (int)((long)(factor * (long)inland / One) * Summit(x, z, _peaks.Evaluate(c.Ridges)) / One);
 
         var detail = _data.Detail;
         var amplitude = IntMath.Lerp(detail.CalmAmplitude, detail.RuggedAmplitude, factor);
         var calm = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.HillsFrom), FieldScale.FromThousandths(coast.HillsTo));
         amplitude = (int)((long)amplitude * IntMath.Lerp(FieldScale.FromThousandths(coast.HillsFloor), One, calm) / One);
+        amplitude = (int)((long)amplitude * IntMath.Ramp(h16, coast.FlatFrom * 16, coast.FlatTo * 16) / One); // none on the low ground just over the sea
         if (amplitude > 0)
         {
             h16 += (int)((long)_hills.Fbm(x, z, detail.HillsCell, detail.HillsOctaves) * amplitude * 16 / One);
@@ -78,7 +81,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var riverWeight = RiverWeight(c, natural, share);
         if (riverWeight > 0)
         {
-            h16 = IntMath.Lerp(h16, Math.Min(h16, _data.Rivers.BedHeight * 16), riverWeight);
+            h16 = IntMath.Lerp(h16, Math.Min(h16, RiverFloor(natural, c.Continentalness)), riverWeight);
         }
 
         var lakeWeight = LakeWeight(x, z, c, natural, share);
@@ -90,6 +93,35 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var height = Math.Clamp(IntMath.DivDown(h16, 16), _minY + 1, _data.Clamp);
         var water = height < _seaLevel;
         return new ColumnShape(height, Math.Max(IntMath.DivDown(natural, 16), height), water, water ? _seaLevel : -1, riverWeight, lakeWeight);
+    }
+
+    // The peaks of a column scaled along the range: the summits stand where the noise is high and the saddles where it is low.
+    private int Summit(int x, int z, int peaks16)
+    {
+        if (_data.PeakVariation is not { } v || peaks16 == 0)
+        {
+            return peaks16;
+        }
+
+        var t = Math.Clamp((One / 2) + (_summits.Fbm(x, z, v.Cell, v.Octaves) * 3 / 2), 0, One); // spread over the noise's usual range, so there are summits and saddles and not one middling height
+        var share = FieldScale.FromThousandths(v.MinShare);
+        return (int)((long)peaks16 * IntMath.Lerp(share, One, IntMath.Smooth(t)) / One);
+    }
+
+    // The floor of a river's channel: the bed on low land, and on high ground a floor about as deep under the ground as at the valley's foot and deeper with the height (a valley that runs down, never a trench with a flat bed).
+    private int RiverFloor(int natural16, int continentalness)
+    {
+        var river = _data.Rivers;
+        var bed = river.BedHeight * 16;
+        if (river.Valley is not { } valley)
+        {
+            return bed;
+        }
+
+        var from = valley.From * 16;
+        var floor = natural16 <= from ? bed : Math.Max(bed, natural16 - ((from - bed) + (int)((long)(natural16 - from) * valley.DepthGrowth / 1000)));
+        var dry = IntMath.Ramp(continentalness, FieldScale.FromThousandths(valley.WaterFrom), FieldScale.FromThousandths(valley.WaterTo));
+        return IntMath.Lerp(floor, Math.Max(floor, (_seaLevel + 1) * 16), dry); // inland the river has no water: its floor stays a block over the sea
     }
 
     // Shelves on the steep middle slopes: from the foot height up, only where the land is rugged, and fading out towards the crest (which has crags instead).
@@ -132,7 +164,13 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
     private int RiverWeight(in ClimateSample c, int natural16, int water)
     {
         var river = _data.Rivers;
-        var width = (int)((long)FieldScale.FromThousandths(river.Width) * water / One);
+        var wide = FieldScale.FromThousandths(river.Width);
+        if (river.Valley is { } valley)
+        {
+            wide += FieldScale.FromThousandths((int)((long)Math.Max(0, natural16 - (valley.From * 16)) * valley.WidthPer10Blocks / 160)); // per 10 blocks of ground: natural16 / 16 / 10
+        }
+
+        var width = (int)((long)wide * water / One);
         if (width == 0)
         {
             return 0;
