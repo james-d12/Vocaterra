@@ -19,6 +19,18 @@ public sealed class FarTile(FarTileKey key)
     /// <summary>The vertices on the graphics card, once uploaded.</summary>
     public VertexBuffer? Buffer { get; set; }
 
+    /// <summary>The indices on the graphics card, once uploaded.</summary>
+    public IndexBuffer? Indices { get; set; }
+
+    /// <summary>The triangles the tile has.</summary>
+    public int Triangles { get; set; }
+
+    /// <summary>How many of the first indices are the opaque faces', and how many after them the self-lit faces' (the water's are the rest).</summary>
+    public (int Opaque, int Lit, int Water) Runs { get; set; }
+
+    /// <summary>The memory the tile holds, in bytes.</summary>
+    public long Bytes { get; set; }
+
     /// <summary>The box round the tile, once it is built.</summary>
     public BoundingBox Box { get; set; }
 
@@ -38,7 +50,7 @@ public sealed class FarTile(FarTileKey key)
 /// <param name="Triangles">The triangles of the last draw list.</param>
 /// <param name="BuildMilliseconds">The sampling and meshing time of every tile built, summed over every thread.</param>
 /// <param name="LongestBuildMilliseconds">The slowest tile.</param>
-/// <param name="Bytes">The memory the cached tiles hold (16 bytes a vertex, on the card or waiting to go there).</param>
+/// <param name="Bytes">The memory the cached tiles hold (vertices and indices, on the card or waiting to go there).</param>
 public readonly record struct FarViewStats(int Cached, int Drawn, int Building, long Built, long Vertices, long Triangles, double BuildMilliseconds, double LongestBuildMilliseconds, long Bytes);
 
 /// <summary>
@@ -52,6 +64,7 @@ public sealed class FarView
     private const int FallbackSteps = 4;
 
     private readonly FarTerrainSampler _sampler;
+    private ILodColumnSource _source;
     private readonly JobPool _pool;
     private readonly Dictionary<FarTileKey, FarTile> _tiles = [];
     private readonly HashSet<FarTileKey> _building = [];
@@ -78,6 +91,7 @@ public sealed class FarView
         ArgumentNullException.ThrowIfNull(pool);
         _sampler = sampler;
         Settings = settings;
+        _source = sampler.Lod(settings.TreeLevels);
         _pool = pool;
         FarPalette.Warm();
     }
@@ -100,12 +114,14 @@ public sealed class FarView
         get
         {
             long vertices = 0;
+            long bytes = 0;
             foreach (var tile in _tiles.Values)
             {
                 vertices += tile.Vertices;
+                bytes += tile.Bytes;
             }
 
-            return new FarViewStats(_tiles.Count, _draw.Count, _building.Count, _built, vertices, _drawnTriangles, TimeSpan.FromTicks((long)_buildTicks).TotalMilliseconds, _longest, vertices * 16);
+            return new FarViewStats(_tiles.Count, _draw.Count, _building.Count, _built, vertices, _drawnTriangles, TimeSpan.FromTicks((long)_buildTicks).TotalMilliseconds, _longest, bytes);
         }
     }
 
@@ -135,8 +151,13 @@ public sealed class FarView
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(dispose);
-        var reshaped = settings.BaseCell != Settings.BaseCell || settings.TileCells != Settings.TileCells || settings.Levels != Settings.Levels;
+        var reshaped = settings.TileCells != Settings.TileCells || settings.Levels != Settings.Levels || settings.TreeLevels != Settings.TreeLevels;
         Settings = settings;
+        if (reshaped)
+        {
+            _source = _sampler.Lod(settings.TreeLevels);
+        }
+
         _selectedFor = (double.NaN, 0, 0);
         if (reshaped)
         {
@@ -171,7 +192,7 @@ public sealed class FarView
         }
 
         // The leaves change only when the eye moves far enough to cross a tile edge or a split distance, a few blocks at the finest level: re-select when it moved at least a cell.
-        var step = Settings.BaseCell;
+        var step = 8;
         if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance)
         {
             _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance);
@@ -235,6 +256,9 @@ public sealed class FarView
             tile.Pending = mesh;
             tile.Box = mesh.Box;
             tile.Vertices = mesh.Vertices.Length;
+            tile.Triangles = mesh.Triangles;
+            tile.Bytes = mesh.Bytes;
+            tile.Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -246,6 +270,7 @@ public sealed class FarView
     {
         var settings = Settings;
         var grey = _grey;
+        var source = _source;
         foreach (var key in _leaves)
         {
             if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) || !_building.Add(key))
@@ -259,7 +284,7 @@ public sealed class FarView
                 JobLane.Tiles,
                 distance,
                 () => !_wanted.Contains(captured),
-                () => _done.Enqueue(FarTileMesher.Build(_sampler, settings, captured, grey)));
+                () => _done.Enqueue(FarTileMesher.Build(source, settings, captured, grey)));
         }
 
         // A job skipped as stale leaves its key in _building: forget the keys that are no longer wanted so they can be asked for again.
@@ -276,13 +301,12 @@ public sealed class FarView
         _fallbacks.Clear();
         var standIns = new HashSet<FarTileKey>();
         long triangles = 0;
-        var perTile = FarTileTopology.TriangleCount(Settings.TileCells);
         foreach (var key in _leaves)
         {
             if (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt)
             {
                 _draw.Add(tile);
-                triangles += perTile;
+                triangles += tile.Triangles;
                 continue;
             }
 
@@ -295,7 +319,7 @@ public sealed class FarView
                     if (standIns.Add(ancestor))
                     {
                         _fallbacks.Add(stand);
-                        triangles += perTile;
+                        triangles += stand.Triangles;
                     }
 
                     break;

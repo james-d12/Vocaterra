@@ -5,13 +5,13 @@ using Vocaterra.Game.Graphics.Blocks;
 namespace Vocaterra.Game.Graphics.Far;
 
 /// <summary>
-/// The colours the far land is drawn in (B07): the average colour of each block's top face in the block atlas's own art, so a far meadow is the green of the near one. A block with no art, or a
-/// transparent one, falls back to a grey. Made once for a block and shared by every worker thread.
+/// The colours the far land is drawn in (B07, B07c): the average colour of each block's art in the block atlas, read once at load, so a far meadow is the green of the near one: the top face's for a top, the side face's for a step's
+/// side (a grass block's side is the dirt with its green rim). A block with no art, or a transparent one, falls back to a grey. Made once for a block and shared by every worker thread.
 /// </summary>
 public static class FarPalette
 {
     private static readonly (byte R, byte G, byte B) Grey = (128, 128, 128);
-    private static readonly ConcurrentDictionary<BlockId, (byte R, byte G, byte B)> Cache = new();
+    private static readonly ConcurrentDictionary<(BlockId Block, bool Side), (byte R, byte G, byte B)> Cache = new();
 
     /// <summary>Makes the colour of every block now, on the calling thread (the game loop's), so that the worker threads only ever read it.</summary>
     public static void Warm()
@@ -19,24 +19,29 @@ public static class FarPalette
         foreach (var block in Enum.GetValues<BlockId>())
         {
             _ = Of(block);
+            _ = SideOf(block);
         }
     }
 
     /// <summary>The colour of a block's top face.</summary>
     /// <param name="block">The block.</param>
-    public static (byte R, byte G, byte B) Of(BlockId block) => Cache.GetOrAdd(block, static id => Average(id));
+    public static (byte R, byte G, byte B) Of(BlockId block) => Cache.GetOrAdd((block, false), static key => Average(key.Block, BlockFace.Up));
 
-    /// <summary>The colour of the sea: the water art's average, deepened.</summary>
+    /// <summary>The colour of a block's side face.</summary>
+    /// <param name="block">The block.</param>
+    public static (byte R, byte G, byte B) SideOf(BlockId block) => Cache.GetOrAdd((block, true), static key => Average(key.Block, BlockFace.East));
+
+    /// <summary>The colour of the sea: the water art's average.</summary>
     public static (byte R, byte G, byte B) Water => Of(BlockId.Water);
 
-    /// <summary>The colour of leaves, for the forest tint.</summary>
+    /// <summary>The colour of leaves.</summary>
     public static (byte R, byte G, byte B) Leaves => Of(BlockId.Leaves);
 
-    private static (byte R, byte G, byte B) Average(BlockId block)
+    private static (byte R, byte G, byte B) Average(BlockId block, BlockFace face)
     {
         try
         {
-            var pixels = BlockArt.Pixels(BlockAtlasLayout.CellFor(block, BlockFace.Up));
+            var pixels = BlockArt.Pixels(BlockAtlasLayout.CellFor(block, face));
             long r = 0;
             long g = 0;
             long b = 0;

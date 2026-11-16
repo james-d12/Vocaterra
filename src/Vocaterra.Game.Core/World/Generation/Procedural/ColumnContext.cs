@@ -17,7 +17,7 @@ internal readonly record struct ColumnSurface(int Height, BlockId Top, BlockId F
 /// and the biomes classified on demand. Every pass reads this and nothing outside it, so what a chunk holds depends on the window and never on which chunks were made before. One context
 /// serves all 24 chunk layers of the column; it is not shared between threads.
 /// </summary>
-internal sealed class ColumnContext
+internal sealed class ColumnContext : ITreeGround
 {
     private readonly ClimateSample[] _climate;
     private readonly ColumnShape[] _shapes;
