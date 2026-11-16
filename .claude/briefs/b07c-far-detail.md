@@ -4,7 +4,7 @@ This milestone's work is in the game: the far view's drawing in src/Vocaterra.Ga
 FarTerrainRenderer, FarView, FarViewSettings), its sampler in src/Vocaterra.Game.Core/World/Far (FarTerrainSampler, FarSample), a pure
 tree-placement query shared with the tree pass (World/Generation/Procedural/TreePass.cs), the quality presets, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b07c, already on the local branch `B07c-far-detail` (cut from
-`feature/biomes` at @@BASE@@, which holds the streamed world and far view (B07) and the final terrain (B02b)). Run every command from that
+`feature/biomes` at 2114d8f4, which holds the streamed world and far view (B07) and the final terrain (B02b)). Run every command from that
 directory. Commit after each item that builds and passes its tests, with the prefix `B07c: `. Do not push. Never push or merge
 feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test, format and run, every game run, screenshot and scripted run through scripts/limited.sh
@@ -67,7 +67,7 @@ Deliverables:
    Low. Pick viewpoints on open ground with nothing in front of the camera.
 8. **Documents:** the Game README (the far view), docs/game/running.md (the presets' far settings).
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,267 passed before, plus your new tests); format clean; content
 validate. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
