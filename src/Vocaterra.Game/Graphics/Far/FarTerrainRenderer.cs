@@ -110,7 +110,13 @@ public sealed class FarTerrainRenderer : IDisposable
         _drawn = 0;
         _visible.Clear();
         var settings = _view.Settings;
-        if (!settings.Enabled || _view.Draw.Count == 0)
+        if (!settings.Enabled)
+        {
+            return;
+        }
+
+        UploadPending(settings.TopLevel); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        if (_view.Draw.Count == 0)
         {
             return;
         }
@@ -135,7 +141,6 @@ public sealed class FarTerrainRenderer : IDisposable
         _effect.FogEnd = state.FogEnd;
         _device.DepthStencilState = DepthStencilState.Default;
         _device.BlendState = BlendState.Opaque;
-        UploadPending(settings.TopLevel);
         _device.RasterizerState = RasterizerState.CullClockwise;
         for (var i = 0; i < _view.Draw.Count; i++)
         {
