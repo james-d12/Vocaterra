@@ -67,10 +67,15 @@ internal sealed class EntrancePass : IChunkDecorator
                     continue; // the column is outside the tube, or the tube does not reach its first block
                 }
 
-                // The floor under the passage: a gap in it (the landing in a cave) is built up.
-                if (floor >= chunk.MinY && floor <= chunk.MaxY && !BlockDefinition.IsSolid(chunk.Get(x, floor, z)))
+                // The floor under the passage: a gap in it (the landing in a cave) is built up, and where the floor is still the meadow's own layers (grass, dirt) it is loose gravel, cobble and stone, a scree slope into the hole.
+                if (floor >= chunk.MinY && floor <= chunk.MaxY)
                 {
-                    chunk.Set(x, floor, z, FloorBlock(x, floor, z));
+                    var column = ctx.SurfaceAt(x, z);
+                    var layers = !column.Water && floor >= column.Height - column.FillerDepth && floor <= column.Height;
+                    if (layers || !BlockDefinition.IsSolid(chunk.Get(x, floor, z)))
+                    {
+                        chunk.Set(x, floor, z, FloorBlock(x, floor, z));
+                    }
                 }
 
                 var top = Math.Min(floor + 14, chunk.MaxY);
