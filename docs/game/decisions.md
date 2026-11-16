@@ -905,6 +905,11 @@ the owner's answers of 2026-11-15 are in its section 5.
     slider on the settings page (saved with the other settings), its default denser than today's look; the generated world and the
     valley unchanged (a setting must not change the world's blocks). Then: "at least, you know, grass in the plains and the forests and
     stuff like that": lush in plains, meadows and forest floors, sparser in taiga and dry land, none on sand, snow or stone.
+35. **The far view at Voxy's distances: B19 documented, his screenshots the reference** (2026-11-16, about 16:10 UTC): after asking what it
+    takes to reach Voxy's and Distant Horizons' render distances ("that's what we want to achieve") and hearing the four limits (building
+    the data, draw calls, the card's memory, precision) and a two-step plan (within MonoGame first; card-driven rendering only if needed):
+    "Use those as reference" (his three Voxy screenshots of item 29, kept outside git in `artifacts/reference/voxy/`, third-party, never
+    committed). B19 in the biomes plan (section 3.10), planned only like B17.
 
 ## Already decided
 
