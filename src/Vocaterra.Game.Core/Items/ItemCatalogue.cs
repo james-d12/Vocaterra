@@ -31,10 +31,14 @@ public sealed partial class ItemCatalogue : IItemCatalogue
         _all = all;
         _byId = all.ToDictionary(static d => d.Id);
         _byName = all.ToDictionary(static d => d.Name, StringComparer.Ordinal);
+        LargestCapacity = all.Select(static d => d.Capacity ?? 0).DefaultIfEmpty(0).Max();
     }
 
     /// <inheritdoc />
     public IReadOnlyList<ItemDefinition> All => _all;
+
+    /// <inheritdoc />
+    public int LargestCapacity { get; }
 
     /// <summary>Reads the catalogue from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
@@ -73,7 +77,7 @@ public sealed partial class ItemCatalogue : IItemCatalogue
     /// <summary>Builds the catalogue from rows and checks them (the loader's own checks; a test's catalogue passes through here too).</summary>
     /// <param name="rows">The rows, in catalogue order.</param>
     /// <exception cref="InvalidDataException">A name is not a lowercase key or is used twice, an id is used twice, a stack limit is below one, an icon is empty, a held kind is unknown,
-    /// a wear kind, a stat key or a look part is not a lowercase key, a stat is not a finite number, or an <see cref="ItemId"/> member has no row with its id and name.</exception>
+    /// a wear kind, a stat key or a look part is not a lowercase key, a stat is not a finite number, a capacity is outside 1 to 100 or sits on an item that is not a bag worn on the back, or an <see cref="ItemId"/> member has no row with its id and name.</exception>
     public static ItemCatalogue Create(IEnumerable<ItemDefinition> rows)
     {
         ArgumentNullException.ThrowIfNull(rows);
@@ -138,6 +142,19 @@ public sealed partial class ItemCatalogue : IItemCatalogue
     // The gear fields (I03a): a wear kind is a lowercase key, a stat key is camelCase and its number finite and inside the limit (so no sum overflows), a look part is a lowercase key.
     private static void CheckGear(ItemDefinition row)
     {
+        if (row.Capacity is { } capacity)
+        {
+            if (capacity is < 1 or > ItemDefinition.MaxCapacity)
+            {
+                throw new InvalidDataException($"{RelativePath}: the capacity of '{row.Name}' is {capacity}; it must be from 1 to {ItemDefinition.MaxCapacity}.");
+            }
+
+            if (!row.HasTag(ItemDefinition.BagTag) || !string.Equals(row.Wear, ItemDefinition.BagWear, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException($"{RelativePath}: '{row.Name}' has a capacity, so it must carry the tag '{ItemDefinition.BagTag}' and be worn on the '{ItemDefinition.BagWear}'.");
+            }
+        }
+
         if (row.Wear is not null && !NamePattern().IsMatch(row.Wear))
         {
             throw new InvalidDataException($"{RelativePath}: the wear of '{row.Name}' is '{row.Wear}', which is not a lowercase key (letters, digits and hyphens).");
@@ -212,7 +229,8 @@ public sealed partial class ItemCatalogue : IItemCatalogue
             tool,
             element.TryGetProperty("wear", out var wear) ? wear.GetString() : null,
             Stats(name, element),
-            Look(name, element));
+            Look(name, element),
+            element.TryGetProperty("capacity", out var capacity) ? capacity.GetInt32() : null);
     }
 
     private static SortedDictionary<string, double>? Stats(string name, JsonElement element)

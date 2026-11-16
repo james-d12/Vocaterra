@@ -35,7 +35,7 @@ public sealed class DeathTests
     private static VoxelSession Playing(double hunger = 100, double thirst = 100, double health = 100)
     {
         var session = TestGame.NewSession();
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, ItemStack.Empty);
         }
@@ -259,7 +259,7 @@ public sealed class DeathTests
     {
         var session = Dying();
         var bag = session.Simulation.Inventory;
-        for (var slot = 0; slot < Inventory.SlotCount - 1; slot++)
+        for (var slot = 0; slot < bag.SlotCount - 1; slot++)
         {
             if (bag.Slots[slot].IsEmpty)
             {

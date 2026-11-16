@@ -20,4 +20,8 @@ public interface IItemCatalogue
     /// <summary>The definition whose key is <paramref name="name"/> (compared exactly), or <see langword="null"/>.</summary>
     /// <param name="name">The item's stable key (<c>wood</c>, <c>camp-kit</c>).</param>
     ItemDefinition? Find(string name);
+
+    /// <summary>The largest <see cref="ItemDefinition.Capacity"/> of any item (0 when no item is a bag): the bag adds at most this many slots, so the inventory's array is the base plus this (I03b).</summary>
+    /// <remarks>A source that keeps no cache can leave the default, which reads <see cref="All"/>.</remarks>
+    int LargestCapacity => All.Select(static d => d.Capacity ?? 0).DefaultIfEmpty(0).Max();
 }

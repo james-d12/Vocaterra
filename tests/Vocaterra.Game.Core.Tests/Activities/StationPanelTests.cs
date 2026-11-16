@@ -371,12 +371,12 @@ public sealed class StationPanelTests
     {
         var rig = new StationRig();
         var bag = rig.Session.Simulation.Inventory;
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < bag.SlotCount; slot++)
         {
             bag.SetSlot(slot, default);
         }
 
-        for (var slot = 0; slot < Inventory.SlotCount - 3; slot++)
+        for (var slot = 0; slot < bag.SlotCount - 3; slot++)
         {
             bag.SetSlot(slot, new ItemStack(ItemId.Torch, 1));
         }

@@ -86,7 +86,7 @@
 {"path":"game/checks.json","sha256":"89b6e9d15245629d77365ec0c4c4dcabf51081604027dc35b21f95e88beb8738","bytes":26577},
 {"path":"game/controls.json","sha256":"c2e01ce1c3b53fa3c6fd971f5e54f20c7cf9702eee5c9c932ae3fd18ed31800b","bytes":1040},
 {"path":"game/day.json","sha256":"7b21f1b9cd2460c5cf9f3e029d0c826f88b883ab5ce34fd0a8cd94f983bc5508","bytes":830},
-{"path":"game/equipment.json","sha256":"a1a3e37f2370eac991533ef96d46d9794db1c90450af12e04e3cae73b51c748e","bytes":2209},
+{"path":"game/equipment.json","sha256":"d298acced6c83b503a362c0ac82156293ca0a14c9a83f9a97bf3042957556cc5","bytes":2414},
 {"path":"game/host-events.json","sha256":"09eb40f1e41be4a1752520ac0243c5028030369a84abd6ee27bd5fd127e56506","bytes":6399},
 {"path":"game/items.json","sha256":"4bceed45467923ac3c4072e99e0eef394c4e6f0ea0151adca8d63370de849e3f","bytes":1455},
 {"path":"game/land.json","sha256":"26300fd7a08c3a0f6b983b075cb77fc731bff3028aa49ade835d01a0fdc52f3f","bytes":1582},
@@ -1808,4 +1808,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"5cfc31d1999112aa49750bdf8adee51460533637259805529e1e331a4fec0e07"}
+],"bundleHash":"2c59dfb696717983a153d710133961c9ae395ed8fa52d24b54c5086fb5264d86"}

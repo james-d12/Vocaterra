@@ -63,6 +63,7 @@ public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 /// <param name="Wear">The kind of slot the item is worn in (<c>head</c>, <c>body</c>, <c>legs</c>, <c>feet</c>, <c>accessory</c>, <c>offhand</c>, <c>back</c>: the <c>wear</c> of a slot of <c>game/equipment.json</c>), or <see langword="null"/> when it cannot be worn.</param>
 /// <param name="Stats">What the item adds to the player's stat sheet while it is worn, by open stat key (<c>warmth</c> in tenths of a degree), or <see langword="null"/> for none. Sorted by key.</param>
 /// <param name="Look">The colours the item gives the body parts it covers (drawn from I09 on), or <see langword="null"/> when it changes nothing.</param>
+/// <param name="Capacity">The bag slots a worn bag adds to the base of the inventory (I03b; only an item tagged <c>bag</c> and worn on the <c>back</c> has one), or <see langword="null"/> for an item that adds none.</param>
 public sealed record ItemDefinition(
     ItemId Id,
     string Name,
@@ -73,10 +74,20 @@ public sealed record ItemDefinition(
     ToolSpec? Tool = null,
     string? Wear = null,
     IReadOnlyDictionary<string, double>? Stats = null,
-    ItemLook? Look = null)
+    ItemLook? Look = null,
+    int? Capacity = null)
 {
     /// <summary>The stack limit of a material or a placeable block.</summary>
     public const int DefaultStackLimit = 99;
+
+    /// <summary>The tag a bag carries (the item with a <see cref="Capacity"/>).</summary>
+    public const string BagTag = "bag";
+
+    /// <summary>The kind of slot a bag is worn in.</summary>
+    public const string BagWear = "back";
+
+    /// <summary>The most slots one bag may add (a sanity limit, so the inventory's array stays a few rows).</summary>
+    public const int MaxCapacity = 100;
 
     /// <summary>Whether the item carries <paramref name="tag"/>.</summary>
     /// <param name="tag">The tag, compared exactly.</param>

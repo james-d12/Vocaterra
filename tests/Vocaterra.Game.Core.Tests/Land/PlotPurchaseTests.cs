@@ -355,7 +355,7 @@ public sealed class PlotPurchaseTests
     public void Given_AFullBagWhoseOnlyFreeableSlotsAreTheCoinsAndTheStake_When_ThePlotIsBought_Then_TheStakesSlotMakesRoomForTheKit()
     {
         var session = AtTheSale(20); // ten coins stay: the coins' slot is not freed by the price
-        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // book, coins, stake and 37 axes fill the 40 slots
+        _ = session.Simulation.GrantItems(TestItems.Axe, 28); // book, coins, stake and 27 axes fill the 30 slots
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
         Assert.Equal(1, Count(session, ItemId.Stake));
 
@@ -386,7 +386,7 @@ public sealed class PlotPurchaseTests
         var session = SessionTwo(20);
         _ = session.MarkPlot(Corner.X + 5, Corner.Z + 5); // no stake held: its slot would make room for the kit
         _ = session.OpenTalk(Mayor);
-        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // the book, the coins and 38 axes fill the 40 slots (with no stake to hand over); ten coins leave the coin slot occupied
+        _ = session.Simulation.GrantItems(TestItems.Axe, 28); // the book, the coins and 28 axes fill the 30 slots (with no stake to hand over); ten coins leave the coin slot occupied
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
         var before = Snapshot(session);
         var axes = Count(session, TestItems.Axe);
@@ -404,7 +404,7 @@ public sealed class PlotPurchaseTests
     public void Given_TheExactCoinsInTheOnlyCoinSlotOfAFullBag_When_TheLearnerSaysSi_Then_PayingFreesTheSlotAndTheKitFits()
     {
         var session = AtTheSale(10);
-        _ = session.Simulation.GrantItems(TestItems.Axe, 38); // full, but the ten coins are the whole coin stack: once paid, their slot is free
+        _ = session.Simulation.GrantItems(TestItems.Axe, 28); // full, but the ten coins are the whole coin stack: once paid, their slot is free
         Assert.False(session.Simulation.Inventory.CanAdd(ItemId.CampKit, 1));
 
         _ = session.Say("sí");
@@ -596,7 +596,7 @@ public sealed class PlotPurchaseTests
     {
         var bag = new Inventory(TestItems.Catalogue);
         Assert.Equal(0, bag.Add(ItemId.Coin, 20));
-        Assert.Equal(0, bag.Add(TestItems.Axe, Inventory.SlotCount - 1)); // the coins' slot and the axes fill the bag; ten coins stay after the price
+        Assert.Equal(0, bag.Add(TestItems.Axe, bag.SlotCount - 1)); // the coins' slot and the axes fill the bag; ten coins stay after the price
         var effect = new NpcEffect(NpcEffectKind.SellPlot, ItemId.CampKit);
 
         Assert.Equal(NpcHostEvents.NoRoom, effect.PlotMiss(bag, new PlotFacts(false, true, 10)));

@@ -43,7 +43,7 @@ public sealed partial class VoxelSimulation
     private VoxelSimulation(Scene scene, IItemCatalogue items, EquipmentData equipment)
     {
         Scene = scene;
-        Inventory = new Inventory(items);
+        Inventory = new Inventory(items, equipment.BagSlots);
         StartEquipment(items, equipment);
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
@@ -59,7 +59,7 @@ public sealed partial class VoxelSimulation
     /// <summary>The player's body: position, velocity, facing and the eye. Read only for a front-end.</summary>
     public PlayerBody Player { get; }
 
-    /// <summary>The player's inventory: 40 slots, the first 10 the hotbar. It starts empty.</summary>
+    /// <summary>The player's inventory: the base slots of the bundle's <c>equipment.json</c> (30) and the worn bag's capacity, the first 10 the hotbar (I03b). It starts empty.</summary>
     public Inventory Inventory { get; }
 
     /// <summary>The number of ticks stepped so far. The game's time is this divided by <see cref="TicksPerSecond"/>.</summary>
@@ -326,7 +326,7 @@ public sealed partial class VoxelSimulation
     /// </summary>
     public VoxelSimulationState CaptureState()
     {
-        var slots = new ItemStack[Inventory.SlotCount];
+        var slots = new ItemStack[Inventory.SlotCount]; // the active slots only: the state carries the active count as its length
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             slots[i] = Inventory.Slots[i];
@@ -350,9 +350,10 @@ public sealed partial class VoxelSimulation
             throw new ArgumentOutOfRangeException(nameof(state), state.SelectedSlot, "The selected slot is not a hotbar slot.");
         }
 
-        if (state.Slots.Count != Inventory.SlotCount)
+        var active = Equipment.ActiveSlotsFor(Inventory, state.Worn); // the worn bag decides the size (I03b)
+        if (state.Slots.Count != active)
         {
-            throw new ArgumentException($"The inventory has {state.Slots.Count} slots, not {Inventory.SlotCount}.", nameof(state));
+            throw new ArgumentException($"The inventory has {state.Slots.Count} slots, not the {active} its worn items give.", nameof(state));
         }
 
         Tick = state.Tick;
@@ -367,17 +368,23 @@ public sealed partial class VoxelSimulation
         RestoreAtmosphere(state.Atmosphere);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
-            Inventory.SetSlot(i, state.Slots[i]);
+            Inventory.SetSlot(i, ItemStack.Empty); // the bag that stands now may be larger than the one restored
         }
 
         Equipment.Restore(state.Worn);
+        Equipment.SyncBag(Inventory);
+        for (var i = 0; i < Inventory.SlotCount; i++)
+        {
+            Inventory.SetSlot(i, state.Slots[i]);
+        }
+
         RefreshStats();
         _events.Clear();
     }
 
     /// <summary>
-    /// A SHA-256 of the whole simulation state (the grid's digest, the tick, the body, the hotbar selection, the gathering progress and the
-    /// inventory) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
+    /// A SHA-256 of the whole simulation state (the grid's digest, the tick, the body, the hotbar selection, the gathering progress, the
+    /// inventory's active slots and the worn items) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
     /// </summary>
     public string ComputeStateDigest()
     {
@@ -411,6 +418,13 @@ public sealed partial class VoxelSimulation
         }
 
         hash.AppendData(rest);
+        if (Inventory.SlotCount != Inventory.BaseSlots)
+        {
+            Span<byte> active = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(active, Inventory.SlotCount); // the active count, said outright once a bag has changed it (I03b); with no bag worn it adds nothing
+            hash.AppendData(active);
+        }
+
         if (!_breath.IsFull)
         {
             Span<byte> air = stackalloc byte[4];
@@ -420,7 +434,7 @@ public sealed partial class VoxelSimulation
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
         AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
-        AppendEquipmentDigest(hash); // nothing worn adds nothing
+        AppendEquipmentDigest(hash); // nothing worn adds nothing (the active count is in the inventory's slots above: its length follows the worn bag)
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }

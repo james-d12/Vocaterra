@@ -58,7 +58,7 @@ public sealed class FireRingRescanTests
     private static VoxelSession Dying(BlockPos? ring, bool rescan)
     {
         var session = TestGame.NewSession();
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, ItemStack.Empty);
         }

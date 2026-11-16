@@ -81,7 +81,7 @@ public sealed class EquipmentTests
         var body = GearItems.Slot("clothing", "body");
 
         AssertRefused(EquipResult.NothingToEquip, equipment.Equip(bag, 6, body), equipment, bag, before);
-        AssertRefused(EquipResult.NoSuchBagSlot, equipment.Equip(bag, Inventory.SlotCount, body), equipment, bag, before);
+        AssertRefused(EquipResult.NoSuchBagSlot, equipment.Equip(bag, bag.SlotCount, body), equipment, bag, before);
         AssertRefused(EquipResult.NoSuchBagSlot, equipment.Equip(bag, -1, body), equipment, bag, before);
         AssertRefused(EquipResult.NoSuchSlot, equipment.Equip(bag, 5, new EquipSlot(99, 0)), equipment, bag, before);
         AssertRefused(EquipResult.NoSuchSlot, equipment.Equip(bag, 5, new EquipSlot(0, 9)), equipment, bag, before);
@@ -197,7 +197,7 @@ public sealed class EquipmentTests
         var bag = Bag((5, GearItems.Shirt));
         var body = GearItems.Slot("clothing", "body");
         _ = equipment.Equip(bag, 5, body);
-        for (var i = 0; i < Inventory.SlotCount; i++)
+        for (var i = 0; i < bag.SlotCount; i++)
         {
             bag.SetSlot(i, new ItemStack(TestItems.Apple, 1));
         }
@@ -217,7 +217,7 @@ public sealed class EquipmentTests
         var before = Snapshot(equipment, bag);
 
         AssertRefused(EquipResult.BagSlotOccupied, equipment.Unequip(bag, body, 6), equipment, bag, before);
-        AssertRefused(EquipResult.NoSuchBagSlot, equipment.Unequip(bag, body, Inventory.SlotCount), equipment, bag, before);
+        AssertRefused(EquipResult.NoSuchBagSlot, equipment.Unequip(bag, body, bag.SlotCount), equipment, bag, before);
         AssertRefused(EquipResult.NothingWorn, equipment.Unequip(bag, GearItems.Slot("clothing", "head")), equipment, bag, before);
         AssertRefused(EquipResult.NoSuchSlot, equipment.Unequip(bag, new EquipSlot(-1, 0)), equipment, bag, before);
     }

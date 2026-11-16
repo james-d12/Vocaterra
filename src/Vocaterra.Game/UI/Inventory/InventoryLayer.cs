@@ -9,7 +9,7 @@ using Vocaterra.Game.UI.Common;
 namespace Vocaterra.Game.UI.Inventory;
 
 /// <summary>
-/// The inventory screen (I or E): the 40 slots in four rows of ten (the top row is the hotbar), each with its item's icon, the item's Spanish
+/// The inventory screen (I or E): the active slots (30, and a worn bag's more, I03b) in three to five rows of ten (the top row is the hotbar), each with its item's icon, the item's Spanish
 /// word (<c>madera</c>) and the count. The icon and the word are coloured by the word's saturation (grey until it is used, then in colour), and
 /// the words count as read when the screen opens (see <see cref="InventoryScreen"/>). It covers the screen while it is open.
 /// </summary>
@@ -39,7 +39,7 @@ public sealed class InventoryLayer : IFrameLayer
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
         IReadOnlyList<NeedsListRow> needs = view.Needs is { Visible: true } hud ? hud.ListRows() : [];
-        var layout = new InventoryLayout(viewport.Width, viewport.Height, Core.Items.Inventory.SlotCount, needs.Count);
+        var layout = new InventoryLayout(viewport.Width, viewport.Height, view.Items.SlotCount, needs.Count);
         var panel = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
@@ -49,11 +49,11 @@ public sealed class InventoryLayer : IFrameLayer
         var ui = view.Session.Locale;
         DrawHelpers.Text(spriteBatch, font, ui.Ui("inventoryTitle"), new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
-        var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", Core.Items.Inventory.SlotCount.ToString(CultureInfo.InvariantCulture)));
+        var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", view.Items.SlotCount.ToString(CultureInfo.InvariantCulture)));
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + layout.DividerY, textWidth, 1), new Color(255, 214, 64, 120));
 
-        for (var slot = 0; slot < Core.Items.Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < view.Items.SlotCount; slot++) // the active slots only: three to five rows of ten (I03b)
         {
             var cell = layout.Cell(slot);
             DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);

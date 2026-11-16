@@ -2,7 +2,7 @@ namespace Vocaterra.Game.Core.Items.Gear;
 
 /// <summary>
 /// One rule of what may be worn where (I03a). <see cref="EquipRules"/> lists them in the one place that decides; <see cref="Equipment"/> asks each before it changes anything, and the first
-/// refusal stops the change with its reason. The bag's rule (I03b: a worn bag with items in its slots cannot come off) is one more class in that list, with no edit of the equipment.
+/// refusal stops the change with its reason. The bag's rule (I03b, <see cref="BagCapacityRule"/>: a worn bag with items in its slots cannot come off) is one more class in that list, with no edit of the equip rules before it.
 /// </summary>
 public interface IEquipRule
 {

@@ -122,14 +122,14 @@ public sealed class HostActionTests
     public void GiveItemGivesNothingWhenTheInventoryCannotTakeThemAll()
     {
         var session = AtVillager(WithVillagerGive(new JsonObject { ["kind"] = "give_item", ["item"] = "book", ["count"] = 1 }));
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, new ItemStack(ItemId.Book, 1)); // every slot full: the book stacks one
         }
 
         _ = session.Say("quiero pan, por favor");
 
-        Assert.Equal(Inventory.SlotCount, session.Simulation.Inventory.Count(ItemId.Book));
+        Assert.Equal(session.Simulation.Inventory.SlotCount, session.Simulation.Inventory.Count(ItemId.Book));
         Assert.Empty(WorldEventsOf(session, WorldEvents.ItemGiven)); // nothing is lost: the NPC keeps it
     }
 

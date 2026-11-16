@@ -38,7 +38,7 @@ public sealed class ExchangeMissTests
     // Fills every empty slot of the bag with one torch: nothing new fits, and a stack that is there still takes more.
     private static void FillTheBag(VoxelSession session)
     {
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             if (session.Simulation.Inventory.Slots[slot].IsEmpty)
             {

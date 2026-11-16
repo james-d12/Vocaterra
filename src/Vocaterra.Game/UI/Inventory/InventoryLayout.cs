@@ -30,11 +30,11 @@ public readonly record struct InventoryLayout
     /// <summary>Computes the layout for a canvas and a number of slots.</summary>
     /// <param name="viewportWidth">The canvas's width.</param>
     /// <param name="viewportHeight">The canvas's height.</param>
-    /// <param name="slotCount">The number of slots (a multiple of <see cref="Columns"/>).</param>
+    /// <param name="slotCount">The number of slots, the inventory's active count (30 to 50: three to five rows; a count that is not a multiple of <see cref="Columns"/> fills the last row in part).</param>
     /// <param name="needsRows">How many rows of the needs' list stand under the slots (N05: the five needs); 0 for none. The slots shrink, then the header and footer, until it fits.</param>
     public InventoryLayout(int viewportWidth, int viewportHeight, int slotCount, int needsRows = 0)
     {
-        var rows = Math.Max(1, slotCount / Columns);
+        var rows = Math.Max(1, (slotCount + Columns - 1) / Columns);
         var needs = needsRows > 0 ? (needsRows * NeedsRowHeight) + 10 : 0;
         var regularWidth = (Columns * 64) + ((Columns - 1) * 6) + (Padding * 2);
         var regularHeight = (Padding * 2) + 36 + (rows * 80) + ((rows - 1) * 6) + FooterHeight + needs;

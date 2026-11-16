@@ -162,7 +162,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "8213aec474bfe69751dde476146d8e5029c89d6634387939519949bbdaffaedc"; // Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "82c9c42dc8e614458fbd69120256833c556fc4403fdf3884fa27b8cdf8ed03eb"; // I03b: re-pinned because the inventory is 30 slots now (the digest hashes the active slots): the old value is exactly what hashing 40 empty slots gives for the same route, checked by recomputing it; Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
 
-    private const string PinnedAfterWalking = "c0222a77ede53d99fa3ef73c0b4501917f41d57b30f741c8e922cb4c88b67fc0"; // Y08: re-pinned with the one above; Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "b26b32c5ffef4eb872d4974e65932ab9a8a0662d889edec37f567b1d180644b7"; // I03b: re-pinned with the one above (30 slots); Y08: re-pinned with the one above; Y06m: re-pinned with the one above
 }

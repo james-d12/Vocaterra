@@ -41,4 +41,7 @@ public enum EquipResult
 
     /// <summary>Unequip: the bag has no empty slot.</summary>
     BagFull = 11,
+
+    /// <summary>A bag (an item with a capacity) would come off, or be swapped for a smaller one, while a slot it would drop holds an item (I03b). Empty those slots first.</summary>
+    BagNotEmpty = 12,
 }
