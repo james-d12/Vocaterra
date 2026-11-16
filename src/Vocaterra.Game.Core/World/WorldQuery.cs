@@ -31,7 +31,7 @@ public sealed class WorldQuery : IPlaceInfo
     {
         var climate = _world.Climate.At(x, z);
         var shape = _world.Height.Shape(x, z, climate);
-        return _world.Table.Classify(climate, shape.Height, x, z, shape.Water).Row;
+        return _world.Table.Classify(climate, shape.Height, x, z, shape.Water, shape.RiverWeight).Row;
     }
 
     /// <inheritdoc />

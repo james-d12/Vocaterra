@@ -15,8 +15,9 @@ internal static class Cli
           heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded, with a stats text file (lowest and highest ground, shares above 100 to 250)
           maps      both of them for the same area
           stats     the owner's map-review numbers as text (shares, land above 150 to 250, the sea's connectivity, snow, the coast's profile); no picture
-          river     a river followed from a point on it (--x --z --length --step, --direction down or up): the ground, the natural ground and the water along it as one section, with a text summary of its steps
+          river     a river of the drainage network followed from a point on it (--x --z --length --step, --direction down, up or both): the ground, the natural ground and the water along it as one section, with a text summary of its steps and rises (there must be none)
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level; with --mode blocks, the real blocks (B11: the strata, ores, caves, lava, bedrock) each in its own colour
+          drainage  the heights with the drainage network drawn over them (B02c): every reach of river as a line, thicker the more ground drains into it; with --basin-x --basin-z (a point on a river) that river's whole basin in orange
           entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
         options:
@@ -29,13 +30,13 @@ internal static class Cli
           --threads <n>    worker threads (default 4)
           --world <free|valley>  free: the procedural world alone (default); valley: the world as the game's streamed mode makes it round the valley (B06): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land; maps then show the footprint (red), the margin (orange) and the land-bias radius (yellow)
           --region <layout.json>  (B15) place a town from a layout file on the procedural ground (implies --world valley): its region is built at --region-x --region-z (the block of its first column, rounded down to a chunk; default 0 0) and --region-layer (its first chunk layer; default: the layer that puts its floor under its lowest ground), and the maps carry its outlines too
-          river only:  --x --z (a point on or near the river), --length <n> (blocks to walk, default 4000), --step <n> (blocks per sample, default 4), --direction <down|up> (to the sea, default, or to the source), --zoom <n> (pixels per block of height, default 3), --wide <n> (pixels per sample, default 2)
+          river only:  --x --z (a point on or near the river), --length <n> (blocks to walk, default 4000), --step <n> (blocks per sample, default 4), --direction <down|up|both> (from the point to the sea, from the source to the point, or the whole river: the default), --zoom <n> (pixels per block of height, default 3), --wide <n> (pixels per sample, default 2)
           slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2), --mode <surface|blocks> (default surface)
         """;
 
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
-        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--mode", "--region", "--region-x", "--region-z", "--region-layer", "--length", "--step", "--direction", "--wide",
+        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--mode", "--region", "--region-x", "--region-z", "--region-layer", "--length", "--step", "--direction", "--wide", "--basin-x", "--basin-z",
     };
 
     /// <summary>Runs a command line. The exit code is 0 when the pictures were written, 2 for a bad command line.</summary>
@@ -49,7 +50,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -118,9 +119,9 @@ internal static class Cli
             {
                 var length = Int(options, "--length", 4000);
                 var step = Int(options, "--step", 4);
-                var walk = RiverWalk.Walk(sampler, Int(options, "--x", 0), Int(options, "--z", 0), length, step, Get(options, "--direction", "down") != "up");
+                var walk = RiverWalk.Walk(sampler, Int(options, "--x", 0), Int(options, "--z", 0), length, step, Get(options, "--direction", "both"));
                 var picture = RiverWalk.Draw(walk, sampler.SeaLevel, Int(options, "--zoom", 3), Int(options, "--wide", 2));
-                var path = Target(outPath, $"river-seed{seed}-x{walk[0].X}-z{walk[0].Z}-{Get(options, "--direction", "down")}-{length}");
+                var path = Target(outPath, $"river-seed{seed}-x{walk[0].X}-z{walk[0].Z}-{Get(options, "--direction", "both")}-{length}");
                 Save(path, picture);
                 var summary = RiverWalk.Summary(walk);
                 File.WriteAllText(Path.ChangeExtension(path, ".txt"), summary);
@@ -165,6 +166,18 @@ internal static class Cli
                     File.WriteAllText(Target(outPath, "stats-" + stem, false).Replace(".png", ".txt"), report);
                 }
 
+                return 0;
+            }
+
+            if (command == "drainage")
+            {
+                var path = Target(outPath, "drainage-" + stem);
+                var picture = Renderer.Heights(map, sampler.SeaLevel);
+                var basin = options.ContainsKey("--basin-x") ? DrainageMap.Draw(picture, map, sampler, Int(options, "--basin-x", 0), Int(options, "--basin-z", 0)) : DrainageMap.Draw(picture, map, sampler, null, null);
+                Save(path, picture);
+                output.WriteLine($"{path} ({map.Width} x {map.Height}; {basin} reaches in the highlighted basin)");
+                var mouths = sampler.Height.Reaches(map.Left, map.Top, map.Left + (map.Width * map.Scale), map.Top + (map.Height * map.Scale)).Where(r => r.IntoSea || r.IntoLake).OrderByDescending(r => r.Area).Take(6);
+                output.WriteLine("the largest rivers' last reaches (x, z, nodes draining, ends in): " + string.Join("; ", mouths.Select(r => $"{r.FromX}, {r.FromZ}, {r.Area}, {(r.IntoSea ? "sea" : "lake")}")));
                 return 0;
             }
 
