@@ -108,18 +108,29 @@ public sealed class ProceduralWaterTests
     }
 
     [Fact]
-    public void Given_ChunksOfTheSeaAndTheLand_When_TheyAreGenerated_Then_NoWaterIsAnythingButASourceExceptWhereASurfaceStepsDown()
+    public void Given_ChunksOfRiversOfThreeSeeds_When_TheyAreGenerated_Then_ASurfaceThatStepsDownIsFallingWaterAndNothingElseFlows()
     {
         foreach (var seed in ProceduralTestWorld.Seeds)
         {
-            var (cx, cz) = ProceduralTestWorld.Find(seed, Feature.Coast);
-            var region = new GeneratedRegion(ProceduralTestWorld.Source(seed), cx - 1, cz - 1, 3, 3);
+            var (falling, thin, other) = (0, 0, 0);
+            for (var skip = 0; skip < 8; skip++)
+            {
+                var (cx, cz) = ProceduralTestWorld.Find(seed, Feature.River, skip * 7);
+                var region = new GeneratedRegion(ProceduralTestWorld.Source(seed), cx - 1, cz - 1, 3, 3);
+                foreach (var chunk in region.Chunks.Where(static c => c.HasWaterLevels))
+                {
+                    foreach (var encoded in chunk.WaterLevels.ToArray().Where(static e => e != 0))
+                    {
+                        var level = WaterLevel.FromEncoded(encoded);
+                        falling += level.Falling ? 1 : 0;
+                        thin += !level.Falling && level.Distance == 1 ? 1 : 0;
+                        other += !level.Falling && level.Distance != 1 ? 1 : 0;
+                    }
+                }
+            }
 
-            Assert.Contains(region.Chunks, chunk => chunk.Blocks.ToArray().Contains(BlockId.Water));
+            Assert.True(falling > 0 && thin > 0, $"seed {seed}: {falling} falling cells and {thin} cells of thin flow in eight river chunks: no step of the water was built");
+            Assert.Equal(0, other); // the only flowing water is the falling cells and the one cell of thin flow that tops each of them
         }
-
-        var (rx, rz) = ProceduralTestWorld.Find(42, Feature.River);
-        var river = new GeneratedRegion(ProceduralTestWorld.Source(42), rx - 1, rz - 1, 3, 3);
-        Assert.All(river.Chunks, chunk => Assert.True(!chunk.HasWaterLevels || chunk.Blocks.ToArray().Contains(BlockId.Water)));
     }
 }

@@ -81,21 +81,27 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var natural = h16;
 
         var level = SurfaceLevel(smooth16, amplitude);
-        var riverWeight = RiverWeight(c, natural, share, added16);
+        var riverWeight = RiverWeight(c, smooth16, share, added16); // by the ground without the hills: a shore and a bank do not follow every dip
+        var lakeWeight = LakeWeight(x, z, c, smooth16, share);
+        var carve = Math.Max(riverWeight, lakeWeight);
+        if (carve > 0)
+        {
+            h16 = IntMath.Lerp(h16, smooth16, Math.Min(One, carve * 3)); // the hills fade out where water lies (all gone by a third of the carve), so a shore does not follow every dip of the ground (no slivers, no puddles on a lake's fringe)
+        }
+
         if (riverWeight > 0)
         {
             h16 = IntMath.Lerp(h16, Math.Min(h16, (level - _data.Rivers.Depth) * 16), riverWeight);
         }
 
-        var lakeWeight = LakeWeight(x, z, c, natural, share);
         if (lakeWeight > 0)
         {
             h16 = IntMath.Lerp(h16, Math.Min(h16, (level - _data.Lakes.Depth) * 16), lakeWeight);
         }
 
         var height = Math.Clamp(IntMath.DivDown(h16, 16), _minY + 1, _data.Clamp);
-        var surface = riverWeight > 0 || lakeWeight > 0 ? level : _seaLevel; // the water of a river or a lake stands at its own level, any other at the sea's
-        var water = height < surface;
+        var surface = carve > 0 ? level : _seaLevel; // the water of a river or a lake stands at its own level, any other at the sea's
+        var water = height < surface && (carve >= One / 4 || level <= _seaLevel || carve == 0); // on its fringe a river or a lake holds no water: a dip of the ground there would be a puddle
         return new ColumnShape(height, Math.Max(IntMath.DivDown(natural, 16), height), water, water ? surface : -1, riverWeight, lakeWeight, surface);
     }
 
@@ -208,6 +214,8 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
 
         var threshold = FieldScale.FromThousandths(lake.Threshold) + (int)((long)One * (One - water) / One);
         var basin = IntMath.Ramp(_lakes.Fbm(x, z, lake.Cell, lake.Octaves), threshold, threshold + FieldScale.FromThousandths(lake.Softness));
-        return (int)(weight * basin / One * water / One);
+        var lake16 = (int)(weight * basin / One); // 0 to One: the lake field and the land's fitness for a lake
+        lake16 = IntMath.Smooth(IntMath.Ramp(lake16, One * 3 / 10, One * 7 / 10)); // the lake is deep or it is not there: a lake whose fitness stops at 0.7 would sit with its bed at its own level and flicker between water and shore
+        return (int)((long)lake16 * water / One);
     }
 }

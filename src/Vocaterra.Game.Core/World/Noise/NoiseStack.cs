@@ -80,7 +80,7 @@ internal sealed class NoiseStack
     /// <param name="roundBlocks">The blocks over which the crest is rounded.</param>
     public int Chain(int x, int z, int cell, int halfBlocks, int roundBlocks)
     {
-        var e = Math.Clamp(cell / 128, 4, 64);
+        var e = Math.Clamp(cell / 16, 8, 512); // wide enough that the noise's whole-number steps do not show in the slope
         long n = _noise.Sample(0, x, z, cell);
         long gx = _noise.Sample(0, x + e, z, cell) - _noise.Sample(0, x - e, z, cell);
         long gz = _noise.Sample(0, x, z + e, cell) - _noise.Sample(0, x, z - e, cell);

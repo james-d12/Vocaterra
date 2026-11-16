@@ -7,7 +7,7 @@
   "biomes": [
     {
       "id": "river-channel",
-      "when": { "water": true, "continentalness": { "min": 20 }, "river": { "max": 40 } },
+      "when": { "water": true, "continentalness": { "min": 0 }, "river": { "max": 40 } },
       "top": "sand", "filler": "dirt", "fillerDepth": 3
     },
     {

@@ -33,7 +33,7 @@ public sealed class WorldShapeTests
                 {
                     var c = climate.At(x, z);
                     var shape = model.Shape(x, z, c);
-                    var id = table.Classify(c, shape.Height, x, z).Row.Id;
+                    var id = table.Classify(c, shape.Height, x, z, shape.Water).Row.Id;
                     counts[id] = counts.GetValueOrDefault(id) + 1;
                     samples++;
                     water += shape.Water ? 1 : 0;

@@ -94,7 +94,7 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
                 var (x, z) = (map.BlockX(px), map.BlockZ(py));
                 var c = climate.At(x, z);
                 var shape = height.Shape(x, z, c);
-                Assert.Equal(table.Classify(c, shape.Height, x, z).Snow, map.Snow[(py * map.Width) + px]);
+                Assert.Equal(table.Classify(c, shape.Height, x, z, shape.Water).Snow, map.Snow[(py * map.Width) + px]);
             }
         }
     }

@@ -31,6 +31,7 @@ internal sealed class WorldSample
         Carve = new byte[n];
         Natural = new short[n];
         Continentalness = new short[n];
+        Level = new short[n];
         Parallel.For(0, Size, new ParallelOptions { MaxDegreeOfParallelism = 2 }, j =>
         {
             for (var i = 0; i < Size; i++)
@@ -38,7 +39,7 @@ internal sealed class WorldSample
                 var (x, z) = (-half + (i * step), -half + (j * step));
                 var c = climate.At(x, z);
                 var shape = height.Shape(x, z, c);
-                var column = table.Classify(c, shape.Height, x, z);
+                var column = table.Classify(c, shape.Height, x, z, shape.Water);
                 var k = (j * Size) + i;
                 Ground[k] = (short)shape.Height;
                 Water[k] = shape.Water;
@@ -48,6 +49,7 @@ internal sealed class WorldSample
                 Carve[k] = (byte)Math.Min(255, shape.RiverWeight * 255 / 4096);
                 Natural[k] = (short)shape.NaturalHeight;
                 Continentalness[k] = (short)(c.Continentalness * 1000 / 4096);
+                Level[k] = (short)shape.WaterLevel;
             }
         });
     }
@@ -86,6 +88,9 @@ internal sealed class WorldSample
 
     /// <summary>The continentalness in thousandths.</summary>
     public short[] Continentalness { get; }
+
+    /// <summary>The y of the water's top in each column, -1 where there is none.</summary>
+    public short[] Level { get; }
 
     /// <summary>The position of a biome row by id.</summary>
     public int Row(string id) => Rows.ToList().IndexOf(id);

@@ -71,6 +71,7 @@ internal static class Stats
         text.AppendLine(Chains(map, 150, isSea));
         text.AppendLine(Chains(map, 180, isSea));
         text.AppendLine(Coast(map, isSea));
+        text.AppendLine(Pools(map, Index(sampler, "river-channel")));
         var distance = DistanceFromOtherKind(map);
         text.AppendLine("coast profile (mean ground by distance from the shore, blocks):");
         text.Append("  land: ");
@@ -414,6 +415,66 @@ internal static class Stats
         }
 
         return string.Create(CultureInfo.InvariantCulture, $"coast: {points.Count} columns; the longest straight run (within a column of a line) {longest * map.Scale:0} blocks; {Pct(straight, points.Count)}% of the coast lies on a straight run of 300 blocks or more");
+    }
+
+    // Water that is not a river's: the sea and the lakes (the biome row of the river's channel is the river's).
+    private static bool Pool(WorldMap map, int i, int riverRow) => map.Water[i] && map.Biome[i] != riverRow;
+
+    // The pools (round 2's test): the four-connected bodies of water that no river carved (not touching the edge of the map), how many are of 3 columns or fewer and of 8 or fewer: a puddle lies on the land or the beach.
+    private static string Pools(WorldMap map, int riverRow)
+    {
+        int w = map.Width, h = map.Height;
+        var seen = new bool[w * h];
+        var stack = new Stack<int>();
+        int bodies = 0, puddles = 0, ponds = 0;
+        var where = new List<string>();
+        var byBiome = new Dictionary<int, int>();
+        for (var start = 0; start < seen.Length; start++)
+        {
+            if (seen[start] || !Pool(map, start, riverRow))
+            {
+                continue;
+            }
+
+            seen[start] = true;
+            stack.Push(start);
+            var size = 0;
+            var atEdge = false;
+            var first = start;
+            while (stack.Count > 0)
+            {
+                var i = stack.Pop();
+                size++;
+                int x = i % w, y = i / w;
+                atEdge |= x == 0 || y == 0 || x == w - 1 || y == h - 1;
+                foreach (var j in new[] { x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, y > 0 ? i - w : -1, y < h - 1 ? i + w : -1 })
+                {
+                    if (j >= 0 && !seen[j] && Pool(map, j, riverRow))
+                    {
+                        seen[j] = true;
+                        stack.Push(j);
+                    }
+                }
+            }
+
+            if (!atEdge)
+            {
+                bodies++;
+                puddles += size <= 3 ? 1 : 0;
+                if (size <= 3)
+                {
+                    byBiome[map.Biome[first]] = byBiome.GetValueOrDefault(map.Biome[first]) + 1;
+                }
+                if (size <= 3 && where.Count < 6)
+                {
+                    where.Add($"({map.BlockX(first % w)}, {map.BlockZ(first / w)}: ground {map.Ground[first]}, biome {map.Biome[first]}, carve {map.River[first]})");
+                }
+
+                ponds += size <= 8 ? 1 : 0;
+            }
+        }
+
+        return $"pools (sea and lake water, inside the map): {bodies} bodies, {puddles} of 3 columns or fewer, {ponds} of 8 or fewer, at {map.Scale} blocks a column; puddles by biome row " + string.Join(", ", byBiome.Select(kv => $"{kv.Key}: {kv.Value}")) + "; the first: " + string.Join(" ", where);
     }
 
     // A river column: under water and carved by the river (a lake or the sea is water that is not).

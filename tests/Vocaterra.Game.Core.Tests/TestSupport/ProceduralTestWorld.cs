@@ -64,7 +64,7 @@ internal static class ProceduralTestWorld
                             {
                                 Feature.River => id == "river-channel" && shape.RiverWeight > 3000,
                                 Feature.Lake => id == "lake-basin" && shape.LakeWeight > 3000,
-                                Feature.Coast => id == "beach" && Around(model, climate, x, z, shape.Height, static (_, s) => s.Water, 24),
+                                Feature.Coast => id == "beach" && Around(model, climate, x, z, shape.Height, static (_, s) => s.Water && s.WaterLevel == 32, 12),
                                 Feature.Forest => id == "dense-woodland" && shape.Height is > 34 and < 70,
                                 Feature.Mountain => shape.Height >= 200,
                                 _ => id == "plains" && shape.Height is > 36 and < 50,
