@@ -41,13 +41,19 @@ public sealed class FarTerrainRenderer : IDisposable
     /// <param name="device">The graphics device.</param>
     /// <param name="view">The tiles to draw.</param>
     /// <param name="atlas">The block atlas's texture, which the textured tiles are drawn with.</param>
-    /// <param name="atlasSampler">The sampler the chunks use with it.</param>
-    public FarTerrainRenderer(GraphicsDevice device, FarView view, Texture2D atlas, SamplerState atlasSampler)
+    public FarTerrainRenderer(GraphicsDevice device, FarView view, Texture2D atlas)
     {
         _device = device;
         _view = view;
         _atlas = atlas;
-        _atlasSampler = atlasSampler;
+        // As the chunks sample the atlas (crisp texels up close, blended between mips), but never past the mip level at which one texel is a whole cell (deeper levels average neighbouring cells, and the cut-out alpha of the average fails the alpha test).
+        _atlasSampler = new SamplerState
+        {
+            Filter = TextureFilter.PointMipLinear,
+            AddressU = TextureAddressMode.Clamp,
+            AddressV = TextureAddressMode.Clamp,
+            MaxMipLevel = (int)Math.Log2(Blocks.BlockAtlasLayout.CellSize),
+        };
         _noise = FarNoise.Create(device);
         _effect = new BasicEffect(device)
         {
@@ -237,6 +243,7 @@ public sealed class FarTerrainRenderer : IDisposable
     public void Dispose()
     {
         _noise.Dispose();
+        _atlasSampler.Dispose();
         _effect.Dispose();
         _solid.Dispose();
     }

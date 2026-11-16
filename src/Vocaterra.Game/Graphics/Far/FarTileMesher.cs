@@ -145,6 +145,9 @@ public static class FarTileMesher
     // Water this deep (in blocks) is opaque, and what lies under it is not drawn.
     private const int DeepWater = 12;
 
+    // A cave is drawn only this far (in blocks) under the ground over it: further down nothing outside sees it.
+    private const int CaveDepth = 24;
+
     /// <summary>Builds a tile.</summary>
     /// <param name="source">The sections.</param>
     /// <param name="settings">The far view's settings (the cells and the tile's size).</param>
@@ -171,7 +174,7 @@ public static class FarTileMesher
         var begin = started ?? MonotonicClock.Milliseconds();
         var textured = key.Level < settings.TexturedLevels;
         var cell = settings.CellOf(key.Level);
-        var context = new Context(new Volume(stack), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
+        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
         var geometry = new FarGeometry();
         for (var axis = 0; axis < 3; axis++)
         {
@@ -196,7 +199,7 @@ public static class FarTileMesher
     {
         private readonly int[] _surface = new int[LodSection.Size * LodSection.Size];
 
-        public Volume(LodStack stack)
+        public Volume(LodStack stack, int cell, int skirtCells)
         {
             Height = stack.Sections.Length * LodSection.Size;
             YBase = stack.SyMin * LodSection.Size;
@@ -235,7 +238,77 @@ public static class FarTileMesher
                     }
                 }
             }
+
+            FindOpen((CaveDepth + cell - 1) / cell, skirtCells);
         }
+
+        // The air that the outside can see: every air voxel the sky light reaches, and the air joined to it through the sides as well (an overhang's underside, a cave mouth), but only within `depth` voxels of the ground
+        // over it, so the faces of caves and shafts deep under the ground are never made; along the tile's edge the air within the skirt counts too.
+        private void FindOpen(int depth, int skirt)
+        {
+            Open = new bool[Blocks.Length];
+            var queue = new int[Blocks.Length];
+            var count = 0;
+            var floor = new int[LodSection.Size * LodSection.Size];
+            for (var column = 0; column < floor.Length; column++)
+            {
+                floor[column] = SurfaceOf(column & 31, column >> 5);
+            }
+
+            for (var i = 0; i < Blocks.Length; i++)
+            {
+                if (Blocks[i] != BlockId.Air)
+                {
+                    continue;
+                }
+
+                var y = i >> 10;
+                var edge = (i & 31) is 0 or 31 || ((i >> 5) & 31) is 0 or 31;
+                if ((Light[i] >> 4) > 0 || (edge && y >= floor[i & 1023] - skirt) || y >= Top + 1 || y < Bottom - 1)
+                {
+                    Open[i] = true;
+                    queue[count++] = i;
+                }
+            }
+
+            for (var head = 0; head < count; head++)
+            {
+                var i = queue[head];
+                var (x, z, y) = (i & 31, (i >> 5) & 31, i >> 10);
+                for (var k = 0; k < 6; k++)
+                {
+                    var (nx, ny, nz) = k switch { 0 => (x + 1, y, z), 1 => (x - 1, y, z), 2 => (x, y + 1, z), 3 => (x, y - 1, z), 4 => (x, y, z + 1), _ => (x, y, z - 1) };
+                    if (!In(nx, ny, nz))
+                    {
+                        continue;
+                    }
+
+                    var n = At(nx, ny, nz);
+                    if (!Open[n] && Blocks[n] == BlockId.Air && ny >= floor[(nz << 5) | nx] - depth)
+                    {
+                        Open[n] = true;
+                        queue[count++] = n;
+                    }
+                }
+            }
+        }
+
+        // The y of the highest solid voxel of a column, once, for the search above.
+        private int SurfaceOf(int x, int z)
+        {
+            for (var y = Top; y >= Bottom; y--)
+            {
+                var block = Blocks[At(x, y, z)];
+                if (block != BlockId.Air && block != BlockId.Water)
+                {
+                    return y;
+                }
+            }
+
+            return int.MinValue / 2;
+        }
+
+        public bool[] Open { get; private set; } = [];
 
         public int Height { get; }
 
@@ -332,6 +405,9 @@ public static class FarTileMesher
 
     private static readonly (float R, float G, float B) NoTint = (1f, 1f, 1f);
 
+    // The colour a textured face is multiplied from: white, the atlas giving the rest.
+    private static readonly (float R, float G, float B) White = (255f, 255f, 255f);
+
     // ---- the faces
 
     // What a face is, for merging: its colour and list, and (textured) the block it shows, so that none is merged with another.
@@ -410,6 +486,11 @@ public static class FarTileMesher
         }
 
         var other = v.BlockAt(to.X, to.Y, to.Z);
+        if (other == BlockId.Air && inside && !v.Open[v.At(to.X, to.Y, to.Z)])
+        {
+            return null; // air sealed under the ground: nothing outside sees it
+        }
+
         var nearLight = inside ? v.Light[v.At(to.X, to.Y, to.Z)] : LodSection.SkyFull;
         if (block == BlockId.Water)
         {
@@ -436,7 +517,7 @@ public static class FarTileMesher
         if ((v.Light[v.At(at.X, at.Y, at.Z)] & 0xF) > 0)
         {
             return c.Textured
-                ? new Face(Pack(NoTint, NoTint, 1f), FarBucket.Lit, block, false)
+                ? new Face(Pack(White, NoTint, 1f), FarBucket.Lit, block, false)
                 : new Face(Pack(Rgb(block, side, c.Grey), NoTint, 1f), FarBucket.Lit, BlockId.Air, true);
         }
 
@@ -447,7 +528,7 @@ public static class FarTileMesher
         }
 
         return c.Textured
-            ? new Face(Pack(NoTint, tint, shade), FarBucket.Opaque, block, false)
+            ? new Face(Pack(White, tint, shade), FarBucket.Opaque, block, false)
             : new Face(Pack(Rgb(block, side, c.Grey), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
     }
 

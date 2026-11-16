@@ -44,7 +44,7 @@ public sealed record FarViewSettings(int Range, int TileCells = 32, int Levels =
 
     /// <summary>How far a skirt hangs below its edge cell's ground, for a level: enough to hide the step to a coarser neighbour, whose own cells are twice as wide (the cells grow with the level, so does the step).</summary>
     /// <param name="level">The level.</param>
-    public int SkirtOf(int level) => Math.Max(12, 4 * CellOf(level));
+    public int SkirtOf(int level) => Math.Max(6, 4 * CellOf(level));
 
     /// <summary>The settings with another range (the preset's, or <c>--far-view</c>), the levels kept.</summary>
     /// <param name="range">The range in blocks; 0 for off.</param>

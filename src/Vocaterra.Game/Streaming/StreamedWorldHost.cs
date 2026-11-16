@@ -47,10 +47,13 @@ public sealed class StreamedWorldHost : IDisposable
         _residency = MakeResidency(preset);
         _persistence = lodWorld is null ? null : new FileLodPersistence(FileLodPersistence.FolderFor(lodWorld), "lod-format-" + LodFormat + "; " + lodWorld);
         Far = new FarView(_world.Far, preset.Far, _pool, new LodStore(_persistence));
-        _radius = preset.Far.RealRadius;
+        _radius = RingRadius(preset);
         _ring = new LodRing(Far.World, _world, _pool);
         _edits = new LodEdits(_grid, Far.World, _pool);
     }
+
+    // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
+    private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
 
     /// <summary>The version of the sections' format and of how they are made: a change makes every world's saved sections start again.</summary>
     public const int LodFormat = 1;
@@ -118,7 +121,7 @@ public sealed class StreamedWorldHost : IDisposable
         }
 
         Far.Reconfigure(preset.Far, dispose);
-        _radius = preset.Far.RealRadius;
+        _radius = RingRadius(preset);
     }
 
     /// <summary>One frame: the residency installs and plans within a small budget, and the far view chooses and collects its tiles.</summary>

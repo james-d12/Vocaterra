@@ -123,6 +123,9 @@ public sealed class FarView
     /// <summary>The far world: the store and the model that fills it; the real chunks are ingested into it.</summary>
     public LodWorld World { get; private set; }
 
+    /// <summary>The listed tiles and their triangles by level, for a run's report: "L0 12 tiles 340k, L1 ...".</summary>
+    public string LevelSummary => string.Join(", ", _draw.GroupBy(static t => t.Key.Level).OrderBy(static g => g.Key).Select(static g => $"L{g.Key} {g.Count()} tiles {g.Sum(static t => (long)t.Triangles) / 1000}k"));
+
     /// <summary>The tiles whose sections changed and are being made again (the old tile is drawn until the new one is there).</summary>
     public int Stale => _dirty.Count + _rebuilding.Count;
 
