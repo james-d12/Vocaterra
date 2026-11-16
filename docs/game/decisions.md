@@ -846,6 +846,13 @@ the owner's answers of 2026-11-15 are in its section 5.
     stands only at sea level, broad massifs, polygon coasts): "Another round first" (over merging round 2 with a follow-up B02c, or
     merging it as it is). Round 3: rivers hold water all the way down (a water level per column, generated at rest), thinner chains,
     smoother coasts; then the whole tuning is gated once (`.claude/briefs/b02b-round3.md`).
+25. **The far view gets detail like the Distant Horizons mod (B07c)** (2026-11-16, about 08:50 UTC, on B07's pictures: "that looks
+    pretty crap, just a big green swath"; he asked for better distant quality that keeps the performance). Chosen: "Blocks, trees,
+    colour" (over adding real-chunk level of detail for built things now, or a design note first): blocky far land (box columns with
+    tops and sides, flat runs merged), trees in the far view from the tree pass's own deterministic placement (single canopies out to
+    about 1 to 2 km, a raised canopy layer beyond), colour from each block's texture with per-cell variation, rock on steep slopes,
+    top and side shading, rivers at least a cell wide, finer cells near (2 blocks) and coarse beyond about 8 km; High held at about
+    12 ms a frame on the RTX 3070. Real-chunk level of detail (towns, the valley's buildings, edits seen far off) is a later step.
 
 ## Already decided
 
