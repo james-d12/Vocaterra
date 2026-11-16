@@ -1446,3 +1446,10 @@ this file. What is still open is collected in [open-items](../open-items.md).
   orchestrator's replay, 2026-11-16 05:40 UTC), so it is the core's or the bundle's as it stands; B02b touched no core input. The rest of
   the suite passed. Proposed: a core milestone like M96 that finds why the plural is lost once the unknown word follows the number, fixes
   it at the source with a regression test and records the seed; the oracle is not narrowed.
+- **A second fuzz seed: «que me» flagged as a wrong word at a prompt that takes no intent (found 2026-11-16 by B07c's full run on the
+  game's `B07c-far-detail`; not changed, no milestone yet).** O3, `CorrectSentenceFuzzTests`, seed `9kz6LGNo8tf2`: a correct sentence
+  graded at `smith-receive` (which takes none of its intents) gets `vocab.wrong@4+2 expected 'tal' actual 'me'` (intent unknown, off the
+  prompt none). It fails the same way on `feature/biomes` at `388f6d5d` without B07c (the orchestrator's replay, 2026-11-16 about 14:30
+  UTC). Also seen that day: `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone...` ("the generator no longer reaches
+  fallback:second-chosen", count 4) failed once in B11b's full run under load and passes alone (a coverage oracle that depends on how
+  many samples a loaded run draws: to check). Proposed with the `2LxdNIrNHnQ6` entry above: one core milestone for the fuzz findings.
