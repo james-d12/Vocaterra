@@ -373,7 +373,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var result = session.UseCampKit(ground, facing);
                         var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
-                    });
+                    },
+                    BodyWorldReady);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -1216,6 +1217,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         },
         SaveNow = SaveNow,
     };
+
+    // Whether the world round the body's eye is made (B07b): the streamed world's near zone after a start or a jump; a bounded world is always ready. The scripted steps after a teleport wait for it.
+    private bool BodyWorldReady()
+    {
+        const double U = Vocaterra.Game.Core.Physics.VoxelPhysics.UnitsPerBlock;
+        var body = _sim.Player;
+        return _drawer.Streaming is not { } streaming || streaming.IsReadyAround((float)(body.EyeX / U), (float)(body.EyeY / U), (float)(body.EyeZ / U));
+    }
 
     // The teleport of the menu: the player's feet go to the ground of a named point's column, as --teleport puts them.
     private void TeleportToPoint(string place)

@@ -22,6 +22,7 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="Act">An act at the open station, <c>use,on[,verb]</c> (W07, <c>--act</c>).</param>
 /// <param name="ProcHelp">Help at the open station (W07, <c>--proc-help</c>).</param>
 /// <param name="StationSay">A typed line to the teacher from the open station; returns whether it was sent (W08, <c>--station-say</c>).</param>
+/// <param name="WorldReady">Whether the world round the body is made (B07b): a teleport's next step waits until it is, so a shot, a walk or a look after it runs in the new place and not before the streamed world has come. Null: always.</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -43,4 +44,5 @@ public sealed record ScenarioHooks(
     Action<string>? Act = null,
     Action? ProcHelp = null,
     Func<string, bool>? StationSay = null,
-    Action<int, int, World.Layout.Direction>? PlaceCamp = null);
+    Action<int, int, World.Layout.Direction>? PlaceCamp = null,
+    Func<bool>? WorldReady = null);
