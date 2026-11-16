@@ -122,6 +122,7 @@
         "cell",
         "chance",
         "margin",
+        "attempts",
         "minHeightAboveSea",
         "waterReach",
         "width",
@@ -139,6 +140,7 @@
         "cell": { "type": "integer", "minimum": 32, "maximum": 1024, "description": "The sites' spacing, in blocks." },
         "chance": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The share of the sites that try to open a passage, in thousandths." },
         "margin": { "type": "integer", "minimum": 0, "description": "How far inside its site the mouth lies, in blocks." },
+        "attempts": { "type": "integer", "minimum": 1, "maximum": 16, "description": "How many spots a site tries; the passage the ground covers most (a hillside over level ground) wins." },
         "minHeightAboveSea": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far over the sea the ground at the mouth must be." },
         "waterReach": {
           "type": "integer",

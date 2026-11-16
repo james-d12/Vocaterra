@@ -81,25 +81,28 @@ internal sealed class EntranceSites
         }
 
         var inner = _spec.Cell - (2 * _spec.Margin);
-        var ax = (site.X * _spec.Cell) + _spec.Margin + rng.NextInt(inner);
-        var az = (site.Z * _spec.Cell) + _spec.Margin + rng.NextInt(inner);
-        var first = rng.NextInt(Directions.Length);
-        var probe = new Probe(this);
-        var mouth = probe.At(ax, az);
-        if (!mouth.Usable || mouth.Height < _world.SeaLevel + _spec.MinHeightAboveSea)
-        {
-            return null;
-        }
-
         EntranceRamp? best = null;
         var bestCover = int.MinValue;
-        for (var k = 0; k < Directions.Length; k++)
+        for (var attempt = 0; attempt < _spec.Attempts; attempt++)
         {
-            var (dx, dz) = Directions[(first + k) % Directions.Length];
-            if (Plan(probe, ax, az, dx, dz, mouth.Height, out var cover) is { } ramp && cover > bestCover)
+            var ax = (site.X * _spec.Cell) + _spec.Margin + rng.NextInt(inner);
+            var az = (site.Z * _spec.Cell) + _spec.Margin + rng.NextInt(inner);
+            var first = rng.NextInt(Directions.Length);
+            var probe = new Probe(this);
+            var mouth = probe.At(ax, az);
+            if (!mouth.Usable || mouth.Height < _world.SeaLevel + _spec.MinHeightAboveSea)
             {
-                best = ramp;
-                bestCover = cover;
+                continue;
+            }
+
+            for (var k = 0; k < Directions.Length; k++)
+            {
+                var (dx, dz) = Directions[(first + k) % Directions.Length];
+                if (Plan(probe, ax, az, dx, dz, mouth.Height, out var cover) is { } ramp && cover > bestCover)
+                {
+                    best = ramp;
+                    bestCover = cover;
+                }
             }
         }
 

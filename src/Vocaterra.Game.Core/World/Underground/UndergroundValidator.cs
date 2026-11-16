@@ -215,6 +215,7 @@ internal static partial class UndergroundValidator
             problems.Add($"{File}: entrances.margin must leave room inside the site (it is {e.Margin} of a cell of {e.Cell}).");
         }
 
+        Range(problems, "entrances.attempts", e.Attempts, 1, 16);
         if (e.MinHeightAboveSea < 0 || e.MinHeightAboveSea > 64)
         {
             problems.Add($"{File}: entrances.minHeightAboveSea must be from 0 to 64 blocks (it is {e.MinHeightAboveSea}).");

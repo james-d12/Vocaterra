@@ -175,7 +175,7 @@ public sealed record CaveSpec(
 
 /// <summary>
 /// The cave entrances (B11b): passages a body walks down from the surface into the cave network. The world is cut into sites <see cref="Cell"/> blocks across; <see cref="Chance"/> thousandths of
-/// them try to open a passage, from a spot at least <see cref="Margin"/> blocks inside the site: a straight stair of <see cref="Width"/> blocks across and <see cref="Headroom"/> blocks of air above
+/// them try to open a passage, from the best of <see cref="Attempts"/> spots (the one whose passage the ground covers most: a hillside beats level ground) at least <see cref="Margin"/> blocks inside the site: a straight stair of <see cref="Width"/> blocks across and <see cref="Headroom"/> blocks of air above
 /// the floor that drops one block every <see cref="Run"/> blocks, in the direction (of four) whose ground covers it best, until it meets a cave at least <see cref="MinDrop"/> blocks under the mouth
 /// (within <see cref="MaxLength"/> blocks), then a landing of <see cref="Landing"/> blocks. A site opens only on dry procedural land at least <see cref="MinHeightAboveSea"/> over the sea with no
 /// water or river bank within <see cref="WaterReach"/> columns of the passage, outside every region and its margin. The first <see cref="RimLength"/> blocks are framed by a rim of rock
@@ -184,6 +184,7 @@ public sealed record CaveSpec(
 /// <param name="Cell">The sites' spacing, in blocks.</param>
 /// <param name="Chance">The share of the sites that try, in thousandths.</param>
 /// <param name="Margin">How far inside its site the mouth lies, in blocks.</param>
+/// <param name="Attempts">How many spots a site tries; the passage the ground covers most wins.</param>
 /// <param name="MinHeightAboveSea">How far over the sea the ground at the mouth must be.</param>
 /// <param name="WaterReach">How many columns round the passage hold no water and no river bank.</param>
 /// <param name="Width">The passage's width, in blocks (at least 2).</param>
@@ -199,6 +200,7 @@ public sealed record EntranceSpec(
     int Cell,
     int Chance,
     int Margin,
+    int Attempts,
     int MinHeightAboveSea,
     int WaterReach,
     int Width,
@@ -340,6 +342,7 @@ public sealed record UndergroundData(
         Int(e, "cell"),
         Int(e, "chance"),
         Int(e, "margin"),
+        Int(e, "attempts"),
         Int(e, "minHeightAboveSea"),
         Int(e, "waterReach"),
         Int(e, "width"),

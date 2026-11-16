@@ -136,6 +136,7 @@ public sealed class UndergroundDataTests
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxLength = 20 } }), "maxLength"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Margin = 70 } }), "margin"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Chance = 2000 } }), "chance"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Attempts = 0 } }), "attempts"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinHeightAboveSea = -1 } }), "minHeightAboveSea"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [] } }), "rimBlocks"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [new BlockWeight("magma", 1)] } }), "magma"));

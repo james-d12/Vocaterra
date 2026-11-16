@@ -35,6 +35,7 @@
     "cell": 128,
     "chance": 500,
     "margin": 12,
+    "attempts": 3,
     "minHeightAboveSea": 4,
     "waterReach": 10,
     "width": 3,
