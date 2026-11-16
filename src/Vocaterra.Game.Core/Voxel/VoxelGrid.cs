@@ -439,6 +439,19 @@ public sealed class VoxelGrid : IVoxelWriter
         return changed;
     }
 
+    /// <summary>The coordinates of the chunks that are <see cref="VoxelChunk.IsChanged"/>, in the order of <see cref="ChangedChunks"/>: what the far view's store has to hold as the player's edits (B07f). Changed chunks are never evicted, so this is every one.</summary>
+    public IReadOnlyList<VoxelChunkCoord> ChangedChunkCoords()
+    {
+        var changed = ChangedChunks();
+        var coords = new VoxelChunkCoord[changed.Count];
+        for (var i = 0; i < coords.Length; i++)
+        {
+            coords[i] = changed[i].Coord;
+        }
+
+        return coords;
+    }
+
     /// <summary>
     /// Replaces the blocks of a resident chunk as one write of the build (B13: the valley's underground, laid into the buried stone chunk by chunk): it is not an edit (<see cref="EditCount"/> and the
     /// listeners are not touched) and the caller seals the grid afterwards. The water levels stay as they were.
