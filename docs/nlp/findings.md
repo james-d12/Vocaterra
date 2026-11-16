@@ -1453,3 +1453,15 @@ this file. What is still open is collected in [open-items](../open-items.md).
   UTC). Also seen that day: `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone...` ("the generator no longer reaches
   fallback:second-chosen", count 4) failed once in B11b's full run under load and passes alone (a coverage oracle that depends on how
   many samples a loaded run draws: to check). Proposed with the `2LxdNIrNHnQ6` entry above: one core milestone for the fuzz findings.
+- **M97, three fuzz findings resolved (2026-11-16; seeds `2LxdNIrNHnQ6` (O5), `9kz6LGNo8tf2` (O3) and a coverage floor; the entries above).**
+  (1) `2LxdNIrNHnQ6`: a generator fix, no engine change. The realiser drew `cuanto` (a noun, and the determiner `cuánto`) for `[NOUN:item]` right before the noun
+  `almuerzos`; the grammar binds it as a noun, so the sentence is clean, but the mutation `zeponefu` left the grammar unmatched and the analyzer, rightly, read `cuanto`
+  as `almuerzos`' determiner (`noun.number`, `almuerzo`), so the recast lost the plural. Such a noun right before another noun is re-rolled
+  (`skip:noun-reads-as-determiner`). (2) `9kz6LGNo8tf2`: an engine fix. `AnswerNearMisses` took `me` and `tal` for a pronoun slip pair (`que me` a near miss of the answer
+  `qué tal`), because `tal` has a pronoun reading with no person; a pronoun pair now needs a reading with a person on each side. O6's model follows; documented in
+  `api.md` and `pipeline.md`. (3) The coverage floor of `OpenFallback_...` (`forced-same-intent`, `second-chosen`, 4 each in two gate runs): not load. Nothing in the
+  sampling reads a clock or the machine (CsCheck's `time` is off; the count is the environment's or 300); the run draws a fresh seed and a path's count (about 10 in 300)
+  falls under 5 now and then. The test is two now: the random-seed run checks every case with no floor, and `OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`
+  asserts the same floor `min(5, iterations / 60)` for the same ten paths on a fixed seed (the lowest count 9). All three oracles check what they checked. The goldens did not
+  move. Regression: `HomographRerollTests` (6), `AnswerNearMissesTests`. Plan row text proposed: "M97 done: two fuzz seeds fixed (a realiser re-roll for a noun that reads as
+  the next noun's determiner; a pronoun slip pair needs a person) and the open fallback's coverage floor asserted on a fixed seed."
