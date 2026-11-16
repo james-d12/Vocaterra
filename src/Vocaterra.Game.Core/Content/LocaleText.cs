@@ -59,7 +59,7 @@ public sealed class LocaleText
         "dialogueKeyHints", "coachOffPrompt", "dialogueOlder.one", "dialogueOlder.other", "dialogueAbove.one", "dialogueAbove.other", "dialogueBelow.one", "dialogueBelow.other", "dialogueButtonHints", "dialogueKeyHintsShort", "dialogueButtonHintsShort", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
         "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
         "beaconDistance.other", "loadingSpeech", "controlsScroll", "gameSaved", "saveLater", "inventoryTitle",
-        "inventoryHintsShort", "inventoryHints", "inventoryUsed", "refuseDifferent", "refuseTrashDifferent", "refuseSlotFull", "refuseNoRoom", "refuseStackTooLarge", "refuseNotWearable", "refuseWrongSlot", "refuseWrongKind", "refuseDuplicate", "refuseWearOne", "refuseBagNotEmpty", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
+        "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
         "workbenchTitle", "fireTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
         "bookTabSaid", "bookTitle", "bookHints", "bookHintsShort", "bookLines", "bookKnownNouns", "bookWithoutHelp", "bookSession", "bookNoVerbs", "bookNothingSaid",
         "bookNothing", "bookChooseVerb", "bookVerbKey", "bookWhatYouSaid", "bookMoreBelow", "dueNow", "dueSeconds", "dueMinutes", "dueHours", "phraseHeard",

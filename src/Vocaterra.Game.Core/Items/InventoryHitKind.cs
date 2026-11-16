@@ -17,4 +17,7 @@ public enum InventoryHitKind
 
     /// <summary>An equipment cell of the paper doll (I04): <see cref="InventoryHit.Slot"/> is the slot's flat index in <c>equipment.json</c> order.</summary>
     Equipment = 4,
+
+    /// <summary>The heading of a doll column (I04b): <see cref="InventoryHit.Slot"/> is the column. It reacts to hover only (the English), never to a click.</summary>
+    Heading = 5,
 }

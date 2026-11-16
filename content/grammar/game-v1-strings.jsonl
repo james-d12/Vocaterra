@@ -3693,6 +3693,17 @@
 {"id":"words.json:hudLines.need.thirst.2","text":"Tengo sed.","kind":"npc"}
 {"id":"words.json:hudLines.need.thirst.3","text":"Tengo mucha sed.","kind":"npc"}
 {"id":"words.json:hudLines.need.thirst.4","text":"Me muero de sed.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.bagNotEmpty","text":"La bolsa no está vacía.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.different","text":"Eso es otra cosa.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.duplicate","text":"Ya llevas uno.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.noRoom","text":"No hay sitio en la bolsa.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.notWearable","text":"No puedes llevar eso.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.slotFull","text":"Ya está lleno.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.stackTooLarge","text":"Son demasiados.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.trashDifferent","text":"La basura tiene otra cosa.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.wearOne","text":"Solo uno a la vez.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.wrongKind","text":"Eso no se lleva aquí.","kind":"npc"}
+{"id":"words.json:hudLines.refuse.wrongSlot","text":"Eso no va ahí.","kind":"npc"}
 {"id":"words.json:hudLines.temperature.cold","text":"Tengo frío.","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
@@ -3725,9 +3736,11 @@
 {"id":"speech:baker_weather.1.viento","text":"Sí, hace viento.","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
+{"id":"speech:card.apariencia","text":"la apariencia","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}
 {"id":"speech:card.armadura","text":"la armadura","kind":"npc"}
 {"id":"speech:card.bol","text":"el bol","kind":"npc"}
+{"id":"speech:card.bolsa","text":"la bolsa","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
 {"id":"speech:card.cabeza","text":"la cabeza","kind":"npc"}
 {"id":"speech:card.calor","text":"la calor","kind":"npc"}
@@ -3757,6 +3770,7 @@
 {"id":"speech:card.pierna","text":"la pierna","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
+{"id":"speech:card.ropa","text":"la ropa","kind":"npc"}
 {"id":"speech:card.terreno","text":"el terreno","kind":"npc"}
 {"id":"speech:card.tienda","text":"la tienda","kind":"npc"}
 {"id":"speech:card.tierra","text":"la tierra","kind":"npc"}

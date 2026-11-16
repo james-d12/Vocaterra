@@ -308,6 +308,7 @@ public static class GameDataValidator
         keys.AddRange(data.Needs.Health.Warnings.Select(static stage => stage.Line));
         keys.AddRange(data.Temperature.LineKeys); // I06: the line of a cold band
         keys.AddRange(GameWords.FixedHudKeys);
+        keys.AddRange(Items.Containers.MoveRefusalText.AllKeys); // I04b: the inventory panel's refusal lines
         return keys;
     }
 

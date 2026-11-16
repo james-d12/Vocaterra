@@ -35,6 +35,9 @@
     "noun.pie": "foot",
     "noun.espalda": "back",
     "noun.armadura": "armour",
-    "noun.calor": "warmth"
+    "noun.calor": "warmth",
+    "noun.bolsa": "bag",
+    "noun.ropa": "clothes",
+    "noun.apariencia": "appearance"
   }
 }

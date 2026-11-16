@@ -2662,6 +2662,28 @@
       "Sha256": "f664f744b23dbd7f8a5528610c36be7a80a7fd7beed2c420c61ce557f8d928c0",
       "Bytes": 52844
     },
+    "speech/cards/card.apariencia.slow.wav": {
+      "Text": "la apariencia",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "ca8f39e4d9fa7ca3bf2c078317a4e9ae6fdc6d4a85027b8ff43f67b40a53272f",
+      "Bytes": 70844
+    },
+    "speech/cards/card.apariencia.wav": {
+      "Text": "la apariencia",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "bead07e4ad187025c25a90eef937b5555bffecf9902ddd5c47b6baed1ae65e83",
+      "Bytes": 55244
+    },
     "speech/cards/card.arbol.slow.wav": {
       "Text": "el \u00E1rbol",
       "Speaker": "guide",
@@ -2749,6 +2771,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "eb530525ba481c9353a093010d7075f378ec62d8a72ab1a9f31aa02b3d00fb9f",
       "Bytes": 36044
+    },
+    "speech/cards/card.bolsa.slow.wav": {
+      "Text": "la bolsa",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "893033afbe336da846e127f325b7854cf12ab1252331c362b296bd2fee710ef7",
+      "Bytes": 56444
+    },
+    "speech/cards/card.bolsa.wav": {
+      "Text": "la bolsa",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "ccff92067e9e5207c4e221e220788f1a23d26cbd7715323dc56235541809631f",
+      "Bytes": 46844
     },
     "speech/cards/card.botella.slow.wav": {
       "Text": "la botella",
@@ -3431,6 +3475,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "c5a00e838568893fd4900e1712d4a457114bb28f0930d7addcf4b3a7388adbbf",
       "Bytes": 37244
+    },
+    "speech/cards/card.ropa.slow.wav": {
+      "Text": "la ropa",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "38c42befc675822ec2057943698a7d641389f8ef13cf93cd59340dc6f8a357a3",
+      "Bytes": 51644
+    },
+    "speech/cards/card.ropa.wav": {
+      "Text": "la ropa",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "8eecb1ffe7dfeb70d1aea41d833c1e6a59b60a7dabc01a7bb10c7b1f5601e9d6",
+      "Bytes": 43244
     },
     "speech/cards/card.terreno.slow.wav": {
       "Text": "el terreno",

@@ -30,6 +30,21 @@ public sealed class HotbarLayer : IFrameLayer
         return new PixelBox((canvasWidth - width) / 2, canvasHeight - SlotSize - Bottom, width, SlotSize);
     }
 
+    /// <summary>The gap between the off-hand cell and the hotbar's first slot, wider than <see cref="Gap"/> so the cell reads as set apart (I04b).</summary>
+    public const int OffHandGap = 10;
+
+    /// <summary>The room the off-hand cell takes left of the hotbar: its width and its gap (the needs' HUD stands clear of it, I04b).</summary>
+    public const int OffHandReserve = SlotSize + OffHandGap;
+
+    /// <summary>The off-hand cell's box: one slot to the left of the hotbar's first, <see cref="OffHandGap"/> from it, at its height. It is drawn only while something is worn in the off-hand.</summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="canvasHeight">The canvas's height.</param>
+    public static PixelBox OffHandBoxFor(int canvasWidth, int canvasHeight)
+    {
+        var hotbar = BoxFor(canvasWidth, canvasHeight);
+        return new PixelBox(hotbar.X - OffHandGap - SlotSize, hotbar.Y, SlotSize, SlotSize);
+    }
+
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Frame = new(88, 92, 108);
     private static readonly Color Selected = new(250, 244, 220);
@@ -69,6 +84,27 @@ public sealed class HotbarLayer : IFrameLayer
             // The key that selects the slot: 1 to 9, then 0 for the tenth.
             var key = ((i + 1) % 10).ToString(CultureInfo.InvariantCulture);
             DrawHelpers.Text(spriteBatch, font, key, new Vector2(box.X + 3, box.Y + 1), selected ? Gold : UiPalette.HotbarKey.ToColor());
+        }
+
+        DrawOffHand(spriteBatch, view, font);
+    }
+
+    // The off-hand cell (I04b), as in Minecraft: one more cell left of the hotbar with the item worn in the off-hand slot, found by the slot's wear kind. Nothing worn there: nothing drawn. It is no hotbar slot (no key, no selection).
+    private static void DrawOffHand(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font)
+    {
+        var stack = view.Voxel.Equipment.StackOfWear(Core.Items.Gear.AppearanceRoles.Default.OffHandWear);
+        if (stack.IsEmpty)
+        {
+            return;
+        }
+
+        var cell = OffHandBoxFor(view.ViewportWidth, view.ViewportHeight);
+        var box = new Rectangle(cell.X, cell.Y, cell.Width, cell.Height);
+        DrawHelpers.RoundedPanel(spriteBatch, view.Pixel, box, 5, Back, Frame, 1);
+        view.DrawIcon(spriteBatch, stack.Item, new Rectangle(box.X + 7, box.Y + 7, SlotSize - 14, SlotSize - 14));
+        if (CountBadge.Text(stack.Count, showOne: false) is { } text)
+        {
+            DrawHelpers.Badge(spriteBatch, view.Pixel, font, text, new Point(box.Right - 2, box.Bottom - 2));
         }
     }
 }

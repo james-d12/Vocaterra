@@ -106,6 +106,22 @@ public sealed class Equipment
         }
     }
 
+    /// <summary>What is worn in the first slot whose <c>wear</c> kind is <paramref name="wear"/> and holds something (empty when none does): the off-hand cell of the HUD finds its item this way, by the kind, never by the group's id (I04b).</summary>
+    /// <param name="wear">The slot kind (<see cref="AppearanceRoles.OffHandWear"/>).</param>
+    public ItemStack StackOfWear(string wear)
+    {
+        ArgumentNullException.ThrowIfNull(wear);
+        for (var flat = 0; flat < _slots.Length; flat++)
+        {
+            if (!_slots[flat].IsEmpty && string.Equals(Data.Spec(Data.SlotAt(flat)).Wear, wear, StringComparison.Ordinal))
+            {
+                return _slots[flat];
+            }
+        }
+
+        return ItemStack.Empty;
+    }
+
     /// <summary>The first slot that would take <paramref name="item"/> now, an empty one before a worn one, or <see langword="null"/> when no slot would (the item is refused everywhere).</summary>
     /// <param name="bag">The bag the rules read.</param>
     /// <param name="item">The item.</param>

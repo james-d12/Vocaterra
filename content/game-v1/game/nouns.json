@@ -42,6 +42,9 @@
     {"lemma": "pie", "items": [], "blocks": []},
     {"lemma": "espalda", "items": [], "blocks": []},
     {"lemma": "armadura", "items": [], "blocks": []},
-    {"lemma": "calor", "items": [], "blocks": []}
+    {"lemma": "calor", "items": [], "blocks": []},
+    {"lemma": "bolsa", "items": [], "blocks": []},
+    {"lemma": "ropa", "items": [], "blocks": [], "mass": true},
+    {"lemma": "apariencia", "items": [], "blocks": []}
   ]
 }

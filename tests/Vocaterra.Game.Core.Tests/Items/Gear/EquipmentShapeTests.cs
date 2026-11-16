@@ -75,6 +75,36 @@ public sealed class EquipmentShapeTests
     }
 
     [Fact]
+    public void Given_TheShippedData_When_TheColumnHeadingsAreRead_Then_TheyAreTheLayeredGroupsOwnNounsInLayerOrder()
+    {
+        Assert.Equal(["ropa", "armadura", "apariencia"], TestGame.Data.Equipment.Shape.ColumnHeadings);
+        Assert.True(TestGame.Data.Equipment.Shape.HasHeadings);
+        Assert.Empty(EquipmentData.Empty.Shape.ColumnHeadings);
+    }
+
+    [Fact]
+    public void Given_AFourthLayerWithItsOwnHeading_When_TheShapeIsMade_Then_TheHeadingIsThatColumnsAndNoCodeNamesIt()
+    {
+        var shipped = TestGame.Data.Equipment;
+        var charms = Data(Group("charms", 4, "\"slots\":[\"head\"]", "[\"charm\"]", ",\"heading\":\"mano\"")).Groups[0];
+        var data = new EquipmentData([.. shipped.Groups, charms], shipped.BagSlots);
+
+        var shape = EquipmentShape.Of(data);
+
+        Assert.Equal(["ropa", "armadura", "apariencia", "mano"], shape.ColumnHeadings);
+        Assert.Equal("mano", charms.Heading);
+    }
+
+    [Fact]
+    public void Given_GroupsWithNoHeading_When_TheShapeIsMade_Then_NoColumnHasOneAndTheShapeSaysSo()
+    {
+        var shape = EquipmentShape.Of(Data(Group("outer", 1, Body), Group("inner", 2, Body)));
+
+        Assert.Equal([null, null], shape.ColumnHeadings);
+        Assert.False(shape.HasHeadings);
+    }
+
+    [Fact]
     public void Given_ASeventhCountedGroup_When_TheShapeIsMade_Then_ItGetsCellsInTheRowsBelow()
     {
         var shipped = TestGame.Data.Equipment;

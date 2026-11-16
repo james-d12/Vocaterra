@@ -68,14 +68,16 @@ public static class NeedsHudLayout
     /// <param name="spanish">The stage line's Spanish, or <see langword="null"/> for no line.</param>
     /// <param name="english">The stage line's English.</param>
     /// <param name="measure">The width of a text in the small font.</param>
-    public static NeedsHudBoxes Place(int canvasWidth, int canvasHeight, int icons, bool stamina, string? spanish, string? english, Func<string, float> measure)
+    /// <param name="offHand">Whether the off-hand cell stands left of the hotbar (I04b): the block beside the hotbar then stands clear of it, or above the hotbar's left end where there is no room.</param>
+    public static NeedsHudBoxes Place(int canvasWidth, int canvasHeight, int icons, bool stamina, string? spanish, string? english, Func<string, float> measure, bool offHand = false)
     {
         ArgumentNullException.ThrowIfNull(measure);
         icons = Math.Clamp(icons, 0, MaxIcons);
         var hotbar = HotbarBox(canvasWidth, canvasHeight);
         var height = BlockHeight(icons, stamina);
-        var beside = hotbar.X - Spacing - BarWidth >= HudLayout.Margin;
-        var x = beside ? hotbar.X - Spacing - BarWidth : hotbar.X;
+        var reserve = offHand ? HotbarLayer.OffHandReserve : 0;
+        var beside = hotbar.X - reserve - Spacing - BarWidth >= HudLayout.Margin;
+        var x = beside ? hotbar.X - reserve - Spacing - BarWidth : hotbar.X;
         var bottom = beside ? hotbar.Bottom : hotbar.Y - Spacing;
         var block = new PixelBox(x, bottom - height, BarWidth, height);
 

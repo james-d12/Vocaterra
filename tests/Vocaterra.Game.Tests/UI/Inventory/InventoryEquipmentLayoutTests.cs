@@ -43,7 +43,9 @@ public sealed class InventoryEquipmentLayoutTests(ITestOutputHelper output)
     private static IEnumerable<PixelBox> Boxes(InventoryLayout layout, int slots) =>
         Enumerable.Range(0, slots).Select(layout.Cell)
             .Concat(layout.Shape.Cells.Select(layout.EquipmentCellBox))
-            .Concat([layout.SortButton, layout.TrashCell]);
+            .Concat([layout.SortButton, layout.TrashCell])
+            .Concat(Enumerable.Range(0, layout.Shape.ColumnHeadings.Count).Select(layout.HeadingBox).Where(static b => b.Width > 0))
+            .Concat(layout.StatsArea.Width > 0 ? [layout.StatsArea] : []);
 
     [Theory]
     [MemberData(nameof(Cases))]
@@ -75,7 +77,11 @@ public sealed class InventoryEquipmentLayoutTests(ITestOutputHelper output)
                 }
 
                 Assert.True(Inside(layout.StatsArea, layout.Panel));
-                Assert.All(layout.Shape.Cells, cell => Assert.True(layout.EquipmentCellBox(cell).Bottom <= layout.StatsArea.Y, "a doll cell reaches the stats line"));
+                Assert.All(layout.Shape.Cells, cell => Assert.True(Apart(layout.EquipmentCellBox(cell), layout.StatsArea), "a doll cell reaches the stats line"));
+                if (!layout.Tight)
+                {
+                    Assert.All(layout.Shape.Cells, cell => Assert.True(layout.EquipmentCellBox(cell).Bottom <= layout.StatsArea.Y, "a doll cell reaches the stats line"));
+                }
                 Assert.True(boxes.Max(static b => b.Bottom) <= layout.NeedsTop, "the needs' list starts under every cell and button");
                 if (needs > 0)
                 {
@@ -188,6 +194,133 @@ public sealed class InventoryEquipmentLayoutTests(ITestOutputHelper output)
         }
 
         Assert.Equal(0, new InventoryLayout(640, 480, 40, 5, Shipped).RowLabelBox(0).Width);
+    }
+
+    // ---- I04b: the headings, the stats line and the counted cells' nouns.
+
+    private static float Seven(string text) => text.Length * 7f; // the stand-in font the other layout tests use: wider than the real one
+
+    // Five non-default stats as the line writes them: the regular size puts the Spanish noun before the number where the game has one, the small sizes the number alone.
+    private static readonly string[] FiveStatsRegular = ["armadura 12", "calor +1.5", "+10%", "-15%", "+20"];
+    private static readonly string[] FiveStatsSmall = ["12", "+1.5", "+10%", "-15%", "+20"];
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Given_FiveNonDefaultStats_When_TheChipsArePlacedAtAnyLayout_Then_EveryChipIsDrawnInsideTheStatsAreaAndThePanel(int windowWidth, int windowHeight, int scale)
+    {
+        var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
+        foreach (var slots in Slots)
+        {
+            var layout = new InventoryLayout(width, height, slots, 0, Shipped);
+            var small = layout.Compact || layout.Tight;
+            var iconSize = layout.StatChipHeight - 2;
+            var texts = small ? FiveStatsSmall : FiveStatsRegular;
+            var widths = texts.Select(t => iconSize + 4 + (int)Seven(t) + (small ? 4 : 8)).ToList();
+
+            var boxes = StatLinePlacer.Place(widths, layout.StatsArea, layout.StatChipHeight, 0);
+
+            output.WriteLine($"{width}x{height} slots {slots}: compact {layout.Compact} tight {layout.Tight}, stats area {layout.StatsArea}, {boxes.Count} of 5 chips");
+            Assert.Equal(5, boxes.Count);
+            Assert.All(boxes, box => Assert.True(Inside(box, layout.StatsArea) && Inside(box, layout.Panel), $"{box} is outside the stats area {layout.StatsArea}"));
+        }
+    }
+
+    [Fact]
+    public void Given_TheSmallestCanvas_When_FiveStatsAreAsked_Then_TheStaminaChipThatWasDroppedAt640By480IsThere()
+    {
+        var layout = new InventoryLayout(640, 480, 30, 5, Shipped);
+        var iconSize = layout.StatChipHeight - 2;
+        var widths = FiveStatsSmall.Select(t => iconSize + 4 + (int)Seven(t) + 4).ToList();
+
+        var boxes = StatLinePlacer.Place(widths, layout.StatsArea, layout.StatChipHeight, 0);
+
+        Assert.True(layout.Tight);
+        Assert.Equal(widths.Count, boxes.Count);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Given_TheShippedHeadings_When_TheLayoutIsMade_Then_EachHeadingBoxIsAboveItsColumnsCellsInsideThePanelAndHoverNamesIt(int windowWidth, int windowHeight, int scale)
+    {
+        var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
+        var layout = new InventoryLayout(width, height, 30, 5, Shipped);
+
+        Assert.True(layout.HeadingHeight > 0);
+        for (var column = 0; column < Shipped.ColumnHeadings.Count; column++)
+        {
+            var box = layout.HeadingBox(column);
+            var cells = Shipped.Cells.Where(c => c.Column == column && c.Row < Shipped.BodyRows).Select(layout.EquipmentCellBox).ToList();
+
+            Assert.True(box.Width >= 30, $"heading {column} {box} is too narrow for a mark");
+            Assert.True(Inside(box, layout.Panel));
+            Assert.All(cells, cell => Assert.True(box.Bottom <= cell.Y && box.X <= cell.X + (cell.Width / 2) && box.Right >= cell.X + (cell.Width / 2), $"heading {box} is not above its cells"));
+            Assert.Equal(new InventoryHit(InventoryHitKind.Heading, column), layout.Hit(box.X + (box.Width / 2), box.Y + (box.Height / 2), 30));
+        }
+
+        for (var column = 1; column < Shipped.ColumnHeadings.Count; column++)
+        {
+            Assert.True(layout.HeadingBox(column - 1).Right <= layout.HeadingBox(column).X, "two headings overlap");
+        }
+    }
+
+    [Fact]
+    public void Given_ShapeWithoutHeadings_When_TheLayoutIsMade_Then_NoRoomIsSpentOnThem()
+    {
+        var data = EquipmentData.Parse("""{"schemaVersion":1,"groups":[{"id":"a","layer":1,"slots":["head"],"accepts":["x"],"noDuplicates":false,"statsApply":true}]}""");
+
+        var layout = new InventoryLayout(1280, 720, 30, 0, data.Shape);
+
+        Assert.Equal(0, layout.HeadingHeight);
+        Assert.Equal(0, layout.HeadingBox(0).Width);
+        Assert.Equal(layout.GridTop, layout.EquipmentCellBox(data.Shape.Cells[0]).Y);
+    }
+
+    [Fact]
+    public void Given_AFourthLayerWithAHeadingInTheData_When_TheLayoutIsMade_Then_ItHasAHeadingBoxAndNothingNamesItInCode()
+    {
+        var shipped = TestGame.Data.Equipment;
+        var charms = EquipmentData.Parse("""{"schemaVersion":1,"groups":[{"id":"charms","layer":4,"heading":"mano","slots":["head","feet"],"accepts":["charm"],"noDuplicates":false,"statsApply":true}]}""").Groups[0];
+        var data = new EquipmentData([.. shipped.Groups, charms], shipped.BagSlots);
+
+        var layout = new InventoryLayout(1920, 1080, 30, 0, data.Shape);
+
+        Assert.Equal(4, data.Shape.ColumnHeadings.Count);
+        Assert.Equal("mano", data.Shape.ColumnHeadings[3]);
+        Assert.True(layout.HeadingBox(3).Width > 0);
+        Assert.True(layout.HeadingBox(2).Right <= layout.HeadingBox(3).X);
+    }
+
+    [Theory]
+    [InlineData(1920, 1080)]
+    [InlineData(1280, 720)]
+    [InlineData(1024, 768)]
+    public void Given_TheRegularSize_When_TheNounsOfTheDollAreMeasured_Then_NoneIsCutOffInItsBox(int width, int height)
+    {
+        var layout = new InventoryLayout(width, height, 40, 5, Shipped);
+        var nouns = TestGame.Data.Nouns;
+
+        Assert.False(layout.Compact, "this canvas should get the regular size");
+        for (var row = 0; row < Shipped.BodyRows; row++)
+        {
+            var lemma = Shipped.RowLabels[row];
+            if (lemma is not null)
+            {
+                var text = nouns.ForLemma(lemma)?.WithDefinite ?? lemma;
+                Assert.True(Seven(text) <= layout.RowLabelBox(row).Width, $"'{text}' ({Seven(text)} px) is cut off in {layout.RowLabelBox(row)}");
+            }
+        }
+
+        foreach (var cell in Shipped.Cells.Where(c => c.Row >= Shipped.BodyRows && c.Label is not null))
+        {
+            Assert.True(Seven(cell.Label!) <= layout.EquipmentCellBox(cell).Width - 2, $"'{cell.Label}' is cut off in the cell {layout.EquipmentCellBox(cell)}");
+        }
+    }
+
+    [Fact]
+    public void Given_TheCompactAndTightSizes_When_TheDollIsLaidOut_Then_NoCountedNounIsDrawnAndTheHoverLineHasThem()
+    {
+        Assert.False(new InventoryLayout(800, 600, 40, 5, Shipped).HasLabelColumn);
+        Assert.False(new InventoryLayout(533, 400, 30, 5, Shipped).HasLabelColumn);
     }
 
     // ---- A group added to equipment.json gets its cells with no change to the layout.

@@ -78,6 +78,11 @@ internal static partial class EquipmentValidator
             }
         }
 
+        if (group.Heading is not null && !LabelPattern().IsMatch(group.Heading))
+        {
+            problems.Add($"{File}: {name} has the heading '{group.Heading}', which is not a lowercase noun.");
+        }
+
         if (group.Accepts.Count == 0)
         {
             problems.Add($"{File}: {name} accepts no tag, so nothing can be worn in it.");

@@ -3306,6 +3306,12 @@
       "matches": []
     },
     {
+      "key": "4c6bcd7f458dcab869023f3c1ca3e14d3d6736192ff0cc9816c5b7ba11cb1d44",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ya está lleno.",
+      "matches": []
+    },
+    {
       "key": "4c6c0cd87d4c1179643d511afaf20767ededc52ea5744daa9559231107c18e0f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Qué necesito para una antorcha",
@@ -3398,6 +3404,12 @@
       "key": "4e9542f0a3a3c3dd3679b85e9f149838461c0b6b4648cc5947d8b26d068b6db0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das pan por favor",
+      "matches": []
+    },
+    {
+      "key": "4ea83f4913211b0e49e2e0200d667a5517ba041b5269bfd260d208d0ef0ccc0c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Son demasiados.",
       "matches": []
     },
     {
@@ -5687,6 +5699,12 @@
       "matches": []
     },
     {
+      "key": "7cc5b760893a28ea2ee7f848b2a2a149715bc6a1888d18f2d13d95f46389499b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ya llevas uno.",
+      "matches": []
+    },
+    {
       "key": "7d65b9b480b47bbe23867db0c6f570b50e46cd4f351b12aeb51a21b33cb55401",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "tus cosas",
@@ -5714,6 +5732,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué necesitamos?",
       "matches": []
+    },
+    {
+      "key": "7ded08d3d232b84df30a27fbe36284bb9bd99a97487d5aa6088883dbc888f3d7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la ropa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "7e1b2ee34c30f7287d6e45ad10ac73f63fe523f4873c3f9c041682424d7e9b28",
@@ -6563,6 +6598,12 @@
       "matches": []
     },
     {
+      "key": "93bad9892f71a9a6e0195bfcfd8cc1c6faeff32026e27ecfbce2bb32b6d7c5bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No hay sitio en la bolsa.",
+      "matches": []
+    },
+    {
       "key": "93ca5b41a4e29a114b7691b828f99859664c0521b927fe7cbe1e8f4b99e2e464",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está allí, espada, a un espada.",
@@ -7201,6 +7242,23 @@
       "matches": []
     },
     {
+      "key": "9fc88a2397f9341d636e91f7bc0d816d3c2491f3dee0c47ba602494ad7b955ac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la bolsa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "9feb798de7420c6e4c95a713a8f7112586e89a595fb640f2975cce87cc2cfb21",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Hay panes?",
@@ -7616,6 +7674,12 @@
       "matches": []
     },
     {
+      "key": "a94728c41b43a16cee58d959278c96af9ad3ecd7c973c2bb8a740b1168da60e3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No puedes llevar eso.",
+      "matches": []
+    },
+    {
       "key": "a96cc58fdaceccfbc7a1cfb3345edfde3eaa2f3a111653625d772bb3573cfc6a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me gusta la pan",
@@ -7892,6 +7956,12 @@
       "key": "afa41c6a0283cd2b1844f0b5034b36a35d7d16a838aaa8db182965d44da48f5b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Pregunta por una cosa. ¿Dónde está la piedra?",
+      "matches": []
+    },
+    {
+      "key": "afa743fd95d84fb1b561b2b5edc24ad5232b099d8a0d02f68ffe8814d9669deb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La bolsa no está vacía.",
       "matches": []
     },
     {
@@ -8697,6 +8767,12 @@
       "matches": []
     },
     {
+      "key": "c3b27ce73aed9e62c96e06e4c6fa2e7f618adb3dd29426ddb102f43758df8213",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Eso no se lleva aquí.",
+      "matches": []
+    },
+    {
       "key": "c3b907e42e077877ee069eb7b1d3594225c8a654072c8deceb18f71bcf2ad5e1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "la casa",
@@ -9148,6 +9224,12 @@
       "matches": []
     },
     {
+      "key": "ce40d2746f6007f2c8cdfcfbc4b694fe44de45e5bd503454eca0574df717daeb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Eso no va ahí.",
+      "matches": []
+    },
+    {
       "key": "ce51354d0d4ddde25bf9f869a0d25cf2dbd212179c2b43372f53a123634a6b27",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Ya lo tienes todo!",
@@ -9573,6 +9655,23 @@
       "matches": []
     },
     {
+      "key": "d74475fd2024850139c40052848c25e3876e5d2a36b8c6e530e828268ae1e100",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la apariencia",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d74a8e15aad1fedca6e30bd0d4acdb3718749f2d4ead4ea2572efc59365ba28e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay madera",
@@ -9600,6 +9699,12 @@
       "key": "d85c5a72e09a14814bfecc7aab11c2cae8078425e9a6fff939c3e46bfefec95d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro está aquí.",
+      "matches": []
+    },
+    {
+      "key": "d8b93fc663f9cda2b87108a4c7f7dd4e675d08c47965f349b4e5f24fd57169bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Eso es otra cosa.",
       "matches": []
     },
     {
@@ -9909,6 +10014,12 @@
       "key": "df1c7ee942c23532bb28268a92b99054345d233176797f1bb4bd73fccca95e2a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Él pescó en el río",
+      "matches": []
+    },
+    {
+      "key": "df39f4f279f1a1a3a31176f70ed2824185030d1021b75ed2658fd1c97c572fbf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La basura tiene otra cosa.",
       "matches": []
     },
     {
@@ -11242,6 +11353,12 @@
       "key": "fbd566429329974c9c7ea7fcdac39145b055cafef5029104f04046da37abc11e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Busco.",
+      "matches": []
+    },
+    {
+      "key": "fbebaedded89bbeedff28d410f8793595e8f91354fc09c5be7a35e9ea97d856b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Solo uno a la vez.",
       "matches": []
     },
     {

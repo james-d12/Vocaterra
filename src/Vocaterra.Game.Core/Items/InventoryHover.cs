@@ -55,6 +55,14 @@ public sealed record InventoryHover(string? Slot, string? Item, string? English,
                 }
 
                 break;
+            case InventoryHitKind.Heading:
+                var headings = equipment.Data.Shape.ColumnHeadings;
+                if ((uint)hit.Slot >= (uint)headings.Count || headings[hit.Slot] is not { } heading)
+                {
+                    return null;
+                }
+
+                return new InventoryHover(nouns.ForLemma(heading)?.WithDefinite ?? heading, null, EnglishUnlessKnown(heading, words, support), 1.0);
             default:
                 return null;
         }

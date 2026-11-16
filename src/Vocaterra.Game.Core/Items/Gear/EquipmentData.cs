@@ -178,6 +178,7 @@ public sealed class EquipmentData
             slots,
             [.. row.GetProperty("accepts").EnumerateArray().Select(static e => e.GetString() ?? string.Empty)],
             row.GetProperty("noDuplicates").GetBoolean(),
-            row.GetProperty("statsApply").GetBoolean());
+            row.GetProperty("statsApply").GetBoolean(),
+            row.TryGetProperty("heading", out var heading) && heading.ValueKind == JsonValueKind.String ? heading.GetString() : null);
     }
 }

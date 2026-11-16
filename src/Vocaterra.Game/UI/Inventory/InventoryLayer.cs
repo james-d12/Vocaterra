@@ -51,7 +51,7 @@ public sealed class InventoryLayer : IFrameLayer
         var left = layout.ContentLeft;
         var textWidth = layout.ContentWidth;
         var ui = view.Session.Locale;
-        DrawHelpers.Text(spriteBatch, font, ui.Ui("inventoryTitle"), new Vector2(left, panel.Top + 10), Gold);
+        DrawTitle(spriteBatch, view, font, ui.Ui("inventoryTitle"), left, panel.Top + 10);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", view.Items.SlotCount.ToString(CultureInfo.InvariantCulture)));
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
@@ -69,7 +69,21 @@ public sealed class InventoryLayer : IFrameLayer
         DrawTrash(spriteBatch, view, layout.TrashCell);
         DrawFooter(spriteBatch, view, font, layout, hit, left, textWidth);
         DrawNeeds(spriteBatch, view, font, layout, needs, left, textWidth);
-        DrawHeld(spriteBatch, view, font);
+        DrawHeld(spriteBatch, view, font, layout);
+    }
+
+    // The title (I04b): the Spanish noun with its article, «la bolsa» (D-game-35 (b)), and the English beside it, dimmer, as the needs list writes its Spanish and English.
+    private static void DrawTitle(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, string english, int x, int y)
+    {
+        var spanish = view.Session.Nouns.ForLemma(InventoryPanel.TitleLemma)?.WithDefinite;
+        if (spanish is null)
+        {
+            DrawHelpers.Text(spriteBatch, font, english, new Vector2(x, y), Gold);
+            return;
+        }
+
+        DrawHelpers.Text(spriteBatch, font, spanish, new Vector2(x, y), Gold);
+        DrawHelpers.Text(spriteBatch, font, english, new Vector2(x + DrawHelpers.Width(font, spanish) + 12, y), Dialogue.DialoguePanel.EnglishColor);
     }
 
     // The paper doll (I04): the body rows' nouns, the cells (the worn item's icon, or the slot's noun while it is empty) and the stats line.
@@ -84,6 +98,17 @@ public sealed class InventoryLayer : IFrameLayer
         var pixel = view.Pixel;
         var equipment = view.Voxel.Equipment;
         var nouns = view.Session.Nouns;
+        for (var column = 0; column < shape.ColumnHeadings.Count; column++)
+        {
+            if (shape.ColumnHeadings[column] is { } lemma)
+            {
+                var box = layout.HeadingBox(column);
+                var text = HeadingText.Pick(nouns.ForLemma(lemma)?.WithDefinite ?? lemma, lemma, box.Width, t => DrawHelpers.Width(font, t));
+                var colour = Color.Lerp(Unseen, Known, (float)view.Session.Words.SaturationOf(lemma));
+                DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + ((box.Width - DrawHelpers.Width(font, text)) / 2), box.Y + ((box.Height - 16) / 2)), colour);
+            }
+        }
+
         if (layout.HasLabelColumn)
         {
             for (var row = 0; row < shape.BodyRows; row++)
@@ -113,7 +138,7 @@ public sealed class InventoryLayer : IFrameLayer
             }
             else if (layout.HasLabelColumn && cell.Row >= shape.BodyRows && cell.Label is { } lemma)
             {
-                var text = DrawHelpers.Fit(font, lemma, box.Width - 2); // a counted slot with a noun writes it in the empty cell (the body rows' nouns stand beside the doll)
+                var text = DrawHelpers.Fit(font, lemma, box.Width - 2); // a counted slot with a noun writes it in the empty cell, which is wide enough for the whole word (the body rows' nouns stand beside the doll)
                 DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + ((box.Width - DrawHelpers.Width(font, text)) / 2), box.Y + ((box.Height - 16) / 2)), Hints);
             }
         }
@@ -132,7 +157,8 @@ public sealed class InventoryLayer : IFrameLayer
         }
 
         var iconSize = layout.StatChipHeight - 2;
-        var widths = chips.Select(chip => iconSize + 4 + (int)DrawHelpers.Width(font, ChipText(chip, layout.Tight || layout.Compact)) + 8).ToList();
+        var small = layout.Tight || layout.Compact;
+        var widths = chips.Select(chip => iconSize + 4 + (int)DrawHelpers.Width(font, ChipText(chip, small)) + (small ? 4 : 8)).ToList();
         var boxes = StatLinePlacer.Place(widths, layout.StatsArea, layout.StatChipHeight, 0);
         for (var i = 0; i < boxes.Count; i++)
         {
@@ -152,7 +178,14 @@ public sealed class InventoryLayer : IFrameLayer
         var origin = new Vector2(left, layout.Panel.Bottom - layout.HintsOffset);
         if ((view.Session as VoxelSession)?.MoveNotice is { } notice && notice.IsShown(view.Voxel.Tick))
         {
-            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, ui.Ui(notice.Key), textWidth), origin, Refusal);
+            var spanish = view.Session.Data.Words.HudLine(notice.Key) ?? ui.Text(notice.Key);
+            var spanishWidth = DrawHelpers.Width(font, spanish);
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, spanish, textWidth), origin, Refusal);
+            if (spanishWidth + 12 < textWidth) // the English beside it, dimmer, as the needs rows have it
+            {
+                DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, ui.Text(notice.Key), textWidth - (int)spanishWidth - 12), new Vector2(left + spanishWidth + 12, origin.Y), Dialogue.DialoguePanel.EnglishColor);
+            }
+
             return;
         }
 
@@ -212,18 +245,20 @@ public sealed class InventoryLayer : IFrameLayer
         spriteBatch.Draw(pixel, new Rectangle(box.X + 6, box.Y + 8, box.Width - 12, Math.Max(3, box.Height - 13)), Hints); // the bin
     }
 
-    // The held stack (I02) at the pointer: the icon and the count, as the cells draw them.
-    private static void DrawHeld(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font)
+    // The held stack (I02) at the pointer, or beside the cell it came from when there is no pointer (I04b): the icon and the count, as the cells draw them.
+    private static void DrawHeld(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, InventoryLayout layout)
     {
-        var held = view.Voxel.Held.Stack;
-        if (held.IsEmpty || view.Mouse is not { } at)
+        var held = view.Voxel.Held;
+        if (held.Stack.IsEmpty)
         {
             return;
         }
 
-        var icon = new Rectangle(at.X - (Icon / 2), at.Y - (Icon / 2), Icon, Icon);
-        view.DrawIcon(spriteBatch, held.Item, icon);
-        if (CountBadge.Text(held.Count, showOne: true) is { } count)
+        var origin = HeldPlacement.OriginCell(layout, held.OriginContainer, held.OriginSlot, view.Items.SlotCount);
+        var box = HeldPlacement.Icon(view.Mouse, origin, Icon, view.ViewportWidth, view.ViewportHeight);
+        var icon = new Rectangle(box.X, box.Y, box.Width, box.Height);
+        view.DrawIcon(spriteBatch, held.Stack.Item, icon);
+        if (CountBadge.Text(held.Stack.Count, showOne: true) is { } count)
         {
             DrawHelpers.Badge(spriteBatch, view.Pixel, font, count, new Point(icon.Right + 2, icon.Bottom + 2));
         }

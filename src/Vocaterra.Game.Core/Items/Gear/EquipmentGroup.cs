@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.Items.Gear;
 /// <param name="Accepts">The item tags the group takes: an item with any of them may be put in.</param>
 /// <param name="NoDuplicates">Whether one item kind may be worn only once in the group (the accessories).</param>
 /// <param name="StatsApply">Whether the worn items give their stats (false for the cosmetic layer).</param>
-public sealed record EquipmentGroup(string Id, int? Layer, IReadOnlyList<EquipmentSlotSpec> Slots, IReadOnlyList<string> Accepts, bool NoDuplicates, bool StatsApply)
+/// <param name="Heading">The Spanish noun (<c>ropa</c>) that heads the group's column in the equipment panel (I04b), or <see langword="null"/> for none.</param>
+public sealed record EquipmentGroup(string Id, int? Layer, IReadOnlyList<EquipmentSlotSpec> Slots, IReadOnlyList<string> Accepts, bool NoDuplicates, bool StatsApply, string? Heading = null)
 {
     /// <summary>Whether the group takes an item carrying <paramref name="tag"/>.</summary>
     /// <param name="tag">The tag.</param>
