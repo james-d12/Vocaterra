@@ -2,8 +2,8 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
-using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Lod;
+using Vocaterra.Game.Core.World.Regions;
 
 namespace Vocaterra.Game.Core.World.Far;
 
