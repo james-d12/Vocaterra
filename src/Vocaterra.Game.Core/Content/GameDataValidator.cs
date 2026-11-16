@@ -14,6 +14,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
@@ -88,6 +89,7 @@ public static class GameDataValidator
         CheckSleepPlaces(data, problems);
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
+        problems.AddRange(TemperatureValidator.Validate(data.Temperature)); // I06: the terms' numbers, the bands in order, their walk factors
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
@@ -288,7 +290,7 @@ public static class GameDataValidator
         }
     }
 
-    /// <summary>The keys of the HUD lines (N05): every stage line game/needs.json names, then the death screen, the chest's label and the needs list's words.</summary>
+    /// <summary>The keys of the HUD lines (N05): every stage line game/needs.json names, the lines game/temperature.json's bands name, then the death screen, the chest's label and the needs list's words.</summary>
     /// <param name="data">The content.</param>
     public static IReadOnlyList<string> HudLineKeys(GameData data)
     {
@@ -300,6 +302,7 @@ public static class GameDataValidator
         }
 
         keys.AddRange(data.Needs.Health.Warnings.Select(static stage => stage.Line));
+        keys.AddRange(data.Temperature.LineKeys); // I06: the line of a cold band
         keys.AddRange(GameWords.FixedHudKeys);
         return keys;
     }

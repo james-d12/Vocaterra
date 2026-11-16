@@ -270,7 +270,7 @@ public sealed class VoxelDebugOverlay : IFrameLayer
     public const int MinCanvasWidth = 900;
 
     /// <summary>The number of lines of text the overlay has.</summary>
-    public const int LineCount = 3;
+    public const int LineCount = 5;
 
     /// <summary>Whether the overlay is shown (off at the start unless <c>--dev</c>, U01).</summary>
     public bool Visible { get; set; }
@@ -297,7 +297,7 @@ public sealed class VoxelDebugOverlay : IFrameLayer
             return; // off, or on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
-        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.Day);
+        var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.Day, view.Needs?.Temperature);
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = 0;
         foreach (var line in lines)

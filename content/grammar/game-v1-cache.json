@@ -8666,6 +8666,12 @@
       "matches": []
     },
     {
+      "key": "c5ebbf49113f957b340eb1b2ae2e12bbd9c6a5e40292906e01f7668a8c100dec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo frío.",
+      "matches": []
+    },
+    {
       "key": "c603b493d4e9c02b19d70f4d36045532c56d868f0045775626c2080cdb56d9ae",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes dos libros de libro.",

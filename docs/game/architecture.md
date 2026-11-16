@@ -122,6 +122,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
+Temperature/      the temperature where the player stands and how it feels (I06): PlaceTemperature and its ITemperatureTerm terms (base, day, weather, shelter, fire), TemperatureSituation, IWarmthSource and NoWarmth, PlayerTemperature (the feeling, the band, the line once), TemperatureData (game/temperature.json) and TemperatureValidator
 Land/             where the player may build and where land is bought (Y09, D-game-32 (c)): LandData (game/land.json) and LandValidator, LandRules (a mask per column built once from the scene and the file: protected, eligible; `CheckPlot` reads the grid for water, trees, the ground on top and the slope and answers a PlotCheck: yes or a PlotFault), Plot, Protection (village, camp, road), LandRegister (the pending and the owned plot, and the IBuildRules hook the simulation asks: protected columns refuse any block but a torch, planks come back only on owned land) and LandSave (`systems.land`)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
@@ -315,6 +316,19 @@ fails on any quoted kind id under `src/` outside `WeatherData.cs`, and `TheAllow
 exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and the ambient bed's name for rain. A new weather that reuses the channels is
 a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
 `systems.atmosphere` entry (`saves.md`).
+
+**Temperature and cold (I06, D-game-35).** Core's `Temperature/` makes one number for where the player stands, in whole tenths of a degree Celsius, and
+reads it against the player's warmth. `PlaceTemperature` sums the `ITemperatureTerm`s it is given (a term reads a `TemperatureSituation`: the
+`AtmosphereSnapshot`, the feet's block, the share of covered columns from the rain's own `OverheadCover` query, and the `FireRings`) and knows none of them. The first
+terms are `BaseTemperatureTerm`, `DayTemperatureTerm` (the daylight curve), `WeatherTemperatureTerm` (one coefficient per channel, never a kind's id),
+`ShelterTemperatureTerm` and `FireTemperatureTerm`, with their numbers in `game/temperature.json` (`TemperatureData`, checked by `TemperatureValidator`).
+`PlayerTemperature` adds the warmth (`IWarmthSource`; `NoWarmth` until the equipment's `warmth` stat, I03a, is another implementation set on
+`VoxelSession.Temperature.Warmth`), picks the band, and says «Tengo frío.» once per entry into the cold. The session reads it once a tick in `PrepareTick`
+(`VoxelSession.Temperature.cs`): the band's walk factor multiplies `WalkPermille` beside the needs' and the sprint's. Nothing is saved; it is derived from the stored
+time, the weather and the world. `NeedsHud` shows the snowflake and the line (by the path the needs' lines take), `VoxelDebugText` the F3 line.
+**To add a term** (the biomes' climate, a cave's pull, a biome's base): write one class implementing `ITemperatureTerm` (read what it needs from the
+`TemperatureSituation`; add a member there if it needs more of the world), and register it in `TemperatureTerms.Standard` (or `PlaceTemperature.With` where the
+world is wired). `PlaceTemperature` and the other terms are not edited; a test of `TemperatureTermTests` shows a term added from a test.
 
 ## The settlement series (Y00 to Y13): where to look
 

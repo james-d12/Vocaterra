@@ -129,7 +129,8 @@ public sealed partial class VoxelSession
         var sprinting = SprintHeld && moving && (!NeedsEnabled || (PlayActive && Needs.CanSprint));
         var stamina = Data.Needs.Stamina;
         var walk = NeedsEnabled ? Needs.Effects().WalkFactor : 1.0;
-        Simulation.WalkPermille = (int)Math.Round(1000 * walk * (sprinting ? stamina.SprintSpeedFactor : 1.0));
+        var cold = ReadTemperature(); // I06: the band's walk factor, 1 unless the feeling is cold
+        Simulation.WalkPermille = (int)Math.Round(1000 * walk * cold * (sprinting ? stamina.SprintSpeedFactor : 1.0));
         Simulation.GatherPermille = NeedsEnabled && PlayActive && Needs.Value(NeedMeter.Stamina) <= 0 ? (int)Math.Round(1000 * stamina.GatherSlowFactor) : 1000;
         return sprinting;
     }

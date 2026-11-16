@@ -43,6 +43,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the sleep places (Y01: where the player sleeps; not `rest`) and the death rules (`wakeAt` names a sleep place); the stage lines' keys, not their text) | `NeedsData` |
   | `game/day.json` | `day.schema.json` (the day and night cycle, E01: its length in seconds, the hours dawn, day, dusk and night begin, the start hour and the wake hour) | `DayData` |
   | `game/weather.json` | `weather.schema.json` (the weather, E04: its kinds as rows of channels (cloud cover, sunlight, fog, wind, precipitation: a kind and an intensity from 0 to 1; since E06 the kind names a row of the game's style table, `PrecipitationStyles` in `src/Vocaterra.Game/Graphics/Weather/`, which says how it looks, so a new precipitation kind needs a row there as well as in this file, and a test fails until it has one; the kind of a style the table lacks draws nothing), the range of a spell, the weighted next kinds, a morning weight; the kind a new game starts in and the transition time) | `WeatherData` |
+  | `game/temperature.json` | `temperature.schema.json` (the temperature where the player stands, I06: the numbers of the base, the day's swing, the weather's cooling per channel, a roof's shelter and a fire's warmth, all in tenths of a degree Celsius, and the bands warm, cool, cold and very cold from the warmest, each with a lower bound, a walk factor above 0 and at most 1, a chill and the HUD line said on entering the cold) | `TemperatureData` |
   | `game/land.json` | `land.schema.json` (the land rules, Y09: the discs round scene sites and the squares round the road and bridge blocks where the player may not place blocks (a torch is always allowed), each with the protection that names its hint (village, camp, road) and a margin; the discs round `meadow.north` and `meadow.south` where a plot may lie; the plot's width, depth, price in coins and the slope it allows. Site names are scene sites: the validator refuses one the scene lacks) | `LandData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
   | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
@@ -384,6 +385,19 @@ key word that is no catalogue noun, a pool prefix another NPC has, and a prompt 
 focus there that names none of them (V12b). `--talk fisher` then walks up to it in a scripted run. Behaviour the data
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/content-plan.md` section 3.6).
+
+## Temperature (I06)
+
+`game-v1/game/temperature.json` holds the numbers of the temperature where the player stands (`temperature.schema.json`; `GameDataValidator` and `TemperatureValidator`
+check the values). Every temperature is a whole number of tenths of a degree Celsius (`125` is 12.5). The place's temperature is the sum of five terms: `base` (the
+valley's mean), `day` (plus the amplitude in full daylight, minus it in the dark, from `day.json`'s daylight curve), `weather` (the cooling at the strongest cloud
+cover, precipitation and wind: each channel of the sky times its coefficient, so a new weather kind needs no row here), `shelter` (the bonus under a roof, in proportion
+to the covered columns; `onlyInPrecipitation` limits it to when something falls) and `fire` (the bonus within `radiusBlocks` of a lit fire ring). The player's warmth is
+added to give the feeling, and the feeling falls in the first band, warmest first, whose lower bound it reaches (the coldest band takes everything below). A band has a
+`walkFactor` (above 0, at most 1: what it multiplies the walking speed by), a `chill` (0 for warm and cool; above 0 shows the cold icon with that many notches) and, on a chilled
+band, the `line` it says once on the feeling's first entry into the cold: a key of `words.json`'s `hudLines` (`temperature.cold`, «Tengo frío.») with its English in the
+locale under the same id. Bounds must fall, chills must not, ids are unique. The loop is the usual one (`scripts/content-loop.sh --grammar`). A new term (the biomes'
+climate) is code with its own data, not a row here.
 
 ## Adding a weather kind
 
