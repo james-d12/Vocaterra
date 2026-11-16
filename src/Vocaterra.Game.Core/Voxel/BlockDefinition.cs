@@ -42,7 +42,7 @@ public enum Material : byte
 /// <param name="Decor">Whether the block is undergrowth (S14): not solid, never gathered, and invisible to the block ray, so the crosshair looks through it at whatever stands behind it; a block may be placed into its cell.</param>
 /// <param name="Material">What the block is made of (W02): the tools whose <see cref="ItemDefinition.Tool"/> names it gather it faster.</param>
 /// <param name="StopsBody">Whether a body collides with the block although it is not <see cref="Solid"/> (lava, B10): it cannot be walked into or fallen into, and sight and the block ray still see through it as through a fluid.</param>
-/// <param name="Glows">Whether the block is a light kind (lantern, post torch, lava): the renderer lights the faces around it.</param>
+/// <param name="Glows">Whether the block is a light kind (lantern, torch, post torch, lava): the renderer lights the faces around it.</param>
 /// <param name="Indestructible">Whether no edit removes or replaces the block (bedrock, B10): the grid refuses every write that would.</param>
 /// <param name="Tall">Whether a body collides with the block as if it were two blocks high (a fence, issue #33): no step-up lifts a body onto it, a jump does not clear it, and nothing stands on it. The block ray and the renderer still see one block.</param>
 public sealed record BlockDefinition(
@@ -84,7 +84,7 @@ public sealed record BlockDefinition(
         new(BlockId.Planks, "planks", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Door, "door", false, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Table, "table", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air, Glows: true),
         new(BlockId.Stall, "stall", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Roof, "roof", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood, Tall: true),
