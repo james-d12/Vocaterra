@@ -36,7 +36,8 @@ internal sealed class EntranceRamp
     /// <param name="roughness">How far the noise moves the walls, in thousandths of a block.</param>
     /// <param name="cell">The noise's cell, in blocks.</param>
     /// <param name="ledges">The share of the side columns that stand a block higher, in thousandths.</param>
-    public EntranceRamp(PathNode[] nodes, int length, int approachX, int approachZ, ulong key, int roughness, int cell, int ledges)
+    /// <param name="bowlReach">How many blocks past the tube's edge the mouth's bowl can reach.</param>
+    public EntranceRamp(PathNode[] nodes, int length, int approachX, int approachZ, ulong key, int roughness, int cell, int ledges, int bowlReach)
     {
         Nodes = nodes;
         Length = length;
@@ -52,7 +53,7 @@ internal sealed class EntranceRamp
             widest = Math.Max(widest, node.HalfWidth16);
         }
 
-        ReachBlocks = ((widest + (roughness * 16 / 1000) + 15) / 16) + 1;
+        ReachBlocks = ((widest + (roughness * 16 / 1000) + 15) / 16) + 1 + bowlReach;
 
         // The centre of every cell is always cut, and one cell beside it (the side the path's own hash picks), so the passage is two blocks wide at its narrowest and a body can always walk it.
         for (var i = 0; i < nodes.Length; i++)
@@ -190,6 +191,29 @@ internal sealed class EntranceRamp
         }
 
         return forced || node >= 0;
+    }
+
+    /// <summary>The nearest of the path's first cells to a column, with no limit of reach (the mouth's bowl reaches past the tube).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="count">How many of the first cells to look at.</param>
+    /// <param name="distance2">The squared distance from that cell, in blocks.</param>
+    /// <returns>The index of the nearest cell (the earlier on a tie), or -1 when the path has none.</returns>
+    public int NearestEarly(int x, int z, int count, out int distance2)
+    {
+        var best = -1;
+        distance2 = int.MaxValue;
+        for (var i = 0; i < Math.Min(count, Nodes.Length); i++)
+        {
+            var (dx, dz) = (x - Nodes[i].X, z - Nodes[i].Z);
+            var d2 = (dx * dx) + (dz * dz);
+            if (d2 < distance2)
+            {
+                (best, distance2) = (i, d2);
+            }
+        }
+
+        return best;
     }
 
     /// <summary>Whether the cell of a passage's column is air: above the floor and, in a forced column, within its first three blocks, or inside the tube the noise carves round the column's path cell.</summary>

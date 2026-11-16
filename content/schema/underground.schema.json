@@ -145,7 +145,9 @@
         "ledges",
         "funnel",
         "funnelLength",
-        "floorBlocks"
+        "floorBlocks",
+        "bowlDepth",
+        "bowlSlope"
       ],
       "additionalProperties": false,
       "properties": {
@@ -190,7 +192,14 @@
         "ledges": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The share of the side columns raised one block, in thousandths." },
         "funnel": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "How much wider the mouth is, in thousandths." },
         "funnelLength": { "type": "integer", "minimum": 0, "maximum": 24, "description": "The blocks the widening lasts." },
-        "floorBlocks": { "$ref": "#/definitions/weightedBlocks", "description": "The rocks that fill a gap in a floor, drawn by weight." }
+        "floorBlocks": { "$ref": "#/definitions/weightedBlocks", "description": "The rocks that fill a gap in a floor, drawn by weight." },
+        "bowlDepth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "The deepest the ground may lie over the path's floor for the mouth's bowl to be cut, in blocks."
+        },
+        "bowlSlope": { "type": "integer", "minimum": 500, "maximum": 4000, "description": "How far out, in thousandths of a block, the bowl's side runs for each block it rises." }
       }
     },
     "lava": {

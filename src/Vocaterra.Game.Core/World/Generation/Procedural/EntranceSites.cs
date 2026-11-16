@@ -30,6 +30,8 @@ internal sealed class EntranceSites
     private readonly int _dampReach;
     private readonly int _tubeReach;
 
+    private int BowlReach { get; }
+
     /// <summary>Creates the sites of a world.</summary>
     /// <param name="world">The world; it must have an underground and its height model, climate and biome table already built.</param>
     public EntranceSites(GenerationWorld world)
@@ -38,7 +40,8 @@ internal sealed class EntranceSites
         _underground = world.Underground ?? throw new InvalidOperationException("The world has no underground.");
         _spec = _underground.Data.Entrances;
         _dampReach = _underground.Data.Linings?.DampReach ?? 0;
-        _tubeReach = (((_spec.WidthMax - 1) * (1000 + _spec.Funnel) / 2000) + 1) + ((_spec.Roughness + 999) / 1000) + 1;
+        BowlReach = (_spec.BowlDepth * _spec.BowlSlope / 1000) + 2;
+        _tubeReach = (((_spec.WidthMax - 1) * (1000 + _spec.Funnel) / 2000) + 1) + ((_spec.Roughness + 999) / 1000) + 1 + BowlReach;
     }
 
     /// <summary>How far, in blocks, a passage and its damp zone reach beyond the site it lies in.</summary>
@@ -185,7 +188,7 @@ internal sealed class EntranceSites
         }
 
         var key = WorldRng.For(_world.Seed, "gen/entrances/shape", ax, az).NextUInt64();
-        return new EntranceRamp([.. walk.Nodes], length, ax - dx0, az - dz0, key, spec.Roughness, spec.RoughnessCell, spec.Ledges);
+        return new EntranceRamp([.. walk.Nodes], length, ax - dx0, az - dz0, key, spec.Roughness, spec.RoughnessCell, spec.Ledges, BowlReach);
     }
 
     // One walk of the path under construction: the heading that drifts (bends of a few blocks in a random sense, never straying far from the first heading), the floor that falls in stretches of one slope or

@@ -49,17 +49,19 @@ internal sealed class EntrancePass : IChunkDecorator
                 continue;
             }
 
-            Cut(chunk, ramp);
+            Cut(ctx, chunk, ramp);
         }
     }
 
-    private void Cut(ChunkBuilder chunk, EntranceRamp ramp)
+    private void Cut(ColumnContext ctx, ChunkBuilder chunk, EntranceRamp ramp)
     {
         var bedrock = _world.Underground!.Bedrock;
+        var spec = _world.Underground.Data.Entrances;
         for (var z = chunk.MinZ; z < chunk.MinZ + VoxelChunk.Size; z++)
         {
             for (var x = chunk.MinX; x < chunk.MinX + VoxelChunk.Size; x++)
             {
+                Bowl(ctx, chunk, ramp, spec, x, z, bedrock);
                 if (!ramp.Column(x, z, out var floor, out var node, out var forced, out var distance2) || !ramp.Carves(x, floor + 1, z, floor, node, forced, distance2))
                 {
                     continue; // the column is outside the tube, or the tube does not reach its first block
@@ -85,6 +87,43 @@ internal sealed class EntrancePass : IChunkDecorator
                         chunk.Set(x, y, z, BlockId.Air);
                     }
                 }
+            }
+        }
+    }
+
+    // The bowl at the mouth: where the ground lies at most BowlDepth blocks over the floor of the nearest of the path's first cells, the ground is cut away above a surface that rises from that floor, one block for
+    // every BowlSlope thousandths of a block outwards from the tube's edge (the edge itself ragged), so a mouth on level ground is a dip with sloping sides and stone showing in them; deeper than that the ground
+    // stays and the tube is a tunnel under it.
+    private static void Bowl(ColumnContext ctx, ChunkBuilder chunk, EntranceRamp ramp, EntranceSpec spec, int x, int z, BlockId bedrock)
+    {
+        var ground = ctx.HeightAt(x, z);
+        if (spec.BowlDepth <= 0 || ground < chunk.MinY)
+        {
+            return;
+        }
+
+        var node = ramp.NearestEarly(x, z, 14, out var distance2);
+        if (node < 0 || distance2 > 400)
+        {
+            return;
+        }
+
+        var n = ramp.Nodes[node];
+        var depth = ground - n.Floor;
+        if (depth > spec.BowlDepth)
+        {
+            return;
+        }
+
+        var edge16 = n.HalfWidth16 + (int)((long)ramp.Noise(x, 0, z, spec.RoughnessCell + 2) * spec.Roughness * 16 / 1_000_000);
+        var over16 = (int)IntMath.ISqrt(distance2 * 256L) - edge16;
+        var level = n.Floor + 1 + (over16 <= 0 ? 0 : (int)(over16 * 1000L / (16L * spec.BowlSlope)));
+        for (var y = Math.Max(level, chunk.MinY); y <= Math.Min(ground, chunk.MaxY); y++)
+        {
+            var block = chunk.Get(x, y, z);
+            if (block != BlockId.Air && block != BlockId.Water && block != bedrock)
+            {
+                chunk.Set(x, y, z, BlockId.Air);
             }
         }
     }

@@ -42,9 +42,9 @@
     "maxLength": 130,
     "landing": 4,
     "widthMin": 2,
-    "widthMax": 5,
+    "widthMax": 6,
     "headroomMin": 3,
-    "headroomMax": 6,
+    "headroomMax": 7,
     "segmentMin": 4,
     "segmentMax": 10,
     "runMax": 4,
@@ -56,14 +56,16 @@
     "roughness": 800,
     "roughnessCell": 4,
     "ledges": 220,
-    "funnel": 700,
-    "funnelLength": 8,
+    "funnel": 1000,
+    "funnelLength": 10,
     "floorBlocks": [
       { "block": "gravel", "weight": 3 },
       { "block": "cobble", "weight": 1 },
       { "block": "stone", "weight": 2 },
       { "block": "dirt", "weight": 1 }
-    ]
+    ],
+    "bowlDepth": 4,
+    "bowlSlope": 1500
   },
   "lava": { "block": "lava", "level": -54 },
   "linings": {

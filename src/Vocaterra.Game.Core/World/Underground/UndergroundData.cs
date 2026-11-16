@@ -182,7 +182,8 @@ public sealed record CaveSpec(
 /// mouth (within <see cref="MaxLength"/> blocks), then a landing of <see cref="Landing"/> blocks. Its width runs from <see cref="WidthMin"/> to <see cref="WidthMax"/> blocks and its headroom from
 /// <see cref="HeadroomMin"/> to <see cref="HeadroomMax"/>, both drifting along the path, and its walls and ceiling are carved by a noise of <see cref="Roughness"/> thousandths of a block (cell
 /// <see cref="RoughnessCell"/>), so they bulge and are never flat; <see cref="Ledges"/> thousandths of the side columns are a block higher than the path's floor. The first <see cref="FunnelLength"/> blocks
-/// are wider by <see cref="Funnel"/> thousandths, so the mouth is a ragged dip and not a slot. A site opens only on dry procedural land at least <see cref="MinHeightAboveSea"/> over the sea with no water or
+/// are wider by <see cref="Funnel"/> thousandths, and where the ground lies at most <see cref="BowlDepth"/> blocks over the path's floor the ground is cut away in a bowl that rises one block for every
+/// <see cref="BowlSlope"/> thousandths of a block outwards from the tube's edge, so the mouth on level ground is a ragged sloping dip (a sinkhole) and not a slot. A site opens only on dry procedural land at least <see cref="MinHeightAboveSea"/> over the sea with no water or
 /// river bank within <see cref="WaterReach"/> columns of the passage, outside every region and its margin. No tree or plant stands at the mouth. Gaps in a floor are filled with <see cref="FloorBlocks"/>.
 /// </summary>
 /// <param name="Cell">The sites' spacing, in blocks.</param>
@@ -211,6 +212,8 @@ public sealed record CaveSpec(
 /// <param name="Ledges">The share of the side columns raised one block, in thousandths.</param>
 /// <param name="Funnel">How much wider the mouth is, in thousandths.</param>
 /// <param name="FunnelLength">The blocks the widening lasts.</param>
+/// <param name="BowlDepth">The deepest the ground may lie over the path's floor for the bowl to be cut, in blocks.</param>
+/// <param name="BowlSlope">How far out, in thousandths of a block, the bowl's side runs for each block it rises.</param>
 /// <param name="FloorBlocks">The rocks that fill a gap in the floor, drawn by weight.</param>
 public sealed record EntranceSpec(
     int Cell,
@@ -239,6 +242,8 @@ public sealed record EntranceSpec(
     int Ledges,
     int Funnel,
     int FunnelLength,
+    int BowlDepth,
+    int BowlSlope,
     IReadOnlyList<BlockWeight> FloorBlocks);
 
 /// <summary>Lava: cave air at or below the level is lava.</summary>
@@ -393,6 +398,8 @@ public sealed record UndergroundData(
         Int(e, "ledges"),
         Int(e, "funnel"),
         Int(e, "funnelLength"),
+        Int(e, "bowlDepth"),
+        Int(e, "bowlSlope"),
         ParseWeights(e.GetProperty("floorBlocks")));
 
     private static IReadOnlyList<BlockWeight> ParseWeights(JsonElement list) => [.. list.EnumerateArray().Select(static b => new BlockWeight(Text(b, "block"), Int(b, "weight")))];

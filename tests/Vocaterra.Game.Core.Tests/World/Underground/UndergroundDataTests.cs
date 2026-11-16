@@ -25,7 +25,7 @@ public sealed class UndergroundDataTests
         Assert.Equal(["gravel", "sand", "dirt", "granite", "limestone", "granite", "basalt"], u.Strata.Blobs.Select(static b => b.Block));
         Assert.Equal(["slate"], u.Strata.Blobs[^1].In);
         Assert.Equal((170, 12, 210), (u.Strata.Blobs[0].Threshold, -u.Strata.Blobs[0].MinY, u.Strata.Blobs[0].MaxY));
-        Assert.Equal((128, 500, 2, 5, 3, 6, 20), (u.Entrances.Cell, u.Entrances.Chance, u.Entrances.WidthMin, u.Entrances.WidthMax, u.Entrances.HeadroomMin, u.Entrances.HeadroomMax, u.Entrances.MinDrop));
+        Assert.Equal((128, 500, 2, 6, 3, 7, 20), (u.Entrances.Cell, u.Entrances.Chance, u.Entrances.WidthMin, u.Entrances.WidthMax, u.Entrances.HeadroomMin, u.Entrances.HeadroomMax, u.Entrances.MinDrop));
         Assert.NotNull(u.Linings);
         Assert.NotNull(u.SurfaceRock);
         Assert.Equal(("bedrock", -64, 1, 4), (u.Floor.Block, u.Floor.BottomY, u.Floor.MinThickness, u.Floor.MaxThickness));
@@ -140,6 +140,8 @@ public sealed class UndergroundDataTests
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Roughness = 5000 } }), "roughness"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Ledges = 2000 } }), "ledges"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Funnel = 9000 } }), "funnel"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { BowlSlope = 100 } }), "bowlSlope"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { BowlDepth = 40 } }), "bowlDepth"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinDrop = 4 } }), "minDrop"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxLength = 5 } }), "maxLength"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Margin = 70 } }), "margin"));
