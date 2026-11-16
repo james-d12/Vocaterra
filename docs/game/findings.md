@@ -2674,3 +2674,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   y -9; under a town below its lowest layer (fixed on the merge with B15). Findings: a column of 24 chunks went from 1.8 to 6.4 ms in
   Debug (worst 16 ms), for B07 and B12 to re-measure; the generator version went to 2, which moved the atmosphere pins. Needed one merge
   (README, the preview CLI). Gated: 12,087 passed, 3 skipped.
+- **B13, the valley's underground (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b13-valley-underground.md`, report
+  `.claude/briefs/b13-report.md`. B11's passes laid into the valley's buried stone after the scene is built (`ValleyUnderground`,
+  `VoxelGrid.ReplaceBlocks`, not an edit), only where a per-column reach allows: 8 from air, 16 from water, 12 columns from the edge,
+  and margins round sites, paths, props, the village and the pass (a `valley` section in underground.json, validated against the
+  scene). An exact 3D distance test shows the nearest change 9 blocks from air and 17 from water; 1.5 million blocks changed; the caves
+  meet the procedural ones at y 0 with no seam (`underRegionCeiling` -9 to -1). Checked in the game: screenshots of the village and the
+  peaks are byte-identical before and after. Findings: the valley's build costs 76 ms more in Release (151 to 227 ms) and buried caves
+  add mesh faces (about 400 more buried chunks are meshed), for B07's measurements; `ChunkMesherTests`' skippable-chunk floor went from
+  2,000 to 1,500 for that reason. `SceneTests.GoldenDigest` moved once, to 83af36d3. Gated: 12,100 passed, 3 skipped.
