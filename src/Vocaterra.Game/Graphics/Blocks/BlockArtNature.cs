@@ -94,15 +94,15 @@ public static class BlockArtNature
                 break;
             case BlockCell.IronOre:
                 StoneBody(c);
-                Flecks(c, [(176, 142, 96), (198, 164, 112), (220, 188, 134)], 0x41);
+                Clusters(c, (216, 162, 122), (112, 70, 42), (242, 204, 170), null, 0x41); // a warm peach-tan with a brown rim
                 break;
             case BlockCell.TinOre:
                 StoneBody(c);
-                Flecks(c, [(206, 212, 220), (226, 232, 238), (244, 247, 250)], 0x42);
+                Clusters(c, (230, 238, 245), (56, 60, 70), (255, 255, 255), null, 0x42); // a bright blue-tinted silver with a dark grey rim
                 break;
             case BlockCell.CopperOre:
                 StoneBody(c);
-                Flecks(c, [(214, 112, 40), (236, 138, 56), (84, 170, 126)], 0x43);
+                Clusters(c, (232, 122, 44), (118, 54, 20), (255, 178, 98), (63, 181, 154), 0x43); // a bright orange with a brown rim and a few teal patina pixels
                 break;
             case BlockCell.Snow:
                 Fill(c, SnowPal, 3, 5);
@@ -458,19 +458,60 @@ public static class BlockArtNature
         }
     }
 
-    // Small coloured flecks (a pixel and its right and lower neighbour in the same colour) scattered over a drawn stone body.
-    private static void Flecks(Canvas c, (int R, int G, int B)[] colours, uint salt)
+    // The shapes of an ore cluster (3 to 6 pixels), as offsets from its corner.
+    private static readonly (int X, int Y)[][] ClusterShapes =
+    [
+        [(0, 0), (1, 0), (0, 1)],
+        [(0, 0), (1, 0), (2, 0), (1, 1)],
+        [(0, 0), (1, 0), (0, 1), (1, 1)],
+        [(0, 0), (1, 0), (1, 1), (2, 1), (1, 2)],
+        [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (1, 2)],
+        [(1, 0), (0, 1), (1, 1), (2, 1)],
+    ];
+
+    // Where the five clusters of a face start (loose, so that a cluster and its rim never touch the next).
+    private static readonly (int X, int Y)[] ClusterCorners = [(2, 2), (9, 1), (5, 7), (11, 8), (2, 11)];
+
+    // Strong clusters on the drawn stone body (B10b): each is a few pixels of the ore's colour with a dark rim round it and a lighter pixel at its top-left,
+    // so that it stands out at a distance and in shade. A patina colour, when given, replaces the last pixel of three clusters.
+    private static void Clusters(Canvas c, (int R, int G, int B) body, (int R, int G, int B) rim, (int R, int G, int B) light, (int R, int G, int B)? patina, uint salt)
     {
-        for (var i = 0; i < 9; i++)
+        var cells = new List<List<(int X, int Y)>>();
+        for (var i = 0; i < ClusterCorners.Length; i++)
         {
-            var x = (int)(c.H(i, 1, salt) % (Size - 1));
-            var y = (int)(c.H(i, 2, salt) % (Size - 1));
-            var colour = colours[c.H(i, 3, salt) % (uint)colours.Length];
-            c.Set(x, y, colour);
-            c.Set(x + 1, y, colours[(int)((c.H(i, 4, salt) + 1) % (uint)colours.Length)]);
-            if (c.H(i, 5, salt) % 2 == 0)
+            var shape = ClusterShapes[(int)(c.H(i, 1, salt) % (uint)ClusterShapes.Length)];
+            cells.Add([.. shape.Select(o => (ClusterCorners[i].X + o.X, ClusterCorners[i].Y + o.Y))]);
+        }
+
+        var inside = new HashSet<(int, int)>(cells.SelectMany(static l => l));
+        foreach (var cluster in cells)
+        {
+            foreach (var (x, y) in cluster)
             {
-                c.Set(x, y + 1, colour);
+                foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1) })
+                {
+                    if (!inside.Contains((x + dx, y + dy)))
+                    {
+                        c.Set(x + dx, y + dy, rim);
+                    }
+                }
+            }
+        }
+
+        for (var i = 0; i < cells.Count; i++)
+        {
+            var cluster = cells[i];
+            foreach (var (x, y) in cluster)
+            {
+                c.Set(x, y, body);
+            }
+
+            var first = cluster.OrderBy(static p => p.Y).ThenBy(static p => p.X).First();
+            c.Set(first.X, first.Y, light);
+            if (patina is { } teal && i is 1 or 3 or 4)
+            {
+                var last = cluster.OrderByDescending(static p => p.Y).ThenByDescending(static p => p.X).First();
+                c.Set(last.X, last.Y, teal);
             }
         }
     }
