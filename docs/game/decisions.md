@@ -899,6 +899,12 @@ the owner's answers of 2026-11-15 are in its section 5.
     remain at 28% daylight, that's fine. Kick off an agent for the river drainage issue and the core fuzz fixes as well." B12's cave
     minimum 0.28 stands. B02c (rivers that only fall: a drainage network, closing B02b's river humps) and the core's M97 (the fuzz seeds
     `2LxdNIrNHnQ6` and `9kz6LGNo8tf2`, and the load-sensitive OpenFallback coverage oracle) are launched.
+34. **More grass, with a slider** (2026-11-16, about 16:00 UTC): "there's not a lot of grass, I guess. Could we increase the volume of
+    grass? Perhaps make that a slider in the settings as well." B18: a decorative grass layer drawn on grass-block tops (crossed tufts
+    like the undergrowth's tall grass, at positions from a hash of the cell, no world block, no collision, not saved), its density a
+    slider on the settings page (saved with the other settings), its default denser than today's look; the generated world and the
+    valley unchanged (a setting must not change the world's blocks). Then: "at least, you know, grass in the plains and the forests and
+    stuff like that": lush in plains, meadows and forest floors, sparser in taiga and dry land, none on sand, snow or stone.
 
 ## Already decided
 
