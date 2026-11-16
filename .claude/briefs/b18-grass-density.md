@@ -4,7 +4,7 @@ game: a decorative grass layer in the renderer (src/Vocaterra.Game/Graphics/Worl
 `PlayerSettings`, `SettingId`, the settings' save and launch options), the settings page's label in content/locale/en/ui.json, and their
 tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b18, already on the local branch `B18-grass-density` (cut from
-`feature/biomes` at @@BASE@@). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at 057bd240). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B18: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every game run and screenshot through scripts/limited.sh (builds `-m:4`, tests
 `-m:2`); one heavy command at a time, no `&`, no wait loops on `pgrep -f`. Three other agents build at the same time: expect waits.
@@ -60,7 +60,7 @@ Deliverables:
    tufts floating or on paths, popping at the edge).
 7. **Documents:** docs/game/running.md (the option and the setting), the Game README (the grass layer).
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,305 passed before, plus your new tests); format clean; content
 validate; the `--world valley` scripted runs unchanged at the default when the slider is 0 (and the differences at the default explained:
 only the new grass). Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
