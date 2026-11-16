@@ -1297,7 +1297,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--interact":
-                    if (!VoxelStep.TryParseBlock(value, out var interactX, out var interactY, out var interactZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var interactX, out var interactY, out var interactZ))
                     {
                         error = $"--interact needs a block, like 9,11,17; got '{value}'.";
                         return false;
@@ -1309,7 +1309,7 @@ public sealed record LaunchOptions
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);
-                    if (at <= 0 || !VoxelStep.TryParseBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
+                    if (at <= 0 || !VoxelStep.TryParseSignedBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
                     {
                         error = $"--place needs an item and a block, like antorcha@22,12,21; got '{value}'.";
                         return false;
@@ -1320,7 +1320,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--pour":
-                    if (!VoxelStep.TryParseBlock(value, out var pourX, out var pourY, out var pourZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var pourX, out var pourY, out var pourZ))
                     {
                         error = $"--pour needs a block, like 9,11,17; got '{value}'.";
                         return false;

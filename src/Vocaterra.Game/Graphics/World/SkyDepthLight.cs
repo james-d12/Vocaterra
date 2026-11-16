@@ -12,7 +12,7 @@ public static class SkyDepthLight
     public const int FalloffBlocks = 6;
 
     /// <summary>The share of the sun's light a face keeps in the dark of a cave, 0 to 1 (the lava, the torches and the lanterns light it from there).</summary>
-    public const float CaveMinimum = 0.12f;
+    public const float CaveMinimum = 0.18f;
 
     /// <summary>The share of the sun's light that reaches a cell <paramref name="depth"/> blocks under the sky: 1 at or above the surface, falling in a straight line to <see cref="CaveMinimum"/> at <see cref="FalloffBlocks"/> blocks.</summary>
     /// <param name="depth">The column's surface y less the cell's y (zero or less for a cell open to the sky).</param>
