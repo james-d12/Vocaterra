@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Graphics.World;
 /// opens to the sky is not darkened; where the chunk at the natural surface is not resident the natural surface stands. Tiles are kept by chunk column and dropped when a chunk of the column
 /// is evicted. Used on the loop thread, with the meshing.
 /// </summary>
-public sealed class SkyExposure : IChunkResidencyListener
+public sealed class SkyExposure : IChunkResidencyListener, IBlockChangeListener
 {
     private const int MaxTiles = 8192;
     private const int MaxShaft = 48;
@@ -28,13 +28,33 @@ public sealed class SkyExposure : IChunkResidencyListener
         _grid = grid;
         _natural = naturalSurface;
         grid.AddResidencyListener(this);
+        grid.AddListener(this);
+    }
+
+    private readonly List<VoxelChunkCoord> _dirty = [];
+
+    /// <summary>The chunks whose darkening an edit may have changed (the ones within the sky's reach below a block placed or removed in a column's open surface), taken once: the renderer meshes them again.</summary>
+    public IReadOnlyList<VoxelChunkCoord> TakeDirty()
+    {
+        if (_dirty.Count == 0)
+        {
+            return [];
+        }
+
+        var taken = _dirty.ToArray();
+        _dirty.Clear();
+        return taken;
     }
 
     /// <summary>How many chunk columns have a tile now.</summary>
     public int TileCount => _tiles.Count;
 
     /// <summary>Stops listening to the grid.</summary>
-    public void Detach() => _grid.RemoveResidencyListener(this);
+    public void Detach()
+    {
+        _grid.RemoveResidencyListener(this);
+        _grid.RemoveListener(this);
+    }
 
     /// <summary>The tile of a chunk column, made when it is first asked for.</summary>
     /// <param name="chunkX">The chunk column.</param>
@@ -97,6 +117,39 @@ public sealed class SkyExposure : IChunkResidencyListener
     }
 
     /// <inheritdoc />
+    public void OnBlockChanged(BlockChange change)
+    {
+        // Only a change of what stops the sky, at or under the column's natural surface and inside the shaft reach, can move the surface the cells below read.
+        var was = BlockDefinition.IsSolid(change.OldBlock) && !BlockDefinition.IsLeaves(change.OldBlock);
+        var now = BlockDefinition.IsSolid(change.NewBlock) && !BlockDefinition.IsLeaves(change.NewBlock);
+        var p = change.Position;
+        if (was == now || p.Y > _natural(p.X, p.Z))
+        {
+            return;
+        }
+
+        var bottom = (p.Y - MaxShaft - SkyDepthLight.FalloffBlocks) >> VoxelChunk.Shift;
+        var top = (p.Y + 1) >> VoxelChunk.Shift;
+        foreach (var dz in new[] { -1, 0, 1 })
+        {
+            foreach (var dx in new[] { -1, 0, 1 })
+            {
+                var cx = (p.X + dx) >> VoxelChunk.Shift;
+                var cz = (p.Z + dz) >> VoxelChunk.Shift;
+                _tiles.Remove((cx, cz));
+                for (var cy = bottom; cy <= top; cy++)
+                {
+                    var coord = new VoxelChunkCoord(cx, cy, cz);
+                    if (!_dirty.Contains(coord))
+                    {
+                        _dirty.Add(coord);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public void OnChunkInstalled(VoxelChunkCoord coord)
     {
     }
@@ -104,3 +157,4 @@ public sealed class SkyExposure : IChunkResidencyListener
     /// <inheritdoc />
     public void OnChunkEvicted(VoxelChunkCoord coord) => _tiles.Remove((coord.X, coord.Z));
 }
+

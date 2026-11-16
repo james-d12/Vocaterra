@@ -91,7 +91,7 @@ public sealed class UndergroundLightTests
         var lava = GlowFaces(BlockId.Lava, out var lavaReach);
 
         Assert.True(lantern > 20);
-        Assert.Equal(lantern, torch);
+        Assert.InRange(torch, lantern, lantern + 40); // the torch's fall is gentler, so a few more faces near the edge of the radius are lit at all
         Assert.Equal(lanternReach, lavaReach);
         Assert.Equal(lanternReach, torchReach);
         Assert.InRange(lava, lantern - 6, lantern + 6); // lava is a cube, so it covers a few faces and adds its own
@@ -164,5 +164,67 @@ public sealed class UndergroundLightTests
 
         Assert.True(compared > 5_000, $"only {compared} faces were compared");
         Assert.True(darkened >= 0);
+    }
+
+    [Fact]
+    public void Given_ATorchAndALantern_When_TheFloorSixBlocksAwayIsRead_Then_TheTorchLightsItAtLeastTwiceAsStrongly()
+    {
+        double Reach(BlockId light)
+        {
+            var grid = CaveGrid();
+            var index = new ChunkLightIndex(grid);
+            grid.SetBlock(10, 6, 8, light);
+            var glow = ChunkMesher.Build(new GridBlockSource(grid), 0, 0, 0, 0, new MeshOptions(true, 100, index.Near(new VoxelChunkCoord(0, 0, 0)), LightBand.Day)).GlowMesh.Vertices.ToArray();
+            var floor = glow.Where(static v => v.Y == 6f && Math.Abs(v.X - 16f) < 0.01f && v.Z is >= 8f and <= 9f).ToArray(); // the floor's corners six blocks along the tunnel
+            Assert.NotEmpty(floor);
+            return floor.Average(static v => (double)(v.Color & 0xFF));
+        }
+
+        var torch = Reach(BlockId.Torch);
+        Assert.True(torch >= 2 * Reach(BlockId.Lantern), $"torch {torch}");
+        Assert.True(torch > 40, $"the torch's light at six blocks is a visible {torch} of 255");
+    }
+
+    [Fact]
+    public void Given_AShaftOpenedOrRoofedOver_When_ABlockChanges_Then_TheChunksBelowAreMarkedToBeMeshedAgainAndTheSurfaceFollows()
+    {
+        var grid = new VoxelGrid(32, 48, 32);
+        for (var x = 0; x < 32; x++)
+        {
+            for (var y = 0; y <= 20; y++)
+            {
+                for (var z = 0; z < 32; z++)
+                {
+                    grid.SetBlock(x, y, z, BlockId.Stone);
+                }
+            }
+        }
+
+        for (var y = 5; y <= 9; y++)
+        {
+            grid.SetBlock(8, y, 8, BlockId.Air); // a cave cell under the ground
+        }
+
+        var exposure = new SkyExposure(grid, static (_, _) => 20);
+        Assert.Equal(20, exposure.SurfaceOf(8, 8));
+        Assert.Empty(exposure.TakeDirty());
+
+        for (var y = 10; y <= 20; y++)
+        {
+            grid.SetBlock(8, y, 8, BlockId.Air); // the shaft is dug open to the surface
+        }
+
+        Assert.Equal(4, exposure.SurfaceOf(8, 8));
+        var dirty = exposure.TakeDirty();
+        Assert.Contains(new VoxelChunkCoord(0, 0, 0), dirty);
+        Assert.Contains(new VoxelChunkCoord(0, 1, 0), dirty);
+        Assert.Empty(exposure.TakeDirty());
+
+        grid.SetBlock(8, 20, 8, BlockId.Stone); // and roofed over again
+        Assert.Equal(20, exposure.SurfaceOf(8, 8));
+        Assert.Contains(new VoxelChunkCoord(0, 0, 0), exposure.TakeDirty());
+
+        grid.SetBlock(8, 30, 8, BlockId.Planks); // a block above the ground changes nothing the sky reads
+        Assert.Empty(exposure.TakeDirty());
     }
 }

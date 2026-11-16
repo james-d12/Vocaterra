@@ -388,7 +388,7 @@ public static class ChunkMesher
         var y0 = chunkY * Size;
         var z0 = chunkZ * Size;
         var near = new Neighbourhood(blocks, x0, y0, z0);
-        var glow = Glow.For(settings, x0, y0, z0);
+        var glow = Glow.For(settings, blocks, x0, y0, z0);
         var sky = settings.Sky is { } surface && surface.Highest >= y0 - 1 ? surface : null; // a chunk wholly above the ground's surface (one block of margin for the faces on its floor) has nothing to darken
         var bakedSun = LightBands.BakedSun(settings.Band); // the sun's multiplier of the band, in every colour that takes the sun's light (E02)
         var sunTint = ((byte)Math.Round(255f * bakedSun.R), (byte)Math.Round(255f * bakedSun.G), (byte)Math.Round(255f * bakedSun.B), (byte)255);
@@ -549,27 +549,27 @@ public static class ChunkMesher
     // Nothing here reads a clock or a random number: the same blocks give the same colours.
     private sealed class Glow
     {
-        private readonly (float X, float Y, float Z)[] _lights;
+        private readonly (float X, float Y, float Z, bool Torch)[] _lights;
 
-        private Glow((float X, float Y, float Z)[] lights) => _lights = lights;
+        private Glow((float X, float Y, float Z, bool Torch)[] lights) => _lights = lights;
 
         public bool IsEmpty => _lights.Length == 0;
 
-        public static Glow For(MeshOptions options, int x0, int y0, int z0)
+        public static Glow For(MeshOptions options, IBlockSource blocks, int x0, int y0, int z0)
         {
             if (options.Lights is not { Count: > 0 } all)
             {
                 return new Glow([]);
             }
 
-            List<(float X, float Y, float Z)>? near = null;
+            List<(float X, float Y, float Z, bool Torch)>? near = null;
             foreach (var light in all)
             {
                 if (light.X + 0.5f >= x0 - GlowRadius && light.X + 0.5f <= x0 + Size + GlowRadius
                     && light.Y + 0.5f >= y0 - GlowRadius && light.Y + 0.5f <= y0 + Size + GlowRadius
                     && light.Z + 0.5f >= z0 - GlowRadius && light.Z + 0.5f <= z0 + Size + GlowRadius)
                 {
-                    (near ??= []).Add((light.X + 0.5f, light.Y + 0.5f, light.Z + 0.5f));
+                    (near ??= []).Add((light.X + 0.5f, light.Y + 0.5f, light.Z + 0.5f, blocks.Get(light.X, light.Y, light.Z) == BlockId.Torch));
                 }
             }
 
@@ -586,7 +586,7 @@ public static class ChunkMesher
 
             var (nx, ny, nz) = face.Normal();
             var sum = 0f;
-            foreach (var (lx, ly, lz) in _lights)
+            foreach (var (lx, ly, lz, torch) in _lights)
             {
                 float dx = lx - vx, dy = ly - vy, dz = lz - vz;
                 var d2 = (dx * dx) + (dy * dy) + (dz * dz);
@@ -598,7 +598,11 @@ public static class ChunkMesher
                 var d = MathF.Sqrt(d2);
                 var fall = 1f - (d / GlowRadius);
                 var facing = d < 0.01f ? 1f : Math.Clamp(((nx * dx) + (ny * dy) + (nz * dz)) / d, 0f, 1f);
-                sum += 1.6f * fall * fall * (0.3f + (0.7f * facing));
+                // A torch is a small light in a dark place and is meant to warm the floor and the walls out to six or eight blocks (B12): a gentler fall (the power 1.5, not the square) and a stronger
+                // pull, with more of it on faces turned away. The lantern's and the lava's light is as it was.
+                sum += torch
+                    ? 2.6f * fall * MathF.Sqrt(fall) * (0.45f + (0.55f * facing))
+                    : 1.6f * fall * fall * (0.3f + (0.7f * facing));
             }
 
             return Math.Min(sum, 1f);
