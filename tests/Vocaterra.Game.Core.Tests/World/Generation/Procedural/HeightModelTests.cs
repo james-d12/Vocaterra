@@ -102,7 +102,7 @@ public sealed class HeightModelTests
         var middleDiffers = 0;
         for (var i = 0; i < 300; i++)
         {
-            var middle = Climate(3500, -4096, 2870);
+            var middle = Climate(4096, -4096, 3200);
             middleDiffers += on.Shape(i * 7, i * 3, middle).Height != off.Shape(i * 7, i * 3, middle).Height ? 1 : 0;
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height, on.Shape(i * 7, i * 3, Climate(0, -4096, 2600)).Height); // low ground: none
             Assert.Equal(off.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height, on.Shape(i * 7, i * 3, Climate(3500, -4096, 4000)).Height); // the crest: crags, not shelves
