@@ -30,6 +30,8 @@ public sealed class ChunkResidency
     private const int MaxInFlight = 16;
     private const int MaxEvictionsPerFrame = 400;
     private const int RescanFrames = 20;
+    private const int PartialPlanFrames = 12;
+    private const long NearPlanRadiusSquared = 10 * 10;
 
     private readonly VoxelGrid _grid;
     private readonly StreamedWorld _world;
@@ -50,6 +52,7 @@ public sealed class ChunkResidency
     private List<VoxelChunkCoord> _evictions = [];
     private int _evictCursor;
     private int _frames;
+    private int _partialFrame;
     private long _installed;
     private long _evicted;
     private long _dropped;
@@ -168,10 +171,13 @@ public sealed class ChunkResidency
         }
     }
 
-    // Makes the plan once every band it reads is known; asks the workers (or makes inline, within the budget) for the ones that are not.
+    // Makes the plan. The bands nearest the player are asked for first; once the near ones are known a plan is made at once, from the bands known so far (a column whose band is not known yet is not
+    // wanted yet), and made again every few frames while the rest arrive, so the world round the player starts to fill in a moment after a start or a jump and not after every band in the disc
+    // is made. Only a plan made with every band known lets chunks go.
     private void TryPlan(Func<bool> over)
     {
         var pending = false;
+        var nearPending = false;
         var limits = _grid.Limits;
         foreach (var (dx, dz) in _reach)
         {
@@ -186,7 +192,9 @@ public sealed class ChunkResidency
             {
                 if (over())
                 {
-                    return; // the plan stays due: the rest of the bands are made on the next frames
+                    pending = true;
+                    nearPending |= (dx * dx) + (dz * dz) <= NearPlanRadiusSquared;
+                    break; // the rest of the bands are made on the next frames
                 }
 
                 _ = _bands.Get(cx, cz);
@@ -194,6 +202,7 @@ public sealed class ChunkResidency
             }
 
             pending = true;
+            nearPending |= (dx * dx) + (dz * dz) <= NearPlanRadiusSquared;
             var key = ColumnBandCache.KeyOf(cx, cz);
             if (_bandJobs.TryAdd(key, 0))
             {
@@ -206,16 +215,24 @@ public sealed class ChunkResidency
             }
         }
 
-        if (pending)
+        if (nearPending || (pending && _planNow is not null && _frames - _partialFrame < PartialPlanFrames && _planNow.Player == _planFor && _planNow.Underground == _planUnderground))
         {
-            return; // the workers are making them; the plan is made on a later frame
+            return;
         }
 
-        var plan = _streamer.Plan(_planFor, _planUnderground, _bands.Get);
+        var plan = _streamer.Plan(_planFor, _planUnderground, (x, z) => _bands.TryGet(x, z, out var band) ? band : ColumnBand.Empty);
         _planNow = plan;
-        _planDue = false;
         _cursor = 0;
         _plans++;
+        if (pending)
+        {
+            _partialFrame = _frames; // a partial plan: asked again in a few frames, and nothing is dropped by it
+            _evictions = [];
+            _evictCursor = 0;
+            return;
+        }
+
+        _planDue = false;
         _evictions = [.. BandStreamer.Evictable(plan, GridResidency.Resident(_grid))];
         _evictCursor = 0;
     }

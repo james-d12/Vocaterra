@@ -21,6 +21,11 @@ public sealed class ChunkViewSet : IChunkResidencyListener
     private long _residency = -1;
     private float _eyeX, _eyeY, _eyeZ;
     private readonly int _maxChunks;
+
+    /// <summary>On a streamed grid, how many calls to <see cref="Update"/> a change of what is resident alone may wait before the list is rebuilt (1: at once; the renderer asks for a few, so a world that loads every frame is not sorted every frame).</summary>
+    public int ResidencyRebuildCalls { get; init; } = 1;
+    private long _calls;
+    private long _builtAt = long.MinValue / 2;
     private readonly HashSet<VoxelChunkCoord> _ready = [];
 
     /// <summary>Creates the view set of a grid for a view distance in blocks.</summary>
@@ -127,10 +132,16 @@ public sealed class ChunkViewSet : IChunkResidencyListener
     public IReadOnlyList<VoxelChunkCoord> Update(float eyeX, float eyeY, float eyeZ)
     {
         var eyeChunk = (FloorChunk(eyeX), FloorChunk(eyeY), FloorChunk(eyeZ));
-        if (eyeChunk == _eyeChunk && _editCount == _grid.EditCount && _residency == _grid.ResidencyVersion)
+        _calls++;
+        // On a streamed grid chunks come and go every frame while the world loads; the list is rebuilt for that at most once in a few frames (a chunk becomes ready a few frames late, which no one sees),
+        // and at once when the eye changes chunk or a block is edited.
+        var residencyOnly = eyeChunk == _eyeChunk && _editCount == _grid.EditCount && _residency != _grid.ResidencyVersion;
+        if (eyeChunk == _eyeChunk && _editCount == _grid.EditCount && (_residency == _grid.ResidencyVersion || (_grid.IsStreamed && residencyOnly && _calls - _builtAt < ResidencyRebuildCalls)))
         {
             return _wanted;
         }
+
+        _builtAt = _calls;
 
         _eyeChunk = eyeChunk;
         (_eyeX, _eyeY, _eyeZ) = (eyeX, eyeY, eyeZ);

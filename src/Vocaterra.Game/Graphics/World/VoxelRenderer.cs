@@ -150,7 +150,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         DryFog = new FogParameters(ClearColour.R / 255f, ClearColour.G / 255f, ClearColour.B / 255f, FogStartOf(fogEnd0), fogEnd0);
         _source = new GridBlockSource(grid, currents);
         _tracker = new ChunkVersionTracker(grid);
-        _view = new ChunkViewSet(grid, preset.ViewDistance, MeshCap(preset));
+        _view = new ChunkViewSet(grid, preset.ViewDistance, MeshCap(preset)) { ResidencyRebuildCalls = 8 };
         var fogEnd = fogEnd0;
         _effect = new BasicEffect(device)
         {
@@ -313,7 +313,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         var fogEnd = FogEndNow(preset.ViewDistance, _look.Fog);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
         _view.Detach();
-        _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset));
+        _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset)) { ResidencyRebuildCalls = 8 };
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band);
         if (remesh)
         {

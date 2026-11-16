@@ -159,6 +159,30 @@ public sealed class ChunkResidencyTests
         Assert.True(compared > 50);
     }
 
+    [Fact]
+    public void Given_AFreshWorldFarFromTheValley_When_FramesAreSpentInsideABudget_Then_ThePlanStartsFromTheNearBandsAndGrowsAsTheRestArrive()
+    {
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(0);
+        var residency = Make(scene, pool, new BandStreamPolicy(14, 16, 2, 3));
+        var frames = 0;
+
+        while (residency.Plan is null && frames++ < 4000)
+        {
+            residency.Update(2000, 90, 2000, 2.0);
+        }
+
+        Assert.NotNull(residency.Plan);
+        Assert.False(residency.IsSettled, "the far bands are not all made: the plan is a partial one");
+        var first = residency.Plan!.Columns.Count;
+        Assert.InRange(first, 20, 700);
+        Assert.DoesNotContain(GridResidency.Resident(scene.Grid), c => c.X < 100); // nothing of the valley or anything else was dropped or made by a partial plan
+
+        Assert.True(residency.Settle(2000, 90, 2000));
+        Assert.True(residency.Plan!.Columns.Count > first);
+        Assert.All(residency.Plan.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
+    }
+
     private sealed class ThreadRecorder : IChunkResidencyListener
     {
         public HashSet<int> Threads { get; } = [];

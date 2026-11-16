@@ -49,6 +49,8 @@ public sealed class SceneDrawer : IDisposable
     private UnderwaterPass? _underwaterPass;
     private double _lastDrawMilliseconds = double.NaN;
     private StreamedWorldHost? _streaming;
+    private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _streamTimes = new();
+    private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _remeshTimes = new();
 
     /// <summary>Creates the drawer of a run (nothing is made until <see cref="Load"/>).</summary>
     /// <param name="options">The run's options: the quality, the greyscale and the nouns assumed known.</param>
@@ -91,6 +93,9 @@ public sealed class SceneDrawer : IDisposable
             _renderer.SetFarView(_streaming.Far);
         }
     }
+
+    /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
+    public (Vocaterra.Game.Core.Reporting.BusyFrameStats Streaming, Vocaterra.Game.Core.Reporting.BusyFrameStats Remesh) PhaseTimes => (_streamTimes, _remeshTimes);
 
     /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
     public StreamedWorldHost? Streaming => _streaming;
@@ -165,7 +170,8 @@ public sealed class SceneDrawer : IDisposable
         {
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
             var eye = camera.Eye;
-            if (_options.IsScreenshotRun)
+            var phaseStart = MonotonicClock.Milliseconds();
+            if (_options.IsScreenshotRun && !_options.NoSettle)
             {
                 _ = streaming.Settle(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
             }
@@ -173,9 +179,13 @@ public sealed class SceneDrawer : IDisposable
             {
                 streaming.Update(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
             }
+
+            _streamTimes.Record(MonotonicClock.Milliseconds() - phaseStart);
         }
 
-        renderer.Remesh(camera.Eye, camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
+        var remeshStart = MonotonicClock.Milliseconds();
+        renderer.Remesh(camera.Eye, camera.Frustum, _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
+        _remeshTimes.Record(MonotonicClock.Milliseconds() - remeshStart);
         AdvanceUnderwater(camera);
         var amount = (float)_underwater.Amount;
         renderer.SetUnderwater(amount);

@@ -55,12 +55,14 @@ public sealed class StreamedWorldLaunchOptionsTests
     {
         Assert.False(Parse().StreamStats);
         Assert.True(Parse("--stream-stats").StreamStats);
+        Assert.False(Parse().NoSettle);
+        Assert.True(Parse("--no-settle").NoSettle);
     }
 
     [Fact]
     public void TheUsageNamesTheNewFlags()
     {
-        foreach (var flag in new[] { "--world", "--prefetch", "--far-view", "--stream-stats" })
+        foreach (var flag in new[] { "--world", "--prefetch", "--far-view", "--stream-stats", "--no-settle" })
         {
             Assert.Contains(flag, LaunchOptions.Usage, StringComparison.Ordinal);
         }

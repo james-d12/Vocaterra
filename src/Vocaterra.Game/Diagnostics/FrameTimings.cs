@@ -21,6 +21,9 @@ public sealed class FrameTimings
         _lastDrawEnd = drawEnd;
     }
 
+    /// <summary>The frames' statistics (the end of one draw to the next).</summary>
+    public BusyFrameStats Frames => _frames;
+
     /// <summary>The draws: the scene, the layers and the flush.</summary>
     public string DrawSummary() => _draws.Summary();
 
