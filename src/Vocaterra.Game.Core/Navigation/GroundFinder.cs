@@ -6,7 +6,9 @@ namespace Vocaterra.Game.Core.Navigation;
 public static class GroundFinder
 {
     /// <summary>
-    /// The cell the feet go to for the ground of a column: the highest block that is not a tree, not water and not air, with two free cells over it. <see langword="null"/>
+    /// The cell the feet go to for the ground of a column: the highest block that is not a tree and not air, with two free cells over it. Where that block is water (a pool, a lake, the
+    /// sea) the feet go to the cell over the water's surface, so the body floats there and never stands on the bed, a lake's depth under the picture (B07b); the surface, not the nearest dry
+    /// ground, because a lake's middle has none within a few blocks and the column asked for is the place the caller means. <see langword="null"/>
     /// when the column lies outside the world or has no such ground (a roof of solid blocks over the first ground found counts as none).
     /// </summary>
     /// <param name="grid">The world.</param>
@@ -23,7 +25,12 @@ public static class GroundFinder
         for (var y = grid.Limits.EndY - 3; y > grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
-            if (block is BlockId.Air or BlockId.Water || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(x, y, z))
+            if (block == BlockId.Water)
+            {
+                return grid.BlocksBody(x, y + 1, z) || grid.BlocksBody(x, y + 2, z) ? null : new BlockPos(x, y + 1, z); // the highest water of the column: its surface
+            }
+
+            if (block == BlockId.Air || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(x, y, z))
             {
                 continue;
             }
