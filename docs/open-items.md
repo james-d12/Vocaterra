@@ -18,6 +18,7 @@ Last checked against `main`: 2026-11-15 (after pull requests #64, #65 and #66). 
 | Core D13 | Pronunciation ambition | Follows M24's speech check | [nlp/decisions](nlp/decisions.md) |
 | Core D14 | German: the variety, the tagger route, content trust | M36 to M48 | [nlp/decisions](nlp/decisions.md) |
 | M79 | The typo slip: a new `vocab.spelling` tag or `vocab.unknown`; a suggestion list on `ErrorTag`; the typo's weight | M79 | [core plan](nlp/implementation-plan.md) §5 |
+| Core fuzz | The recast drops a plural (O5, seed `2LxdNIrNHnQ6`, «cuanto almuerzos … zeponefu»): a core fix like M96, to authorise | A gate's full run fails on it at random seeds | [core findings](nlp/findings.md) (last entry) |
 | M67b | Answer-set verb forms: parked, because it fails 32 game tests that pin V14's design | QA-language-5 and 10 | [core plan](nlp/implementation-plan.md) §5, [QA triage](qa-reports/README.md) |
 | D-game-1 | The final engine (MonoGame or Godot .NET) | The optional P10 spike | [game/decisions](game/decisions.md) |
 | D-game-22 | The review of village phase B; the four provisional village voices | Recording a rejected voice again | [game/decisions](game/decisions.md), [village plan](game/village-plan.md) section 5 |
