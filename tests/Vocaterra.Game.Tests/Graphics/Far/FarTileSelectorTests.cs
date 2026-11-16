@@ -171,6 +171,9 @@ public sealed class FarTileSelectorTests(ITestOutputHelper output)
             Assert.Equal(1, far.CellOf(0));
             Assert.Equal(128, far.CellOf(far.TopLevel));
             Assert.Equal(preset.FarTreeLevels, far.TreeLevels);
+            Assert.Equal(preset.FarRealRadius, far.RealRadius);
+            Assert.Equal(2.5 * voxel, far.RealRadius, 1); // the ring of real chunks reaches where level 2 ends
+            Assert.Equal(2, far.TexturedLevels); // the voxels of 1 and 2 blocks carry the atlas's textures
 
             // Level 0, block by block, is the ring just past the voxel zone; the next level starts at a tenth beyond it.
             var leaves = FarTileSelector.Select(far, 192, 192, voxel);
