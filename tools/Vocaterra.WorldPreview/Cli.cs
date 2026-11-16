@@ -114,7 +114,7 @@ internal static class Cli
                 output.WriteLine($"{path} ({side} x {side}; {count} entrances, {started.Elapsed.TotalSeconds:0.0} s)");
                 foreach (var passage in listed.OrderBy(static p => p.X).ThenBy(static p => p.Z))
                 {
-                    output.WriteLine($"entrance: mouth {passage.X},{passage.Z} ground {passage.MouthY}, direction {passage.DirX},{passage.DirZ}, {passage.Length} blocks along to a cave {passage.MouthY - passage.FloorAt(passage.Length)} down, landing {passage.Landing}");
+                    output.WriteLine($"entrance: mouth {passage.X},{passage.Z} ground {passage.MouthY}, direction {passage.DirX},{passage.DirZ}, {passage.Length} blocks along to a cave {passage.MouthY - passage.FloorAt(passage.Length)} down, landing {passage.Landing}, ground {passage.Cover} over the floor 12 blocks in");
                 }
                 return 0;
             }

@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// <param name="Landing">The level blocks after that.</param>
 /// <param name="Width">The passage's width.</param>
 /// <param name="Run">The blocks along for each block down.</param>
-public sealed record CaveEntrance(int X, int Z, int DirX, int DirZ, int MouthY, int Length, int Landing, int Width, int Run)
+/// <param name="Cover">How far the ground lies over the passage's floor twelve blocks in: about 6 on level ground, more where the passage goes into a rising hillside.</param>
+public sealed record CaveEntrance(int X, int Z, int DirX, int DirZ, int MouthY, int Length, int Landing, int Width, int Run, int Cover)
 {
     /// <summary>The centre column of the passage at an index along (0 is the mouth).</summary>
     /// <param name="along">The index along.</param>
