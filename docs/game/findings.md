@@ -2555,3 +2555,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   saves, nouns, recipes and shops (`DataOnlyItemTests`). Save version 9 stores items by name. Two limits: the host's
   `--validate-content` cannot check icon keys (the host does not reference the game; the game's start and the tests do), and items named
   by a script resolve only at run time. Spot-checked: «quiero pan, por favor» at `stall-need` sells the bread; `--validate-content` clean.
+- **I06, temperature and cold (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i06-report.md`. Gated at `a9e5df38`:
+  11,632 passed, 3 skipped; no golden or digest moved. `PlaceTemperature` sums five data-driven terms; a new term is one class and one
+  registry line. First feelings: noon 18 °C, clear night 6, rainy windy night -2 (cold, walk 85%), by a fire +15; very cold is
+  unreachable in the valley until a climate term or `--temperature`. Three choices for the owner at stop 2: cloud cools at night as by
+  day; with `--needs off` the cold has no effect (so the language runs keep their baselines); shelter counts the covered share of the nine
+  columns round the feet (no flicker at an eave). The snowflake has not been seen in a window yet.
