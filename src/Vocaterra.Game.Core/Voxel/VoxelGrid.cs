@@ -436,6 +436,21 @@ public sealed class VoxelGrid : IVoxelWriter
         return changed;
     }
 
+    /// <summary>
+    /// Replaces the blocks of a resident chunk as one write of the build (B13: the valley's underground, laid into the buried stone chunk by chunk): it is not an edit (<see cref="EditCount"/> and the
+    /// listeners are not touched) and the caller seals the grid afterwards. The water levels stay as they were.
+    /// </summary>
+    /// <param name="chunk">The resident chunk.</param>
+    /// <param name="blocks">The 4 096 new blocks, which the chunk takes over.</param>
+    internal void ReplaceBlocks(VoxelChunk chunk, BlockId[] blocks)
+    {
+        chunk.Install(new ChunkContent(blocks, chunk.HasWaterLevels ? chunk.WaterLevels.ToArray() : null));
+        if (ReferenceEquals(_cacheChunk, chunk))
+        {
+            Cache(chunk);
+        }
+    }
+
     /// <summary>Makes what every chunk holds now its pristine state (<see cref="VoxelChunk.PristineDigest"/>, <see cref="VoxelChunk.IsChanged"/>): the end of a build that wrote the world.</summary>
     internal void SealPristine()
     {

@@ -93,7 +93,7 @@ public static class GameDataValidator
         problems.AddRange(BiomeValidator.Validate(data.Biomes, data.WorldGen)); // B01: the biome rows, their blocks and tree species, the catch-all
         if (data.Underground is { } underground)
         {
-            problems.AddRange(UndergroundValidator.Validate(underground, data.WorldGen)); // B11: the rock layers, ores, caves, entrances and lava
+            problems.AddRange(UndergroundValidator.Validate(underground, data.WorldGen, data.Scene)); // B11: the rock layers, ores, caves, entrances and lava
         }
 
         problems.AddRange(Vocaterra.Game.Core.World.Pass.PassValidator.Validate(data)); // B08b: the required lessons exist, the rockfall prop and the edge site are the scene's

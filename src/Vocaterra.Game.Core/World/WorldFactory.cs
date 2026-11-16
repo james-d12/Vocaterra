@@ -42,7 +42,7 @@ public static class WorldFactory
             throw new ArgumentException($"The region '{foreign.Id}' was built for another seed ({foreign.Seed}), so its ground is not this world's ({seed}).", nameof(towns));
         }
 
-        var built = SceneBuilder.Build(layout ?? data.Scene, seed);
+        var built = SceneBuilder.Build(layout ?? data.Scene, seed, null, ValleyUnderground.Create(data.Underground, seed)); // B13: the valley's buried stone holds the underground
         var region = AuthoredReliefRegion.Freeze(ValleyRegionId, built, keepChunks: mode == WorldMode.Streamed, edgeBlurRadius: data.WorldGen.Blend.Smoothing.BlurRadius);
         var catalog = new RegionCatalog([region, .. towns]);
         if (towns.Count > 0)
