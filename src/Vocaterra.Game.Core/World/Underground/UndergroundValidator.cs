@@ -17,7 +17,8 @@ internal static partial class UndergroundValidator
     /// <summary>Every problem of the underground, in a fixed order; empty when the values hold together.</summary>
     /// <param name="underground">The underground.</param>
     /// <param name="world">The world's numbers (the vertical range).</param>
-    public static IReadOnlyList<string> Validate(UndergroundData underground, WorldGenData world)
+    /// <param name="scene">The valley's layout, to check the sites, paths and props the <c>valley</c> section names, or <see langword="null"/> to skip that check.</param>
+    public static IReadOnlyList<string> Validate(UndergroundData underground, WorldGenData world, Layout.SceneLayout? scene = null)
     {
         ArgumentNullException.ThrowIfNull(underground);
         ArgumentNullException.ThrowIfNull(world);
@@ -29,7 +30,56 @@ internal static partial class UndergroundValidator
         CheckEntrances(underground, problems);
         CheckLava(underground, v, problems);
         CheckOres(underground, v, problems);
+        if (underground.Valley is { } valley)
+        {
+            CheckValley(valley, scene, problems);
+        }
+
         return problems;
+    }
+
+    private static void CheckValley(ValleySpec valley, Layout.SceneLayout? scene, List<string> problems)
+    {
+        Range(problems, "valley.surfaceDistance", valley.SurfaceDistance, 6, 32); // the caves' own surface cover is 6: the valley keeps at least that
+        Range(problems, "valley.waterDistance", valley.WaterDistance, 3, 64);
+        if (valley.WaterDistance < valley.SurfaceDistance)
+        {
+            problems.Add($"{File}: valley.waterDistance must not be under surfaceDistance (they are {valley.WaterDistance} and {valley.SurfaceDistance}).");
+        }
+
+        Range(problems, "valley.borderMargin", valley.BorderMargin, 0, 64);
+        Range(problems, "valley.siteMargin", valley.SiteMargin, 0, 64);
+        Range(problems, "valley.pathMargin", valley.PathMargin, 0, 64);
+        Range(problems, "valley.propMargin", valley.PropMargin, 0, 64);
+        Range(problems, "valley.villageMargin", valley.VillageMargin, 0, 64);
+        Range(problems, "valley.passMargin", valley.PassMargin, 0, 64);
+        if (scene is null)
+        {
+            return;
+        }
+
+        if (!scene.Sites.Any(site => site.Name == valley.VillageSite))
+        {
+            problems.Add($"{File}: valley.villageSite '{valley.VillageSite}' is not a site of the scene.");
+        }
+
+        foreach (var path in valley.PassPaths.Where(path => !scene.Paths.Any(p => p.Name == path)))
+        {
+            problems.Add($"{File}: valley.passPaths names '{path}', which is not a path of the scene.");
+        }
+
+        foreach (var prop in valley.PassProps.Where(prop => !scene.Props.Any(p => p.Name == prop)))
+        {
+            problems.Add($"{File}: valley.passProps names '{prop}', which is not a prop of the scene.");
+        }
+    }
+
+    private static void Range(List<string> problems, string name, int value, int min, int max)
+    {
+        if (value < min || value > max)
+        {
+            problems.Add($"{File}: {name} must be from {min} to {max} blocks (it is {value}).");
+        }
     }
 
     private static void CheckStrata(StrataSpec s, VerticalRange v, List<string> problems)

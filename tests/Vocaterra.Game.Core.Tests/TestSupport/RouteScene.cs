@@ -145,7 +145,7 @@ internal static class RouteScene
     private static Scene CloneOf(Lazy<SceneLayout> layout, ulong seed)
     {
         var key = (layout, seed);
-        static Lazy<Scene> Make((Lazy<SceneLayout> Layout, ulong Seed) key) => new(() => Warmed(SceneBuilder.Build(key.Layout.Value, key.Seed)));
+        static Lazy<Scene> Make((Lazy<SceneLayout> Layout, ulong Seed) key) => new(() => Warmed(key.Layout == RouteLayout ? ValleyBuild.Build(key.Layout.Value, key.Seed) : SceneBuilder.Build(key.Layout.Value, key.Seed)));
         if (seed == KeptSeed)
         {
             return Built.GetOrAdd(key, Make).Value.Clone();

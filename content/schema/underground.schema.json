@@ -88,7 +88,7 @@
             "thickness": { "type": "integer", "minimum": 1, "maximum": 500, "description": "How far from zero, in thousandths, each noise may be: the tunnel's width." }
           }
         },
-        "underRegionCeiling": { "type": "integer", "maximum": -1, "description": "The highest y a cave reaches under an authored region (its own chunks start at 0)." },
+        "underRegionCeiling": { "type": "integer", "maximum": -1, "description": "The highest y a cave reaches under an authored region (its own chunks start at 0); -1 lets the caves meet the valley's own." },
         "waterMargin": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Blocks round a water cell that stay solid." },
         "bedClearance": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Blocks under the bed of a water column that stay solid (not below waterMargin)." }
       }
@@ -115,6 +115,25 @@
       "properties": {
         "block": { "$ref": "#/definitions/blockName", "description": "A fluid block (lava)." },
         "level": { "type": "integer", "description": "The highest y that holds lava." }
+      }
+    },
+    "valley": {
+      "type": "object",
+      "description": "B13: how far the underground reaches into the valley's own stone. Every distance is in blocks and measured as a cube (the largest of the three axes).",
+      "required": ["surfaceDistance", "waterDistance", "borderMargin", "siteMargin", "pathMargin", "propMargin", "villageSite", "villageMargin", "passPaths", "passProps", "passMargin"],
+      "additionalProperties": false,
+      "properties": {
+        "surfaceDistance": { "type": "integer", "minimum": 6, "maximum": 32, "description": "How far a changed block stays from any air cell of the valley." },
+        "waterDistance": { "type": "integer", "minimum": 3, "maximum": 64, "description": "How far a changed block stays from any water cell (not under surfaceDistance)." },
+        "borderMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "Columns in from the valley's edge where nothing changes." },
+        "siteMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from a site's level ground, a named point, an NPC or the spawn." },
+        "pathMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from a trodden path." },
+        "propMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from a block of a prop." },
+        "villageSite": { "type": "string", "description": "The site the village stands round (a site of the scene)." },
+        "villageMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from the village's footprint (the site's level ground and blend)." },
+        "passPaths": { "type": "array", "items": { "type": "string" }, "description": "The paths of the pass (names of paths of the scene)." },
+        "passProps": { "type": "array", "items": { "type": "string" }, "description": "The props of the pass (names of props of the scene), the rockfall." },
+        "passMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from the pass's paths and props." }
       }
     },
     "ores": {

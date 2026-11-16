@@ -69,9 +69,9 @@ public sealed class UndergroundUnderRegionTests
                 var top = Valley.Source.Generate(new VoxelChunkCoord(cx, -1, cz));
                 for (var i = 0; i < ChunkData.Volume; i++)
                 {
-                    if (i >> 8 > 7)
+                    if ((i >> 8) - VoxelChunk.Size > Data.Caves.UnderRegionCeiling)
                     {
-                        Assert.NotEqual(BlockId.Air, top.Blocks[i]); // y -8 to -1: no cave touches the valley's bottom layer
+                        Assert.NotEqual(BlockId.Air, top.Blocks[i]); // above the ceiling under the region (-1 since B13, which lets the caves meet the valley's own): no cave
                     }
                 }
             }
