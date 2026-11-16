@@ -865,6 +865,11 @@ the owner's answers of 2026-11-15 are in its section 5.
     needed ... prefer quality over performance to some degree, so don't obsess over the 12 millisecond per frame ... What we want to focus
     on at the moment is getting it to render distant chunks properly." B07c does not cut detail to reach 12 ms; it measures and names the
     costs for later tuning.
+27. **More rock variety, in caves and on bare stone** (2026-11-16, about 09:25 UTC): "We probably need some more rock variation, like
+    gravel, sand stuff. So, for example, in a cave, rather than just all being stone, it should have different mixtures of stone to break
+    things up ... perhaps some segments of gravel in there or something to break it up." Added to B11b: pockets and bands of gravel,
+    sand, dirt and the stone kinds (granite, limestone, slate, mossy stone, new kinds if they read better) in cave walls and floors and on
+    exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
 
 ## Already decided
 
