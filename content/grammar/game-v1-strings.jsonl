@@ -3693,6 +3693,7 @@
 {"id":"words.json:hudLines.need.thirst.2","text":"Tengo sed.","kind":"npc"}
 {"id":"words.json:hudLines.need.thirst.3","text":"Tengo mucha sed.","kind":"npc"}
 {"id":"words.json:hudLines.need.thirst.4","text":"Me muero de sed.","kind":"npc"}
+{"id":"words.json:hudLines.temperature.cold","text":"Tengo frío.","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
 {"id":"npcs/shopkeeper.json:label","text":"Tendero","kind":"npc"}

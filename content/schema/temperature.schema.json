@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/temperature.json",
+  "description": "The temperature where the player stands and how it feels (I06): the numbers of the terms that make up the place's temperature, and the bands the feeling (the temperature plus the player's warmth) is read against. Every temperature is whole tenths of a degree Celsius. Loaded by TemperatureData (Vocaterra.Game.Core); GameDataValidator checks the values (the numbers within limits, bands from warmest to coldest with falling bounds, walk factors above 0 and at most 1, unique ids, chills that do not fall, a line only on a chilled band, and every line a row of words.json's hudLines and of the locale).",
+  "type": "object",
+  "required": ["schemaVersion", "base", "day", "weather", "shelter", "fire", "bands"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "base": {
+      "type": "object",
+      "required": ["tenths"],
+      "additionalProperties": false,
+      "description": "The valley's base temperature: the mean the day's swing and the weather move round.",
+      "properties": { "tenths": { "type": "integer", "minimum": -2000, "maximum": 2000 } }
+    },
+    "day": {
+      "type": "object",
+      "required": ["amplitudeTenths"],
+      "additionalProperties": false,
+      "description": "The day's swing from the daylight: plus the amplitude in full daylight, minus it in full dark, straight between.",
+      "properties": { "amplitudeTenths": { "type": "integer", "minimum": 0, "maximum": 2000 } }
+    },
+    "weather": {
+      "type": "object",
+      "required": ["cloudTenths", "precipitationTenths", "windTenths"],
+      "additionalProperties": false,
+      "description": "The weather's cooling: the channel (0 to 1) times the coefficient, taken off. A positive number cools. Never a weather kind's id.",
+      "properties": {
+        "cloudTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of full cloud cover." },
+        "precipitationTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of precipitation at full intensity." },
+        "windTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of the strongest wind." }
+      }
+    },
+    "shelter": {
+      "type": "object",
+      "required": ["bonusTenths", "onlyInPrecipitation"],
+      "additionalProperties": false,
+      "description": "A roof's shelter: the bonus times the share of the columns round the feet that are covered (the rain's own definition of cover).",
+      "properties": {
+        "bonusTenths": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "onlyInPrecipitation": { "type": "boolean", "description": "Whether the cover warms only while something falls." }
+      }
+    },
+    "fire": {
+      "type": "object",
+      "required": ["radiusBlocks", "bonusTenths"],
+      "additionalProperties": false,
+      "description": "A lit fire ring's warmth within its radius.",
+      "properties": {
+        "radiusBlocks": { "type": "integer", "minimum": 1, "maximum": 64, "description": "How far from the ring's middle, in blocks across." },
+        "bonusTenths": { "type": "integer", "minimum": 0, "maximum": 2000 }
+      }
+    },
+    "bands": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The bands of how the temperature feels, from the warmest to the coldest, each from a lower bound below the one before. The coldest takes every feeling below its bound too.",
+      "items": {
+        "type": "object",
+        "required": ["id", "from", "walkFactor", "chill"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "Lowercase kebab-case, unique." },
+          "from": { "type": "integer", "minimum": -2000, "maximum": 2000, "description": "The lowest feeling in the band, in tenths of a degree." },
+          "walkFactor": { "type": "number", "exclusiveMinimum": 0, "maximum": 1, "description": "What the band multiplies the walking speed by (1 leaves it alone)." },
+          "chill": { "type": "integer", "minimum": 0, "description": "0 for no cold; above 0 the cold icon shows (that many notches) and the line is said as the feeling first enters the cold. Never falls as the bands get colder." },
+          "line": { "type": "string", "description": "The HUD line key said on first entering a chilled band: a key of words.json's hudLines, with its English in the locale. Only on a band with a chill." }
+        }
+      }
+    }
+  }
+}

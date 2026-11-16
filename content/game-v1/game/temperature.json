@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schema/temperature.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The temperature where the player stands, and how it feels (I06, D-game-35). Every temperature is whole tenths of a degree Celsius (125 is 12.5). The place's temperature is the sum of its terms: the base, plus the day's swing (the daylight curve of day.json: plus the amplitude at noon, minus it in the dark), minus the weather's cooling (each channel of the sky times its coefficient, never a weather kind's id), plus a roof's shelter, plus a lit fire's warmth. The player's warmth (clothes, from I03a on) is added to give the feeling, and the feeling falls in a band. The bands run from the warmest to the coldest, each from its lower bound; a band's walkFactor multiplies the walking speed (1 leaves it alone); a band with a chill above 0 shows the cold icon (that many notches) and says its line once as the feeling first enters the cold. Cold slows and never harms. First numbers, for the owner's review: a fair noon is about 18 degrees (warm), a clear night about 6 (cool), a rainy night about minus 2 (cold), a fire adds 15.",
+  "base": { "tenths": 140 },
+  "day": { "amplitudeTenths": 60 },
+  "weather": { "cloudTenths": 20, "precipitationTenths": 60, "windTenths": 50 },
+  "shelter": { "bonusTenths": 50, "onlyInPrecipitation": true },
+  "fire": { "radiusBlocks": 5, "bonusTenths": 150 },
+  "bands": [
+    { "id": "warm", "from": 120, "walkFactor": 1.0, "chill": 0 },
+    { "id": "cool", "from": 30, "walkFactor": 1.0, "chill": 0 },
+    { "id": "cold", "from": -50, "walkFactor": 0.85, "chill": 1, "line": "temperature.cold" },
+    { "id": "very-cold", "from": -1000, "walkFactor": 0.65, "chill": 2, "line": "temperature.cold" }
+  ]
+}
