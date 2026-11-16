@@ -2567,3 +2567,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   rather than building them). Rules are `IEquipRule`s, so I03b's bag rule is one class. Stat values are doubles, as the walk factor already
   is; nothing in the digest reads them. A process note for briefs: the agent left a `pgrep -f` wait loop that matched itself, as the
   standard brief warns; the orchestrator killed it.
+- **I03b, the bag and the rest of the slots (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i03b-report.md`. Gated at
+  `805b2c73`: 11,819 passed, 3 skipped. The bag is 30 slots from data (`bagSlots`) plus the worn bag's `capacity`; the static
+  `Inventory.SlotCount` is gone, so every consumer names its inventory's active count. Two pinned digests (`AtmosphereSimulationTests`)
+  moved, and the agent proved the cause: the fresh digest recomputed with 40 empty slots equals the old pin, with 30 the new one. No golden,
+  fuzz or scripted-run baseline moved. Save version 10 stores the active slots and the worn items by name. A limit left for later: the
+  active count is clamped to base plus the largest capacity, so data with two back slots could lose slots silently (unreachable with the
+  one-slot backpack group; no validator yet). The fixture was transformed by a throwaway test rather than recorded in a window (no windows
+  while the owner games).
