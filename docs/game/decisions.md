@@ -873,7 +873,9 @@ the owner's answers of 2026-11-15 are in its section 5.
 28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
     8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
     to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay. Raised again about 11:55 UTC: "We have a decent amount
-    of memory on this machine so i would increase to 16gb": the default is 16G.
+    of memory on this machine so i would increase to 16gb": the default is 16G. The cap per command raised from 6 GB to 10 GB (about 12:40
+    UTC; the gate's single test command, two assemblies at once, peaked at the 6 GB cap and a fuzz test threw OutOfMemoryException in
+    B07b's first gate, passing alone at 1.7 GB): "Raise the cap to 10 GB" (over testing one project at a time, or rerunning on failure).
 29. **The far view built like the Voxy mod** (2026-11-16, about 11:45 UTC, with three screenshots of Voxy: individual tree crowns, lakes,
     rivers and snowy ranges as blocks kilometres out): "For the LODS we want something like https://modrinth.com/mod/voxy. Of course ignore
     shaders that is not part of this work." Replaces item 26's Distant Horizons columns: B07c builds a 3D voxel level of detail (cubic

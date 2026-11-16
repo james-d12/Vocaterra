@@ -96,7 +96,7 @@ swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's with
   the disk before launching the second.
 - **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
   `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has two machine-wide slots (a third command waits), waits until
-  at least 3 GB is free and the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, in
+  at least 3 GB is free and the load is under the core count, then runs the command capped at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, in
   one slice that caps all of them together at 16 GB (the owner, 2026-11-16: "increase the shared pool to 12 is fine", then "i would increase to 16gb"; 8 GB before) and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
   command's peak memory. A command over a cap is killed inside its scope (exit 137 or 143); the fix is lower parallelism or a rerun when
   the other slot is free, never a higher cap without the owner. `VOCATERRA_HEAVY_SLOTS=1` restores one at a time. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
