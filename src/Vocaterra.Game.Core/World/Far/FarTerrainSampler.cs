@@ -45,12 +45,43 @@ public sealed class FarTerrainSampler
 
         var climate = _world.Climate.At(x, z);
         var shape = _world.Height.Shape(x, z, climate);
-        var column = _world.Table.Classify(climate, shape.Height, x, z);
+        var column = _world.Table.Classify(climate, shape.Height, x, z, shape.Water);
         var blocks = _world.Table.Surface(column.Row);
-        var water = shape.Height < _world.SeaLevel;
-        var top = water ? blocks.Underwater : column.Snow ? BlockId.Snow : blocks.Top;
-        var forest = !water && column.TreesGrow ? column.Row.Trees.Density : 0;
-        return new FarSample(shape.Height, water ? _world.SeaLevel : -1, top, column.Snow, forest);
+        var top = shape.Water ? blocks.Underwater : column.Snow ? BlockId.Snow : blocks.Top;
+        var forest = !shape.Water && column.TreesGrow ? column.Row.Trees.Density : 0;
+        return new FarSample(shape.Height, shape.Water ? Even(x, z, shape.WaterLevel) : -1, top, column.Snow, forest);
+    }
+
+    // The water's top of a column as the generator leaves it (B02b round 3): the height model's own level (the sea's for the sea, a river's or a lake's own), and for water above the sea the highest level within
+    // the generator's few columns (`WaterEdgePass.EvenLevels`), so a river steps down across itself and not along its length. At a far tile's spacing the columns round it are not samples, so the eight points at that
+    // reach stand for them. The bank turned to water beside two levels and the falling cells are left out: they are a column wide.
+    private int Even(int x, int z, int own)
+    {
+        if (own <= _world.SeaLevel)
+        {
+            return own;
+        }
+
+        var best = own;
+        var reach = GenerationWorld.EvenReach;
+        for (var dz = -reach; dz <= reach; dz += reach)
+        {
+            for (var dx = -reach; dx <= reach; dx += reach)
+            {
+                if (dx == 0 && dz == 0)
+                {
+                    continue;
+                }
+
+                var shape = _world.Height.Shape(x + dx, z + dz, _world.Climate.At(x + dx, z + dz));
+                if (shape.Water)
+                {
+                    best = Math.Max(best, shape.WaterLevel);
+                }
+            }
+        }
+
+        return best;
     }
 
     /// <summary>The columns of a regular grid, row by row (x fastest): the point (<paramref name="x0"/> + i x <paramref name="step"/>, <paramref name="z0"/> + j x <paramref name="step"/>) is sample j x <paramref name="countX"/> + i.</summary>
