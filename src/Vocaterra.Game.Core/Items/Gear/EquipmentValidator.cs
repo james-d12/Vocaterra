@@ -5,11 +5,14 @@ namespace Vocaterra.Game.Core.Items.Gear;
 /// <summary>
 /// The checks of <c>game/equipment.json</c> and of the gear in <c>game/items.json</c> that need more than a shape (I03a): group ids that are unique keys, groups that have slots with unique names and
 /// wear kinds that are keys, accepted tags and labels that are well formed, layers from 1 to 9; and every item that has a <c>wear</c> has a slot of that kind in a group that accepts one of its tags and a stack
-/// limit of 1, and an item with <c>stats</c> or a <c>look</c> can be worn. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
+/// limit of 1, an inventory base from the hotbar's size up, and an item with <c>stats</c> or a <c>look</c> can be worn. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
 /// </summary>
 internal static partial class EquipmentValidator
 {
     private const string File = EquipmentData.RelativePath;
+
+    /// <summary>The most slots the inventory may have with no bag (a sanity limit).</summary>
+    private const int MaxBagSlots = 100;
 
     /// <summary>Every problem of the groups and of the items' gear fields, in a fixed order; empty when they hold together.</summary>
     /// <param name="data">The slot groups.</param>
@@ -20,6 +23,11 @@ internal static partial class EquipmentValidator
         ArgumentNullException.ThrowIfNull(items);
         var problems = new List<string>();
         var ids = new HashSet<string>(StringComparer.Ordinal);
+        if (data.BagSlots is < Inventory.HotbarSize or > MaxBagSlots)
+        {
+            problems.Add($"{File}: bagSlots is {data.BagSlots}; the inventory with no bag is from the hotbar's {Inventory.HotbarSize} to {MaxBagSlots} slots.");
+        }
+
         for (var g = 0; g < data.Groups.Count; g++)
         {
             CheckGroup(problems, data.Groups[g], g, ids);

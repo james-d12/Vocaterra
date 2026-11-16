@@ -37,7 +37,7 @@ public sealed class AtmosphereSaveTests
     }
 
     [Fact]
-    public void TheSaveVersionIsNine() => Assert.Equal(9, SaveGame.CurrentVersion);
+    public void TheSaveVersionIsTen() => Assert.Equal(10, SaveGame.CurrentVersion);
 
     [Fact]
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
@@ -109,16 +109,16 @@ public sealed class AtmosphereSaveTests
     }
 
     [Theory]
-    [InlineData("save-v9.json")]
+    [InlineData("save-v10.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
         var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 
-        Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest, taken before the clock existed, is checked and still the world's
+        Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest (recorded again for the 30-slot bag, I03b) is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
-        Assert.Equal(9, SaveGame.Parse(SaveOf(loaded)).Version);
+        Assert.Equal(10, SaveGame.Parse(SaveOf(loaded)).Version);
     }
 }

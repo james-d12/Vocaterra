@@ -20,10 +20,12 @@ public sealed class EquipmentData
 
     /// <summary>The data of a list of groups.</summary>
     /// <param name="groups">The groups, in order; a slot's place in the commands, the digest and a save is its place in this order.</param>
-    public EquipmentData(IReadOnlyList<EquipmentGroup> groups)
+    /// <param name="bagSlots">The inventory's slots with no bag worn (I03b); <see cref="Inventory.DefaultBaseSlots"/> when the data does not say.</param>
+    public EquipmentData(IReadOnlyList<EquipmentGroup> groups, int bagSlots = Inventory.DefaultBaseSlots)
     {
         ArgumentNullException.ThrowIfNull(groups);
         Groups = groups;
+        BagSlots = bagSlots;
         _offsets = new int[groups.Count + 1];
         for (var i = 0; i < groups.Count; i++)
         {
@@ -36,6 +38,9 @@ public sealed class EquipmentData
 
     /// <summary>The groups, in the file's order.</summary>
     public IReadOnlyList<EquipmentGroup> Groups { get; }
+
+    /// <summary>The inventory's slots with no bag worn (<c>bagSlots</c>, I03b): the hotbar and the rows under it. A worn bag adds its <see cref="ItemDefinition.Capacity"/>.</summary>
+    public int BagSlots { get; }
 
     /// <summary>The number of slots in every group together.</summary>
     public int SlotCount => _offsets[^1];
@@ -115,7 +120,9 @@ public sealed class EquipmentData
                 throw new InvalidDataException($"{RelativePath} must have schemaVersion {SchemaVersion}.");
             }
 
-            return new EquipmentData([.. root.GetProperty("groups").EnumerateArray().Select(ParseGroup)]);
+            return new EquipmentData(
+                [.. root.GetProperty("groups").EnumerateArray().Select(ParseGroup)],
+                root.TryGetProperty("bagSlots", out var bagSlots) ? bagSlots.GetInt32() : Inventory.DefaultBaseSlots);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

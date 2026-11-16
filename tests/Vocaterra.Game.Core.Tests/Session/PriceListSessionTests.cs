@@ -116,7 +116,7 @@ public sealed class PriceListSessionTests
     public void AFullBagKeepsTheCoinsAndTheGoods()
     {
         var session = At("baker", (ItemId.Coin, 10));
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             if (session.Simulation.Inventory.Slots[slot].IsEmpty)
             {

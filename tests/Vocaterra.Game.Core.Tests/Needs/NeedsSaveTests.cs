@@ -32,8 +32,8 @@ public sealed class NeedsSaveTests
 
         var document = SaveGame.Capture(session, Pristine());
 
-        Assert.Equal(9, SaveGame.CurrentVersion);
-        Assert.Equal(9, document.Version);
+        Assert.Equal(10, SaveGame.CurrentVersion);
+        Assert.Equal(10, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }
@@ -79,7 +79,7 @@ public sealed class NeedsSaveTests
     [Fact]
     public void TheFixtureLoadsWithItsNeeds()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
+        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
         Assert.Equal(new PlayerNeeds(TestGame.Data.Needs).Capture(), SaveGame.Parse(text).Systems!.Needs); // recorded with the needs off: full
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, migrate: true);

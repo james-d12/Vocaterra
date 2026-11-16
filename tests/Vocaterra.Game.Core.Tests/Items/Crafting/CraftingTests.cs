@@ -59,7 +59,7 @@ public sealed class CraftingTests
     public void AFullInventoryRefusesWhenNothingIsFreed()
     {
         var inventory = new Inventory(TestItems.Catalogue);
-        inventory.Add(ItemId.Berry, ItemDefinition.DefaultStackLimit * 40);
+        inventory.Add(ItemId.Berry, ItemDefinition.DefaultStackLimit * inventory.SlotCount);
 
         Assert.Equal(CraftResult.InventoryFull, CraftingRules.Check(ByHand, inventory, stationInReach: true));
     }

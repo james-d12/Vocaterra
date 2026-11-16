@@ -66,7 +66,7 @@ public sealed class EquipmentSimulationTests
     {
         var sim = GearItems.Sim();
         _ = sim.Equip(GearItems.Bag(sim, GearItems.Shirt, 5), Body);
-        for (var i = 0; i < Inventory.SlotCount; i++)
+        for (var i = 0; i < sim.Inventory.SlotCount; i++)
         {
             sim.Inventory.SetSlot(i, new ItemStack(TestItems.Apple, 1));
         }

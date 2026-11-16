@@ -170,7 +170,7 @@ public sealed class SessionSkipTests
         Assert.Equal("The skip cannot make session 6's purchase of 3 pan from baker: the sessions before leave 2 coins, and it costs 6.", dearer.Message);
         Assert.Equal((2, 2), (six.Simulation.Inventory.Count(ItemId.Coin), six.Simulation.Inventory.Count(TestItems.Bread))); // nothing changed hands
 
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < six.Simulation.Inventory.SlotCount; slot++)
         {
             if (six.Simulation.Inventory.Slots[slot].IsEmpty)
             {

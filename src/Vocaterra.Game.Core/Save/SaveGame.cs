@@ -42,13 +42,14 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 9 (I01) stores an inventory slot's item by its name (<c>game/items.json</c>) in place of the code's enum name, an empty slot as an empty name, and is the oldest this
-    /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
+    /// The format version this code writes. Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
+    /// name and item name, and is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, I01, stored an inventory slot's item by its name in place of the code's enum
+    /// name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
-    public const int CurrentVersion = 9;
+    public const int CurrentVersion = 10;
 
-    /// <summary>The oldest format version this code reads: 9. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, I01).</summary>
-    public const int OldestReadableVersion = 9;
+    /// <summary>The oldest format version this code reads: 10. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, I01, I03b).</summary>
+    public const int OldestReadableVersion = 10;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -181,7 +182,8 @@ public static class SaveGame
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
             DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null,
-            GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null);
+            GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null,
+            Worn: WornSave.Of(session.Simulation.Equipment));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -373,6 +375,7 @@ public static class SaveGame
     private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating)
     {
         var slots = document.Inventory.Select(slot => slot.ToStack(session.Data.Items)).ToArray();
+        var worn = WornSave.ToStacks(document.Worn, session.Data.Equipment, session.Data.Items); // I03b: what the data lacks loads as nothing
         session.Simulation.Restore(new VoxelSimulationState(
             document.Tick,
             document.SelectedSlot,
@@ -384,7 +387,8 @@ public static class SaveGame
             slots,
             document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
             document.Flow,
-            document.Systems?.Atmosphere)); // E01: a save without an entry starts the clock as a new game has it
+            document.Systems?.Atmosphere, // E01: a save without an entry starts the clock as a new game has it
+            worn));
         session.RestoreLand(document.Systems?.Land); // Y09: the pending plot and the owned one (the rules come from the scene)
         session.RestoreSleep(document.Systems?.Sleep); // Y02: the places made in play go back before anything that asks SleepPlaces (the objective's sleep line, the arrow)
         session.RestoreSkippedSeconds(document.SkippedSeconds);

@@ -398,7 +398,7 @@ public sealed class ProcedureRunnerTests
     public void AFullBagLeavesTheBakeReadyToCollectAndItGrantsOnce()
     {
         var rig = new Rig { Bag = new Inventory(TestItems.Catalogue) };
-        for (var slot = 0; slot < Inventory.SlotCount - 3; slot++)
+        for (var slot = 0; slot < rig.Bag.SlotCount - 3; slot++)
         {
             rig.Bag.SetSlot(slot, new ItemStack(ItemId.Torch, 1));
         }

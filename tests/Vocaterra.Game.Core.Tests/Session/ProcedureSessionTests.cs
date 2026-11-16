@@ -144,7 +144,7 @@ public sealed class ProcedureSessionTests
         session.RestoreProcedures(Mastered());
         var inventory = session.Simulation.Inventory;
         _ = inventory.Add(ItemId.Wood, 1); // two: using one leaves the slot taken
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < inventory.SlotCount; slot++)
         {
             if (inventory.Slots[slot].IsEmpty)
             {

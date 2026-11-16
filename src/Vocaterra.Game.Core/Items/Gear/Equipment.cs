@@ -5,8 +5,9 @@ namespace Vocaterra.Game.Core.Items.Gear;
 /// <summary>
 /// What the player wears (I03a, inventory-plan 3.4): one stack of one item in each slot of each group of <see cref="EquipmentData"/>. Equipping moves an item from a bag slot to a slot, swapping with what is
 /// worn there (the old item takes the bag slot the new one left); unequipping moves it back to a given bag slot or the first free one. Every change goes through the <see cref="IEquipRule"/>s first, and a refusal returns
-/// its <see cref="EquipResult"/> and leaves the bag and the worn items exactly as they were. The code never names a group: it follows the data's flags. The bag's size, and the rule that a bag with items cannot
-/// come off, are I03b's: they are one more rule in <see cref="EquipRules"/> and a larger <see cref="Inventory"/>.
+/// its <see cref="EquipResult"/> and leaves the bag and the worn items exactly as they were. The code never names a group: it follows the data's flags. A worn bag (an item with a <see cref="ItemDefinition.Capacity"/>) sets the
+/// size of the <see cref="Inventory"/> (I03b): every change that goes through leaves the bag's active count at its base plus the worn capacity (<see cref="SyncBag"/>), and <see cref="BagCapacityRule"/> refuses a change that would
+/// drop a slot holding an item.
 /// </summary>
 public sealed class Equipment
 {
@@ -39,6 +40,52 @@ public sealed class Equipment
 
     /// <summary>Whether nothing is worn.</summary>
     public bool IsEmpty => Array.TrueForAll(_slots, static s => s.IsEmpty);
+
+    /// <summary>The bag slots the worn items add to the inventory's base: the sum of their <see cref="ItemDefinition.Capacity"/>.</summary>
+    public int Capacity => CapacityOf(_slots);
+
+    /// <summary>The bag slots a list of worn stacks (as <see cref="Capture"/> gives them) would add; <see langword="null"/> adds none.</summary>
+    /// <param name="worn">The stacks, one per slot.</param>
+    public int CapacityOf(IReadOnlyList<ItemStack>? worn)
+    {
+        var total = 0;
+        foreach (var stack in worn ?? [])
+        {
+            if (!stack.IsEmpty && Items.Find(stack.Item)?.Capacity is { } capacity)
+            {
+                total += capacity;
+            }
+        }
+
+        return total;
+    }
+
+    /// <summary>The inventory's active slot count when the items worn are <paramref name="worn"/> (null for nothing): the base and the capacity, never above the most the inventory has room for.</summary>
+    /// <param name="bag">The inventory.</param>
+    /// <param name="worn">The stacks, one per slot, or <see langword="null"/>.</param>
+    public int ActiveSlotsFor(Inventory bag, IReadOnlyList<ItemStack>? worn)
+    {
+        ArgumentNullException.ThrowIfNull(bag);
+        return Math.Min(bag.BaseSlots + CapacityOf(worn), bag.MaxSlots);
+    }
+
+    /// <summary>The inventory's active slot count after <paramref name="change"/> is made (the rules and the unequip path read it; nothing changes).</summary>
+    /// <param name="bag">The inventory.</param>
+    /// <param name="change">What changes.</param>
+    public int ActiveSlotsAfter(Inventory bag, in EquipChange change)
+    {
+        ArgumentNullException.ThrowIfNull(bag);
+        return Math.Clamp(bag.BaseSlots + Capacity - (change.Outgoing?.Capacity ?? 0) + (change.Incoming?.Capacity ?? 0), bag.BaseSlots, bag.MaxSlots);
+    }
+
+    /// <summary>Sets the inventory's active slot count to its base plus the worn capacity. Call it after <see cref="Set"/> or <see cref="Restore"/>; <see cref="Equip"/> and <see cref="Unequip"/> do it themselves.</summary>
+    /// <param name="bag">The inventory.</param>
+    /// <exception cref="InvalidOperationException">The count would drop a slot that holds an item.</exception>
+    public void SyncBag(Inventory bag)
+    {
+        ArgumentNullException.ThrowIfNull(bag);
+        bag.SetActiveCount(ActiveSlotsFor(bag, _slots));
+    }
 
     /// <summary>What is worn in <paramref name="slot"/> (empty when nothing is).</summary>
     /// <param name="slot">A slot of the data.</param>
@@ -114,7 +161,7 @@ public sealed class Equipment
             return EquipResult.NoSuchSlot;
         }
 
-        if ((uint)bagSlot >= (uint)Inventory.SlotCount)
+        if ((uint)bagSlot >= (uint)bag.SlotCount)
         {
             return EquipResult.NoSuchBagSlot;
         }
@@ -140,6 +187,7 @@ public sealed class Equipment
 
         _slots[Data.FlatIndex(slot)] = stack;
         bag.SetSlot(bagSlot, worn); // the swapped item takes the freed place; an empty stack empties it
+        SyncBag(bag); // a bag that went on gives its slots; one swapped for a smaller one dropped empty slots (the rule saw to that)
         return EquipResult.Done;
     }
 
@@ -163,13 +211,15 @@ public sealed class Equipment
             return EquipResult.NothingWorn;
         }
 
-        var verdict = EquipRules.Judge(_rules, new EquipChange(slot, null, Items.Get(worn.Item)), this, bag);
+        var change = new EquipChange(slot, null, Items.Get(worn.Item));
+        var verdict = EquipRules.Judge(_rules, change, this, bag);
         if (verdict != EquipResult.Done)
         {
             return verdict;
         }
 
-        if (bagSlot >= Inventory.SlotCount)
+        var room = ActiveSlotsAfter(bag, change); // a bag that comes off takes its slots with it: the item goes into the slots that stay
+        if (bagSlot >= room)
         {
             return EquipResult.NoSuchBagSlot;
         }
@@ -184,7 +234,7 @@ public sealed class Equipment
         }
         else
         {
-            target = FirstFree(bag);
+            target = FirstFree(bag, room);
             if (target < 0)
             {
                 return EquipResult.BagFull;
@@ -193,6 +243,7 @@ public sealed class Equipment
 
         bag.SetSlot(target, worn);
         _slots[Data.FlatIndex(slot)] = ItemStack.Empty;
+        SyncBag(bag);
         return EquipResult.Done;
     }
 
@@ -239,9 +290,9 @@ public sealed class Equipment
         }
     }
 
-    private static int FirstFree(Inventory bag)
+    private static int FirstFree(Inventory bag, int room)
     {
-        for (var i = 0; i < Inventory.SlotCount; i++)
+        for (var i = 0; i < room; i++)
         {
             if (bag.Slots[i].IsEmpty)
             {

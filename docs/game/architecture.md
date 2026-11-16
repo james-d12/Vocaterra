@@ -113,7 +113,7 @@ Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), t
                   GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
-Items/            Inventory, ItemDefinition (one row of game/items.json: name, id, stack, icon, held, tags, tool), IItemCatalogue and its loader ItemCatalogue (I01: the one source of
+Items/            Inventory (the active slots: base 30 and the worn bag's capacity, I03b), ItemDefinition (one row of game/items.json: name, id, stack, icon, held, tags, tool, wear, stats, look, capacity), IItemCatalogue and its loader ItemCatalogue (I01: the one source of
                   items, read once into GameData.Items and passed to what needs an item), ItemHeld, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Activities/       the procedures at a station (W05 to W07): StationBook, ProcedureBook, ActionTable, ProcedureRunner (the run), and the station overlay: StationScreen (state and
@@ -334,13 +334,23 @@ world is wired). `PlaceTemperature` and the other terms are not edited; a test o
 **Equipment and stats (I03a, D-game-35).** `game/equipment.json` lists the slot groups (clothing, armour, cosmetic, accessories, off-hand, backpack); `Items/Gear/Equipment` holds one stack of one in each slot
 and `VoxelSimulation.Equipment` is simulation state: the commands `VoxelCommandKind.Equip` (bag slot, group, slot) and `Unequip` (group, slot, bag slot or -1 for the first free one) are applied in the tick beside
 `Place` and `Craft`, raise `ItemEquipped`, `ItemUnequipped` or `EquipRefused` (the reason is an `EquipResult`), and the state, the digest (worn slots only, so nothing worn adds nothing) and `VoxelSimulationState.Worn`
-carry it (the save does not write `Worn` until I03b gives it the next version: worn items are lost on a save today). What may be worn where is `EquipRules.Standard()`: `WearMatchesRule`, `AcceptsTagRule`,
-`NoDuplicateRule`; a refusal leaves the bag and the worn items as they were. Every stat comes through `StatPipeline`: `EquipmentStats` is the first `IStatContributor` (it adds each worn item's `stats`, only in groups
+carry it (the save writes it by group id, slot name and item name since version 10, I03b). What may be worn where is `EquipRules.Standard()`: `WearMatchesRule`, `AcceptsTagRule`,
+`NoDuplicateRule`, `BagCapacityRule`; a refusal leaves the bag and the worn items as they were. Every stat comes through `StatPipeline`: `EquipmentStats` is the first `IStatContributor` (it adds each worn item's `stats`, only in groups
 whose `statsApply` is true), the sheet is rebuilt at the end of every tick and when the equipment changes (`VoxelSimulation.Stats`), and `StatWarmth` reads its `warmth` for the temperature.
 **To add a slot group:** one row in `equipment.json` at the end (its accepted tags, flags and labels) and items with a matching `wear` and tag; no code. **To add a stat key:** put it in an item's `stats`; a reader
 adds a constant to `StatKeys` and calls `Stats.Get(key)` (or `Sum` and `Factor`). **To add a contributor** (a meal's buff, a spell): write a class implementing `IStatContributor` and register it with
-`VoxelSimulation.StatPipeline.Add`; the sheet and its readers are not edited (`StatContributorTests` shows one). **To add an equip rule** (I03b's worn bag with items cannot come off): one `IEquipRule` class and one
+`VoxelSimulation.StatPipeline.Add`; the sheet and its readers are not edited (`StatContributorTests` shows one). **To add an equip rule** (as `BagCapacityRule` was): one `IEquipRule` class and one
 entry in `EquipRules.Standard`. `--equip <item>` (a scripted step) gives the item and wears it in the first slot that takes it.
+**The bag and its active count (I03b, inventory-plan 3.3).** `Inventory` has `BaseSlots` (`bagSlots` of `equipment.json`, 30: the hotbar's 10 and 20 more), `MaxSlots` (the base and the catalogue's `LargestCapacity`, so the
+array never grows) and `SlotCount`, the active count; `Slots` and every operation (adding, removing, exchanging, setting a slot, crafting, a purchase) see only the active slots, and a slot past the count is always
+empty. A bag is an item with a `capacity` (only one tagged `bag` and worn on the `back` may have one); `Equipment` keeps the active count at the base plus the worn capacity after every equip, unequip and restore
+(`SyncBag`; the simulation reads no group id for it). `BagCapacityRule` is the rule that a bag cannot come off, or be swapped for a smaller one, while a slot it would drop holds an item
+(`EquipResult.BagNotEmpty`, 12; swapping for a bag at least as large is always allowed), and the unequip path puts a bag that comes off into the slots that stay (`BagFull` when none is free, `NoSuchBagSlot` for
+one that goes with it). `VoxelSimulationState.Slots` holds the active slots only, so its length is the active count; the digest hashes the active slots, and says the count outright once a bag has changed it. The inventory screen
+draws the active count's rows (three to five of ten), nothing more (I04 rebuilds the panel).
+**Death keeps the worn gear (I03b, inventory-plan 3.14).** `VoxelSession.LeaveBelongings` asks `DeathSpec.Keeps(item)` (the `death.keepInBag` rule of `needs.json`, `stacksOfOne`: the items that stack to one stay; the loader
+refuses a value the code does not know) and moves the rest of the bag to the belongings chest. What is worn, the worn bag included, is not in the bag and stays worn; a kept stack stays in its own slot, so the kept
+stacks always fit the active count (nothing is moved into the bag, and the count only changes when a bag comes off, which a death does not do).
 
 ## The settlement series (Y00 to Y13): where to look
 

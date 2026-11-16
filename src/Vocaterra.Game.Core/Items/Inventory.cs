@@ -1,49 +1,98 @@
-using System.Collections.ObjectModel;
-
 namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
-/// The player's inventory: <see cref="SlotCount"/> slots of stacks, the first <see cref="HotbarSize"/> of them the hotbar. Adding fills the
-/// existing stacks of the kind first (lowest slot first), then the empty slots; a stack never exceeds the <see cref="ItemDefinition.MaxStack"/> of its item in the <see cref="IItemCatalogue"/> (the data's stack limit).
+/// The player's inventory: <see cref="SlotCount"/> active slots of stacks, the first <see cref="HotbarSize"/> of them the hotbar (I03b, inventory-plan 3.3). A bag starts at <see cref="BaseSlots"/> slots (the hotbar
+/// and the rows under it; the bundle's <c>equipment.json</c> says how many) and grows with the bag the player wears: the array is sized to <see cref="MaxSlots"/>, the base plus the largest
+/// <see cref="ItemDefinition.Capacity"/> of the catalogue, and <see cref="SetActiveCount"/> (called by <see cref="Gear.Equipment"/> when a bag goes on or off) moves the active count. Slots past the active count are always empty,
+/// and every operation (adding, removing, exchanging, setting a slot) sees only the active ones.
+/// Adding fills the existing stacks of the kind first (lowest slot first), then the empty slots; a stack never exceeds the <see cref="ItemDefinition.MaxStack"/> of its item in the <see cref="IItemCatalogue"/> (the data's stack limit).
 /// Everything is integer arithmetic over the slots, so the same operations give the same contents on every machine.
 /// </summary>
 public sealed class Inventory
 {
-    /// <summary>The number of slots.</summary>
-    public const int SlotCount = 40;
-
     /// <summary>The number of slots the hotbar shows (the first ones).</summary>
     public const int HotbarSize = 10;
 
-    private readonly ItemStack[] _slots = new ItemStack[SlotCount];
+    /// <summary>The base slot count of an inventory built with no game data (a test's, the host's check tools): the hotbar and two rows of ten. A bundle's own is <see cref="Gear.EquipmentData.BagSlots"/>.</summary>
+    public const int DefaultBaseSlots = 30;
 
-    /// <summary>An empty inventory.</summary>
-    /// <param name="items">The item catalogue: where each item's stack limit is read.</param>
-    public Inventory(IItemCatalogue items)
+    private readonly ItemStack[] _slots;
+    private readonly ActiveSlots _view;
+    private int _active;
+
+    /// <summary>An empty inventory with no bag worn.</summary>
+    /// <param name="items">The item catalogue: where each item's stack limit and each bag's capacity are read.</param>
+    /// <param name="baseSlots">The slots with no bag worn (at least the hotbar); <see cref="DefaultBaseSlots"/> unless the bundle's data says otherwise.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="baseSlots"/> is below <see cref="HotbarSize"/>.</exception>
+    public Inventory(IItemCatalogue items, int baseSlots = DefaultBaseSlots)
     {
         ArgumentNullException.ThrowIfNull(items);
+        ArgumentOutOfRangeException.ThrowIfLessThan(baseSlots, HotbarSize);
         Items = items;
-        for (var i = 0; i < SlotCount; i++)
-        {
-            _slots[i] = ItemStack.Empty;
-        }
+        BaseSlots = baseSlots;
+        MaxSlots = baseSlots + items.LargestCapacity;
+        _active = baseSlots;
+        _slots = new ItemStack[MaxSlots];
+        Array.Fill(_slots, ItemStack.Empty);
+        _view = new ActiveSlots(this);
     }
 
     /// <summary>The item catalogue the stack limits come from.</summary>
     public IItemCatalogue Items { get; }
 
-    /// <summary>The slots, in order (the hotbar is the first <see cref="HotbarSize"/>).</summary>
-    public IReadOnlyList<ItemStack> Slots => new ReadOnlyCollection<ItemStack>(_slots);
+    /// <summary>The slots with no bag worn.</summary>
+    public int BaseSlots { get; }
+
+    /// <summary>The most slots the inventory can have: the base and the largest bag of the catalogue.</summary>
+    public int MaxSlots { get; }
+
+    /// <summary>The slots the player has now: <see cref="BaseSlots"/> and the capacity of the worn bag. Every consumer loops to this, never to <see cref="MaxSlots"/>.</summary>
+    public int SlotCount => _active;
+
+    /// <summary>The active slots, in order (the hotbar is the first <see cref="HotbarSize"/>): <see cref="SlotCount"/> of them.</summary>
+    public IReadOnlyList<ItemStack> Slots => _view;
+
+    /// <summary>
+    /// Sets the number of active slots (a bag went on or off). Nothing changes unless every slot the change drops is empty.
+    /// </summary>
+    /// <param name="count">The new count, from <see cref="BaseSlots"/> to <see cref="MaxSlots"/>.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The count is outside the base and the maximum.</exception>
+    /// <exception cref="InvalidOperationException">A slot the change would drop holds an item (the bag rule of <see cref="Gear.EquipRules"/> refuses that first).</exception>
+    public void SetActiveCount(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(count, BaseSlots);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, MaxSlots);
+        for (var i = count; i < _active; i++)
+        {
+            if (!_slots[i].IsEmpty)
+            {
+                throw new InvalidOperationException($"Slot {i} holds an item, so the inventory cannot shrink to {count} slots.");
+            }
+        }
+
+        _active = count;
+    }
+
+    /// <summary>Whether every slot from <paramref name="count"/> up to the active count is empty (the inventory could shrink to <paramref name="count"/> slots now).</summary>
+    /// <param name="count">The smaller count.</param>
+    public bool IsEmptyFrom(int count)
+    {
+        for (var i = Math.Max(count, 0); i < _active; i++)
+        {
+            if (!_slots[i].IsEmpty)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /// <summary>An independent copy of this inventory (for what-if checks).</summary>
     public Inventory Copy()
     {
-        var copy = new Inventory(Items);
-        for (var i = 0; i < SlotCount; i++)
-        {
-            copy._slots[i] = _slots[i];
-        }
-
+        var copy = new Inventory(Items, BaseSlots) { _active = _active };
+        Array.Copy(_slots, copy._slots, _slots.Length);
         return copy;
     }
 
@@ -54,8 +103,9 @@ public sealed class Inventory
     public int Count(ItemId item)
     {
         var total = 0;
-        foreach (var stack in _slots)
+        for (var i = 0; i < _active; i++)
         {
+            var stack = _slots[i];
             if (!stack.IsEmpty && stack.Item == item)
             {
                 total += stack.Count;
@@ -125,7 +175,7 @@ public sealed class Inventory
         }
 
         var left = count;
-        for (var i = 0; i < SlotCount && left > 0; i++)
+        for (var i = 0; i < _active && left > 0; i++)
         {
             if (_slots[i].IsEmpty || _slots[i].Item != item)
             {
@@ -147,7 +197,7 @@ public sealed class Inventory
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, SlotCount);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, _active);
         var stack = _slots[slot];
         if (stack.IsEmpty || stack.Count < count)
         {
@@ -163,7 +213,7 @@ public sealed class Inventory
     public void SetSlot(int slot, ItemStack stack)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, SlotCount);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, _active);
         if (stack.Count <= 0)
         {
             _slots[slot] = ItemStack.Empty;
@@ -185,7 +235,7 @@ public sealed class Inventory
         var working = apply ? null : (ItemStack[])_slots.Clone();
         for (var pass = 0; pass < 2 && left > 0; pass++)
         {
-            for (var i = 0; i < SlotCount && left > 0; i++)
+            for (var i = 0; i < _active && left > 0; i++)
             {
                 var current = working is null ? _slots[i] : working[i];
                 var matches = pass == 0 ? !current.IsEmpty && current.Item == item : current.IsEmpty;
@@ -210,5 +260,23 @@ public sealed class Inventory
         }
 
         return left;
+    }
+
+    // A live, read-only view of the active slots (made once, so reading Slots allocates nothing): its count follows the active count.
+    private sealed class ActiveSlots(Inventory owner) : IReadOnlyList<ItemStack>
+    {
+        public int Count => owner._active;
+
+        public ItemStack this[int index] => (uint)index < (uint)owner._active ? owner._slots[index] : throw new ArgumentOutOfRangeException(nameof(index), index, "No such inventory slot.");
+
+        public IEnumerator<ItemStack> GetEnumerator()
+        {
+            for (var i = 0; i < owner._active; i++)
+            {
+                yield return owner._slots[i];
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

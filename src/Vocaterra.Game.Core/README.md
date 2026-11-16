@@ -312,8 +312,8 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
   `HelpUses` (the help path, the English shown), `DontKnowUses` ("no sé" said at a turn step or pressed), `RepeatUses` ("Otra vez" and "Más despacio" asked of
   the lesson's NPC) and `Phrases`. The counts are over every run of the lesson.
 - **The save's learner part.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows); `LessonProgressSave` keeps `Turns`,
-  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. The word rows do not count the check answers (S19b). Only version 9 saves load (Y02, I01): the older
-  versions' loading code is gone, and the fixture is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`.
+  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. The word rows do not count the check answers (S19b). Only version 10 saves load (Y02, I01, I03b): the older
+  versions' loading code is gone, and the fixture is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json`.
 
 **The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
 

@@ -180,7 +180,7 @@ public sealed class GatheringAndPlacingTests
     public void AFullInventoryHoldsTheGatheringBackAndKeepsTheBlock()
     {
         var sim = WithBlock(BlockId.Trunk);
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < sim.Inventory.SlotCount; slot++)
         {
             sim.Inventory.SetSlot(slot, new ItemStack(ItemId.Berry, 99));
         }

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
@@ -89,5 +90,34 @@ public sealed class EquipmentDataTests
         var error = Assert.Throws<InvalidDataException>(() => EquipmentData.Parse(json));
 
         Assert.Contains("game/equipment.json", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_TheShippedData_When_ItsBagSlotsAreRead_Then_TheBaseIsThirty()
+    {
+        Assert.Equal(30, Shipped.BagSlots);
+    }
+
+    [Fact]
+    public void Given_AFileWithBagSlotsOrWithout_When_ItIsRead_Then_TheValueOrTheDefaultIsTaken()
+    {
+        var with = EquipmentData.Parse("""{ "schemaVersion": 1, "bagSlots": 20, "groups": [ { "id": "a", "slots": ["x"], "accepts": ["a"], "noDuplicates": false, "statsApply": true } ] }""");
+        var without = EquipmentData.Parse("""{ "schemaVersion": 1, "groups": [ { "id": "a", "slots": ["x"], "accepts": ["a"], "noDuplicates": false, "statsApply": true } ] }""");
+
+        Assert.Equal(20, with.BagSlots);
+        Assert.Equal(Inventory.DefaultBaseSlots, without.BagSlots);
+    }
+
+    [Theory]
+    [InlineData(9)]
+    [InlineData(101)]
+    public void Given_ABaseBelowTheHotbarOrAbsurdlyLarge_When_TheDataIsValidated_Then_ItIsReported(int bagSlots)
+    {
+        var data = new EquipmentData(Shipped.Groups, bagSlots);
+
+        var problems = EquipmentValidator.Validate(data, GearItems.Catalogue);
+
+        Assert.Contains(problems, static p => p.Contains("bagSlots", StringComparison.Ordinal));
+        Assert.Empty(EquipmentValidator.Validate(Shipped, GearItems.Catalogue));
     }
 }

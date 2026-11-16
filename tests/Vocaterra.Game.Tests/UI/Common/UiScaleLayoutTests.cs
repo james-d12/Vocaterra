@@ -626,12 +626,21 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     [MemberData(nameof(Cases))]
     public void TheInventoryGridHoldsItsSlotsInsideThePanelAndTheCanvasAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
+        foreach (var slots in new[] { 30, 40, 50 }) // no bag, the small bag, the large bag (I03b): three to five rows
+        {
+            AssertInventoryGridFits(windowWidth, windowHeight, scale, slots);
+        }
+    }
+
+    private void AssertInventoryGridFits(int windowWidth, int windowHeight, int scale, int slots)
+    {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new InventoryLayout(canvas.Width, canvas.Height, 40);
+        var layout = new InventoryLayout(canvas.Width, canvas.Height, slots);
+        Assert.Equal(slots / 10, layout.Rows);
 
         Assert.True(Inside(layout.Panel, window), $"the panel {layout.Panel} is outside the canvas {canvas}");
-        var cells = Enumerable.Range(0, 40).Select(layout.Cell).ToList();
+        var cells = Enumerable.Range(0, slots).Select(layout.Cell).ToList();
         Assert.All(cells, cell => Assert.True(Inside(cell, layout.Panel), $"a slot {cell} is outside the panel {layout.Panel}"));
         for (var i = 0; i < cells.Count; i++)
         {

@@ -95,12 +95,12 @@ public sealed class LandSaveTests
     }
 
     [Fact]
-    public void Given_TheSaveVersion_When_TheLandEntryExists_Then_ItIsNine()
+    public void Given_TheSaveVersion_When_TheLandEntryExists_Then_ItIsTen()
     {
         var session = TestGame.NewSession(LandTestScene.Seed);
         _ = session.SetPendingPlot(Plot.X, Plot.Z);
 
-        Assert.Equal(9, SaveGame.Parse(SaveOf(session)).Version);
-        Assert.Equal(9, SaveGame.CurrentVersion);
+        Assert.Equal(10, SaveGame.Parse(SaveOf(session)).Version);
+        Assert.Equal(10, SaveGame.CurrentVersion);
     }
 }
