@@ -43,6 +43,8 @@ public sealed class SceneDrawer : IDisposable
     private IReadOnlyList<IFrameLayer> _layers = [];
     private FrameView? _view;
     private readonly UnderwaterView _underwater = new();
+    private readonly UnderwaterView _molten = new(); // the same easing for the eye in lava (B10b)
+    private const float LavaTintStrength = 0.6f;
     private UnderwaterPass? _underwaterPass;
     private double _lastDrawMilliseconds = double.NaN;
 
@@ -143,6 +145,7 @@ public sealed class SceneDrawer : IDisposable
         device.Clear(renderer.ClearColour);
         renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera), PlotOutlines(camera));
         _underwaterPass.End(amount, _underwater.TintOpacity, renderer.WaterLight);
+        _underwaterPass.DrawLavaTint(LavaTintStrength * (float)_molten.Amount);
     }
 
     // The outlines of the pending and the owned plot, when the eye is near them (Y10): posts and an edge line on the ground's own height, built for the frame (a few dozen quads).
@@ -172,6 +175,7 @@ public sealed class SceneDrawer : IDisposable
         _lastDrawMilliseconds = now;
         var (x, y, z) = UnderwaterGeometry.EyeUnits(camera.Eye);
         _underwater.Advance(WaterVolume.Contains(_session.Simulation.Grid, x, y, z), seconds);
+        _molten.Advance(LavaVolume.Contains(_session.Simulation.Grid, x, y, z), seconds);
     }
 
     /// <summary>Draws the 2D layers, laid out on the canvas of <paramref name="canvasWidth"/> by <paramref name="canvasHeight"/> and magnified to the window.</summary>

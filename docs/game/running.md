@@ -78,6 +78,8 @@ they stand (sleep to 50, stamina full, the same costs, no health), wakes there, 
 `--set-need sleep 0 --wait 62` (needs on; the collapse is the sleep drive's, so hunger 0 does not cause it). The line `sleep: collapse: session 1 ends where the player fell, ...`
 is printed. A night with `--needs off` leaves the meters as they are.
 
+**Moving in water and in lava (B10b).** In water the body wades (water below the waist: 0.8 of the walk) or swims (0.6 of the walk, sinking at most 1.5 blocks per second, up to 2.5 with jump held, a hop out onto a bank one block above the surface; `SwimMotion`). Lava is a thicker liquid (`LavaMotion`): the body is not stopped by it but enters it and sinks at most 0.5 blocks per second, wades at 0.35 of the walk or swims at 0.25, swims up at most 1.2 blocks per second with jump held and climbs out at an edge like from water; it never stands on a lava surface. It does no harm yet. Under lava the view takes a deep orange tint (`LavaVolume`, drawn after the water's tint). The walk planner and the sleep walk still treat lava as blocked. The ores' tiles are five clusters each of a strong colour with a dark rim and a light pixel (iron peach-tan, tin blue-tinted silver, copper orange with teal patina).
+
 **Eating, drinking, sprinting (N02).** With a food selected in the hotbar, the right button eats it (a berry, an apple, bread; the water bottle is drunk and leaves the
 empty bottle); at full hunger the food is kept and a line says so. **E** with the crosshair on water within reach (the river, the lake, the well) is a drink by hand, with
 nothing held and without Spanish. **Hold Left Shift** while walking to sprint (about 1.6 times the walking speed) while stamina lasts and no stage forbids it; a gathered block
