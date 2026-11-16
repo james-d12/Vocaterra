@@ -2605,3 +2605,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the stats line (icons only); the eleven refusal lines are English; the inventory key hints still say "left click: mine, place", stale
   since I02. Known gap: 50 slots plus the needs list at 533x400 overflows the canvas foot, as before. Screenshots wait for the owner (stop 4,
   with I09's): they need a test-only content copy with wearable rows, since nothing shipped can be worn.
+- **First screenshots of the panel and the gear (2026-11-16, the owner asked for them).** Taken by the orchestrator with a test-only copy of
+  `content/game-v1` in the scratchpad (13 wearable items borrowing existing icons, rehashed through a wrapper script, the locale bundle
+  copied beside it). The gear draws as planned: inflated colour boxes, the pack on the back, the sleeves and the off-hand item in first
+  person. Issues found, all handed to I04b at the owner's word: the held stack is not drawn when there is no mouse position (scripted runs);
+  the tight layout drops the stamina chip; the doll's columns have no headings; the title is English; the refusal lines are English; the key
+  hints still describe mining and placing; «espalda» is cut to «esp…» in an empty cell. The owner added an off-hand cell beside the hotbar.
