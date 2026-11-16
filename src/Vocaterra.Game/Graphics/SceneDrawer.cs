@@ -107,6 +107,10 @@ public sealed class SceneDrawer : IDisposable
     /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
     public StreamedWorldHost? Streaming => _streaming;
 
+    // The far view's sections are kept on disk under the world's seed, generator version and world-generation hash (B07c): another seed or a changed world starts again.
+    private static string LodWorldName(Vocaterra.Game.Core.World.WorldStateHeader header) =>
+        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
+
     /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
     public GreyscaleWorld? Colours => _colours;
 
@@ -133,7 +137,7 @@ public sealed class SceneDrawer : IDisposable
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null);
         _renderer.SetFigures(_figures);
-        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers);
+        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);

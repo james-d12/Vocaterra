@@ -103,4 +103,23 @@ public sealed class JobPoolTests
         Assert.IsType<InvalidOperationException>(pool.Failure);
         Assert.Equal(1, after);
     }
+
+    [Fact]
+    public void Given_AStreamOfTileJobsAndOneRingJob_When_TheyRun_Then_TheRingJobIsNotLeftToTheEnd()
+    {
+        using var pool = new JobPool(0);
+        var order = new List<string>();
+        for (var i = 0; i < 12; i++)
+        {
+            var n = i;
+            pool.Submit(JobLane.Tiles, n, static () => false, () => order.Add("tile" + n));
+        }
+
+        pool.Submit(JobLane.Ring, 0, static () => false, () => order.Add("ring"));
+
+        _ = pool.RunInline(null);
+
+        Assert.InRange(order.IndexOf("ring"), 0, 5);
+        Assert.Equal(13, order.Count);
+    }
 }
