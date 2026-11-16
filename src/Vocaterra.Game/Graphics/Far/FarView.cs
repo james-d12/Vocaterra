@@ -58,7 +58,7 @@ public sealed class FarTile(FarTileKey key)
     }
 
     /// <summary>Whether a worker has made the tile.</summary>
-    public bool IsBuilt => Pending is not null || Buffer is not null;
+    public bool IsBuilt => Pending is not null || Buffer is not null || OnCard;
 }
 
 /// <summary>What the far view holds and what it cost, for the run's report.</summary>

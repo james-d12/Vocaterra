@@ -51,7 +51,7 @@ public sealed class StreamedWorldHostTests
 
         Assert.True(host.Residency.IsSettled);
         Assert.Equal(0, host.Far.Missing);
-        Assert.True(host.Far.Draw.Count > 20);
+        Assert.True(host.Far.PendingTiles.Count + host.Far.Draw.Count > 20); // built; the renderer puts them on the card
         Assert.True(new ChunkViewSet(scene.Grid, 96).Update(eye.X, eye.Y, eye.Z).Count > 50);
         Assert.Equal(0, released);
 
