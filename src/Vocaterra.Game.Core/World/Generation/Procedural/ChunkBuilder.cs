@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 internal sealed class ChunkBuilder
 {
     private readonly BlockId[] _blocks = new BlockId[ChunkData.Volume];
-    private byte[]? _water;
+    private readonly byte[] _water = new byte[ChunkData.Volume]; // the levels of the water cells: all zero (every cell a source) for most chunks, which ChunkData then drops
 
     /// <summary>Starts a chunk of air.</summary>
     /// <param name="coord">The chunk's position.</param>
@@ -61,10 +61,7 @@ internal sealed class ChunkBuilder
         {
             var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
             _blocks[index] = block;
-            if (_water is not null)
-            {
-                _water[index] = 0;
-            }
+            _water[index] = 0;
         }
     }
 
@@ -79,7 +76,7 @@ internal sealed class ChunkBuilder
         {
             var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
             _blocks[index] = BlockId.Water;
-            (_water ??= new byte[ChunkData.Volume])[index] = level.Encoded;
+            _water[index] = level.Encoded;
         }
     }
 
@@ -97,10 +94,7 @@ internal sealed class ChunkBuilder
         {
             var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
             _blocks[index] = block;
-            if (_water is not null)
-            {
-                _water[index] = 0;
-            }
+            _water[index] = 0;
         }
     }
 
@@ -109,7 +103,7 @@ internal sealed class ChunkBuilder
     public void FillAll(BlockId block)
     {
         Array.Fill(_blocks, block);
-        _water = null;
+        Array.Clear(_water);
     }
 
     /// <summary>The finished chunk. The builder hands over its blocks and must not be written afterwards.</summary>

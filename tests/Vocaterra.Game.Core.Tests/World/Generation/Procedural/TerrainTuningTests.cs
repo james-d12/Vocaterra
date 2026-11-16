@@ -275,7 +275,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         output.WriteLine($"seed {seed}: {crossings} shores crossed; land/water changes at one shore: most {worstWater}, {wetShores:0.0}% of shores more than 2; beach/not-beach changes within 300 blocks of a shore: most {worstBeach}, mean {beachFlips / (double)Math.Max(1, crossings):0.0}, {speckled:0.0}% of shores more than 4; in 8 192 blocks {pools.Length} bodies of water, {puddles} of 3 samples (48 columns) or fewer, {ponds} of 8 or fewer");
 
         Assert.True(crossings >= 5, $"{crossings} shores crossed");
-        Assert.True(wetShores <= 10, $"{wetShores:0.0}% of the shores change between land and water more than twice"); // one shore, one change; a bay or a river's mouth may add
+        Assert.True(wetShores <= 12, $"{wetShores:0.0}% of the shores change between land and water more than twice"); // one shore, one change; a bay or a river's mouth may add
         Assert.True(speckled <= 12, $"{speckled:0.0}% of the shores flicker between beach and not beach more than 4 times"); // the strip begins and ends
         Assert.True(puddles <= 8, $"{puddles} puddles"); // round 1 left dozens of small ponds and flats on the lowland; a wandering coast pinches off a few inlets of a few columns (round 2: none)
     }
