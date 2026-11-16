@@ -14,9 +14,9 @@ public sealed class GenerationPipelineTests
     {
         var names = ProceduralTestWorld.Source(42).Pipeline.PassNames;
 
-        Assert.Equal(["gen/relief", "gen/banks", "gen/waterside", "gen/surface", "gen/water", "gen/stone", "gen/trees", "gen/undergrowth"], names);
+        Assert.Equal(["gen/relief", "gen/banks", "gen/waterside", "gen/surface", "gen/water", "gen/stone", "gen/strata", "gen/floor", "gen/caves", "gen/lava", "gen/ores", "gen/trees", "gen/undergrowth"], names);
         Assert.Equal(3, ProceduralTestWorld.Source(42).Pipeline.Shapers.Count);
-        Assert.Equal(5, ProceduralTestWorld.Source(42).Pipeline.Decorators.Count);
+        Assert.Equal(10, ProceduralTestWorld.Source(42).Pipeline.Decorators.Count);
     }
 
     [Fact]

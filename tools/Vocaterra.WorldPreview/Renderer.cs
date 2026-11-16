@@ -134,6 +134,106 @@ internal static class Renderer
         return image;
     }
 
+    /// <summary>
+    /// The vertical section of the real blocks along a line (B11): every block of the column in its own colour, y from the bottom of the world to the top, so the strata, ores, caves, lava, bedrock
+    /// and the entrances show, with sea level dashed yellow, a tick on the left every 64 blocks of height and one along the foot every 1 024 blocks of the line.
+    /// </summary>
+    public static Image BlockSlice(BlockWorld world, int x0, int z0, int x1, int z1, int scale, int zoom)
+    {
+        var length = Math.Sqrt(((double)(x1 - x0) * (x1 - x0)) + ((double)(z1 - z0) * (z1 - z0)));
+        var columns = Math.Max(2, (int)Math.Floor(length / scale) + 1);
+        var (minY, maxY) = (world.MinY, world.MaxY - 1);
+        var image = new Image(columns, (maxY - minY + 1) * zoom, new Rgb(28, 32, 44));
+
+        int Row(int y) => (maxY - y) * zoom;
+
+        for (var i = 0; i < columns; i++)
+        {
+            var t = length == 0 ? 0 : Math.Min(1.0, i * (double)scale / length);
+            var x = (int)Math.Round(x0 + ((x1 - x0) * t));
+            var z = (int)Math.Round(z0 + ((z1 - z0) * t));
+            for (var y = minY; y <= maxY; y++)
+            {
+                var block = world.At(x, y, z);
+                if (block != Vocaterra.Game.Core.Voxel.BlockId.Air)
+                {
+                    image.VerticalRun(i, Row(y), Row(y) + zoom - 1, BlockColours.Of(block));
+                }
+            }
+        }
+
+        var seaMark = new Rgb(255, 214, 64);
+        for (var i = 0; i < columns; i++)
+        {
+            if ((i / 6) % 2 == 0)
+            {
+                image.Set(i, Row(world.SeaLevel), seaMark);
+            }
+        }
+
+        var white = new Rgb(255, 255, 255);
+        for (var y = Math.Max(0, (minY + 63) / 64 * 64); y <= maxY; y += 64)
+        {
+            for (var k = 0; k < 8; k++)
+            {
+                image.Set(k, Row(y), white);
+            }
+        }
+
+        for (var d = 0; d < length; d += 1024)
+        {
+            var px = (int)(d / scale);
+            for (var k = 0; k < 8; k++)
+            {
+                image.Set(px, image.Height - 1 - k, white);
+            }
+        }
+
+        return image;
+    }
+
+    /// <summary>
+    /// The map of the cave entrances of a square area (B11), one pixel a block: the ground in grey by height (water blue), and every column that opens an entrance (the generator's own list, a shaft
+    /// cut from the ground down to a cave) in bright red.
+    /// </summary>
+    /// <param name="world">The blocks.</param>
+    /// <param name="sampler">The height model's ground, for the grey and to tell the water.</param>
+    /// <param name="left">The x of the first pixel.</param>
+    /// <param name="top">The z of the first pixel row.</param>
+    /// <param name="size">The side in blocks (= pixels).</param>
+    /// <param name="count">The number of entrance columns found.</param>
+    public static Image Entrances(BlockWorld world, WorldSampler sampler, int left, int top, int size, out int count)
+    {
+        var image = new Image(size, size, default);
+        for (var py = 0; py < size; py++)
+        {
+            for (var px = 0; px < size; px++)
+            {
+                var column = sampler.At(left + px, top + py);
+                var grey = (byte)Math.Clamp(60 + (Math.Max(column.Ground, 0) * 150 / 200), 0, 255);
+                image.Set(px, py, column.Water ? new Rgb(40, 80, 150) : new Rgb(grey, grey, grey));
+            }
+        }
+
+        count = 0;
+        for (var cz = top >> 4; cz <= (top + size - 1) >> 4; cz++)
+        {
+            for (var cx = left >> 4; cx <= (left + size - 1) >> 4; cx++)
+            {
+                foreach (var (x, z) in world.Entrances(cx, cz))
+                {
+                    if (x >= left && x < left + size && z >= top && z < top + size)
+                    {
+                        image.Set(x - left, z - top, new Rgb(255, 40, 40));
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return image;
+    }
+
     /// <summary>The legend of the biome map as text: each row's id, colour and share of the area, in file order (rows with no column are listed with 0).</summary>
     public static string Legend(WorldSampler sampler, double[] shares)
     {

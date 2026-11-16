@@ -94,6 +94,25 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
     }
 
     [Fact]
+    public void The_region_option_places_a_town_from_a_layout_file_and_draws_its_outline()
+    {
+        var layout = Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "sample-town.json");
+        var folder = Path.Combine(_folder, "town");
+        Run("heights", "--seed", "42", "--region", layout, "--region-x", "1264", "--region-z", "96", "--x", "1312", "--z", "144", "--size", "256", "--scale", "1", "--out", folder);
+        var file = Assert.Single(Directory.GetFiles(folder, "*.png"));
+        Assert.StartsWith("heights-town-seed42", Path.GetFileName(file), StringComparison.Ordinal);
+        var (width, _, pixels) = PngDecoder.Decode(File.ReadAllBytes(file));
+        Assert.Equal(256, width);
+        var footprint = Overlay.Footprint;
+        var drawn = Enumerable.Range(0, pixels.Length / 3).Count(i => pixels[i * 3] == footprint.R && pixels[(i * 3) + 1] == footprint.G && pixels[(i * 3) + 2] == footprint.B);
+        Assert.InRange(drawn, 300, 400); // the town's footprint, 96 blocks a side (the valley is out of the picture)
+
+        var error = new StringWriter();
+        Assert.Equal(2, Cli.Run(["maps", "--region", layout, "--world", "free"], new StringWriter(), error));
+        Assert.Contains("--region", error.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void The_fill_path_and_the_one_column_path_draw_the_same_map()
     {
         var sampler = new WorldSampler(_data, 42);
@@ -198,11 +217,81 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
         Assert.Equal(new Rgb(255, 214, 64), image.Get(0, seaRow));
     }
 
+    [Fact]
+    public void A_block_slice_draws_each_block_in_its_own_colour_the_floor_black_and_marks_the_sea_level()
+    {
+        var world = new BlockWorld(_data, 42, valley: false);
+        var image = Renderer.BlockSlice(world, -256, 0, 256, 0, 2, 2);
+
+        Assert.Equal(257, image.Width);
+        Assert.Equal((world.MaxY - world.MinY) * 2, image.Height);
+        var background = new Rgb(28, 32, 44);
+        for (var i = 10; i < image.Width; i += 11) // not the first columns: the height ticks are drawn there
+        {
+            var x = -256 + (i * 2);
+            Assert.Equal(BlockColours.Of(Vocaterra.Game.Core.Voxel.BlockId.Bedrock), image.Get(i, (world.MaxY - 1 - world.MinY) * 2)); // the floor's lowest row is bedrock everywhere
+            foreach (var y in new[] { -50, -30, -2, 12 })
+            {
+                var block = world.At(x, y, 0);
+                Assert.Equal(block == Vocaterra.Game.Core.Voxel.BlockId.Air ? background : BlockColours.Of(block), image.Get(i, (world.MaxY - 1 - y) * 2));
+            }
+        }
+
+        Assert.Equal(new Rgb(255, 214, 64), image.Get(0, (world.MaxY - 1 - world.SeaLevel) * 2));
+    }
+
+    [Fact]
+    public void A_block_slice_and_the_entrance_map_are_written_by_the_command_line_and_are_the_same_every_time()
+    {
+        var (a, b) = (Path.Combine(_folder, "a"), Path.Combine(_folder, "b"));
+        foreach (var folder in new[] { a, b })
+        {
+            Run("slice", "--mode", "blocks", "--seed", "42", "--x0", "-128", "--z0", "0", "--x1", "128", "--z1", "0", "--scale", "2", "--out", folder);
+            Run("entrances", "--seed", "42", "--x", "0", "--z", "0", "--size", "256", "--out", folder);
+        }
+
+        var names = Directory.GetFiles(a).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(2, names.Length);
+        Assert.Contains(names, static n => n!.StartsWith("slice-blocks-", StringComparison.Ordinal));
+        Assert.Contains(names, static n => n!.StartsWith("entrances-", StringComparison.Ordinal));
+        foreach (var name in names)
+        {
+            Assert.Equal(File.ReadAllBytes(Path.Combine(a, name!)), File.ReadAllBytes(Path.Combine(b, name!)));
+        }
+    }
+
+    [Fact]
+    public void The_entrance_map_marks_the_columns_cut_open_and_only_land_columns()
+    {
+        var world = new BlockWorld(_data, 42, valley: false);
+        var sampler = new WorldSampler(_data, 42);
+        var image = Renderer.Entrances(world, sampler, -128, -128, 256, out var count);
+
+        Assert.Equal((256, 256), (image.Width, image.Height));
+        var red = 0;
+        for (var py = 0; py < 256; py++)
+        {
+            for (var px = 0; px < 256; px++)
+            {
+                if (image.Get(px, py) == new Rgb(255, 40, 40))
+                {
+                    red++;
+                    Assert.False(sampler.At(-128 + px, -128 + py).Water);
+                }
+            }
+        }
+
+        Assert.Equal(count, red);
+        Assert.True(count > 0 || world.Entrances(0, 0).Count == 0);
+    }
+
     [Theory]
     [InlineData("nonsense")]
     [InlineData("biomes", "--size", "1000", "--scale", "16")]
     [InlineData("biomes", "--nope", "1")]
     [InlineData("slice", "--seed", "abc")]
+    [InlineData("slice", "--mode", "caves")]
+    [InlineData("entrances", "--size", "4096")]
     public void A_bad_command_line_is_refused_with_exit_code_two(params string[] args) =>
         Assert.Equal(2, Cli.Run(args, new StringWriter(), new StringWriter()));
 }

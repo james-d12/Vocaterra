@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Streaming;
 using Xunit.Abstractions;
 
@@ -79,6 +80,56 @@ public sealed class ProceduralChunkTimeTests(ITestOutputHelper output)
         Assert.True(s.Worst < 2000, $"the worst surface chunk takes {s.Worst:F1} ms");
         Assert.True(u.Median < 400, $"an all-stone chunk takes {u.Median:F1} ms at the median");
         Assert.True(c24.Median < 3000, $"a column of 24 chunks takes {c24.Median:F1} ms at the median");
+    }
+
+    [Fact]
+    public void Given_ASampleOfChunks_When_TheUndergroundIsAddedToThePipeline_Then_TheCostOfASurfaceChunkAndADeepChunkBeforeAndAfterIsReported()
+    {
+        // B11: the same chunks of the same places, once from a source with plain stone under the ground (before) and once from the shipped source with the strata, floor, caves, lava and ores (after).
+        var before = new List<double>[2] { [], [] };
+        var after = new List<double>[2] { [], [] };
+        var columnBefore = new List<double>();
+        var columnAfter = new List<double>();
+        foreach (var seed in ProceduralTestWorld.Seeds)
+        {
+            var plain = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed);
+            var shipped = ProceduralTestWorld.Source(seed);
+            _ = plain.Generate(new VoxelChunkCoord(0, 0, 0));
+            _ = shipped.Generate(new VoxelChunkCoord(0, -2, 0));
+            foreach (var feature in new[] { Feature.Plain, Feature.Forest, Feature.Mountain })
+            {
+                for (var skip = 0; skip < 2; skip++)
+                {
+                    var (cx, cz) = ProceduralTestWorld.Find(seed, feature, skip);
+                    var surface = shipped.GenerateColumn(cx, cz).Select((c, i) => (c, i)).Where(p => p.c.Blocks.ToArray().Any(static b => b is BlockId.Grass or BlockId.Snow or BlockId.Sand)).Select(static p => p.i).ToList();
+                    foreach (var i in surface)
+                    {
+                        before[0].Add(Milliseconds(() => plain.Generate(new VoxelChunkCoord(cx, plain.MinChunkY + i, cz))));
+                        after[0].Add(Milliseconds(() => shipped.Generate(new VoxelChunkCoord(cx, shipped.MinChunkY + i, cz))));
+                    }
+
+                    foreach (var layer in new[] { -4, -3, -2, -1 })
+                    {
+                        before[1].Add(Milliseconds(() => plain.Generate(new VoxelChunkCoord(cx, layer, cz))));
+                        after[1].Add(Milliseconds(() => shipped.Generate(new VoxelChunkCoord(cx, layer, cz))));
+                    }
+
+                    columnBefore.Add(Milliseconds(() => plain.GenerateColumn(cx, cz)));
+                    columnAfter.Add(Milliseconds(() => shipped.GenerateColumn(cx, cz)));
+                }
+            }
+        }
+
+        var (sb, sa, db, da, cb, ca) = (Summary(before[0]), Summary(after[0]), Summary(before[1]), Summary(after[1]), Summary(columnBefore), Summary(columnAfter));
+        output.WriteLine($"surface chunks ({before[0].Count}): median {sb.Median:F2} ms before, {sa.Median:F2} ms after (worst {sb.Worst:F2} and {sa.Worst:F2})");
+        output.WriteLine($"deep chunks, layers -4 to -1 ({before[1].Count}): median {db.Median:F2} ms before, {da.Median:F2} ms after (worst {db.Worst:F2} and {da.Worst:F2})");
+        output.WriteLine($"whole columns of 24 chunks ({columnBefore.Count}): median {cb.Median:F1} ms before, {ca.Median:F1} ms after (worst {cb.Worst:F1} and {ca.Worst:F1})");
+
+        // Wide on purpose (the CI runner is about four times slower): the figures above are the measurement; these catch a pass that has become a hundred times slower.
+        Assert.True(sa.Median < 400, $"a surface chunk takes {sa.Median:F1} ms at the median");
+        Assert.True(da.Median < 400, $"a deep chunk takes {da.Median:F1} ms at the median");
+        Assert.True(ca.Median < 3000, $"a column of 24 chunks takes {ca.Median:F1} ms at the median");
+        Assert.True(ca.Median < 40 * cb.Median, "the underground costs a column less than forty times what it cost before");
     }
 
     [Fact]

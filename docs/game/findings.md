@@ -2645,3 +2645,32 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   for the old-save split (the new no-lesson-id test skips it and says so). Its first gate failed on the core's known «porque» fuzz
   bug at a random seed (`RecastLoopFuzzTests`, seed `7PcP-w7xauk1`, replayed; B08b touched no core input; recorded in the core
   findings and open items); the re-run passed: 11,901 passed, 3 skipped. Not yet seen in the game (pictures wait for windows).
+- **B10, the underground blocks (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b10-underground-blocks.md`, report
+  `.claude/briefs/b10-report.md`. Slate 57, granite 58, limestone 59, gravel 60, lava 61, bedrock 62, iron 63, tin 64 and copper ore
+  65, with new `BlockDefinition` flags `StopsBody`, `Glows` and `Indestructible`; bedrock is refused in `VoxelChunk.Set` and
+  `FillColumn`, where every edit path ends; the light index takes its light kinds from `Glows`. Findings: `Footsteps.SurfaceOf` threw
+  for an unknown block, and four tests had a 57-block or 64-id limit written in; the mesher's `KindFlags` was sized 64. Open for the
+  owner: lava collides like a solid block, so a body can stand on a lava surface (never enter it); a two-high collider would make a
+  body hover over a lava lake. Gated: 11,961 passed, 3 skipped.
+- **B15, towns on procedural ground (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b15-towns.md`, report
+  `.claude/briefs/b15-report.md`. `IGroundShape` chooses the hand-drawn relief (the valley, unchanged) or the procedural height; a
+  `ProceduralReliefRegion` builds a layout on procedural ground at a `RegionPlacement`, levels only its sites and paths, and freezes
+  through the valley's code, so the catalog, blend and composite source take it unchanged; border columns equal the world's ground
+  (384 of 384 at three places, steps 1 to 6). A 96-cube town builds in 41 ms. Findings: a town on mountains is refused when its ground
+  passes the layout's ceiling; a river bed under a town is copied (only ground under the sea is refused). For B16: towns from
+  world.json, each town's digest listed separately, water in a layout, the surface block from the biome. It needed one merge for a
+  README conflict. Gated: 11,980 passed, 3 skipped.
+- **B10b, the body sinks into lava; the ores easier to see (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b10b-lava-sink.md`,
+  report `.claude/briefs/b10b-report.md`. Lava no longer collides with a moving body (`VoxelCollider.Collides`); `Physics/LavaMotion.cs`
+  holds its numbers beside water's `SwimMotion` (sink 0.5 against 1.5 blocks a second, swimming 0.25 against 0.6 of walking); the
+  planners still avoid it (`BlocksBody` unchanged); an orange view in lava (not yet seen in a window). The ores are five clusters each
+  with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with patina). Three B10 tests that encoded standing on
+  lava were replaced by `LavaBodyTests`. The liquids' numbers are constants, not data, for water as for lava. Gated: 11,993 passed.
+- **B11, the underground generation (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11-underground-generation.md`, report
+  `.claude/briefs/b11-report.md`. `underground.json` drives five passes after the surface (strata, floor, caves, lava, ores); caves on a
+  4 x 8 x 4 lattice that skips impossible cells and fills certain ones; ore veins inside their chunk. The water rule keeps caves 3
+  blocks from water and 16 under a water bed (`bedClearance`, data: the brief's literal "under a bed" would forbid caves at any depth
+  under water); 0 violations over rivers, lakes and coasts for three seeds. Under the valley the procedural underground starts below
+  y -9; under a town below its lowest layer (fixed on the merge with B15). Findings: a column of 24 chunks went from 1.8 to 6.4 ms in
+  Debug (worst 16 ms), for B07 and B12 to re-measure; the generator version went to 2, which moved the atmosphere pins. Needed one merge
+  (README, the preview CLI). Gated: 12,087 passed, 3 skipped.

@@ -159,6 +159,19 @@ public sealed class UnderwaterPass : IDisposable
         _spriteBatch.End();
     }
 
+    /// <summary>Lays a deep orange tint over the frame while the eye is in lava (B10b); call after <see cref="End"/>. Nothing when <paramref name="opacity"/> is 0.</summary>
+    public void DrawLavaTint(float opacity)
+    {
+        if (opacity <= 0f)
+        {
+            return;
+        }
+
+        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+        _spriteBatch.Draw(_pixel, new Rectangle(0, 0, _device.PresentationParameters.BackBufferWidth, _device.PresentationParameters.BackBufferHeight), new Color(0.85f, 0.25f, 0.03f, opacity));
+        _spriteBatch.End();
+    }
+
     private void DrawTint(int width, int height, float opacity, float light)
     {
         if (opacity <= 0f)

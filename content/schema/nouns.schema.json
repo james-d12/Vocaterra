@@ -36,7 +36,8 @@
         "roof", "fence", "wall", "fire-ring", "sign", "bridge", "snow", "spruce-trunk", "birch-trunk", "spruce-leaves", "birch-leaves", "tall-grass",
         "fern", "reeds", "yellow-flower", "white-flower", "mossy-stone", "cobble", "timber", "lantern", "crate", "awning-red", "awning-white",
         "canvas", "chest", "farmland", "wheat", "loaves", "apples", "bottles", "sign-tienda-a", "sign-tienda-b", "sign-rio", "sign-montana-a",
-        "sign-montana-b", "post-torch", "bed", "bedroll", "bed-foot", "bedroll-foot", "counter"
+        "sign-montana-b", "post-torch", "bed", "bedroll", "bed-foot", "bedroll-foot", "counter",
+        "slate", "granite", "limestone", "gravel", "lava", "bedrock", "iron-ore", "tin-ore", "copper-ore"
       ]
     }
   }

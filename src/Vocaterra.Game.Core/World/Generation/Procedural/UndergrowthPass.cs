@@ -33,6 +33,11 @@ internal sealed class UndergrowthPass : IChunkDecorator
                     continue;
                 }
 
+                if (_world.Underground is { } underground && underground.Entrances.InZone(x, z))
+                {
+                    continue; // a zone may be cut open to a cave (B11): nothing is sown over it
+                }
+
                 var row = ctx.BiomeAt(x, z).Row;
                 var plant = _world.Strategies.Decoration[row.Index].PlantAt(new DecorationColumn(x, z, row, column.Top));
                 if (plant != BlockId.Air)

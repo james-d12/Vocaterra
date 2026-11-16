@@ -129,7 +129,31 @@ internal sealed class AccentVariantChoice
             return [.. variants.Where(r => _rules.IsInterrogativeQuantifier(r.Lemma))];
         }
 
-        return typed.Any(r => FitsContext(current, allVariants, index, r)) ? null : variants;
+        if (typed.Any(r => FitsContext(current, allVariants, index, r)))
+        {
+            return null;
+        }
+
+        // M96 (seeds dTc3W4dw5Cg2 and 7PcP-w7xauk1): a conjunction or preposition with no word after it (unos porque) falls back to its accented siblings, but a noun
+        // sibling that is singular (porqué) cannot follow a plural determiner as typed: the word stays the conjunction, so nothing invents the plural (porqués) for it.
+        if (!typed.All(static r => r.Pos is LexiconSchema.Conjunction or LexiconSchema.Preposition))
+        {
+            return variants;
+        }
+
+        var agreeing = variants.Where(v => !DisagreesWithDeterminerBefore(current, index, v)).ToList();
+        return agreeing.Count > 0 ? agreeing : null;
+    }
+
+    // The word right before the one at index is a determiner of the other number than the noun reading (unos + porqué).
+    private bool DisagreesWithDeterminerBefore(IReadOnlyList<LexicalFeatures>[] current, int index, LexicalFeatures variant)
+    {
+        if (variant.Pos != LexiconSchema.Noun || variant.Number is null || index == 0 || current[index - 1].Count == 0)
+        {
+            return false;
+        }
+
+        return current[index - 1].All(r => ReadingClasses.IsDeterminerReading(r, _rules) && r.Number is not null && r.Number != variant.Number);
     }
 
     // M69: nothing but interjections (hola, buenas) stands before the word at index.
