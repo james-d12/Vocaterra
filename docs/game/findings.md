@@ -2666,3 +2666,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   planners still avoid it (`BlocksBody` unchanged); an orange view in lava (not yet seen in a window). The ores are five clusters each
   with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with patina). Three B10 tests that encoded standing on
   lava were replaced by `LavaBodyTests`. The liquids' numbers are constants, not data, for water as for lava. Gated: 11,993 passed.
+- **B11, the underground generation (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11-underground-generation.md`, report
+  `.claude/briefs/b11-report.md`. `underground.json` drives five passes after the surface (strata, floor, caves, lava, ores); caves on a
+  4 x 8 x 4 lattice that skips impossible cells and fills certain ones; ore veins inside their chunk. The water rule keeps caves 3
+  blocks from water and 16 under a water bed (`bedClearance`, data: the brief's literal "under a bed" would forbid caves at any depth
+  under water); 0 violations over rivers, lakes and coasts for three seeds. Under the valley the procedural underground starts below
+  y -9; under a town below its lowest layer (fixed on the merge with B15). Findings: a column of 24 chunks went from 1.8 to 6.4 ms in
+  Debug (worst 16 ms), for B07 and B12 to re-measure; the generator version went to 2, which moved the atmosphere pins. Needed one merge
+  (README, the preview CLI). Gated: 12,087 passed, 3 skipped.
