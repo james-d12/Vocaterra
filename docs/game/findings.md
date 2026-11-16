@@ -2575,3 +2575,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   active count is clamped to base plus the largest capacity, so data with two back slots could lose slots silently (unreachable with the
   one-slot backpack group; no validator yet). The fixture was transformed by a throwaway test rather than recorded in a window (no windows
   while the owner games).
+- **I02, interaction (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i02-report.md`. Gated at `95aedf89`: 11,905
+  passed, 3 skipped; no existing test, golden or fixture changed (the held stack and the trash join the digest only when they hold
+  something). Every move goes through one transaction over `ISlotContainer`s, so a refusal undoes the puts already made, and a chest is
+  one more container (a test `ChestContainer` proves it). Closing the panel on a full bag keeps the stack held rather than losing it; a save
+  returns it first and, only when the bag is full, refuses as a session not at rest does (the autosave catches it; worth a look in I04 if a
+  quit can meet it). Three small behaviours for I04 to judge: shift-click on a stack of several wearables is refused rather than taking
+  one; a wearable the rules refuse does not fall through to the hotbar move; right-click into the trash refuses a different item. The
+  `--move` step opens a window, like every scripted step, so it was proved by tests only. Process note: the orchestrator's `git worktree
+  add` used a relative path, so this worktree nested under the inventory worktree; later ones use an absolute path.
