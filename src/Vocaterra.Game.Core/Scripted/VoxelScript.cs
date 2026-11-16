@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Containers;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Navigation;
@@ -161,6 +162,10 @@ public sealed class VoxelScript
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
                 return CraftTick(step, commands);
+            case VoxelStepKind.SlotMove:
+                commands.Add(VoxelCommand.SlotMove((MoveAction)step.Slot, step.X, step.Y));
+                _log($"move: {(MoveAction)step.Slot} at container {step.X} slot {step.Y}");
+                return true;
             case VoxelStepKind.Pour:
                 return PourNow(step);
             case VoxelStepKind.SetTime:

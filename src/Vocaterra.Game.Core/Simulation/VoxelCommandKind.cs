@@ -48,4 +48,11 @@ public enum VoxelCommandKind
     /// full, the slot asked for is taken) changes nothing and raises <see cref="Event.SimulationEventKind.EquipRefused"/>.
     /// </summary>
     Unequip = 9,
+
+    /// <summary>
+    /// Move items by hand (I02, <see cref="Items.Containers.InventoryOps"/>). <see cref="VoxelCommand.A"/> is the <see cref="Items.Containers.MoveAction"/> (0 left click, 1 right click, 2 shift-click, 3 sort, 4 return the held stack),
+    /// <see cref="VoxelCommand.B"/> the container's id (<see cref="Items.Containers.ContainerIds"/>: 0 bag, 1 equipment, 2 trash) and <see cref="VoxelCommand.C"/> the slot in it (the equipment's is its flat index, group by group in
+    /// <c>game/equipment.json</c> order). B and C are ignored by sort and return. A press; a refused move changes nothing and raises <see cref="Event.SimulationEventKind.MoveRefused"/>.
+    /// </summary>
+    SlotMove = 10,
 }

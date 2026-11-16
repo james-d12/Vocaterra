@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.UI.Inventory;
@@ -61,6 +62,9 @@ public readonly record struct InventoryLayout
         GridTop = Panel.Y + HeaderTop;
         NeedsTop = GridTop + gridHeight + (Tight ? 3 : 5);
         NeedsRowStep = needsRowHeight;
+        var button = DividerY - 8; // I02: the sort button and the trash cell stand in the header, right of the title, above the rule; I04 places them properly
+        TrashCell = new PixelBox(Panel.Right - Padding - button, Panel.Y + 4, button, button);
+        SortButton = new PixelBox(TrashCell.X - 6 - button, Panel.Y + 4, button, button);
     }
 
     /// <summary>Whether the slots are the small ones.</summary>
@@ -104,6 +108,39 @@ public readonly record struct InventoryLayout
 
     /// <summary>The top edge of the grid.</summary>
     public int GridTop { get; }
+
+    /// <summary>The sort button (I02), in the header's right corner.</summary>
+    public PixelBox SortButton { get; }
+
+    /// <summary>The trash cell (I02), right of the sort button.</summary>
+    public PixelBox TrashCell { get; }
+
+    /// <summary>What a point of the canvas is on: a bag slot (the active ones, <paramref name="slotCount"/> of them), the sort button, the trash cell, or nothing (I02).</summary>
+    /// <param name="x">The point's x.</param>
+    /// <param name="y">The point's y.</param>
+    /// <param name="slotCount">The number of slots the layout was made for (the inventory's active count).</param>
+    public InventoryHit Hit(int x, int y, int slotCount)
+    {
+        if (SortButton.Contains(x, y))
+        {
+            return new InventoryHit(InventoryHitKind.Sort);
+        }
+
+        if (TrashCell.Contains(x, y))
+        {
+            return new InventoryHit(InventoryHitKind.Trash);
+        }
+
+        for (var slot = 0; slot < slotCount; slot++)
+        {
+            if (Cell(slot).Contains(x, y))
+            {
+                return new InventoryHit(InventoryHitKind.Cell, slot);
+            }
+        }
+
+        return InventoryHit.None;
+    }
 
     /// <summary>The box of a slot.</summary>
     /// <param name="slot">The slot, from 0.</param>
