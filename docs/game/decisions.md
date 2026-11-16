@@ -895,6 +895,10 @@ the owner's answers of 2026-11-15 are in its section 5.
 32. **B07c gets an Opus review before its gate** (2026-11-16, about 14:00 UTC): "once it's done, spawn an Opus 5.5 agent on high effort
     to review the changes." When B07c reports, an Opus 5.5 agent at high effort reviews its branch (correctness, the Voxy design, the
     store on disk, threading, performance, the tests) before the gate; its findings go back to B07c's agent or into a follow-up.
+33. **Caves stay at 28% of daylight; river drainage and the core fuzz fixes launched** (2026-11-16, about 15:30 UTC): "The caves can
+    remain at 28% daylight, that's fine. Kick off an agent for the river drainage issue and the core fuzz fixes as well." B12's cave
+    minimum 0.28 stands. B02c (rivers that only fall: a drainage network, closing B02b's river humps) and the core's M97 (the fuzz seeds
+    `2LxdNIrNHnQ6` and `9kz6LGNo8tf2`, and the load-sensitive OpenFallback coverage oracle) are launched.
 
 ## Already decided
 
