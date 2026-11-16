@@ -3,7 +3,7 @@ The game is Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGam
 is not yours. This milestone's work is in the game: content/game-v1/game/scene.json (the pass road), the scene's build if a stamp or path
 rule needs it, their tests, and scripts/compare-runs.py.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b08c, already on the local branch `B08c-pass-road` (cut from
-`feature/biomes` at @@BASE@@, which holds B08a's pass, B08b's lock and B13's valley underground). Run every command from that directory.
+`feature/biomes` at 4e1691d3, which holds B08a's pass, B08b's lock and B13's valley underground). Run every command from that directory.
 Commit after each step that builds and passes its tests, with the prefix `B08c: `. Do not push. Never push or merge feature/biomes or main.
 Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test, format and run, every scripts/content.sh call, every game run and screenshot through
@@ -52,7 +52,7 @@ Deliverables:
    looking east, before and after; the cutting from the rockfall's place with `--pass open`, before and after; the whole road from the
    rim looking west. Look at each one; fix what looks wrong.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,100 passed before, plus your new tests); format clean; content
 validate; the content lint line from CLAUDE.md clean if you touched text. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
