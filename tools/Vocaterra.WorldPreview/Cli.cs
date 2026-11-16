@@ -107,10 +107,15 @@ internal static class Cli
                 }
 
                 var blocks = new BlockWorld(data, seed, world == "valley", town);
-                var picture = Renderer.Entrances(blocks, sampler, centreX - (side / 2), centreZ - (side / 2), side, out var count);
+                var listed = new List<Vocaterra.Game.Core.World.Generation.Procedural.CaveEntrance>();
+                var picture = Renderer.Entrances(blocks, sampler, centreX - (side / 2), centreZ - (side / 2), side, out var count, listed);
                 var path = Target(outPath, $"entrances-{Prefix(places, town)}seed{seed}-x{centreX}-z{centreZ}-s{side}");
                 Save(path, picture);
-                output.WriteLine($"{path} ({side} x {side}; {count} entrance columns, {started.Elapsed.TotalSeconds:0.0} s)");
+                output.WriteLine($"{path} ({side} x {side}; {count} entrances, {started.Elapsed.TotalSeconds:0.0} s)");
+                foreach (var passage in listed.OrderBy(static p => p.X).ThenBy(static p => p.Z))
+                {
+                    output.WriteLine($"entrance: mouth {passage.X},{passage.Z} ground {passage.MouthY}, direction {passage.DirX},{passage.DirZ}, {passage.Length} blocks along to a cave {passage.MouthY - passage.FloorAt(passage.Length)} down, landing {passage.Landing}");
+                }
                 return 0;
             }
 

@@ -202,7 +202,7 @@ internal static class Renderer
     /// <param name="top">The z of the first pixel row.</param>
     /// <param name="size">The side in blocks (= pixels).</param>
     /// <param name="count">The number of entrance columns found.</param>
-    public static Image Entrances(BlockWorld world, WorldSampler sampler, int left, int top, int size, out int count)
+    public static Image Entrances(BlockWorld world, WorldSampler sampler, int left, int top, int size, out int count, List<Vocaterra.Game.Core.World.Generation.Procedural.CaveEntrance>? list = null)
     {
         var image = new Image(size, size, default);
         for (var py = 0; py < size; py++)
@@ -220,13 +220,25 @@ internal static class Renderer
         {
             for (var cx = left >> 4; cx <= (left + size - 1) >> 4; cx++)
             {
-                foreach (var (x, z) in world.Entrances(cx, cz))
+                foreach (var passage in world.Passages(cx, cz))
                 {
-                    if (x >= left && x < left + size && z >= top && z < top + size)
+                    if (passage.X < left || passage.X >= left + size || passage.Z < top || passage.Z >= top + size)
                     {
-                        image.Set(x - left, z - top, new Rgb(255, 40, 40));
-                        count++;
+                        continue;
                     }
+
+                    for (var along = 0; along <= passage.Length + passage.Landing; along++)
+                    {
+                        var (x, z) = passage.CentreAt(along);
+                        if (x >= left && x < left + size && z >= top && z < top + size)
+                        {
+                            image.Set(x - left, z - top, new Rgb(255, 150, 40)); // the passage in orange
+                        }
+                    }
+
+                    image.Set(passage.X - left, passage.Z - top, new Rgb(255, 40, 40)); // the mouth in red
+                    count++;
+                    list?.Add(passage);
                 }
             }
         }

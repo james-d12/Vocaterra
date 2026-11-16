@@ -65,6 +65,16 @@ internal sealed class BlockWorld
         _ => [],
     };
 
+    /// <summary>The cave entrances whose mouth lies in a chunk column, with their direction and depth.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<CaveEntrance> Passages(int chunkX, int chunkZ) => _source switch
+    {
+        ProceduralChunkSource procedural => procedural.CaveEntrances(chunkX, chunkZ),
+        CompositeChunkSource composite => composite.CaveEntrances(chunkX, chunkZ),
+        _ => [],
+    };
+
     private IReadOnlyList<ChunkData> Column(int chunkX, int chunkZ)
     {
         if (!_columns.TryGetValue((chunkX, chunkZ), out var column))

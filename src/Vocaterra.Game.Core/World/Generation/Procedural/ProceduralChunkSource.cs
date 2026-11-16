@@ -78,6 +78,12 @@ public sealed class ProceduralChunkSource : IChunkSource
     /// <param name="chunkZ">The chunk column's z.</param>
     public IReadOnlyList<(int X, int Z)> EntranceColumns(int chunkX, int chunkZ) => [.. Ramps(chunkX, chunkZ).Select(static r => (r.AnchorX, r.AnchorZ))];
 
+    /// <summary>The cave entrances whose mouth lies in a chunk column, with their direction and depth (B11b): what the preview tool lists and draws. Empty for a source with no underground.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<CaveEntrance> CaveEntrances(int chunkX, int chunkZ) =>
+        [.. Ramps(chunkX, chunkZ).Select(static r => new CaveEntrance(r.AnchorX, r.AnchorZ, r.DirX, r.DirZ, r.MouthY, r.Length, r.Landing, r.Width, r.Run))];
+
     /// <summary>The passages whose mouth lies in a chunk column (for the tests and the preview).</summary>
     /// <param name="chunkX">The chunk column's x.</param>
     /// <param name="chunkZ">The chunk column's z.</param>
