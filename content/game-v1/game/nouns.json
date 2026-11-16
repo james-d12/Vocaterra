@@ -35,6 +35,13 @@
     {"lemma": "cuchara", "items": [], "blocks": []},
     {"lemma": "masa", "items": [], "blocks": [], "mass": true},
     {"lemma": "horno", "items": [], "blocks": []},
-    {"lemma": "mano", "items": [], "blocks": []}
+    {"lemma": "mano", "items": [], "blocks": []},
+    {"lemma": "cabeza", "items": [], "blocks": []},
+    {"lemma": "cuerpo", "items": [], "blocks": []},
+    {"lemma": "pierna", "items": [], "blocks": []},
+    {"lemma": "pie", "items": [], "blocks": []},
+    {"lemma": "espalda", "items": [], "blocks": []},
+    {"lemma": "armadura", "items": [], "blocks": []},
+    {"lemma": "calor", "items": [], "blocks": []}
   ]
 }

@@ -3726,13 +3726,18 @@
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}
+{"id":"speech:card.armadura","text":"la armadura","kind":"npc"}
 {"id":"speech:card.bol","text":"el bol","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
+{"id":"speech:card.cabeza","text":"la cabeza","kind":"npc"}
+{"id":"speech:card.calor","text":"la calor","kind":"npc"}
 {"id":"speech:card.camino","text":"el camino","kind":"npc"}
 {"id":"speech:card.campamento","text":"el campamento","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
+{"id":"speech:card.cuerpo","text":"el cuerpo","kind":"npc"}
 {"id":"speech:card.equipo","text":"el equipo","kind":"npc"}
+{"id":"speech:card.espalda","text":"la espalda","kind":"npc"}
 {"id":"speech:card.estaca","text":"la estaca","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
 {"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
@@ -3748,6 +3753,8 @@
 {"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
 {"id":"speech:card.moneda","text":"la moneda","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
+{"id":"speech:card.pie","text":"el pie","kind":"npc"}
+{"id":"speech:card.pierna","text":"la pierna","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
 {"id":"speech:card.terreno","text":"el terreno","kind":"npc"}
