@@ -291,9 +291,10 @@ internal sealed class EntranceSites
 
             if (Nodes.Count > 0 && descend && Nodes.Count <= _spec.Plunge)
             {
-                if (_rng.NextInt(3) != 0)
+                var skip = _rng.NextInt(3) == 0;
+                if (!skip || Nodes.Count <= 3)
                 {
-                    _floor--; // the steep start: a block down at most blocks (not at a regular beat), so the opening is a hole and its floor a rough slope
+                    _floor--; // the steep start: a block down at every block for the first three, then at most blocks (not at a regular beat), so the opening is a hole and its floor a rough slope
                 }
             }
             else if (Nodes.Count > 0 && descend)
