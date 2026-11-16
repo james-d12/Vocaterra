@@ -515,6 +515,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _sim.ForceWeather(weather); // --weather holds the kind (E05); the program has checked the id against the bundle
         }
 
+        if (options.TemperatureTenths is { } tenths)
+        {
+            _session.Temperature.HeldTenths = tenths; // --temperature holds the place's temperature (I06); derived each tick, never saved
+        }
+
         if (options.TimeHour is { } hour)
         {
             _sim.FreezeClock(hour);

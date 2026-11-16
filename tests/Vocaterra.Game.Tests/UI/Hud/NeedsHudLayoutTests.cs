@@ -218,4 +218,18 @@ public sealed class NeedsHudLayoutTests(ITestOutputHelper output)
         Assert.Equal(3, NeedIcons.Marks(Drive.Hunger).Count);
         Assert.Empty(NeedIcons.Marks(Drive.Thirst));
     }
+
+    [Fact]
+    public void TheColdIconIsASnowflakeOnTheSameGridAndTheLayoutHasRoomForIt()
+    {
+        var runs = NeedIcons.ColdShape;
+
+        Assert.True(runs.Count >= 8);
+        Assert.All(runs, run => Assert.True(run.Y is >= 0 and < NeedIcons.Size && run.X0 >= 0 && run.X1 < NeedIcons.Size && run.X0 <= run.X1));
+        Assert.True(runs.Sum(static r => r.X1 - r.X0 + 1) >= 60, "the snowflake is not a speck");
+        Assert.Equal(4, NeedsHudLayout.MaxIcons); // three drives and the cold
+        var boxes = NeedsHudLayout.Place(1280, 720, NeedsHudLayout.MaxIcons, stamina: true, null, null, static t => t.Length * 7);
+        Assert.Equal(4, boxes.Icons.Count);
+        Assert.All(boxes.Icons, icon => Assert.True(icon.X >= boxes.Block.X && icon.Right <= boxes.Block.Right, "an icon sticks out of the block"));
+    }
 }

@@ -335,6 +335,15 @@ Both run on their own in play, and a screenshot run can hold either one.
   `--dusk` holds it at 21, the middle of the dusk, with the amber sky, the low warm light and the lanterns at full strength, and the sun standing on
   the horizon in the west; with both, `--time` wins. `--weather <id>` holds the weather at a kind of the loaded bundle (`sunny`, `cloudy` and `rain` in
   `game-v1`; an unknown id is refused with the list of ids), from the first frame and with no blend. The two combine.
+- **Holding the temperature (I06).** `--temperature <n>` holds the temperature where the player stands at `n` degrees Celsius (negative and one decimal allowed:
+  `--temperature -5`, `--temperature 12.5`; a number with more decimals rounds to the tenth; outside -100 to 100 is refused), from the first tick, in place of the
+  value the world works out (the base, the day, the weather, a roof, a fire: `game/temperature.json`). It is a launch flag only, never saved, and combines with `--time`
+  and `--weather`. The player's warmth (none until clothes exist) is still added, so the feeling is the held value plus the warmth. What the bands do (the shipped
+  numbers: warm from 12.0 degrees, cool from 3.0, cold from -5.0, very cold below): warm and cool change nothing; cold slows the walk to 85 percent and very cold to
+  65 percent (it multiplies with the needs' factor and the sprint); while the feeling is cold or very cold the HUD shows a snowflake after the drive icons (one notch
+  cold, two very cold) and the player says «Tengo frío.» (the English beneath, the same short sound as the needs' lines) once as the feeling first enters the
+  cold, again only after it has risen back to cool or warm. Cold never harms: no meter falls and no health is lost. With `--needs off` the cold slows nothing
+  and shows nothing (the language runs keep their baselines), but F3 still reads it.
 - **Scripted steps.** `--set-time <hour>` holds the clock from that step on, and `--set-time run` lets it run on; `--set-weather <id>` holds a kind
   from that step on, with no transition, and `--set-weather run` releases it. An hour outside 0 to 24 is a usage error, and an id the bundle lacks is
   refused at launch. The steps go in the order given with the others (`docs/game/scripted-runs.md`).
@@ -342,7 +351,8 @@ Both run on their own in play, and a screenshot run can hold either one.
   the ids). They hold and release the same things as the flags and steps, and show what the simulation holds: a clock held by `--time` or `--dusk`
   shows its hour. Running lets the clock run on from where it is.
 - **The F3 line.** Under the position: the hour as `hh:mm` and the phase, with `held` when the clock is held; the weather's kind, and during a change the
-  kind it leaves and the blend in percent; `held` when the weather is held.
+  kind it leaves and the blend in percent; `held` when the weather is held. Under it (I06) the temperature line: the place's temperature in degrees
+  (`held` when `--temperature` holds it), the player's warmth, the feeling (the two together) and its band, as in `temp 12.5C   warmth 0.0   feels 12.5C warm`.
 - **Held is saved.** A held hour or weather is part of the simulation's state: it is in the state digest and in a save written during the run, which
   loads held (`docs/game/saves.md`, the `atmosphere` entry).
 - **Pictures.** The hours worth a picture are 0 (night), 5 (dawn), 7 (morning), 13 (noon), 18 (evening), 21 (dusk) and 23 (night); the light changes bands at about

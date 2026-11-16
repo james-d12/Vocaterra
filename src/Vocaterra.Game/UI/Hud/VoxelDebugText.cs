@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.UI.Hud;
@@ -17,7 +18,8 @@ public static class VoxelDebugText
     /// <param name="yawSteps">The yaw being drawn, in angle steps.</param>
     /// <param name="pitchSteps">The pitch being drawn, in angle steps.</param>
     /// <param name="playSession">The play session the game runs in (1 for a new game; a load starts the next one).</param>
-    public static IReadOnlyList<string> Lines(double fps, VoxelSimulation sim, ulong seed, double yawSteps, double pitchSteps, int playSession)
+    /// <param name="temperature">The player's temperature (I06), for its line; <see langword="null"/> leaves the line out.</param>
+    public static IReadOnlyList<string> Lines(double fps, VoxelSimulation sim, ulong seed, double yawSteps, double pitchSteps, int playSession, TemperatureReading? temperature = null)
     {
         ArgumentNullException.ThrowIfNull(sim);
         var inv = CultureInfo.InvariantCulture;
@@ -36,14 +38,28 @@ public static class VoxelDebugText
             }
         }
 
-        return
-        [
+        var lines = new List<string>
+        {
             string.Create(inv, $"3D   FPS {fps:0}   tick {sim.Tick}   seed {seed}   Session {playSession}"),
             string.Create(inv, $"pos ({body.CenterX / U:0.0}, {body.FeetY / U:0.0}, {body.CenterZ / U:0.0})   yaw {yaw:0}   pitch {pitch:0}"),
             Atmosphere(sim.Atmosphere, sim.Weather.Previous.Id, sim.Weather.BlendAt(sim.Tick), sim.Clock.IsFrozen, sim.Weather.IsHeld),
-            "target: " + target,
-        ];
+        };
+        if (temperature is { } reading)
+        {
+            lines.Add(Temperature(reading));
+        }
+
+        lines.Add("target: " + target);
+        return lines;
     }
+
+    /// <summary>
+    /// The temperature line (I06): the place's temperature in degrees Celsius (<c>held</c> when <c>--temperature</c> holds it), the player's warmth, the feeling those make and the
+    /// band it falls in.
+    /// </summary>
+    /// <param name="reading">The temperature now.</param>
+    public static string Temperature(TemperatureReading reading) =>
+        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}";
 
     /// <summary>
     /// The clock and weather line (E03): the hour as hh:mm, the phase, and <c>held</c> when the clock is held; the weather's kind and, during a change of kind, the kind it

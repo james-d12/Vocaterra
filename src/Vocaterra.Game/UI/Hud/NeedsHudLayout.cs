@@ -46,8 +46,8 @@ public static class NeedsHudLayout
     /// <summary>The height of the stage line's box: two rows of text.</summary>
     public const int LineHeight = 8 + (2 * HudLayout.RowHeight);
 
-    /// <summary>The most drive icons there are.</summary>
-    public const int MaxIcons = 3;
+    /// <summary>The most icons there are: the three drives' and the cold's (I06).</summary>
+    public const int MaxIcons = 4;
 
     /// <summary>The block's height for what it holds.</summary>
     /// <param name="icons">How many drive icons.</param>
@@ -63,7 +63,7 @@ public static class NeedsHudLayout
     /// <summary>Places the HUD.</summary>
     /// <param name="canvasWidth">The canvas's width.</param>
     /// <param name="canvasHeight">The canvas's height.</param>
-    /// <param name="icons">How many drive icons are shown (0 to 3).</param>
+    /// <param name="icons">How many icons are shown, the drives' and the cold's (0 to 4).</param>
     /// <param name="stamina">Whether the stamina bar is shown.</param>
     /// <param name="spanish">The stage line's Spanish, or <see langword="null"/> for no line.</param>
     /// <param name="english">The stage line's English.</param>

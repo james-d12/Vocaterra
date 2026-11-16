@@ -9,7 +9,7 @@ namespace Vocaterra.Game.UI.Hud;
 
 /// <summary>
 /// The needs on the HUD (N05, design 9.9): a thin health bar and, while stamina is below its maximum, a thin stamina bar with a dashed end for what the drives cut, a row of
-/// drive icons (a loaf, a drop, a moon) with a notch for each stage, and a stage line above the hotbar (the Spanish with the English beneath) for a few seconds when a stage
+/// drive icons (a loaf, a drop, a moon) with a notch for each stage and, while the feeling is cold (I06), a snowflake after them, and a stage line above the hotbar (the Spanish with the English beneath) for a few seconds when a stage
 /// gets worse. With healthy drives and full stamina only the health bar shows. Where everything stands is <see cref="NeedsHudLayout"/>; this layer only draws.
 /// </summary>
 public sealed class NeedsHudLayer : IFrameLayer
@@ -33,7 +33,7 @@ public sealed class NeedsHudLayer : IFrameLayer
     internal static NeedsHudBoxes PlaceFor(FrameView view, Core.Needs.NeedsHud hud, FontStashSharp.SpriteFontBase font)
     {
         var announcement = hud.Announcement;
-        return NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, hud.Icons.Count, hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text));
+        return NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, hud.Icons.Count + (hud.ColdIcon is null ? 0 : 1), hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text));
     }
 
     /// <inheritdoc />
@@ -53,6 +53,11 @@ public sealed class NeedsHudLayer : IFrameLayer
         for (var i = 0; i < icons.Count; i++)
         {
             DrawIcon(spriteBatch, pixel, Rect(boxes.Icons[i]), icons[i]);
+        }
+
+        if (hud.ColdIcon is { } cold && boxes.Icons.Count > icons.Count)
+        {
+            DrawCold(spriteBatch, pixel, Rect(boxes.Icons[icons.Count]), cold);
         }
 
         var pulse = (float)hud.HeartPulse(view.Tick);
@@ -116,10 +121,28 @@ public sealed class NeedsHudLayer : IFrameLayer
         }
 
         var notch = icon.Notches switch { <= 2 => new Color(240, 220, 130), 3 => new Color(255, 150, 60), _ => new Color(240, 70, 60) };
-        for (var n = 0; n < 4; n++)
+        DrawNotches(spriteBatch, pixel, cell, icon.Notches, 4, notch);
+    }
+
+    // The cold's icon (I06): the snowflake in ice blue, then a notch for each degree of chill out of the most any band has.
+    private static void DrawCold(SpriteBatch spriteBatch, Texture2D pixel, Rectangle cell, ColdIcon icon)
+    {
+        var left = cell.X + 2;
+        foreach (var (y, x0, x1) in NeedIcons.ColdShape)
+        {
+            spriteBatch.Draw(pixel, new Rectangle(left + x0, cell.Y + y, x1 - x0 + 1, 1), new Color(170, 220, 255));
+        }
+
+        DrawNotches(spriteBatch, pixel, cell, icon.Notches, Math.Min(4, icon.OutOf), icon.Notches >= icon.OutOf ? new Color(120, 170, 255) : new Color(190, 225, 255));
+    }
+
+    // Four notches at most under an icon, the first ones filled.
+    private static void DrawNotches(SpriteBatch spriteBatch, Texture2D pixel, Rectangle cell, int filled, int count, Color colour)
+    {
+        for (var n = 0; n < count; n++)
         {
             var box = new Rectangle(cell.X + 1 + (n * 5), cell.Y + NeedIcons.Size + 4, 4, 3);
-            spriteBatch.Draw(pixel, box, n < icon.Notches ? notch : Dashed * 0.6f);
+            spriteBatch.Draw(pixel, box, n < filled ? colour : Dashed * 0.6f);
         }
     }
 }

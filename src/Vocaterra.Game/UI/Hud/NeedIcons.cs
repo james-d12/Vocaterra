@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Needs;
 namespace Vocaterra.Game.UI.Hud;
 
 /// <summary>
-/// The drive icons of the HUD (N05), drawn in code from plain shapes: a loaf for hunger, a drop for thirst, a moon for sleep. Each is a set of horizontal runs on an
+/// The icons of the HUD (N05), drawn in code from plain shapes: a loaf for hunger, a drop for thirst, a moon for sleep and, for the cold (I06), a snowflake. Each is a set of horizontal runs on an
 /// 18 x 18 grid (computed once from integer-free geometry, the same on every machine), so the drawing is a few rectangles and a test can check a shape stays on its grid.
 /// No asset is used.
 /// </summary>
@@ -18,6 +18,14 @@ public static class NeedIcons
         [Drive.Thirst] = Runs(static (x, y) => Math.Pow(x - 9, 2) + Math.Pow(y - 11.2, 2) <= 6.6 * 6.6 || (y is >= 1 and <= 11 && Math.Abs(x - 9) <= (y - 1) / 10.0 * 6.4)),
         [Drive.Sleep] = Runs(static (x, y) => Math.Pow(x - 9, 2) + Math.Pow(y - 9, 2) <= 8.0 * 8.0 && Math.Pow(x - 13, 2) + Math.Pow(y - 6.5, 2) > 6.5 * 6.5),
     };
+
+    /// <summary>The cold's icon (I06): a snowflake of four crossing arms, each as thick as a pixel and a half, inside a circle of radius 8.</summary>
+    public static IReadOnlyList<(int Y, int X0, int X1)> ColdShape { get; } = Runs(static (x, y) =>
+    {
+        double dx = x - 9;
+        double dy = y - 9;
+        return (dx * dx) + (dy * dy) <= 8.2 * 8.2 && (Math.Abs(dx) <= 0.8 || Math.Abs(dy) <= 0.8 || Math.Abs(dx - dy) <= 1.1 || Math.Abs(dx + dy) <= 1.1);
+    });
 
     /// <summary>The runs of a drive's icon: row <c>Y</c>, from column <c>X0</c> to <c>X1</c> inclusive, top to bottom.</summary>
     /// <param name="drive">Which drive.</param>

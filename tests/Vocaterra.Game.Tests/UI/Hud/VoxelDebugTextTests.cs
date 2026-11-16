@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Atmosphere;
+using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.UI.Hud;
 
 namespace Vocaterra.Game.Tests.UI.Hud;
@@ -39,5 +40,14 @@ public sealed class VoxelDebugTextTests
         var line = VoxelDebugText.Atmosphere(Sky(9, DayPhase.Day, "second"), "first", 0.4, clockHeld: false, weatherHeld: false);
 
         Assert.Equal("time 09:00 day   weather second from first 40%", line);
+    }
+
+    [Fact]
+    public void Given_ATemperatureReading_When_Written_Then_TheLineShowsPlaceWarmthFeelingAndBand()
+    {
+        var cool = new TemperatureBand("cool", 30, 1, 0, null);
+
+        Assert.Equal("temp 12.5C   warmth 0.0   feels 12.5C cool", VoxelDebugText.Temperature(new TemperatureReading(125, 0, cool, Held: false)));
+        Assert.Equal("temp -5.0C held   warmth 3.0   feels -2.0C cool", VoxelDebugText.Temperature(new TemperatureReading(-50, 30, cool, Held: true)));
     }
 }

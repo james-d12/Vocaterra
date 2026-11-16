@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
@@ -78,6 +79,8 @@ public sealed record LaunchOptions
         + "  --dusk                  hold the day clock at the dusk hour (21): the low orange sun, the warm light and lanterns that glow at full strength (S15, E02)\n"
         + "  --time <hour>           hold the day clock at an hour from 0 to 24 (fractions allowed: 7.5 is half past seven) so the sky, the fog and the light show it: 0 midnight, 5 dawn, 13 noon, 21 dusk (E02)\n"
         + "  --weather <id>          hold the weather at one of the loaded bundle's kinds (an id from game/weather.json; an unknown id is refused and the ids are listed) so the sky, the clouds, the fog and the light show it (E05)\n"
+        + "  --temperature <n>       hold the temperature where the player stands at n degrees Celsius (negative and one decimal allowed, -5 or 12.5; more decimals round to the tenth): the feeling is that plus the\n"
+        + "                          player's warmth, and the cold bands slow the walk, show the cold icon and say the line once (I06). F3 shows the temperature. Not saved\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
@@ -364,6 +367,9 @@ public sealed record LaunchOptions
 
     /// <summary>The hour <c>--time</c> holds the day clock at (E02), 0 to 24, or <see langword="null"/> when the clock runs (or <c>--dusk</c> holds it).</summary>
     public double? TimeHour { get; init; }
+
+    /// <summary>The temperature <c>--temperature</c> holds the place at (I06), in tenths of a degree Celsius, or <see langword="null"/> when it is worked out from the world. Not saved.</summary>
+    public int? TemperatureTenths { get; init; }
 
     /// <summary>The id of the weather kind <c>--weather</c> holds (E05), or <see langword="null"/> when the weather runs. Which ids exist is the bundle's: <see cref="CheckWeather"/> checks it once the data has loaded.</summary>
     public string? WeatherId { get; init; }
@@ -658,7 +664,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -692,6 +698,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { TimeHour = hour };
+                    break;
+                case "--temperature":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var degrees) || !double.IsFinite(degrees) || degrees is < -100 or > 100)
+                    {
+                        error = $"--temperature needs degrees Celsius from -100 to 100 (negative and one decimal allowed, -5 or 12.5), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { TemperatureTenths = TemperatureUnits.FromCelsius(degrees) };
                     break;
                 case "--weather":
                     if (string.IsNullOrWhiteSpace(value))
