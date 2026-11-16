@@ -24,6 +24,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--world <streamed\|valley>` | B07: the streamed tall world round the valley (the default) or the bounded valley alone; see `docs/game/running.md` |
 | `--prefetch <0\|1\|2>` | B07: the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread) |
 | `--far-view <off\|blocks>` | B07: the far view's range in streamed worlds (256 to 65536; default the quality's: 4096, 8192, 16384) |
+| `--no-settle` | B07: a scripted run streams the world as a live one does and does not wait for everything to be in place before a picture |
 | `--stream-stats` | B07: a scripted run prints the residency, mesh and far-view counts and timings on a `stream:` line |
 | `--view-distance <blocks>` | draw this far instead of the quality's distance (48 to 576 in steps of 16; the menu's Draw distance, whose Auto is the quality's own) |
 | `--fov <degrees>`, `--mouse-sensitivity <percent>`, `--invert-y on\|off` | the menu's Field of view (60 to 110 in steps of 5), Mouse sensitivity (25 to 300 in steps of 5) and Invert mouse Y, for a run; the save's value otherwise |
