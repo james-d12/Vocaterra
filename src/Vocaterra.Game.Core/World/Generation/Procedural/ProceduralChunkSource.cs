@@ -110,6 +110,22 @@ public sealed class ProceduralChunkSource : IChunkSource
         return ctx;
     }
 
+    /// <summary>
+    /// The chunk layers of a chunk column that the generator does not shortcut (B07): the shaped ground decides, exactly as <see cref="Layer"/> does. Chunks above the band are air, chunks under it are
+    /// stone; nothing is decorated to find out, so it costs the window's heights and the shapers, not the passes.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    internal ColumnBand SurfaceBand(int chunkX, int chunkZ)
+    {
+        var ctx = ShapedColumn(chunkX, chunkZ);
+        var top = Math.Max(ctx.HighestInWindow(), _world.SeaLevel) + _world.Strategies.MaxTreeHeight;
+        var bottom = ctx.LowestOwn() - _world.MaxFillerDepth - 1;
+        var min = Math.Max(bottom >> VoxelChunk.Shift, MinChunkY);
+        var max = Math.Min(top >> VoxelChunk.Shift, MaxChunkY - 1);
+        return min > max ? ColumnBand.Empty : new ColumnBand(min, max);
+    }
+
     /// <summary>The chunk made by running every pass, with no shortcut for the chunks that are all air or all stone: the tests compare it with <see cref="Generate"/>.</summary>
     /// <param name="coord">The chunk's position.</param>
     internal ChunkData GenerateWithoutShortcuts(VoxelChunkCoord coord) => Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shaped: false, shortcuts: false);
@@ -127,6 +143,33 @@ public sealed class ProceduralChunkSource : IChunkSource
         for (var i = 0; i < chunks.Length; i++)
         {
             chunks[i] = Layer(ctx, MinChunkY + i, shaped: i > 0);
+        }
+
+        return chunks;
+    }
+
+    /// <summary>
+    /// Some layers of a chunk column, from the lowest asked for up, sharing one window (B07): what a streamed world needs of a column is its surface band and a layer each side, and the layers under the
+    /// ground cost most (the caves), so only the ones asked for are decorated. Each chunk equals what <see cref="Generate"/> gives for its coordinates. A layer outside the world is air.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    {
+        var first = Math.Max(minLayer, MinChunkY);
+        var last = Math.Min(maxLayer, MaxChunkY - 1);
+        if (last < first)
+        {
+            return [];
+        }
+
+        var ctx = new ColumnContext(_world, chunkX, chunkZ);
+        var chunks = new ChunkData[last - first + 1];
+        for (var i = 0; i < chunks.Length; i++)
+        {
+            chunks[i] = Layer(ctx, first + i, shaped: i > 0);
         }
 
         return chunks;

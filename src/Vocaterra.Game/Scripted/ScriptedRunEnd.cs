@@ -6,12 +6,14 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
+using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Scripted;
 
@@ -153,7 +155,8 @@ public sealed class ScriptedRunEnd
     /// <param name="timings">The frames' timings, for the summary.</param>
     /// <param name="renderer">The renderer, for the summary.</param>
     /// <param name="preset">The quality preset, for the summary.</param>
-    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset)
+    /// <param name="streaming">The streamed world's host, for its counts (B07), or <see langword="null"/> in the bounded valley.</param>
+    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset, StreamedWorldHost? streaming = null, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases = null)
     {
         var sim = _session.Simulation;
         var sized = !_options.IsScreenshotRun || ScreenshotGate.IsFinalSize(width, height, sizes.PreferredWidth, sizes.PreferredHeight, sizes.ClientWidth, sizes.ClientHeight);
@@ -184,11 +187,26 @@ public sealed class ScriptedRunEnd
         ExitCode = WorstExit(ExitCode, ScreenshotWriter.TrySave(device, path), _runaway);
         _console($"scene draw (voxel world, layers, flush): {timings.DrawSummary()}");
         _console($"frame time (end of one draw to the next, no vsync): {timings.FrameSummary()}");
-        _console($"voxel: {renderer.Stats.Summary()}; {renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
+        if (streaming is not null && _options.StreamStats)
+        {
+            _console(StreamLine(renderer, streaming, timings, phases));
+        }
+
+        // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.
+        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
         var body = sim.Player;
         _console(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {sim.Tick}, wood {sim.Inventory.Count(ItemId.Wood)}, berries {sim.Inventory.Count(ItemId.Berry)}, bottle {sim.Inventory.Count(ItemId.Bottle)}, water {sim.Inventory.Count(ItemId.WaterBottle)}, bread {sim.Inventory.Count(ItemId.Bread)}"));
         _console($"objective: {_session.Objective.Summary}");
         _exit();
+    }
+
+    private static string StreamLine(VoxelRenderer renderer, StreamedWorldHost streaming, FrameTimings timings, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases)
+    {
+        var residency = streaming.Residency.Stats;
+        var far = streaming.Far.Stats;
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached, {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms");
     }
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check

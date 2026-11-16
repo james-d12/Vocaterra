@@ -21,6 +21,11 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--content <dir>` | the content bundle folder (default: `content/game-v1` found by walking up from the executable, then from the current directory; `VOCATERRA_CONTENT_DIR` also works) |
 | `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
 | `--quality <low\|medium\|high>` | S13 and S14: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU), and what is drawn: **plant distance and share** (the undergrowth is drawn within 64, 112 or 192 blocks of the eye, 80, 100 or 100 percent of it built), **ambient occlusion** (on at all three; the preset says, so a slower machine can turn it off) and **clouds**. Only the chunks within the view distance are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. Medians on this VM (software GL), 1280 x 720: low 42 ms from the camp and 32 ms in the forest, medium 52 ms, high 49 ms (see the S14 line of the plan's findings) |
+| `--world <streamed\|valley>` | B07: the streamed tall world round the valley (the default) or the bounded valley alone; see `docs/game/running.md` |
+| `--prefetch <0\|1\|2>` | B07: the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread) |
+| `--far-view <off\|blocks>` | B07: the far view's range in streamed worlds (256 to 65536; default the quality's: 4096, 8192, 16384) |
+| `--no-settle` | B07: a scripted run streams the world as a live one does and does not wait for everything to be in place before a picture |
+| `--stream-stats` | B07: a scripted run prints the residency, mesh and far-view counts and timings on a `stream:` line |
 | `--view-distance <blocks>` | draw this far instead of the quality's distance (48 to 576 in steps of 16; the menu's Draw distance, whose Auto is the quality's own) |
 | `--fov <degrees>`, `--mouse-sensitivity <percent>`, `--invert-y on\|off` | the menu's Field of view (60 to 110 in steps of 5), Mouse sensitivity (25 to 300 in steps of 5) and Invert mouse Y, for a run; the save's value otherwise |
 | `--voice-volume <0..1>`, `--ui-volume <0..1>` | the menu's Voice volume and Interface sounds volume, for a run (with `--sfx-volume`, `--ambient-volume` and `--weather-volume`) |
@@ -249,6 +254,16 @@ others come through the platform's text input).
 line, `SceneLocator`, the asset paths), `Diagnostics/` (the session log, the crash handler, the clocks), `Input/` (the devices, `InputSnapshot` and
 `KeyMap`, Keys to `GameKey`), `Sound/` (the outputs and the microphone), `Graphics/` (the renderers and the meshers, by feature) and `UI/` (the
 layers and their layouts, by feature). Both trees are in `docs/game/architecture.md`.
+
+## The streamed world and the far view (B07)
+
+`Streaming/` runs the streamed world; `Graphics/Far/` draws what lies beyond the chunks. Threads are only here: Core stays pure.
+
+- **`JobPool`**: at most two worker threads in all (`MaxWorkers`), two lanes (the residency's jobs before the far tiles'), nearest first, stale jobs skipped; with no worker `RunInline` runs jobs on the caller's thread within a budget. Workers call the pure source and never touch `VoxelGrid`, the renderer or the simulation.
+- **`ChunkResidency`** (game loop): plans with `BandStreamer` (the bands are made on the workers and cached in `ColumnBandCache`), asks for the missing columns nearest first (`StreamedWorld.GenerateLayers` on a worker, or inline within a per-frame budget), installs what comes back (a duplicate of a chunk a read generated is dropped) and drops the unchanged chunks the plan no longer holds, a bounded number a frame; a cap on resident chunks stops new requests. `Settle` brings everything wholly up to date (a scripted picture, a jump). **`StreamedWorldHost`** holds the pool, the residency and the far view for the drawer (`SceneDrawer.Streaming`); `ApplyPreset` follows the quality.
+- **The renderer**: `ChunkViewSet` lists a chunk of a streamed grid only when all 26 neighbours are resident (kept as chunks come and go), measures the distance across, and lists at most `QualityPreset.MaxMeshedChunks`; the renderer peeks and never generates; `VoxelRenderer.FarPlaneFor(view, worldHeight)` covers a peak at the world's top while its foot is in view.
+- **The far view**: `FarViewSettings` (range, a 32 x 32 cell tile, five levels from 4 to 64 blocks a cell), `FarTileSelector` (a quadtree: a tile is split while nearer than twice its size; the leaves cover the ground between half the voxel radius and the range exactly once), `FarTileMesher` and `FarTileTopology` (the land, shaded by slope and coloured from the top block's art, the sea flat, snow, a forest tint, and a skirt along each edge; one index buffer serves every tile), `FarView` (tiles cached by key and built on the workers, a built ancestor standing in behind a leaf that is not built yet, a cap), `FarTerrainRenderer` (after the sky, with its own projection, then the depth is cleared and the chunks are drawn over it). The haze is one fog for both passes (`VoxelRenderer.FarFogEnd`): clear to 6 percent of the range, complete at the range in clear weather, brought in by the weather's fog; the far land is lit and greyed as the chunks are (`ChunkMesher.SunTintFor`, the grey kinds). The game holds the simulation (`StreamedWorldHost.IsReadyAround`, `ChunkResidency.IsNearReady`) while the columns round the player are being made.
+- **Scripted runs**: each frame settles first; the counts of a streamed world are left out of the compared `voxel:` line and printed on the `stream:` line under `--stream-stats`.
 
 ## Architecture
 

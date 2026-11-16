@@ -17,6 +17,7 @@ using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.Weather;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
+using Vocaterra.Game.Streaming;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Hud;
 
@@ -47,6 +48,9 @@ public sealed class SceneDrawer : IDisposable
     private const float LavaTintStrength = 0.6f;
     private UnderwaterPass? _underwaterPass;
     private double _lastDrawMilliseconds = double.NaN;
+    private StreamedWorldHost? _streaming;
+    private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _streamTimes = new();
+    private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _remeshTimes = new();
 
     /// <summary>Creates the drawer of a run (nothing is made until <see cref="Load"/>).</summary>
     /// <param name="options">The run's options: the quality, the greyscale and the nouns assumed known.</param>
@@ -77,8 +81,24 @@ public sealed class SceneDrawer : IDisposable
     public void ApplyQuality(QualityLevel level, int? viewDistance = null)
     {
         Preset = viewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
+        if (_options.FarViewRange is { } farRange)
+        {
+            Preset = Preset.WithFarRange(farRange); // --far-view
+        }
+
         _renderer?.SetPreset(Preset);
+        if (_streaming is not null && _renderer is not null)
+        {
+            _streaming.ApplyPreset(Preset, VoxelRenderer.ReleaseFarTile);
+            _renderer.SetFarView(_streaming.Far);
+        }
     }
+
+    /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
+    public (Vocaterra.Game.Core.Reporting.BusyFrameStats Streaming, Vocaterra.Game.Core.Reporting.BusyFrameStats Remesh) PhaseTimes => (_streamTimes, _remeshTimes);
+
+    /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
+    public StreamedWorldHost? Streaming => _streaming;
 
     /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
     public GreyscaleWorld? Colours => _colours;
@@ -106,8 +126,17 @@ public sealed class SceneDrawer : IDisposable
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console);
         _renderer.SetFigures(_figures);
+        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers);
+        _renderer.SetFarView(_streaming?.Far);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
-        _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(Preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(Preset.ViewDistance):0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
+        var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);
+        var fogStart = fogEnd * (_renderer.FarRange > 0 ? VoxelRenderer.FarFogStartFraction : VoxelRenderer.FogStartFraction);
+        _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {fogStart:0} to {fogEnd:0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
+        if (_streaming is not null)
+        {
+            _console($"world: streamed, {_streaming.Pool.Workers} worker thread(s), far view {(_renderer.FarRange > 0 ? $"to {_renderer.FarRange} blocks" : "off")}"); // the bounded valley prints nothing: its runs compare byte for byte
+        }
+
         _console($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {device.PresentationParameters.DepthStencilFormat}, {(device.PresentationParameters.IsFullScreen ? "full screen" : "window")} {device.PresentationParameters.BackBufferWidth}x{device.PresentationParameters.BackBufferHeight}");
         if (_options.Greyscale)
         {
@@ -130,14 +159,33 @@ public sealed class SceneDrawer : IDisposable
     /// picture; a live one spends its budget a frame, more while the world is still loading in), and the world, the target block, the beacon and
     /// the player's figure or arm are drawn. The sky, the fog and the world's light follow the look of the moment (E02).
     /// </summary>
-    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look)
+    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look, Vector3? streamEye = null)
     {
         var renderer = Renderer;
         renderer.SetAtmosphere(look); // before the meshing: a change of light band is noticed by this frame's Remesh
         var channels = _session.Simulation.Atmosphere.Channels;
         renderer.SetPrecipitation(new PrecipitationState(channels.PrecipitationKind, channels.PrecipitationIntensity, channels.Wind)); // the rain's pass reads the channels, never a kind's id (E06)
         _colours!.Refresh();
-        renderer.Remesh(camera.Eye, camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
+        if (_streaming is { } streaming)
+        {
+            // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
+            var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
+            var phaseStart = MonotonicClock.Milliseconds();
+            if (_options.IsScreenshotRun && !_options.NoSettle)
+            {
+                _ = streaming.Settle(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
+            }
+            else
+            {
+                streaming.Update(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
+            }
+
+            _streamTimes.Record(MonotonicClock.Milliseconds() - phaseStart);
+        }
+
+        var remeshStart = MonotonicClock.Milliseconds();
+        renderer.Remesh(camera.Eye, camera.Frustum, _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
+        _remeshTimes.Record(MonotonicClock.Milliseconds() - remeshStart);
         AdvanceUnderwater(camera);
         var amount = (float)_underwater.Amount;
         renderer.SetUnderwater(amount);
@@ -196,6 +244,7 @@ public sealed class SceneDrawer : IDisposable
     public void Dispose()
     {
         _underwaterPass?.Dispose();
+        _streaming?.Dispose();
         _renderer?.Dispose();
         _waterTextures?.Dispose();
         _blockAtlas?.Dispose();

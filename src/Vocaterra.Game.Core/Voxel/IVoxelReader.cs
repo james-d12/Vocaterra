@@ -25,6 +25,11 @@ public interface IVoxelReader
     /// <summary>Whether a body's box collides with the cell: a solid block, or the space just above a tall block.</summary>
     bool BlocksBody(int x, int y, int z);
 
+    /// <summary>Whether the invisible wall for the body (<see cref="BodyBarrier"/>) stands in the column now: a cell there blocks a body whatever it holds, lava included. A reader with no wall answers no.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    bool IsWalled(int x, int z) => false;
+
     /// <summary>Whether a body can stand on the block at the position.</summary>
     bool CanStandOn(int x, int y, int z);
 

@@ -80,4 +80,55 @@ public sealed class CompositeChunkSource : IChunkSource
 
         return chunks;
     }
+
+    /// <summary>
+    /// Some layers of a chunk column, from the lowest asked for up (B07), sharing one window for the procedural part and decorating only those layers (the underground's caves make the other layers dear).
+    /// Each chunk equals what <see cref="Generate"/> gives for its coordinates.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    {
+        var first = Math.Max(minLayer, MinChunkY);
+        var last = Math.Min(maxLayer, MaxChunkY - 1);
+        if (last < first)
+        {
+            return [];
+        }
+
+        var owner = _regions.ColumnOwner(chunkX, chunkZ);
+        var chunks = new ChunkData[last - first + 1];
+        // Where a region owns the column only the layers under it come from the procedural world; the window is made for those alone.
+        IReadOnlyList<ChunkData>? below = null;
+        var belowLast = owner is null ? last : Math.Min(last, owner.Bounds.MinChunkY - 1);
+        if (belowLast >= first)
+        {
+            below = _procedural.GenerateLayers(chunkX, chunkZ, first, belowLast);
+        }
+
+        for (var i = 0; i < chunks.Length; i++)
+        {
+            var coord = new VoxelChunkCoord(chunkX, first + i, chunkZ);
+            if (owner is null)
+            {
+                chunks[i] = below![i];
+            }
+            else if (owner.Covers(coord))
+            {
+                chunks[i] = owner.Copy(coord);
+            }
+            else if (coord.Y >= owner.Bounds.EndChunkY)
+            {
+                chunks[i] = ChunkData.Empty(coord);
+            }
+            else
+            {
+                chunks[i] = below![i];
+            }
+        }
+
+        return chunks;
+    }
 }

@@ -69,6 +69,7 @@ public sealed class VoxelGrid : IVoxelWriter
         _limits = source._limits;
         _streamed = source._streamed;
         _generator = source._generator;
+        Barrier = source.Barrier is { } wall ? new BodyBarrier(wall.MinX, wall.MinZ, wall.MaxX, wall.MaxZ) { Locked = wall.Locked } : null;
         EditCount = source.EditCount;
         ResidencyVersion = source.ResidencyVersion;
         _digest = source._digest;
@@ -123,6 +124,9 @@ public sealed class VoxelGrid : IVoxelWriter
     /// reader that polls compares it with the value it last saw; <see cref="IChunkResidencyListener"/> says which chunk.
     /// </summary>
     public long ResidencyVersion { get; private set; }
+
+    /// <summary>The coordinates of the resident chunks (a live view, in no fixed order): a reader on the game loop's thread walks it without copying, and never while a chunk is installed or evicted.</summary>
+    public IReadOnlyCollection<VoxelChunkCoord> ResidentChunks => _chunks.Keys;
 
     /// <summary>How many chunks are resident (allocated, even if only to say that they hold air).</summary>
     public int ResidentChunkCount => _chunks.Count;
@@ -193,7 +197,13 @@ public sealed class VoxelGrid : IVoxelWriter
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
     /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+
+    /// <inheritdoc />
+    public bool IsWalled(int x, int z) => Barrier is { } barrier && barrier.Blocks(x, z);
+
+    /// <summary>The invisible wall a body cannot cross while it is locked (<see cref="BodyBarrier"/>), or <see langword="null"/> for none (a bounded grid has its limits). Only <see cref="BlocksBody"/> reads it.</summary>
+    public BodyBarrier? Barrier { get; internal set; }
 
     /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
     public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
@@ -398,6 +408,9 @@ public sealed class VoxelGrid : IVoxelWriter
 
         return true;
     }
+
+    /// <summary>The resident chunks' coordinates in no fixed order (a snapshot), for a host's residency driver (<see cref="World.Streaming.GridResidency"/>); the simulation never enumerates them.</summary>
+    internal List<VoxelChunkCoord> ResidentCoordinateList() => new(_chunks.Keys);
 
     /// <summary>The resident chunks' coordinates in a fixed order (layer, then row, then column), for the streamer's policy; the simulation never enumerates them.</summary>
     internal List<VoxelChunkCoord> ResidentCoordinates()

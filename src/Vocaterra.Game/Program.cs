@@ -85,7 +85,8 @@ try
     }
 
     sceneLayout = layout;
-    Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, WorldMode.Bounded, layout);
+    var worldMode = options.World == WorldChoice.Valley ? WorldMode.Bounded : WorldMode.Streamed; // B07: the streamed tall world by default, --world valley keeps the bounded valley
+    Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, worldMode, layout);
     if (options.LoadPath is { } loadPath)
     {
         // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.

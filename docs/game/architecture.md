@@ -171,11 +171,13 @@ Flow/             SessionStart, SessionEndingFlow (they read the wall clock, D-p
 Input/            InputDevices, InputSnapshot (it implements IInputFrame), KeyMap (Keys to GameKey, one table), MouseLook, WorldInput
 Sound/            SoundEffectOutput, DynamicSoundOutput, MicrophoneCapture
 Scripted/         ScriptedRunEnd (it saves the pictures)
+Streaming/        JobPool (the only worker threads: at most two, residency before tiles), ChunkResidency (plans, makes, installs and drops the voxel chunks of a streamed world), ColumnBandCache, StreamedWorldHost (B07: the pool, the residency and the far view behind SceneDrawer.Streaming)
 Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
   Camera/         FirstPersonCamera, PlayerCamera, CameraEase, ViewMath (CameraBasis, EdgeArrow), PlayerView
   Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
   World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, ChunkLightIndex, MeshVertex, OverlayMeshes, Greyscale (B04b: the renderer, tracker, view set, light index and
                   rain cover are keyed by VoxelChunkCoord, read by peeking (TryGetChunk, PeekBlock; nothing is generated for the picture) and listen to residency and block changes)
+  Far/            FarViewSettings, FarTileKey, FarTileSelector (a quadtree of level-of-detail tiles), FarTileMesher, FarTileTopology, FarPalette, FarView (tiles cached by key, built on the workers), FarTerrainRenderer (B07: the far land in a pass of its own, drawn after the sky and before the chunks, with its own depth range)
   Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
   Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe (the five keyframes: noon, golden, twilight, night, deep night), SkyBlend (their weights by the phase, the daylight and the sun's height), SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
@@ -318,6 +320,13 @@ fails on any quoted kind id under `src/` outside `WeatherData.cs`, and `TheAllow
 exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and the ambient bed's name for rain. A new weather that reuses the channels is
 a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
 `systems.atmosphere` entry (`saves.md`).
+
+## The streamed world: threads and render passes (B07)
+
+The game starts in the streamed tall world (`--world valley` keeps the bounded valley). Two things change the picture of the layers.
+
+- **Threads** (only in `Vocaterra.Game`, `Streaming/JobPool`): at most two worker threads in all, shared by the chunk prefetcher and the far view's tile builds, on top of the game loop's own thread and the turn worker that owns Vosk. A worker runs a pure computation over `StreamedWorld` (the composite source, the surface bands, the far sampler) and hands the result to a queue; only the game loop touches `VoxelGrid` (`GridResidency.Install` and `TryEvict`), the renderer and the simulation. Residency never changes a result: a test runs one walk and the same edits under two policies, with workers and without, and gets one state digest and one save.
+- **Render passes** (`SceneDrawer.DrawWorld`): the sky; then the far pass (`FarTerrainRenderer`: level-of-detail land tiles with their own projection, a near plane of 12 blocks and the range as the far plane, the haze shared with the chunks) and a depth clear; then the voxel pass as before (the opaque chunks, the undergrowth, the glow, the figures, the water, the rain, the beacon, the arm), whose far plane now covers the world's height (`FarPlaneFor(view, 384)`). The residency and the far view are updated before `Remesh`, within a small frame budget (a scripted run settles instead).
 
 ## The settlement series (Y00 to Y13): where to look
 

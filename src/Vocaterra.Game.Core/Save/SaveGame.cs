@@ -414,6 +414,7 @@ public static class SaveGame
         session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 7 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
         session.Pass.Restore(document.PassOpen); // B08b: an open pass stays open; its rockfall's blocks are in the world's edits
+        session.SyncPassBarrier(); // B07: the edge wall follows the restored lock
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }
 

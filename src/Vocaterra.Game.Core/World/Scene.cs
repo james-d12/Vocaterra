@@ -69,6 +69,7 @@ public sealed class Scene
         Places = source.Places;
         TemplateDigest = source.TemplateDigest;
         ChunkSource = source.ChunkSource;
+        Streaming = source.Streaming;
     }
 
     private readonly Dictionary<BlockPos, string> _propOf;
@@ -135,9 +136,12 @@ public sealed class Scene
     /// <summary>The pure source of the streamed world's chunks, or <see langword="null"/> for a bounded scene.</summary>
     public IChunkSource? ChunkSource { get; private init; }
 
+    /// <summary>The pure parts a host drives a streamed world's residency and far view from (B07), or <see langword="null"/> for a bounded scene.</summary>
+    public StreamedWorld? Streaming { get; private init; }
+
     /// <summary>A scene like this one on another grid, with the world's place query, template digest and chunk source set (<see cref="WorldFactory"/>).</summary>
-    internal Scene WithWorld(VoxelGrid grid, IPlaceInfo places, byte[] templateDigest, IChunkSource? source) =>
-        new(this, grid) { Places = places, TemplateDigest = templateDigest, ChunkSource = source };
+    internal Scene WithWorld(VoxelGrid grid, IPlaceInfo places, byte[] templateDigest, IChunkSource? source, StreamedWorld? streaming = null) =>
+        new(this, grid) { Places = places, TemplateDigest = templateDigest, ChunkSource = source, Streaming = streaming };
 
     /// <summary>The layout's name.</summary>
     public string Name { get; }

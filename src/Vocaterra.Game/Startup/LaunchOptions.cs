@@ -82,6 +82,11 @@ public sealed record LaunchOptions
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
         + "                          Off by default, kept in a save's settings\n"
+        + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
+        + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
+        + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
+        + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
+        + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
         + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
         + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
@@ -194,6 +199,15 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
     public bool RelaxedNeeds { get; init; }
+
+    /// <summary>Which world the run plays in (<c>--world</c>, B07): the streamed tall world by default, or the bounded valley alone.</summary>
+    public WorldChoice World { get; init; } = WorldChoice.Streamed;
+
+    /// <summary>The worker threads of <c>--prefetch</c> (0 to 2), or <see langword="null"/> for the default of two.</summary>
+    public int? Prefetch { get; init; }
+
+    /// <summary>The far view's range in blocks from <c>--far-view</c> (0 for <c>off</c>), or <see langword="null"/> for the quality preset's.</summary>
+    public int? FarViewRange { get; init; }
 
     /// <summary>Whether <c>--pass open</c> was given: the pass cheat is on for the run (B08b), so the pass through the east ring is open from the start. The settings menu has the same switch.</summary>
     public bool PassOpen { get; init; }
@@ -415,6 +429,12 @@ public sealed record LaunchOptions
     /// </summary>
     public bool Dev { get; init; }
 
+    /// <summary>Whether <c>--stream-stats</c> was given: a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of their own (B07). They are left out otherwise, so the compared output of a run does not hold them.</summary>
+    public bool StreamStats { get; init; }
+
+    /// <summary>Whether <c>--no-settle</c> was given: a scripted run streams the world as a live one does (a few chunks and tiles a frame, the far land standing in), and does not wait for everything to be in place before a picture (B07, a test aid for the live path).</summary>
+    public bool NoSettle { get; init; }
+
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
 
@@ -501,6 +521,8 @@ public sealed record LaunchOptions
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
         var dev = false;
+        var streamStats = false;
+        var noSettle = false;
         var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
@@ -513,7 +535,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle")
             {
                 switch (arg)
                 {
@@ -603,6 +625,12 @@ public sealed record LaunchOptions
                     case "--dev":
                         dev = true;
                         break;
+                    case "--stream-stats":
+                        streamStats = true;
+                        break;
+                    case "--no-settle":
+                        noSettle = true;
+                        break;
                     case "--playtest":
                         playtest = true;
                         break;
@@ -664,7 +692,7 @@ public sealed record LaunchOptions
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--needs-rate" or "--station" or "--station-say" or "--act"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -858,6 +886,40 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { NeedsRate = needsRate };
+                    break;
+                case "--world":
+                    if (WorldChoices.Parse(value) is not { } world)
+                    {
+                        error = $"--world needs {WorldChoices.Names}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { World = world };
+                    break;
+                case "--prefetch":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var prefetch) || prefetch > 2)
+                    {
+                        error = $"--prefetch needs 0, 1 or 2, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Prefetch = prefetch };
+                    break;
+                case "--far-view":
+                    if (value == "off")
+                    {
+                        result = result with { FarViewRange = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var farRange) && farRange is >= 256 and <= 65536)
+                    {
+                        result = result with { FarViewRange = farRange };
+                    }
+                    else
+                    {
+                        error = $"--far-view needs off or a range from 256 to 65536 blocks, got '{value}'.";
+                        return false;
+                    }
+
                     break;
                 case "--pass":
                     if (value != "open")
@@ -1432,6 +1494,8 @@ public sealed record LaunchOptions
         {
             Playtest = playtest,
             Dev = dev,
+            StreamStats = streamStats,
+            NoSettle = noSettle,
             Lodging = lodging,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
