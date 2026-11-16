@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Needs;
@@ -98,9 +99,27 @@ public sealed record NeedFood(string Item, double Hunger, double Thirst, double 
 /// <param name="Hunger">Hunger on waking.</param>
 /// <param name="Thirst">Thirst on waking.</param>
 /// <param name="Sleep">Sleep on waking.</param>
-/// <param name="KeepInBag">What stays in the bag (<c>stacksOfOne</c>).</param>
+/// <param name="KeepInBag">What stays in the bag (<see cref="StacksOfOne"/>); <see cref="Keeps"/> reads it. The loader refuses a value it does not know.</param>
 /// <param name="ChestLastsUntil">When the chest goes (<c>night</c>).</param>
-public sealed record DeathSpec(string WakeAt, double Health, double Hunger, double Thirst, double Sleep, string KeepInBag, string ChestLastsUntil);
+public sealed record DeathSpec(string WakeAt, double Health, double Hunger, double Thirst, double Sleep, string KeepInBag, string ChestLastsUntil)
+{
+    /// <summary>The <see cref="KeepInBag"/> rule of the first game: the items that stack to one (tools, gear, bags) stay in their slots; every stackable goes to the chest. Worn items and the worn bag are not in the bag and always stay.</summary>
+    public const string StacksOfOne = "stacksOfOne";
+
+    /// <summary>The values of <see cref="KeepInBag"/> the code knows.</summary>
+    public static IReadOnlyList<string> KnownKeepRules { get; } = [StacksOfOne];
+
+    /// <summary>Whether a stack of <paramref name="item"/> stays in the bag at a death under <see cref="KeepInBag"/> (the rest goes to the belongings chest).</summary>
+    /// <param name="item">The item's definition.</param>
+    /// <exception cref="InvalidOperationException">The rule is one the code does not know (the loader refuses that, so only a hand-built spec gets here).</exception>
+    public bool Keeps(ItemDefinition item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return string.Equals(KeepInBag, StacksOfOne, StringComparison.Ordinal)
+            ? item.MaxStack == 1
+            : throw new InvalidOperationException($"The death rule keepInBag '{KeepInBag}' is not one of {string.Join(", ", KnownKeepRules)}.");
+    }
+}
 
 /// <summary>
 /// A place where the player can sleep (Y01, <c>game/needs.json</c>'s <c>sleepPlaces</c>; not <see cref="RestSpec"/>, which is resting by a lit fire): a fire is usable while its ring burns, a bed
@@ -254,6 +273,12 @@ public sealed record NeedsData(
             var collapse = root.GetProperty("collapse");
             var death = root.GetProperty("death");
             var wake = death.GetProperty("wake");
+            var keepInBag = Text(death, "keepInBag");
+            if (!DeathSpec.KnownKeepRules.Contains(keepInBag, StringComparer.Ordinal))
+            {
+                throw new InvalidDataException($"{RelativePath}: death.keepInBag is '{keepInBag}'; the rules are {string.Join(", ", DeathSpec.KnownKeepRules)}.");
+            }
+
             return new NeedsData(
                 [DriveOf(Drive.Hunger, drives, "hunger"), DriveOf(Drive.Thirst, drives, "thirst"), DriveOf(Drive.Sleep, drives, "sleep")],
                 new HealthSpec(Text(health, "detail"), Number(health, "recoverySeconds"), health.GetProperty("warnings").EnumerateArray().Select(StageOf).ToList()),
@@ -267,7 +292,7 @@ public sealed record NeedsData(
                 Number(collapse, "delaySeconds"),
                 Number(root.GetProperty("drinkByHand"), "thirst"),
                 root.GetProperty("foods").EnumerateArray().Select(FoodOf).ToList(),
-                new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), Text(death, "keepInBag"), Text(death, "chestLastsUntil")),
+                new DeathSpec(Text(death, "wakeAt"), Number(wake, "health"), Number(wake, "hunger"), Number(wake, "thirst"), Number(wake, "sleep"), keepInBag, Text(death, "chestLastsUntil")),
                 root.GetProperty("sleepPlaces").EnumerateArray().Select(static p => new SleepPlaceSpec(
                     Text(p, "id"), Text(p, "point"), Text(p, "kind"), (int)Number(p, "radiusBlocks"), (int)Number(p, "heightBlocks"), Text(p, "access"))).ToList(),
                 root.TryGetProperty("regrowth", out var regrowth) ? regrowth.EnumerateArray().Select(static r => new RegrowRule(Text(r, "block"), Text(r, "after"))).ToList() : [],
