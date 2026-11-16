@@ -159,7 +159,7 @@ public sealed class SceneDrawer : IDisposable
     /// picture; a live one spends its budget a frame, more while the world is still loading in), and the world, the target block, the beacon and
     /// the player's figure or arm are drawn. The sky, the fog and the world's light follow the look of the moment (E02).
     /// </summary>
-    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look)
+    public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look, Vector3? streamEye = null)
     {
         var renderer = Renderer;
         renderer.SetAtmosphere(look); // before the meshing: a change of light band is noticed by this frame's Remesh
@@ -169,7 +169,7 @@ public sealed class SceneDrawer : IDisposable
         if (_streaming is { } streaming)
         {
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
-            var eye = camera.Eye;
+            var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
             var phaseStart = MonotonicClock.Milliseconds();
             if (_options.IsScreenshotRun && !_options.NoSettle)
             {

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
@@ -126,5 +127,36 @@ public sealed class BodyBarrierTests
         Assert.True(barrier.Locked);
         Assert.Equal((0, 0, 383, 383), (barrier.MinX, barrier.MinZ, barrier.MaxX, barrier.MaxZ));
         Assert.NotNull(scene.Streaming);
+    }
+
+    [Fact]
+    public void Given_LavaOutsideTheLockedWall_When_ABodyWalksIntoIt_Then_TheWallStopsItAndOnceTheWallIsLiftedItSinksIn()
+    {
+        var grid = RegionTestWorld.StreamedScene().Grid;
+        grid.Barrier!.Locked = false; // the ground is found with the wall down, then it goes up again
+        var inside = GroundFinder.StandingAt(grid, 382, 208)!.Value;
+        var outside = GroundFinder.StandingAt(grid, 384, 208)!.Value;
+        var beyond = GroundFinder.StandingAt(grid, 385, 208)!.Value;
+        Assert.True(Math.Abs(outside.Y - inside.Y) <= 1 && Math.Abs(beyond.Y - outside.Y) <= 1, "the road is a ramp the body can walk");
+        foreach (var cell in new[] { outside, beyond })
+        {
+            for (var dy = 0; dy < 3; dy++)
+            {
+                Assert.True(grid.SetBlock(cell.X, cell.Y + dy, 208, BlockId.Lava)); // the first cells outside the valley's footprint, filled with lava over the ground
+            }
+        }
+
+        grid.Barrier.Locked = true;
+
+        // A body's box inside the lava just outside the wall: free of the world's blocks (lava does not stop a moving body), but the wall stops it, so it may not be there while the wall stands.
+        var x = (384 * U) + ((U - VoxelPhysics.PlayerWidth) / 2);
+        var z = (208 * U) + ((U - VoxelPhysics.PlayerWidth) / 2);
+        Assert.False(VoxelCollider.IsFree(grid, x, outside.Y * U, z), "the wall stops the body in lava outside it");
+        Assert.True(grid.IsWalled(384, 208));
+
+        grid.Barrier.Locked = false;
+
+        Assert.False(grid.IsWalled(384, 208));
+        Assert.True(VoxelCollider.IsFree(grid, x, outside.Y * U, z), "with the wall lifted the lava is only lava: nothing stops the body, which sinks in");
     }
 }

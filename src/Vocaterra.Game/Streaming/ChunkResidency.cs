@@ -29,6 +29,9 @@ public sealed class ChunkResidency
     private const int MaxSubmitsPerFrame = 48;
     private const int MaxInFlight = 16;
     private const int MaxEvictionsPerFrame = 400;
+    /// <summary>How many columns round the player's own must be resident before the simulation runs (see <see cref="IsNearReady"/>).</summary>
+    public const int NearReadyRadius = 2;
+
     private const int RescanFrames = 20;
     private const int PartialPlanFrames = 12;
     private const long NearPlanRadiusSquared = 10 * 10;
@@ -98,6 +101,36 @@ public sealed class ChunkResidency
 
     /// <summary>Whether everything the plan wants is resident, nothing is being made and nothing is left to drop: what a scripted run waits for before a picture.</summary>
     public bool IsSettled => _planNow is { } plan && !_planDue && _inFlight.Count == 0 && _done.IsEmpty && _cursor >= plan.Columns.Count && _evictCursor >= _evictions.Count;
+
+    /// <summary>
+    /// Whether the chunks under and round a place are resident: the plan is for the chunk column the place is in and every column within <see cref="NearReadyRadius"/> of it holds what the plan wants of it. The game
+    /// holds the simulation while this is false (a start, a jump), so the body never stands on, or reads, a world the residency has not made, and no frame has to generate it on the game loop's thread.
+    /// </summary>
+    /// <param name="x">The place's x in blocks.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    public bool IsNearReady(float x, float y, float z)
+    {
+        var plan = _planNow;
+        var chunk = VoxelChunkCoord.FromBlock((int)MathF.Floor(x), (int)MathF.Floor(y), (int)MathF.Floor(z));
+        if (plan is null || plan.Player.X != chunk.X || plan.Player.Z != chunk.Z)
+        {
+            return false;
+        }
+
+        for (var dz = -NearReadyRadius; dz <= NearReadyRadius; dz++)
+        {
+            for (var dx = -NearReadyRadius; dx <= NearReadyRadius; dx++)
+            {
+                if (plan.TryGetLayers(chunk.X + dx, chunk.Z + dz, out var min, out var max) && !AllResident(new WantedColumn(chunk.X + dx, chunk.Z + dz, min, max)))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 
     /// <summary>What the driver has done.</summary>
     public ResidencyStats Stats => new(_grid.ResidentChunkCount, _planNow?.Columns.Count ?? 0, _inFlight.Count, _installed, _evicted, _dropped, _plans, Interlocked.Read(ref _generateMicroseconds) / 1000.0);

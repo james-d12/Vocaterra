@@ -704,6 +704,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             steps = 0; // the world does not run while the check battery is on (its time is not the game's)
         }
 
+        if (_drawer.Streaming is { } streaming && !streaming.IsReadyAround(_camera.CurrentEye.X, _camera.CurrentEye.Y, _camera.CurrentEye.Z))
+        {
+            steps = 0; // a start or a jump: the world round the player is still being made, so the body waits for it (the frames go on and draw it filling in; B07)
+        }
+
         steps = _report.Gate(steps); // no tick passes while the report panel is open (S21)
         for (var i = 0; i < steps && !_report.Paused; i++)
         {
@@ -803,7 +808,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
-        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look);
+        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 

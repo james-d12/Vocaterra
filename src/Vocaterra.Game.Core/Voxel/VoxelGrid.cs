@@ -197,7 +197,10 @@ public sealed class VoxelGrid : IVoxelWriter
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
     /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => (Barrier is { } barrier && barrier.Blocks(x, z)) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+
+    /// <inheritdoc />
+    public bool IsWalled(int x, int z) => Barrier is { } barrier && barrier.Blocks(x, z);
 
     /// <summary>The invisible wall a body cannot cross while it is locked (<see cref="BodyBarrier"/>), or <see langword="null"/> for none (a bounded grid has its limits). Only <see cref="BlocksBody"/> reads it.</summary>
     public BodyBarrier? Barrier { get; internal set; }

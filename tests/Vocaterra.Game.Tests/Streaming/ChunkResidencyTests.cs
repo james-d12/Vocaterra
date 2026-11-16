@@ -183,6 +183,26 @@ public sealed class ChunkResidencyTests
         Assert.All(residency.Plan.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
     }
 
+    [Fact]
+    public void Given_AStartAndAJump_When_TheWorldRoundThePlayerIsAsked_Then_ItIsReadyOnlyOnceThePlanIsForThePlaceAndTheNearColumnsAreResident()
+    {
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(0);
+        var residency = Make(scene, pool);
+        var (x, y, z) = Eye(scene);
+
+        Assert.False(residency.IsNearReady(x, y, z), "nothing is planned yet: the simulation waits");
+        Assert.True(residency.Settle(x, y, z));
+        Assert.True(residency.IsNearReady(x, y, z));
+        Assert.False(residency.IsNearReady(x + 700, y, z), "a jump: the plan is for the old place");
+
+        residency.Update(x + 700, y, z, 0.0);
+        Assert.False(residency.IsNearReady(x + 700, y, z), "the plan is made but its near columns are not all made yet");
+        Assert.True(residency.Settle(x + 700, y, z));
+        Assert.True(residency.IsNearReady(x + 700, y, z));
+        Assert.True(scene.Grid.IsResident(VoxelChunkCoord.FromBlock((int)(x + 700), (int)y, (int)z)) || residency.Plan!.TryGetLayers(((int)(x + 700)) >> 4, ((int)z) >> 4, out _, out _));
+    }
+
     private sealed class ThreadRecorder : IChunkResidencyListener
     {
         public HashSet<int> Threads { get; } = [];

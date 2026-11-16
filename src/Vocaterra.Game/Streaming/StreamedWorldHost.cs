@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Streaming;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.Far;
 
@@ -19,11 +20,15 @@ public sealed class StreamedWorldHost : IDisposable
     /// <summary>The most time an interactive frame spends installing what the workers made.</summary>
     public const double InstallBudgetMilliseconds = 1.5;
 
+    /// <summary>The longest the simulation waits for the world round the player (a start or a jump), in milliseconds.</summary>
+    public const double HoldLimitMilliseconds = 10_000;
+
     private readonly StreamedWorld _world;
     private readonly VoxelGrid _grid;
     private readonly IPlaceInfo? _places;
     private readonly JobPool _pool;
     private ChunkResidency _residency;
+    private double _heldSince = double.NaN;
     private int _viewDistance;
 
     private StreamedWorldHost(Scene scene, QualityPreset preset, int workers)
@@ -64,6 +69,23 @@ public sealed class StreamedWorldHost : IDisposable
 
     /// <summary>The far view's tiles.</summary>
     public FarView Far { get; }
+
+    /// <summary>Whether the world round a place is made, so the simulation may run there (<see cref="ChunkResidency.IsNearReady"/>); true after <see cref="HoldLimitMilliseconds"/> of waiting, so a world that cannot be made never freezes the game.</summary>
+    /// <param name="x">The place's x.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    public bool IsReadyAround(float x, float y, float z)
+    {
+        if (_residency.IsNearReady(x, y, z))
+        {
+            _heldSince = double.NaN;
+            return true;
+        }
+
+        var now = MonotonicClock.Milliseconds();
+        _heldSince = double.IsNaN(_heldSince) ? now : _heldSince;
+        return now - _heldSince > HoldLimitMilliseconds;
+    }
 
     /// <summary>Takes another quality: the residency's radii and the far range follow.</summary>
     /// <param name="preset">The preset.</param>

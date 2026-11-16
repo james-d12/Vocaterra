@@ -102,8 +102,9 @@ internal static class VoxelCollider
     }
 
     // The body's collision: BlocksBody for planning (it includes lava, so a walk is never routed through it), but a moving body sinks into lava (B10b).
+    // The wall at the valley's edge (B07) stops the body whatever the cell holds, lava included.
     private static bool Collides(IVoxelReader grid, int x, int y, int z) =>
-        grid.BlocksBody(x, y, z) && !BlockDefinition.StopsBodyOf(grid.GetBlock(x, y, z));
+        grid.IsWalled(x, z) || (grid.BlocksBody(x, y, z) && !BlockDefinition.StopsBodyOf(grid.GetBlock(x, y, z)));
 
     private static bool Blocked(IVoxelReader grid, int axis, int cell, int lo1, int hi1, int lo2, int hi2)
     {
