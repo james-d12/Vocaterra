@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Diagnostics;
+using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Graphics.Far;
 
@@ -143,7 +145,8 @@ public static class FarTileMesher
     /// <param name="sampler">The land.</param>
     /// <param name="settings">The far view's settings (the cells and the tile's size).</param>
     /// <param name="key">The tile.</param>
-    public static FarTileMesh Build(FarTerrainSampler sampler, FarViewSettings settings, FarTileKey key)
+    /// <param name="greyKinds">The block kinds drawn grey (the greyscale view, <see cref="ChunkMesher.KindBit"/>): the land they make is drawn grey from afar too, so the seam with the chunks has one colour.</param>
+    public static FarTileMesh Build(FarTerrainSampler sampler, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default)
     {
         ArgumentNullException.ThrowIfNull(sampler);
         ArgumentNullException.ThrowIfNull(settings);
@@ -170,9 +173,10 @@ public static class FarTileMesher
                 var y = Surface(i, j);
                 var slopeX = (Surface(i + 1, j) - Surface(i - 1, j)) / (2f * cell);
                 var slopeZ = (Surface(i, j + 1) - Surface(i, j - 1)) / (2f * cell);
-                var up = sample.IsWater ? 1f : 1f / MathF.Sqrt(1f + (slopeX * slopeX) + (slopeZ * slopeZ));
-                var shade = 0.5f + (0.5f * up);
-                vertices[FarTileTopology.Land(n, i, j)] = new VertexPositionColor(new Vector3(x0 + (i * cell), y, z0 + (j * cell)), ColourOf(sample, shade));
+                // The light is the one the chunks' faces take (ChunkMesher.SunTintFor): a flat top is the top of a block, a slope turns towards or away from the sun like a side face does.
+                var length = MathF.Sqrt(1f + (slopeX * slopeX) + (slopeZ * slopeZ));
+                var light = sample.IsWater ? ChunkMesher.SunTintFor(0f, 1f, 0f) : ChunkMesher.SunTintFor(-slopeX / length, 1f / length, -slopeZ / length);
+                vertices[FarTileTopology.Land(n, i, j)] = new VertexPositionColor(new Vector3(x0 + (i * cell), y, z0 + (j * cell)), ColourOf(sample, light, greyKinds));
                 minY = Math.Min(minY, y);
                 maxY = Math.Max(maxY, y);
             }
@@ -194,19 +198,32 @@ public static class FarTileMesher
         return new FarTileMesh(key, vertices, box, MonotonicClock.Milliseconds() - started);
     }
 
-    /// <summary>The colour of a column shaded by <paramref name="shade"/>: its top block's, the sea's under water, white under snow, mixed with the leaves' by the forest on it.</summary>
+    /// <summary>The colour of a column in a light: its top block's, the sea's under water, white under snow, mixed with the leaves' by the forest on it, grey where the greyscale view has the block grey.</summary>
     /// <param name="sample">The column.</param>
-    /// <param name="shade">The light on it, 0 to 1.</param>
-    public static Color ColourOf(FarSample sample, float shade)
+    /// <param name="light">The light on it, the multiplier of each channel (<see cref="ChunkMesher.SunTintFor"/>).</param>
+    /// <param name="greyKinds">The block kinds drawn grey.</param>
+    public static Color ColourOf(FarSample sample, (float R, float G, float B) light, UInt128 greyKinds = default)
     {
-        var (r, g, b) = sample.IsWater ? FarPalette.Water : FarPalette.Of(sample.Top);
+        var (r, g, b) = Of(sample.IsWater ? BlockId.Water : sample.Top, greyKinds);
         if (!sample.IsWater && !sample.Snow && sample.Forest > 0)
         {
-            var (lr, lg, lb) = FarPalette.Leaves;
+            var (lr, lg, lb) = Of(BlockId.Leaves, greyKinds);
             var t = (float)(ForestShare * sample.Forest / 100.0);
             (r, g, b) = ((byte)(r + ((lr - r) * t)), (byte)(g + ((lg - g) * t)), (byte)(b + ((lb - b) * t)));
         }
 
-        return new Color((byte)(r * shade), (byte)(g * shade), (byte)(b * shade), (byte)255);
+        return new Color((byte)Math.Min(255f, r * light.R), (byte)Math.Min(255f, g * light.G), (byte)Math.Min(255f, b * light.B), (byte)255);
+    }
+
+    private static (byte R, byte G, byte B) Of(BlockId block, UInt128 greyKinds)
+    {
+        var (r, g, b) = FarPalette.Of(block);
+        if (!ChunkMesher.IsGrey(block, greyKinds))
+        {
+            return (r, g, b);
+        }
+
+        var luma = Greyscale.Luma(r, g, b);
+        return (luma, luma, luma);
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Graphics.Far;
+using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Tests.Streaming;
 using Xunit.Abstractions;
 
@@ -176,19 +177,48 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_AColumn_When_ItIsColoured_Then_SnowIsWhiteAndForestGreensTheGround()
+    public void Given_AColumn_When_ItIsColoured_Then_SnowIsWhiteForestGreensTheGroundAndTheLightIsTheChunksOwn()
     {
         var meadow = new FarSample(70, -1, Vocaterra.Game.Core.Voxel.BlockId.Grass, false, 0);
         var forest = meadow with { Forest = 100 };
         var snow = new FarSample(250, -1, Vocaterra.Game.Core.Voxel.BlockId.Snow, true, 0);
+        var top = ChunkMesher.SunTintFor(0f, 1f, 0f);
+        var away = ChunkMesher.SunTintFor(0.7f, 0.7f, 0.1f);
 
-        var plain = FarTileMesher.ColourOf(meadow, 1f);
-        var wooded = FarTileMesher.ColourOf(forest, 1f);
-        var white = FarTileMesher.ColourOf(snow, 1f);
+        var plain = FarTileMesher.ColourOf(meadow, top);
+        var wooded = FarTileMesher.ColourOf(forest, top);
+        var white = FarTileMesher.ColourOf(snow, top);
 
         Assert.NotEqual(plain, wooded);
         Assert.True(white.R > 200 && white.G > 200 && white.B > 200);
-        Assert.True(FarTileMesher.ColourOf(meadow, 0.5f).G < plain.G);
+        Assert.True(FarTileMesher.ColourOf(meadow, away).R < plain.R, "a slope turned from the sun is darker, as a side face of a block is");
         Assert.Equal(255, plain.A);
+    }
+
+    [Fact]
+    public void Given_ABlockDrawnGreyInTheChunks_When_ItsLandIsColoured_Then_TheFarLandIsGreyToo()
+    {
+        var meadow = new FarSample(70, -1, Vocaterra.Game.Core.Voxel.BlockId.Grass, false, 0);
+        var top = (1f, 1f, 1f);
+
+        var colour = FarTileMesher.ColourOf(meadow, top);
+        var grey = FarTileMesher.ColourOf(meadow, top, ChunkMesher.KindBit(Vocaterra.Game.Core.Voxel.BlockId.Grass));
+        var other = FarTileMesher.ColourOf(meadow, top, ChunkMesher.KindBit(Vocaterra.Game.Core.Voxel.BlockId.Sand));
+
+        Assert.True(colour.G > colour.R && colour.G > colour.B);
+        Assert.True(grey.R == grey.G && grey.G == grey.B);
+        Assert.Equal(colour, other);
+    }
+
+    [Fact]
+    public void Given_ATileBuiltGreyAndInColour_When_TheyAreCompared_Then_OnlyTheColoursDifferAndTheShapeIsTheSame()
+    {
+        var key = Tile(1);
+        var colour = FarTileMesher.Build(Sampler, Settings, key);
+        var grey = FarTileMesher.Build(Sampler, Settings, key, ~UInt128.Zero);
+
+        Assert.Equal(colour.Vertices.Select(static v => v.Position), grey.Vertices.Select(static v => v.Position));
+        Assert.All(grey.Vertices, v => Assert.True(v.Color.R == v.Color.G || Math.Abs(v.Color.R - v.Color.G) <= 40)); // light tints the channels a little differently
+        Assert.NotEqual(colour.Vertices.Select(static v => v.Color), grey.Vertices.Select(static v => v.Color));
     }
 }

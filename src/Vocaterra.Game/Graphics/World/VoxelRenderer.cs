@@ -361,8 +361,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         return MathF.Sqrt((across * across) + ((float)worldHeight * worldHeight)) + VoxelChunk.Size;
     }
 
-    /// <summary>The share of the fog's end where the haze starts when the far view is on: the near land stays clear and the far land fades over most of its range.</summary>
-    public const float FarFogStartFraction = 0.35f;
+    /// <summary>The share of the fog's end where the haze starts when the far view is on (B07): the voxel land stays clear (at the high preset the haze starts at a kilometre, past the chunks) and the far land fades over almost all of its range, 30 percent at 5 km and 60 percent at 10 km of 16, to the sky's own colour at the end, so the far edge is no line.</summary>
+    public const float FarFogStartFraction = 0.06f;
 
     /// <summary>
     /// Where the haze is complete when the far view reaches <paramref name="range"/> blocks (B07): the range itself in clear weather, so the far land fades into the sky colour as it ends, and the
@@ -391,6 +391,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     public void SetFarView(FarView? far)
     {
         _far = far;
+        far?.SetGreyKinds(_tracker.GreyKinds, FarTerrainRenderer.Release);
         var range = far is { Settings.Enabled: true } ? far.Settings.Range : 0;
         _farRenderer ??= far is null ? null : new FarTerrainRenderer(_device, far);
         if (range != _farRange)
@@ -476,6 +477,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             _checkedEdits = -1;
         }
+
+        _far?.SetGreyKinds(greyKinds, FarTerrainRenderer.Release); // the far land has the chunks' colours (B07)
     }
 
     /// <summary>

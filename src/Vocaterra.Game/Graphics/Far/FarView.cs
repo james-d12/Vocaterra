@@ -61,6 +61,7 @@ public sealed class FarView
     private volatile HashSet<FarTileKey> _wanted = [];
     private IReadOnlyList<FarTileKey> _leaves = [];
     private (double X, double Z, int Voxel) _selectedFor = (double.NaN, 0, 0);
+    private UInt128 _grey;
     private long _built;
     private double _buildTicks;
     private double _longest;
@@ -106,6 +107,25 @@ public sealed class FarView
 
             return new FarViewStats(_tiles.Count, _draw.Count, _building.Count, _built, vertices, _drawnTriangles, TimeSpan.FromTicks((long)_buildTicks).TotalMilliseconds, _longest, vertices * 16);
         }
+    }
+
+    /// <summary>The block kinds the far land is drawn grey for (the greyscale view).</summary>
+    public UInt128 GreyKinds => _grey;
+
+    /// <summary>Takes the set of block kinds drawn grey (<see cref="Vocaterra.Game.Graphics.World.ChunkMesher.KindBit"/>): the tiles are made again when it changes, so the far land follows the chunks' colours.</summary>
+    /// <param name="greyKinds">The set.</param>
+    /// <param name="dispose">Frees a tile's buffer.</param>
+    public void SetGreyKinds(UInt128 greyKinds, Action<FarTile> dispose)
+    {
+        ArgumentNullException.ThrowIfNull(dispose);
+        if (greyKinds == _grey)
+        {
+            return;
+        }
+
+        _grey = greyKinds;
+        Clear(dispose);
+        _selectedFor = (double.NaN, 0, 0);
     }
 
     /// <summary>Takes other settings (the quality changed): every tile is dropped when the shape changed and the new leaves are built.</summary>
@@ -225,6 +245,7 @@ public sealed class FarView
     private void Request(double eyeX, double eyeZ)
     {
         var settings = Settings;
+        var grey = _grey;
         foreach (var key in _leaves)
         {
             if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) || !_building.Add(key))
@@ -238,7 +259,7 @@ public sealed class FarView
                 JobLane.Tiles,
                 distance,
                 () => !_wanted.Contains(captured),
-                () => _done.Enqueue(FarTileMesher.Build(_sampler, settings, captured)));
+                () => _done.Enqueue(FarTileMesher.Build(_sampler, settings, captured, grey)));
         }
 
         // A job skipped as stale leaves its key in _building: forget the keys that are no longer wanted so they can be asked for again.
