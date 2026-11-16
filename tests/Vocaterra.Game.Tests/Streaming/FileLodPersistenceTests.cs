@@ -86,4 +86,55 @@ public sealed class FileLodPersistenceTests : IDisposable
         Assert.Equal(BlockId.Stone, restarted.Get(new LodSectionKey(0, 6, 1, 5))!.BlockAt(LodSection.Index(6, 3, 3)));
         Assert.Single(Directory.GetFiles(Path.Combine(_folder, "L0")));
     }
+
+    [Fact]
+    public void Given_ARegionFileCutShortOrWithAWildLength_When_ItsSectionsAreRead_Then_TheyAreMissingAndTheWriterGoesOn()
+    {
+        var a = new LodSectionKey(0, 1, 1, 1);
+        var b = new LodSectionKey(0, 2, 1, 1);
+        var big = LodSection.Air();
+        for (var i = 0; i < LodSection.Volume; i += 3)
+        {
+            big.SetBlock(i, BlockId.Stone);
+        }
+
+        string file;
+        using (var disk = new FileLodPersistence(_folder, "v1"))
+        {
+            var store = new LodStore(disk);
+            _ = store.Put(a, big, LodOrigin.Real, 0xFF);
+            _ = store.Put(b, big, LodOrigin.Real, 0xFF);
+            disk.Flush();
+            file = disk.RegionFile(a);
+        }
+
+        // The file's tail is lost (a crash that took the last write): the section whose bytes are gone reads as missing, the one before it is intact.
+        using (var stream = new FileStream(file, FileMode.Open, FileAccess.Write))
+        {
+            stream.SetLength(stream.Length - 20);
+        }
+
+        using var again = new FileLodPersistence(_folder, "v1");
+        var restarted = new LodStore(again);
+        Assert.NotNull(restarted.Get(a));
+        Assert.Null(restarted.Get(b));
+
+        // A header with a wild length is not read.
+        using (var stream = new FileStream(file, FileMode.Open, FileAccess.Write))
+        {
+            var slot = (((1 << 3) | 1) << 6) | (1 + 16);
+            stream.Position = 8 + (slot * 8L) + 4;
+            stream.Write(BitConverter.GetBytes(int.MaxValue));
+        }
+
+        using var third = new FileLodPersistence(_folder, "v1");
+        Assert.Null(new LodStore(third).Get(a));
+        Assert.True(third.Load(new LodSectionKey(5, 0, 0, 0)) is null);
+
+        // The writer is alive: a new section is kept after the bad ones.
+        var c = new LodSectionKey(0, 3, 1, 1);
+        _ = new LodStore(third).Put(c, big, LodOrigin.Real, 0xFF);
+        third.Flush();
+        Assert.NotNull(new LodStore(third).Get(c));
+    }
 }

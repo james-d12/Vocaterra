@@ -84,4 +84,36 @@ public sealed class StreamedWorldHostTests
         Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Air, section.BlockAt(Vocaterra.Game.Core.World.Lod.LodSection.Index(bx & 31, by & 31, bz & 31)));
         Assert.True(host.EditedChunksTaken >= 1);
     }
+
+    [Fact]
+    public void Given_ARingPlannedForOnePlaceAndNotFinished_When_TheEyeMovesAndTheHostSettles_Then_EveryFootprintInTheNewRadiusIsReal()
+    {
+        var scene = StreamedWorlds.Scene();
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 96 };
+        using var host = StreamedWorldHost.For(scene, preset, 0)!;
+        var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
+        host.Update(x, y, z, _ => { }); // planned, hardly begun
+        var done = host.Ring.Done;
+        var pending = host.Ring.Pending;
+        Assert.True(pending > 4, $"{pending} planned after {done} done");
+
+        host.Update(x + 40, y, z, _ => { }); // the eye moves further than a section: a new plan
+        Assert.True(host.Settle(x + 40, y, z, _ => { }));
+
+        var (min, _) = host.Far.World.SyRange(0);
+        var missing = 0;
+        for (var sz = (int)MathF.Floor((z - 96) / 32); sz <= (int)MathF.Floor((z + 96) / 32); sz++)
+        {
+            for (var sx = (int)MathF.Floor((x + 40 - 96) / 32); sx <= (int)MathF.Floor((x + 40 + 96) / 32); sx++)
+            {
+                var (ex, ez) = (((sx + 0.5) * 32) - (x + 40), ((sz + 0.5) * 32) - z);
+                if ((ex * ex) + (ez * ez) <= 96 * 96 && host.Far.World.Store.Entry(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, sx, min, sz)) is not { IsWhollyReal: true })
+                {
+                    missing++;
+                }
+            }
+        }
+
+        Assert.Equal(0, missing);
+    }
 }

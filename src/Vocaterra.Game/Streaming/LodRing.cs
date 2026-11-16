@@ -15,8 +15,11 @@ public sealed class LodRing
     private readonly LodWorld _world;
     private readonly StreamedWorld _streamed;
     private readonly JobPool _pool;
-    private readonly HashSet<long> _known = [];
+    private readonly HashSet<long> _finished = [];
+    private readonly HashSet<long> _flying = [];
+    private readonly System.Collections.Concurrent.ConcurrentQueue<(long Key, bool Ok)> _results = new();
     private readonly Queue<(int Sx, int Sz, long Distance)> _plan = [];
+    private readonly List<(int Sx, int Sz, long Distance)> _found = [];
     private (double X, double Z, int Radius) _plannedFor = (double.NaN, 0, 0);
     private int _inFlight;
     private long _done;
@@ -38,6 +41,8 @@ public sealed class LodRing
     /// <summary>How many footprints are planned or being made.</summary>
     public int Pending => _plan.Count + Volatile.Read(ref _inFlight);
 
+    private static long KeyOf(int sx, int sz) => ((long)sx << 32) ^ (uint)sz;
+
     /// <summary>Whether the ring has nothing left to do within its radius.</summary>
     public bool IsIdle => Pending == 0;
 
@@ -47,6 +52,15 @@ public sealed class LodRing
     /// <param name="radius">The radius in blocks (0 for no ring).</param>
     public void Update(double eyeX, double eyeZ, int radius)
     {
+        while (_results.TryDequeue(out var result))
+        {
+            _ = _flying.Remove(result.Key);
+            if (result.Ok)
+            {
+                _ = _finished.Add(result.Key);
+            }
+        }
+
         if (radius <= 0)
         {
             _plan.Clear();
@@ -62,25 +76,30 @@ public sealed class LodRing
         {
             _ = Interlocked.Increment(ref _inFlight);
             var (sx, sz) = (next.Sx, next.Sz);
+            var key = KeyOf(sx, sz);
+            _ = _flying.Add(key);
             _pool.Submit(JobLane.Ring, next.Distance, static () => false, () =>
             {
+                var ok = false;
                 try
                 {
                     Ingest(sx, sz);
+                    ok = true;
                 }
                 finally
                 {
+                    _results.Enqueue((key, ok)); // a footprint that failed is planned again by the next plan; the pool keeps the failure
                     _ = Interlocked.Decrement(ref _inFlight);
                 }
             });
         }
     }
 
-    // The footprints within the radius that are not real yet and not planned, nearest first.
+    // The footprints within the radius that are not made yet and not in flight, nearest first: a plan is made again from what is left, so a move never drops a footprint that is still wanted.
     private void Plan(double eyeX, double eyeZ, int radius)
     {
         _plannedFor = (eyeX, eyeZ, radius);
-        var found = new List<(int Sx, int Sz, long Distance)>();
+        _found.Clear();
         var span = (radius / LodSection.Size) + 1;
         var (cx, cz) = ((int)Math.Floor(eyeX / LodSection.Size), (int)Math.Floor(eyeZ / LodSection.Size));
         var lowest = _world.SyRange(0).Min;
@@ -91,25 +110,25 @@ public sealed class LodRing
                 var (sx, sz) = (cx + dx, cz + dz);
                 var (ex, ez) = (((sx + 0.5) * LodSection.Size) - eyeX, ((sz + 0.5) * LodSection.Size) - eyeZ);
                 var distance = (long)Math.Sqrt((ex * ex) + (ez * ez));
-                var key = ((long)sx << 32) ^ (uint)sz;
-                if (distance > radius || _known.Contains(key))
+                var key = KeyOf(sx, sz);
+                if (distance > radius || _finished.Contains(key) || _flying.Contains(key))
                 {
                     continue;
                 }
 
-                _ = _known.Add(key);
                 if (_world.Store.Entry(new LodSectionKey(0, sx, lowest, sz)) is { IsWhollyReal: true })
                 {
-                    continue; // made in an earlier run
+                    _ = _finished.Add(key); // made in an earlier run
+                    continue;
                 }
 
-                found.Add((sx, sz, distance));
+                _found.Add((sx, sz, distance));
             }
         }
 
-        found.Sort(static (a, b) => a.Distance.CompareTo(b.Distance));
+        _found.Sort(static (a, b) => a.Distance.CompareTo(b.Distance));
         _plan.Clear();
-        foreach (var item in found)
+        foreach (var item in _found)
         {
             _plan.Enqueue(item);
         }

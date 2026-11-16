@@ -57,7 +57,7 @@ public sealed class StreamedWorldHost : IDisposable
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
 
     /// <summary>The version of the sections' format and of how they are made: a change makes every world's saved sections start again.</summary>
-    public const int LodFormat = 1;
+    public const int LodFormat = 2;
 
     /// <summary>The host of a scene's streaming, or <see langword="null"/> when the scene's grid is bounded (the valley).</summary>
     /// <param name="scene">The scene.</param>
@@ -241,6 +241,7 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
     private readonly LodWorld _world;
     private readonly JobPool _pool;
     private readonly HashSet<VoxelChunkCoord> _dirty = [];
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<VoxelChunkCoord, BlockId[]> _latest = new();
     private long _ingested;
 
     public LodEdits(VoxelGrid grid, LodWorld world, JobPool pool)
@@ -280,11 +281,26 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
                 continue;
             }
 
+            // A chunk that is changed again while its job waits is not ingested twice: the job takes the newest blocks (the whole chunk is copied once per burst of edits).
             var blocks = chunk.Blocks.ToArray();
+            var fresh = true;
+            _ = _latest.AddOrUpdate(coord, _ => blocks, (_, _) =>
+            {
+                fresh = false;
+                return blocks;
+            });
+            if (!fresh)
+            {
+                continue;
+            }
+
             _pool.Submit(JobLane.Ring, 0, static () => false, () =>
             {
-                _world.IngestChunk(coord, blocks);
-                _ = Interlocked.Increment(ref _ingested);
+                if (_latest.TryRemove(coord, out var newest))
+                {
+                    _world.IngestChunk(coord, newest);
+                    _ = Interlocked.Increment(ref _ingested);
+                }
             });
         }
     }

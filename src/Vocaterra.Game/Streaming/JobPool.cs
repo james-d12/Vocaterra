@@ -26,10 +26,13 @@ public sealed class JobPool : IDisposable
     /// <summary>The most worker threads there ever are (the owner's limit, with the game loop's own thread on top).</summary>
     public const int MaxWorkers = 2;
 
+    private const int RingEvery = 4;
+
     private readonly object _gate = new();
     private readonly PriorityQueue<Job, long>[] _queues = [new(), new(), new()];
     private readonly List<Thread> _threads = [];
     private int _running;
+    private int _sinceRing;
     private bool _disposed;
     private long _completed;
     private long _skipped;
@@ -184,13 +187,27 @@ public sealed class JobPool : IDisposable
         }
     }
 
-    // Takes the next job (the residency lane first), counting it as running; the lock is held.
+    // Takes the next job (the residency lane first, then the tiles'; but after RingEvery tile jobs in a row the ring's gets one, so a stream of tiles never starves it); the lock is held.
     private Job? TakeLocked()
     {
-        foreach (var queue in _queues)
+        if (_queues[(int)JobLane.Residency].TryDequeue(out var first, out _))
         {
-            if (queue.TryDequeue(out var job, out _))
+            _running++;
+            return first;
+        }
+
+        if (_sinceRing >= RingEvery && _queues[(int)JobLane.Ring].TryDequeue(out var ring, out _))
+        {
+            _sinceRing = 0;
+            _running++;
+            return ring;
+        }
+
+        for (var lane = 1; lane < _queues.Length; lane++)
+        {
+            if (_queues[lane].TryDequeue(out var job, out _))
             {
+                _sinceRing = lane == (int)JobLane.Ring ? 0 : _sinceRing + 1;
                 _running++;
                 return job;
             }
