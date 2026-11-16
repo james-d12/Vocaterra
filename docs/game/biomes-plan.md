@@ -482,6 +482,34 @@ the processor too.
 volumetric clouds and fog, bloom, reflections. Propagated sky and block light (section 6) becomes cheaper to add after B17 but is not
 part of it.
 
+
+### 3.10 The far view at scale (B19, planned only)
+
+The owner, 2026-11-16 (D-game-34 item 35): asked what it takes to reach the render distances of Voxy and Distant Horizons ("the render
+distance for that is crazy ... What things do we need to do to get to that level? Because that's what we want to achieve"), then: "Use
+those as reference", meaning his three screenshots of Voxy in Minecraft, kept outside git in `artifacts/reference/voxy/` (an index there
+says what each shows: every tree a crown of its own for kilometres, lakes and rivers with shores, villages far off, ridge after ridge of
+mountains to a horizon tens of kilometres away; shader effects excluded). Not to be launched until he says.
+
+**Where the limits are** (after B07c): distance itself is cheap, since each doubling adds one coarser level of about the same cost. What
+limits it is (1) building the far data on the processor (a settled High view at 16 km took about 150 s of worker time in B07c's review),
+(2) draw calls (thousands of tiles, each its own draw and effect bind), (3) the card's memory and bandwidth (fat vertices with light baked
+in), and (4) precision at tens of kilometres (single-precision positions, one depth range).
+
+**What B19 does** (after B07c, B07d and B17):
+1. **A measured spike first:** the far view pushed to 32 and 64 km at High on the RTX 3070 with B07c's design; where the time goes (data,
+   draw calls, the card, memory); the result decides the rest and whether step 2 below is needed. Its findings go to the owner.
+2. **Step 1, within MonoGame:** tiles merged into large shared buffers per level (a handful of draws a level, not thousands), a 3D tree of
+   sections for culling, occlusion culling (hardware queries, or a coarse depth raster of near hills on the processor), camera-relative
+   rendering and depth split into ranges, the far levels' cost per frame bounded; built on B17's shaders (compact vertices, light on the
+   card, texture arrays). Target: 32 to 64 km at High within 60 fps, the reference pictures' look without their shader effects.
+3. **Step 2, only if the spike shows step 1 cannot reach the target:** rendering driven by the card as Voxy does (compute traversal,
+   occlusion on the card, indirect draws). MonoGame DesktopGL has no compute shaders or indirect draws, so this needs OpenGL 4.6 beside
+   MonoGame through a binding, a newer MonoGame back end, or the open engine decision (D-game-1): the owner's choice, with the spike's
+   numbers.
+4. **Kept:** the world unchanged; the far view's data and disk store from B07c and B07d; pictures from the reference pictures' kinds of
+   viewpoint (a valley from a hill, a plain of lakes from a mountain, a forest by a river), before and after.
+
 ## 4. Milestones
 
 Series B, on the branch `feature/biomes`. Milestone branches are `B<nn>-<name>`; the commit prefix is `B<nn>:`. Models follow the owner's
@@ -520,6 +548,8 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
 | B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 | B17 | Rendering on the graphics card (section 3.9; D-game-34 item 30; planned only, not to be launched until the owner says): a shader build that works on Linux (spike first), light as data in the vertex (sky, block, occlusion) combined in a voxel shader with the hour, weather and glow as uniforms (no re-mesh for a light change), fog by distance and height, a water shader, the far view on the same light model; the midday look kept within a tolerance | L | Sonnet high | B07c, B12 | pictures (owner review), measurement |
+| B18 | Grass density (item 34): render-only decorative grass on grass tops, a settings slider, a denser default; the world unchanged | M | Sonnet medium | B07, B12 | pictures (owner review), measurement |
+| B19 | The far view at scale (section 3.10; D-game-34 item 35; planned only, not to be launched until the owner says): a measured spike at 32 and 64 km first; then merged buffers per level, a 3D section tree for culling, occlusion culling, camera-relative rendering and depth ranges on B17's shaders; rendering driven by the card only if the spike shows it is needed (an engine-level choice for the owner); the owner's Voxy pictures (`artifacts/reference/voxy/`) as the target look | L | Sonnet high | B07c, B07d, B17 | pictures (owner review), measurement |
 
 **Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
 agent max", so one at a time; that evening "you can have up to 4 agents now", D-game-34 item 19): each milestone starts as soon as

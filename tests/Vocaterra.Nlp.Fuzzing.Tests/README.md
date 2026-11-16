@@ -1004,6 +1004,25 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   from the help row's alias `ayuda por favor`, within the budget of 4 for its 16 characters. The leg admits that one tag where its model of the rule holds and
   counts it (about one graded sentence in 2 000); measuring a near miss against the step's own answers only, or the word that differs, is for the owner.
 
+### Found and fixed in M97 (2026-11-16; seeds of the game's B07c and B02b runs, and a coverage floor)
+
+- **O5 (and O4), the realiser drew a noun that reads as the determiner of the next one** (a generator fix; CsCheck seed `2LxdNIrNHnQ6`, `MutationCase { Kind =
+  VocabUnknown, Seed = 625984043339709867 }`). The pattern `[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]` gave `cuanto almuerzos veintiocho señoras
+  transportan` with `cuanto` (a noun, and the determiner `cuánto`) as `[NOUN:item]`. The grammar binds it as a noun, so the sentence is clean; the mutation put an
+  unknown word where the grammar needs a noun, nothing matched, and `cuanto` was `almuerzos`' determiner (`noun.number`, `almuerzo`), so the recast lost the plural.
+  A reader takes it that way too. A noun that is also a determiner or quantifier adjective, right before another noun, is re-rolled (`skip:noun-reads-as-determiner`).
+  Regression: `HomographRerollTests` (the case, why, and the neighbours).
+- **O3, a pronoun slip for `tal`** (an engine fix in `AnswerNearMisses`; CsCheck seed `9kz6LGNo8tf2`). `que me`, a correct fragment (`[[DET]? que [PRON]]`), graded at
+  `smith-receive`, got `vocab.wrong` on `me`, expected `tal`: the answer set has `qué tal`, and `tal` has a pronoun reading with no person, so `me` and `tal` were "both
+  pronouns", a slip pair (M75). A pronoun pair now needs a reading with a person on each side (a personal pronoun: `me` for `te`). O6's independent model of the rule
+  says the same. Regression: `AnswerNearMissesTests`.
+- **O14, `OpenFallback_...`'s coverage floor missed by chance** (a test fix, no oracle narrowed; failed in a gate with "the generator no longer reaches
+  fallback:forced-same-intent" on 2026-11-11, and "fallback:second-chosen" on 2026-11-16, 4 each). Cause: nothing depends on the load (the sampling has no time budget,
+  the iteration count is the environment's or 300); the run drew a fresh CsCheck seed and the count of a path, about 10 in 300 on average, fell under the floor of 5 now
+  and then. The test is now two: the same body, run at a fresh seed checks every case and asserts no floor; and run at a fixed seed
+  (`OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`) it asserts the same floor, `min(5, iterations / 60)` for each of the ten paths, which the fixed seed meets
+  the same way on every run.
+
 ## Adding to the suite
 
 `PipelineHarness` exposes what an oracle needs: `Bundle`, `NewServices` (scripted word recognizer, optional fake phoneme recognizer, fake embedder,

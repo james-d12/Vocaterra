@@ -387,7 +387,7 @@ evaluation configuration and the version stamp:
     one by a keyword rule or the embedding rung (not a slot grammar), and it misses the answer phrase nearest it (the matcher's distance;
     a canonical phrase or an alias) by one word of a slip pair: the two have the same number of words, exactly one differs (accents
     ignored), and the two words are close in spelling (within the answer word's own fuzzy budget, measured as the matcher measures a
-    phrase) or both question words, articles, prepositions or pronouns (`AnswerNearMisses`, `IAnalysisRules.IsQuestionWord`). The tag
+    phrase) or both question words, articles, prepositions or personal pronouns (a pronoun reading with a person on each side, M97; `AnswerNearMisses`, `IAnalysisRules.IsQuestionWord`). The tag
     is on that word, with the answer's word as `expected`, so it is never empty: `cuál es esto` at `lesson-what` gives `cuál`, expected
     `qué`. M67's rule (the distance within the fuzzy budget taken for the line's own length) also tagged correct Spanish, which the agent
     praised while it scored 0.4: `quiero hacer un hacha` at `smith-open` (an added word), `pasado mañana iré al río con Mar` and

@@ -156,6 +156,23 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
     [Fact]
     public void OpenFallback_LeavesATrustedFirstReadingAlone_AndOtherwiseKeepsTheBetterOfTwoReadings()
     {
+        // M97: this run draws at a fresh seed each time and checks every case; the coverage floor is asserted by the next test, on a fixed seed (a count of the random
+        // sample falls under the floor now and then: 4 of fallback:forced-same-intent and of fallback:second-chosen, about 10 in 300 on average, failed full runs).
+        RunOpenFallback(seed: null);
+    }
+
+    // M97: the coverage of the open fallback's paths, on a fixed seed: the same cases and checks as above, so the count of each path is the same on every run and every
+    // machine (it does not depend on the load of the run: nothing in the sampling reads a clock), and each path is reached at least as often as the floor demands.
+    [Fact]
+    public void OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed()
+    {
+        RunOpenFallback(seed: CoverageSeed);
+    }
+
+    private const string CoverageSeed = "0M97OpenFall3";
+
+    private void RunOpenFallback(string? seed)
+    {
         var diagnostics = new FuzzDiagnostics();
         var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
         var confidences = Gen.Double[0.0, 1.0].Array[0, 8];
@@ -278,9 +295,15 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             },
             writeLine: output.WriteLine,
             iter: iterations,
-            threads: 1);
+            threads: 1,
+            seed: seed);
 
         output.WriteLine("Open fallback diagnostics:\n" + diagnostics.Report());
+        if (seed is null)
+        {
+            return;
+        }
+
         var minimum = Math.Max(1, Math.Min(5, iterations / 60));
         foreach (var key in new[]
         {
