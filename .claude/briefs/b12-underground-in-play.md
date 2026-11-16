@@ -3,7 +3,7 @@ engine-free logic), Vocaterra.Game (MonoGame) and Vocaterra.Host; the language c
 is in the game: the renderer's light and darkening in Vocaterra.Game, the light index, the residency's underground near zone, a scripted
 cave tour, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b12, already on the local branch `B12-underground-in-play` (cut from
-`feature/biomes` at @@BASE@@, which holds the streamed world and far view (B07), the underground (B11), the valley's underground (B13),
+`feature/biomes` at 898a95e0, which holds the streamed world and far view (B07), the underground (B11), the valley's underground (B13),
 lava that sinks the body (B10b) and the final terrain (B02b)). Run every command from that directory. Commit after each item that builds
 and passes its tests, with the prefix `B12: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean.
 Resources: every dotnet restore, build, test, format and run, every game run, screenshot and scripted run through scripts/limited.sh
@@ -16,8 +16,10 @@ wrong.** Quality before speed: don't call anything done that you have not seen w
 
 Read first: CLAUDE.md; docs/game/implementation-plan.md sections 1, 3, 4.14 (your row) and 6; docs/game/biomes-plan.md section 3.5
 ("Light underground", "In play") and section 4 (your row, "Pictures for the owner", "Measurement"); D-game-34 items 9, 12, 21 and 22 in
-docs/game/decisions.md. The reports in .claude/briefs/: b07-phase-a-report.md and B07's phase-B addendum (residency: the band streamer
-keeps everything under the player within 4 chunks, 6 underground; the far view; `--stream-stats`), b11-report.md (caves, entrances, lava at
+docs/game/decisions.md. The reports in .claude/briefs/: b07-phase-a-report.md, b07-phase-b1-report.md, b07-phase-b2a-report.md and b07-phase-b2b-report.md (residency: the band
+streamer keeps everything under the player within 4 chunks, 6 underground; the body held until the world round it is resident; the far
+view; `--stream-stats` and its `worst frames` line; the Release figures you compare against), b02b-round3-report.md (rivers and lakes
+at their own levels), b11-report.md (caves, entrances, lava at
 -54), b13-report.md, b10-report.md and b10b-report.md (lava glows through the light index; `Glows`; the placed torch `antorcha`,
 `BlockId.Torch`, is not a light kind yet: B04b's finding), b04b-report.md (`ChunkLightIndex`). The code: src/Vocaterra.Game/Graphics/World/
 (the mesher's light and ambient occlusion, `ChunkLightIndex`, VoxelRenderer), the residency in src/Vocaterra.Game/Streaming and
@@ -49,7 +51,7 @@ Deliverables:
    git) with an index.md and the frame times.
 8. Documents: docs/game/running.md, the Game README (light), docs/game/scripted-runs.md (the cave tour).
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,267 passed before, plus your new tests); format clean; content
 validate. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
