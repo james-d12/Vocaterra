@@ -627,7 +627,7 @@ public static class ChunkMesher
     // Whether the block at the (relative) position shuts light out: any cube (leaves too, so a forest floor is dim under the crowns).
     private static int Occludes(Neighbourhood near, int x, int y, int z) => IsCubeKind(near.Get(x, y, z)) ? 1 : 0;
 
-    // The share of the sky's light at a face's corner (B12): the mean over the open cells of the layer in front of the face that meet at the corner (the face's own front cell always counts), so the dark comes on
+    // The share of the sky's light at a face's corner (B12): the mean over the open cells of the layer in front of the face that meet at the corner (the face's own front cell always counts, and a face whose front cell is open to the sky keeps the whole sun), so the dark comes on
     // smoothly across a face and a solid cell beside the corner (the foot of a bank, a wall) does not darken the open ground at its foot.
     private static float CornerSky(SkySurface sky, Neighbourhood near, int x0, int y0, int z0, int lx, int ly, int lz, int dx, int dy, int dz, int[] corners, int k)
     {
@@ -651,6 +651,11 @@ public static class ChunkMesher
         }
 
         var sum = sky.FactorAt(x0 + fx, y0 + fy, z0 + fz);
+        if (sum >= 1f)
+        {
+            return 1f; // the cell in front of the face is open to the sky: the face is in the open, whatever the cells round the corner are
+        }
+
         var count = 1;
         for (var c = 1; c < 4; c++)
         {

@@ -25,7 +25,7 @@ public sealed class CaveTourTests
 
         Assert.True(options.PassOpen);
         var kinds = options.VoxelSteps.Select(static s => s.Kind).ToList();
-        Assert.Equal(3, kinds.Count(static k => k == VoxelStepKind.Teleport) );
+        Assert.Equal(3, kinds.Count(static k => k == VoxelStepKind.Teleport));
         Assert.Equal(3, kinds.Count(static k => k == VoxelStepKind.TeleportTo));
         Assert.Contains(options.VoxelSteps, static s => s.Kind == VoxelStepKind.Place && s.X == 489 && s.Y == -1);
         Assert.True(options.Script.Count(static s => s.Kind == ScriptStepKind.Shot) >= 6);

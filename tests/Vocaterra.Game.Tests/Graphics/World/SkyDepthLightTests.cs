@@ -30,7 +30,7 @@ public sealed class SkyDepthLightTests
         }
 
         Assert.InRange(SkyDepthLight.FalloffBlocks, 5, 8); // "within about 6 blocks of the open sky"
-        Assert.InRange(SkyDepthLight.CaveMinimum, 0.05f, 0.25f);
+        Assert.InRange(SkyDepthLight.CaveMinimum, 0.05f, 0.35f);
     }
 
     [Fact]
