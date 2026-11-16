@@ -74,7 +74,7 @@ public readonly record struct FarViewStats(int Cached, int Drawn, int Building, 
 /// The far view's tiles, chosen and cached (B07, D-game-34 item 21): each frame it asks <see cref="FarTileSelector"/> which tiles the eye needs, starts the missing ones on the shared worker threads
 /// (nearest first, after the voxel residency's own jobs), collects the finished ones, and answers which tiles to draw. A tile whose own mesh is not ready yet is stood in for by its nearest cached
 /// ancestor (its fallback, drawn a little behind), so walking does not open holes. Tiles are kept by key and only dropped past the cap, the farthest unused first, so crossing a tile edge builds only the
-/// tiles that newly become leaves. A tile is a pure function of the seed and its key, so a player's edits never show at a distance. No graphics device is touched here: the renderer uploads.
+/// tiles that newly become leaves. A tile is a pure function of the sections of its footprint; a player's edit shows at a distance once the edited chunk has been ingested into the store (the store tells the change, and a tile over it, built or being built, is made again). No graphics device is touched here: the renderer uploads.
 /// </summary>
 public sealed class FarView
 {

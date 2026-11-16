@@ -368,6 +368,13 @@ public static class FarTileMesher
         // A voxel's block, with air above the volume and stone under it (the world's floor).
         public BlockId BlockAt(int x, int y, int z) => y >= Height ? BlockId.Air : y < 0 ? BlockId.Stone : In(x, y, z) ? Blocks[At(x, y, z)] : BlockId.Air;
 
+        // The block of the highest solid voxel of a column (air for none).
+        public BlockId SurfaceBlock(int x, int z)
+        {
+            var y = Surface(x, z);
+            return y >= 0 && y < Height ? Blocks[At(x, y, z)] : BlockId.Air;
+        }
+
         // The y of the highest solid voxel of a column (found once).
         public int Surface(int x, int z)
         {
@@ -592,7 +599,21 @@ public static class FarTileMesher
 
         return c.Textured
             ? new Face(Pack(White, tint, shade), FarBucket.Opaque, block, false)
-            : new Face(Pack(Rgb(block, side, c.Grey), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
+            : new Face(Pack(side ? Covered(v, c, block, at) : Rgb(block, false, c.Grey), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
+    }
+
+    // The colour of a flat level's side face: a cliff of a snow-topped column is mostly snow seen from afar (the cap would otherwise be a one-voxel line on a grey wall, and a far mountain grey), so its stone is mixed with the snow's white.
+    private static (float R, float G, float B) Covered(Volume v, Context c, BlockId block, (int X, int Y, int Z) at)
+    {
+        var own = Rgb(block, true, c.Grey);
+        if (block == BlockId.Snow || v.SurfaceBlock(at.X, at.Z) != BlockId.Snow)
+        {
+            return own;
+        }
+
+        var snow = Rgb(BlockId.Snow, false, c.Grey);
+        const float share = 0.85f;
+        return (own.R + ((snow.R - own.R) * share), own.G + ((snow.G - own.G) * share), own.B + ((snow.B - own.B) * share));
     }
 
     // Whether the water over a bed is deep enough (in blocks) to hide it: the water voxels standing over the neighbour voxel.

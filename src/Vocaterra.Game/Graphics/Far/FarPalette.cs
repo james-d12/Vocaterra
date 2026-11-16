@@ -28,11 +28,11 @@ public static class FarPalette
     public static (byte R, byte G, byte B) Of(BlockId block) => Cache.GetOrAdd((block, false), static key => Average(key.Block, BlockFace.Up));
 
     /// <summary>
-    /// The colour of a block's side face. A grass block's side art is mostly dirt under a thin green rim; from afar the rim and the blades hide most of it, so a far wall of grass is mostly green, as Distant Horizons colours a
+    /// The colour of a block's side face. A snow block's side art is darker than its top, which made a far snow-capped mountain (all its sides to a low eye) read as grey stone: its side is its top's white with a sixth of the side art's. A grass block's side art is mostly dirt under a thin green rim; from afar the rim and the blades hide most of it, so a far wall of grass is mostly green, as Distant Horizons colours a
     /// column by one colour for all its faces: the grass side is the top's colour with a third of the side art's.
     /// </summary>
     /// <param name="block">The block.</param>
-    public static (byte R, byte G, byte B) SideOf(BlockId block) => Cache.GetOrAdd((block, true), static key => key.Block == BlockId.Grass ? Mix(Average(key.Block, BlockFace.Up), Average(key.Block, BlockFace.East), 0.3f) : Average(key.Block, BlockFace.East));
+    public static (byte R, byte G, byte B) SideOf(BlockId block) => Cache.GetOrAdd((block, true), static key => key.Block == BlockId.Grass ? Mix(Average(key.Block, BlockFace.Up), Average(key.Block, BlockFace.East), 0.3f) : key.Block == BlockId.Snow ? Mix(Average(key.Block, BlockFace.Up), Average(key.Block, BlockFace.East), 0.15f) : Average(key.Block, BlockFace.East));
 
     private static (byte R, byte G, byte B) Mix((byte R, byte G, byte B) a, (byte R, byte G, byte B) b, float share) =>
         ((byte)(a.R + ((b.R - a.R) * share)), (byte)(a.G + ((b.G - a.G) * share)), (byte)(a.B + ((b.B - a.B) * share)));

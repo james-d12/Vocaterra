@@ -396,4 +396,35 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         Assert.InRange(1f / FarNoise.Mean, FarTileMesher.NoiseGain - 0.02f, FarTileMesher.NoiseGain + 0.02f);
         Assert.True(pixels.Where(static (_, i) => i % 4 == 0).Distinct().Count() > 20);
     }
+
+    [Fact]
+    public void Given_ASnowCappedCliff_When_AFlatTileIsMeshed_Then_ItsSidesAreWhiteNotGrey()
+    {
+        // Columns of stone 20 voxels high with one voxel of snow on top, beside columns half as high: every side face of the high ones is a cliff.
+        var land = new Land((_, sx, sz) =>
+        {
+            var section = LodSection.Air();
+            for (var z = 0; z < 32; z++)
+            {
+                for (var x = 0; x < 32; x++)
+                {
+                    var high = (x / 4) % 2 == 0;
+                    var top = high ? 20 : 10;
+                    for (var y = 0; y < top; y++)
+                    {
+                        section.SetBlock(LodSection.Index(x, y, z), y == top - 1 && high ? BlockId.Snow : BlockId.Stone);
+                    }
+                }
+            }
+
+            return new LodSection[] { section }[0];
+        });
+
+        var mesh = Mesh(land, level: 4);
+
+        var bright = mesh.Vertices.Count(static v => v.Color.R > 150 && v.Color.G > 150 && v.Color.B > 150);
+        var grey = mesh.Vertices.Count(static v => v.Color.R is > 60 and < 125 && Math.Abs(v.Color.R - v.Color.B) < 20);
+        output.WriteLine($"{mesh.Vertices.Length} vertices, {bright} bright, {grey} stone grey");
+        Assert.True(bright > 0 && bright > grey, $"{bright} bright against {grey} grey");
+    }
 }
