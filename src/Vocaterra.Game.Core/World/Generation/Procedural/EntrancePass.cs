@@ -62,9 +62,15 @@ internal sealed class EntrancePass : IChunkDecorator
             for (var x = chunk.MinX; x < chunk.MinX + VoxelChunk.Size; x++)
             {
                 Bowl(ctx, chunk, ramp, spec, x, z, bedrock);
+                var ground = ctx.HeightAt(x, z);
                 if (!ramp.Column(x, z, out var floor, out var node, out var forced, out var distance2) || !ramp.Carves(x, floor + 1, z, floor, node, forced, distance2))
                 {
                     continue; // the column is outside the tube, or the tube does not reach its first block
+                }
+
+                if (floor > ground)
+                {
+                    continue; // a ledge never stands over the ground
                 }
 
                 // The floor under the passage: a gap in it (the landing in a cave) is built up, and where the floor is still the meadow's own layers (grass, dirt) it is loose gravel, cobble and stone, a scree slope into the hole.
