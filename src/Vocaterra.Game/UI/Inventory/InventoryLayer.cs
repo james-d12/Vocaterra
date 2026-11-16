@@ -50,7 +50,7 @@ public sealed class InventoryLayer : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, ui.Ui("inventoryTitle"), new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", view.Items.SlotCount.ToString(CultureInfo.InvariantCulture)));
-        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
+        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(layout.SortButton.X - 10 - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + layout.DividerY, textWidth, 1), new Color(255, 214, 64, 120));
 
         for (var slot = 0; slot < view.Items.SlotCount; slot++) // the active slots only: three to five rows of ten (I03b)
@@ -59,8 +59,66 @@ public sealed class InventoryLayer : IFrameLayer
             DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);
         }
 
+        DrawSortButton(spriteBatch, view, layout.SortButton);
+        DrawTrash(spriteBatch, view, layout.TrashCell);
         DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort"), textWidth), new Vector2(left, panel.Bottom - layout.HintsOffset), Hints);
         DrawNeeds(spriteBatch, view, font, layout, needs, left, textWidth);
+        DrawHeld(spriteBatch, view, font);
+    }
+
+    // The sort button (I02): three bars that shorten, an icon only (the words are I04's).
+    private static void DrawSortButton(SpriteBatch spriteBatch, FrameView view, PixelBox box)
+    {
+        var pixel = view.Pixel;
+        var rect = new Rectangle(box.X, box.Y, box.Width, box.Height);
+        var hot = view.Mouse is { } at && box.Contains(at.X, at.Y);
+        spriteBatch.Draw(pixel, rect, hot ? new Color(48, 48, 70) : Filled);
+        DrawHelpers.Border(spriteBatch, pixel, rect, 1, hot ? Gold : new Color(70, 70, 90));
+        var bar = Math.Max(2, box.Height / 7);
+        for (var i = 0; i < 3; i++)
+        {
+            var width = (box.Width - 8) * (3 - i) / 3;
+            spriteBatch.Draw(pixel, new Rectangle(box.X + 4, box.Y + 4 + (i * (bar + 3)), Math.Max(width, 4), bar), Known);
+        }
+    }
+
+    // The trash cell (I02): a bin drawn from rectangles, or the stack it holds (it keeps its last item until another replaces it).
+    private static void DrawTrash(SpriteBatch spriteBatch, FrameView view, PixelBox box)
+    {
+        var pixel = view.Pixel;
+        var rect = new Rectangle(box.X, box.Y, box.Width, box.Height);
+        var hot = view.Mouse is { } at && box.Contains(at.X, at.Y);
+        spriteBatch.Draw(pixel, rect, hot ? new Color(48, 48, 70) : Filled);
+        DrawHelpers.Border(spriteBatch, pixel, rect, 1, hot ? Gold : new Color(70, 70, 90));
+        var stack = view.Voxel.Trash.Stack;
+        if (!stack.IsEmpty)
+        {
+            var size = Math.Max(8, box.Width - 6);
+            view.DrawIcon(spriteBatch, stack.Item, new Rectangle(box.X + 3, box.Y + 3, size, size));
+            return;
+        }
+
+        var inner = box.Width - 10;
+        spriteBatch.Draw(pixel, new Rectangle(box.X + 4, box.Y + 5, box.Width - 8, 2), Hints); // the lid
+        spriteBatch.Draw(pixel, new Rectangle(box.X + 5 + (inner / 3), box.Y + 3, Math.Max(2, inner / 3), 2), Hints); // its handle
+        spriteBatch.Draw(pixel, new Rectangle(box.X + 6, box.Y + 8, box.Width - 12, Math.Max(3, box.Height - 13)), Hints); // the bin
+    }
+
+    // The held stack (I02) at the pointer: the icon and the count, as the cells draw them.
+    private static void DrawHeld(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font)
+    {
+        var held = view.Voxel.Held.Stack;
+        if (held.IsEmpty || view.Mouse is not { } at)
+        {
+            return;
+        }
+
+        var icon = new Rectangle(at.X - (Icon / 2), at.Y - (Icon / 2), Icon, Icon);
+        view.DrawIcon(spriteBatch, held.Item, icon);
+        if (CountBadge.Text(held.Count, showOne: true) is { } count)
+        {
+            DrawHelpers.Badge(spriteBatch, view.Pixel, font, count, new Point(icon.Right + 2, icon.Bottom + 2));
+        }
     }
 
     // The five needs under the slots (N05): the need's name in Spanish, its stage as the player's own line, and the English.

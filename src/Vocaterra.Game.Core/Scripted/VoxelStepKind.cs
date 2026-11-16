@@ -40,4 +40,7 @@ public enum VoxelStepKind
 
     /// <summary>Let a held weather run on (<c>--set-weather run</c>, E03).</summary>
     RunWeather,
+
+    /// <summary>Move items by hand over a container and slot (<c>--move left,bag,12</c>, <c>--move shift,bag,3</c>, <c>--move sort</c>, <c>--move return</c>, I02): one <see cref="Simulation.VoxelCommandKind.SlotMove"/> command, the same a click sends.</summary>
+    SlotMove,
 }

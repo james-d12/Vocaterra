@@ -47,6 +47,7 @@ using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
+using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
@@ -297,7 +298,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
         _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
         _settings.Changed += ApplySetting;
-        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
+        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         _stationPanel = new StationPanel(
             _station,
@@ -416,7 +417,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         _toasts.Show(hint);
                     }
                 }),
-            ]);
+            ],
+            _inventoryPanel);
         _turns = new TurnPresenter(_pump, _sound, voice, _dialogue, _micCheck, Console.WriteLine);
 
         var (startWidth, startHeight) = options.StartsFullScreen ? DisplaySize() : (options.WindowWidth ?? StartWidth, options.WindowHeight ?? StartHeight);
@@ -1002,6 +1004,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (IsActive && _crafting.IsOpen && input.LeftClicked)
         {
             _craftingPanel.Click(input); // a row asks for one craft in the next tick
+        }
+
+        if (IsActive && _inventory.IsOpen && (input.LeftClicked || input.RightClicked))
+        {
+            _inventoryPanel.Click(input); // a bag cell, the sort button or the trash cell: left, right or shift-click (I02)
         }
 
         if (IsActive && _station.IsOpen && input.LeftClicked)

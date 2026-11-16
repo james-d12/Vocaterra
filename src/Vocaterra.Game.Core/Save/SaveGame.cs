@@ -138,7 +138,12 @@ public static class SaveGame
             throw new ArgumentException("The pristine scene is not built from this session's seed and layout.", nameof(pristine));
         }
 
-        var state = session.Simulation.CaptureState();
+        if (!session.Simulation.ReturnHeld())
+        {
+            throw new InvalidOperationException("A stack is held at the cursor and the bag has no room for it: put it down (the inventory screen) and save again.");
+        }
+
+        var state = session.Simulation.CaptureState(); // nothing is held now: the held stack and the trash are not in a save (I02)
         return new SaveDocument(
             FormatName,
             CurrentVersion,

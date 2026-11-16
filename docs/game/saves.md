@@ -54,6 +54,10 @@ The state digest changed with the first: it hashes the active slots (30 with no 
 a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is the version 9 fixture with
 its version, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
 
+**The held stack and the trash are not saved (I02, no version change).** Moving items by hand keeps the stack at the cursor (`VoxelSimulation.Held`) and the trash's stack in the simulation state and its digest, but `SaveGame.Capture` returns the held
+stack to its slot or the bag first (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go. The trash's item is not written: a loaded game starts
+with an empty trash, and `Restore` clears both. The save's shape and the format version are as before.
+
 ## Format version 9: items by name (I01)
 
 Version 9 was the current version from I01 to I03b, and since I03b it is refused like every older one (the rule of version 8, below, holds: a save of an older version is refused and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack

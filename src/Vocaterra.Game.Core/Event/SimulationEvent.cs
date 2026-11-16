@@ -71,6 +71,9 @@ public enum SimulationEventKind
 
     /// <summary>(Equipment, I03a) An equip or unequip was refused and changed nothing: <see cref="SimulationEvent.Detail"/> is the reason (a cast <c>EquipResult</c>), <see cref="SimulationEvent.Amount"/> the flat index of the slot, or -1 when the slot does not exist.</summary>
     EquipRefused = 20,
+
+    /// <summary>(Interaction, I02) A slot move by hand was refused and changed nothing: <see cref="SimulationEvent.Detail"/> is the reason (a cast <c>MoveReason</c>), <see cref="SimulationEvent.Amount"/> the equipment's reason when a worn slot refused (a cast <c>EquipResult</c>, 0 otherwise), X the container's id, Y the slot and Z the action (a cast <c>MoveAction</c>).</summary>
+    MoveRefused = 21,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>
