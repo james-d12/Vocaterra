@@ -14,7 +14,7 @@ public sealed class InventoryLayoutRowsTests
         var layout = new InventoryLayout(1280, 800, slots);
 
         Assert.Equal(rows, layout.Rows);
-        Assert.Equal(layout.GridTop + ((rows - 1) * (layout.CellHeight + layout.Gap)), layout.Cell(slots - 1).Y);
+        Assert.Equal(layout.GridTop + ((rows - 1) * (layout.CellHeight + layout.Gap)) + layout.HotbarGap, layout.Cell(slots - 1).Y); // the hotbar row is set apart (I04)
     }
 
     [Fact]
@@ -23,7 +23,7 @@ public sealed class InventoryLayoutRowsTests
         var layout = new InventoryLayout(1280, 800, 35);
 
         Assert.Equal(4, layout.Rows);
-        Assert.Equal(layout.GridTop + (3 * (layout.CellHeight + layout.Gap)), layout.Cell(34).Y);
+        Assert.Equal(layout.GridTop + (3 * (layout.CellHeight + layout.Gap)) + layout.HotbarGap, layout.Cell(34).Y);
     }
 
     [Fact]

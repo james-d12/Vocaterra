@@ -37,7 +37,7 @@ public sealed class SaveService
     public SaveDocument Capture() => SaveGame.Capture(_session, _pristine ??= _buildPristine(), _settings(), _dialogue is null ? null : DialoguePageSave.Capture(_dialogue.Pages));
 
     /// <summary>
-    /// Writes the save of the session to <paramref name="path"/>, or says why not: a session that is not at rest is not saved, and that is said,
+    /// Writes the save of the session to <paramref name="path"/>, or says why not: a session that is not at rest, or that holds a stack the full bag cannot take back (I04), is not saved, and that is said,
     /// not thrown. Returns whether the file was written.
     /// </summary>
     /// <param name="path">The save file.</param>
@@ -47,6 +47,12 @@ public sealed class SaveService
         if (!_session.CanSave)
         {
             _log($"save: not written {why}: the guide is still thinking, or the key words are on show");
+            return false;
+        }
+
+        if (!_session.Simulation.ReturnHeld())
+        {
+            _log($"save: not written {why}: a stack is held at the cursor and the bag has no room for it"); // I04: a quit or an F6 with the inventory screen open must not throw
             return false;
         }
 

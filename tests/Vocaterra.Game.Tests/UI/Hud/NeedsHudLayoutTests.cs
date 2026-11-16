@@ -201,7 +201,7 @@ public sealed class NeedsHudLayoutTests(ITestOutputHelper output)
         Assert.Equal(44, plain.GridTop - plain.Panel.Y);
         Assert.Equal(36, plain.DividerY);
         Assert.Equal(26, plain.HintsOffset);
-        Assert.Equal(440, plain.Panel.Height);
+        Assert.Equal(16 + 44 + (plain.Cell(39).Bottom - plain.GridTop) + (2 * plain.Gap) + plain.SortButton.Height + 34 + 8, plain.Panel.Height); // the slots, then the buttons' row under them (I04), the footer and the padding
     }
 
     [Fact]

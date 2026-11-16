@@ -14,4 +14,7 @@ public enum InventoryHitKind
 
     /// <summary>The trash cell.</summary>
     Trash = 3,
+
+    /// <summary>An equipment cell of the paper doll (I04): <see cref="InventoryHit.Slot"/> is the slot's flat index in <c>equipment.json</c> order.</summary>
+    Equipment = 4,
 }

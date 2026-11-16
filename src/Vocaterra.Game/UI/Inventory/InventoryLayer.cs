@@ -3,13 +3,15 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
+using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.UI.Inventory;
 
 /// <summary>
-/// The inventory screen (I or E): the active slots (30, and a worn bag's more, I03b) in three to five rows of ten (the top row is the hotbar), each with its item's icon, the item's Spanish
+/// The inventory screen, now the equipment panel (I or E; I04): the paper doll on the left, a stats line under it, and the bag on the right: the active slots (30, and a worn bag's more, I03b) in three to five rows of ten (the top row is the hotbar), each with its item's icon, the item's Spanish
 /// word (<c>madera</c>) and the count. The icon and the word are coloured by the word's saturation (grey until it is used, then in colour), and
 /// the words count as read when the screen opens (see <see cref="InventoryScreen"/>). It covers the screen while it is open.
 /// </summary>
@@ -23,6 +25,7 @@ public sealed class InventoryLayer : IFrameLayer
     private static readonly Color Known = new(255, 240, 190);
     private static readonly Color Hints = UiPalette.Muted.ToColor();
     private static readonly Color Empty = new(30, 30, 44, 230);
+    private static readonly Color Refusal = new(255, 140, 110);
     private static readonly Color Filled = new(16, 16, 30, 240);
 
     /// <inheritdoc />
@@ -39,31 +42,136 @@ public sealed class InventoryLayer : IFrameLayer
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
         IReadOnlyList<NeedsListRow> needs = view.Needs is { Visible: true } hud ? hud.ListRows() : [];
-        var layout = new InventoryLayout(viewport.Width, viewport.Height, view.Items.SlotCount, needs.Count);
+        var equipment = view.Voxel.Equipment;
+        var layout = new InventoryLayout(viewport.Width, viewport.Height, view.Items.SlotCount, needs.Count, equipment.Data.Shape);
         var panel = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
 
-        var left = panel.Left + InventoryLayout.Padding;
-        var textWidth = panel.Width - (InventoryLayout.Padding * 2);
+        var left = layout.ContentLeft;
+        var textWidth = layout.ContentWidth;
         var ui = view.Session.Locale;
         DrawHelpers.Text(spriteBatch, font, ui.Ui("inventoryTitle"), new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", view.Items.SlotCount.ToString(CultureInfo.InvariantCulture)));
-        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(layout.SortButton.X - 10 - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
+        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + layout.DividerY, textWidth, 1), new Color(255, 214, 64, 120));
 
+        var hit = view.Mouse is { } pointer ? layout.Hit(pointer.X, pointer.Y, view.Items.SlotCount) : InventoryHit.None;
+        DrawDoll(spriteBatch, view, font, layout, hit);
         for (var slot = 0; slot < view.Items.SlotCount; slot++) // the active slots only: three to five rows of ten (I03b)
         {
             var cell = layout.Cell(slot);
-            DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);
+            DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact, layout.Tight, hit is { Kind: InventoryHitKind.Cell } over && over.Slot == slot);
         }
 
         DrawSortButton(spriteBatch, view, layout.SortButton);
         DrawTrash(spriteBatch, view, layout.TrashCell);
-        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort"), textWidth), new Vector2(left, panel.Bottom - layout.HintsOffset), Hints);
+        DrawFooter(spriteBatch, view, font, layout, hit, left, textWidth);
         DrawNeeds(spriteBatch, view, font, layout, needs, left, textWidth);
         DrawHeld(spriteBatch, view, font);
+    }
+
+    // The paper doll (I04): the body rows' nouns, the cells (the worn item's icon, or the slot's noun while it is empty) and the stats line.
+    private static void DrawDoll(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, InventoryLayout layout, InventoryHit hit)
+    {
+        var shape = layout.Shape;
+        if (shape.IsEmpty)
+        {
+            return;
+        }
+
+        var pixel = view.Pixel;
+        var equipment = view.Voxel.Equipment;
+        var nouns = view.Session.Nouns;
+        if (layout.HasLabelColumn)
+        {
+            for (var row = 0; row < shape.BodyRows; row++)
+            {
+                if (shape.RowLabels[row] is { } lemma)
+                {
+                    var box = layout.RowLabelBox(row);
+                    var text = DrawHelpers.Fit(font, nouns.ForLemma(lemma)?.WithDefinite ?? lemma, box.Width);
+                    var colour = Color.Lerp(Unseen, Known, (float)view.Session.Words.SaturationOf(lemma));
+                    DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X, box.Y + ((box.Height - 16) / 2)), colour);
+                }
+            }
+        }
+
+        foreach (var cell in shape.Cells)
+        {
+            var box = layout.EquipmentCellBox(cell);
+            var rect = new Rectangle(box.X, box.Y, box.Width, box.Height);
+            var stack = equipment.Slots[cell.Flat];
+            var hot = hit is { Kind: InventoryHitKind.Equipment } over && over.Slot == cell.Flat;
+            spriteBatch.Draw(pixel, rect, stack.IsEmpty ? Empty : Filled);
+            DrawHelpers.Border(spriteBatch, pixel, rect, 1, hot ? Gold : new Color(70, 70, 90));
+            if (!stack.IsEmpty)
+            {
+                var size = Math.Min(Icon, box.Width - 4);
+                view.DrawIcon(spriteBatch, stack.Item, new Rectangle(box.X + ((box.Width - size) / 2), box.Y + ((box.Height - size) / 2), size, size));
+            }
+            else if (layout.HasLabelColumn && cell.Row >= shape.BodyRows && cell.Label is { } lemma)
+            {
+                var text = DrawHelpers.Fit(font, lemma, box.Width - 2); // a counted slot with a noun writes it in the empty cell (the body rows' nouns stand beside the doll)
+                DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + ((box.Width - DrawHelpers.Width(font, text)) / 2), box.Y + ((box.Height - 16) / 2)), Hints);
+            }
+        }
+
+        DrawStats(spriteBatch, view, font, layout);
+    }
+
+    // The stats line (I04): each stat that is not at its default as an icon and a number, the Spanish noun before it where the game has one and the room allows.
+    private static void DrawStats(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, InventoryLayout layout)
+    {
+        var nouns = view.Session.Nouns;
+        var chips = StatDisplay.Chips(view.Voxel.Stats, hasNoun: lemma => nouns.ForLemma(lemma) is not null);
+        if (chips.Count == 0)
+        {
+            return;
+        }
+
+        var iconSize = layout.StatChipHeight - 2;
+        var widths = chips.Select(chip => iconSize + 4 + (int)DrawHelpers.Width(font, ChipText(chip, layout.Tight || layout.Compact)) + 8).ToList();
+        var boxes = StatLinePlacer.Place(widths, layout.StatsArea, layout.StatChipHeight, 0);
+        for (var i = 0; i < boxes.Count; i++)
+        {
+            var box = boxes[i];
+            StatIcons.Draw(spriteBatch, view.Pixel, chips[i].Key, new Rectangle(box.X, box.Y + 1, iconSize, iconSize), Known);
+            DrawHelpers.Text(spriteBatch, font, ChipText(chips[i], layout.Tight || layout.Compact), new Vector2(box.X + iconSize + 4, box.Y), Known);
+        }
+    }
+
+    // The regular size writes the stat's Spanish noun before its number; the small sizes keep the icon and the number.
+    private static string ChipText(StatChip chip, bool small) => chip.Lemma is { } lemma && !small ? lemma + " " + chip.Value : chip.Value;
+
+    // The line under the slots: the refusal that just happened, else what the pointer is on, else the key hints.
+    private static void DrawFooter(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, InventoryLayout layout, InventoryHit hit, int left, int textWidth)
+    {
+        var ui = view.Session.Locale;
+        var origin = new Vector2(left, layout.Panel.Bottom - layout.HintsOffset);
+        if ((view.Session as VoxelSession)?.MoveNotice is { } notice && notice.IsShown(view.Voxel.Tick))
+        {
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, ui.Ui(notice.Key), textWidth), origin, Refusal);
+            return;
+        }
+
+        var session = view.Session;
+        if (InventoryHover.Of(hit, view.Items, view.Voxel.Equipment, session.Nouns, session.Words, ui.NounSupport) is { IsEmpty: false } hover)
+        {
+            var spanish = hover.Slot is null ? hover.Item ?? string.Empty : hover.Item is null ? hover.Slot : hover.Slot + ": " + hover.Item;
+            var spanishWidth = DrawHelpers.Width(font, spanish);
+            DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, spanish, textWidth), origin, Color.Lerp(Unseen, Known, (float)hover.Saturation));
+            if (hover.English is { } support && spanishWidth + 12 < textWidth)
+            {
+                DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, support, textWidth - (int)spanishWidth - 12), new Vector2(left + spanishWidth + 12, origin.Y), Dialogue.DialoguePanel.EnglishColor);
+            }
+
+            return;
+        }
+
+        var hints = DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort");
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, hints, textWidth), origin, Hints);
     }
 
     // The sort button (I02): three bars that shorten, an icon only (the words are I04's).
@@ -142,29 +250,29 @@ public sealed class InventoryLayer : IFrameLayer
         }
     }
 
-    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact)
+    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact, bool tight, bool hot)
     {
         var pixel = view.Pixel;
         spriteBatch.Draw(pixel, box, stack.IsEmpty ? Empty : Filled);
-        DrawHelpers.Border(spriteBatch, pixel, box, 1, new Color(70, 70, 90));
+        DrawHelpers.Border(spriteBatch, pixel, box, 1, hot ? Gold : new Color(70, 70, 90));
         if (stack.IsEmpty)
         {
             return;
         }
 
         var saturation = view.Session.Words.SaturationOf(stack.Item);
-        var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + (compact ? 3 : 4), Icon, Icon);
+        var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + (tight ? 2 : compact ? 3 : 4), Icon, Icon);
         view.DrawIcon(spriteBatch, stack.Item, icon);
 
         var label = view.Session.Nouns.LabelOf(stack.Item) ?? view.Session.Data.Items.Get(stack.Item).Name;
         var colour = Color.Lerp(Unseen, Known, (float)saturation);
         label = DrawHelpers.Fit(font, label, box.Width - 2); // a narrow slot cuts a long name with an ellipsis (X08)
         var labelWidth = DrawHelpers.Width(font, label);
-        DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + (compact ? 36 : 40)), colour);
+        DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + (tight ? 34 : compact ? 36 : 40)), colour);
 
         if (CountBadge.Text(stack.Count, showOne: true) is { } count)
         {
-            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, compact ? box.Top + 36 : box.Bottom - 3)); // a short slot puts the count over the icon's corner, clear of the name (X08)
+            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, compact ? box.Top + (tight ? 34 : 36) : box.Bottom - 3)); // a short slot puts the count over the icon's corner, clear of the name (X08)
         }
     }
 }

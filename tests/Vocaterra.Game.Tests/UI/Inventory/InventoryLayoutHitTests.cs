@@ -50,7 +50,7 @@ public sealed class InventoryLayoutHitTests
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void Given_AnyScale_When_TheLayoutIsMade_Then_TheSortButtonAndTheTrashCellAreInTheHeaderClearOfEachOtherAndTheSlots(int windowWidth, int windowHeight, int scale)
+    public void Given_AnyScale_When_TheLayoutIsMade_Then_TheSortButtonAndTheTrashCellAreUnderTheBagInsideThePanelAndClearOfEachOther(int windowWidth, int windowHeight, int scale)
     {
         var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
         var canvas = new PixelBox(0, 0, width, height);
@@ -61,17 +61,14 @@ public sealed class InventoryLayoutHitTests
                 var layout = new InventoryLayout(width, height, slots, needs);
                 foreach (var box in new[] { layout.SortButton, layout.TrashCell })
                 {
-                    Assert.True(box.X >= layout.Panel.X && box.Right <= layout.Panel.Right && box.Y >= layout.Panel.Y && box.Bottom <= layout.Panel.Y + layout.DividerY, $"{box} is outside the header of {layout.Panel}");
-                    Assert.True(box.X >= canvas.X && box.Right <= canvas.Right && box.Y >= canvas.Y && box.Bottom <= canvas.Bottom);
+                    Assert.True(box.X >= layout.Panel.X && box.Right <= layout.Panel.Right && box.Y >= layout.Panel.Y && box.Bottom <= layout.Panel.Bottom, $"{box} is outside {layout.Panel}");
+                    Assert.True(box.X >= canvas.X && box.Right <= canvas.Right && box.Y >= canvas.Y);
                     Assert.True(box.Width >= 16 && box.Height >= 16, $"{box} is too small to click");
+                    Assert.True(box.Y >= layout.Cell(slots - 1).Bottom, $"{box} reaches the last row of slots");
+                    Assert.True(box.Bottom <= layout.NeedsTop, $"{box} reaches the needs' list");
                 }
 
                 Assert.True(layout.SortButton.Right <= layout.TrashCell.X, "the sort button overlaps the trash cell");
-                for (var slot = 0; slot < slots; slot++)
-                {
-                    var cell = layout.Cell(slot);
-                    Assert.True(cell.Y >= layout.TrashCell.Bottom && cell.Y >= layout.SortButton.Bottom, $"slot {slot} reaches the header's buttons");
-                }
             }
         }
     }

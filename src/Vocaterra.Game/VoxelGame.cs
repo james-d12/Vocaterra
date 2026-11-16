@@ -299,7 +299,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
         _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
         _settings.Changed += ApplySetting;
-        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand
+        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         _stationPanel = new StationPanel(
             _station,
