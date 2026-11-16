@@ -6,7 +6,7 @@ namespace Vocaterra.Game.Core.World.Streaming;
 
 /// <summary>
 /// The streamed world's chunks (B06, biomes plan section 3.1): a region's own chunks inside it, the procedural world everywhere else. Under a region (the chunk layers below it, in its
-/// footprint) the procedural world fills the chunk (solid stone today, with the region's own ground as the surface that settles the depth), above it is air, and outside, the procedural world
+/// footprint) the procedural world fills the chunk (B11: its strata, ores, caves, lava and bedrock floor, kept at or under y -9 and clear of the region's own water), above it is air, and outside, the procedural world
 /// is eased into the region's edge (<see cref="RegionBlend"/>). Pure and immutable: a chunk is a function of the seed, the data, the regions and its coordinates, so it is the same whenever and
 /// from whichever thread it is made.
 /// </summary>

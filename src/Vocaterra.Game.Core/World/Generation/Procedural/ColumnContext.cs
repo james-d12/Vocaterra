@@ -27,6 +27,7 @@ internal sealed class ColumnContext
     private readonly ColumnSurface[] _surfaces;
     private readonly bool[] _surfaced;
     private readonly Lazy<List<PlantedTree>> _trees;
+    private readonly Lazy<CavePlan> _caves;
 
     public ColumnContext(GenerationWorld world, int chunkX, int chunkZ)
     {
@@ -45,6 +46,7 @@ internal sealed class ColumnContext
         _surfaces = new ColumnSurface[count];
         _surfaced = new bool[count];
         _trees = new Lazy<List<PlantedTree>>(() => TreePass.Plan(this));
+        _caves = new Lazy<CavePlan>(() => CavePlan.Build(this));
         world.Climate.Fill(OriginX, OriginZ, Size, Size, _climate);
         for (var j = 0; j < Size; j++)
         {
@@ -152,6 +154,9 @@ internal sealed class ColumnContext
 
     /// <summary>The trees whose crowns can reach this chunk column, planned once from the shaped ground (see <see cref="TreePass"/>), in the order they write their leaves.</summary>
     public IReadOnlyList<PlantedTree> Trees => _trees.Value;
+
+    /// <summary>What the caves may do in the chunk column, planned once from the shaped ground (B11; only for a world with an underground).</summary>
+    public CavePlan CavePlan => _caves.Value;
 
     /// <summary>The highest working height among the chunk column's own 16 x 16 columns.</summary>
     public int HighestOwn() => Extreme(own: true, highest: true);

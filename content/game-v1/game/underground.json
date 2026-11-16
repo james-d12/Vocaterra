@@ -1,0 +1,57 @@
+{
+  "$schema": "../../schema/underground.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The underground (B11, D-game-34). Lengths are blocks, noise values thousandths of their range (-1000 to 1000), heights are y (the world runs -64 to 320, the sea is at 32, the valley's own chunks start at 0). strata: stone from the surface layers down to ditherToY, the deep rock (slate) below ditherFromY and, between them, a change dithered cell by cell (the share of deep rock falls in a straight line), so the boundary is ragged; blobs are patches of other rock in the stone layer where a 3D noise passes its threshold (the first row that does wins; blobLattice is the spacing the noise is sampled at and interpolated from). floor: the unbreakable bottom, a ragged layer of minThickness to maxThickness blocks from bottomY up. caves: cheese caverns (large chambers where one noise is above a threshold that rises from deepThreshold at deepY and below to shallowThreshold at shallowY and above, so they lie deep) and spaghetti tunnels (long winding tunnels where two noises are both within thickness of zero), both sampled on a lattice of latticeXz x latticeY x latticeXz blocks and interpolated; no cave reaches above topY or within surfaceCover blocks of the ground, none above underRegionCeiling under an authored region (the valley), none within waterMargin blocks of any water cell, and none within bedClearance blocks under the bed of a water column (so water never pours in). entrances: where a tunnel opens to the sky; a column is in a zone where the 2D mask noise is above threshold; a zone opens only on dry procedural land (the ground at least minHeightAboveSea over the sea, no water within waterReach columns, never inside an authored region or its margin) and only over a cave (a shaft is cut from the highest cave air within probeDepth blocks under the cave's top up through the ground); no tree or plant stands in a zone. lava: cave air at or below level is lava. ores: each row is a block, the rocks its veins may replace (never air, water, lava, bedrock or another ore), the vein size in blocks and its bands; a band tries veins in every chunk column (16 x 16 blocks, every layer), the height of a vein's centre drawn from a triangular spread over minY to maxY that peaks at peakY; a vein is a blob kept inside its chunk and inside its band. No block of an ore or a rock is named in the code.",
+  "strata": {
+    "stone": "stone",
+    "deep": "slate",
+    "ditherFromY": 0,
+    "ditherToY": 8,
+    "blobLattice": 8,
+    "blobs": [
+      { "block": "granite", "cell": 48, "cellY": 32, "octaves": 2, "threshold": 330 },
+      { "block": "limestone", "cell": 48, "cellY": 32, "octaves": 2, "threshold": 330 }
+    ]
+  },
+  "floor": { "block": "bedrock", "bottomY": -64, "minThickness": 1, "maxThickness": 4 },
+  "caves": {
+    "latticeXz": 4,
+    "latticeY": 8,
+    "topY": 240,
+    "surfaceCover": 6,
+    "cheese": { "cell": 64, "cellY": 40, "octaves": 2, "deepThreshold": 450, "deepY": -16, "shallowThreshold": 800, "shallowY": 96 },
+    "spaghetti": { "cell": 56, "cellY": 32, "octaves": 1, "thickness": 70 },
+    "underRegionCeiling": -9,
+    "waterMargin": 3,
+    "bedClearance": 16
+  },
+  "entrances": { "cell": 40, "octaves": 1, "threshold": 380, "minHeightAboveSea": 4, "waterReach": 3, "probeDepth": 10 },
+  "lava": { "block": "lava", "level": -54 },
+  "ores": [
+    {
+      "id": "copper-veins",
+      "block": "copper-ore",
+      "replaces": ["stone", "slate", "granite", "limestone"],
+      "size": { "min": 3, "max": 10 },
+      "bands": [{ "minY": -16, "maxY": 112, "peakY": 48, "veins": 12 }]
+    },
+    {
+      "id": "iron-veins",
+      "block": "iron-ore",
+      "replaces": ["stone", "slate", "granite", "limestone"],
+      "size": { "min": 3, "max": 8 },
+      "bands": [
+        { "minY": -24, "maxY": 56, "peakY": 16, "veins": 8 },
+        { "minY": 80, "maxY": 320, "peakY": 160, "veins": 6 }
+      ]
+    },
+    {
+      "id": "tin-veins",
+      "block": "tin-ore",
+      "replaces": ["stone", "slate", "granite", "limestone"],
+      "size": { "min": 3, "max": 8 },
+      "bands": [{ "minY": -32, "maxY": 48, "peakY": 8, "veins": 4 }]
+    }
+  ]
+}

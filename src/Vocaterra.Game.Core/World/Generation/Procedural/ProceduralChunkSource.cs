@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
+using Vocaterra.Game.Core.World.Underground;
 
 namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
@@ -21,24 +22,25 @@ public sealed class ProceduralChunkSource : IChunkSource
     /// <param name="biomes">The biome rows.</param>
     /// <param name="seed">The world seed.</param>
     /// <param name="strategies">The code strategies the rows may name; <see cref="StrategyRegistry.Default"/> when <see langword="null"/>.</param>
+    /// <param name="underground">The underground (rock layers, floor, ores, caves, lava), or <see langword="null"/> for a ground of plain stone (B11).</param>
     /// <exception cref="ArgumentException">A biome row names a block the game does not have, or a strategy, species or crown the registry does not have.</exception>
-    public ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies = null)
-        : this(world, biomes, seed, strategies, 0)
+    public ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies = null, UndergroundData? underground = null)
+        : this(world, biomes, seed, strategies, 0, null, underground)
     {
     }
 
     /// <summary>A source whose window is wider than it needs to be by <paramref name="extraMargin"/> columns: the tests use it to show that the margin is enough, because a chunk must come out the same however wide the window.</summary>
-    internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin)
-        : this(world, biomes, seed, strategies, extraMargin, null)
+    internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin, UndergroundData? underground = null)
+        : this(world, biomes, seed, strategies, extraMargin, null, underground)
     {
     }
 
     /// <summary>A source whose ground is eased into the edges of authored regions (B06): the composite source's procedural half.</summary>
-    internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin, RegionBlend? blend)
+    internal ProceduralChunkSource(WorldGenData world, BiomeData biomes, ulong seed, StrategyRegistry? strategies, int extraMargin, RegionBlend? blend, UndergroundData? underground = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(biomes);
-        _world = new GenerationWorld(world, biomes, seed, strategies ?? StrategyRegistry.Default, extraMargin, blend);
+        _world = new GenerationWorld(world, biomes, seed, strategies ?? StrategyRegistry.Default, extraMargin, blend, underground);
         _pipeline = GenerationPipeline.Standard(_world);
     }
 
@@ -119,8 +121,8 @@ public sealed class ProceduralChunkSource : IChunkSource
 
         var builder = new ChunkBuilder(coord);
 
-        // Deeper than the deepest layers of the ground: stone, whatever the biome.
-        if (shortcuts && maxY < ctx.LowestOwn() - _world.MaxFillerDepth - 1)
+        // Deeper than the deepest layers of the ground: stone, whatever the biome (with no underground; with one the rock layers, ores and caves still have to run).
+        if (shortcuts && _world.Underground is null && maxY < ctx.LowestOwn() - _world.MaxFillerDepth - 1)
         {
             builder.FillAll(BlockId.Stone);
             return builder.ToData();

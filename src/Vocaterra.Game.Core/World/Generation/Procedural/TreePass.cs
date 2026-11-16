@@ -192,10 +192,15 @@ internal sealed class TreePass : IChunkDecorator
             return null; // inside an authored region, beside its border or on an exit road: no trunk, so no crown crosses into the region (B06)
         }
 
+        if (world.Underground is { } underground && underground.Entrances.InZone(c.X, c.Z))
+        {
+            return null; // no trunk stands in an entrance zone, whether or not the zone opens, so none is left over a shaft (B11)
+        }
+
         var ground = ctx.SurfaceAt(c.X, c.Z);
         if (ground.Water || !BlockDefinition.IsSolid(ground.Top) || BesideWater(ctx, c.X, c.Z))
         {
-            return null; // a trunk needs solid dry ground under it (B11 adds the caves under it), and none stands in the column a body leaves the water by
+            return null; // a trunk needs solid dry ground under it (the caves keep a cover of rock under the ground, and none stands in an entrance zone, B11), and none stands in the column a body leaves the water by
         }
 
         var pick = (int)((c.Shape >> 8) % (ulong)trees.TotalWeight);

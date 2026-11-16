@@ -54,8 +54,8 @@ public sealed class ProceduralChunkSourceTests
     public void Given_APlaceAndItsNeighbours_When_TheyAreGeneratedInAnyOrderOnOneSourceAndOneByOneOnOthers_Then_EveryChunkEqualsTheSameChunkGeneratedAlone(ulong seed, Feature feature)
     {
         var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
-        var coords = Neighbourhood(cx, cz, feature == Feature.Mountain ? 0 : -1, feature == Feature.Mountain ? 19 : 7);
-        var among = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed);
+        var coords = Neighbourhood(cx, cz, feature == Feature.Mountain ? 0 : -4, feature == Feature.Mountain ? 19 : 7);
+        var among = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, TestGame.Data.Underground);
         var generated = new Dictionary<VoxelChunkCoord, string>();
         foreach (var coord in Shuffled(coords, seed ^ 0x5eed))
         {
@@ -64,7 +64,7 @@ public sealed class ProceduralChunkSourceTests
 
         foreach (var coord in coords)
         {
-            var alone = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed).Generate(coord);
+            var alone = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, TestGame.Data.Underground).Generate(coord);
             Assert.Equal(alone.ComputeDigestHex(), generated[coord]);
             Assert.Equal(coord, alone.Coord);
         }
@@ -76,7 +76,7 @@ public sealed class ProceduralChunkSourceTests
     {
         var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
         var normal = ProceduralTestWorld.Source(seed);
-        var wide = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, 6);
+        var wide = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, 6, TestGame.Data.Underground);
 
         Assert.Equal(normal.Margin + 6, wide.Margin);
         foreach (var coord in Neighbourhood(cx, cz, feature == Feature.Mountain ? 8 : 0, feature == Feature.Mountain ? 19 : 3))
@@ -115,7 +115,7 @@ public sealed class ProceduralChunkSourceTests
     }
 
     [Fact]
-    public void Given_AColumnOfAnyPlace_When_ItsLayersAreRead_Then_TheBottomIsSolidStoneAndTheTopIsAir()
+    public void Given_AColumnOfAnyPlace_When_ItsLayersAreRead_Then_TheBottomIsSolidRockToTheBedrockFloorAndTheTopIsAir()
     {
         var source = ProceduralTestWorld.Source(7);
         foreach (var feature in new[] { Feature.Plain, Feature.Coast, Feature.Mountain })
@@ -123,7 +123,8 @@ public sealed class ProceduralChunkSourceTests
             var (cx, cz) = ProceduralTestWorld.Find(7, feature);
             var column = source.GenerateColumn(cx, cz);
 
-            Assert.True(column[0].Blocks.ToArray().All(static b => b == BlockId.Stone), $"the lowest chunk of {feature} is stone to the floor at y -64");
+            Assert.Equal(BlockId.Bedrock, column[0].Blocks[0]);
+            Assert.True(column[0].Blocks.ToArray().All(static b => b is not (BlockId.Air or BlockId.Water or BlockId.Stone)), $"the lowest chunk of {feature} is rock, bedrock, ore or lava, with no air");
             Assert.True(column[^1].IsEmpty || feature == Feature.Mountain, "the highest chunk of the world is air (a range may reach into it)");
         }
     }

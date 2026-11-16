@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/underground.json",
+  "description": "The underground (B11): the rock layers and their blobs, the bedrock floor, the caves with their entrances, the lava and the ores. Loaded by UndergroundData (Vocaterra.Game.Core); UndergroundValidator checks the values (block names the game has, a dither in order, bands that peak inside their range, a water margin no larger than the entrances' water reach).",
+  "type": "object",
+  "required": ["schemaVersion", "strata", "floor", "caves", "entrances", "lava", "ores"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "strata": {
+      "type": "object",
+      "description": "The rock layers: stone down to ditherToY, deep rock below ditherFromY, a dithered change between, blobs of other rock in the stone.",
+      "required": ["stone", "deep", "ditherFromY", "ditherToY", "blobLattice", "blobs"],
+      "additionalProperties": false,
+      "properties": {
+        "stone": { "$ref": "#/definitions/blockName", "description": "The ordinary rock." },
+        "deep": { "$ref": "#/definitions/blockName", "description": "The deep rock below ditherFromY." },
+        "ditherFromY": { "type": "integer", "description": "The y below which the rock is always deep; the dither starts here." },
+        "ditherToY": { "type": "integer", "description": "The y from which the rock is always stone; the dither ends here." },
+        "blobLattice": { "enum": [1, 2, 4, 8, 16], "description": "The spacing, in blocks, the blob noise is sampled at and interpolated from." },
+        "blobs": {
+          "type": "array",
+          "description": "Patches of other rock in the stone layer; the first row whose noise passes its threshold wins.",
+          "items": {
+            "type": "object",
+            "required": ["block", "cell", "cellY", "octaves", "threshold"],
+            "additionalProperties": false,
+            "properties": {
+              "block": { "$ref": "#/definitions/blockName" },
+              "cell": { "type": "integer", "minimum": 1, "description": "The noise's first octave's cell across, in blocks." },
+              "cellY": { "type": "integer", "minimum": 1, "description": "The noise's first octave's cell up, in blocks." },
+              "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
+              "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The noise value, in thousandths, above which the blob is: higher is rarer." }
+            }
+          }
+        }
+      }
+    },
+    "floor": {
+      "type": "object",
+      "description": "The unbreakable floor: a ragged layer from bottomY up.",
+      "required": ["block", "bottomY", "minThickness", "maxThickness"],
+      "additionalProperties": false,
+      "properties": {
+        "block": { "$ref": "#/definitions/blockName", "description": "An indestructible block (bedrock)." },
+        "bottomY": { "type": "integer", "description": "The world's lowest row." },
+        "minThickness": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "maxThickness": { "type": "integer", "minimum": 1, "maximum": 8 }
+      }
+    },
+    "caves": {
+      "type": "object",
+      "description": "Cheese caverns and spaghetti tunnels on a coarse lattice, and the rules that keep them clear of the ground, the water and the valley.",
+      "required": ["latticeXz", "latticeY", "topY", "surfaceCover", "cheese", "spaghetti", "underRegionCeiling", "waterMargin", "bedClearance"],
+      "additionalProperties": false,
+      "properties": {
+        "latticeXz": { "enum": [1, 2, 4, 8, 16], "description": "The lattice spacing across, in blocks." },
+        "latticeY": { "enum": [1, 2, 4, 8, 16], "description": "The lattice spacing up, in blocks." },
+        "topY": { "type": "integer", "description": "The highest y a cave reaches." },
+        "surfaceCover": { "type": "integer", "minimum": 1, "maximum": 32, "description": "The blocks of rock kept between a cave's top and the ground (an entrance cuts through it)." },
+        "cheese": {
+          "type": "object",
+          "description": "The caverns: one noise above a threshold that rises with height, so they lie deep.",
+          "required": ["cell", "cellY", "octaves", "deepThreshold", "deepY", "shallowThreshold", "shallowY"],
+          "additionalProperties": false,
+          "properties": {
+            "cell": { "type": "integer", "minimum": 1 },
+            "cellY": { "type": "integer", "minimum": 1 },
+            "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
+            "deepThreshold": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The threshold, in thousandths, at and below deepY." },
+            "deepY": { "type": "integer" },
+            "shallowThreshold": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The threshold at and above shallowY (not below the deep one; 1000: none)." },
+            "shallowY": { "type": "integer" }
+          }
+        },
+        "spaghetti": {
+          "type": "object",
+          "description": "The tunnels: two noises both within thickness of zero.",
+          "required": ["cell", "cellY", "octaves", "thickness"],
+          "additionalProperties": false,
+          "properties": {
+            "cell": { "type": "integer", "minimum": 1 },
+            "cellY": { "type": "integer", "minimum": 1 },
+            "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
+            "thickness": { "type": "integer", "minimum": 1, "maximum": 500, "description": "How far from zero, in thousandths, each noise may be: the tunnel's width." }
+          }
+        },
+        "underRegionCeiling": { "type": "integer", "maximum": -1, "description": "The highest y a cave reaches under an authored region (its own chunks start at 0)." },
+        "waterMargin": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Blocks round a water cell that stay solid." },
+        "bedClearance": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Blocks under the bed of a water column that stay solid (not below waterMargin)." }
+      }
+    },
+    "entrances": {
+      "type": "object",
+      "description": "Where a tunnel opens to the sky: zones of a 2D mask, opened only on dry procedural land over a cave.",
+      "required": ["cell", "octaves", "threshold", "minHeightAboveSea", "waterReach", "probeDepth"],
+      "additionalProperties": false,
+      "properties": {
+        "cell": { "type": "integer", "minimum": 1, "description": "The mask noise's first octave's cell, in blocks." },
+        "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The mask value, in thousandths, above which a column is in a zone." },
+        "minHeightAboveSea": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far over the sea the ground must be." },
+        "waterReach": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Columns round an entrance that hold no water (not below the caves' waterMargin)." },
+        "probeDepth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How far under a cave's top the shaft looks for cave air." }
+      }
+    },
+    "lava": {
+      "type": "object",
+      "description": "Cave air at or below level is lava.",
+      "required": ["block", "level"],
+      "additionalProperties": false,
+      "properties": {
+        "block": { "$ref": "#/definitions/blockName", "description": "A fluid block (lava)." },
+        "level": { "type": "integer", "description": "The highest y that holds lava." }
+      }
+    },
+    "ores": {
+      "type": "array",
+      "description": "The ores, one row each.",
+      "items": {
+        "type": "object",
+        "required": ["id", "block", "replaces", "size", "bands"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "The row's id (lowercase kebab-case): also the key of its random draws." },
+          "block": { "$ref": "#/definitions/blockName", "description": "The ore's block." },
+          "replaces": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/blockName" }, "description": "The rocks its veins may replace; no other block is ever replaced." },
+          "size": {
+            "type": "object",
+            "required": ["min", "max"],
+            "additionalProperties": false,
+            "properties": {
+              "min": { "type": "integer", "minimum": 1, "maximum": 64, "description": "The fewest blocks a vein tries to hold." },
+              "max": { "type": "integer", "minimum": 1, "maximum": 64, "description": "The most blocks a vein tries to hold." }
+            }
+          },
+          "bands": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["minY", "maxY", "peakY", "veins"],
+              "additionalProperties": false,
+              "properties": {
+                "minY": { "type": "integer", "description": "The lowest y of the band." },
+                "maxY": { "type": "integer", "description": "The highest y of the band." },
+                "peakY": { "type": "integer", "description": "The y the triangular spread of vein centres peaks at (inside the band)." },
+                "veins": { "type": "integer", "minimum": 0, "maximum": 64, "description": "Veins tried in a chunk column (16 x 16 blocks, every layer)." }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "blockName": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "A block's name (lowercase, words joined by a hyphen) as BlockDefinition has it." }
+  }
+}

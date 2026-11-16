@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
+using Vocaterra.Game.Core.World.Underground;
 
 namespace Vocaterra.Game.Core.Tests.Architecture;
 
@@ -22,6 +23,7 @@ public sealed partial class ProceduralWorldPurityTests
         "src/Vocaterra.Game.Core/World/Noise",
         "src/Vocaterra.Game.Core/World/Climate",
         "src/Vocaterra.Game.Core/World/Biomes",
+        "src/Vocaterra.Game.Core/World/Underground",
         "src/Vocaterra.Game.Core/World/Generation/Procedural",
         "src/Vocaterra.Game.Core/World/Streaming",
         "src/Vocaterra.Game.Core/World/Regions",
@@ -32,6 +34,7 @@ public sealed partial class ProceduralWorldPurityTests
         "Vocaterra.Game.Core.World.Noise",
         "Vocaterra.Game.Core.World.Climate",
         "Vocaterra.Game.Core.World.Biomes",
+        "Vocaterra.Game.Core.World.Underground",
         "Vocaterra.Game.Core.World.Generation.Procedural",
         "Vocaterra.Game.Core.World.Streaming",
         "Vocaterra.Game.Core.World.Regions",
@@ -80,12 +83,26 @@ public sealed partial class ProceduralWorldPurityTests
     }
 
     [Fact]
+    public void Given_TheUndergroundOfB11_When_TheTypesAreFound_Then_TheSeamImplementationsAreAmongTheTypesChecked()
+    {
+        var checkedTypes = PureTypes().ToList();
+
+        Assert.Contains(typeof(StrataTable), checkedTypes);
+        Assert.Contains(typeof(OreTable), checkedTypes);
+        Assert.Contains(typeof(CaveField), checkedTypes);
+        Assert.Contains(typeof(EntranceMask), checkedTypes);
+        Assert.Contains(typeof(BedrockFloor), checkedTypes);
+        Assert.Contains(typeof(UndergroundWorld), checkedTypes);
+        Assert.All(new[] { typeof(IStrataSelector), typeof(ICaveField) }, seam => Assert.Contains(checkedTypes, t => seam.IsAssignableFrom(t) && !t.IsInterface));
+    }
+
+    [Fact]
     public void Given_EveryTypeOfTheProceduralFolders_When_ItsFieldsAreRead_Then_EveryInstanceFieldIsReadonlyAndNoStaticIsMutable()
     {
         const BindingFlags All = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
         var offenders = new List<string>();
         foreach (var type in PureTypes().SelectMany(static t => new[] { t }.Concat(t.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)))
-                     .Where(static t => t.GetCustomAttribute<CompilerGeneratedAttribute>() is null))
+                     .Where(static t => t.GetCustomAttribute<CompilerGeneratedAttribute>() is null && !t.IsEnum))
         {
             foreach (var field in type.GetFields(All))
             {
