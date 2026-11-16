@@ -2794,3 +2794,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
   worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
   mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.
+- **The owner's picture tour (2026-11-16, no repository change; `artifacts/b-series/tour/`, index.md).** Seeds 42, 1, 7, 2026 and 99999 from
+  high ground, a mountain range, ocean views, and the cave on seed 42 through B11b's natural entrance (a torch-lit landing, the lava lake),
+  High, midday, Release. Findings: a teleport to a new area took 40 to 135 s for the far view on an empty cache (B07d's fill speed); the
+  cave mouth is hard to find from outside (a 2 to 3 block pit in meadow); `--teleport-to x,y,z` over a passage stood the camera on the
+  surface above it, not in the passage (B24); snow-covered summits read flat white; seed 99999 is 79% water with no real range.
