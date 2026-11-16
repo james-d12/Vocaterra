@@ -2591,3 +2591,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   to 1.5 for walk speed and 0.25 to 2 for drains. Walk speed from gear applies with `--needs off` (unlike the cold), while drains and
   stamina follow the needs. Damage causes are data ids now; armour applies to no cause, as the owner said, and a row in `damage.json`
   would change that. A cause unknown at run time passes through unmodified (the validator refuses unknown ones at load).
+- **I09, gear on the player (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i09-report.md`. Gated at `50ae2330`:
+  11,996 passed, 3 skipped; no existing test, golden or fixture changed. The layer order is the groups' `layer` number, highest first, and
+  the back and off-hand slots are found by their `wear` kind, so no `role` field was needed and equipment.json kept its hash. Nothing worn
+  draws exactly as before (a mesh test checks the vertices); gear adds at most 9 boxes plus the off-hand item's extruded faces. Not yet seen:
+  no shipped item can be worn, so the pictures need a test-only content folder with `look` rows, and they wait for the owner's windows
+  (stop 4, with I04's).
