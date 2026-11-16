@@ -58,9 +58,10 @@ internal sealed class CavePlan
                 var k = (lz * VoxelChunk.Size) + lx;
                 var height = ctx.HeightAt(x, z);
                 var ceiling = Math.Min(Math.Min(height - caves.SurfaceCover, caves.TopY), water[k]);
-                if (world.Regions is { } blend && blend.Regions.Nearest(x, z).Distance == 0)
+                if (world.Regions is { } blend && blend.Regions.Nearest(x, z) is { Region: { } region, Distance: 0 })
                 {
-                    ceiling = Math.Min(ceiling, caves.UnderRegionCeiling);
+                    // Measured from the region's own bottom when that is under y 0 (a town cut deeper than the valley), so a cave never touches the region's lowest layer.
+                    ceiling = Math.Min(ceiling, caves.UnderRegionCeiling + Math.Min(0, region.Bounds.MinY));
                 }
 
                 ceilings[k] = ceiling;

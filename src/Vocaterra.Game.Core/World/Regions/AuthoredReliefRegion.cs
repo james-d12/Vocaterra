@@ -52,10 +52,11 @@ public sealed class AuthoredReliefRegion : IRegion
     /// <param name="scene">The scene as the builder made it.</param>
     /// <param name="originChunkX">The first chunk column of the region in the world (0 for the valley).</param>
     /// <param name="originChunkZ">The first chunk row of the region in the world (0 for the valley).</param>
+    /// <param name="originChunkY">The first chunk layer of the region in the world (0 for the valley; a town on procedural ground stands on whatever layer its ground needs, B15).</param>
     /// <param name="keepChunks">Whether to copy the chunks into immutable arrays; false keeps only what a bounded game needs (the digest, the edge heights and the block index).</param>
     /// <param name="edgeBlurRadius">The radius, in columns, of the blur that <see cref="SmoothedEdgeHeight"/> answers with (<see cref="EdgeSmoothingSpec.BlurRadius"/>).</param>
     /// <exception cref="ArgumentException">The scene did not come from the scene builder (it has no ground heights), or its grid is streamed.</exception>
-    internal static AuthoredReliefRegion Freeze(string id, Scene scene, int originChunkX = 0, int originChunkZ = 0, bool keepChunks = true, int edgeBlurRadius = 16)
+    internal static AuthoredReliefRegion Freeze(string id, Scene scene, int originChunkX = 0, int originChunkZ = 0, bool keepChunks = true, int edgeBlurRadius = 16, int originChunkY = 0)
     {
         ArgumentNullException.ThrowIfNull(scene);
         var grid = scene.Grid;
@@ -65,7 +66,7 @@ public sealed class AuthoredReliefRegion : IRegion
         }
 
         var limits = grid.Limits;
-        var bounds = new RegionBounds(originChunkX, 0, originChunkZ, limits.EndChunkX, limits.EndChunkY, limits.EndChunkZ);
+        var bounds = new RegionBounds(originChunkX, originChunkY, originChunkZ, limits.EndChunkX, limits.EndChunkY, limits.EndChunkZ);
         ChunkData?[]? chunks = null;
         if (keepChunks)
         {
@@ -76,7 +77,7 @@ public sealed class AuthoredReliefRegion : IRegion
                 {
                     for (var cx = 0; cx < bounds.ChunksX; cx++)
                     {
-                        var coord = new VoxelChunkCoord(originChunkX + cx, cy, originChunkZ + cz);
+                        var coord = new VoxelChunkCoord(originChunkX + cx, originChunkY + cy, originChunkZ + cz);
                         if (grid.TryGetChunk(new VoxelChunkCoord(cx, cy, cz), out var chunk) && !chunk.IsEmpty)
                         {
                             chunks[(((cy * bounds.ChunksZ) + cz) * bounds.ChunksX) + cx] = ChunkData.From(coord, chunk.Blocks, chunk.WaterLevels);
@@ -86,7 +87,10 @@ public sealed class AuthoredReliefRegion : IRegion
             }
         }
 
-        return new AuthoredReliefRegion(id, bounds, chunks, (int[])ground.Clone(), Blurred(ground, bounds.ChunksX << VoxelChunk.Shift, bounds.ChunksZ << VoxelChunk.Shift, edgeBlurRadius), RegionTemplateDigest.Of(grid, originChunkX, originChunkZ), template.Shifted(originChunkX, originChunkZ));
+        // The ground is kept in the world's y: the scene's heights are the grid's own, and the grid's floor is the region's first layer.
+        var lift = originChunkY << VoxelChunk.Shift;
+        var heights = lift == 0 ? (int[])ground.Clone() : [.. ground.Select(h => h + lift)];
+        return new AuthoredReliefRegion(id, bounds, chunks, heights, Blurred(heights, bounds.ChunksX << VoxelChunk.Shift, bounds.ChunksZ << VoxelChunk.Shift, edgeBlurRadius), RegionTemplateDigest.Of(grid, originChunkX, originChunkZ, originChunkY), template.Shifted(originChunkX, originChunkZ, originChunkY));
     }
 
     /// <inheritdoc />

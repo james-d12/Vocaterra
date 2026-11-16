@@ -132,4 +132,50 @@ public sealed class UndergroundUnderRegionTests
             }
         }
     }
+
+    [Fact]
+    public void Given_ATownOnProceduralGround_When_ItsColumnsAreRead_Then_TheTownIsItsOwnAndTheProceduralUndergroundLiesBelowItsLayersLikeUnderTheValley()
+    {
+        var town = SampleTown.Town();
+        var world = Vocaterra.Game.Core.World.WorldFactory.Compose(SampleTown.Data, SampleTown.Seed, new Vocaterra.Game.Core.World.Regions.RegionCatalog([RegionTestWorld.Valley(), town]));
+        var b = town.Bounds;
+        var (cx, cz) = (b.MinChunkX + 2, b.MinChunkZ + 3);
+
+        // The town's chunks are the town's own.
+        Assert.Same(town.Copy(new VoxelChunkCoord(cx, b.MinChunkY, cz)), world.Source.Generate(new VoxelChunkCoord(cx, b.MinChunkY, cz)));
+        var plan = world.Procedural.ShapedColumn(cx, cz).CavePlan;
+        Assert.All(plan.Ceiling, static c => Assert.True(c <= Data.Caves.UnderRegionCeiling, $"ceiling {c}"));
+        Assert.All(plan.ShaftFrom, static s => Assert.Equal(int.MaxValue, s));
+
+        // Below its layers the procedural underground: slate, bedrock and caves, none above the ceiling, and equal to the procedural source's own chunk.
+        var seen = new HashSet<BlockId>();
+        for (var cy = world.Source.MinChunkY; cy < Math.Min(0, b.MinChunkY); cy++)
+        {
+            var chunk = world.Source.Generate(new VoxelChunkCoord(cx, cy, cz));
+            Assert.Equal(world.Procedural.Generate(new VoxelChunkCoord(cx, cy, cz)).ComputeDigestHex(), chunk.ComputeDigestHex());
+            seen.UnionWith(chunk.Blocks.ToArray());
+        }
+
+        Assert.Contains(BlockId.Slate, seen);
+        Assert.Contains(BlockId.Bedrock, seen);
+        Assert.DoesNotContain(BlockId.Stone, seen);
+
+        // No entrance in the town's footprint or its margin.
+        var margin = TestGame.Data.WorldGen.Blend.Margin;
+        var regions = world.Procedural.World.Regions!.Regions;
+        for (var z = b.MinChunkZ - 5; z <= b.MinChunkZ + b.ChunksZ + 4; z++)
+        {
+            for (var x = b.MinChunkX - 5; x <= b.MinChunkX + b.ChunksX + 4; x++)
+            {
+                var shafts = world.Procedural.ShapedColumn(x, z).CavePlan.ShaftFrom;
+                for (var i = 0; i < 256; i++)
+                {
+                    if (shafts[i] != int.MaxValue)
+                    {
+                        Assert.True(regions.Nearest((x << 4) + (i & 15), (z << 4) + (i >> 4)).Distance >= margin, "an entrance in the town's margin");
+                    }
+                }
+            }
+        }
+    }
 }

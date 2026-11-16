@@ -86,7 +86,9 @@ public sealed class NarrowedMutationGuardTests
         const string Guarded = "[ART] [ART]? [VERB]? [ART]? porque?";
         var failing = Analyze("ayer las los despego unas porque", Guarded);
         Assert.Null(failing.MatchedGrammarId);
-        Assert.Contains(failing.Errors, static e => e.Tag != ErrorTags.ConjTense);
+        // M96: the analyzer no longer reads unas porque as the noun (a singular noun cannot follow a plural determiner), so the other error this guard was made for
+        // is gone; the guard stays (the match still decides a literal's accent reading where the neighbours allow the noun), and only the tense slip is left here.
+        Assert.All(failing.Errors, static e => Assert.Equal(ErrorTags.ConjTense, e.Tag));
         Assert.NotEmpty(Harness.Words.Lexicon.LookupWithAccentVariants("porque").Variants);
         Assert.Empty(Harness.Words.Lexicon.LookupWithAccentVariants("aunque").Variants);
 

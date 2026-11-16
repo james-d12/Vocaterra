@@ -139,6 +139,9 @@ public sealed partial class PlayerBody
         var wet = Immersion.Of(grid, this);
         if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet, currents, speedPermille); }
 
+        var molten = LavaMotion.Immersion(grid, this); // lava is a thicker liquid than water (B10b): a body sinks into it
+        if (molten.Feet) { return StepInWater(grid, intentX, intentZ, jump, molten, null, speedPermille, lava: true); }
+
         var speed = Scaled(VoxelPhysics.WalkSpeed, speedPermille);
         var wasGrounded = Grounded;
         SteppedUp = false;

@@ -19,11 +19,12 @@ internal sealed class BlockWorld
     /// <param name="data">The bundle's content.</param>
     /// <param name="seed">The world seed.</param>
     /// <param name="valley">Whether the world has the valley as its region (the streamed game's world) instead of being free.</param>
-    public BlockWorld(GameData data, ulong seed, bool valley)
+    /// <param name="town">A town region placed on the procedural ground (B15, <c>--region</c>), or <see langword="null"/>.</param>
+    public BlockWorld(GameData data, ulong seed, bool valley, Vocaterra.Game.Core.World.Regions.ProceduralReliefRegion? town = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         _source = valley
-            ? WorldFactory.Create(data, seed, WorldMode.Streamed).ChunkSource ?? throw new InvalidOperationException("The streamed world has no chunk source.")
+            ? WorldFactory.Create(data, seed, WorldMode.Streamed, null, town is null ? null : [town]).ChunkSource ?? throw new InvalidOperationException("The streamed world has no chunk source.")
             : new ProceduralChunkSource(data.WorldGen, data.Biomes, seed, null, data.Underground);
         MinY = data.WorldGen.Vertical.MinY;
         MaxY = data.WorldGen.Vertical.MaxY;
