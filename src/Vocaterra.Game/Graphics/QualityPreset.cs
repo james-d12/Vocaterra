@@ -18,6 +18,8 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="FarRange">B07: how far the far view's level-of-detail land is drawn in the streamed world, in blocks from the eye (D-game-34 item 21); 0 for none. The bounded valley has no far view.</param>
 /// <param name="MaxMeshedChunks">B07: the most chunk meshes a streamed world keeps (the nearest ones): a cap on the meshes and so on the memory of the card.</param>
 /// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident (the farthest unchanged ones are dropped past it).</param>
+/// <param name="GrassDistance">B18: how far from the eye the decorative grass layer is drawn, in blocks; it thins out over the outer half of it.</param>
+/// <param name="GrassCapPercent">B18: the share of the Grass slider's density this level may reach, in percent: the slider's 100 is this share of a tuft on every grass column of the lushest biome.</param>
 public sealed record QualityPreset(
     QualityLevel Level,
     int ViewDistance,
@@ -29,7 +31,9 @@ public sealed record QualityPreset(
     int RainDrops = 1200,
     int FarRange = 0,
     int MaxMeshedChunks = 24_000,
-    int MaxResidentChunks = 48_000)
+    int MaxResidentChunks = 48_000,
+    int GrassDistance = 96,
+    int GrassCapPercent = 100)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;
@@ -37,9 +41,9 @@ public sealed record QualityPreset(
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000),
-        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000),
-        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000, GrassDistance: 48, GrassCapPercent: 40),
+        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000, GrassDistance: 72, GrassCapPercent: 70),
+        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000, GrassDistance: 96, GrassCapPercent: 100),
     };
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>

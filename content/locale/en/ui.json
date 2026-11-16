@@ -452,6 +452,7 @@
     "ui.testAutosave": "Autosave",
     "ui.settingsViewDistance": "Draw distance (blocks)",
     "ui.settingsAuto": "Auto",
+    "ui.settingsGrass": "Grass",
     "ui.controlGroupGeneral": "Menu and function keys",
     "ui.controlGroupMoving": "Moving and looking",
     "ui.controlGroupDoing": "Doing things",
