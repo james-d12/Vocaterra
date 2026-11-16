@@ -50,7 +50,7 @@ public sealed class PassTests(ITestOutputHelper output)
     /// The columns a walker reaches from <paramref name="start"/>: up one block, any drop, eight ways. <paramref name="allowed"/> limits the columns, and
     /// <paramref name="maxFloor"/> the height the walker may climb to.
     /// </summary>
-    private static HashSet<(int X, int Z)> Reach(VoxelGrid grid, (int X, int Z) start, Func<int, int, bool>? allowed = null, int maxFloor = int.MaxValue)
+    internal static HashSet<(int X, int Z)> Reach(VoxelGrid grid, (int X, int Z) start, Func<int, int, bool>? allowed = null, int maxFloor = int.MaxValue)
     {
         var floors = new int[grid.SizeX * grid.SizeZ];
         for (var z = 0; z < grid.SizeZ; z++)
@@ -106,7 +106,7 @@ public sealed class PassTests(ITestOutputHelper output)
         return scene;
     }
 
-    private static (int X, int Z) RoadStart(Scene scene)
+    internal static (int X, int Z) RoadStart(Scene scene)
     {
         var village = scene.Point("village");
         return (village.X + 24, village.Z);
@@ -130,7 +130,7 @@ public sealed class PassTests(ITestOutputHelper output)
     }
 
     /// <summary>The height up to which a walker counts as in the pass: the pass's own floor at the site `paso` and six blocks over it (the heap is at least three high; the flanks beyond are cliffs and the ring).</summary>
-    private static int PassBand(Scene scene) => Floor(scene.Grid, scene.Point("paso").X, scene.Point("paso").Z) + 6;
+    internal static int PassBand(Scene scene) => Floor(scene.Grid, scene.Point("paso").X, scene.Point("paso").Z) + 6;
 
     [Fact]
     public void Given_TheRockfall_When_AWalkerStaysInThePassAndSetsOutFromTheRoad_Then_NoRouteReachesThePasoSiteOrTheEastEdge()

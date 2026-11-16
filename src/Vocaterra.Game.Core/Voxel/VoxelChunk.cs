@@ -33,7 +33,7 @@ public sealed class VoxelChunk
     private int _nonAir;
     private byte[]? _water;
     private int _flowing;
-    private ulong _kinds;
+    private UInt128 _kinds;
     private bool _kindsValid;
 
     internal VoxelChunk(VoxelChunkCoord coord) => Coord = coord;
@@ -60,22 +60,22 @@ public sealed class VoxelChunk
     public bool IsEmpty => _nonAir == 0;
 
     /// <summary>
-    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 64). Computed on first use after an edit and cached,
+    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 128, see BlockKinds.Capacity). Computed on first use after an edit and cached,
     /// so a search for one kind skips every chunk without it.
     /// </summary>
-    public ulong KindMask
+    public UInt128 KindMask
     {
         get
         {
             if (!_kindsValid)
             {
-                var mask = 0UL;
+                var mask = default(BlockKinds.Accumulator);
                 foreach (var block in Blocks)
                 {
-                    mask |= 1UL << (int)block;
+                    mask.Add(block);
                 }
 
-                _kinds = mask;
+                _kinds = mask.Mask;
                 _kindsValid = true;
             }
 
@@ -217,13 +217,14 @@ public sealed class VoxelChunk
         _pristineRecorded = false;
     }
 
+    /// <summary>Writes a block at the chunk-local position; returns whether it changed. A bedrock cell is never changed (<see cref="BlockDefinition.Indestructible"/>).</summary>
     internal bool Set(int localX, int localY, int localZ, BlockId block)
     {
         var index = Index(localX, localY, localZ);
         var old = _blocks is null ? BlockId.Air : _blocks[index];
-        if (old == block)
+        if (old == block || old == BlockId.Bedrock)
         {
-            return false;
+            return false; // bedrock is never removed or replaced, by any edit (B10); only a chunk's install (generation) writes it
         }
 
         RecordPristine();
@@ -288,6 +289,11 @@ public sealed class VoxelChunk
         {
             var index = Index(localX, y, localZ);
             var old = blocks[index];
+            if (old == BlockId.Bedrock && block != BlockId.Bedrock)
+            {
+                continue; // never removed or replaced (B10)
+            }
+
             if (old == block)
             {
                 // Filling water over water writes source: a non-source level there is reset.

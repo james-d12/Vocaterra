@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
-/// The lanterns and post torches of the world (S15) indexed by chunk column (B04b): built from the chunks that are resident when it is made and as chunks are installed, and kept
+/// The lanterns, post torches and lava of the world (every block that <see cref="BlockDefinition.Glows"/>) (S15) indexed by chunk column (B04b): built from the chunks that are resident when it is made and as chunks are installed, and kept
 /// current as a light block is placed or removed or a chunk is evicted, so the glow of a torch placed in play lights its surroundings at once. A chunk holds a light only if its
 /// <see cref="VoxelChunk.KindMask"/> says so, so a chunk without one is never looked into. The glow itself (its reach and falloff) is <see cref="ChunkMesher"/>'s.
 /// Lights are read in one fixed order, the order the one-off scan of the whole grid gave (chunk layer, row, column, then the block's y, z, x), so a mesh built from
@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Graphics.World;
 /// </summary>
 public sealed class ChunkLightIndex : IChunkResidencyListener, IBlockChangeListener
 {
-    private static readonly ulong LightKinds = ChunkMesher.KindBit(BlockId.Lantern) | ChunkMesher.KindBit(BlockId.PostTorch);
+    private static readonly UInt128 LightKinds = LightKindMask();
 
     private readonly VoxelGrid _grid;
     private readonly Dictionary<(int X, int Z), List<BlockPos>> _columns = [];
@@ -184,12 +184,26 @@ public sealed class ChunkLightIndex : IChunkResidencyListener, IBlockChangeListe
         _all = null;
     }
 
-    private static bool IsLight(BlockId block) => block is BlockId.Lantern or BlockId.PostTorch;
+    private static bool IsLight(BlockId block) => BlockDefinition.IsLight(block);
+
+    private static UInt128 LightKindMask()
+    {
+        UInt128 mask = 0;
+        foreach (var definition in BlockDefinition.All)
+        {
+            if (definition.Glows)
+            {
+                mask |= ChunkMesher.KindBit(definition.Id);
+            }
+        }
+
+        return mask;
+    }
 
     // Reads the chunk's light blocks into its column (replacing what the column held of that chunk).
     private void Scan(VoxelChunkCoord coord, bool recordChange)
     {
-        if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & LightKinds) == 0)
+        if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & LightKinds) == UInt128.Zero)
         {
             return;
         }

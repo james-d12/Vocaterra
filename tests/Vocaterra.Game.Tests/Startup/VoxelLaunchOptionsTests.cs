@@ -293,6 +293,14 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void ThePassFlagOpensThePassAndRefusesAnyOtherValue()
+    {
+        Assert.False(Parse().PassOpen);
+        Assert.True(Parse("--pass", "open").PassOpen);
+        Assert.Contains("--pass", Refuse("--pass", "shut"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheNeedsAreOnByDefaultAndNeedsOffFreezesThem()
     {
         Assert.False(Parse().NeedsOff);

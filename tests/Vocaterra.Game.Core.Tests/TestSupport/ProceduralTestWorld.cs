@@ -27,7 +27,7 @@ internal static class ProceduralTestWorld
     public static readonly ulong[] Seeds = [42, 7, 2026];
 
     /// <summary>The shipped data's source for a seed.</summary>
-    public static ProceduralChunkSource Source(ulong seed) => Sources.GetOrAdd(seed, static s => new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, s));
+    public static ProceduralChunkSource Source(ulong seed) => Sources.GetOrAdd(seed, static s => new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, s, null, TestGame.Data.Underground));
 
     /// <summary>
     /// The chunk column nearest the origin (searched in rings of 64 blocks outwards) that has the feature: a river or lake in it, a coast (sea and a beach), a woodland with

@@ -822,6 +822,30 @@ the owner's answers of 2026-11-15 are in its section 5.
     margin): near a region a river narrows and shallows to a stream and starts at a spring or a small pond on the slopes outside the
     margin, and flows away to a lake or the sea; no river or lake water inside the margin, and no lake cut straight by it. Chosen over
     bending rivers round the valley and over rivers flowing through it (which would change the hand-made valley). B02b does it.
+19. **Up to four agents** (2026-11-15, about 21:45 UTC): "you can have up to 4 agents now". Item 17's one agent becomes up to four
+    building agents at once; heavy commands go back to `scripts/limited.sh`'s two machine-wide slots. No game windows still waits for
+    the owner's word that he has finished playing.
+20. **B02b held for a second round; sea about 35 to 45%** (2026-11-15, about 21:58 UTC, on B02b's maps: 60 to 65% sea in islands of
+    2,000 to 5,000 blocks, flat snow plateaus for mountains, the valley on a low coastal dome ringed by beach and puddles): "Hold B02b,
+    redo it" (over merging it with a follow-up, or keeping it) and "About 35 to 45%" sea (over 50% or keeping 60 to 65%). The redo
+    also asks for ranges of peaks, land rising inland round the valley, no puddled beach flats and rivers from the mountains
+    (`.claude/briefs/b02b-redo.md`).
+21. **The far view, folded into B07** (2026-11-15, about 22:02 UTC; the owner: "we need high render distance, performance is important",
+    "like say horizons mod in minecraft, without taking big performance hits"): beyond the voxel chunks (High 400 blocks today), level-
+    of-detail terrain tiles read straight from the pure height model and biome table, coarser with distance and built on worker
+    threads, show the land **to 16 km at 60 fps on the High preset** on his machine. "Fold it into B07" (over a separate milestone
+    after B07, or a later series); "16 km" (over 8 or 4 km). The plan's "does not do" loses distant-terrain detail levels.
+22. **The body sinks into lava** (2026-11-15, about 23:15 UTC, on B10's report that a body could stand on a lava surface): "You should
+    sink into it. Damage doesn't need to be done in this pr." Lava acts on the body as a thick liquid (slow sinking, moving and
+    swimming up); no harm in this series. B10b does it. Item 9's "lava only blocks the body" is replaced.
+23. **The ores easier to see** (2026-11-15, about 23:25 UTC, on B10's tile sheet): "I think the ores should be more obvious. In terms of
+    their colour." Larger clusters of strong colour with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with
+    green patina) on the same stone. Added to B10b.
+24. **B02b gets a third round before it merges** (2026-11-16, about 01:30 UTC, on round 2's maps: 38 to 42% sea in one ocean,
+    continents of 8,000 to 12,000 blocks, ranges rising inland round the valley, clean beaches; but rivers mostly dry valleys since water
+    stands only at sea level, broad massifs, polygon coasts): "Another round first" (over merging round 2 with a follow-up B02c, or
+    merging it as it is). Round 3: rivers hold water all the way down (a water level per column, generated at rest), thinner chains,
+    smoother coasts; then the whole tuning is gated once (`.claude/briefs/b02b-round3.md`).
 
 ## Already decided
 

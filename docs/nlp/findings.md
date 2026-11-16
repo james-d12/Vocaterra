@@ -1428,3 +1428,13 @@ this file. What is still open is collected in [open-items](../open-items.md).
   analyzer reads «porque» as a plural noun); the same seed fails on `feature/settlement` without Y11, so it is the core's or the bundle's
   as it stood. The full run passed. Proposed: a core milestone that finds why «porque» gets a noun reading, fixes it at the source with a
   regression test, and records the seed; the oracle is not narrowed.
+  Met again on 2026-11-15 by B08b's gate on `feature/biomes` (the game's B series, which touched no core input): O5,
+  `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `7PcP-w7xauk1` («túneles unos porque» mutated to
+  «vebegoz unos porque»: the recast writes «porqués»); it replays with the seed. Two oracles now trip on it at random seeds.
+  **Resolved by M96** (2026-11-16, gated at `fbe763f9`; the entry below).
+- **M96, «porque» read as a plural noun (fixed 2026-11-15; seeds `dTc3W4dw5Cg2` (O4) and `7PcP-w7xauk1` (O5), the entry above).** Cause: `AccentVariantChoice`
+  (not the lexicon, tagger or realiser). `porque` as typed is a conjunction, and a conjunction "needs a word after it"; in «túneles unos porque» it ends the
+  utterance, so the chooser fell back to the accented sibling, the noun `porqué`. The number check then asked for `porqués` after `unos`, and the recast wrote it.
+  Fix: a conjunction or preposition falling back to a singular noun sibling stays as typed when the word right before it is a plural determiner (and likewise a
+  plural noun after a singular one); every other fallback is as before. No API change. Tests: `PorqueNounReadingTests` (both seeds' inputs and the neighbours:
+  «quiero pan porque tengo hambre», «no sé el porqué», «no sé el porque», «no sé los porqués», «por qué porque sí», all clean as before).

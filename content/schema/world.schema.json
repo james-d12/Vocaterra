@@ -173,6 +173,17 @@
       }
     },
     "regionBlend": { "$ref": "#/definitions/regionBlend" },
+    "pass": {
+      "type": "object",
+      "required": ["requiredLessons", "rockfall", "edge"],
+      "additionalProperties": false,
+      "description": "The lock of the exit through the east ring (B08b): the pass opens when every required lesson is complete (or under the cheat setting) and stays open.",
+      "properties": {
+        "requiredLessons": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "description": "The ids of the lessons that must all be complete; each must exist in game/lessons.json." },
+        "rockfall": { "type": "string", "minLength": 1, "description": "The name of the scene prop (game/scene.json) whose blocks close the road and are removed when the pass opens." },
+        "edge": { "type": "string", "minLength": 1, "description": "The scene site where the road meets the valley's edge." }
+      }
+    },
     "altitude": {
       "type": "object",
       "required": ["snowBelowTemperature", "treeLineBelowTemperature"],

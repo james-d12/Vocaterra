@@ -41,12 +41,18 @@ public sealed class ProceduralWaterTests
     public void Given_AGeneratedShore_When_ItsColumnsAreRead_Then_EveryColumnBelowTheSeaIsWaterUpToTheSeaAndNothingIsWetAboveIt(ulong seed, Feature feature)
     {
         var grid = WaterGrid(seed, feature);
-        var wet = 0;
+        var (wet, opened) = (0, 0);
         for (var z = 0; z < grid.SizeZ; z++)
         {
             for (var x = 0; x < grid.SizeX; x++)
             {
-                Assert.NotEqual(BlockId.Air, grid.GetBlock(x, SeaLevel, z)); // a column is water or ground at the sea level, never open
+                if (grid.GetBlock(x, SeaLevel, z) == BlockId.Air)
+                {
+                    // Open at the sea level only in a cave entrance (B11), which is a shaft the width of a column (ground at least 4 blocks over the sea) and stays clear of water.
+                    opened++;
+                    continue;
+                }
+
                 Assert.NotEqual(BlockId.Water, grid.GetBlock(x, SeaLevel + 1, z));
                 if (grid.GetBlock(x, SeaLevel, z) != BlockId.Water)
                 {
@@ -65,6 +71,7 @@ public sealed class ProceduralWaterTests
         }
 
         Assert.True(wet > 100, $"{wet} water columns round the {feature}");
+        Assert.True(opened < grid.SizeX * grid.SizeZ / 10, $"{opened} columns round the {feature} are open at the sea level");
     }
 
     [Theory]

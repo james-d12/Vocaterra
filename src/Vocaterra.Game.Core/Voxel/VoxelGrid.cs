@@ -191,9 +191,9 @@ public sealed class VoxelGrid : IVoxelWriter
 
     /// <summary>
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
-    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33). The block ray and placement read <see cref="IsSolid"/>.
+    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+    public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
 
     /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
     public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
@@ -315,10 +315,10 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         var found = new List<BlockPos>();
-        var bit = 1UL << (int)kind;
+        var bit = BlockKinds.Bit(kind);
         foreach (var coord in DenseOrder())
         {
-            if (!_chunks.TryGetValue(coord, out var chunk) || (chunk.KindMask & bit) == 0)
+            if (!_chunks.TryGetValue(coord, out var chunk) || (chunk.KindMask & bit) == UInt128.Zero)
             {
                 continue;
             }

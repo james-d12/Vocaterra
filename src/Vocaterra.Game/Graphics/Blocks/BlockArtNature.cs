@@ -20,7 +20,9 @@ public static class BlockArtNature
             or BlockCell.Leaves or BlockCell.Bush or BlockCell.BerryBush or BlockCell.Water or BlockCell.PathTop or BlockCell.Planks or BlockCell.Snow
             or BlockCell.SnowSide or BlockCell.MossyStone or BlockCell.Cobble or BlockCell.SpruceBark or BlockCell.SpruceEnd or BlockCell.BirchBark
             or BlockCell.BirchEnd or BlockCell.SpruceLeaves or BlockCell.BirchLeaves or BlockCell.TallGrass or BlockCell.Fern or BlockCell.Reeds
-            or BlockCell.YellowFlower or BlockCell.WhiteFlower or BlockCell.Waterfall or BlockCell.WaterShallow => true,
+            or BlockCell.YellowFlower or BlockCell.WhiteFlower or BlockCell.Waterfall or BlockCell.WaterShallow
+            or BlockCell.Slate or BlockCell.Granite or BlockCell.Limestone or BlockCell.Gravel or BlockCell.Lava or BlockCell.Bedrock or BlockCell.IronOre
+            or BlockCell.TinOre or BlockCell.CopperOre => true,
         _ => false,
     };
 
@@ -72,6 +74,36 @@ public static class BlockArtNature
             case BlockCell.Cobble:
                 CobbleBody(c);
                 break;
+            case BlockCell.Slate:
+                Slate(c);
+                break;
+            case BlockCell.Granite:
+                Granite(c);
+                break;
+            case BlockCell.Limestone:
+                Limestone(c);
+                break;
+            case BlockCell.Gravel:
+                Gravel(c, GreyPebble);
+                break;
+            case BlockCell.Lava:
+                Lava(c);
+                break;
+            case BlockCell.Bedrock:
+                Bedrock(c);
+                break;
+            case BlockCell.IronOre:
+                StoneBody(c);
+                Clusters(c, (216, 162, 122), (112, 70, 42), (242, 204, 170), null, 0x41); // a warm peach-tan with a brown rim
+                break;
+            case BlockCell.TinOre:
+                StoneBody(c);
+                Clusters(c, (230, 238, 245), (56, 60, 70), (255, 255, 255), null, 0x42); // a bright blue-tinted silver with a dark grey rim
+                break;
+            case BlockCell.CopperOre:
+                StoneBody(c);
+                Clusters(c, (232, 122, 44), (118, 54, 20), (255, 178, 98), (63, 181, 154), 0x43); // a bright orange with a brown rim and a few teal patina pixels
+                break;
             case BlockCell.Snow:
                 Fill(c, SnowPal, 3, 5);
                 break;
@@ -83,7 +115,7 @@ public static class BlockArtNature
                 Fill(c, SandPal, 2, 5);
                 break;
             case BlockCell.PathTop:
-                Gravel(c);
+                Gravel(c, PathPebble);
                 break;
             case BlockCell.TrunkSide:
                 Bark(c, OakBark, 0x31, false);
@@ -315,6 +347,175 @@ public static class BlockArtNature
         }
     }
 
+    private static readonly (int R, int G, int B)[] SlatePal = [(44, 50, 62), (58, 66, 80), (72, 82, 98), (88, 98, 114), (106, 116, 130)];
+    private static readonly (int R, int G, int B)[] GranitePal = [(128, 112, 114), (150, 132, 134), (170, 150, 150), (190, 168, 166), (208, 186, 182)];
+    private static readonly (int R, int G, int B)[] LimestonePal = [(204, 196, 170), (218, 210, 184), (230, 223, 198), (240, 234, 212), (248, 244, 226)];
+    private static readonly (int R, int G, int B)[] BedrockPal = [(14, 14, 18), (24, 24, 30), (34, 34, 42), (46, 46, 56), (62, 62, 72)];
+    private static readonly (int R, int G, int B)[] LavaPal = [(150, 30, 8), (206, 64, 12), (250, 112, 20), (255, 160, 36), (255, 214, 96)];
+
+    // Dark and banded: a band every few rows (its tone from the hash of the band), a grain along it and a lighter edge where a band starts.
+    private static void Slate(Canvas c)
+    {
+        for (var y = 0; y < Size; y++)
+        {
+            var band = (y + 1) / 3;
+            var bandTone = (int)(c.H(band, 7, 1) % 3);
+            for (var x = 0; x < Size; x++)
+            {
+                var grain = (int)(c.H(x / 3, y, 2) % 100);
+                var tone = bandTone + (grain < 25 ? 0 : grain < 80 ? 1 : 2);
+                if ((y + 1) % 3 == 0)
+                {
+                    tone -= 1; // the seam between two bands
+                }
+
+                c.Set(x, y, SlatePal[Math.Clamp(tone, 0, 4)]);
+            }
+        }
+    }
+
+    // Pink-grey with dark and light grains: a soft blotch under a dense per-pixel speckle.
+    private static void Granite(Canvas c)
+    {
+        for (var y = 0; y < Size; y++)
+        {
+            for (var x = 0; x < Size; x++)
+            {
+                var blotch = (int)(c.H(x / 4, y / 4, 1) % 100);
+                var tone = 1 + (blotch / 34);
+                var speck = c.H(x, y, 2) % 100;
+                if (speck < 14)
+                {
+                    c.Set(x, y, (66, 60, 64));
+                    continue;
+                }
+
+                if (speck > 90)
+                {
+                    c.Set(x, y, (232, 214, 206));
+                    continue;
+                }
+
+                if (speck > 80)
+                {
+                    tone++;
+                }
+
+                c.Set(x, y, GranitePal[Math.Clamp(tone, 0, 4)]);
+            }
+        }
+    }
+
+    // Pale and fine-grained, with a few faint seams running across.
+    private static void Limestone(Canvas c)
+    {
+        Fill(c, LimestonePal, 4, 3);
+        for (var i = 0; i < 3; i++)
+        {
+            var y = 2 + (int)(c.H(i, 4, 9) % 12);
+            var x0 = (int)(c.H(i, 5, 9) % 8);
+            for (var x = x0; x < x0 + 6 + (int)(c.H(i, 6, 9) % 4) && x < Size; x++)
+            {
+                c.Set(x, y + (x % 3 == 0 ? 1 : 0), LimestonePal[0]);
+            }
+        }
+    }
+
+    // Near-black and rough: dark blotches with sharp lighter and darker pixels, so no two cells of the world look flat.
+    private static void Bedrock(Canvas c)
+    {
+        for (var y = 0; y < Size; y++)
+        {
+            for (var x = 0; x < Size; x++)
+            {
+                var blotch = (int)(c.H(x / 3, y / 3, 1) % 100);
+                var rough = (int)(c.H(x, y, 2) % 100);
+                var tone = (blotch * 2 / 100) + (rough < 22 ? 0 : rough < 80 ? 1 : 2);
+                if (rough > 95)
+                {
+                    tone = 4;
+                }
+
+                c.Set(x, y, BedrockPal[Math.Clamp(tone, 0, 4)]);
+            }
+        }
+    }
+
+    // Bright orange with darker veins: a coarse blotch picks the tone, and winding veins of the darkest tones run through it.
+    private static void Lava(Canvas c)
+    {
+        for (var y = 0; y < Size; y++)
+        {
+            for (var x = 0; x < Size; x++)
+            {
+                var blotch = (int)(c.H(x / 3, y / 3, 1) % 100);
+                var fine = (int)(c.H(x, y, 2) % 100);
+                var v = ((blotch * 3) + (fine * 2)) / 5;
+                var tone = v < 20 ? 2 : v < 55 ? 3 : v < 90 ? 4 : 3;
+                var vein = (x + (2 * (int)(c.H(y / 4, 3, 3) % 3)) + (y % 4 < 2 ? 0 : 1)) % 6 == 0;
+                c.Set(x, y, vein ? LavaPal[c.H(x, y, 4) % 2 == 0 ? 0 : 1] : LavaPal[tone]);
+            }
+        }
+    }
+
+    // The shapes of an ore cluster (3 to 6 pixels), as offsets from its corner.
+    private static readonly (int X, int Y)[][] ClusterShapes =
+    [
+        [(0, 0), (1, 0), (0, 1)],
+        [(0, 0), (1, 0), (2, 0), (1, 1)],
+        [(0, 0), (1, 0), (0, 1), (1, 1)],
+        [(0, 0), (1, 0), (1, 1), (2, 1), (1, 2)],
+        [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (1, 2)],
+        [(1, 0), (0, 1), (1, 1), (2, 1)],
+    ];
+
+    // Where the five clusters of a face start (loose, so that a cluster and its rim never touch the next).
+    private static readonly (int X, int Y)[] ClusterCorners = [(2, 2), (9, 1), (5, 7), (11, 8), (2, 11)];
+
+    // Strong clusters on the drawn stone body (B10b): each is a few pixels of the ore's colour with a dark rim round it and a lighter pixel at its top-left,
+    // so that it stands out at a distance and in shade. A patina colour, when given, replaces the last pixel of three clusters.
+    private static void Clusters(Canvas c, (int R, int G, int B) body, (int R, int G, int B) rim, (int R, int G, int B) light, (int R, int G, int B)? patina, uint salt)
+    {
+        var cells = new List<List<(int X, int Y)>>();
+        for (var i = 0; i < ClusterCorners.Length; i++)
+        {
+            var shape = ClusterShapes[(int)(c.H(i, 1, salt) % (uint)ClusterShapes.Length)];
+            cells.Add([.. shape.Select(o => (ClusterCorners[i].X + o.X, ClusterCorners[i].Y + o.Y))]);
+        }
+
+        var inside = new HashSet<(int, int)>(cells.SelectMany(static l => l));
+        foreach (var cluster in cells)
+        {
+            foreach (var (x, y) in cluster)
+            {
+                foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1) })
+                {
+                    if (!inside.Contains((x + dx, y + dy)))
+                    {
+                        c.Set(x + dx, y + dy, rim);
+                    }
+                }
+            }
+        }
+
+        for (var i = 0; i < cells.Count; i++)
+        {
+            var cluster = cells[i];
+            foreach (var (x, y) in cluster)
+            {
+                c.Set(x, y, body);
+            }
+
+            var first = cluster.OrderBy(static p => p.Y).ThenBy(static p => p.X).First();
+            c.Set(first.X, first.Y, light);
+            if (patina is { } teal && i is 1 or 3 or 4)
+            {
+                var last = cluster.OrderByDescending(static p => p.Y).ThenByDescending(static p => p.X).First();
+                c.Set(last.X, last.Y, teal);
+            }
+        }
+    }
+
     private static void Moss(Canvas c)
     {
         for (var y = 0; y < Size; y++)
@@ -363,9 +564,12 @@ public static class BlockArtNature
         }
     }
 
-    private static void Gravel(Canvas c)
+    private static readonly (int R, int G, int B)[] PathPebble = [(176, 154, 120), (190, 168, 132), (202, 182, 146), (216, 198, 162), (150, 128, 98)];
+    private static readonly (int R, int G, int B)[] GreyPebble = [(112, 114, 120), (132, 134, 140), (152, 154, 160), (172, 174, 180), (82, 84, 90)];
+
+    // Pebbles in 2 x 2 clusters of one tone with a shaded corner and the odd dark gap; the last colour of the palette is the gap.
+    private static void Gravel(Canvas c, (int R, int G, int B)[] pebble)
     {
-        (int R, int G, int B)[] pebble = [(176, 154, 120), (190, 168, 132), (202, 182, 146), (216, 198, 162), (150, 128, 98)];
         for (var y = 0; y < Size; y++)
         {
             for (var x = 0; x < Size; x++)

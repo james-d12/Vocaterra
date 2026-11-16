@@ -34,18 +34,25 @@ public sealed class CompositeChunkSourceTests
     }
 
     [Fact]
-    public void Given_TheColumnsOfTheValley_When_TheLayersUnderItAreGenerated_Then_TheyAreSolidStoneToTheFloor()
+    public void Given_TheColumnsOfTheValley_When_TheLayersUnderItAreGenerated_Then_TheyAreTheProceduralUndergroundNotSolidStone()
     {
+        // B11: under the valley the procedural strata, ores, caves and floor fill y -64 to 0 (the valley's own stone is B13's).
         Assert.Equal(-4, Source.MinChunkY);
+        var seen = new HashSet<BlockId>();
         foreach (var (cx, cz) in new[] { (0, 0), (12, 12), (23, 23), (22, 13), (6, 9) })
         {
             for (var cy = Source.MinChunkY; cy < 0; cy++)
             {
                 var chunk = Source.Generate(new VoxelChunkCoord(cx, cy, cz));
-                Assert.Equal(ChunkData.Volume, chunk.NonAirCount);
-                Assert.All(chunk.Blocks.ToArray(), static b => Assert.Equal(BlockId.Stone, b));
+                Assert.Equal(RegionTestWorld.Composition().Procedural.Generate(new VoxelChunkCoord(cx, cy, cz)).ComputeDigestHex(), chunk.ComputeDigestHex());
+                seen.UnionWith(chunk.Blocks.ToArray());
             }
         }
+
+        Assert.Contains(BlockId.Slate, seen);
+        Assert.Contains(BlockId.Bedrock, seen);
+        Assert.Contains(BlockId.Air, seen); // caves
+        Assert.DoesNotContain(BlockId.Stone, seen); // stone starts at y 8, in the valley's own layers
     }
 
     [Fact]

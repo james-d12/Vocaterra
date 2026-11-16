@@ -28,7 +28,7 @@ internal static class VoxelCollider
             {
                 for (var bx = x0; bx <= x1; bx++)
                 {
-                    if (grid.BlocksBody(bx, by, bz))
+                    if (Collides(grid, bx, by, bz))
                     {
                         return false;
                     }
@@ -101,6 +101,10 @@ internal static class VoxelCollider
         return false;
     }
 
+    // The body's collision: BlocksBody for planning (it includes lava, so a walk is never routed through it), but a moving body sinks into lava (B10b).
+    private static bool Collides(IVoxelReader grid, int x, int y, int z) =>
+        grid.BlocksBody(x, y, z) && !BlockDefinition.StopsBodyOf(grid.GetBlock(x, y, z));
+
     private static bool Blocked(IVoxelReader grid, int axis, int cell, int lo1, int hi1, int lo2, int hi2)
     {
         for (var i = lo1; i <= hi1; i++)
@@ -109,9 +113,9 @@ internal static class VoxelCollider
             {
                 var solid = axis switch
                 {
-                    0 => grid.BlocksBody(cell, i, j),
-                    1 => grid.BlocksBody(i, cell, j),
-                    _ => grid.BlocksBody(i, j, cell),
+                    0 => Collides(grid, cell, i, j),
+                    1 => Collides(grid, i, cell, j),
+                    _ => Collides(grid, i, j, cell),
                 };
                 if (solid)
                 {

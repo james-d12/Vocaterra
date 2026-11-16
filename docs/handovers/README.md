@@ -31,7 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-15-1417-biomes](2026-11-15-1417-biomes.md) | The B series (a tall procedural world round hand-crafted regions, D-game-34) on `feature/biomes` | Resumed 2026-11-15 18:37 UTC (one agent, one heavy slot, no game windows while the owner plays): B02, B04b and B08a gated; B06 running; B03b's pictures after the owner finishes; then B02b |
+| [2026-11-15-1417-biomes](2026-11-15-1417-biomes.md) | The B series (a tall procedural world round hand-crafted regions, D-game-34) on `feature/biomes` | Up to four agents (no game windows until the owner finishes playing): B02 to B10, B08b, B15 and core M96 gated; B02b round 2, B11 and B10b running; B07 phase A done, phase B waits for windows |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.

@@ -9,7 +9,7 @@ public static class MenuText
         .. new[]
         {
             "menuTitle", "menuResume", "menuSettings", "menuControls", "menuExit", "menuBack", "menuHint",
-            "headingSound", "headingGraphics", "headingInterface", "headingMouse", "headingNeeds", "headingTesting", "headingRestart",
+            "headingSound", "headingGraphics", "headingInterface", "headingMouse", "headingNeeds", "headingCheats", "headingTesting", "headingRestart",
             "testingNote", "restartNote", "restartNote2", "restartNote3", "controlsRange", "controlsOr",
             "testDebug", "testNeedsRun", "testRefill", "testSoundsOff", "testVoicesMuted", "testShoulder", "testSave",
             "subNeeds", "subView", "subTeleport", "subSound", "subScoring", "subFiles",
