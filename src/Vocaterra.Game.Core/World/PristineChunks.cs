@@ -6,17 +6,16 @@ namespace Vocaterra.Game.Core.World;
 /// <summary>
 /// The chunks of a streamed world as the generator made them, read without installing anything (B07): what the guide's facts look at when a chunk is not resident. A read of a non-resident chunk through
 /// the grid would generate it and keep it, and a window of the guide's search holds thousands of chunks (B06's finding: a few seconds, on the game loop's thread, for a snapshot outside the valley);
-/// this reads a region's own chunk straight, answers a chunk above a column's surface band as air and one under it as the one shared array of stone (the generator's own shortcuts, so the answer is
-/// exactly what a generation would give), and generates only the chunks that meet the ground. A chunk that was changed is resident and is read from the grid, never from here. Not thread safe: one
-/// reader serves one thread (the game loop's), and remembers the bands it has asked for.
+/// this reads a region's own chunk straight, answers a chunk above a column's surface band as air (the generator's own shortcut), generates only the chunks of the band, and does not see under it: the
+/// guide's world is the surface (the region's chunks, the surface band of every other column) and whatever the player changed, wherever it is, because the rock under the ground (the strata, the ores and the
+/// caves of the underground) is not what a question about the land is about and a world that looked there would answer by what happened to be resident (<see cref="Sees"/> says which resident chunks count).
+/// Not thread safe: one reader serves one thread (the game loop's), and remembers the bands it has asked for.
 /// </summary>
 public sealed class PristineChunks
 {
-    // The blocks of a chunk of stone, shared by every transient chunk of stone and never written (a transient chunk is only read).
-    private static readonly BlockId[] StoneBlocks = Enumerable.Repeat(BlockId.Stone, VoxelChunk.Volume).ToArray();
-
     private readonly StreamedWorld _world;
-    private readonly Dictionary<long, Column> _columns = [];
+    private readonly Dictionary<long, ColumnBand> _bands = [];
+    private readonly Dictionary<long, IReadOnlyList<ChunkData>> _layers = [];
 
     /// <summary>Creates a reader over a streamed world.</summary>
     /// <param name="world">The pure parts of the world.</param>
@@ -35,33 +34,54 @@ public sealed class PristineChunks
             return Make(coord, GridResidency.ContentOf(region.Copy(coord)));
         }
 
-        var key = ((long)coord.X << 32) | (uint)coord.Z;
-        if (!_columns.TryGetValue(key, out var column))
+        var band = BandOf(coord);
+        if (!band.IsEmpty)
         {
-            var band = _world.Bands.Of(coord.X, coord.Z);
+            if (coord.Y > band.MaxLayer || coord.Y < band.MinLayer)
+            {
+                return null; // air above the ground; under it, the rock is not part of the guide's world
+            }
+
             // The band's layers of a column are made together from one window (about what one chunk costs alone), the first time one of them is asked for.
-            _columns[key] = column = new Column(band, band.IsEmpty ? null : _world.GenerateLayers(coord.X, coord.Z, band.MinLayer, band.MaxLayer));
-        }
-
-        if (!column.Band.IsEmpty)
-        {
-            if (coord.Y > column.Band.MaxLayer)
+            var key = ((long)coord.X << 32) | (uint)coord.Z;
+            if (!_layers.TryGetValue(key, out var layers))
             {
-                return null;
+                _layers[key] = layers = _world.GenerateLayers(coord.X, coord.Z, band.MinLayer, band.MaxLayer);
             }
 
-            if (coord.Y < column.Band.MinLayer)
-            {
-                return Make(coord, new ChunkContent(StoneBlocks, null));
-            }
-
-            return Make(coord, GridResidency.ContentOf(column.Layers![coord.Y - column.Band.MinLayer]));
+            return Make(coord, GridResidency.ContentOf(layers[coord.Y - band.MinLayer]));
         }
 
         return Make(coord, GridResidency.ContentOf(_world.Source.Generate(coord)));
     }
 
-    private sealed record Column(ColumnBand Band, IReadOnlyList<ChunkData>? Layers);
+    /// <summary>
+    /// Whether a resident chunk is part of the guide's world: one the player changed, one of a region, or one in the surface band of its column. A resident chunk under the band that nobody changed is there
+    /// by the residency's choice (the near zone, the padding), not by the world's, so it does not count.
+    /// </summary>
+    /// <param name="resident">A resident chunk.</param>
+    public bool Sees(VoxelChunk resident)
+    {
+        ArgumentNullException.ThrowIfNull(resident);
+        if (resident.IsChanged || _world.Regions.Covering(resident.Coord) is not null)
+        {
+            return true;
+        }
+
+        var band = BandOf(resident.Coord);
+        return band.IsEmpty || resident.Coord.Y >= band.MinLayer;
+    }
+
+    private ColumnBand BandOf(VoxelChunkCoord coord)
+    {
+        var key = ((long)coord.X << 32) | (uint)coord.Z;
+        if (!_bands.TryGetValue(key, out var band))
+        {
+            _bands[key] = band = _world.Bands.Of(coord.X, coord.Z);
+        }
+
+        return band;
+    }
 
     private static VoxelChunk? Make(VoxelChunkCoord coord, ChunkContent? content)
     {

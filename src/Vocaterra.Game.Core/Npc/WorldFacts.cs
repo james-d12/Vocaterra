@@ -129,7 +129,7 @@ public sealed class WorldFacts : IGuideFacts
                 var coord = new VoxelChunkCoord(cx, cy, cz);
                 if (grid.TryGetChunk(coord, out var chunk))
                 {
-                    return chunk.KindMask;
+                    return pristine is not null && !pristine.Sees(chunk) ? UInt128.Zero : chunk.KindMask;
                 }
 
                 if (!grid.IsStreamed || !grid.Limits.Contains(coord))
@@ -169,7 +169,7 @@ public sealed class WorldFacts : IGuideFacts
                     VoxelChunk? chunk;
                     if (grid.IsStreamed)
                     {
-                        chunk = !grid.Limits.Contains(coord) ? null : grid.TryGetChunk(coord, out var resident) ? resident : pristine is null ? grid.GetChunk(coord) : pristine.Read(coord);
+                        chunk = !grid.Limits.Contains(coord) ? null : grid.TryGetChunk(coord, out var resident) ? (pristine is null || pristine.Sees(resident) ? resident : null) : pristine is null ? grid.GetChunk(coord) : pristine.Read(coord);
                     }
                     else
                     {

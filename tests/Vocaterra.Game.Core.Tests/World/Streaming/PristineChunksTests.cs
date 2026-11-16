@@ -4,11 +4,12 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Streaming;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Streaming;
 
-/// <summary>The guide's facts over a streamed world (B07, B06's finding): a chunk that is not resident is read as the generator made it, without installing it, so a snapshot of thousands of chunks neither stalls on the ones that hold only air or stone nor fills the grid.</summary>
+/// <summary>The guide's facts over a streamed world (B07, B06's finding): a chunk that is not resident is read as the generator made it, without installing it, so a snapshot of thousands of chunks neither stalls on the ones that hold only air or rock nor fills the grid; the rock under the ground is not part of the guide's world, resident or not.</summary>
 public sealed class PristineChunksTests(ITestOutputHelper output)
 {
     [Fact]
@@ -28,8 +29,16 @@ public sealed class PristineChunksTests(ITestOutputHelper output)
 
         foreach (var coord in coords)
         {
-            var expected = world.Source.Generate(coord);
+            var band = world.Bands.Of(coord.X, coord.Z);
             var chunk = reader.Read(coord);
+            var covered = world.Regions.Covering(coord) is not null;
+            if (!covered && (band.IsEmpty || coord.Y < band.MinLayer || coord.Y > band.MaxLayer))
+            {
+                Assert.Null(chunk); // above the ground: air; under it: not part of the guide's world
+                continue;
+            }
+
+            var expected = world.Source.Generate(coord);
             if (expected.IsEmpty)
             {
                 Assert.Null(chunk);
@@ -53,21 +62,34 @@ public sealed class PristineChunksTests(ITestOutputHelper output)
         foreach (var (x, z) in new[] { (200, 200), (600, 260), (-150, 300) })
         {
             var transient = RegionTestWorld.StreamedScene();
-            var installing = RegionTestWorld.StreamedScene();
+            var resident = RegionTestWorld.StreamedScene();
             var feet = new BlockPos(x, 70, z);
             var window = WorldWindow.For(transient, x, 70, z);
 
             var watch = Stopwatch.StartNew();
-            var pristine = WorldFacts.Snapshot(transient.Grid, nouns, directions, window, new PristineChunks(transient.Streaming!));
+            var cold = WorldFacts.Snapshot(transient.Grid, nouns, directions, window, new PristineChunks(transient.Streaming!));
             var elapsed = watch.Elapsed.TotalMilliseconds;
-            var reference = WorldFacts.Snapshot(installing.Grid, nouns, directions, window);
+
+            // The same world with every chunk of the window's columns resident, the rock under the ground as well: the residency must not change what the guide sees.
+            for (var cz = window.MinZ >> 4; cz < (window.EndZ + 15) >> 4; cz++)
+            {
+                for (var cx = window.MinX >> 4; cx < (window.EndX + 15) >> 4; cx++)
+                {
+                    foreach (var chunk in resident.Streaming!.Source.GenerateColumn(cx, cz))
+                    {
+                        _ = GridResidency.Install(resident.Grid, chunk);
+                    }
+                }
+            }
+
+            var warm = WorldFacts.Snapshot(resident.Grid, nouns, directions, window, new PristineChunks(resident.Streaming!));
 
             Assert.Equal(0, transient.Grid.ResidentChunkCount);
-            Assert.True(installing.Grid.ResidentChunkCount > 100);
+            Assert.True(resident.Grid.ResidentChunkCount > 100);
             var from = Viewpoint(feet);
             foreach (var lemma in lemmas)
             {
-                Assert.Equal(reference.NearestOfNoun(from, lemma), pristine.NearestOfNoun(from, lemma));
+                Assert.Equal(warm.NearestOfNoun(from, lemma), cold.NearestOfNoun(from, lemma));
             }
 
             output.WriteLine($"snapshot at ({x}, {z}): {elapsed:0} ms without installing, {window.EndX - window.MinX} x {window.EndY - window.MinY} x {window.EndZ - window.MinZ} blocks");

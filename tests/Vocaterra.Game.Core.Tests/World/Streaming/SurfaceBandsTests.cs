@@ -5,8 +5,8 @@ using Vocaterra.Game.Core.World.Streaming;
 namespace Vocaterra.Game.Core.Tests.World.Streaming;
 
 /// <summary>
-/// The surface band (B07, biomes plan section 3.7): which chunk layers of a column meet the ground, decided from the height model with no chunk generated. A layer outside it must be, block for block, all
-/// air or all one solid block, whatever generating the column says; that is what lets a distant column skip them.
+/// The surface band (B07, biomes plan section 3.7): which chunk layers of a column meet the ground, decided from the height model with no chunk generated. A layer above it must be all air, whatever
+/// generating the column says; that is what lets a distant column skip it. A layer under it is the underground (B11: strata, ores, caves), which the residency holds only near the player.
 /// </summary>
 public sealed class SurfaceBandsTests
 {
@@ -32,7 +32,7 @@ public sealed class SurfaceBandsTests
     }
 
     [Fact]
-    public void Given_SampleColumnsOfEveryKindOfLand_When_TheirLayersOutsideTheBandAreRead_Then_EachIsAllAirOrAllOneSolidBlock()
+    public void Given_SampleColumnsOfEveryKindOfLand_When_TheirLayersAboveTheBandAreRead_Then_EachIsAllAir()
     {
         var checkedLayers = 0;
         foreach (var (cx, cz) in Sample())
@@ -42,13 +42,13 @@ public sealed class SurfaceBandsTests
             for (var i = 0; i < column.Count; i++)
             {
                 var layer = World.Source.MinChunkY + i;
-                if (band.Contains(layer))
+                if (layer <= band.MaxLayer)
                 {
                     continue;
                 }
 
                 var chunk = column[i];
-                Assert.True(chunk.IsEmpty || SurfaceBands.IsUniformSolid(chunk), $"layer {layer} of column ({cx}, {cz}) lies outside the band {band} yet holds a surface");
+                Assert.True(chunk.IsEmpty, $"layer {layer} of column ({cx}, {cz}) lies above the band {band} yet holds blocks");
                 checkedLayers++;
             }
         }
@@ -67,7 +67,7 @@ public sealed class SurfaceBandsTests
             Assert.InRange(band.MinLayer, World.Bands.WorldMinLayer, World.Bands.WorldMaxLayer);
             Assert.InRange(band.MaxLayer, World.Bands.WorldMinLayer, World.Bands.WorldMaxLayer);
             var column = World.Source.GenerateColumn(cx, cz);
-            Assert.Contains(Enumerable.Range(band.MinLayer, band.Count), layer => !column[layer - World.Source.MinChunkY].IsEmpty && !SurfaceBands.IsUniformSolid(column[layer - World.Source.MinChunkY]));
+            Assert.Contains(Enumerable.Range(band.MinLayer, band.Count), layer => !column[layer - World.Source.MinChunkY].IsEmpty);
             counts.Add(band.Count);
         }
 
