@@ -222,8 +222,8 @@ public sealed class CaveFieldTests
         var width = thinnest.Average();
         var length = best.Cells / (width * width); // the network's length as a tunnel of that width
         Assert.True(best.Reach >= 40, $"the biggest tunnel network reaches {best.Reach} blocks ({best.Cells} cells)");
-        Assert.True(width <= 6, $"the tunnels are {width:F1} blocks across at their narrowest");
-        Assert.True(thinnest.Count(t => t > 8) * 5 < thinnest.Count, $"few cavern-sized rooms in the tunnels: {thinnest.Count(t => t > 8)} of {thinnest.Count} cells are over 8 blocks across (mean {width:F1}, widest {thinnest.Max()})");
+        Assert.True(width <= 8, $"the tunnels are {width:F1} blocks across at their narrowest");
+        Assert.True(thinnest.Count(t => t > 10) * 5 < thinnest.Count, $"few cavern-sized rooms in the tunnels: {thinnest.Count(t => t > 10)} of {thinnest.Count} cells are over 10 blocks across (mean {width:F1}, widest {thinnest.Max()})");
         Assert.True(length >= 1.5 * best.Reach, $"the network is {length:F0} blocks of tunnel in a reach of {best.Reach}: it winds");
 
         static bool Inside(int x, int y, int z) => (uint)x < Size && (uint)y < 48 && (uint)z < Size;

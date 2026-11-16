@@ -193,11 +193,11 @@ internal static class Renderer
     }
 
     /// <summary>
-    /// The map of the cave entrances of a square area (B11), one pixel a block: the ground in grey by height (water blue), and every column whose top block lies at least three blocks under the ground the
-    /// height model gives (the column is cut open to a cave) in bright red.
+    /// The map of the cave entrances of a square area (B11), one pixel a block: the ground in grey by height (water blue), and every column that opens an entrance (the generator's own list, a shaft
+    /// cut from the ground down to a cave) in bright red.
     /// </summary>
     /// <param name="world">The blocks.</param>
-    /// <param name="sampler">The height model's ground, to tell a cut column from the surface.</param>
+    /// <param name="sampler">The height model's ground, for the grey and to tell the water.</param>
     /// <param name="left">The x of the first pixel.</param>
     /// <param name="top">The z of the first pixel row.</param>
     /// <param name="size">The side in blocks (= pixels).</param>
@@ -205,23 +205,29 @@ internal static class Renderer
     public static Image Entrances(BlockWorld world, WorldSampler sampler, int left, int top, int size, out int count)
     {
         var image = new Image(size, size, default);
-        count = 0;
         for (var py = 0; py < size; py++)
         {
             for (var px = 0; px < size; px++)
             {
-                var (x, z) = (left + px, top + py);
-                var ground = sampler.At(x, z);
-                var topSolid = world.TopSolid(x, z);
-                var grey = (byte)Math.Clamp(60 + (Math.Max(ground.Ground, 0) * 150 / 200), 0, 255);
-                Rgb colour = ground.Water ? new Rgb(40, 80, 150) : new Rgb(grey, grey, grey);
-                if (!ground.Water && topSolid <= ground.Ground - 3)
-                {
-                    colour = new Rgb(255, 40, 40);
-                    count++;
-                }
+                var column = sampler.At(left + px, top + py);
+                var grey = (byte)Math.Clamp(60 + (Math.Max(column.Ground, 0) * 150 / 200), 0, 255);
+                image.Set(px, py, column.Water ? new Rgb(40, 80, 150) : new Rgb(grey, grey, grey));
+            }
+        }
 
-                image.Set(px, py, colour);
+        count = 0;
+        for (var cz = top >> 4; cz <= (top + size - 1) >> 4; cz++)
+        {
+            for (var cx = left >> 4; cx <= (left + size - 1) >> 4; cx++)
+            {
+                foreach (var (x, z) in world.Entrances(cx, cz))
+                {
+                    if (x >= left && x < left + size && z >= top && z < top + size)
+                    {
+                        image.Set(x - left, z - top, new Rgb(255, 40, 40));
+                        count++;
+                    }
+                }
             }
         }
 

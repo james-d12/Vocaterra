@@ -160,6 +160,9 @@ public sealed class UndergroundWorldTests
         }
 
         Assert.NotEmpty(entrances);
+        var listed = Enumerable.Range(area.ChunkX0 + 1, area.Width - 2).SelectMany(cx => Enumerable.Range(area.ChunkZ0 + 1, area.Depth - 2).SelectMany(cz => source.EntranceColumns(cx, cz))).ToHashSet();
+        Assert.True(entrances.Where(e => e.X >= area.MinX + 16 && e.X < area.MaxX - 16 && e.Z >= area.MinZ + 16 && e.Z < area.MaxZ - 16).All(listed.Contains), "every open column is in the list the source gives");
+        Assert.True(listed.Where(e => e.X >= area.MinX + 4 && e.X < area.MaxX - 4 && e.Z >= area.MinZ + 4 && e.Z < area.MaxZ - 4).All(e => entrances.Contains(e)), "every listed column is open");
         foreach (var (x, z) in entrances)
         {
             var height = area.Height(x, z);

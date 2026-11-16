@@ -263,6 +263,7 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
         }
 
         Assert.Equal(count, red);
+        Assert.True(count > 0 || world.Entrances(0, 0).Count == 0);
     }
 
     [Theory]

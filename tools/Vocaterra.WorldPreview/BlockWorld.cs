@@ -54,31 +54,15 @@ internal sealed class BlockWorld
         return chunk.IsEmpty ? BlockId.Air : chunk.Blocks[ChunkData.Index(x & 15, y & 15, z & 15)];
     }
 
-    /// <summary>The y of the highest block of the column that is not air or water, or <see cref="MinY"/> - 1 when it has none.</summary>
-    /// <param name="x">The block's x.</param>
-    /// <param name="z">The block's z.</param>
-    public int TopSolid(int x, int z)
+    /// <summary>The columns of a chunk column that open a cave entrance.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<(int X, int Z)> Entrances(int chunkX, int chunkZ) => _source switch
     {
-        var column = Column(x >> 4, z >> 4);
-        for (var layer = column.Count - 1; layer >= 0; layer--)
-        {
-            var chunk = column[layer];
-            if (chunk.IsEmpty)
-            {
-                continue;
-            }
-
-            for (var ly = VoxelChunk.Size - 1; ly >= 0; ly--)
-            {
-                if (chunk.Blocks[ChunkData.Index(x & 15, ly, z & 15)] is not (BlockId.Air or BlockId.Water))
-                {
-                    return MinY + (layer << VoxelChunk.Shift) + ly;
-                }
-            }
-        }
-
-        return MinY - 1;
-    }
+        ProceduralChunkSource procedural => procedural.EntranceColumns(chunkX, chunkZ),
+        CompositeChunkSource composite => composite.EntranceColumns(chunkX, chunkZ),
+        _ => [],
+    };
 
     private IReadOnlyList<ChunkData> Column(int chunkX, int chunkZ)
     {

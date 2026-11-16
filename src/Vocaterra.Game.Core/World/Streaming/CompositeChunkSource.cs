@@ -29,6 +29,11 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <summary>The regions the world holds.</summary>
     public RegionCatalog Regions => _regions;
 
+    /// <summary>The columns of a chunk column that open a cave entrance (the procedural half's: <see cref="ProceduralChunkSource.EntranceColumns"/>).</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<(int X, int Z)> EntranceColumns(int chunkX, int chunkZ) => _procedural.EntranceColumns(chunkX, chunkZ);
+
     /// <summary>The lowest chunk layer of the world.</summary>
     public int MinChunkY => _procedural.MinChunkY;
 

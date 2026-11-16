@@ -20,13 +20,13 @@
     "latticeY": 8,
     "topY": 240,
     "surfaceCover": 6,
-    "cheese": { "cell": 64, "cellY": 40, "octaves": 2, "deepThreshold": 450, "deepY": -16, "shallowThreshold": 800, "shallowY": 96 },
-    "spaghetti": { "cell": 56, "cellY": 32, "octaves": 1, "thickness": 70 },
+    "cheese": { "cell": 64, "cellY": 40, "octaves": 2, "deepThreshold": 400, "deepY": -16, "shallowThreshold": 800, "shallowY": 96 },
+    "spaghetti": { "cell": 56, "cellY": 32, "octaves": 1, "thickness": 95 },
     "underRegionCeiling": -9,
     "waterMargin": 3,
     "bedClearance": 16
   },
-  "entrances": { "cell": 40, "octaves": 1, "threshold": 380, "minHeightAboveSea": 4, "waterReach": 3, "probeDepth": 10 },
+  "entrances": { "cell": 40, "octaves": 1, "threshold": 480, "minHeightAboveSea": 4, "waterReach": 3, "probeDepth": 10 },
   "lava": { "block": "lava", "level": -54 },
   "ores": [
     {
@@ -34,7 +34,7 @@
       "block": "copper-ore",
       "replaces": ["stone", "slate", "granite", "limestone"],
       "size": { "min": 3, "max": 10 },
-      "bands": [{ "minY": -16, "maxY": 112, "peakY": 48, "veins": 12 }]
+      "bands": [{ "minY": -16, "maxY": 112, "peakY": 48, "veins": 20 }]
     },
     {
       "id": "iron-veins",
@@ -42,8 +42,8 @@
       "replaces": ["stone", "slate", "granite", "limestone"],
       "size": { "min": 3, "max": 8 },
       "bands": [
-        { "minY": -24, "maxY": 56, "peakY": 16, "veins": 8 },
-        { "minY": 80, "maxY": 320, "peakY": 160, "veins": 6 }
+        { "minY": -24, "maxY": 56, "peakY": 16, "veins": 14 },
+        { "minY": 80, "maxY": 320, "peakY": 160, "veins": 8 }
       ]
     },
     {
@@ -51,7 +51,7 @@
       "block": "tin-ore",
       "replaces": ["stone", "slate", "granite", "limestone"],
       "size": { "min": 3, "max": 8 },
-      "bands": [{ "minY": -32, "maxY": 48, "peakY": 8, "veins": 4 }]
+      "bands": [{ "minY": -32, "maxY": 48, "peakY": 8, "veins": 8 }]
     }
   ]
 }

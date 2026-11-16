@@ -70,6 +70,36 @@ public sealed class ProceduralChunkSource : IChunkSource
         return Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shaped: false);
     }
 
+    /// <summary>
+    /// The columns of a chunk column that open a cave entrance (B11): where the entrance mask has a zone on dry procedural land with a cave under it and a shaft is cut from the ground down to the cave.
+    /// Empty for a source with no underground. The preview tool draws them.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<(int X, int Z)> EntranceColumns(int chunkX, int chunkZ)
+    {
+        var found = new List<(int X, int Z)>();
+        if (_world.Underground is null)
+        {
+            return found;
+        }
+
+        var ctx = ShapedColumn(chunkX, chunkZ);
+        var plan = ctx.CavePlan;
+        for (var lz = 0; lz < VoxelChunk.Size; lz++)
+        {
+            for (var lx = 0; lx < VoxelChunk.Size; lx++)
+            {
+                if (plan.ShaftFrom[(lz * VoxelChunk.Size) + lx] != int.MaxValue)
+                {
+                    found.Add((ctx.ChunkMinX + lx, ctx.ChunkMinZ + lz));
+                }
+            }
+        }
+
+        return found;
+    }
+
     /// <summary>A chunk column's window after the shapers have run: its final heights and biomes, which the tests read to check the ground (the blocks of a chunk also hold the trees).</summary>
     /// <param name="chunkX">The chunk column's x.</param>
     /// <param name="chunkZ">The chunk column's z.</param>
