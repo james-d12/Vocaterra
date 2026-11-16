@@ -89,8 +89,14 @@ public sealed class StreamedWorldHost : IDisposable
     /// <summary>The ring of real chunks the far view's store is made from.</summary>
     public LodRing Ring => _ring;
 
-    /// <summary>What the far view's store holds and what the ring has done, for a run's report.</summary>
-    public string LodSummary => $"{Far.World.Store.Count} sections ({Far.World.Store.Bytes / (1024.0 * 1024.0):0.0} MB packed), ring {_ring.Done} footprints real ({_ring.Pending} pending), {_edits.Ingested} edited chunks taken in";
+    /// <summary>How many sections the far view's store holds in memory.</summary>
+    public int LodSections => Far.World.Store.Count;
+
+    /// <summary>The bytes those sections take, packed.</summary>
+    public long LodBytes => Far.World.Store.Bytes;
+
+    /// <summary>How many chunks of the player's edits were taken into the store.</summary>
+    public long EditedChunksTaken => _edits.Ingested;
 
     /// <summary>Whether the world round a place is made, so the simulation may run there (<see cref="ChunkResidency.IsNearReady"/>); true after <see cref="HoldLimitMilliseconds"/> of waiting, so a world that cannot be made never freezes the game.</summary>
     /// <param name="x">The place's x.</param>

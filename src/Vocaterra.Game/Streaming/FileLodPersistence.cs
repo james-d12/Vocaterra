@@ -39,7 +39,7 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
             File.WriteAllText(manifest, version);
         }
 
-        _writer = new Thread(Write) { IsBackground = true, Name = "far-view sections" };
+        _writer = new Thread(Write) { IsBackground = true, Name = "lod-writer" };
         _writer.Start();
     }
 

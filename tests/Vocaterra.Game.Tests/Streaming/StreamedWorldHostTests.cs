@@ -82,6 +82,6 @@ public sealed class StreamedWorldHostTests
 
         var section = host.Far.World.Store.Get(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, bx >> 5, by >> 5, bz >> 5))!;
         Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Air, section.BlockAt(Vocaterra.Game.Core.World.Lod.LodSection.Index(bx & 31, by & 31, bz & 31)));
-        Assert.True(host.LodSummary.Contains("1 edited", StringComparison.Ordinal) || host.LodSummary.Contains("edited chunks", StringComparison.Ordinal));
+        Assert.True(host.EditedChunksTaken >= 1);
     }
 }
