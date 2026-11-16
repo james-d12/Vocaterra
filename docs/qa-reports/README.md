@@ -47,6 +47,8 @@ triage table below. Confirmed bugs also go into the findings logs ([game plan se
 | QA-2026-11-12-progression-3 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | The scripted walker gives up at a tree on the one-leg walk from the inn to Luna's camp | open (open items, not this series) |
 | QA-2026-11-12-progression-4 | [2026-11-12-progression](2026-11-12-progression.md) | minor, game | After the purchase, «sí» to the mayor's class offer starts the class while its verdict reads `unknown, not understood` | fixed (Y14) |
 | QA-2026-11-12-progression-5 | [2026-11-12-progression](2026-11-12-progression.md) | minor, scripts and docs | `r30-no-classes` never takes Luz's oven order (a task since #54); its row is stale | fixed (Y14) |
+| QA-2026-11-16-world-1 | [2026-11-16-world](2026-11-16-world.md) | minor, game | A `--shot` right after `--teleport` shows the view from before the teleport (the orchestrator's reading of `w13/still-a.png`: the camera is still at the start, so the scripted steps go on while B07's hold keeps the body); on the live path a far teleport shows only sky for 3.5 s and the whole world after about 20 s (a respawn far from the camp would do the same) | planned (B07b) |
+| QA-2026-11-16-world-2 | [2026-11-16-world](2026-11-16-world.md) | minor, game | `--teleport` onto a pool stands the body on its bed, under water | planned (B07b) |
 
 ## Layout of a QA pass report
 

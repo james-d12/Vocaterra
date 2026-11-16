@@ -2726,3 +2726,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   ungenerated land (still up to 3 s, scripted runs only); a start costs one frame of about 630 ms; rivers narrower than a far tile do
   not show beyond the near ring; one residency test's save count is now a range (terrain-dependent). `--world valley` scripted runs
   identical; streamed runs re-baselined (the far land and haze in every picture with sky). Gated: 12,267 passed, 3 skipped.
+- **QA, the streamed world (2026-11-16, `898a95e0`; report `docs/qa-reports/2026-11-16-world.md`).** 24 game runs: no crash, no hole,
+  no fall-through; edits far out survive a save and load; prefetch does not change results (byte-identical saves); the closed pass
+  holds at the rockfall and the wall; a cave entrance leads down into a cave; the far view and haze look right at dusk in rain on low.
+  Two minor bugs, both for B07b: QA-2026-11-16-world-1, a `--shot` straight after a `--teleport` shows the view from before it (the
+  scripted steps run on while B07's hold keeps the body until the world round the new place is resident), and on the live path a far
+  teleport shows sky for at least 3.5 s and the whole world only after about 20 s (a respawn at the camp from far away would too);
+  QA-2026-11-16-world-2, `--teleport` onto a pool stands the body on the bed, under water. Observations: the first settled shot after a
+  far move waits 32 to 54 s (far tiles in a Debug build); a `--walk-to` that cannot arrive gives up only after 14,400 ticks. Not covered:
+  lava (no route found), river currents, the humps in the game.
