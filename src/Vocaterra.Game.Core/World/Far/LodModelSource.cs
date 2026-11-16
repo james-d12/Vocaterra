@@ -27,7 +27,7 @@ public sealed class LodModelSource : ILodColumnSource
     /// <summary>The levels below this get every tree as its blocks; the levels from it up get forests as layers.</summary>
     public int TreeLevels { get; }
 
-    /// <summary>The highest level that is a merge of four finer columns; the levels above it (cells of 16 blocks and more at the default 3) take one column at the cell's centre, a quarter of the work, where the cells are too far off for the four to show.</summary>
+    /// <summary>The highest level that is a merge of four finer columns; the levels above it take one column at the cell's centre, a quarter of the work (the default merges every level).</summary>
     public int MergeLevels { get; }
 
     /// <inheritdoc />

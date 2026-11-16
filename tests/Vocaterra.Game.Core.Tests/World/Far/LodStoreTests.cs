@@ -282,4 +282,195 @@ public sealed class LodStoreTests(ITestOutputHelper output)
         Assert.Equal(1 << 0, entry.RealMask & (1 << 0));
         Assert.NotEqual(0xFF, entry.RealMask);
     }
+
+    // A sample of the model's sea: a block at least 40 blocks from any land, found on a grid (the water's own level is the sea's).
+    private static (int X, int Z, int Level) OpenSea(FarTerrainSampler sampler)
+    {
+        for (var z = -9000; z <= 9000; z += 397)
+        {
+            for (var x = -9000; x <= 9000; x += 401)
+            {
+                var all = true;
+                for (var k = 0; k < 9 && all; k++)
+                {
+                    all = sampler.At(x + (((k % 3) - 1) * 40), z + (((k / 3) - 1) * 40)).IsWater;
+                }
+
+                if (all)
+                {
+                    return (x, z, sampler.At(x, z).WaterLevel);
+                }
+            }
+        }
+
+        throw new InvalidOperationException("no open sea");
+    }
+
+    [Fact]
+    public void Given_AnOpenSea_When_EveryLevelOfItsStackIsMade_Then_TheWaterTopIsAWaterVoxelWithNoHoleToTheSky()
+    {
+        var sampler = new FarTerrainSampler(ProceduralTestWorld.Source(42).World, RegionCatalog.Empty);
+        var (x, z, sea) = OpenSea(sampler);
+        var world = sampler.FarWorld(new LodStore(), 2);
+        for (var level = 0; level <= 7; level++)
+        {
+            var cell = 1 << level;
+            var stack = world.Stack(level, Math.DivRem(x, 32 * cell, out var rx) is var sx && rx < 0 ? sx - 1 : sx, Math.DivRem(z, 32 * cell, out var rz) is var sz && rz < 0 ? sz - 1 : sz);
+            var (ix, iz) = ((((x / cell) % 32) + 32) % 32, (((z / cell) % 32) + 32) % 32);
+            var topWater = int.MinValue;
+            for (var i = 0; i < stack.Sections.Length; i++)
+            {
+                for (var vy = 0; vy < 32; vy++)
+                {
+                    if (stack.Sections[i].BlockAt(LodSection.Index(ix, vy, iz)) == BlockId.Water)
+                    {
+                        topWater = (((stack.SyMin + i) * 32) + vy + 1) * cell;
+                    }
+                }
+            }
+
+            output.WriteLine($"level {level}: the water's top at {topWater} for a sea at {sea}");
+            Assert.True(topWater != int.MinValue, $"no water at level {level}");
+            Assert.InRange(topWater, sea + 1 - cell, sea + 1 + cell);
+        }
+    }
+
+    [Fact]
+    public void Given_WaterOverStoneInTheUpperChildren_When_ItIsMipped_Then_TheVoxelIsWaterAndTheExposedBlockOfASlopeWins()
+    {
+        BlockId[] blocks = [BlockId.Stone, BlockId.Stone, BlockId.Stone, BlockId.Stone, BlockId.Water, BlockId.Water, BlockId.Air, BlockId.Air];
+        var lights = new byte[8];
+        Assert.Equal(BlockId.Water, LodMip.Voxel(blocks, lights, out _));
+
+        // Grass on top of a slope over dirt: the grass is what is seen.
+        BlockId[] slope = [BlockId.Dirt, BlockId.Dirt, BlockId.Dirt, BlockId.Dirt, BlockId.Grass, BlockId.Air, BlockId.Air, BlockId.Air];
+        Assert.Equal(BlockId.Grass, LodMip.Voxel(slope, lights, out _));
+
+        // Snow over stone, a peak's tip with one child over four of stone.
+        BlockId[] tip = [BlockId.Stone, BlockId.Stone, BlockId.Stone, BlockId.Stone, BlockId.Snow, BlockId.Air, BlockId.Air, BlockId.Air];
+        Assert.Equal(BlockId.Snow, LodMip.Voxel(tip, lights, out _));
+    }
+
+    [Fact]
+    public void Given_ACone30BlocksHighOverAHill_When_ItIsMippedFourLevels_Then_ItsTipStillStandsAbove16Blocks()
+    {
+        var section = Mixed((x, y, z) => y < 8 ? BlockId.Stone : (((x - 24) * (x - 24)) + ((z - 24) * (z - 24))) * 4 <= (30 - y) * (30 - y) && y < 30 ? BlockId.Stone : BlockId.Air);
+        var level = section;
+        for (var l = 0; l < 4; l++)
+        {
+            var children = new LodSection[8];
+            Array.Fill(children, new LodSection(BlockId.Air, 0));
+            children[0] = level;
+            level = LodMip.Parent(children);
+        }
+
+        // The cone's centre (24, 24) is the voxel (1, 1) of the level-4 section: its voxel over the first 16 blocks is solid, as the cone is there.
+        var top = -1;
+        for (var y = 0; y < 32; y++)
+        {
+            if (level.BlockAt(LodSection.Index(1, y, 1)) != BlockId.Air)
+            {
+                top = y;
+            }
+        }
+
+        Assert.True(top >= 1, $"the peak is {top}");
+    }
+
+    [Fact]
+    public void Given_AModelPutRacingARealOne_When_ManyThreadsPutBoth_Then_TheRealSectionAlwaysRemainsAndIsOnDisk()
+    {
+        var disk = new MemoryDisk();
+        var store = new LodStore(disk);
+        var key = new LodSectionKey(0, 1, 1, 1);
+        var real = new LodSection(BlockId.Stone, 0);
+        var model = new LodSection(BlockId.Dirt, 0);
+        for (var round = 0; round < 200; round++)
+        {
+            var k = key with { X = round };
+            Parallel.Invoke(
+                () => store.Put(k, model, LodOrigin.Model),
+                () => store.Put(k, real, LodOrigin.RealMip));
+            Assert.Equal(LodOrigin.RealMip, store.Entry(k)!.Origin);
+            Assert.Equal(BlockId.Stone, store.Get(k)!.FillBlock);
+            Assert.Equal(LodOrigin.RealMip, (LodOrigin)disk.Files[k][0]);
+        }
+    }
+
+    [Fact]
+    public void Given_AnEditedChunkIngestedBeforeTheGeneratorsStack_When_TheStackIsIngested_Then_TheEditSurvives()
+    {
+        var world = WorldOf(42, treeLevels: 1);
+        var coord = new VoxelChunkCoord(40, 4, 40);
+        var blocks = new BlockId[ChunkData.Volume];
+        blocks[(((3 << 4) | 5) << 4) | 7] = BlockId.Planks;
+        world.IngestChunk(coord, blocks);
+
+        var stone = new ChunkData(new VoxelChunkCoord(0, 0, 0), Enumerable.Repeat(BlockId.Stone, ChunkData.Volume).ToArray(), null);
+
+        world.IngestStack(20, 20, (cx, cy, cz) => cy < 6 ? stone : null);
+
+        var section = world.Store.Get(new LodSectionKey(0, 20, 2, 20))!;
+        var (bx, by, bz) = ((coord.X & 1) * 16, (coord.Y & 1) * 16, (coord.Z & 1) * 16);
+        Assert.Equal(BlockId.Planks, section.BlockAt(LodSection.Index(bx + 7, by + 3, bz + 5)));
+        Assert.Equal(BlockId.Air, section.BlockAt(LodSection.Index(bx + 8, by + 3, bz + 5))); // the edited chunk is whole, as the edit left it
+        Assert.Equal(BlockId.Stone, section.BlockAt(LodSection.Index(bx + 16, by + 3, bz + 5))); // the generator's chunk beside it
+        Assert.Equal(0xFF, world.Store.Entry(new LodSectionKey(0, 20, 2, 20))!.RealMask);
+    }
+
+    [Fact]
+    public void Given_RealStacksOfTwoByTwoByTwoParents_When_TheyAreIngested_Then_TheLevelsUpToTheStoresMaxAreRealIncludingAtTheTopAndBottomOfTheWorld()
+    {
+        var store = new LodStore(maxMipLevel: 4);
+        var world = WorldOf(42, store, treeLevels: 1);
+        var stone = new ChunkData(new VoxelChunkCoord(0, 0, 0), Enumerable.Repeat(BlockId.Stone, ChunkData.Volume).ToArray(), null);
+
+        for (var dz = 0; dz < 16; dz++)
+        {
+            for (var dx = 0; dx < 16; dx++)
+            {
+                world.IngestStack(dx, dz, (cx, cy, cz) => cy < 4 ? stone : null);
+            }
+        }
+
+        foreach (var level in new[] { 1, 2, 3, 4 })
+        {
+            var (min, max) = world.SyRange(level);
+            for (var sy = min; sy <= max; sy++)
+            {
+                var entry = store.Entry(new LodSectionKey(level, 0, sy, 0));
+                Assert.True(entry is { Origin: LodOrigin.RealMip }, $"level {level} sy {sy}: {entry?.Origin}");
+            }
+        }
+    }
+
+    [Fact]
+    public void Given_TornBytesOnDisk_When_TheSectionIsAsked_Then_ItReadsAsMissingAndDoesNotThrow()
+    {
+        var disk = new MemoryDisk();
+        var key = new LodSectionKey(0, 1, 2, 3);
+        var good = new LodSection(BlockId.Stone, 0).Pack();
+        disk.Files[key] = [(byte)LodOrigin.Real, 0xFF, 0, 1, 7, 7]; // a deflated section cut short
+        var store = new LodStore(disk);
+        Assert.Null(store.Get(key));
+        Assert.Null(store.Entry(key));
+        disk.Files[key] = [(byte)LodOrigin.Real, 0xFF, 0, .. good, 9]; // a uniform section with a byte too many
+        Assert.Null(new LodStore(disk).Get(key));
+        Assert.Throws<InvalidDataException>(() => LodSection.Unpack([1, 2, 3]));
+    }
+
+    [Fact]
+    public void Given_ModelSectionsPastTheCap_When_MoreArePut_Then_TheLeastRecentlyUsedAreDroppedAndRealOnesStay()
+    {
+        var store = new LodStore(maxModelBytes: 4 * 100);
+        var real = new LodSectionKey(0, 0, 0, 0);
+        _ = store.Put(real, new LodSection(BlockId.Stone, 0), LodOrigin.Real, 0xFF);
+        for (var i = 1; i <= 200; i++)
+        {
+            _ = store.Put(new LodSectionKey(0, i, 0, 0), new LodSection(BlockId.Dirt, 0), LodOrigin.Model);
+        }
+
+        Assert.True(store.Count < 150, $"{store.Count} sections");
+        Assert.NotNull(store.Entry(real));
+    }
 }

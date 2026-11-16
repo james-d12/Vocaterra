@@ -99,8 +99,9 @@ public interface ILodColumnSource
 public static class LodMerge
 {
     /// <summary>
-    /// The column of a cell made from the four columns of its finer cells (a 2 x 2 square of the level below), as Distant Horizons does: at each height the block most of the four have (air counts as a block), a tie going to the solid one, so the
-    /// top follows the land and a crown that covers half the cell stays; the runs are then joined and the thinnest are dropped until there are few enough.
+    /// The column of a cell made from the four columns of its finer cells (a 2 x 2 square of the level below), keeping the silhouette that is seen from outside: where any of the four holds water the cell is that water over its bed (the column of the
+    /// water child with the lowest bed: a river or a lake is not lost to its banks, and shows as wide as a cell); otherwise a height is solid when any of the four is solid there, as the most common solid block of them, so a peak keeps its height,
+    /// a trunk its place and a crown its crown. The runs are then joined and the thinnest over the ground dropped until there are few enough. Light is the brightest.
     /// </summary>
     /// <param name="a">One child's runs.</param>
     /// <param name="b">The second.</param>
@@ -110,6 +111,12 @@ public static class LodMerge
     /// <returns>How many runs there are.</returns>
     public static int Merge(ReadOnlySpan<LodSegment> a, ReadOnlySpan<LodSegment> b, ReadOnlySpan<LodSegment> c, ReadOnlySpan<LodSegment> d, Span<LodSegment> into)
     {
+        var water = LowestWater(a, b, c, d);
+        if (!water.IsEmpty)
+        {
+            return Cap(water, into);
+        }
+
         Span<int> cuts = stackalloc int[(4 * LodGrid.MaxSegments * 2) + 2];
         var cutCount = 0;
         AddCuts(a, cuts, ref cutCount);
@@ -144,18 +151,20 @@ public static class LodMerge
             blocks[3] = At(d, y, out skies[3], out lights[3]);
             var winner = BlockId.Air;
             var winnerCount = 0;
-            var winnerSky = (byte)0;
-            var winnerLight = (byte)0;
             for (var i = 0; i < 4; i++)
             {
+                if (blocks[i] == BlockId.Air)
+                {
+                    continue;
+                }
+
                 var n = 0;
                 for (var m = 0; m < 4; m++)
                 {
                     n += blocks[m] == blocks[i] ? 1 : 0;
                 }
 
-                var better = n > winnerCount || (n == winnerCount && winner == BlockId.Air && blocks[i] != BlockId.Air);
-                if (better)
+                if (n > winnerCount)
                 {
                     winner = blocks[i];
                     winnerCount = n;
@@ -167,6 +176,8 @@ public static class LodMerge
                 continue;
             }
 
+            byte winnerSky = 0;
+            byte winnerLight = 0;
             for (var i = 0; i < 4; i++)
             {
                 if (blocks[i] == winner)
@@ -187,6 +198,36 @@ public static class LodMerge
         }
 
         return Cap(found[..count], into);
+    }
+
+    // The column of the child that holds water over the lowest bed, or an empty span when none does.
+    private static ReadOnlySpan<LodSegment> LowestWater(ReadOnlySpan<LodSegment> a, ReadOnlySpan<LodSegment> b, ReadOnlySpan<LodSegment> c, ReadOnlySpan<LodSegment> d)
+    {
+        var best = default(ReadOnlySpan<LodSegment>);
+        var bed = int.MaxValue;
+        Consider(a, ref best, ref bed);
+        Consider(b, ref best, ref bed);
+        Consider(c, ref best, ref bed);
+        Consider(d, ref best, ref bed);
+        return best;
+    }
+
+    private static void Consider(ReadOnlySpan<LodSegment> column, ref ReadOnlySpan<LodSegment> best, ref int bed)
+    {
+        foreach (var run in column)
+        {
+            if (run.Block == BlockId.Water)
+            {
+                var ground = GroundTop(column);
+                if (ground < bed)
+                {
+                    best = column;
+                    bed = ground;
+                }
+
+                return;
+            }
+        }
     }
 
     private static void AddCuts(ReadOnlySpan<LodSegment> column, Span<int> cuts, ref int count)

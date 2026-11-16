@@ -37,7 +37,8 @@ public enum LodOrigin : byte
 /// <param name="Packed">The section, <see cref="LodSection.Pack"/>.</param>
 /// <param name="Origin">The origin.</param>
 /// <param name="RealMask">The chunks that are real (all eight for a wholly real section).</param>
-public sealed record LodEntry(byte[] Packed, LodOrigin Origin, byte RealMask)
+/// <param name="EditedMask">The chunks that the player's edits made what they are (same bits): the generator's chunks never replace them.</param>
+public sealed record LodEntry(byte[] Packed, LodOrigin Origin, byte RealMask, byte EditedMask = 0)
 {
     /// <summary>Whether every voxel of the section is real data.</summary>
     public bool IsWhollyReal => Origin == LodOrigin.RealMip || (Origin == LodOrigin.Real && RealMask == 0xFF);
@@ -216,18 +217,33 @@ public sealed class LodSection
 
     /// <summary>The section a packed array holds.</summary>
     /// <param name="packed">The bytes <see cref="Pack"/> made.</param>
+    /// <exception cref="InvalidDataException">The bytes are not a section (torn or corrupt): the length, the kind or the deflated size is wrong.</exception>
     public static LodSection Unpack(ReadOnlySpan<byte> packed)
     {
+        if (packed.Length < 4 || packed[0] > 1)
+        {
+            throw new InvalidDataException("Not a packed section.");
+        }
+
         if (packed[0] == 0)
         {
-            return new LodSection((BlockId)(packed[1] | (packed[2] << 8)), packed[3]);
+            return packed.Length == 4 ? new LodSection((BlockId)(packed[1] | (packed[2] << 8)), packed[3]) : throw new InvalidDataException("A uniform section is four bytes.");
         }
 
         var raw = new byte[Volume * 3];
-        using (var input = new MemoryStream(packed[1..].ToArray()))
-        using (var deflate = new DeflateStream(input, CompressionMode.Decompress))
+        try
         {
+            using var input = new MemoryStream(packed[1..].ToArray());
+            using var deflate = new DeflateStream(input, CompressionMode.Decompress);
             deflate.ReadExactly(raw);
+            if (deflate.ReadByte() != -1)
+            {
+                throw new InvalidDataException("A section holds more than its voxels.");
+            }
+        }
+        catch (EndOfStreamException ex)
+        {
+            throw new InvalidDataException("A section holds fewer than its voxels.", ex);
         }
 
         var section = new LodSection(BlockId.Air, 0) { _blocks = new BlockId[Volume], _light = new byte[Volume] };

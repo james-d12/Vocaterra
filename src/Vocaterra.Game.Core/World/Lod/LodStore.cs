@@ -5,7 +5,7 @@ using Vocaterra.Game.Core.World.Streaming;
 
 namespace Vocaterra.Game.Core.World.Lod;
 
-/// <summary>Where the store keeps what it must not forget (B07c): the game gives it files; the store only hands bytes over. Calls come from any thread.</summary>
+/// <summary>Where the store keeps what it must not forget (B07c): the game gives it files; the store only hands bytes over. Calls come from any thread; saves of one key arrive in the order they were made.</summary>
 public interface ILodPersistence
 {
     /// <summary>The bytes saved for a section, or <see langword="null"/> when there are none.</summary>
@@ -20,25 +20,36 @@ public interface ILodPersistence
 
 /// <summary>
 /// The far view's store of sections (B07c): every level of detail the world has been given, a section a key (level and place) and a packed array, whatever made it (the model, real chunks, a mip of real sections). A section is never replaced by a
-/// worse one (a model section never replaces a real one), every change is told on <see cref="Changed"/> for the far view to remake its tiles, and everything is handed to <see cref="ILodPersistence"/> as it is put, so the far world builds up and survives a restart.
-/// Safe from any thread.
+/// worse one (a model section never replaces a real one; the check, the swap and the hand-over to disk are one step under a lock of the key's stripe, so no two threads can race it and saves of a key reach the disk in the order they were made), every real
+/// change is told on <see cref="Changed"/> for the far view to remake its tiles, and real sections go to <see cref="ILodPersistence"/> as they are put, so the far world builds up and survives a restart. Model sections are not kept on disk (the
+/// model can make them again) and are dropped from memory, least recently used first, past <see cref="MaxModelBytes"/>. A torn or corrupt section reads as missing. Safe from any thread.
 /// </summary>
 public sealed class LodStore
 {
-    private readonly ConcurrentDictionary<LodSectionKey, LodEntry> _memory = new();
+    private const int Stripes = 64;
+
+    private readonly ConcurrentDictionary<LodSectionKey, Slot> _memory = new();
+    private readonly object[] _locks = [.. Enumerable.Range(0, Stripes).Select(static _ => new object())];
     private readonly ILodPersistence? _disk;
+    private long _clock;
+    private long _modelBytes;
 
     /// <summary>Creates a store.</summary>
-    /// <param name="disk">Where the sections are kept between runs, or <see langword="null"/> for none.</param>
+    /// <param name="disk">Where the real sections are kept between runs, or <see langword="null"/> for none.</param>
     /// <param name="maxMipLevel">The highest level real sections are mipped up to.</param>
-    public LodStore(ILodPersistence? disk = null, int maxMipLevel = 4)
+    /// <param name="maxModelBytes">How many packed bytes of model sections stay in memory.</param>
+    public LodStore(ILodPersistence? disk = null, int maxMipLevel = 4, long maxModelBytes = 192L * 1024 * 1024)
     {
         _disk = disk;
         MaxMipLevel = maxMipLevel;
+        MaxModelBytes = maxModelBytes;
     }
 
     /// <summary>The highest level that is made by mipping real sections.</summary>
     public int MaxMipLevel { get; }
+
+    /// <summary>How many packed bytes of model sections stay in memory before the least recently used are dropped.</summary>
+    public long MaxModelBytes { get; }
 
     /// <summary>The real sections put since the far view last drained the queue (a model section fills a place nothing was drawn from, so it is not told).</summary>
     public ConcurrentQueue<LodSectionKey> Changed { get; } = new();
@@ -47,62 +58,174 @@ public sealed class LodStore
     public int Count => _memory.Count;
 
     /// <summary>The bytes the sections hold in memory.</summary>
-    public long Bytes => _memory.Values.Sum(static e => (long)e.Packed.Length);
+    public long Bytes => _memory.Values.Sum(static s => (long)s.Entry.Packed.Length);
 
-    /// <summary>The stored section's entry, from memory or else from disk, or <see langword="null"/>.</summary>
+    private sealed class Slot(LodEntry entry, long used)
+    {
+        public LodEntry Entry { get; } = entry;
+
+        public long Used { get; set; } = used;
+    }
+
+    private object StripeOf(LodSectionKey key) => _locks[(int)((uint)HashCode.Combine(key.Level, key.X, key.Y, key.Z) % Stripes)];
+
+    /// <summary>The stored section's entry, from memory or else from disk, or <see langword="null"/> (a section the disk holds torn reads as missing).</summary>
     /// <param name="key">The section.</param>
     public LodEntry? Entry(LodSectionKey key)
     {
-        if (_memory.TryGetValue(key, out var entry))
+        if (_memory.TryGetValue(key, out var slot))
         {
-            return entry;
+            slot.Used = Interlocked.Increment(ref _clock);
+            return slot.Entry;
         }
 
-        if (_disk?.Load(key) is { Length: > 2 } blob)
+        if (_disk?.Load(key) is { Length: > 4 } blob && blob[0] <= (byte)LodOrigin.RealMip)
         {
-            entry = new LodEntry(blob[2..], (LodOrigin)blob[0], blob[1]);
-            return _memory.GetOrAdd(key, entry);
+            var entry = new LodEntry(blob[3..], (LodOrigin)blob[0], blob[1], blob[2]);
+            try
+            {
+                _ = LodSection.Unpack(entry.Packed);
+            }
+            catch (InvalidDataException)
+            {
+                return null;
+            }
+
+            return _memory.GetOrAdd(key, new Slot(entry, Interlocked.Increment(ref _clock))).Entry;
         }
 
         return null;
     }
 
-    /// <summary>The stored section, or <see langword="null"/>.</summary>
+    /// <summary>The stored section, or <see langword="null"/> (also when its bytes are torn: it is dropped, so it is made again).</summary>
     /// <param name="key">The section.</param>
-    public LodSection? Get(LodSectionKey key) => Entry(key) is { } entry ? LodSection.Unpack(entry.Packed) : null;
+    public LodSection? Get(LodSectionKey key)
+    {
+        if (Entry(key) is not { } entry)
+        {
+            return null;
+        }
+
+        try
+        {
+            return LodSection.Unpack(entry.Packed);
+        }
+        catch (InvalidDataException)
+        {
+            if (_memory.TryGetValue(key, out var slot))
+            {
+                _ = _memory.TryRemove(new KeyValuePair<LodSectionKey, Slot>(key, slot));
+            }
+
+            return null;
+        }
+    }
 
     /// <summary>Keeps a section unless the store holds a better one (a model section never replaces a real one, and none replaces another model section).</summary>
     /// <param name="key">The section.</param>
     /// <param name="section">The section.</param>
     /// <param name="origin">Where it came from.</param>
     /// <param name="realMask">For a level-0 real section, which of its eight chunks are real.</param>
+    /// <param name="editedMask">Which of its chunks the player's edits made.</param>
     /// <returns>Whether it was kept.</returns>
-    public bool Put(LodSectionKey key, LodSection section, LodOrigin origin, byte realMask = 0)
+    public bool Put(LodSectionKey key, LodSection section, LodOrigin origin, byte realMask = 0, byte editedMask = 0)
     {
         ArgumentNullException.ThrowIfNull(section);
-        var existing = Entry(key);
-        if (existing is not null && (origin == LodOrigin.Model || Rank(existing) > Rank(origin, realMask)))
+        var entry = new LodEntry(section.Pack(), origin, realMask, editedMask);
+        lock (StripeOf(key))
         {
-            return false;
+            var existing = Entry(key);
+            if (existing is not null && (origin == LodOrigin.Model || Rank(existing) > Rank(entry)))
+            {
+                return false;
+            }
+
+            Keep(key, entry, existing);
         }
 
-        var entry = new LodEntry(section.Pack(), origin, realMask);
-        _memory[key] = entry;
-        if (_disk is not null)
+        Told(key, origin);
+        return true;
+    }
+
+    /// <summary>
+    /// Changes what the store holds for a key in one step (under the key's lock, so nothing else is put between the read and the write): <paramref name="change"/> is given the entry that is there (or <see langword="null"/>) and answers the section, origin
+    /// and masks to keep, or <see langword="null"/> to leave it. The rank rule does not apply: this is how an edit replaces what the generator made.
+    /// </summary>
+    /// <param name="key">The section.</param>
+    /// <param name="change">The change.</param>
+    /// <returns>Whether something was kept.</returns>
+    public bool Update(LodSectionKey key, Func<LodEntry?, (LodSection Section, LodOrigin Origin, byte RealMask, byte EditedMask)?> change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        LodOrigin origin;
+        lock (StripeOf(key))
         {
-            var blob = new byte[entry.Packed.Length + 2];
-            blob[0] = (byte)origin;
-            blob[1] = realMask;
-            entry.Packed.CopyTo(blob, 2);
+            var existing = Entry(key);
+            if (change(existing) is not { } made)
+            {
+                return false;
+            }
+
+            Keep(key, new LodEntry(made.Section.Pack(), made.Origin, made.RealMask, made.EditedMask), existing);
+            origin = made.Origin;
+        }
+
+        Told(key, origin);
+        return true;
+    }
+
+    // Swaps the entry in and hands a real one to the disk; the lock is held.
+    private void Keep(LodSectionKey key, LodEntry entry, LodEntry? existing)
+    {
+        if (existing is { Origin: LodOrigin.Model })
+        {
+            _ = Interlocked.Add(ref _modelBytes, -existing.Packed.Length);
+        }
+
+        _memory[key] = new Slot(entry, Interlocked.Increment(ref _clock));
+        if (entry.Origin == LodOrigin.Model)
+        {
+            _ = Interlocked.Add(ref _modelBytes, entry.Packed.Length);
+        }
+        else if (_disk is not null)
+        {
+            var blob = new byte[entry.Packed.Length + 3];
+            blob[0] = (byte)entry.Origin;
+            blob[1] = entry.RealMask;
+            blob[2] = entry.EditedMask;
+            entry.Packed.CopyTo(blob, 3);
             _disk.Save(key, blob);
         }
+    }
 
+    private void Told(LodSectionKey key, LodOrigin origin)
+    {
         if (origin != LodOrigin.Model)
         {
             Changed.Enqueue(key); // a model section only fills what no tile was made from; real data changes what a tile shows
         }
+        else if (Interlocked.Read(ref _modelBytes) > MaxModelBytes)
+        {
+            Trim();
+        }
+    }
 
-        return true;
+    // Drops the model sections used least recently, down to three quarters of the limit (they are made again from the model when a tile asks).
+    private void Trim()
+    {
+        var victims = _memory.Where(static p => p.Value.Entry.Origin == LodOrigin.Model).OrderBy(static p => p.Value.Used).ToList();
+        foreach (var (key, slot) in victims)
+        {
+            if (Interlocked.Read(ref _modelBytes) <= MaxModelBytes * 3 / 4)
+            {
+                break;
+            }
+
+            if (_memory.TryRemove(new KeyValuePair<LodSectionKey, Slot>(key, slot)))
+            {
+                _ = Interlocked.Add(ref _modelBytes, -slot.Entry.Packed.Length);
+            }
+        }
     }
 
     private static int Rank(LodEntry entry) => Rank(entry.Origin, entry.RealMask);
@@ -127,7 +250,7 @@ public interface ILodSectionSource
 
 /// <summary>
 /// The far world (B07c): the store, with the model to fill what the store does not hold yet. A stack is always whole: if any section of it is missing the whole stack is made from the model and kept (a real section already there is kept in its place),
-/// so a tile is never made from half a stack, and real data arrives into the same keys and replaces the model's.
+/// so a tile is never made from half a stack, and real data arrives into the same keys and replaces the model's. The player's edits outrank the generator's chunks: a section keeps the chunks an edit made when the generator's stack is ingested over it.
 /// </summary>
 public sealed class LodWorld : ILodSectionSource
 {
@@ -191,7 +314,7 @@ public sealed class LodWorld : ILodSectionSource
         return new LodStack(min, sections!);
     }
 
-    /// <summary>Makes real a level-0 stack from the generator's chunks (every layer of the four chunk columns it covers).</summary>
+    /// <summary>Makes real a level-0 stack from the generator's chunks (every layer of the four chunk columns it covers); the chunks the player's edits made are kept as they are.</summary>
     /// <param name="sx">The stack's x, in sections.</param>
     /// <param name="sz">The stack's z.</param>
     /// <param name="chunk">The chunk at (x, y, z) in chunks, or <see langword="null"/> where there is none (air).</param>
@@ -220,14 +343,61 @@ public sealed class LodWorld : ILodSectionSource
         for (var i = 0; i < sections.Length; i++)
         {
             var key = new LodSectionKey(0, sx, min + i, sz);
-            if (Store.Put(key, sections[i], LodOrigin.Real, 0xFF))
+            var made = sections[i];
+            if (Store.Update(key, existing => (KeepEdits(made, existing), LodOrigin.Real, (byte)0xFF, existing?.EditedMask ?? (byte)0)))
             {
                 Upgrade(key);
             }
         }
     }
 
-    /// <summary>Takes a real chunk (an edited one, or one a save loaded) into the store: its voxels replace the model's or the older real ones, the stack is lit again, and the levels above that are wholly real are mipped again.</summary>
+    // The generator's section with the chunks the player's edits made put back over it.
+    private static LodSection KeepEdits(LodSection made, LodEntry? existing)
+    {
+        if (existing is not { EditedMask: not 0 } || existing.Origin == LodOrigin.Model)
+        {
+            return made;
+        }
+
+        LodSection edited;
+        try
+        {
+            edited = LodSection.Unpack(existing.Packed);
+        }
+        catch (InvalidDataException)
+        {
+            return made;
+        }
+
+        for (var k = 0; k < 8; k++)
+        {
+            if ((existing.EditedMask & (1 << k)) != 0)
+            {
+                CopyRegion(made, edited, (k & 1) * 16, (k >> 2) * 16, ((k >> 1) & 1) * 16);
+            }
+        }
+
+        made.Simplify();
+        return made;
+    }
+
+    // One chunk's 16 x 16 x 16 voxels, blocks and light, from one section to another.
+    private static void CopyRegion(LodSection to, LodSection from, int bx, int by, int bz)
+    {
+        for (var y = 0; y < 16; y++)
+        {
+            for (var z = 0; z < 16; z++)
+            {
+                for (var x = 0; x < 16; x++)
+                {
+                    var i = LodSection.Index(bx + x, by + y, bz + z);
+                    to.Set(i, from.BlockAt(i), from.LightAt(i));
+                }
+            }
+        }
+    }
+
+    /// <summary>Takes a real chunk (an edited one, or one a save loaded) into the store: its voxels replace the model's or the generator's, the stack is lit again and every section whose light changed is kept, and the levels above that are mipped again.</summary>
     /// <param name="coord">The chunk.</param>
     /// <param name="blocks">The chunk's blocks (index = (y * 16 + z) * 16 + x).</param>
     public void IngestChunk(VoxelChunkCoord coord, ReadOnlySpan<BlockId> blocks)
@@ -240,19 +410,49 @@ public sealed class LodWorld : ILodSectionSource
             return;
         }
 
-        var section = stack.Sections[index].Copy();
         var (dx, dy, dz) = (coord.X & 1, coord.Y & 1, coord.Z & 1);
-        CopyChunk(section, blocks, dx, dy, dz);
-        section.Simplify();
-        stack.Sections[index] = section;
-        LightStack(stack.Sections);
+        var bit = (byte)(1 << ((dy << 2) | (dz << 1) | dx));
         var key = new LodSectionKey(0, sx, sy, sz);
-        var existing = Store.Entry(key);
-        var mask = (byte)((existing is { Origin: LodOrigin.Real } ? existing.RealMask : 0) | (1 << ((dy << 2) | (dz << 1) | dx)));
-        if (Store.Put(key, section, LodOrigin.Real, mask))
+        var kept = default(LodSection);
+        var fromBlocks = blocks.ToArray();
+        _ = Store.Update(key, existing =>
         {
-            Upgrade(key);
+            var section = existing is null ? stack.Sections[index].Copy() : LodSection.Unpack(existing.Packed);
+            CopyChunk(section, fromBlocks, dx, dy, dz);
+            section.Simplify();
+            kept = section;
+            return (section, LodOrigin.Real, (byte)((existing is { Origin: LodOrigin.Real } ? existing.RealMask : 0) | bit), (byte)((existing?.EditedMask ?? 0) | bit));
+        });
+        if (kept is null)
+        {
+            return;
         }
+
+        // The light of the sections under it may change: every one that did is kept as what it was.
+        var sections = new LodSection[stack.Sections.Length];
+        for (var i = 0; i < sections.Length; i++)
+        {
+            sections[i] = i == index ? kept : stack.Sections[i].Copy();
+        }
+
+        LightStack(sections);
+        for (var i = 0; i <= index; i++)
+        {
+            var under = sections[i];
+            var packed = under.Pack();
+            var below = new LodSectionKey(0, sx, stack.SyMin + i, sz);
+            _ = Store.Update(below, existing =>
+            {
+                if (existing is not null && existing.Packed.AsSpan().SequenceEqual(packed))
+                {
+                    return null;
+                }
+
+                return (under, existing?.Origin ?? LodOrigin.Model, existing?.RealMask ?? (byte)0, existing?.EditedMask ?? (byte)0);
+            });
+        }
+
+        Upgrade(key, refresh: true);
     }
 
     // The chunk's blocks into the eight-chunk section at the chunk's place in it (plants and the like left out).
@@ -285,27 +485,47 @@ public sealed class LodWorld : ILodSectionSource
         }
     }
 
-    /// <summary>Mips the sections above a real section that are wholly made of real ones, up to the store's highest mip level.</summary>
+    /// <summary>
+    /// Mips the sections above a real section that are wholly made of real ones, up to the store's highest mip level. A child outside the level's vertical range (over the world's ceiling, under its floor) counts as a real section of air or
+    /// of stone, so the levels at the top and the bottom of the world are mipped like the rest. With <paramref name="refresh"/> the parents that were mipped before are made again from whatever their children hold now (after an edit).
+    /// </summary>
     /// <param name="key">The real section that changed.</param>
-    public void Upgrade(LodSectionKey key)
+    /// <param name="refresh">Whether to remake the parents that exist, from their children as they are.</param>
+    public void Upgrade(LodSectionKey key, bool refresh = false)
     {
         var at = key;
         while (at.Level < Store.MaxMipLevel)
         {
             var parent = at.Parent;
+            if (refresh && Store.Entry(parent) is not { Origin: LodOrigin.RealMip })
+            {
+                return;
+            }
+
+            var (min, max) = SyRange(at.Level);
             var children = new LodSection[8];
             for (var c = 0; c < 8; c++)
             {
-                var entry = Store.Entry(parent.Child(c & 1, c >> 2, (c >> 1) & 1));
-                if (entry is not { IsWhollyReal: true })
+                var child = parent.Child(c & 1, c >> 2, (c >> 1) & 1);
+                if (child.Y > max)
+                {
+                    children[c] = LodSection.Air();
+                }
+                else if (child.Y < min)
+                {
+                    children[c] = new LodSection(BlockId.Stone, 0);
+                }
+                else if (Store.Entry(child) is { } entry && (refresh || entry.IsWhollyReal) && Store.Get(child) is { } section)
+                {
+                    children[c] = section;
+                }
+                else
                 {
                     return;
                 }
-
-                children[c] = LodSection.Unpack(entry.Packed);
             }
 
-            if (!Store.Put(parent, LodMip.Parent(children), LodOrigin.RealMip))
+            if (!Store.Put(parent, LodMip.Parent(children), LodOrigin.RealMip) && !refresh)
             {
                 return;
             }

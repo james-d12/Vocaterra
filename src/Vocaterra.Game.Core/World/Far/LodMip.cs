@@ -24,9 +24,10 @@ public static class LodBlocks
 }
 
 /// <summary>
-/// How a level is made from the one below (B07c): a section of the next level up is the mip of eight sections, each voxel the mip of eight. The rule keeps what is seen from outside: a voxel is solid when at least four of its eight are (so a one-block
-/// shell, which fills four of the eight cells it passes through, is never hollowed), or when one is a trunk (so a trunk of one block that carries a crown stays), or when two are leaves (so a crown stays whole); its block is the most common solid one
-/// (a trunk first, then the higher one). Otherwise it is water when at least two are, otherwise air. Light is the brightest of the eight. Pure.
+/// How a level is made from the one below (B07c): a section of the next level up is the mip of eight sections, each voxel the mip of eight. The rule keeps what is seen from outside. A voxel is water when its upper four hold water and no solid
+/// (the water's surface is kept over its bed, one voxel at least). It is solid when at least two of its eight are (a one-block shell fills four of the eight it passes through, a peak's tip with the cell under it two), or one is a trunk (a trunk of one block that
+/// carries a crown stays); its block is the one that is exposed, the most common solid block of the upper four if there is any, else of the lower four (so a slope's grass is not outvoted by the dirt under it; a trunk wins in its layer). Otherwise it is water when
+/// two are, otherwise air. Light is the brightest of the eight. Pure.
 /// </summary>
 public static class LodMip
 {
@@ -39,9 +40,10 @@ public static class LodMip
         var sky = 0;
         var lamp = 0;
         var solid = 0;
-        var leaves = 0;
+        var upperSolid = 0;
+        var upperWater = 0;
         var water = 0;
-        var trunk = BlockId.Air;
+        var trunk = false;
         for (var i = 0; i < 8; i++)
         {
             sky = Math.Max(sky, lights[i] >> 4);
@@ -50,27 +52,29 @@ public static class LodMip
             if (b == BlockId.Water)
             {
                 water++;
+                upperWater += i >= 4 ? 1 : 0;
             }
             else if (b != BlockId.Air)
             {
                 solid++;
-                leaves += BlockDefinition.IsLeaves(b) ? 1 : 0;
-                trunk = BlockDefinition.IsTrunk(b) ? b : trunk;
+                upperSolid += i >= 4 ? 1 : 0;
+                trunk |= BlockDefinition.IsTrunk(b);
             }
         }
 
         light = (byte)((sky << 4) | lamp);
-        if (solid >= 4 || trunk != BlockId.Air || (leaves >= 2 && solid >= 2))
+        if (upperWater > 0 && upperSolid == 0)
         {
-            if (trunk != BlockId.Air)
-            {
-                return trunk;
-            }
+            return BlockId.Water;
+        }
 
-            // The most common solid block; a tie goes to the one in the upper layer (the children from 4 up), then to the first.
+        if (solid >= 2 || trunk)
+        {
+            // The exposed block: the upper four's most common solid one, else the lower four's; a trunk of that layer first.
+            var from = upperSolid > 0 ? 4 : 0;
             var best = BlockId.Air;
             var bestCount = 0;
-            for (var i = 7; i >= 0; i--)
+            for (var i = from + 3; i >= from; i--)
             {
                 var b = blocks[i];
                 if (b == BlockId.Air || b == BlockId.Water)
@@ -78,8 +82,13 @@ public static class LodMip
                     continue;
                 }
 
+                if (BlockDefinition.IsTrunk(b))
+                {
+                    return b;
+                }
+
                 var count = 0;
-                for (var k = 0; k < 8; k++)
+                for (var k = from; k < from + 4; k++)
                 {
                     count += blocks[k] == b ? 1 : 0;
                 }

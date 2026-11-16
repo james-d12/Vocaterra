@@ -26,12 +26,12 @@ public sealed class LodMergeTests
     }
 
     [Fact]
-    public void Given_ColumnsOfDifferentHeights_When_TheyAreMerged_Then_TheTopFollowsTheMajorityAndATieGoesToTheSolid()
+    public void Given_ColumnsOfDifferentHeights_When_TheyAreMerged_Then_TheTopIsTheHighestAndTheBlockTheMostCommonThere()
     {
         var three = Merge(Meadow(40), Meadow(40), Meadow(40), Meadow(44));
         var tie = Merge(Meadow(40), Meadow(40), Meadow(44), Meadow(44));
 
-        Assert.Equal(40, three[0].Top);
+        Assert.Equal(44, three[0].Top);
         Assert.Equal(BlockId.Grass, three[0].Block);
         Assert.Equal(44, tie[0].Top);
         Assert.Equal(BlockId.Grass, tie[0].Block);
@@ -39,15 +39,36 @@ public sealed class LodMergeTests
     }
 
     [Fact]
-    public void Given_ACrownOnHalfTheCell_When_TheColumnsAreMerged_Then_TheCrownStaysOnlyWhereHalfHaveIt()
+    public void Given_APeakInOneOfFourColumns_When_TheyAreMergedLevelAfterLevel_Then_ThePeakKeepsItsHeight()
+    {
+        var peak = new[] { Run(90, 90, BlockId.Snow), Run(89, 80, BlockId.Stone), Run(79, -64, BlockId.Stone) };
+        var column = peak;
+        for (var level = 0; level < 5; level++)
+        {
+            column = [.. Merge(column, Meadow(40), Meadow(40), Meadow(40))];
+            Assert.Equal(90, column[0].Top);
+            Assert.Equal(BlockId.Snow, column[0].Block);
+        }
+    }
+
+    [Fact]
+    public void Given_ACrownOnOneColumn_When_TheColumnsAreMerged_Then_TheCrownStays()
     {
         LodSegment[] Tree(int ground) => [Run(ground + 9, ground + 5, BlockId.Leaves), Run(ground + 4, ground + 1, BlockId.Trunk), .. Meadow(ground)];
-        var half = Merge(Tree(40), Tree(40), Meadow(40), Meadow(40));
         var one = Merge(Tree(40), Meadow(40), Meadow(40), Meadow(40));
 
-        Assert.Equal(BlockId.Leaves, half[0].Block);
-        Assert.Equal(49, half[0].Top);
-        Assert.Equal(BlockId.Grass, one[0].Block);
+        Assert.Equal(BlockId.Leaves, one[0].Block);
+        Assert.Equal(49, one[0].Top);
+    }
+
+    [Fact]
+    public void Given_ALakeBesideDryLand_When_TheColumnsAreMerged_Then_TheWaterSurvivesOverItsBed()
+    {
+        LodSegment[] Lake() => [Run(32, 21, BlockId.Water), Run(20, 17, BlockId.Sand), Run(16, -64, BlockId.Stone)];
+        var merged = Merge(Meadow(36), Meadow(36), Meadow(36), Lake());
+
+        Assert.Equal(BlockId.Water, merged[0].Block);
+        Assert.Equal(32, merged[0].Top);
     }
 
     [Fact]

@@ -5,8 +5,7 @@ namespace Vocaterra.Game.Core.World.Far;
 
 /// <summary>
 /// The far view's sections made from the generator's own model (B07c): the stand-in for a place that has no real chunk data yet. The columns come from <see cref="LodModelSource"/> (the height model's ground, water and snow, the biome's layers under
-/// the surface, the tree pass's own trees, the regions' own blocks) and each is cut into the voxels of the level: a voxel is solid when at least half of its height is solid (or it holds a trunk, or a quarter of it leaves), its block the one
-/// with the most of it, water when at least half is water, otherwise air; the stack is then lit from the sky down. Written in the store's own format, so real data replaces it key for key. Pure.
+/// the surface, the tree pass's own trees, the regions' own blocks) and each is cut into the voxels of the level: the surfaces are quantised and not the volumes: the voxel holding the top of a solid run is solid and takes the exposed block, the voxel holding the water's top is water, the others by half; the stack is then lit from the sky down. Written in the store's own format, so real data replaces it key for key. Pure.
 /// </summary>
 public sealed class LodModelSections
 {
@@ -88,16 +87,18 @@ public sealed class LodModelSections
         return sections;
     }
 
-    // The block of a voxel whose blocks run from y0 to y1: the runs' share of it decides (see the class's summary).
+    // The block of a voxel whose blocks run from y0 to y1, quantising surfaces and not volumes: the voxel that holds the top of a solid run is solid and takes the exposed block (the highest run in it: the snow, the grass), the voxel
+    // that holds the top of the water is water (one voxel at least, over its bed), the others by the share of them that is solid or water (half).
     private static BlockId Cell(ReadOnlySpan<LodSegment> runs, int y0, int y1, int cell)
     {
         var opaque = 0;
         var water = 0;
-        var leaves = 0;
-        var trunk = 0;
-        var best = BlockId.Air;
-        var bestThickness = 0;
-        var trunkBlock = BlockId.Air;
+        var exposed = BlockId.Air;
+        var exposedTop = int.MinValue;
+        var opaqueTopIn = false;
+        var opaqueTopY = int.MinValue;
+        var waterTopIn = false;
+        var waterTopY = int.MinValue;
         foreach (var run in runs)
         {
             var overlap = Math.Min(run.Top, y1) - Math.Max(run.Bottom, y0) + 1;
@@ -106,34 +107,41 @@ public sealed class LodModelSections
                 continue;
             }
 
+            var topHere = run.Top <= y1;
             if (run.Block == BlockId.Water)
             {
                 water += overlap;
+                if (topHere)
+                {
+                    waterTopIn = true;
+                    waterTopY = Math.Max(waterTopY, run.Top);
+                }
+
                 continue;
             }
 
             opaque += overlap;
-            if (BlockDefinition.IsLeaves(run.Block))
+            if (run.Top > exposedTop)
             {
-                leaves += overlap;
+                exposedTop = run.Top;
+                exposed = run.Block;
             }
 
-            if (BlockDefinition.IsTrunk(run.Block))
+            if (topHere)
             {
-                trunk += overlap;
-                trunkBlock = run.Block;
-            }
-
-            if (overlap > bestThickness)
-            {
-                best = run.Block;
-                bestThickness = overlap;
+                opaqueTopIn = true;
+                opaqueTopY = Math.Max(opaqueTopY, run.Top);
             }
         }
 
-        if ((2 * opaque) >= cell || trunk > 0 || (4 * leaves) >= cell)
+        if (waterTopIn && (!opaqueTopIn || waterTopY >= opaqueTopY))
         {
-            return trunk > 0 ? trunkBlock : best;
+            return BlockId.Water;
+        }
+
+        if ((2 * opaque) >= cell || opaqueTopIn)
+        {
+            return exposed;
         }
 
         return (2 * water) >= cell ? BlockId.Water : BlockId.Air;
