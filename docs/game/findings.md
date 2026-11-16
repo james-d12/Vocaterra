@@ -2783,3 +2783,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   later: "running with --configuration Release fixed most of the issues ... take note that it was in Debug mode which could explain the
   slow rendering": (2) to (4) are mostly the far view not yet built in a slow Debug build; B07e reproduces each in Release, fixes what
   persists once settled, and makes the in-between state while the far view builds tidy. (1) is generation and stays (B11c).
+- **B11b, natural cave entrances and rock variety (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11b-entrances-and-rock.md`,
+  report `.claude/briefs/b11b-report.md`, pictures in `artifacts/b-series/b11b/` (and `tour/`). B11's entrances were pits with no walkable
+  way down (B12's finding); the first rework built straight 3-wide stairs with slab rims, which the owner held as man-made (D-game-34 item
+  31); the second makes each entrance a winding passage (width 2 to 6, headroom 3 to 7, noise-carved walls, an uneven floor, a ragged
+  mouth with no rim), walkable to a cave 20 or more blocks down (tested from every sampled mouth). Rock variety (item 27): plain stone on
+  cave faces from 88 to 96% to 48 to 57% (gravel, sand, dirt, granite, limestone, the new basalt; linings near passages and water),
+  cliff bands and scree at the surface, all as data; generator version 3. Merges: four (B12's cave tour moved onto a natural entrance;
+  B07c's `TreePlacement` kept as the one source with the mouths cleared in the shared query; the far view shows cliff bands and scree).
+  Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
+  worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
+  mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.

@@ -7,7 +7,7 @@
 #   scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4
 #
 # What it does:
-#   1. Slots: at most VOCATERRA_HEAVY_SLOTS (default 2; the owner, 2026-11-05) heavy commands at once on the whole machine (one flock
+#   1. Slots: at most VOCATERRA_HEAVY_SLOTS (default 3 since 2026-11-16, 2 from 2026-11-05; the owner) heavy commands at once on the whole machine (one flock
 #      per slot, shared by every worktree). A further command waits for a free slot. VOCATERRA_HEAVY_SLOTS=1 restores one at a time.
 #   2. Preflight: waits while available memory is under VOCATERRA_MIN_FREE_MB (default 3000) or the 1-minute load is above the core count.
 #   3. Caps, two levels:
@@ -44,7 +44,7 @@ CPU_QUOTA="${VOCATERRA_CPU_QUOTA:-1000%}"
 TOTAL_MEM_MAX="${VOCATERRA_TOTAL_MEM_MAX:-16G}"
 TOTAL_CPU_QUOTA="${VOCATERRA_TOTAL_CPU_QUOTA:-1400%}"
 MIN_FREE_MB="${VOCATERRA_MIN_FREE_MB:-3000}"
-SLOTS="${VOCATERRA_HEAVY_SLOTS:-2}"
+SLOTS="${VOCATERRA_HEAVY_SLOTS:-3}"
 SLICE="vocaterra-heavy.slice"
 RUN_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 

@@ -534,7 +534,8 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B07b | Streamed-world fixes from the world QA pass (2026-11-16): scripted steps wait while the body is held; a far teleport or respawn makes its near zone like a start; a teleport onto water stands on the surface | S/M | Sonnet medium | B07 | runs, tests |
 | B07c | Far view like Voxy (items 25, 26, 29): 3D voxel LOD sections from real chunks and the generator's model, on disk per world, textured block faces, stored light, CPU culling | L | Sonnet high | B07 | pictures (owner review), measurement |
 | B07e | The far view's seams and gaps, reviewed in Release (the owner's bugs, taken in Debug; Release fixed most): fix what persists settled; a tidy state while the far view builds | M | Sonnet high | B07c | pictures from the owner's positions |
-| B07d | The far view's remainder (item 29): detail settings, world import or pre-generation, performance tuning | M | Sonnet high | B07c | measurement |
+| B07f | The far store's edit layer (codebase review C1 to C3, C6, C7, C10): edits from a save in the far view, overlays per save, races fixed with tests | M | Sonnet high | B07c | tests |
+| B07d | The far view's remainder (items 29, 37): settings, pre-generation, compaction, the store's memory and IO (an LRU of real sections, disk checks off the game thread, fsync on a timer, a surface-only ring, pooling) | M | Sonnet high | B07c | measurement |
 | B08a | The pass through the east ring in the bounded valley: the relief lowered, the road from the village to the east edge, the `paso` site (no label) and the rockfall that closes the pass, all in `scene.json` | S/M | Sonnet medium | B00 | valley golden, bundle, runs |
 | B08b | The pass's lock: the list of required lessons in `world.json` (all of today's), the unlock rule in Core, a cheat setting in the settings menu, the rockfall removed (saved like any change) when the pass opens | S/M | Sonnet medium | B01, B08a | bundle, runs |
 | B08c | The pass road from the village: one continuous road of path blocks with no riser or detour (found in the game, 2026-11-16); the run comparison's speed | S | Sonnet medium | B08b, B13 | valley golden, runs |
@@ -553,6 +554,10 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B18 | Grass density (item 34): render-only decorative grass on grass tops, a settings slider, a denser default; the world unchanged | M | Sonnet medium | B07, B12 | pictures (owner review), measurement |
 | B19 | The far view at scale (section 3.10; D-game-34 item 35; planned only, not to be launched until the owner says): a measured spike at 32 and 64 km first; then merged buffers per level, a 3D section tree for culling, occlusion culling, camera-relative rendering and depth ranges on B17's shaders; rendering driven by the card only if the spike shows it is needed (an engine-level choice for the owner); the owner's Voxy pictures (`artifacts/reference/voxy/`) as the target look | L | Sonnet high | B07c, B07d, B17 | pictures (owner review), measurement |
 | B20 | No snow in the valley (item 36): the ring's tops without snow, as the slope would carry; the valley golden re-recorded once | S/M | Sonnet medium | B13 | valley golden, pictures |
+| B21 | Meshing off the game thread, dirty-only rechecks, no per-frame allocation (review P1, P2, P5) | M/L | Sonnet high | B07e | measurement |
+| B22 | Fidelity bundle: MSAA, a moving sun, biome colours, clouds, water (review G2 to G6) | S/M | Sonnet medium | B07c | pictures (owner review) |
+| B23 | Sky and block light propagation with smooth light (review G1) | L | Sonnet high | B21 | pictures (owner review), measurement |
+| B24 | Guards and cleanups (review A1, A2, C8, C9, T1, T2, docs) | S/M | Sonnet medium | B07f, B21 | tests |
 
 **Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
 agent max", so one at a time; that evening "you can have up to 4 agents now", D-game-34 item 19): each milestone starts as soon as
