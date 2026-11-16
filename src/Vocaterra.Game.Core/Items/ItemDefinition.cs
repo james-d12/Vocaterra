@@ -50,7 +50,8 @@ public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 
 /// <summary>
 /// What the game knows about one item kind, one row of <c>game/items.json</c> (I01): its stable key, its numeric id, its stack limit, the picture it is drawn with, how the hand holds it,
-/// its tags and, for a tool, its <see cref="ToolSpec"/>. The stack limit lives here and nowhere else. The rows are read once into an <see cref="IItemCatalogue"/>.
+/// its tags and, for a tool, its <see cref="ToolSpec"/>; a piece of gear also has the slot it fits, the stats it gives and how it looks on the body (I03a). The stack limit lives here and nowhere else.
+/// The rows are read once into an <see cref="IItemCatalogue"/>.
 /// </summary>
 /// <param name="Id">The item kind's numeric id (<see cref="ItemId"/>; a data-only item's is above the enum's members, from 100).</param>
 /// <param name="Name">A stable lowercase English key; saves, the bundle's noun catalogue and every other file name items by it.</param>
@@ -59,7 +60,20 @@ public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 /// <param name="Held">How the hand shows the item (<see cref="ItemHeld"/>).</param>
 /// <param name="Tags">What the item is, as an open list of words (<c>tool</c>, <c>food</c>, <c>material</c>, <c>container</c>): later rules ask for a tag, never for an id.</param>
 /// <param name="Tool">The tool's spec, or <see langword="null"/> when the item is not a tool.</param>
-public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, string Icon, string Held, IReadOnlyList<string> Tags, ToolSpec? Tool = null)
+/// <param name="Wear">The kind of slot the item is worn in (<c>head</c>, <c>body</c>, <c>legs</c>, <c>feet</c>, <c>accessory</c>, <c>offhand</c>, <c>back</c>: the <c>wear</c> of a slot of <c>game/equipment.json</c>), or <see langword="null"/> when it cannot be worn.</param>
+/// <param name="Stats">What the item adds to the player's stat sheet while it is worn, by open stat key (<c>warmth</c> in tenths of a degree), or <see langword="null"/> for none. Sorted by key.</param>
+/// <param name="Look">The colours the item gives the body parts it covers (drawn from I09 on), or <see langword="null"/> when it changes nothing.</param>
+public sealed record ItemDefinition(
+    ItemId Id,
+    string Name,
+    int MaxStack,
+    string Icon,
+    string Held,
+    IReadOnlyList<string> Tags,
+    ToolSpec? Tool = null,
+    string? Wear = null,
+    IReadOnlyDictionary<string, double>? Stats = null,
+    ItemLook? Look = null)
 {
     /// <summary>The stack limit of a material or a placeable block.</summary>
     public const int DefaultStackLimit = 99;

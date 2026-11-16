@@ -44,6 +44,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/day.json` | `day.schema.json` (the day and night cycle, E01: its length in seconds, the hours dawn, day, dusk and night begin, the start hour and the wake hour) | `DayData` |
   | `game/weather.json` | `weather.schema.json` (the weather, E04: its kinds as rows of channels (cloud cover, sunlight, fog, wind, precipitation: a kind and an intensity from 0 to 1; since E06 the kind names a row of the game's style table, `PrecipitationStyles` in `src/Vocaterra.Game/Graphics/Weather/`, which says how it looks, so a new precipitation kind needs a row there as well as in this file, and a test fails until it has one; the kind of a style the table lacks draws nothing), the range of a spell, the weighted next kinds, a morning weight; the kind a new game starts in and the transition time) | `WeatherData` |
   | `game/temperature.json` | `temperature.schema.json` (the temperature where the player stands, I06: the numbers of the base, the day's swing, the weather's cooling per channel, a roof's shelter and a fire's warmth, all in tenths of a degree Celsius, and the bands warm, cool, cold and very cold from the warmest, each with a lower bound, a walk factor above 0 and at most 1, a chill and the HUD line said on entering the cold) | `TemperatureData` |
+  | `game/equipment.json` | `equipment.schema.json` (the slot groups gear is worn in, I03a: per group its id, its drawn layer, its slots (named body slots, or a count with a wear kind), the item tags it accepts, `noDuplicates` and `statsApply`, and the Spanish noun of each slot; see "Equipment" below) | `EquipmentData` |
   | `game/land.json` | `land.schema.json` (the land rules, Y09: the discs round scene sites and the squares round the road and bridge blocks where the player may not place blocks (a torch is always allowed), each with the protection that names its hint (village, camp, road) and a margin; the discs round `meadow.north` and `meadow.south` where a plot may lie; the plot's width, depth, price in coins and the slope it allows. Site names are scene sites: the validator refuses one the scene lacks) | `LandData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
   | `game/procedures.json` | `procedures.schema.json` (the procedures' ids, in order; W05) | `ProcedureBook` |
@@ -146,7 +147,7 @@ the keys `BlockAtlasLayout.IconKeys` lists; an unknown key draws the plain fallb
 voxels; `log`, `torch` and `bottle` are modelled in code), `tags` (an open list of words: `tool`, `food`, `material`, `container`, `currency`, `placeable`) and, for a tool, `tool` (`class`, the material
 it works on, and `speed`, how many times faster than bare hands). The other files name an item by its `name` (the nouns' `items`, a shop row, a recipe, a gift, a procedure). The code's `ItemId` enum keeps
 only the items that behaviour refers to (the bottle fills, the book opens, coins pay, the stake and the camp kit place); the loader checks each against its row and stops on a mismatch, and an item
-that is a row alone works everywhere an item can. The later fields (`wear`, `stats`, `look`, `capacity`, `durability`) are added to `items.schema.json` and the loader as the equipment milestones need
+that is a row alone works everywhere an item can. The gear fields `wear`, `stats` and `look` are described under "Equipment (I03a)" below; `capacity` and `durability` are added as the later equipment milestones need
 them. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
 
 ## Adding things
@@ -398,6 +399,21 @@ added to give the feeling, and the feeling falls in the first band, warmest firs
 band, the `line` it says once on the feeling's first entry into the cold: a key of `words.json`'s `hudLines` (`temperature.cold`, «Tengo frío.») with its English in the
 locale under the same id. Bounds must fall, chills must not, ids are unique. The loop is the usual one (`scripts/content-loop.sh --grammar`). A new term (the biomes'
 climate) is code with its own data, not a row here.
+
+## Equipment (I03a)
+
+`game-v1/game/equipment.json` (`equipment.schema.json`; `EquipmentData`, checked by `EquipmentValidator` inside `GameDataValidator`) lists the slot groups gear is worn in, in this order: `clothing`,
+`armour`, `cosmetic` (each with the body slots `head`, `body`, `legs`, `feet`), `accessories` (3), `offhand` (1) and `backpack` (1). A group is a row and code never names one: it has `slots` (named; an
+item's `wear` must equal the slot's name) or `count` with a `wear` kind; `accepts`, the item tags the group takes; `noDuplicates` (one of a kind in the group, the accessories); `statsApply` (false for
+the cosmetic layer, whose items give nothing); `layer` (where the avatar draws it, left out when it is not a layer); and the Spanish noun of each slot (`labels`, or `label` for counted slots; left out
+when the lexicon has no word yet, as for the accessories). The order of the groups and slots is part of the bundle: commands and the digest carry indexes, so a new group goes at the end. A new group,
+say for a ring finger or a cape, is one more row (and an item tag it accepts); no code changes.
+
+An item becomes gear with three optional fields of `items.json`: `wear` (the kind of slot: `head`, `body`, `legs`, `feet`, `accessory`, `offhand` or `back`, a `wear` of some slot), `stats` (open
+camelCase keys to numbers, added to the player's stat sheet while worn: `warmth` is in tenths of a degree (I06); `armour`, `walkSpeed`, `hungerDrain`, `thirstDrain`, `maxStamina` and `light` are read
+from I05a and I05b on) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
+that some group with a slot of its `wear` accepts one of its tags (so give it `clothing`, `armour`, `accessory`, `offhand` or `bag`), that stat keys are well formed and look colours parse, and that an
+item with stats or a look can be worn. A `look` only dresses the avatar; the stats count only in a group whose `statsApply` is true. Run the usual loop after an edit.
 
 ## Adding a weather kind
 
