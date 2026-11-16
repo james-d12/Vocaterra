@@ -27,19 +27,25 @@ internal static class RiverWalk
     {
         var (px, pz) = Snap(sampler, x, z);
         var (tx, tz) = Tangent(sampler, px, pz);
-        // The way down: along the tangent where the natural ground falls over the next 200 blocks.
-        double Natural(double ax, double az) => sampler.At((int)Math.Round(ax), (int)Math.Round(az)).Natural;
-        var forward = Natural(px + (tx * 200), pz + (tz * 200)) - Natural(px - (tx * 200), pz - (tz * 200));
-        if ((forward > 0) == downstream)
+        // The way down: the way along the line the natural ground ends lower after 1 500 blocks (a short look would be fooled by the hills).
+        var ahead = Run(sampler, px, pz, tx, tz, 1500, step);
+        var behind = Run(sampler, px, pz, -tx, -tz, 1500, step);
+        var aheadFalls = ahead[^1].Column.Natural < behind[^1].Column.Natural;
+        if (aheadFalls != downstream)
         {
             (tx, tz) = (-tx, -tz);
         }
 
+        return Run(sampler, px, pz, tx, tz, length, step);
+    }
+
+    private static List<Sample> Run(WorldSampler sampler, double px, double pz, double tx, double tz, int length, int step)
+    {
         var samples = new List<Sample>();
         for (double walked = 0; walked <= length; walked += step)
         {
             var (cx, cz) = ((int)Math.Round(px), (int)Math.Round(pz));
-            samples.Add(new Sample(walked, cx, cz, sampler.At(cx, cz)));
+            samples.Add(new Sample(walked, cx, cz, Evened(sampler, cx, cz)));
             (px, pz) = (px + (tx * step), pz + (tz * step));
             (px, pz) = SnapFrom(sampler, px, pz, 3);
             var (nx, nz) = Tangent(sampler, px, pz);
@@ -52,6 +58,31 @@ internal static class RiverWalk
         }
 
         return samples;
+    }
+
+    // The column as the generator makes it: a river's water takes the highest level of the river water within 3 columns (the sea's level apart), so a step lies across the river (WaterEdgePass.EvenLevels in the core).
+    private static Column Evened(WorldSampler sampler, int x, int z)
+    {
+        var column = sampler.At(x, z);
+        if (!column.Water || column.WaterLevel <= sampler.SeaLevel)
+        {
+            return column;
+        }
+
+        var best = column.WaterLevel;
+        for (var dz = -3; dz <= 3; dz++)
+        {
+            for (var dx = -3; dx <= 3; dx++)
+            {
+                var other = sampler.At(x + dx, z + dz);
+                if (other.Water)
+                {
+                    best = Math.Max(best, other.WaterLevel);
+                }
+            }
+        }
+
+        return column with { WaterLevel = best };
     }
 
     /// <summary>The section: the natural ground (a thin line), the ground the river carved (brown), the water (blue) and the sea level (dashed yellow), the vertical scale the data's own.</summary>
