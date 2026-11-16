@@ -1431,6 +1431,7 @@ this file. What is still open is collected in [open-items](../open-items.md).
   Met again on 2026-11-15 by B08b's gate on `feature/biomes` (the game's B series, which touched no core input): O5,
   `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `7PcP-w7xauk1` («túneles unos porque» mutated to
   «vebegoz unos porque»: the recast writes «porqués»); it replays with the seed. Two oracles now trip on it at random seeds.
+  **Resolved by M96** (2026-11-16, gated at `fbe763f9`; the entry below).
 - **M96, «porque» read as a plural noun (fixed 2026-11-15; seeds `dTc3W4dw5Cg2` (O4) and `7PcP-w7xauk1` (O5), the entry above).** Cause: `AccentVariantChoice`
   (not the lexicon, tagger or realiser). `porque` as typed is a conjunction, and a conjunction "needs a word after it"; in «túneles unos porque» it ends the
   utterance, so the chooser fell back to the accented sibling, the noun `porqué`. The number check then asked for `porqués` after `unos`, and the recast wrote it.
