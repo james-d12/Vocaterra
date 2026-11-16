@@ -853,6 +853,15 @@ the owner's answers of 2026-11-15 are in its section 5.
     about 1 to 2 km, a raised canopy layer beyond), colour from each block's texture with per-cell variation, rock on steep slopes,
     top and side shading, rivers at least a cell wide, finer cells near (2 blocks) and coarse beyond about 8 km; High held at about
     12 ms a frame on the RTX 3070. Real-chunk level of detail (towns, the valley's buildings, edits seen far off) is a later step.
+26. **The far view works like Distant Horizons, "one-to-one parity ideally"; the world stays block-based** (2026-11-16, about 09:00
+    UTC): "the world is block-based, not kind of smooth voxel-based, right? So we need to make sure that is true ... it should operate
+    like the horizons mod ... if we can get one-to-one parity with that, ideally would be great, so that we can basically see in the
+    distance and it still has the high level of detail. Because currently having just the smooth, it looks terrible." Widens item 25:
+    B07c builds Distant Horizons' model (level-of-detail columns of vertical segments with block and light, built from the generator's
+    own columns, trees and regions; greedy box meshes, never a smooth face, tested; block-texture colour with noise; translucent water;
+    stored light for night and glow; 1-block columns past the voxel zone with detail halving by distance bands); B07d adds what remains
+    for parity: level of detail from loaded chunks as they unload (edits seen far off), the store saved to disk per world, the detail
+    settings on the settings page.
 
 ## Already decided
 

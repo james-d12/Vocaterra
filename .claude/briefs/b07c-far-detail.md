@@ -75,3 +75,14 @@ Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
 Report, one page: branch, head commit, worktree; what was built (the boxes, the tree query and far trees, colour and light, cell sizes);
 test counts; the measurements against B07's; the scripted-run comparison; the pictures and what they show, plainly; bugs found and fixed;
 known-not-fixed; files touched outside the milestone's area; anything left undone and why. No file dumps or long logs.
+
+---
+Addendum sent to the agent at about 09:00 UTC (D-game-34 item 26; replaces items 1 to 4 where they differ): the far view works like
+Distant Horizons. (1) LOD data as columns of vertical segments (block, sky and block light), one per cell of 2^L blocks, coarser levels
+merging 2 x 2; a segment cap per column (vertical quality, 4 to 8). (2) Built from the real generator: terrain and water, surface strata,
+trees from the shared placement query, the regions' own blocks; on workers with a budget. (3) Rendered as greedy axis-aligned boxes,
+never a smooth face (a test: every face axis-aligned, every vertex on whole-block coordinates times the cell); per-face shading, corner
+darkening, block-texture colour with the biome tint and per-cell noise, translucent water. (4) Stored light: night darkening, glowing
+blocks glow far off. (5) Detail falloff: 1-block columns past the voxel zone, each level doubling over a distance band to 16 km at High;
+no overdraw under the voxel zone. (6) The brief's target, pictures and rules stand. B07d (later): LOD from loaded chunks as they unload
+(edits), the store on disk per world, detail settings; B07c's store designed for it.
