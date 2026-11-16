@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Voxel;
 namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
-/// The lanterns, post torches and lava of the world (every block that <see cref="BlockDefinition.Glows"/>) (S15) indexed by chunk column (B04b): built from the chunks that are resident when it is made and as chunks are installed, and kept
+/// The lanterns, torches, post torches and lava of the world (every block that <see cref="BlockDefinition.Glows"/>) (S15) indexed by chunk column (B04b): built from the chunks that are resident when it is made and as chunks are installed, and kept
 /// current as a light block is placed or removed or a chunk is evicted, so the glow of a torch placed in play lights its surroundings at once. A chunk holds a light only if its
 /// <see cref="VoxelChunk.KindMask"/> says so, so a chunk without one is never looked into. The glow itself (its reach and falloff) is <see cref="ChunkMesher"/>'s.
 /// Lights are read in one fixed order, the order the one-off scan of the whole grid gave (chunk layer, row, column, then the block's y, z, x), so a mesh built from

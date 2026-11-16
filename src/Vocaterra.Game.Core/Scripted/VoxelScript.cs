@@ -41,6 +41,7 @@ public sealed class VoxelScript
     private readonly IReadOnlyList<VoxelStep> _steps;
     private readonly Func<string, ItemId?> _resolveItem;
     private readonly Action<string> _log;
+    private readonly Func<bool>? _worldReady;
     private int _index;
     private bool _started;
     private int _stepTicks;
@@ -60,7 +61,8 @@ public sealed class VoxelScript
     /// <param name="steps">The steps in order.</param>
     /// <param name="resolveItem">Maps the item as typed to an item (a noun or an item key), or <see langword="null"/>.</param>
     /// <param name="log">Where the outcome lines go.</param>
-    public VoxelScript(VoxelSimulation sim, LookControl look, IReadOnlyList<VoxelStep> steps, Func<string, ItemId?> resolveItem, Action<string> log)
+    /// <param name="worldReady">Whether the world round the body is made (a streamed world after a jump); the step after a teleport waits for it. Null: always ready.</param>
+    public VoxelScript(VoxelSimulation sim, LookControl look, IReadOnlyList<VoxelStep> steps, Func<string, ItemId?> resolveItem, Action<string> log, Func<bool>? worldReady = null)
     {
         ArgumentNullException.ThrowIfNull(sim);
         ArgumentNullException.ThrowIfNull(look);
@@ -72,7 +74,11 @@ public sealed class VoxelScript
         _steps = steps;
         _resolveItem = resolveItem;
         _log = log;
+        _worldReady = worldReady;
     }
+
+    /// <summary>Whether the last <see cref="Fill"/> stopped after a teleport because the world round the new place was not made yet (B07b): the steps after it come on a later tick.</summary>
+    public bool EndedForWorld { get; private set; }
 
     /// <summary>Whether every step has finished.</summary>
     public bool IsDone => _index >= _steps.Count;
@@ -85,6 +91,7 @@ public sealed class VoxelScript
     {
         ArgumentNullException.ThrowIfNull(commands);
         commands.Clear();
+        EndedForWorld = false;
         while (!IsDone)
         {
             var step = _steps[_index];
@@ -107,6 +114,12 @@ public sealed class VoxelScript
             if (commands.Count > 0)
             {
                 return; // a step that sent a command takes its tick
+            }
+
+            if (step.Kind is VoxelStepKind.Teleport or VoxelStepKind.TeleportTo && _worldReady is not null && !_worldReady())
+            {
+                EndedForWorld = true; // B07b: the world round the new place is still being made: the next step waits for the tick the game holds until it is, so a shot is not taken of the old view
+                return;
             }
         }
     }
@@ -157,6 +170,8 @@ public sealed class VoxelScript
                 return WalkTick(step, commands);
             case VoxelStepKind.Teleport:
                 return TeleportNow(step);
+            case VoxelStepKind.TeleportTo:
+                return TeleportToNow(step);
             case VoxelStepKind.Interact:
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
@@ -267,6 +282,27 @@ public sealed class VoxelScript
 
         _sim.TeleportTo(feet);
         _log($"teleport {step.X},{step.Z}: standing at {feet.X},{feet.Y},{feet.Z}");
+        return true;
+    }
+
+    // Puts the player on the highest ground at or below a height, which is how a script reaches a cave under the ground (B12): the first column read from that height down.
+    private bool TeleportToNow(VoxelStep step)
+    {
+        var label = $"teleport-to {step.X},{step.Y},{step.Z}";
+        if (!_sim.Grid.InBounds(step.X, _sim.Grid.Limits.MinY, step.Z))
+        {
+            _log($"{label}: outside the world");
+            return true;
+        }
+
+        if (GroundFinder.StandingAt(_sim.Grid, step.X, step.Z, step.Y) is not { } feet)
+        {
+            _log($"{label}: no ground to stand on there");
+            return true;
+        }
+
+        _sim.TeleportTo(feet);
+        _log($"{label}: standing at {feet.X},{feet.Y},{feet.Z}");
         return true;
     }
 

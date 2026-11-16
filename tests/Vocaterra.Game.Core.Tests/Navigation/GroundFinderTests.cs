@@ -15,13 +15,35 @@ public sealed class GroundFinderTests
     }
 
     [Fact]
-    public void Given_WaterOrALeafCanopyOnTop_When_Asked_Then_TheGroundUnderItIsUsedOrNoneWhenNoneIsSolidBelow()
+    public void Given_WaterOnTop_When_Asked_Then_TheFeetAreOverTheSurfaceNotOnTheBed()
     {
         var grid = new VoxelGrid(16, 32, 16);
         grid.FillColumn(2, 2, 0, 9, BlockId.Stone);
         grid.FillColumn(2, 2, 10, 12, BlockId.Water);
-        Assert.Equal(new BlockPos(2, 10, 2), GroundFinder.StandingAt(grid, 2, 2)); // the lake bed
+        Assert.Equal(new BlockPos(2, 13, 2), GroundFinder.StandingAt(grid, 2, 2)); // a pool: over the water, not on the bed at y 10
+        grid.FillColumn(9, 9, 0, 3, BlockId.Stone);
+        grid.FillColumn(9, 9, 4, 28, BlockId.Water);
+        Assert.Equal(new BlockPos(9, 29, 9), GroundFinder.StandingAt(grid, 9, 9)); // a deep lake: still its surface
         Assert.Null(GroundFinder.StandingAt(grid, 8, 8)); // an empty column has no ground
+    }
+
+    [Fact]
+    public void Given_ALeafCanopyOverTheGround_When_Asked_Then_TheGroundUnderItIsUsed()
+    {
+        var grid = new VoxelGrid(16, 32, 16);
+        grid.FillColumn(6, 6, 0, 9, BlockId.Stone);
+        grid.FillColumn(6, 6, 12, 13, BlockId.Leaves);
+        Assert.Equal(new BlockPos(6, 10, 6), GroundFinder.StandingAt(grid, 6, 6));
+    }
+
+    [Fact]
+    public void Given_WaterUnderARoof_When_Asked_Then_NoPlaceIsFound()
+    {
+        var grid = new VoxelGrid(16, 32, 16);
+        grid.FillColumn(4, 4, 0, 9, BlockId.Stone);
+        grid.FillColumn(4, 4, 10, 11, BlockId.Water);
+        grid.FillColumn(4, 4, 12, 31, BlockId.Stone);
+        Assert.Null(GroundFinder.StandingAt(grid, 4, 4)); // a cave lake under solid rock
     }
 
     [Fact]

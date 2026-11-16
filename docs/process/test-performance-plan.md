@@ -47,7 +47,7 @@ most of the game's session tests from Game.Tests to Game.Core.Tests, which now h
 Game.Tests has 529. The full set "takes ages" (owner, 2026-10-26), so day-to-day work ran only `Vocaterra.Game.Tests` and the full set waited
 for milestones.
 
-Everything runs under `scripts/limited.sh`: at most two heavy commands at once (one until 2026-11-05), each at most 10 of 16 cores and 6 GB of RAM, all together at most 14 cores and 8 GB, and `-m:2`. Under those limits, wasted
+Everything runs under `scripts/limited.sh`: at most two heavy commands at once (one until 2026-11-05), each at most 10 of 16 cores and 6 GB of RAM (10 GB since 2026-11-16), all together at most 14 cores and 8 GB (16 GB since 2026-11-16), and `-m:2`. Under those limits, wasted
 CPU and memory turn straight into extra minutes. The goal was to cut that waste without weakening any test or oracle, and then give
 developers a fast tier to run on every step.
 

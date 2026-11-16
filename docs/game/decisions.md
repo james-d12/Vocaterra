@@ -870,6 +870,35 @@ the owner's answers of 2026-11-15 are in its section 5.
     things up ... perhaps some segments of gravel in there or something to break it up." Added to B11b: pockets and bands of gravel,
     sand, dirt and the stone kinds (granite, limestone, slate, mossy stone, new kinds if they read better) in cave walls and floors and on
     exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
+28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
+    8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
+    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay. Raised again about 11:55 UTC: "We have a decent amount
+    of memory on this machine so i would increase to 16gb": the default is 16G. The cap per command raised from 6 GB to 10 GB (about 12:40
+    UTC; the gate's single test command, two assemblies at once, peaked at the 6 GB cap and a fuzz test threw OutOfMemoryException in
+    B07b's first gate, passing alone at 1.7 GB): "Raise the cap to 10 GB" (over testing one project at a time, or rerunning on failure).
+29. **The far view built like the Voxy mod** (2026-11-16, about 11:45 UTC, with three screenshots of Voxy: individual tree crowns, lakes,
+    rivers and snowy ranges as blocks kilometres out): "For the LODS we want something like https://modrinth.com/mod/voxy. Of course ignore
+    shaders that is not part of this work." Replaces item 26's Distant Horizons columns: B07c builds a 3D voxel level of detail (cubic
+    sections, each level 2^L blocks a cell, mipped 8 to 1) from real chunks as they are generated or loaded (edits included) and, beyond a
+    ring of real chunks, from the generator's own model in the same format; kept on disk per world; greedy textured block faces with the
+    stored light; culled by a node tree on the CPU (MonoGame has no compute shaders). Voxy's code is All Rights Reserved: ideas only.
+    B07d: the detail settings, a world import or pre-generation command, performance tuning.
+30. **Custom shaders planned, not built** (2026-11-16, about 12:05 UTC, after hearing that the processor bakes all light into vertex
+    colours and the card only draws, because MonoGame's shader compiler needs Wine on Linux): "yes plan the custom shaders milestone.
+    Dont do any work but just document it." B17 in the biomes plan (section 3.9): light, fog and water in the game's own shaders; not to be
+    launched until he says.
+31. **B11b held: its cave entrances must look natural** (2026-11-16, about 13:45 UTC, on B11b's pictures of a straight 3-wide stair
+    with flat walls and a slab rim): "The second cave entrance is that a natural cave entrance? Because it looks man made." Chosen: "Hold
+    B11b and rework it" (over merging it and fixing the entrances in a B11c). Its gate was stopped and the merge undone; the rework makes
+    each passage wind, vary in width and height, with noise-carved walls, an uneven floor and a mouth that fits the ground (an overhang
+    in a hillside, a ragged hole on flat ground, no rim), still walkable to a cave 20 or more down. The rock variety stays.
+32. **B07c gets an Opus review before its gate** (2026-11-16, about 14:00 UTC): "once it's done, spawn an Opus 5.5 agent on high effort
+    to review the changes." When B07c reports, an Opus 5.5 agent at high effort reviews its branch (correctness, the Voxy design, the
+    store on disk, threading, performance, the tests) before the gate; its findings go back to B07c's agent or into a follow-up.
+33. **Caves stay at 28% of daylight; river drainage and the core fuzz fixes launched** (2026-11-16, about 15:30 UTC): "The caves can
+    remain at 28% daylight, that's fine. Kick off an agent for the river drainage issue and the core fuzz fixes as well." B12's cave
+    minimum 0.28 stands. B02c (rivers that only fall: a drainage network, closing B02b's river humps) and the core's M97 (the fuzz seeds
+    `2LxdNIrNHnQ6` and `9kz6LGNo8tf2`, and the load-sensitive OpenFallback coverage oracle) are launched.
 
 ## Already decided
 
