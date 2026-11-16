@@ -180,7 +180,7 @@ public static class ArmMeshes
     public static readonly (byte R, byte G, byte B) SkinColour = (244, 200, 154);
 
     private static readonly Dictionary<HeldChoice, (MeshBuffer Body, MeshBuffer Glow)> Items = [];
-    private static MeshBuffer? _arm;
+    private static readonly Dictionary<(byte R, byte G, byte B), MeshBuffer> Arms = [];
 
     /// <summary>The length of the sleeve in blocks.</summary>
     public const float SleeveLength = 0.5f;
@@ -192,20 +192,22 @@ public static class ArmMeshes
     public const float ItemPixel = 0.019f;
 
     /// <summary>The arm: the sleeve with a cuff, then the hand.</summary>
-    public static MeshBuffer Arm()
+    /// <param name="sleeve">The sleeve's colour (the worn gear's, I09), or <see langword="null"/> for the player's plain <see cref="Sleeve"/>. One mesh is kept for each colour.</param>
+    public static MeshBuffer Arm((byte R, byte G, byte B)? sleeve = null)
     {
+        var colour = sleeve ?? Sleeve;
         lock (Items)
         {
-            if (_arm is null)
+            if (!Arms.TryGetValue(colour, out var arm))
             {
-                var buffer = new MeshBuffer();
-                FigureMesher.AddBlock(buffer, new Box(-0.09f, -0.09f, -SleeveLength, 0.09f, 0.09f, 0.45f), BlockCell.Cloth, Sleeve);
-                FigureMesher.AddBlock(buffer, new Box(-0.097f, -0.097f, -SleeveLength - 0.05f, 0.097f, 0.097f, -SleeveLength + 0.01f), BlockCell.Cloth, (232, 232, 224)); // the cuff
-                FigureMesher.AddBlock(buffer, new Box(-0.075f, -0.075f, -SleeveLength - HandLength - 0.05f, 0.075f, 0.075f, -SleeveLength - 0.05f), BlockCell.Skin, SkinColour);
-                _arm = buffer;
+                arm = new MeshBuffer();
+                FigureMesher.AddBlock(arm, new Box(-0.09f, -0.09f, -SleeveLength, 0.09f, 0.09f, 0.45f), BlockCell.Cloth, colour);
+                FigureMesher.AddBlock(arm, new Box(-0.097f, -0.097f, -SleeveLength - 0.05f, 0.097f, 0.097f, -SleeveLength + 0.01f), BlockCell.Cloth, (232, 232, 224)); // the cuff
+                FigureMesher.AddBlock(arm, new Box(-0.075f, -0.075f, -SleeveLength - HandLength - 0.05f, 0.075f, 0.075f, -SleeveLength - 0.05f), BlockCell.Skin, SkinColour);
+                Arms[colour] = arm;
             }
 
-            return _arm;
+            return arm;
         }
     }
 

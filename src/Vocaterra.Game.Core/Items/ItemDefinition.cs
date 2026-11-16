@@ -62,7 +62,7 @@ public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 /// <param name="Tool">The tool's spec, or <see langword="null"/> when the item is not a tool.</param>
 /// <param name="Wear">The kind of slot the item is worn in (<c>head</c>, <c>body</c>, <c>legs</c>, <c>feet</c>, <c>accessory</c>, <c>offhand</c>, <c>back</c>: the <c>wear</c> of a slot of <c>game/equipment.json</c>), or <see langword="null"/> when it cannot be worn.</param>
 /// <param name="Stats">What the item adds to the player's stat sheet while it is worn, by open stat key (<c>warmth</c> in tenths of a degree), or <see langword="null"/> for none. Sorted by key.</param>
-/// <param name="Look">The colours the item gives the body parts it covers (drawn from I09 on), or <see langword="null"/> when it changes nothing.</param>
+/// <param name="Look">The colours the item gives the body parts it covers (drawn on the player by I09), or <see langword="null"/> when it changes nothing.</param>
 /// <param name="Capacity">The bag slots a worn bag adds to the base of the inventory (I03b; only an item tagged <c>bag</c> and worn on the <c>back</c> has one), or <see langword="null"/> for an item that adds none.</param>
 public sealed record ItemDefinition(
     ItemId Id,

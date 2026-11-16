@@ -651,7 +651,13 @@ public sealed class VoxelRenderer : IDisposable
             var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, _look.LanternStrength);
             var pose = player.Moving ? FigureAnimation.Walking(player.WalkPhase) : FigureAnimation.Idle(tick, 3);
             pose = pose with { HeadPitch = Math.Clamp(-player.PitchRadians, -0.6f, 0.6f) };
-            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
+            var light = FigureLight(warm);
+            FigureMesher.Append(_figureBuffer, player.Gear?.Parts ?? NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, light);
+            if (player.Gear?.OffHand is { } offHand)
+            {
+                FigureMesher.AppendAttached(_figureBuffer, offHand, FigureGroup.ArmLeft, PlayerGear.OffHandOrigin, pose, player.X, player.Y, player.Z, player.YawRadians, light);
+            }
+
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
         }
@@ -801,8 +807,25 @@ public sealed class VoxelRenderer : IDisposable
         _solid.DiffuseColor = new Vector3(frame.Light.R, frame.Light.G, frame.Light.B);
         _device.Indices = _indices;
         _solid.CurrentTechnique.Passes[0].Apply();
-        DrawDynamic(ArmMeshes.Arm());
-        var (body, glow) = ArmMeshes.Item(frame.Held);
+        DrawHand(ArmMeshes.Arm(frame.Sleeve), frame.Held, frame.Light);
+        if (frame.OffHand is { } offHand)
+        {
+            // The left arm (I09): the mirror of the right at the bottom left, resting (no swing of the gather), holding the off-hand item.
+            _solid.World = Matrix.CreateRotationX(ArmPitch) * Matrix.CreateRotationY(-ArmYaw) * Matrix.CreateTranslation(-ArmX - m.SwayX, ArmY + m.SwayY, ArmZ);
+            DrawHand(ArmMeshes.Arm(frame.Sleeve), offHand, frame.Light);
+        }
+
+        _solid.DiffuseColor = Vector3.One;
+        _solid.FogEnabled = true;
+    }
+
+    // One arm with what its hand holds: the body of the item lit like the arm, the flame of a torch at full brightness.
+    private void DrawHand(MeshBuffer arm, HeldChoice held, (float R, float G, float B) light)
+    {
+        _solid.DiffuseColor = new Vector3(light.R, light.G, light.B);
+        _solid.CurrentTechnique.Passes[0].Apply();
+        DrawDynamic(arm);
+        var (body, glow) = ArmMeshes.Item(held);
         DrawDynamic(body);
         if (glow.VertexCount > 0)
         {
@@ -810,9 +833,6 @@ public sealed class VoxelRenderer : IDisposable
             _solid.CurrentTechnique.Passes[0].Apply();
             DrawDynamic(glow);
         }
-
-        _solid.DiffuseColor = Vector3.One;
-        _solid.FogEnabled = true;
     }
 
     /// <inheritdoc />
@@ -1029,10 +1049,12 @@ public sealed class VoxelRenderer : IDisposable
 /// <param name="PitchRadians">The look up (positive) or down.</param>
 /// <param name="WalkPhase">The stride, which grows with the distance walked.</param>
 /// <param name="Moving">Whether the player is walking.</param>
-public readonly record struct PlayerAvatar(float X, float Y, float Z, float YawRadians, float PitchRadians, float WalkPhase, bool Moving);
+public readonly record struct PlayerAvatar(float X, float Y, float Z, float YawRadians, float PitchRadians, float WalkPhase, bool Moving, PlayerGear? Gear = null);
 
 /// <summary>What the first-person arm is doing and holding this frame (S15).</summary>
 /// <param name="Held">The model of the selected item.</param>
 /// <param name="Motion">The sway and the swing.</param>
 /// <param name="Light">The scene's light on the arm (<see cref="ArmLight"/>).</param>
-public readonly record struct ArmFrame(HeldChoice Held, ArmMotion Motion, (float R, float G, float B) Light);
+/// <param name="Sleeve">The sleeve colour the worn gear gives (I09), or <see langword="null"/> for the player's plain sleeve.</param>
+/// <param name="OffHand">What the left hand holds (I09), or <see langword="null"/> for no second arm.</param>
+public readonly record struct ArmFrame(HeldChoice Held, ArmMotion Motion, (float R, float G, float B) Light, (byte R, byte G, byte B)? Sleeve = null, HeldChoice? OffHand = null);
