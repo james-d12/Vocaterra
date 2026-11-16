@@ -126,6 +126,33 @@ public sealed class ChunkResidencyTests
     }
 
     [Fact]
+    public void Given_ThePlayerGoesUnderground_When_TheWorldSettlesThenSettlesAtTheSurface_Then_TheNearZoneWidensAndNarrows()
+    {
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(0);
+        var residency = Make(scene, pool); // near 2, underground near 3 columns
+        var (x, y, z) = Eye(scene);
+        var cx = (int)MathF.Floor(x) >> 4;
+        var cz = (int)MathF.Floor(z) >> 4;
+        var floorLayer = scene.Grid.Limits.MinChunkY;
+        var wide = new VoxelChunkCoord(cx + 4, floorLayer, cz); // four columns away, at the bottom of the world: held by the underground near zone (3 columns, and the column beside it each way), not by the surface one (2 and one)
+
+        Assert.True(residency.Settle(x, y, z));
+        Assert.False(residency.Plan!.Underground);
+        Assert.False(scene.Grid.IsResident(wide));
+        var narrow = scene.Grid.ResidentChunkCount;
+
+        Assert.True(residency.Settle(x, 20f, z));
+        Assert.True(residency.Plan!.Underground);
+        Assert.True(scene.Grid.IsResident(wide), "underground the near zone reaches four columns");
+        Assert.True(scene.Grid.ResidentChunkCount > narrow);
+
+        Assert.True(residency.Settle(x, y, z));
+        Assert.False(residency.Plan!.Underground);
+        Assert.False(residency.Plan.Holds(wide), "back at the surface the zone narrows again");
+    }
+
+    [Fact]
     public void Given_ACapOnResidentChunks_When_TheWorldSettles_Then_NothingNewIsAskedForPastItAndItStillSettles()
     {
         var scene = StreamedWorlds.Scene();

@@ -111,6 +111,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private IReadOnlyList<NpcFigure> _figures = [];
     private readonly MeshBuffer _figureBuffer = new();
     private SkyLook _look;
+    private readonly SkyExposure? _skyExposure;
+    private float _eyeSky = 1f;
     private PrecipitationState _precipitation = PrecipitationState.None;
     private readonly PrecipitationRenderer _rain;
     private LightBand _band;
@@ -135,7 +137,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
     /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null)
+    /// <param name="naturalSurface">The natural surface y of a block column (<c>IPlaceInfo.NaturalSurfaceAt</c>), from which the ground darkens with depth (B12, <see cref="SkyDepthLight"/>); <see langword="null"/> for no darkening.</param>
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -177,6 +180,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _sky = new SkyRenderer(device, look);
         _rain = new PrecipitationRenderer(device, grid, log);
         _lights = new ChunkLightIndex(grid);
+        _skyExposure = naturalSurface is null ? null : new SkyExposure(grid, naturalSurface);
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band); // the lights near a chunk are put in when it is meshed (BuildChunk)
         grid.AddResidencyListener(_tracker);
         grid.AddResidencyListener(this);
@@ -213,6 +217,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     public LightBand Band => _band;
 
     private float _underwaterAmount;
+
+    /// <summary>The share of the sky's light at the eye, 0 to 1 (B12, <see cref="SkyDepthLight"/>): 1 in the open, the cave minimum deep under the ground. 1 when the renderer has no height model.</summary>
+    public float EyeSky => _eyeSky;
+
+    /// <summary>How strongly the lights glow now (B12): the look's strength in the open, and at the most underground, where no daylight outshines a lantern, a torch or lava.</summary>
+    public float GlowStrength => _look.LanternStrength + ((1f - _look.LanternStrength) * (1f - _eyeSky));
 
     /// <summary>
     /// How much of the water's own colour the light of the moment leaves, 0 to 1 (E02): the luminance of the look's sun light, 1 at noon, about 0.7 at dusk and 0.36 at night. The water's
@@ -259,6 +269,24 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         ApplyFogState();
     }
 
+    // The share of the sky's light at the eye (B12): the fog, the haze and the clear colour darken with it, so the bright horizon does not show through a cave's far end as a sky, and the lights glow at full.
+    private void UpdateEyeSky(Vector3 eye)
+    {
+        if (_skyExposure is null)
+        {
+            return;
+        }
+
+        var share = _skyExposure.FactorAt(eye.X, eye.Y, eye.Z);
+        if (MathF.Abs(share - _eyeSky) < 0.002f)
+        {
+            return;
+        }
+
+        _eyeSky = share;
+        ApplyFogState();
+    }
+
     // The sun's light of the look and each band's tint: the colour a chunk of the band is drawn with so that its baked light shows as the look's.
     private void SetLightTints(in SkyLook look)
     {
@@ -277,8 +305,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         var fog = UnderwaterFog.Blend(DryFog, _underwaterAmount);
         var t = Math.Clamp(_underwaterAmount, 0f, 1f);
         var dim = (WaterLight - 1f) * t; // the water's share of the blend, dimmed by the light: dry * (1 - t) + water * t becomes dry * (1 - t) + water * light * t
-        var colour = new Vector3(fog.Red + (dim * UnderwaterFog.WaterRed), fog.Green + (dim * UnderwaterFog.WaterGreen), fog.Blue + (dim * UnderwaterFog.WaterBlue));
-        ClearColour = _underwaterAmount <= 0f ? new Color(_look.FogColour.R, _look.FogColour.G, _look.FogColour.B) : new Color(colour);
+        var colour = new Vector3(fog.Red + (dim * UnderwaterFog.WaterRed), fog.Green + (dim * UnderwaterFog.WaterGreen), fog.Blue + (dim * UnderwaterFog.WaterBlue)) * _eyeSky;
+        ClearColour = _underwaterAmount <= 0f ? new Color(new Vector3(_look.FogColour.R, _look.FogColour.G, _look.FogColour.B) / 255f * _eyeSky) : new Color(colour);
         ApplyFog(_effect, colour, fog);
         ApplyFog(_solid, colour, fog);
         _sky.SetHaze(ClearColour, _underwaterAmount);
@@ -492,6 +520,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     /// <param name="budgetMilliseconds">The most time to spend, or <see langword="null"/> to build everything that is due (a scripted run before its screenshot).</param>
     public int Remesh(Vector3 eye, BoundingFrustum? frustum = null, double? budgetMilliseconds = null)
     {
+        UpdateEyeSky(eye);
         var wanted = _view.Update(eye.X, eye.Y, eye.Z);
         var started = MonotonicClock.Milliseconds();
         if (!ReferenceEquals(wanted, _wanted) || _checkedEdits != _grid.EditCount || _checkedResidency != _grid.ResidencyVersion)
@@ -687,7 +716,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             var (fx, fy, fz) = figure.FeetPosition;
             _figureBuffer.Clear();
-            var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, _look.LanternStrength);
+            var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, GlowStrength);
             FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(figure.Look), FigureAnimation.For(figure, tick), fx, fy, fz, figure.FacingRadians, FigureLight(warm));
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
@@ -696,7 +725,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         if (avatar is { } player)
         {
             _figureBuffer.Clear();
-            var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, _look.LanternStrength);
+            var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, GlowStrength);
             var pose = player.Moving ? FigureAnimation.Walking(player.WalkPhase) : FigureAnimation.Idle(tick, 3);
             pose = pose with { HeadPitch = Math.Clamp(-player.PitchRadians, -0.6f, 0.6f) };
             FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
@@ -798,7 +827,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         var fogColour = _solid.FogColor;
         _device.BlendState = GlowBlend;
         _device.DepthStencilState = DepthStencilState.DepthRead;
-        var (r, g, b) = LanternGlow.PassColour(_look.LanternStrength);
+        var (r, g, b) = LanternGlow.PassColour(GlowStrength);
         _solid.DiffuseColor = new Vector3(r, g, b);
         _solid.FogColor = Vector3.Zero;
         _solid.CurrentTechnique.Passes[0].Apply();
@@ -937,7 +966,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             return;
         }
 
-        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions with { Lights = _lights.Near(coord) });
+        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions with { Lights = _lights.Near(coord), Sky = _skyExposure?.Tile(coord.X, coord.Z) });
         (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
         (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);

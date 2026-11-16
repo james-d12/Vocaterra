@@ -69,10 +69,11 @@ public sealed class UndergroundBlockTests
     }
 
     [Fact]
-    public void OnlyTheLanternThePostTorchAndLavaGlow()
+    public void OnlyTheTorchTheLanternThePostTorchAndLavaGlow()
     {
-        var lights = BlockDefinition.All.Where(static d => d.Glows).Select(static d => d.Id).ToArray();
-        Assert.Equal([BlockId.Lantern, BlockId.PostTorch, BlockId.Lava], lights);
+        // B12: the placed torch (BlockId.Torch) became a light kind, so a torch placed in a cave lights it.
+        var lights = BlockDefinition.All.Where(static d => d.Glows).Select(static d => d.Id).ToHashSet();
+        Assert.Equal(new HashSet<BlockId> { BlockId.Torch, BlockId.Lantern, BlockId.PostTorch, BlockId.Lava }, lights);
     }
 
     [Fact]
