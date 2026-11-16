@@ -23,7 +23,8 @@ public sealed class FarTerrainRenderer : IDisposable
     /// <summary>The far pass's near plane in blocks: the land closer than this is the voxel chunks' (or a hole in them, which a tile this near would show for a few frames).</summary>
     public const float NearPlane = 12f;
 
-    private const int MaxUploadsPerFrame = 8;
+    // The most bytes of meshes one frame hands to the card: the coarse levels first, so a settled view reaches its horizon in a few frames, and a walk's few new tiles never make a hitch.
+    private const long MaxUploadBytesPerFrame = 16L * 1024 * 1024;
 
     private static readonly RasterizerState Fallback = new() { CullMode = CullMode.CullClockwiseFace, DepthBias = 2f, SlopeScaleDepthBias = 2f };
 
@@ -35,6 +36,9 @@ public sealed class FarTerrainRenderer : IDisposable
     private readonly Texture2D _atlas;
     private readonly SamplerState _atlasSampler;
     private readonly List<FarTile> _visible = [];
+    private readonly List<FarTile> _uploads = [];
+    private readonly BoundingFrustum _frustum = new(Matrix.Identity);
+    private readonly IEffectMatrices[] _matrices;
     private int _drawn;
 
     /// <summary>Creates the renderer of a far view.</summary>
@@ -72,6 +76,7 @@ public sealed class FarTerrainRenderer : IDisposable
             AlphaFunction = CompareFunction.Greater,
             ReferenceAlpha = 110,
         };
+        _matrices = [_effect, _solid];
     }
 
     /// <summary>The tiles the last <see cref="Draw"/> drew.</summary>
@@ -100,8 +105,8 @@ public sealed class FarTerrainRenderer : IDisposable
         }
 
         var projection = ProjectionFor(camera, settings.Range);
-        var frustum = new BoundingFrustum(camera.View * projection);
-        foreach (var effect in new IEffectMatrices[] { _effect, _solid })
+        _frustum.Matrix = camera.View * projection;
+        foreach (var effect in _matrices)
         {
             effect.World = Matrix.Identity;
             effect.View = camera.View;
@@ -118,23 +123,17 @@ public sealed class FarTerrainRenderer : IDisposable
         _effect.FogEnd = state.FogEnd;
         _device.DepthStencilState = DepthStencilState.Default;
         _device.BlendState = BlendState.Opaque;
-        var uploads = 0;
+        UploadPending(settings.TopLevel);
         var standIns = _view.FallbackCount;
         for (var i = 0; i < _view.Draw.Count; i++)
         {
             var tile = _view.Draw[i];
-            if (tile.Pending is not null && uploads < MaxUploadsPerFrame)
-            {
-                Upload(tile); // a new tile, or a tile made again that replaces its old buffers
-                uploads++;
-            }
-
             if (tile.Buffer is null)
             {
                 continue;
             }
 
-            if (!frustum.Intersects(tile.Box))
+            if (!_frustum.Intersects(tile.Box))
             {
                 continue;
             }
@@ -181,6 +180,16 @@ public sealed class FarTerrainRenderer : IDisposable
         _device.BlendState = BlendState.Opaque;
         _device.DepthStencilState = DepthStencilState.Default;
         _device.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1f, 0);
+    }
+
+    // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
+    private void UploadPending(int topLevel)
+    {
+        FarUploads.Choose(_view.Draw, topLevel, MaxUploadBytesPerFrame, _uploads);
+        foreach (var tile in _uploads)
+        {
+            Upload(tile);
+        }
     }
 
     private void Bind(FarTile tile, bool textured, bool solid)

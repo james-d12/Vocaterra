@@ -34,6 +34,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
 
         var leaves = FarTileSelector.Select(Small, 192, 192, Voxel);
         Assert.Equal(0, view.Missing);
+        Assert.Equal(0, view.Failed);
         Assert.Equal(leaves.Count, view.Draw.Count);
         Assert.Equal(leaves, view.Draw.Select(static t => t.Key).ToList());
         Assert.All(view.Draw, t => Assert.True(t.IsBuilt));
@@ -135,6 +136,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.True(view.Stale > 0 || view.Stats.Built > built);
         Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
         Assert.Equal(0, view.Stale);
+        Assert.Equal(0, view.Failed);
         Assert.Equal(0, nearest.Triangles);
         Assert.InRange(view.Stats.Built - built, 1, 6); // that tile, and the coarser tiles that came to hold the real section above it
         Assert.Empty(_released);
@@ -152,7 +154,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.Equal(cached, view.Stats.Cached); // the same shape: the tiles are kept
         Assert.Empty(_released);
 
-        view.Reconfigure(Small with { TileCells = 16 }, Release);
+        view.Reconfigure(Small with { Levels = Small.Levels - 1 }, Release);
         Assert.Equal(0, view.Stats.Cached);
         Assert.Equal(cached, _released.Count);
     }
@@ -238,5 +240,44 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.InRange(end[^1], 200f, 1500f);
         Assert.True(VoxelRenderer.FarFogStartFraction < VoxelRenderer.FogStartFraction);
         Assert.True(VoxelRenderer.FarFogEnd(400, 16384) * VoxelRenderer.FarFogStartFraction > 400, "the voxel land stays clear");
+    }
+
+    private sealed class BrokenDisk : Vocaterra.Game.Core.World.Lod.ILodPersistence
+    {
+        public byte[]? Load(Vocaterra.Game.Core.World.Lod.LodSectionKey key) => throw new InvalidOperationException("a disk that fails");
+
+        public void Save(Vocaterra.Game.Core.World.Lod.LodSectionKey key, byte[] blob)
+        {
+        }
+    }
+
+    [Fact]
+    public void Given_ATileWhoseBuildThrows_When_TheViewSettles_Then_TheKeyIsReleasedTheOthersAreDrawnAndTheSettleDoesNotWait()
+    {
+        using var pool = new JobPool(0);
+        var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(new BrokenDisk()));
+
+        Assert.True(view.Settle(192, 192, Voxel, Release, 60_000));
+
+        Assert.True(view.Failed > 0);
+        Assert.Equal(0, view.Missing);
+        Assert.Equal(0, view.Stats.Building);
+    }
+
+    [Fact]
+    public void Given_ASectionChangedWhileItsTileIsBuilding_When_TheViewSettles_Then_TheTileIsMadeAgain()
+    {
+        using var pool = new JobPool(0);
+        var store = new Vocaterra.Game.Core.World.Lod.LodStore();
+        var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, store);
+        view.Update(192, 192, Voxel, Release, 0); // everything is asked for and (the budget being nothing) at most one is built
+        var key = FarTileSelector.Select(Small, 192, 192, Voxel)[^1];
+        Assert.True(view.Stats.Building > 0);
+
+        store.Changed.Enqueue(new Vocaterra.Game.Core.World.Lod.LodSectionKey(key.Level, key.Tx, 0, key.Tz));
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+
+        Assert.Equal(0, view.Missing);
+        Assert.True(view.Stats.Built > FarTileSelector.Select(Small, 192, 192, Voxel).Count - 1);
     }
 }

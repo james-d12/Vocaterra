@@ -53,8 +53,28 @@ public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Ve
 /// <summary>The faces of a tile as they are made: quads (four vertices of one colour) with the winding the back-face culling keeps, so a face shows from the side its normal points to and never from behind.</summary>
 internal sealed class FarGeometry
 {
+    [ThreadStatic]
+    private static FarGeometry? _rented;
+
     private readonly List<VertexPositionColorTexture>[] _vertices = [new(4096), new(256), new(256)];
     private readonly List<int>[] _indices = [new(8192), new(512), new(512)];
+
+    /// <summary>This thread's geometry, emptied: a worker builds tile after tile and its lists keep their room (no new large arrays per tile). Only one use at a time per thread.</summary>
+    public static FarGeometry Rent()
+    {
+        var geometry = _rented ??= new FarGeometry();
+        foreach (var list in geometry._vertices)
+        {
+            list.Clear();
+        }
+
+        foreach (var list in geometry._indices)
+        {
+            list.Clear();
+        }
+
+        return geometry;
+    }
 
     /// <summary>Adds a quad (four corners in order round it, with their texture coordinates) facing <paramref name="normal"/>.</summary>
     public void Quad(FarBucket bucket, (Vector3 P, Vector2 T) a, (Vector3 P, Vector2 T) b, (Vector3 P, Vector2 T) c, (Vector3 P, Vector2 T) d, Color colour, Vector3 normal)
@@ -175,7 +195,7 @@ public static class FarTileMesher
         var textured = key.Level < settings.TexturedLevels;
         var cell = settings.CellOf(key.Level);
         var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
-        var geometry = new FarGeometry();
+        var geometry = FarGeometry.Rent();
         for (var axis = 0; axis < 3; axis++)
         {
             Sweep(geometry, context, axis, true);
@@ -197,14 +217,25 @@ public static class FarTileMesher
 
     private sealed class Volume
     {
+        // A worker's arrays, kept between tiles (a volume is megabytes: made new for every tile they would fill the large-object heap): a few bytes of the last tile's rows past the volume's own length are never read.
+        [ThreadStatic]
+        private static Buffers? _buffers;
+
         private readonly int[] _surface = new int[LodSection.Size * LodSection.Size];
+        private readonly int[] _queue;
+        private readonly int _length;
 
         public Volume(LodStack stack, int cell, int skirtCells)
         {
             Height = stack.Sections.Length * LodSection.Size;
             YBase = stack.SyMin * LodSection.Size;
-            Blocks = new BlockId[Height * LodSection.Size * LodSection.Size];
-            Light = new byte[Blocks.Length];
+            _length = Height * LodSection.Size * LodSection.Size;
+            var buffers = _buffers ??= new Buffers();
+            buffers.Ensure(_length);
+            Blocks = buffers.Blocks;
+            Light = buffers.Light;
+            Open = buffers.Open;
+            _queue = buffers.Queue;
             Top = int.MinValue;
             Bottom = int.MaxValue;
             Array.Fill(_surface, int.MaxValue);
@@ -214,9 +245,9 @@ public static class FarTileMesher
                 var offset = s * LodSection.Volume;
                 if (section.IsUniform)
                 {
+                    Array.Fill(Blocks, section.FillBlock, offset, LodSection.Volume);
                     if (section.FillBlock != BlockId.Air)
                     {
-                        Array.Fill(Blocks, section.FillBlock, offset, LodSection.Volume);
                         Top = Math.Max(Top, ((s + 1) * LodSection.Size) - 1);
                         Bottom = Math.Min(Bottom, s * LodSection.Size);
                     }
@@ -246,8 +277,12 @@ public static class FarTileMesher
         // over it, so the faces of caves and shafts deep under the ground are never made; along the tile's edge the air within the skirt counts too.
         private void FindOpen(int depth, int skirt)
         {
-            Open = new bool[Blocks.Length];
-            var queue = new int[Blocks.Length];
+            // Rows more than one above the highest solid voxel or one under the lowest are open air and never searched: only the rows between are (the rows next to the solid ones start the search).
+            var empty = Top < Bottom;
+            var lo = empty ? 0 : Math.Max(0, Bottom - 1);
+            var hi = empty ? -1 : Math.Min(Height - 1, Top + 1);
+            Array.Clear(Open, 0, _length);
+            var queue = _queue;
             var count = 0;
             var floor = new int[LodSection.Size * LodSection.Size];
             for (var column = 0; column < floor.Length; column++)
@@ -255,7 +290,7 @@ public static class FarTileMesher
                 floor[column] = SurfaceOf(column & 31, column >> 5);
             }
 
-            for (var i = 0; i < Blocks.Length; i++)
+            for (var i = lo << 10; i < (hi + 1) << 10; i++)
             {
                 if (Blocks[i] != BlockId.Air)
                 {
@@ -264,7 +299,7 @@ public static class FarTileMesher
 
                 var y = i >> 10;
                 var edge = (i & 31) is 0 or 31 || ((i >> 5) & 31) is 0 or 31;
-                if ((Light[i] >> 4) > 0 || (edge && y >= floor[i & 1023] - skirt) || y >= Top + 1 || y < Bottom - 1)
+                if ((Light[i] >> 4) > 0 || (edge && y >= floor[i & 1023] - skirt) || y == Top + 1 || y == Bottom - 1)
                 {
                     Open[i] = true;
                     queue[count++] = i;
@@ -278,7 +313,7 @@ public static class FarTileMesher
                 for (var k = 0; k < 6; k++)
                 {
                     var (nx, ny, nz) = k switch { 0 => (x + 1, y, z), 1 => (x - 1, y, z), 2 => (x, y + 1, z), 3 => (x, y - 1, z), 4 => (x, y, z + 1), _ => (x, y, z - 1) };
-                    if (!In(nx, ny, nz))
+                    if ((uint)nx >= LodSection.Size || (uint)nz >= LodSection.Size || ny < lo || ny > hi)
                     {
                         continue;
                     }
@@ -308,7 +343,10 @@ public static class FarTileMesher
             return int.MinValue / 2;
         }
 
-        public bool[] Open { get; private set; } = [];
+        public bool[] Open { get; }
+
+        // Whether the air at a voxel is open to the outside: the rows beyond the search's range are.
+        public bool IsOpen(int x, int y, int z) => Top < Bottom || y < Bottom - 1 || y > Top + 1 || Open[At(x, y, z)];
 
         public int Height { get; }
 
@@ -382,6 +420,31 @@ public static class FarTileMesher
         var alpha = Math.Clamp(0.55f + (0.45f * Math.Min(1f, (depth - 1) / (float)(DeepWater - 1))), 0f, 1f);
         var colour = Pack(water, light, shade * NoiseGain);
         return new Color(colour.R, colour.G, colour.B, (byte)(alpha * 255f));
+    }
+
+    private sealed class Buffers
+    {
+        public BlockId[] Blocks { get; private set; } = [];
+
+        public byte[] Light { get; private set; } = [];
+
+        public bool[] Open { get; private set; } = [];
+
+        public int[] Queue { get; private set; } = [];
+
+        public void Ensure(int length)
+        {
+            if (Blocks.Length >= length)
+            {
+                return;
+            }
+
+            var size = Math.Max(length, Blocks.Length * 5 / 4);
+            Blocks = new BlockId[size];
+            Light = new byte[size];
+            Open = new bool[size];
+            Queue = new int[size];
+        }
     }
 
     private readonly record struct Lights((float R, float G, float B) Up, (float R, float G, float B) Down, (float R, float G, float B) East, (float R, float G, float B) West, (float R, float G, float B) South, (float R, float G, float B) North)
@@ -486,7 +549,7 @@ public static class FarTileMesher
         }
 
         var other = v.BlockAt(to.X, to.Y, to.Z);
-        if (other == BlockId.Air && inside && !v.Open[v.At(to.X, to.Y, to.Z)])
+        if (other == BlockId.Air && inside && !v.IsOpen(to.X, to.Y, to.Z))
         {
             return null; // air sealed under the ground: nothing outside sees it
         }

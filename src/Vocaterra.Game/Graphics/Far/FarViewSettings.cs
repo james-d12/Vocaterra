@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.World.Lod;
+
 namespace Vocaterra.Game.Graphics.Far;
 
 /// <summary>
@@ -7,18 +9,20 @@ namespace Vocaterra.Game.Graphics.Far;
 /// voxel view distances) and the whole is watertight (no gap or overlap between levels, skirts hiding the steps). Which tiles there are is a function of where the player stands and nothing else.
 /// </summary>
 /// <param name="Range">How far the land is drawn, in blocks from the eye; 0 turns the far view off.</param>
-/// <param name="TileCells">The cells along a tile's side (the same at every level).</param>
 /// <param name="Levels">How many levels there are (at least 1); the top level's tiles are the quadtree's roots. Eight: cells of 1, 2, 4, 8, 16, 32, 64 and 128 blocks.</param>
 /// <param name="BandScale">What the bands are multiplied by: below 1 the coarser levels start nearer (less detail, cheaper), above 1 further out.</param>
-/// <param name="InnerFraction">The fraction of the voxel view distance inside which no tile is drawn (the voxel chunks cover it); a little below 1, so a chunk at the edge of the voxel zone that is not meshed yet shows the far land and not the sky.</param>
+/// <param name="InnerFraction">The fraction of the voxel view distance inside which no tile is drawn (the voxel chunks cover it); a little below 1 (0.96, a chunk and a half at High), so a chunk at the very edge of the voxel zone that is not meshed yet shows the far land and not the sky, and no far geometry shows through the zone's own faces.</param>
 /// <param name="MaxTiles">The most tiles kept (built and cached): past it the farthest unused ones are dropped.</param>
 /// <param name="TreeLevels">Where the store is filled from the generator's model (no real chunk yet): the levels below this get every tree as its blocks (the tree pass's own placement), the levels from it up a forest as a layer of leaves on a trunk. 0 makes no single tree.</param>
 /// <param name="TexturedLevels">The tiles of the levels below this draw every face with its block's own atlas texture (mipmapped); the tiles above draw flat averaged colours with a noise texture, merged into large quads.</param>
 /// <param name="RealRadius">How far from the eye, in blocks, workers generate the real chunks of the surface and ingest them into the store (so trees, houses and regions near the voxel zone are exact, not the model's); 0 for none.</param>
-public sealed record FarViewSettings(int Range, int TileCells = 32, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.88, int MaxTiles = 4000, int TreeLevels = 4, int TexturedLevels = 2, int RealRadius = 1000)
+public sealed record FarViewSettings(int Range, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.96, int MaxTiles = 4000, int TreeLevels = 4, int TexturedLevels = 2, int RealRadius = 1000)
 {
     /// <summary>Where each level starts, in voxel view distances: level 0 is the ring just past the voxel zone (to 1.1), then each level is used out to the start of the next.</summary>
     public static IReadOnlyList<double> BandStarts { get; } = [0, 1.1, 1.5, 2.5, 4.5, 8.5, 16.5, 32.5];
+
+    /// <summary>The cells along a tile's side: a section's voxels, so a tile is the stack of sections of its footprint (the same at every level).</summary>
+    public int TileCells => LodSection.Size;
 
     /// <summary>The far view off.</summary>
     public static FarViewSettings Off { get; } = new(0);

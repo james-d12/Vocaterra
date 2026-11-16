@@ -90,6 +90,12 @@ public sealed class FarView
     private readonly HashSet<FarTileKey> _rebuilding = [];
     private readonly Dictionary<FarTileKey, FarTile> _tiles = [];
     private readonly HashSet<FarTileKey> _building = [];
+    private readonly HashSet<FarTileKey> _bad = [];
+    private readonly HashSet<FarTileKey> _standIns = [];
+    private readonly HashSet<FarTileKey> _used = [];
+    private readonly List<FarTileKey> _idle = [];
+    private int _trims;
+    private readonly ConcurrentQueue<FarTileKey> _failed = new();
     private readonly ConcurrentQueue<FarTileMesh> _done = new();
     private readonly List<FarTile> _draw = [];
     private readonly List<FarTile> _fallbacks = [];
@@ -139,7 +145,40 @@ public sealed class FarView
     public int FallbackCount => _fallbacks.Count;
 
     /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet.</summary>
-    public int Missing => _leaves.Count(key => !(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt));
+    public int Missing
+    {
+        get
+        {
+            var missing = 0;
+            foreach (var key in _leaves)
+            {
+                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key))
+                {
+                    missing++;
+                }
+            }
+
+            return missing;
+        }
+    }
+
+    /// <summary>The tiles of the last draw list whose mesh the renderer has not yet uploaded (a tile of it is drawn from its fallback, or not at all, until it has): a settled picture waits for this to be none.</summary>
+    public int Unuploaded
+    {
+        get
+        {
+            var count = 0;
+            foreach (var tile in _draw)
+            {
+                count += tile.Pending is not null ? 1 : 0;
+            }
+
+            return count;
+        }
+    }
+
+    /// <summary>The tiles whose build failed (a torn section, a bug): they are left out until their sections change, so a bad one never holds a settle up.</summary>
+    public int Failed => _bad.Count;
 
     /// <summary>What the view holds and cost.</summary>
     public FarViewStats Stats
@@ -184,7 +223,7 @@ public sealed class FarView
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(dispose);
-        var reshaped = settings.TileCells != Settings.TileCells || settings.Levels != Settings.Levels || settings.TreeLevels != Settings.TreeLevels;
+        var reshaped = settings.Levels != Settings.Levels || settings.TreeLevels != Settings.TreeLevels;
         Settings = settings;
         if (reshaped)
         {
@@ -204,6 +243,7 @@ public sealed class FarView
             _wanted = [];
             _dirty.Clear();
             _rebuilding.Clear();
+            _bad.Clear();
             _pool.Clear(JobLane.Tiles);
             while (_done.TryDequeue(out _))
             {
@@ -284,6 +324,13 @@ public sealed class FarView
         while (_store.Changed.TryDequeue(out var section))
         {
             var key = new FarTileKey(section.Level, section.X, section.Z);
+            _ = _bad.Remove(key);
+            if (_building.Contains(key))
+            {
+                _ = _dirty.Add(key); // being made from the sections as they were: made again when it is done
+                continue;
+            }
+
             if (!_tiles.TryGetValue(key, out var tile) || !tile.IsBuilt)
             {
                 continue;
@@ -304,10 +351,22 @@ public sealed class FarView
     // Takes the tiles the workers finished into the cache.
     private void Collect()
     {
+        while (_failed.TryDequeue(out var failed))
+        {
+            _ = _building.Remove(failed);
+            _ = _rebuilding.Remove(failed);
+            _ = _bad.Add(failed);
+        }
+
         while (_done.TryDequeue(out var mesh))
         {
             _ = _building.Remove(mesh.Key);
             _ = _rebuilding.Remove(mesh.Key);
+            if (!_wanted.Contains(mesh.Key) && !_tiles.ContainsKey(mesh.Key))
+            {
+                continue; // made for a view the eye has left: not kept
+            }
+
             if (!_tiles.TryGetValue(mesh.Key, out var tile))
             {
                 _tiles[mesh.Key] = tile = new FarTile(mesh.Key);
@@ -333,7 +392,7 @@ public sealed class FarView
         var source = World;
         foreach (var key in _leaves)
         {
-            if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
+            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
             {
                 continue;
             }
@@ -350,7 +409,17 @@ public sealed class FarView
                 JobLane.Tiles,
                 distance,
                 () => !_wanted.Contains(captured),
-                () => _done.Enqueue(FarTileMesher.Build(source, settings, captured, grey)));
+                () =>
+                {
+                    try
+                    {
+                        _done.Enqueue(FarTileMesher.Build(source, settings, captured, grey));
+                    }
+                    catch (Exception ex) when (ex is not OutOfMemoryException)
+                    {
+                        _failed.Enqueue(captured); // a torn section or a bug in one tile: the key is released, the others go on
+                    }
+                });
         }
 
         // A job skipped as stale leaves its key in _building: forget the keys that are no longer wanted so they can be asked for again.
@@ -365,7 +434,7 @@ public sealed class FarView
     {
         _draw.Clear();
         _fallbacks.Clear();
-        var standIns = new HashSet<FarTileKey>();
+        _standIns.Clear();
         long triangles = 0;
         foreach (var key in _leaves)
         {
@@ -382,7 +451,7 @@ public sealed class FarView
                 ancestor = ancestor.GetParent();
                 if (_tiles.TryGetValue(ancestor, out var stand) && stand.IsBuilt)
                 {
-                    if (standIns.Add(ancestor))
+                    if (_standIns.Add(ancestor))
                     {
                         _fallbacks.Add(stand);
                         triangles += stand.Triangles;
@@ -397,22 +466,66 @@ public sealed class FarView
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
     }
 
-    // Drops the farthest tiles that are not wanted or standing in, past the cap.
+    // Drops the farthest tiles that are not wanted or standing in, past the cap; and, now and then, the meshes still waiting in memory of tiles that are no longer drawn (the eye moved on before the card took them).
     private void Trim(double eyeX, double eyeZ, Action<FarTile> dispose)
     {
         var settings = Settings;
+        _trims++;
+        if (_trims % 16 == 0)
+        {
+            DropUnwantedPending(dispose);
+        }
+
         if (_tiles.Count <= settings.MaxTiles)
         {
             return;
         }
 
-        var used = new HashSet<FarTileKey>(_draw.Select(static t => t.Key));
-        used.UnionWith(_wanted);
-        var victims = _tiles.Keys.Where(key => !used.Contains(key)).OrderByDescending(key => key.NearestDistance(settings, eyeX, eyeZ)).Take(_tiles.Count - settings.MaxTiles).ToList();
+        _used.Clear();
+        foreach (var tile in _draw)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        _used.UnionWith(_wanted);
+        var victims = _tiles.Keys.Where(key => !_used.Contains(key)).OrderByDescending(key => key.NearestDistance(settings, eyeX, eyeZ)).Take(_tiles.Count - settings.MaxTiles).ToList();
         foreach (var key in victims)
         {
             dispose(_tiles[key]);
             _ = _tiles.Remove(key);
+        }
+    }
+
+    private void DropUnwantedPending(Action<FarTile> dispose)
+    {
+        _used.Clear();
+        foreach (var tile in _draw)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        _used.UnionWith(_wanted);
+        _idle.Clear();
+        foreach (var (key, tile) in _tiles)
+        {
+            if (tile.Pending is not null && !_used.Contains(key))
+            {
+                _idle.Add(key);
+            }
+        }
+
+        foreach (var key in _idle)
+        {
+            var tile = _tiles[key];
+            if (tile.Buffer is null)
+            {
+                dispose(tile);
+                _ = _tiles.Remove(key);
+            }
+            else
+            {
+                tile.Pending = null; // the card's buffers stay; the memory of the newer mesh goes
+            }
         }
     }
 
@@ -429,6 +542,7 @@ public sealed class FarView
         _tiles.Clear();
         _draw.Clear();
         _building.Clear();
+        _bad.Clear();
         _wanted = [];
         _pool.Clear(JobLane.Tiles);
     }
