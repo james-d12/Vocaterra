@@ -2779,4 +2779,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   missing in front). (3) Gaps in the distant levels while chunks draw at full resolution: from (812, 100, 762) looking east, a grey band
   across the middle distance and mountains like arches with sky under them: a ring between the voxel zone and the far view that neither
   draws, and missing vertical sections in far mountains. (4) Distant edges crammed and merged: from (881.9, 85, 674.7) looking east, far
-  hills squashed into jagged steps at the horizon where levels meet. (2) to (4) are B07c's far view: B07e.
+  hills squashed into jagged steps at the horizon where levels meet. (2) to (4) are B07c's far view: B07e. The owner, a few minutes
+  later: "running with --configuration Release fixed most of the issues ... take note that it was in Debug mode which could explain the
+  slow rendering": (2) to (4) are mostly the far view not yet built in a slow Debug build; B07e reproduces each in Release, fixes what
+  persists once settled, and makes the in-between state while the far view builds tidy. (1) is generation and stays (B11c).
