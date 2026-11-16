@@ -1470,3 +1470,8 @@ this file. What is still open is collected in [open-items](../open-items.md).
   `ContentSchemaFuzzTests` failed once with seed `2zwDo8nRB_f7` (a supportLanguage mutation); outside M97's scope. To replay and triage
   (an oracle fault or a loader fault) before any change; earlier the same test threw OutOfMemoryException in a gate's crowded run
   (seed `1jXdUcl8JBe8`, passing alone), which the owner's 10 GB command cap addressed.
+- **A fuzz seed on a silent h (found 2026-11-16 by B11b's third gate on `feature/biomes`; not changed, no milestone yet).** O9,
+  `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`, seed `a2RKk5N6Ibt4`: «ah hambrientos»
+  with `pron.silent_h` injected at «ah» (heard [a h a m b ɾ j e n t o s] for [a a m b ɾ j e n t o s]); the scorer reports `pron.silent_h`
+  twice, at «ah» and again on the h of «hambrientos». It replays on `feature/biomes` at `e9798005` (the orchestrator, about 17:10 UTC),
+  so it is the core's. Proposed: a fix like M97 (the alignment of two silent h's in a row), with the owner's yes.
