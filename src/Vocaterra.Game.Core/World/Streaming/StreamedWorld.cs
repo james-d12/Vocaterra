@@ -32,26 +32,14 @@ public sealed class StreamedWorld
     public RegionCatalog Regions { get; }
 
     /// <summary>
-    /// The chunks of some layers of one chunk column, from the lowest layer up, made from one shared window (the cheap way: about 1.6 ms for a whole column against about 1.1 ms for each chunk alone).
+    /// The chunks of some layers of one chunk column, from the lowest layer up, made from one shared window, decorating only those layers (the cheap way: the climate and the height are made once, and the layers under the ground, which cost most, only when asked for).
     /// Each equals what <see cref="CompositeChunkSource.Generate"/> gives for its coordinates, so a worker thread may make them and the game loop may install them.
     /// </summary>
     /// <param name="chunkX">The chunk column.</param>
     /// <param name="chunkZ">The chunk row.</param>
     /// <param name="minLayer">The lowest layer wanted (inclusive).</param>
     /// <param name="maxLayer">The highest layer wanted (inclusive).</param>
-    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
-    {
-        var column = Source.GenerateColumn(chunkX, chunkZ);
-        var first = Math.Max(minLayer, Source.MinChunkY);
-        var last = Math.Min(maxLayer, Source.MaxChunkY - 1);
-        var layers = new List<ChunkData>(Math.Max(0, last - first + 1));
-        for (var layer = first; layer <= last; layer++)
-        {
-            layers.Add(column[layer - Source.MinChunkY]);
-        }
-
-        return layers;
-    }
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer);
 }
 
 /// <summary>

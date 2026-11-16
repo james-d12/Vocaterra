@@ -148,6 +148,33 @@ public sealed class ProceduralChunkSource : IChunkSource
         return chunks;
     }
 
+    /// <summary>
+    /// Some layers of a chunk column, from the lowest asked for up, sharing one window (B07): what a streamed world needs of a column is its surface band and a layer each side, and the layers under the
+    /// ground cost most (the caves), so only the ones asked for are decorated. Each chunk equals what <see cref="Generate"/> gives for its coordinates. A layer outside the world is air.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    {
+        var first = Math.Max(minLayer, MinChunkY);
+        var last = Math.Min(maxLayer, MaxChunkY - 1);
+        if (last < first)
+        {
+            return [];
+        }
+
+        var ctx = new ColumnContext(_world, chunkX, chunkZ);
+        var chunks = new ChunkData[last - first + 1];
+        for (var i = 0; i < chunks.Length; i++)
+        {
+            chunks[i] = Layer(ctx, first + i, shaped: i > 0);
+        }
+
+        return chunks;
+    }
+
     private ChunkData Layer(ColumnContext ctx, int chunkY, bool shaped, bool shortcuts = true)
     {
         var coord = new VoxelChunkCoord(ctx.ChunkX, chunkY, ctx.ChunkZ);
