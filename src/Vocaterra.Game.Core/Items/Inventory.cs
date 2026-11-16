@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
@@ -19,6 +17,7 @@ public sealed class Inventory
     public const int DefaultBaseSlots = 30;
 
     private readonly ItemStack[] _slots;
+    private readonly ActiveSlots _view;
     private int _active;
 
     /// <summary>An empty inventory with no bag worn.</summary>
@@ -35,6 +34,7 @@ public sealed class Inventory
         _active = baseSlots;
         _slots = new ItemStack[MaxSlots];
         Array.Fill(_slots, ItemStack.Empty);
+        _view = new ActiveSlots(this);
     }
 
     /// <summary>The item catalogue the stack limits come from.</summary>
@@ -50,7 +50,7 @@ public sealed class Inventory
     public int SlotCount => _active;
 
     /// <summary>The active slots, in order (the hotbar is the first <see cref="HotbarSize"/>): <see cref="SlotCount"/> of them.</summary>
-    public IReadOnlyList<ItemStack> Slots => new ReadOnlyCollection<ItemStack>(new ArraySegment<ItemStack>(_slots, 0, _active));
+    public IReadOnlyList<ItemStack> Slots => _view;
 
     /// <summary>
     /// Sets the number of active slots (a bag went on or off). Nothing changes unless every slot the change drops is empty.
@@ -260,5 +260,23 @@ public sealed class Inventory
         }
 
         return left;
+    }
+
+    // A live, read-only view of the active slots (made once, so reading Slots allocates nothing): its count follows the active count.
+    private sealed class ActiveSlots(Inventory owner) : IReadOnlyList<ItemStack>
+    {
+        public int Count => owner._active;
+
+        public ItemStack this[int index] => (uint)index < (uint)owner._active ? owner._slots[index] : throw new ArgumentOutOfRangeException(nameof(index), index, "No such inventory slot.");
+
+        public IEnumerator<ItemStack> GetEnumerator()
+        {
+            for (var i = 0; i < owner._active; i++)
+            {
+                yield return owner._slots[i];
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
