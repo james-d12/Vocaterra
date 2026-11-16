@@ -361,7 +361,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 14; // B10: 14 rows, so the nine underground blocks fit (111 cells); Y03 had 13 rows for the bed and the bedroll (97 cells)
+    public const int ColourRows = 15; // B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;

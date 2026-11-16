@@ -555,7 +555,7 @@ Nine blocks are appended after the counter (`BlockId` 57 to 65): `Slate`, `Grani
 - `Glows` (lantern, post torch, lava): the light kinds. `ChunkLightIndex` builds its mask and test from `BlockDefinition.IsLight`, so lava lights the faces around it like a lantern. The cube is drawn with its own tile.
 - `Indestructible` (bedrock): `VoxelChunk.Set` and `VoxelChunk.FillColumn`, the one place every edit goes through (gather, placement, the camp's removal, the chest, `FillColumn`), refuse to change a bedrock cell. A chunk's install (generation) is the only writer.
 
-The tiles are drawn in code (`BlockArtNature`), grey copies as for every cell. `UndergroundBlockTests` and `UndergroundBlockMeshTests` cover them. B11b appends `Basalt` (`BlockId` 66, `BlockCell.Basalt`: dark charcoal rock in narrow columns, drawn in code; solid, not gatherable, stone material), the darker stone laid among the slate; the atlas is now full (112 of 112 colour cells).
+The tiles are drawn in code (`BlockArtNature`), grey copies as for every cell. `UndergroundBlockTests` and `UndergroundBlockMeshTests` cover them. B11b appends `Basalt` (`BlockId` 66, `BlockCell.Basalt`: dark charcoal rock in narrow columns, drawn in code; solid, not gatherable, stone material), the darker stone laid among the slate; the atlas grew to 15 rows of colour cells (113 cells) and 15 of grey copies.
 
 ### Coordinates, units, angles
 
