@@ -925,6 +925,8 @@ the owner's answers of 2026-11-15 are in its section 5.
     paralel", then, offered 6 agents with 3 slots, 8 with 3, or 6 with 2: "what about 4 agents like now, but one extra slot", then "5
     agents and 3 gates looks ok". Up to five building agents; limited.sh runs three heavy commands at once (`VOCATERRA_HEAVY_SLOTS`
     default 3); 10 GB a command and 16 GB in all unchanged.
+39. **macOS is out of scope** (2026-11-16, about 22:45 UTC, the rendering review's D4): "macOS does not matter". Opens the raw OpenGL 4.x route
+    (OpenGL 4.6 is not available on macOS) for B17's shaders and B19's later steps; D3 (the shader toolchain) still open.
 
 ## Already decided
 
