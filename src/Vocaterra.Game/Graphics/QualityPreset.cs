@@ -16,6 +16,8 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="Clouds">S14: whether the flat clouds are drawn.</param>
 /// <param name="RainDrops">E06: the most drops the rain draws at full intensity (a style takes its share of it, <c>PrecipitationStyle.CountShare</c>); the cost is four vertices a drop.</param>
 /// <param name="FarRange">B07: how far the far view's level-of-detail land is drawn in the streamed world, in blocks from the eye (D-game-34 item 21); 0 for none. The bounded valley has no far view.</param>
+/// <param name="FarTreeLevels">B07c: how many of the far view's finest levels draw every tree as a box (the levels end at 256, 512, 1,024 and 2,048 blocks): High 4 (every tree to about 2 km), Medium 3 (1 km), Low 2 (512 blocks); beyond, a forest is a raised canopy layer.</param>
+/// <param name="FarRealRadius">B07c: how far from the eye workers make the real chunks of the surface for the far view's store: High 1,000 blocks, Medium 760, Low 560 (2.5 voxel distances, where the far view's level 2 ends).</param>
 /// <param name="MaxMeshedChunks">B07: the most chunk meshes a streamed world keeps (the nearest ones): a cap on the meshes and so on the memory of the card.</param>
 /// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident (the farthest unchanged ones are dropped past it).</param>
 public sealed record QualityPreset(
@@ -28,6 +30,8 @@ public sealed record QualityPreset(
     bool Clouds = true,
     int RainDrops = 1200,
     int FarRange = 0,
+    int FarTreeLevels = 4,
+    int FarRealRadius = 1000,
     int MaxMeshedChunks = 24_000,
     int MaxResidentChunks = 48_000)
 {
@@ -37,9 +41,9 @@ public sealed record QualityPreset(
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000),
-        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000),
-        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, FarTreeLevels: 2, FarRealRadius: 560, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000),
+        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, FarTreeLevels: 3, FarRealRadius: 760, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000),
+        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, FarTreeLevels: 4, FarRealRadius: 1000, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000),
     };
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>
@@ -58,7 +62,7 @@ public sealed record QualityPreset(
     public QualityPreset WithFarRange(int blocks) => this with { FarRange = Math.Max(0, blocks) };
 
     /// <summary>The far view's shape for this preset: its range, with the level-of-detail layout every preset shares.</summary>
-    public Far.FarViewSettings Far => new(FarRange);
+    public Far.FarViewSettings Far => new(FarRange, TreeLevels: FarTreeLevels, RealRadius: FarRealRadius);
 
     /// <summary>The name of the level in lower case, as <c>--quality</c> takes it.</summary>
     public string Name => Level.ToString().ToLowerInvariant();

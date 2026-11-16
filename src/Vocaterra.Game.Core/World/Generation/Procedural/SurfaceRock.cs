@@ -52,13 +52,13 @@ internal sealed class SurfaceRock
     /// <param name="ctx">The shaped column.</param>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public int Drop(ColumnContext ctx, int x, int z) => ctx.WaterLevelAt(x, z) >= 0 ? 0 : Math.Max(0, ctx.HeightAt(x, z) - LowestNeighbour(ctx, x, z));
+    public int Drop(IRockGround ctx, int x, int z) => ctx.WaterLevelAt(x, z) >= 0 ? 0 : Math.Max(0, ctx.HeightAt(x, z) - LowestNeighbour(ctx, x, z));
 
     /// <summary>The visible surface of the lowest of a column's four neighbours (the ground, or the water's surface above it); the column's own height when a neighbour is outside the window.</summary>
     /// <param name="ctx">The shaped column.</param>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public int LowestNeighbour(ColumnContext ctx, int x, int z)
+    public int LowestNeighbour(IRockGround ctx, int x, int z)
     {
         var low = ctx.HeightAt(x, z);
         Span<(int, int)> sides = [(1, 0), (-1, 0), (0, 1), (0, -1)];
@@ -77,7 +77,7 @@ internal sealed class SurfaceRock
     /// <param name="ctx">The shaped column.</param>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public bool IsCliff(ColumnContext ctx, int x, int z) => Drop(ctx, x, z) >= _spec.Cliff.Drop;
+    public bool IsCliff(IRockGround ctx, int x, int z) => Drop(ctx, x, z) >= _spec.Cliff.Drop;
 
     /// <summary>
     /// The layers of a column after the surface rock: the column unchanged when no rule applies, else with the top (and for scree the filler) one of the rock's blocks and the column marked bare.
@@ -86,7 +86,8 @@ internal sealed class SurfaceRock
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
     /// <param name="surface">The column as the biome made it.</param>
-    public ColumnSurface Adjust(ColumnContext ctx, int x, int z, in ColumnSurface surface)
+    /// <param name="foot">Whether a cliff's foot gets its scree (a far view leaves the foot out: it reads the ground a few columns round, which a far sample cannot afford).</param>
+    public ColumnSurface Adjust(IRockGround ctx, int x, int z, in ColumnSurface surface, bool foot = true)
     {
         var shape = ctx.ShapeAt(x, z);
         if (surface.Water)
@@ -105,7 +106,7 @@ internal sealed class SurfaceRock
             return surface with { Top = BandAt(x, surface.Height, z), Bare = true };
         }
 
-        if (drop >= _spec.Scree.SteepDrop || AtFoot(ctx, x, z))
+        if (drop >= _spec.Scree.SteepDrop || (foot && AtFoot(ctx, x, z)))
         {
             if (Pick(_scree, x, z) is { } loose)
             {
@@ -146,7 +147,7 @@ internal sealed class SurfaceRock
     }
 
     // A column at a cliff's foot: ground that a wall of at least the cliff's drop stands over within the foot's reach.
-    private bool AtFoot(ColumnContext ctx, int x, int z)
+    private bool AtFoot(IRockGround ctx, int x, int z)
     {
         var reach = _spec.Scree.FootReach;
         var height = ctx.HeightAt(x, z);
@@ -207,4 +208,28 @@ internal sealed class SurfaceRock
             return (int)(hash % 1000UL) < _chance && (_patch is null || _patch.Fbm(x, z, _cell, _octaves) > _threshold);
         }
     }
+}
+
+/// <summary>What the surface rock reads of the ground round a column: the shaped heights and water levels and the river weight, from the generator's window (<see cref="ColumnContext"/>) or from the height model alone (the far view).</summary>
+internal interface IRockGround
+{
+    /// <summary>The ground's height in a column.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    int HeightAt(int x, int z);
+
+    /// <summary>The y of the water's top in a column, or -1 where there is none.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    int WaterLevelAt(int x, int z);
+
+    /// <summary>Whether a column is known to the ground (the generator's window; always true for the model).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    bool InWindow(int x, int z);
+
+    /// <summary>The height model's shape of a column (its river weight).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    ColumnShape ShapeAt(int x, int z);
 }

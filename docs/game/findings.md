@@ -2757,3 +2757,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   first failed on a docs conflict with B12 and a fuzz test's OutOfMemoryException in the 6 GB command cap (seed `1jXdUcl8JBe8` passes
   alone at 1.7 GB; the owner raised the cap to 10 GB, D-game-34 item 28); one `SaveServiceTests` case failed once under load in the
   agent's run and passed alone and in the gate. Gated: 12,305 passed, 3 skipped.
+- **B07c, the far view like Voxy (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07c-far-detail.md` (re-scoped twice: Distant
+  Horizons, then Voxy, D-game-34 items 26 and 29), report `.claude/briefs/b07c-report.md`, review `.claude/briefs/b07c-review.md` (Opus 5.5
+  at high effort, item 32), pictures in `artifacts/b-series/b07c/`. The far land is 32^3 voxel sections at 8 levels (1 to 128 blocks a
+  voxel) mipped 8 to 1, filled from the generator's model (height, water, snow, strata, the tree pass's placement as a shared pure query,
+  211 of 211 trees equal, the regions' blocks) and from real chunks (a ring of 560 / 760 / 1,000 blocks at Low / Medium / High, edits kept
+  over generator data), stored in region files per world (real sections only, validated, synced), drawn as greedy block faces (textured
+  at levels 0 and 1, averaged atlas colours beyond), with stored light and translucent water. The owner's look at the first pictures and
+  the review found the same faults: the horizon past 3.4 km built but never uploaded (8 tiles a frame nearest first), water lost under
+  half a voxel (lakes as brown beds, a hole in the sea at L7), the top block lost (grey snow caps), peaks eroded by majority rules, the
+  ring forgetting its plan on a move, store races, the ring overwriting edits, mips never real above level 1, corrupt data freezing a
+  tile, unbounded memory; all fixed but region compaction (B07d). Measured at load 7 to 11: p95 about 3 to 4 ms and p99 6 to 9 ms above
+  B07 at each preset, a tile about 33 ms of worker time at High, far memory 177 to 292 MB. Open: the thin sea strip on one horizon reads
+  as haze; the right-hand peaks a little greyer than B07's; a quiet re-measure; B07d (settings, pre-generation, compaction, performance).
+  Gated: 12,370 passed, 3 skipped.
