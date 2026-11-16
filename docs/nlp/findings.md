@@ -1438,3 +1438,11 @@ this file. What is still open is collected in [open-items](../open-items.md).
   Fix: a conjunction or preposition falling back to a singular noun sibling stays as typed when the word right before it is a plural determiner (and likewise a
   plural noun after a singular one); every other fallback is as before. No API change. Tests: `PorqueNounReadingTests` (both seeds' inputs and the neighbours:
   «quiero pan porque tengo hambre», «no sé el porqué», «no sé el porque», «no sé los porqués», «por qué porque sí», all clean as before).
+- **A fuzz seed on a plural the recast drops (found 2026-11-16 by B02b's full run on the game's `B02b-terrain-tuning`; not changed, no
+  milestone yet).** O5, `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `2LxdNIrNHnQ6`: «cuanto
+  almuerzos veintiocho señoras transportan» (pattern `[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]`), mutated to
+  «cuanto almuerzos veintiocho zeponefu transportan»; the recast normalizes to «cuanto almuerzo 28 zeponefu transportan» instead of the
+  corrected «cuanto almuerzos 28 zeponefu transportan». The seed fails the same way on `feature/biomes` at `1f087456` without B02b (the
+  orchestrator's replay, 2026-11-16 05:40 UTC), so it is the core's or the bundle's as it stands; B02b touched no core input. The rest of
+  the suite passed. Proposed: a core milestone like M96 that finds why the plural is lost once the unknown word follows the number, fixes
+  it at the source with a regression test and records the seed; the oracle is not narrowed.

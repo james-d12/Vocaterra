@@ -7,12 +7,12 @@
   "biomes": [
     {
       "id": "river-channel",
-      "when": { "water": true, "continentalness": { "min": -200 }, "river": { "max": 40 } },
+      "when": { "water": true, "continentalness": { "min": 0 }, "river": { "max": 40 } },
       "top": "sand", "filler": "dirt", "fillerDepth": 3
     },
     {
       "id": "ocean",
-      "when": { "water": true, "continentalness": { "max": 100 } },
+      "when": { "water": true, "continentalness": { "max": 20 } },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "id": "beach",
-      "when": { "water": false, "continentalness": { "max": -60 }, "height": { "max": 35 } },
+      "when": { "water": false, "continentalness": { "max": 16 }, "height": { "max": 36 } },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {
@@ -37,13 +37,13 @@
     },
     {
       "id": "snowy-slopes",
-      "when": { "height": { "min": 90 }, "surfaceTemperature": { "max": -400 } },
+      "when": { "height": { "min": 120 }, "surfaceTemperature": { "max": -400 } },
       "top": "stone", "filler": "stone", "fillerDepth": 3, "snowCap": true
     },
     {
       "id": "grove",
       "when": { "height": { "min": 90 }, "surfaceTemperature": { "max": -150 } },
-      "top": "grass", "filler": "dirt", "fillerDepth": 3, "snowCap": true,
+      "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 35, "species": [{ "species": "spruce", "weight": 1 }] },
       "decor": { "density": 60, "blocks": { "fern": 1 } }
     },
@@ -56,7 +56,7 @@
     {
       "id": "taiga",
       "when": { "temperature": { "max": -300 } },
-      "top": "grass", "filler": "dirt", "fillerDepth": 3, "snowCap": true,
+      "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 45, "species": [{ "species": "spruce", "weight": 1 }] },
       "decor": { "density": 120, "blocks": { "fern": 3, "tall-grass": 1 } }
     },

@@ -58,6 +58,48 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
     }
 
     [Fact]
+    public void The_stats_command_reads_the_review_numbers_off_a_map_and_the_same_arguments_give_the_same_text()
+    {
+        string Stats()
+        {
+            var output = new StringWriter();
+            var error = new StringWriter();
+            Assert.Equal(0, Cli.Run(["stats", "--seed", "42", "--size", "4096", "--scale", "16"], output, error));
+            Assert.Equal(string.Empty, error.ToString());
+            return output.ToString();
+        }
+
+        var text = Stats();
+
+        Assert.Equal(text, Stats());
+        foreach (var line in new[] { "area: 4096 x 4096 blocks", "water:", "land above 150 / 200 / 250", "snow:", "sea bodies:", "rivers:", "coast profile", "  land:", "  sea:" })
+        {
+            Assert.Contains(line, text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void The_snow_of_the_height_map_is_the_biome_tables_not_the_temperature_alone()
+    {
+        var sampler = new WorldSampler(_data, 42);
+        var map = sampler.Map(0, 0, 4096, 16);
+        var table = new BiomeTable(_data.Biomes, _data.WorldGen, 42);
+        var climate = new ClimateSampler(_data.WorldGen, 42);
+        var height = new HeightModel(_data.WorldGen, 42);
+
+        for (var py = 0; py < map.Height; py += 5)
+        {
+            for (var px = 0; px < map.Width; px += 5)
+            {
+                var (x, z) = (map.BlockX(px), map.BlockZ(py));
+                var c = climate.At(x, z);
+                var shape = height.Shape(x, z, c);
+                Assert.Equal(table.Classify(c, shape.Height, x, z, shape.Water).Snow, map.Snow[(py * map.Width) + px]);
+            }
+        }
+    }
+
+    [Fact]
     public void The_valley_world_samples_the_place_query_and_the_free_world_is_not_the_valley_world()
     {
         var places = Vocaterra.Game.Core.World.WorldFactory.Create(_data, 42, Vocaterra.Game.Core.World.WorldMode.Bounded).Places!;
@@ -156,7 +198,8 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
                 var x = left + (px * scale);
                 var z = top + (py * scale);
                 var c = climate.At(x, z);
-                var row = table.Classify(c, height.Shape(x, z, c).Height, x, z).Row;
+                var shape = height.Shape(x, z, c);
+                var row = table.Classify(c, shape.Height, x, z, shape.Water).Row;
                 seen.Add(row.Index);
                 Assert.Equal(palette.Of(row), PngDecoder.Pixel(image, px, py));
             }
@@ -208,9 +251,9 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
             var column = sampler.At(-512 + (i * 4), 0);
             var row = (sampler.MaxY - Math.Clamp(column.Ground, sampler.MinY, sampler.MaxY)) * 2;
             var expected = sampler.Palette.Of(column.Biome);
-            // The top of the ground, unless a snow or tree line passes over it (white or green).
+            // The top of the ground, unless a snow or tree line passes over it (white or green), or the ground is at the sea level and the dashed mark is drawn over it.
             var pixel = image.Get(i, row);
-            Assert.True(pixel == expected || pixel == new Rgb(255, 255, 255) || pixel == new Rgb(60, 230, 80), $"column {i}: {pixel}, expected {expected}, ground {column.Ground}, row {row}");
+            Assert.True(pixel == expected || pixel == new Rgb(255, 255, 255) || pixel == new Rgb(60, 230, 80) || (column.Ground == sampler.SeaLevel && pixel == new Rgb(255, 214, 64)), $"column {i}: {pixel}, expected {expected}, ground {column.Ground}, row {row}");
         }
 
         var seaRow = (sampler.MaxY - sampler.SeaLevel) * 2;

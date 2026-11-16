@@ -14,6 +14,8 @@ internal static class Cli
           biomes    each column in its biome row's colour, with a legend text file (id, colour, share)
           heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded, with a stats text file (lowest and highest ground, shares above 100 to 250)
           maps      both of them for the same area
+          stats     the owner's map-review numbers as text (shares, land above 150 to 250, the sea's connectivity, snow, the coast's profile); no picture
+          river     a river followed from a point on it (--x --z --length --step, --direction down or up): the ground, the natural ground and the water along it as one section, with a text summary of its steps
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level; with --mode blocks, the real blocks (B11: the strata, ores, caves, lava, bedrock) each in its own colour
           entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
@@ -27,12 +29,13 @@ internal static class Cli
           --threads <n>    worker threads (default 4)
           --world <free|valley>  free: the procedural world alone (default); valley: the world as the game's streamed mode makes it round the valley (B06): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land; maps then show the footprint (red), the margin (orange) and the land-bias radius (yellow)
           --region <layout.json>  (B15) place a town from a layout file on the procedural ground (implies --world valley): its region is built at --region-x --region-z (the block of its first column, rounded down to a chunk; default 0 0) and --region-layer (its first chunk layer; default: the layer that puts its floor under its lowest ground), and the maps carry its outlines too
+          river only:  --x --z (a point on or near the river), --length <n> (blocks to walk, default 4000), --step <n> (blocks per sample, default 4), --direction <down|up> (to the sea, default, or to the source), --zoom <n> (pixels per block of height, default 3), --wide <n> (pixels per sample, default 2)
           slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2), --mode <surface|blocks> (default surface)
         """;
 
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
-        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--mode", "--region", "--region-x", "--region-z", "--region-layer",
+        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--mode", "--region", "--region-x", "--region-z", "--region-layer", "--length", "--step", "--direction", "--wide",
     };
 
     /// <summary>Runs a command line. The exit code is 0 when the pictures were written, 2 for a bad command line.</summary>
@@ -46,7 +49,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice" or "entrances"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -111,6 +114,21 @@ internal static class Cli
                 return 0;
             }
 
+            if (command == "river")
+            {
+                var length = Int(options, "--length", 4000);
+                var step = Int(options, "--step", 4);
+                var walk = RiverWalk.Walk(sampler, Int(options, "--x", 0), Int(options, "--z", 0), length, step, Get(options, "--direction", "down") != "up");
+                var picture = RiverWalk.Draw(walk, sampler.SeaLevel, Int(options, "--zoom", 3), Int(options, "--wide", 2));
+                var path = Target(outPath, $"river-seed{seed}-x{walk[0].X}-z{walk[0].Z}-{Get(options, "--direction", "down")}-{length}");
+                Save(path, picture);
+                var summary = RiverWalk.Summary(walk);
+                File.WriteAllText(Path.ChangeExtension(path, ".txt"), summary);
+                output.WriteLine($"{path} ({picture.Width} x {picture.Height}, {started.Elapsed.TotalSeconds:0.0} s)");
+                output.Write(summary);
+                return 0;
+            }
+
             if (command == "slice")
             {
                 var x0 = Int(options, "--x0", -2048);
@@ -138,6 +156,18 @@ internal static class Cli
             var map = sampler.Map(cx, cz, size, scale);
             var sampled = started.Elapsed;
             var stem = $"{Prefix(places, town)}seed{seed}-x{cx}-z{cz}-s{size}-p{scale}";
+            if (command == "stats")
+            {
+                var report = Stats.Report(sampler, map);
+                output.Write(report);
+                if (outPath != ".")
+                {
+                    File.WriteAllText(Target(outPath, "stats-" + stem, false).Replace(".png", ".txt"), report);
+                }
+
+                return 0;
+            }
+
             if (command is "biomes" or "maps")
             {
                 var path = Target(outPath, "biomes-" + stem, command == "biomes");

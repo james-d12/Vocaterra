@@ -17,7 +17,29 @@ public sealed record VerticalRange(int MinY, int MaxY, int SeaLevel);
 /// <param name="Octaves">The octaves (each halves the cell and the weight).</param>
 /// <param name="WarpCell">The warp field's cell in blocks (read only when <paramref name="WarpBlocks"/> is above zero).</param>
 /// <param name="WarpBlocks">The farthest the warp shifts a point, in blocks; 0 for no warp.</param>
-public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBlocks);
+/// <param name="Round">For a ridged field, the thousandths of the field over which the crest of every ridge is rounded (0: a sharp crest, as in the files before B02b's redo).</param>
+/// <param name="ChainBlocks">For the ridges field (B02b round 3): above 0, the field is a chain: 1 on the noise's zero lines, falling in a straight slope to 0 at this many blocks from them whatever the noise's gradient, so every chain has the same width (a ridge of one octave is broad where the noise is flat and narrow where it is steep). 0: the squared ridge of one octave.</param>
+/// <param name="ChainRound">The blocks over which the crest of a chain is rounded (a chain's spine is not a knife edge).</param>
+public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBlocks, int Round = 0, int ChainBlocks = 0, int ChainRound = 0);
+
+/// <summary>
+/// The continents (<c>climate.continents</c>, B02b redo): the continentalness as jittered cells, a share of them sea, with a channel of sea along every border (see <see cref="Climate.ContinentField"/>).
+/// </summary>
+/// <param name="Cell">The cells' side in blocks (the continents are about this wide).</param>
+/// <param name="Jitter">How far a cell's point strays from its centre, in thousandths of half the cell (0 to 900).</param>
+/// <param name="SeaBlock">The side, in cells, of the blocks the cells are grouped in (1 to 4): each block holds a fixed number of sea cells, so the sea's share is the same in every part of the world.</param>
+/// <param name="SeaPerBlock">The cells of each block, at random, that are open sea (0 to the block's cells less one).</param>
+/// <param name="Channel">The most sea each side of a border, in blocks (where the channel is widest).</param>
+/// <param name="ChannelMin">The least sea each side of a border, in blocks (at least 1: the land cells are never joined, so the sea is one ocean).</param>
+/// <param name="WidthCell">The cell, in blocks, of the noise that varies the channel between its least and most.</param>
+/// <param name="CoastCell">The cell, in blocks, of the noise that bends the coast (a warp of the plane, so it never joins or cuts a channel).</param>
+/// <param name="CoastBlocks">How far that warp moves a point, in blocks.</param>
+/// <param name="ScaleBlocks">The blocks that make 1 000 thousandths of continentalness.</param>
+/// <param name="RoughCell">The cell, in blocks, of the first octave of the noise added to the distance from the coast (B02b round 3: it makes the coast wander at every scale, where the cells' borders and the warps left long straight runs); 0 for none.</param>
+/// <param name="RoughBlocks">How far that noise moves the coast, in blocks (about half of it is typical), held to what a channel can spare: every channel stays at least half its least width each side, so two land cells are still never joined.</param>
+/// <param name="RoughOctaves">The octaves of that noise (each halves the cell and the weight).</param>
+/// <param name="Salt">A number mixed into the cells' hash: another salt is another arrangement of the same kind of world (the shipped one was picked so the three maps of the owner's review have the sea share asked for).</param>
+public sealed record ContinentSpec(int Cell, int Jitter, int SeaBlock, int SeaPerBlock, int Channel, int ChannelMin, int WidthCell, int CoastCell, int CoastBlocks, int ScaleBlocks, int Salt = 0, int RoughCell = 0, int RoughBlocks = 0, int RoughOctaves = 1);
 
 /// <summary>The climate fields and how temperature falls with height (<c>climate</c> of <c>game/world.json</c>).</summary>
 /// <param name="LatticeBlocks">The spacing, in blocks, of the lattice the fields are sampled on and interpolated from.</param>
@@ -28,6 +50,7 @@ public sealed record NoiseSpec(int Cell, int Octaves, int WarpCell, int WarpBloc
 /// <param name="Humidity">The humidity.</param>
 /// <param name="River">The river field: a river runs where it is near zero.</param>
 /// <param name="LapsePer100Blocks">The fall of the temperature, in thousandths of its range, for every 100 blocks above the sea.</param>
+/// <param name="Continents">The continents that make the continentalness (the file's <c>continents</c> section; none: the continentalness is plain noise).</param>
 public sealed record ClimateData(
     int LatticeBlocks,
     NoiseSpec Continentalness,
@@ -36,7 +59,8 @@ public sealed record ClimateData(
     NoiseSpec Temperature,
     NoiseSpec Humidity,
     NoiseSpec River,
-    int LapsePer100Blocks);
+    int LapsePer100Blocks,
+    ContinentSpec? Continents = null);
 
 /// <summary>The surface detail on top of the three splines.</summary>
 /// <param name="HillsCell">The first hills octave's cell in blocks.</param>
@@ -64,26 +88,71 @@ public sealed record CragSpec(int Amplitude, int Cell, int RidgesFrom, int Ridge
 
 /// <summary>The rivers: carved where the river field is near zero.</summary>
 /// <param name="Width">How far from zero, in thousandths, the river field still carves.</param>
-/// <param name="BedHeight">The bed's height in blocks (below the sea level).</param>
+/// <param name="Depth">How deep the water stands in the middle of the river, in blocks: the bed is this far under the water's surface.</param>
 /// <param name="FadeFromHeight">The land height, in blocks, above which a river begins to fade out.</param>
 /// <param name="FadeToHeight">The land height, in blocks, where it is gone.</param>
 /// <param name="SeaFadeFrom">The continentalness, in thousandths, below which a river is gone (the sea needs no river).</param>
 /// <param name="SeaFadeTo">The continentalness, in thousandths, above which a river is full.</param>
-public sealed record RiverSpec(int Width, int BedHeight, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo);
+/// <param name="Valley">How the river's valley climbs the high ground to its source (the file's <c>valley</c> part; none: the river is a band of fixed width cut to the bed).</param>
+/// <param name="PeakFadeFrom">The height, in blocks, that the ranges' peaks add to the ground, from which a river begins to fade out (a river does not cross a crest: it rises on each side in the foothills); with <paramref name="PeakFadeTo"/>, none by default.</param>
+/// <param name="PeakFadeTo">The height, in blocks, that the peaks add where the river is gone.</param>
+public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo, RiverValleySpec? Valley = null, int PeakFadeFrom = 100000, int PeakFadeTo = 100001);
+
+/// <summary>
+/// The valley of a river on high ground (B02b redo, round 3): above <see cref="From"/> the river's water stands deeper under the ground the higher the ground is (<see cref="DepthGrowth"/>), and the valley widens with the height so
+/// its sides are slopes and not walls. The water follows the valley down (see <see cref="WaterSpec"/>); the river begins where the ground fades it out.
+/// </summary>
+/// <param name="From">The land height, in blocks, above which the valley widens and the floor rises with the ground.</param>
+/// <param name="WidthPer10Blocks">The thousandths of the river field the valley widens by for every 10 blocks of ground above <paramref name="From"/>.</param>
+/// <param name="DepthGrowth">How much deeper the valley is, in thousandths of a block, for every block of ground above <paramref name="From"/>.</param>
+public sealed record RiverValleySpec(int From, int WidthPer10Blocks, int DepthGrowth);
+
+/// <summary>
+/// The level of the water that is not the sea (B02b round 3): every river and lake has a surface of its own. It is the smooth ground of the column (before the hills) less the hills' amplitude, <see cref="Clearance"/> blocks and the valley's depth,
+/// in steps of <see cref="Step"/> blocks above the sea level and never under it, so a river's surface steps down its valley in flat reaches (a reach is a stretch where the ground falls by less than a step) and reaches the sea at its level.
+/// </summary>
+/// <param name="Step">The height, in blocks, of a step of the water's surface (at least 1).</param>
+/// <param name="Clearance">How many blocks under the smooth ground, besides the hills' amplitude, the surface stands.</param>
+public sealed record WaterSpec(int Step, int Clearance);
+
+/// <summary>
+/// How much the peaks vary along a range (B02b redo): the peaks' height is scaled by a share that runs from <see cref="MinShare"/> to all of it over a smooth noise, so the spine of a range rises to summits and falls
+/// to saddles instead of holding one height.
+/// </summary>
+/// <param name="Cell">The noise's cell in blocks (the summits are about this far apart).</param>
+/// <param name="Octaves">The noise's octaves.</param>
+/// <param name="MinShare">The thousandths of the peaks' height at a saddle.</param>
+public sealed record PeakVariationSpec(int Cell, int Octaves, int MinShare);
 
 /// <summary>The lakes: inland basins pulled down towards a shallow bed where the lake field is high, the land low and the erosion calm.</summary>
 /// <param name="Cell">The lake field's cell in blocks.</param>
 /// <param name="Octaves">The lake field's octaves.</param>
 /// <param name="Threshold">The lake field's value, in thousandths, where a lake begins.</param>
 /// <param name="Softness">How far above the threshold, in thousandths, the lake is full.</param>
-/// <param name="BedHeight">The bed's height in blocks (below the sea level).</param>
+/// <param name="Depth">How deep the water stands in the middle of the lake, in blocks.</param>
 /// <param name="CalmFrom">The erosion, in thousandths, below which no lake forms.</param>
 /// <param name="CalmTo">The erosion, in thousandths, above which a lake may be full.</param>
 /// <param name="HeightFrom">The land height, in blocks, above which a lake begins to fade out.</param>
 /// <param name="HeightTo">The land height, in blocks, where it is gone.</param>
 /// <param name="InlandFrom">The continentalness, in thousandths, below which no lake forms.</param>
 /// <param name="InlandTo">The continentalness, in thousandths, above which a lake may be full.</param>
-public sealed record LakeSpec(int Cell, int Octaves, int Threshold, int Softness, int BedHeight, int CalmFrom, int CalmTo, int HeightFrom, int HeightTo, int InlandFrom, int InlandTo);
+public sealed record LakeSpec(int Cell, int Octaves, int Threshold, int Softness, int Depth, int CalmFrom, int CalmTo, int HeightFrom, int HeightTo, int InlandFrom, int InlandTo);
+
+/// <summary>
+/// The coast (B02b): over the land near the sea the peaks fade out (no rugged island rises from the sea) and the hills calm down, so the shore is a gentle shelf and not a cliff.
+/// </summary>
+/// <param name="PeaksFrom">The continentalness, in thousandths, below which the peaks show nothing.</param>
+/// <param name="PeaksTo">The continentalness, in thousandths, above which the peaks show in full.</param>
+/// <param name="HillsFrom">The continentalness, in thousandths, at and below which the hills keep only <paramref name="HillsFloor"/> of their amplitude.</param>
+/// <param name="HillsTo">The continentalness, in thousandths, above which the hills keep all of it.</param>
+/// <param name="HillsFloor">The share of the hills' amplitude, in thousandths, that remains at the coast.</param>
+/// <param name="FlatFrom">The ground height, in blocks, at and below which the hills are gone (smooth plains and beaches, so no speckle of flats and pools lies just over the sea).</param>
+/// <param name="FlatTo">The ground height, in blocks, above which the hills are whole again; above <paramref name="FlatFrom"/>.</param>
+public sealed record CoastSpec(int PeaksFrom, int PeaksTo, int HillsFrom, int HillsTo, int HillsFloor, int FlatFrom = 0, int FlatTo = 1)
+{
+    /// <summary>No coast: the peaks and the hills are the same everywhere (the world files before B02b).</summary>
+    public static CoastSpec None { get; } = new(-4000, -3999, -4000, -3999, 1000, 0, 1);
+}
 
 /// <summary>
 /// The height model's data: the three splines (the base from the continentalness, the range factor from the erosion, the peaks from the ridges), the detail, the caps, and the terraces, crags,
@@ -99,6 +168,9 @@ public sealed record LakeSpec(int Cell, int Octaves, int Threshold, int Softness
 /// <param name="Crags">The crags.</param>
 /// <param name="Rivers">The rivers.</param>
 /// <param name="Lakes">The lakes.</param>
+/// <param name="WaterData">The level of the rivers' and lakes' water (the file's <c>water</c> section; none: <see cref="WaterSpec"/>'s default of a step of 3 and a clearance of 2).</param>
+/// <param name="CoastData">The coast's fading of the peaks and the hills (the file's <c>coast</c> section; none when the file has none).</param>
+/// <param name="PeakVariation">How the peaks' height varies along a range (the file's <c>peakVariation</c> section; none: it does not).</param>
 public sealed record HeightData(
     IReadOnlyList<SplinePoint> Base,
     IReadOnlyList<SplinePoint> RangeFactor,
@@ -109,7 +181,17 @@ public sealed record HeightData(
     TerraceSpec Terraces,
     CragSpec Crags,
     RiverSpec Rivers,
-    LakeSpec Lakes);
+    LakeSpec Lakes,
+    CoastSpec? CoastData = null,
+    PeakVariationSpec? PeakVariation = null,
+    WaterSpec? WaterData = null)
+{
+    /// <summary>The water: the file's section, or a step of 3 and a clearance of 2.</summary>
+    public WaterSpec Water => WaterData ?? new WaterSpec(3, 2);
+
+    /// <summary>The coast: the file's section, or <see cref="CoastSpec.None"/>.</summary>
+    public CoastSpec Coast => CoastData ?? CoastSpec.None;
+}
 
 /// <summary>The thresholds snow and trees follow, read against the climate temperature at the height in question (<see cref="Climate.IClimateSampler.TemperatureAt"/>).</summary>
 /// <param name="SnowBelowTemperature">Snow lies where the temperature, in thousandths, is below this.</param>
@@ -171,7 +253,10 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                     Noise(climate, "temperature"),
                     Noise(climate, "humidity"),
                     Noise(climate, "river"),
-                    Int(climate, "lapsePer100Blocks")),
+                    Int(climate, "lapsePer100Blocks"),
+                    climate.TryGetProperty("continents", out var continents)
+                        ? new ContinentSpec(Int(continents, "cell"), Int(continents, "jitter"), Int(continents, "seaBlock"), Int(continents, "seaPerBlock"), Int(continents, "channel"), Int(continents, "channelMin"), Int(continents, "widthCell"), Int(continents, "coastCell"), Int(continents, "coastBlocks"), Int(continents, "scaleBlocks"), continents.TryGetProperty("salt", out var salt) ? salt.GetInt32() : 0, continents.TryGetProperty("roughCell", out var roughCell) ? roughCell.GetInt32() : 0, continents.TryGetProperty("roughBlocks", out var roughBlocks) ? roughBlocks.GetInt32() : 0, continents.TryGetProperty("roughOctaves", out var roughOctaves) ? roughOctaves.GetInt32() : 1)
+                        : null),
                 ParseHeight(height),
                 new AltitudeData(Int(altitude, "snowBelowTemperature"), Int(altitude, "treeLineBelowTemperature")),
                 RegionBlendData.Read(root));
@@ -198,19 +283,37 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
             Int(height, "clamp"),
             new TerraceSpec(Int(terraces, "step"), Int(terraces, "fromHeight"), Int(terraces, "toHeight"), Int(terraces, "ridgesFrom"), Int(terraces, "ridgesTo")),
             new CragSpec(Int(crags, "amplitude"), Int(crags, "cell"), Int(crags, "ridgesFrom"), Int(crags, "ridgesTo"), Int(crags, "heightFrom"), Int(crags, "heightTo")),
-            new RiverSpec(Int(rivers, "width"), Int(rivers, "bedHeight"), Int(rivers, "fadeFromHeight"), Int(rivers, "fadeToHeight"), Int(rivers, "seaFadeFrom"), Int(rivers, "seaFadeTo")),
+            new RiverSpec(
+                Int(rivers, "width"),
+                Int(rivers, "depth"),
+                Int(rivers, "fadeFromHeight"),
+                Int(rivers, "fadeToHeight"),
+                Int(rivers, "seaFadeFrom"),
+                Int(rivers, "seaFadeTo"),
+                rivers.TryGetProperty("valley", out var valley) ? new RiverValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null,
+                rivers.TryGetProperty("peakFadeFrom", out var peakFadeFrom) ? peakFadeFrom.GetInt32() : 100000,
+                rivers.TryGetProperty("peakFadeTo", out var peakFadeTo) ? peakFadeTo.GetInt32() : 100001),
             new LakeSpec(
                 Int(lakes, "cell"),
                 Int(lakes, "octaves"),
                 Int(lakes, "threshold"),
                 Int(lakes, "softness"),
-                Int(lakes, "bedHeight"),
+                Int(lakes, "depth"),
                 Int(lakes, "calmFrom"),
                 Int(lakes, "calmTo"),
                 Int(lakes, "heightFrom"),
                 Int(lakes, "heightTo"),
                 Int(lakes, "inlandFrom"),
-                Int(lakes, "inlandTo")));
+                Int(lakes, "inlandTo")),
+            height.TryGetProperty("coast", out var coast)
+                ? new CoastSpec(Int(coast, "peaksFrom"), Int(coast, "peaksTo"), Int(coast, "hillsFrom"), Int(coast, "hillsTo"), Int(coast, "hillsFloor"), coast.TryGetProperty("flatFrom", out var flatFrom) ? flatFrom.GetInt32() : 0, coast.TryGetProperty("flatTo", out var flatTo) ? flatTo.GetInt32() : 1)
+                : null,
+            height.TryGetProperty("peakVariation", out var variation)
+                ? new PeakVariationSpec(Int(variation, "cell"), Int(variation, "octaves"), Int(variation, "minShare"))
+                : null,
+            height.TryGetProperty("water", out var water)
+                ? new WaterSpec(Int(water, "step"), Int(water, "clearance"))
+                : null);
     }
 
     private static int Int(JsonElement owner, string name) => owner.GetProperty(name).GetInt32();
@@ -222,7 +325,10 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
             Int(field, "cell"),
             Int(field, "octaves"),
             field.TryGetProperty("warpCell", out var warpCell) ? warpCell.GetInt32() : 0,
-            field.TryGetProperty("warpBlocks", out var warp) ? warp.GetInt32() : 0);
+            field.TryGetProperty("warpBlocks", out var warp) ? warp.GetInt32() : 0,
+            field.TryGetProperty("round", out var round) ? round.GetInt32() : 0,
+            field.TryGetProperty("chainBlocks", out var chain) ? chain.GetInt32() : 0,
+            field.TryGetProperty("chainRound", out var chainRound) ? chainRound.GetInt32() : 0);
     }
 
     private static List<SplinePoint> Points(JsonElement owner, string name) =>

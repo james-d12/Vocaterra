@@ -30,7 +30,8 @@ public sealed class WorldQuery : IPlaceInfo
     public BiomeRow BiomeAt(int x, int z)
     {
         var climate = _world.Climate.At(x, z);
-        return _world.Table.Classify(climate, _world.Height.Shape(x, z, climate).Height, x, z).Row;
+        var shape = _world.Height.Shape(x, z, climate);
+        return _world.Table.Classify(climate, shape.Height, x, z, shape.Water).Row;
     }
 
     /// <inheritdoc />
