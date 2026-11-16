@@ -102,40 +102,48 @@
         },
         "rivers": {
           "type": "object",
-          "required": ["width", "bedHeight", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
+          "required": ["width", "depth", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
           "additionalProperties": false,
           "properties": {
             "width": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "How far from zero, in thousandths, the river field still carves." },
-            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the river, in blocks: the bed is this far under the water's surface." },
             "fadeFromHeight": { "type": "integer" },
             "fadeToHeight": { "type": "integer" },
             "seaFadeFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "seaFadeTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "valley": {
               "type": "object",
-              "description": "How the valley of a river climbs the high ground (B02b redo): above from the channel's floor rises with the ground, about as deep under it as at from, and the valley widens with the height; water stands only where the floor is under the sea.",
+              "description": "How the valley of a river climbs the high ground (B02b redo): above from the river's water stands deeper under the ground the higher the ground is, and the valley widens with the height.",
               "required": ["from", "widthPer10Blocks", "depthGrowth"],
               "additionalProperties": false,
               "properties": {
                 "from": { "type": "integer", "description": "The land height in blocks above which the valley widens and the floor rises." },
                 "widthPer10Blocks": { "type": "integer", "minimum": 0, "maximum": 200, "description": "The thousandths of the river field the valley widens by for every 10 blocks of ground above from." },
-                "depthGrowth": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "How much deeper the valley is, in thousandths of a block, for every block of ground above from." },
-                "waterFrom": { "type": "integer", "minimum": -1000, "maximum": 1001, "description": "The continentalness, in thousandths, from which the floor is lifted out of the water; the river's water is only in its lower reach near the coast. Optional (none)." },
-                "waterTo": { "type": "integer", "minimum": -1000, "maximum": 1001, "description": "The continentalness from which the floor is a block over the sea at the lowest; above waterFrom." }
+                "depthGrowth": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "How much deeper the valley is, in thousandths of a block, for every block of ground above from." }
               }
             }
           }
         },
+        "water": {
+          "type": "object",
+          "description": "The level of the water of the rivers and lakes (B02b round 3): the smooth ground of the column less the hills' amplitude, clearance blocks and the valley's depth, in steps of step blocks above the sea level and never under it, so a river's surface steps down its valley in flat reaches and a lake is flat at its own height. Optional (a step of 3 and a clearance of 2).",
+          "required": ["step", "clearance"],
+          "additionalProperties": false,
+          "properties": {
+            "step": { "type": "integer", "minimum": 1, "maximum": 16, "description": "The height of a step of the water's surface, in blocks." },
+            "clearance": { "type": "integer", "minimum": 0, "maximum": 32, "description": "How many blocks under the smooth ground, besides the hills' amplitude, the surface stands." }
+          }
+        },
         "lakes": {
           "type": "object",
-          "required": ["cell", "octaves", "threshold", "softness", "bedHeight", "calmFrom", "calmTo", "heightFrom", "heightTo", "inlandFrom", "inlandTo"],
+          "required": ["cell", "octaves", "threshold", "softness", "depth", "calmFrom", "calmTo", "heightFrom", "heightTo", "inlandFrom", "inlandTo"],
           "additionalProperties": false,
           "properties": {
             "cell": { "type": "integer", "minimum": 1 },
             "octaves": { "type": "integer", "minimum": 1, "maximum": 8 },
             "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "softness": { "type": "integer", "minimum": 1 },
-            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the lake, in blocks." },
             "calmFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "calmTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "heightFrom": { "type": "integer" },

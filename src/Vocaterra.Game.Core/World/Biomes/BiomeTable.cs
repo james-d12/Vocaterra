@@ -70,23 +70,24 @@ public sealed class BiomeTable : IBiomeSelector
     /// <param name="height">The column's surface height in blocks.</param>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public BiomeColumn Classify(in ClimateSample c, int height, int x, int z)
+    /// <param name="water">Whether water covers the column (the height model's say, since a river or a lake has a level of its own); not given, the ground is below the sea.</param>
+    public BiomeColumn Classify(in ClimateSample c, int height, int x, int z, bool? water = null)
     {
         var temperature = c.Temperature + Jitter(_dither.Column(0, x, z), _ditherTemperature);
         var humidity = c.Humidity + Jitter(_dither.Column(1, x, z), _ditherHumidity);
         var surfaceTemperature = ClimateLapse.Apply(temperature, height, _seaLevel, _lapse);
-        var water = height < _seaLevel;
+        var wet = water ?? height < _seaLevel;
         var row = _rows[^1].Row;
         foreach (var compiled in _rows)
         {
-            if (compiled.Matches(water, c, temperature, humidity, height, surfaceTemperature))
+            if (compiled.Matches(wet, c, temperature, humidity, height, surfaceTemperature))
             {
                 row = compiled.Row;
                 break;
             }
         }
 
-        return new BiomeColumn(row, surfaceTemperature, row.SnowCap && !water && surfaceTemperature < _snowBelow, surfaceTemperature >= _treeLineBelow);
+        return new BiomeColumn(row, surfaceTemperature, row.SnowCap && !wet && surfaceTemperature < _snowBelow, surfaceTemperature >= _treeLineBelow);
     }
 
     /// <summary>The blocks a row names, resolved.</summary>

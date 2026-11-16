@@ -5,12 +5,13 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
 /// <summary>
 /// The chunk a pass writes into (B03): 4 096 blocks under construction, addressed by world position. A write outside the chunk is ignored, so a pass that reaches into a neighbour (a crown) can
-/// write everything it means and keep only what is inside. Procedural water is all source, so it carries no levels. Not shared: one builder is made, filled and turned into a
+/// write everything it means and keep only what is inside. Procedural water is source except where a river's surface steps down (falling water and a cell of thin flow, see <see cref="WaterPass"/>), so the levels are kept only then. Not shared: one builder is made, filled and turned into a
 /// <see cref="ChunkData"/> by one call.
 /// </summary>
 internal sealed class ChunkBuilder
 {
     private readonly BlockId[] _blocks = new BlockId[ChunkData.Volume];
+    private byte[]? _water;
 
     /// <summary>Starts a chunk of air.</summary>
     /// <param name="coord">The chunk's position.</param>
@@ -58,7 +59,27 @@ internal sealed class ChunkBuilder
     {
         if (Contains(x, y, z))
         {
-            _blocks[ChunkData.Index(x - MinX, y - MinY, z - MinZ)] = block;
+            var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
+            _blocks[index] = block;
+            if (_water is not null)
+            {
+                _water[index] = 0;
+            }
+        }
+    }
+
+    /// <summary>Sets the level of the water block at a world position (the cell must hold water; a position outside the chunk is ignored).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="y">The block's y.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="level">The level.</param>
+    public void SetWater(int x, int y, int z, WaterLevel level)
+    {
+        if (Contains(x, y, z))
+        {
+            var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
+            _blocks[index] = BlockId.Water;
+            (_water ??= new byte[ChunkData.Volume])[index] = level.Encoded;
         }
     }
 
@@ -74,14 +95,23 @@ internal sealed class ChunkBuilder
         var hi = Math.Min(y1, MaxY);
         for (var y = lo; y <= hi; y++)
         {
-            _blocks[ChunkData.Index(x - MinX, y - MinY, z - MinZ)] = block;
+            var index = ChunkData.Index(x - MinX, y - MinY, z - MinZ);
+            _blocks[index] = block;
+            if (_water is not null)
+            {
+                _water[index] = 0;
+            }
         }
     }
 
     /// <summary>Fills the whole chunk with one block.</summary>
     /// <param name="block">The block.</param>
-    public void FillAll(BlockId block) => Array.Fill(_blocks, block);
+    public void FillAll(BlockId block)
+    {
+        Array.Fill(_blocks, block);
+        _water = null;
+    }
 
     /// <summary>The finished chunk. The builder hands over its blocks and must not be written afterwards.</summary>
-    public ChunkData ToData() => new(Coord, _blocks, null);
+    public ChunkData ToData() => new(Coord, _blocks, _water);
 }

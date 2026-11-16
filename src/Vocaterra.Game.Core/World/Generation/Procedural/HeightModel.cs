@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// <summary>
 /// The tall world's ground (B01, biomes plan section 3.4): <c>height = base(C) + factor(E) x peaks(R) + detail</c>, from three data splines over the climate's continentalness,
 /// erosion and ridges, then terraces on the steep middle slopes, crags on the highest ridges, a soft cap above 280 at half rate, a clamp, rivers carved where the river field is near
-/// zero and lakes pulled into low calm basins. The splines are of the fields, never of a biome, so a border between biomes cannot make a cliff. Everything is fixed point (heights in
+/// zero and lakes pulled into low calm basins. Rivers and lakes hold water at a level of their own (round 3, <see cref="WaterSpec"/>): the surface steps down a valley with the smooth ground, the bed is a depth under it. The splines are of the fields, never of a biome, so a border between biomes cannot make a cliff. Everything is fixed point (heights in
 /// sixteenths of a block inside) and pure: the seed only keys the detail noise.
 /// </summary>
 public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
@@ -56,6 +56,7 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var factor = _factor.Evaluate(c.Erosion);
         var inland = IntMath.Ramp(c.Continentalness, FieldScale.FromThousandths(coast.PeaksFrom), FieldScale.FromThousandths(coast.PeaksTo));
         var h16 = _base.Evaluate(c.Continentalness) + (int)((long)(factor * (long)inland / One) * Summit(x, z, _peaks.Evaluate(c.Ridges)) / One);
+        var smooth16 = h16; // the ground without the hills, terraces and crags: the water's level follows it
 
         var detail = _data.Detail;
         var amplitude = IntMath.Lerp(detail.CalmAmplitude, detail.RuggedAmplitude, factor);
@@ -78,21 +79,37 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         h16 = Math.Min(h16, (_data.Clamp * 16) + 15);
         var natural = h16;
 
+        var level = SurfaceLevel(smooth16, amplitude);
         var riverWeight = RiverWeight(c, natural, share);
         if (riverWeight > 0)
         {
-            h16 = IntMath.Lerp(h16, Math.Min(h16, RiverFloor(natural, c.Continentalness)), riverWeight);
+            h16 = IntMath.Lerp(h16, Math.Min(h16, (level - _data.Rivers.Depth) * 16), riverWeight);
         }
 
         var lakeWeight = LakeWeight(x, z, c, natural, share);
         if (lakeWeight > 0)
         {
-            h16 = IntMath.Lerp(h16, Math.Min(h16, _data.Lakes.BedHeight * 16), lakeWeight);
+            h16 = IntMath.Lerp(h16, Math.Min(h16, (level - _data.Lakes.Depth) * 16), lakeWeight);
         }
 
         var height = Math.Clamp(IntMath.DivDown(h16, 16), _minY + 1, _data.Clamp);
-        var water = height < _seaLevel;
-        return new ColumnShape(height, Math.Max(IntMath.DivDown(natural, 16), height), water, water ? _seaLevel : -1, riverWeight, lakeWeight);
+        var surface = riverWeight > 0 || lakeWeight > 0 ? level : _seaLevel; // the water of a river or a lake stands at its own level, any other at the sea's
+        var water = height < surface;
+        return new ColumnShape(height, Math.Max(IntMath.DivDown(natural, 16), height), water, water ? surface : -1, riverWeight, lakeWeight, surface);
+    }
+
+    // The surface of the water a river or lake would have in a column (blocks): the smooth ground less what the hills, the clearance and the valley take, in steps above the sea, never under it.
+    private int SurfaceLevel(int smooth16, int amplitude)
+    {
+        var water = _data.Water;
+        var under = (amplitude + water.Clearance) * 16;
+        if (_data.Rivers.Valley is { } valley)
+        {
+            under += (int)((long)Math.Max(0, smooth16 - (valley.From * 16)) * valley.DepthGrowth / 1000);
+        }
+
+        var raw = IntMath.DivDown(smooth16 - under, 16);
+        return raw <= _seaLevel ? _seaLevel : _seaLevel + (IntMath.DivDown(raw - _seaLevel, water.Step) * water.Step);
     }
 
     // The peaks of a column scaled along the range: the summits stand where the noise is high and the saddles where it is low.
@@ -106,22 +123,6 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel
         var t = Math.Clamp((One / 2) + (_summits.Fbm(x, z, v.Cell, v.Octaves) * 3 / 2), 0, One); // spread over the noise's usual range, so there are summits and saddles and not one middling height
         var share = FieldScale.FromThousandths(v.MinShare);
         return (int)((long)peaks16 * IntMath.Lerp(share, One, IntMath.Smooth(t)) / One);
-    }
-
-    // The floor of a river's channel: the bed on low land, and on high ground a floor about as deep under the ground as at the valley's foot and deeper with the height (a valley that runs down, never a trench with a flat bed).
-    private int RiverFloor(int natural16, int continentalness)
-    {
-        var river = _data.Rivers;
-        var bed = river.BedHeight * 16;
-        if (river.Valley is not { } valley)
-        {
-            return bed;
-        }
-
-        var from = valley.From * 16;
-        var floor = natural16 <= from ? bed : Math.Max(bed, natural16 - ((from - bed) + (int)((long)(natural16 - from) * valley.DepthGrowth / 1000)));
-        var dry = IntMath.Ramp(continentalness, FieldScale.FromThousandths(valley.WaterFrom), FieldScale.FromThousandths(valley.WaterTo));
-        return IntMath.Lerp(floor, Math.Max(floor, (_seaLevel + 1) * 16), dry); // inland the river has no water: its floor stays a block over the sea
     }
 
     // Shelves on the steep middle slopes: from the foot height up, only where the land is rugged, and fading out towards the crest (which has crags instead).

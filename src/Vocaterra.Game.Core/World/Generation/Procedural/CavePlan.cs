@@ -43,13 +43,12 @@ internal sealed class CavePlan
         var u = world.Underground ?? throw new InvalidOperationException("The world has no underground.");
         var caves = u.Data.Caves;
         var entrances = u.Entrances;
-        var sea = world.SeaLevel;
         var ceilings = new int[VoxelChunk.Size * VoxelChunk.Size];
         var shafts = new int[VoxelChunk.Size * VoxelChunk.Size];
         var highest = int.MinValue;
         var opened = 0;
         var margin = caves.WaterMargin;
-        var water = WaterLimits(ctx, margin, caves.BedClearance, sea);
+        var water = WaterLimits(ctx, margin, caves.BedClearance);
         for (var lz = 0; lz < VoxelChunk.Size; lz++)
         {
             for (var lx = 0; lx < VoxelChunk.Size; lx++)
@@ -81,7 +80,7 @@ internal sealed class CavePlan
 
     // For each of the chunk column's 16 x 16 columns, the highest y the water rule lets a cave reach: under any water column of the cube of columns round it, the bed less the margin; under its own
     // water, the bed less the clearance. The minimum over the cube is taken along x and then along z.
-    private static int[] WaterLimits(ColumnContext ctx, int margin, int clearance, int sea)
+    private static int[] WaterLimits(ColumnContext ctx, int margin, int clearance)
     {
         const int Size = VoxelChunk.Size;
         var reach = Size + (2 * margin);
@@ -94,10 +93,10 @@ internal sealed class CavePlan
                 var low = int.MaxValue;
                 for (var rx = 0; rx <= 2 * margin; rx++)
                 {
-                    var h = ctx.HeightAt(ctx.ChunkMinX - margin + lx + rx, z);
-                    if (h < sea)
+                    var x = ctx.ChunkMinX - margin + lx + rx;
+                    if (ctx.WaterLevelAt(x, z) >= 0)
                     {
-                        low = Math.Min(low, h - margin);
+                        low = Math.Min(low, ctx.HeightAt(x, z) - margin); // a river's or a lake's bed counts as the sea's: the water's own level does not matter, the bed does
                     }
                 }
 
@@ -117,7 +116,7 @@ internal sealed class CavePlan
                 }
 
                 var own = ctx.HeightAt(ctx.ChunkMinX + lx, ctx.ChunkMinZ + lz);
-                limits[(lz * Size) + lx] = own < sea ? Math.Min(low, own - clearance) : low;
+                limits[(lz * Size) + lx] = ctx.WaterLevelAt(ctx.ChunkMinX + lx, ctx.ChunkMinZ + lz) >= 0 ? Math.Min(low, own - clearance) : low;
             }
         }
 
@@ -138,7 +137,7 @@ internal sealed class CavePlan
         {
             for (var dx = -spec.WaterReach; dx <= spec.WaterReach; dx++)
             {
-                if (ctx.HeightAt(x + dx, z + dz) < world.SeaLevel)
+                if (ctx.WaterLevelAt(x + dx, z + dz) >= 0)
                 {
                     return null;
                 }

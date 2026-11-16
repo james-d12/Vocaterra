@@ -67,6 +67,10 @@ internal static class Stats
         text.AppendLine(string.Create(inv, $"sea bodies: {sizes.Count}; the largest is {Pct(sizes.Count == 0 ? 0 : sizes[0], sea)}% of the sea columns; the five largest: {top}"));
 
         text.AppendLine(Rivers(map));
+        text.AppendLine(RiverWater(sampler, map));
+        text.AppendLine(Chains(map, 150, isSea));
+        text.AppendLine(Chains(map, 180, isSea));
+        text.AppendLine(Coast(map, isSea));
         var distance = DistanceFromOtherKind(map);
         text.AppendLine("coast profile (mean ground by distance from the shore, blocks):");
         text.Append("  land: ");
@@ -156,6 +160,220 @@ internal static class Stats
 
         return string.Create(CultureInfo.InvariantCulture, $"rivers: {bodies} bodies; {Pct(reaching, total)}% of the river columns lie in bodies that reach the sea or a lake; {loose} bodies ({Pct(looseColumns, total)}% of the columns) reach neither")
             + (looseList.Count == 0 ? string.Empty : "; the largest of them (columns at x, z): " + string.Join(", ", looseList.OrderByDescending(b => b.Size).Take(4).Select(b => $"{b.Size} at {b.X}, {b.Z}")));
+    }
+
+    // The water on the rivers (round 3): the river's line is where the carve is nearly full (0.9 or more of the weight) on land the sea does not reach; below the height the rivers fade out from, the share of those columns that hold water.
+    // The columns above it are the river's sources, where it begins.
+    private static string RiverWater(WorldSampler sampler, WorldMap map)
+    {
+        long line = 0;
+        long wet = 0;
+        long lineHigh = 0;
+        long wetHigh = 0;
+        var levels = new HashSet<int>();
+        for (var i = 0; i < map.Ground.Length; i++)
+        {
+            if (map.River[i] < 3700 || map.Natural[i] <= sampler.SeaLevel + 1)
+            {
+                continue;
+            }
+
+            if (map.Natural[i] <= sampler.RiverFadeFrom)
+            {
+                line++;
+                if (map.Water[i])
+                {
+                    wet++;
+                    levels.Add(map.WaterLevel[i]);
+                }
+            }
+            else
+            {
+                lineHigh++;
+                wetHigh += map.Water[i] ? 1 : 0;
+            }
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"river line (carve 0.9 or more) below y {sampler.RiverFadeFrom}: {line} columns, {Pct(wet, line)}% under water ({levels.Count} different water levels); above it (the sources): {lineHigh} columns, {Pct(wetHigh, lineHigh)}% under water");
+    }
+
+    // The ranges (round 3): the eight-connected bodies of land above a height, each with its width and length from the spread of its columns (the length of a rectangle of that spread, sqrt(12 x variance) along and across its main axis), so a chain is long and thin and a massif is wide.
+    // A body at the edge of the map is left out. The area-weighted median length, width and aspect, the share of the area in chains (aspect 3 or more, under 1 000 blocks wide) and in massifs (1 000 or wider).
+    private static string Chains(WorldMap map, int height, bool[] isSea)
+    {
+        int w = map.Width, h = map.Height;
+        var seen = new bool[w * h];
+        var bodies = new List<(int Count, double Length, double Width)>();
+        var stack = new Stack<int>();
+        for (var start = 0; start < seen.Length; start++)
+        {
+            if (seen[start] || isSea[start] || map.Water[start] || map.Ground[start] <= height)
+            {
+                continue;
+            }
+
+            seen[start] = true;
+            stack.Push(start);
+            long n = 0;
+            double sx = 0, sz = 0, sxx = 0, szz = 0, sxz = 0;
+            var atEdge = false;
+            while (stack.Count > 0)
+            {
+                var i = stack.Pop();
+                int x = i % w, y = i / w;
+                n++;
+                sx += x;
+                sz += y;
+                sxx += (double)x * x;
+                szz += (double)y * y;
+                sxz += (double)x * y;
+                atEdge |= x == 0 || y == 0 || x == w - 1 || y == h - 1;
+                for (var dy = -1; dy <= 1; dy++)
+                {
+                    for (var dx = -1; dx <= 1; dx++)
+                    {
+                        int nx = x + dx, ny = y + dy;
+                        if (nx < 0 || ny < 0 || nx >= w || ny >= h)
+                        {
+                            continue;
+                        }
+
+                        var j = (ny * w) + nx;
+                        if (!seen[j] && !isSea[j] && !map.Water[j] && map.Ground[j] > height)
+                        {
+                            seen[j] = true;
+                            stack.Push(j);
+                        }
+                    }
+                }
+            }
+
+            if (atEdge || n < 12)
+            {
+                continue;
+            }
+
+            var mx = sx / n;
+            var mz = sz / n;
+            var vxx = (sxx / n) - (mx * mx);
+            var vzz = (szz / n) - (mz * mz);
+            var vxz = (sxz / n) - (mx * mz);
+            var mean = (vxx + vzz) / 2;
+            var spread = Math.Sqrt((((vxx - vzz) / 2) * ((vxx - vzz) / 2)) + (vxz * vxz));
+            var major = mean + spread;
+            var minor = Math.Max(mean - spread, 0.01);
+            bodies.Add(((int)n, Math.Sqrt(12 * major) * map.Scale, Math.Sqrt(12 * minor) * map.Scale));
+        }
+
+        if (bodies.Count == 0)
+        {
+            return $"land above {height}: no body that stays inside the map";
+        }
+
+        var total = bodies.Sum(b => (long)b.Count);
+        double Median(Func<(int Count, double Length, double Width), double> key)
+        {
+            var sorted = bodies.OrderBy(key).ToList();
+            long acc = 0;
+            foreach (var b in sorted)
+            {
+                acc += b.Count;
+                if (acc * 2 >= total)
+                {
+                    return key(b);
+                }
+            }
+
+            return 0;
+        }
+
+        var chains = bodies.Where(b => b.Length / b.Width >= 3 && b.Width < 1000).Sum(b => (long)b.Count);
+        var massifs = bodies.Where(b => b.Width >= 1000).Sum(b => (long)b.Count);
+        return string.Create(CultureInfo.InvariantCulture, $"land above {height}: {bodies.Count} bodies; area-weighted median length {Median(b => b.Length):0}, width {Median(b => b.Width):0}, aspect {Median(b => b.Length / b.Width):0.0}; {Pct(chains, total)}% of the area in chains (aspect 3 or more, under 1 000 wide), {Pct(massifs, total)}% in massifs (1 000 wide or more); the longest {bodies.Max(b => b.Length):0}");
+    }
+
+    // The straightness of the coast (round 3): the land columns next to the sea are the coast; from each, in 32 directions, a line is followed while a coast column lies within one column of it; the longest such run (both ways through the column) is how far the coast
+    // runs straight there, to within about a column's width either side. The longest run anywhere, and the share of the coast that lies on a straight run of 300 blocks or more.
+    private static string Coast(WorldMap map, bool[] isSea)
+    {
+        int w = map.Width, h = map.Height;
+        var coast = new bool[w * h];
+        var points = new List<int>();
+        for (var y = 1; y < h - 1; y++)
+        {
+            for (var x = 1; x < w - 1; x++)
+            {
+                var i = (y * w) + x;
+                if (!isSea[i] && !map.Water[i] && (isSea[i - 1] || isSea[i + 1] || isSea[i - w] || isSea[i + w]))
+                {
+                    coast[i] = true;
+                    points.Add(i);
+                }
+            }
+        }
+
+        if (points.Count == 0)
+        {
+            return "coast: none";
+        }
+
+        const int Directions = 32;
+        var maxSteps = (int)(1200 / map.Scale);
+        var dxs = new double[Directions];
+        var dys = new double[Directions];
+        for (var d = 0; d < Directions; d++)
+        {
+            dxs[d] = Math.Cos(2 * Math.PI * d / Directions);
+            dys[d] = Math.Sin(2 * Math.PI * d / Directions);
+        }
+
+        bool Near(double fx, double fy)
+        {
+            int cx = (int)Math.Round(fx), cy = (int)Math.Round(fy);
+            for (var oy = -1; oy <= 1; oy++)
+            {
+                for (var ox = -1; ox <= 1; ox++)
+                {
+                    int nx = cx + ox, ny = cy + oy;
+                    if (nx >= 0 && ny >= 0 && nx < w && ny < h && coast[(ny * w) + nx])
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        var run = new double[Directions];
+        double longest = 0;
+        long straight = 0;
+        var cutoff = 300.0 / map.Scale;
+        foreach (var i in points)
+        {
+            int x = i % w, y = i / w;
+            for (var d = 0; d < Directions; d++)
+            {
+                var steps = 0;
+                while (steps < maxSteps && Near(x + (dxs[d] * (steps + 1)), y + (dys[d] * (steps + 1))))
+                {
+                    steps++;
+                }
+
+                run[d] = steps;
+            }
+
+            var best = 0.0;
+            for (var d = 0; d < Directions / 2; d++)
+            {
+                best = Math.Max(best, run[d] + run[d + (Directions / 2)]);
+            }
+
+            longest = Math.Max(longest, best);
+            straight += best >= cutoff ? 1 : 0;
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"coast: {points.Count} columns; the longest straight run (within a column of a line) {longest * map.Scale:0} blocks; {Pct(straight, points.Count)}% of the coast lies on a straight run of 300 blocks or more");
     }
 
     // A river column: under water and carved by the river (a lake or the sea is water that is not).

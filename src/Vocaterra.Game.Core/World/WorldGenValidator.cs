@@ -185,15 +185,15 @@ internal static class WorldGenValidator
         }
 
         var r = h.Rivers;
-        if (r.Width < 1 || r.Width > 1000 || r.BedHeight >= v.SeaLevel || r.BedHeight <= v.MinY || r.FadeFromHeight >= r.FadeToHeight)
+        if (r.Width < 1 || r.Width > 1000 || r.Depth < 1 || r.Depth > 32 || r.FadeFromHeight >= r.FadeToHeight)
         {
-            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a bedHeight below the sea level and above the floor, and a fadeFromHeight below fadeToHeight.");
+            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a depth from 1 to 32, and a fadeFromHeight below fadeToHeight.");
         }
 
         Ordered(problems, "height.rivers.seaFadeFrom/seaFadeTo", r.SeaFadeFrom, r.SeaFadeTo, -1000, 1000);
-        if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer10Blocks < 0 || valley.WidthPer10Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000 || valley.WaterFrom >= valley.WaterTo || valley.WaterFrom < -1000 || valley.WaterTo > 1001))
+        if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer10Blocks < 0 || valley.WidthPer10Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000))
         {
-            problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer10Blocks from 0 to 200 and a depthGrowth from 0 to 1000 and a waterFrom below a waterTo, both from -1000 to 1001 (they are {valley.From}, {valley.WidthPer10Blocks} and {valley.DepthGrowth}).");
+            problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer10Blocks from 0 to 200 and a depthGrowth from 0 to 1000 (they are {valley.From}, {valley.WidthPer10Blocks} and {valley.DepthGrowth}).");
         }
 
         if (h.PeakVariation is { } pv && (pv.Cell < 1 || pv.Octaves < 1 || pv.Octaves > 8 || pv.Cell >> (pv.Octaves - 1) < 1 || pv.MinShare < 0 || pv.MinShare > 1000))
@@ -201,10 +201,15 @@ internal static class WorldGenValidator
             problems.Add($"{File}: height.peakVariation needs a cell its 1 to 8 octaves can halve and a minShare from 0 to 1000 (they are {pv.Cell}, {pv.Octaves} and {pv.MinShare}).");
         }
 
-        var l = h.Lakes;
-        if (l.Cell < 1 || l.Octaves < 1 || l.Octaves > 8 || l.Cell >> (l.Octaves - 1) < 1 || l.Softness < 1 || l.BedHeight >= v.SeaLevel || l.BedHeight <= v.MinY || l.HeightFrom >= l.HeightTo)
+        if (h.Water.Step < 1 || h.Water.Step > 16 || h.Water.Clearance < 0 || h.Water.Clearance > 32)
         {
-            problems.Add($"{File}: height.lakes needs a cell its octaves can halve, a softness of at least 1, a bedHeight below the sea level and above the floor, and a heightFrom below heightTo.");
+            problems.Add($"{File}: height.water needs a step from 1 to 16 and a clearance from 0 to 32 (they are {h.Water.Step} and {h.Water.Clearance}).");
+        }
+
+        var l = h.Lakes;
+        if (l.Cell < 1 || l.Octaves < 1 || l.Octaves > 8 || l.Cell >> (l.Octaves - 1) < 1 || l.Softness < 1 || l.Depth < 1 || l.Depth > 32 || l.HeightFrom >= l.HeightTo)
+        {
+            problems.Add($"{File}: height.lakes needs a cell its octaves can halve, a softness of at least 1, a depth from 1 to 32, and a heightFrom below heightTo.");
         }
 
         Thousandths(problems, "height.lakes.threshold", l.Threshold);

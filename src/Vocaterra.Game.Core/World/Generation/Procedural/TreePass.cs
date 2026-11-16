@@ -226,14 +226,14 @@ internal sealed class TreePass : IChunkDecorator
         return new PlantedTree(c.X, c.Z, ground.Height, length, species, entry.Crown, c.Shape, c.Priority, c.CellX, c.CellZ);
     }
 
-    // Whether a column of the eight round it is under the sea. The bank's own column must stay open: a trunk there would leave a body in the water no floor to climb out onto but the crown's top.
+    // Whether a column of the eight round it holds water (the sea's, a river's or a lake's). The bank's own column must stay open: a trunk there would leave a body in the water no floor to climb out onto but the crown's top.
     private static bool BesideWater(ColumnContext ctx, int x, int z)
     {
         for (var dz = -1; dz <= 1; dz++)
         {
             for (var dx = -1; dx <= 1; dx++)
             {
-                if (ctx.HeightAt(x + dx, z + dz) < ctx.World.SeaLevel)
+                if (ctx.WaterLevelAt(x + dx, z + dz) >= 0)
                 {
                     return true;
                 }

@@ -197,7 +197,7 @@ internal sealed class BlendedHeightModel : IHeightModel
     private ColumnShape Own(int ground)
     {
         var water = ground < _blend.SeaLevel;
-        return new ColumnShape(ground, ground, water, water ? _blend.SeaLevel : -1, 0, 0);
+        return new ColumnShape(ground, ground, water, water ? _blend.SeaLevel : -1, 0, 0, _blend.SeaLevel);
     }
 
     // The column eased by weight towards a ground height: the water's weights give way to the ground by the same weight.
@@ -205,9 +205,10 @@ internal sealed class BlendedHeightModel : IHeightModel
     {
         var height = IntMath.Lerp(shape.Height, ground, weight);
         var natural = Math.Max(height, IntMath.Lerp(shape.NaturalHeight, ground, weight));
-        var water = height < _blend.SeaLevel;
+        var surface = shape.Surface >= 0 ? shape.Surface : _blend.SeaLevel; // the water stands at the level the free world gave the column (a river's own, or the sea's)
+        var water = height < surface;
         var keep = One - weight;
-        return new ColumnShape(height, natural, water, water ? _blend.SeaLevel : -1, (int)((long)shape.RiverWeight * keep / One), (int)((long)shape.LakeWeight * keep / One));
+        return new ColumnShape(height, natural, water, water ? surface : -1, (int)((long)shape.RiverWeight * keep / One), (int)((long)shape.LakeWeight * keep / One), surface);
     }
 
     /// <inheritdoc />

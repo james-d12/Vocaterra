@@ -26,8 +26,8 @@ internal sealed class GenerationPipeline
     /// <summary>The order of the shipped passes: the one place that registers them.</summary>
     /// <param name="world">The world the passes read.</param>
     public static GenerationPipeline Standard(GenerationWorld world) => new(
-        [new ReliefPass(world), new RiverBankPass(world), new WaterEdgePass(world)],
-        [new SurfacePass(), new WaterPass(world), new StonePass(), .. UndergroundPasses(world), new TreePass(), new UndergrowthPass(world)]);
+        [new ReliefPass(world), new RiverBankPass(world), new WaterEdgePass()],
+        [new SurfacePass(), new WaterPass(), new StonePass(), .. UndergroundPasses(world), new TreePass(), new UndergrowthPass(world)]);
 
     // The underground's passes, after the stone: the rock layers, the floor, the caves cut into them, the lava that fills the deep caves, then the ores in the rock that is left.
     private static IChunkDecorator[] UndergroundPasses(GenerationWorld world) =>

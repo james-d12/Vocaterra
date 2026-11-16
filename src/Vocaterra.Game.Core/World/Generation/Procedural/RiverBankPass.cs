@@ -4,8 +4,8 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
 /// <summary>
 /// The river banks (B03): the valley's bank profile, ported from <c>TerrainGenerator.BankHeight</c>. A dry column the river or a lake reached (the height model's carve weight above zero)
-/// starts at the water's own level where the carve is full and eases up to the natural ground as it fades, by the square of the distance, so the shore stands a block over the shallow bed at
-/// most and a long gentle shoulder leads up to the land. On the high ground a river's valley (B02b redo, <see cref="ValleySpec"/>) has its own profile from the height model and is left alone. A column keeps the lower of the height the model gave it and the bank. Pure per column: it reads only the column's own shape.
+/// starts at the water's own level (the level of the river or lake: B02b round 3, <see cref="WaterSpec"/>) where the carve is full and eases up to the natural ground as it fades, by the square of the distance, so the shore stands a block over the shallow bed at
+/// most and a long gentle shoulder leads up to the land. A column keeps the lower of the height the model gave it and the bank, and never falls under the water's level. Pure per column: it reads only the column's own shape.
 /// </summary>
 internal sealed class RiverBankPass : IColumnShaper
 {
@@ -32,23 +32,22 @@ internal sealed class RiverBankPass : IColumnShaper
     /// <inheritdoc />
     public void Shape(ColumnContext ctx)
     {
-        var sea = _world.SeaLevel;
-        var valleyFrom = _world.Data.Height.Rivers.Valley?.From ?? int.MaxValue; // above it a river runs down a valley of its own profile, not a bank at the water's level
         for (var z = ctx.OriginZ; z < ctx.OriginZ + ctx.Size; z++)
         {
             for (var x = ctx.OriginX; x < ctx.OriginX + ctx.Size; x++)
             {
                 var shape = ctx.ShapeAt(x, z);
                 var carve = Math.Max(shape.RiverWeight, shape.LakeWeight);
-                if (shape.Water || carve == 0 || (shape.NaturalHeight > valleyFrom && shape.RiverWeight >= shape.LakeWeight))
+                if (shape.Water || carve == 0)
                 {
                     continue;
                 }
 
-                var bank = IntMath.DivDown(BankHeight(sea, shape.NaturalHeight * 16, IntMath.One - carve), 16);
+                var level = shape.Surface >= 0 ? shape.Surface : _world.SeaLevel;
+                var bank = IntMath.DivDown(BankHeight(level, shape.NaturalHeight * 16, IntMath.One - carve), 16);
                 if (bank < ctx.HeightAt(x, z))
                 {
-                    ctx.SetHeight(x, z, bank);
+                    ctx.SetHeight(x, z, Math.Max(bank, level));
                 }
             }
         }
