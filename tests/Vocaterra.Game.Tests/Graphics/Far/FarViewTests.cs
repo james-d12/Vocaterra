@@ -280,4 +280,76 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.Equal(0, view.Missing);
         Assert.True(view.Stats.Built > FarTileSelector.Select(Small, 192, 192, Voxel).Count - 1);
     }
+
+    private sealed class GatedDisk : Vocaterra.Game.Core.World.Lod.ILodPersistence
+    {
+        public ManualResetEventSlim Started { get; } = new();
+
+        public ManualResetEventSlim Release { get; } = new();
+
+        public byte[]? Load(Vocaterra.Game.Core.World.Lod.LodSectionKey key)
+        {
+            Started.Set();
+            Release.Wait();
+            return null;
+        }
+
+        public void Save(Vocaterra.Game.Core.World.Lod.LodSectionKey key, byte[] blob)
+        {
+        }
+    }
+
+    [Fact]
+    public void Given_ATileJobRunningWhenTheViewIsReshaped_When_ItFinishesAfterwards_Then_ItsMeshIsRefusedAndTheViewIsBuiltFromTheNewSettingsAlone()
+    {
+        // B07f, C7: a job of the old settings finishing after the lane was cleared was taken for the answer to a newer request of the same key.
+        using var pool = new JobPool(1);
+        var gate = new GatedDisk();
+        var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(gate));
+        view.Update(192, 192, Voxel, Release, 0);
+        Assert.True(gate.Started.Wait(60_000), "a tile job is running");
+
+        var reshaped = Small with { Levels = 6 };
+        view.Reconfigure(reshaped, Release);
+        gate.Release.Set();
+        var until = Environment.TickCount64 + 60_000;
+        while (pool.Pending > 0 && Environment.TickCount64 < until)
+        {
+            Thread.Sleep(5); // the old job finishes and leaves its mesh in the view's queue
+        }
+
+        view.Update(192, 192, Voxel, Release, 0); // collects what the old job left: nothing of it may be taken (what this call asks for has not been collected yet)
+        Assert.Equal(0, view.Stats.Cached);
+        Assert.Equal(0, view.Stats.Built);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+
+        var leaves = FarTileSelector.Select(reshaped, 192, 192, Voxel).Count;
+        Assert.Equal(leaves, view.Stats.Built);
+        Assert.Equal(0, view.Stale);
+    }
+
+    [Fact]
+    public void Given_ATileWhoseNewerMeshWaitsAndWhoseOldBufferIsOnTheCard_When_TheEyeLeavesAndComesBack_Then_ItIsMadeAgainAndNotShownFromTheOldBuffer()
+    {
+        // B07f, C6: the newer mesh of a tile nobody wants was dropped and the tile kept its old buffer, as if it were current.
+        using var pool = new JobPool(0);
+        var view = Make(pool);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        var tile = view.Draw.First(static t => t.Key.Level == 0);
+        tile.Buffer = (Microsoft.Xna.Framework.Graphics.VertexBuffer)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Microsoft.Xna.Framework.Graphics.VertexBuffer));
+        Assert.NotNull(tile.Pending);
+
+        for (var frame = 0; frame < 20; frame++)
+        {
+            view.Update(9000, 9000, Voxel, Release, 0);
+        }
+
+        Assert.Contains(tile, _released);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        var again = view.Draw.First(t => t.Key == tile.Key);
+        Assert.NotSame(tile, again);
+        Assert.Null(again.Buffer);
+        Assert.NotNull(again.Pending);
+        Assert.Equal(0, view.Stale);
+    }
 }

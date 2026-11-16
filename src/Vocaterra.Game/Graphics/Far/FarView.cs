@@ -95,8 +95,10 @@ public sealed class FarView
     private readonly HashSet<FarTileKey> _used = [];
     private readonly List<FarTileKey> _idle = [];
     private int _trims;
-    private readonly ConcurrentQueue<FarTileKey> _failed = new();
-    private readonly ConcurrentQueue<FarTileMesh> _done = new();
+    // Each result carries the version of the settings it was made under (B07f): a job that was running when the view was reshaped or cleared finishes later and is refused, not taken for the answer to a newer request of the same key.
+    private readonly ConcurrentQueue<(int Version, FarTileKey Key)> _failed = new();
+    private readonly ConcurrentQueue<(int Version, FarTileMesh Mesh)> _done = new();
+    private int _version;
     private readonly List<FarTile> _draw = [];
     private readonly List<FarTile> _fallbacks = [];
     private volatile HashSet<FarTileKey> _wanted = [];
@@ -244,8 +246,13 @@ public sealed class FarView
             _dirty.Clear();
             _rebuilding.Clear();
             _bad.Clear();
+            _version++;
             _pool.Clear(JobLane.Tiles);
             while (_done.TryDequeue(out _))
+            {
+            }
+
+            while (_failed.TryDequeue(out _))
             {
             }
         }
@@ -351,15 +358,27 @@ public sealed class FarView
     // Takes the tiles the workers finished into the cache.
     private void Collect()
     {
-        while (_failed.TryDequeue(out var failed))
+        while (_failed.TryDequeue(out var late))
         {
+            if (late.Version != _version)
+            {
+                continue; // a job of settings that are gone
+            }
+
+            var failed = late.Key;
             _ = _building.Remove(failed);
             _ = _rebuilding.Remove(failed);
             _ = _bad.Add(failed);
         }
 
-        while (_done.TryDequeue(out var mesh))
+        while (_done.TryDequeue(out var finished))
         {
+            if (finished.Version != _version)
+            {
+                continue; // made under settings that are gone: the key may be asked for again under the new ones and this is not its answer
+            }
+
+            var mesh = finished.Mesh;
             _ = _building.Remove(mesh.Key);
             _ = _rebuilding.Remove(mesh.Key);
             if (!_wanted.Contains(mesh.Key) && !_tiles.ContainsKey(mesh.Key))
@@ -390,6 +409,7 @@ public sealed class FarView
         var settings = Settings;
         var grey = _grey;
         var source = World;
+        var version = _version;
         foreach (var key in _leaves)
         {
             if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
@@ -413,11 +433,11 @@ public sealed class FarView
                 {
                     try
                     {
-                        _done.Enqueue(FarTileMesher.Build(source, settings, captured, grey));
+                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey)));
                     }
                     catch (Exception ex) when (ex is not OutOfMemoryException)
                     {
-                        _failed.Enqueue(captured); // a torn section or a bug in one tile: the key is released, the others go on
+                        _failed.Enqueue((version, captured)); // a torn section or a bug in one tile: the key is released, the others go on
                     }
                 });
         }
@@ -493,6 +513,7 @@ public sealed class FarView
         {
             dispose(_tiles[key]);
             _ = _tiles.Remove(key);
+            _ = _dirty.Remove(key);
         }
     }
 
@@ -516,16 +537,10 @@ public sealed class FarView
 
         foreach (var key in _idle)
         {
-            var tile = _tiles[key];
-            if (tile.Buffer is null)
-            {
-                dispose(tile);
-                _ = _tiles.Remove(key);
-            }
-            else
-            {
-                tile.Pending = null; // the card's buffers stay; the memory of the newer mesh goes
-            }
+            // The newer mesh is dropped, and with it the tile: a tile that kept its old buffer would show the old sections as if they were the current ones when it is wanted again, with nothing to say it is stale (B07f). It is made again when it is wanted.
+            dispose(_tiles[key]);
+            _ = _tiles.Remove(key);
+            _ = _dirty.Remove(key);
         }
     }
 
@@ -542,8 +557,11 @@ public sealed class FarView
         _tiles.Clear();
         _draw.Clear();
         _building.Clear();
+        _dirty.Clear();
+        _rebuilding.Clear();
         _bad.Clear();
         _wanted = [];
+        _version++;
         _pool.Clear(JobLane.Tiles);
     }
 }
