@@ -910,6 +910,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     the data, draw calls, the card's memory, precision) and a two-step plan (within MonoGame first; card-driven rendering only if needed):
     "Use those as reference" (his three Voxy screenshots of item 29, kept outside git in `artifacts/reference/voxy/`, third-party, never
     committed). B19 in the biomes plan (section 3.10), planned only like B17.
+36. **No snow in the valley** (2026-11-16, about 18:15 UTC): "can you add a milestone to remove the snow from the valley, it now doesnt
+    make sense to have snow on the mountain when the valley with the procedural generated area". The hand-crafted valley lays snow on its
+    ring's tops above `snowLine` 100 (scene.json; `SceneBuilder`), while the generated land round it has snow only above y 120 on its
+    mountains. B20 removes the valley's snow (the tops become the stone or grass the slope would carry); snowfall as weather is unchanged.
 
 ## Already decided
 
