@@ -198,7 +198,8 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
                 var x = left + (px * scale);
                 var z = top + (py * scale);
                 var c = climate.At(x, z);
-                var row = table.Classify(c, height.Shape(x, z, c).Height, x, z).Row;
+                var shape = height.Shape(x, z, c);
+                var row = table.Classify(c, shape.Height, x, z, shape.Water).Row;
                 seen.Add(row.Index);
                 Assert.Equal(palette.Of(row), PngDecoder.Pixel(image, px, py));
             }
