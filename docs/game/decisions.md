@@ -841,6 +841,11 @@ the owner's answers of 2026-11-15 are in its section 5.
 23. **The ores easier to see** (2026-11-15, about 23:25 UTC, on B10's tile sheet): "I think the ores should be more obvious. In terms of
     their colour." Larger clusters of strong colour with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with
     green patina) on the same stone. Added to B10b.
+24. **B02b gets a third round before it merges** (2026-11-16, about 01:30 UTC, on round 2's maps: 38 to 42% sea in one ocean,
+    continents of 8,000 to 12,000 blocks, ranges rising inland round the valley, clean beaches; but rivers mostly dry valleys since water
+    stands only at sea level, broad massifs, polygon coasts): "Another round first" (over merging round 2 with a follow-up B02c, or
+    merging it as it is). Round 3: rivers hold water all the way down (a water level per column, generated at rest), thinner chains,
+    smoother coasts; then the whole tuning is gated once (`.claude/briefs/b02b-round3.md`).
 
 ## Already decided
 
