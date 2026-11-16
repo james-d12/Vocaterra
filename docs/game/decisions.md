@@ -870,6 +870,9 @@ the owner's answers of 2026-11-15 are in its section 5.
     things up ... perhaps some segments of gravel in there or something to break it up." Added to B11b: pockets and bands of gravel,
     sand, dirt and the stone kinds (granite, limestone, slate, mossy stone, new kinds if they read better) in cave walls and floors and on
     exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
+28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
+    8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
+    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay.
 
 ## Already decided
 
