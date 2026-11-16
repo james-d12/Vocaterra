@@ -123,8 +123,8 @@ public sealed class ProceduralChunkSourceTests
             var (cx, cz) = ProceduralTestWorld.Find(7, feature);
             var column = source.GenerateColumn(cx, cz);
 
-            Assert.Equal(BlockId.Bedrock, column[0].Blocks[0]);
-            Assert.True(column[0].Blocks.ToArray().All(static b => b is not (BlockId.Air or BlockId.Water or BlockId.Stone)), $"the lowest chunk of {feature} is rock, bedrock, ore or lava, with no air");
+            Assert.True(column[0].Blocks[..256].ToArray().All(static b => b == BlockId.Bedrock), $"the floor of {feature} at y -64 is bedrock"); // a cave may reach the lowest chunk above the floor (B11), so the floor row is the check
+            Assert.True(column[0].Blocks.ToArray().All(static b => b is not (BlockId.Water or BlockId.Stone)), $"the lowest chunk of {feature} is rock, bedrock, ore, lava or the air of a cave, with no water and no plain stone");
             Assert.True(column[^1].IsEmpty || feature == Feature.Mountain, "the highest chunk of the world is air (a range may reach into it)");
         }
     }

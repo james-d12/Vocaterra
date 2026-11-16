@@ -24,12 +24,12 @@ public sealed class StreamingPolicyDeterminismTests
         (0, 210, 62, 200, BlockId.Planks),
         (2, 386, 60, 210, BlockId.Planks),
         (3, 440, 70, 208, BlockId.Planks),
-        (4, 475, 72, 215, BlockId.Stone),
+        (4, 475, 72, 215, BlockId.Cobble),
         (5, 610, 85, 255, BlockId.Planks),
         (6, 440, 70, 208, null), // puts back what step 3 replaced: that chunk is unchanged again
         (7, 515, 30, 95, BlockId.Planks),
         (8, 95, -10, -95, BlockId.Planks),
-        (9, -300, 40, 50, BlockId.Stone),
+        (9, -300, 40, 50, BlockId.Cobble),
         (11, 205, 61, 201, BlockId.Planks),
     ];
 

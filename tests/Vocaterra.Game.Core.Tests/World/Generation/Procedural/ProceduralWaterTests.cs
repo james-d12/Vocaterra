@@ -5,13 +5,12 @@ using Vocaterra.Game.Core.Water.Flow;
 namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 
 /// <summary>
-/// The procedural water (B03, H07, D-game-26): every water block is a source at the sea level, so the sea, the rivers and the lakes are at rest from the start (waking every water block
-/// changes nothing), and every edge of the water can be left by a body in it.
+/// The procedural water (B03, H07, D-game-26, B02b round 3): the sea, every river and every lake hold water at a level of their own, every water block is a source (a river's surface steps down in falling water, built the way the valley's rapids
+/// are), so the whole of it is at rest from the start (waking every water block changes nothing), a column of water is one run of water on solid ground, and every edge of the water can be left by a body in it.
 /// </summary>
 public sealed class ProceduralWaterTests
 {
-    private const int Layers = 6; // y 0 to 95: the sea at 32, the shores and the trees round them
-    private const int SeaLevel = 32;
+    private const int Layers = 14; // y 0 to 223: the sea at 32, rivers and lakes at their own levels, the shores and the trees round them
 
     public static TheoryData<ulong, Feature> Waters
     {
@@ -38,7 +37,7 @@ public sealed class ProceduralWaterTests
 
     [Theory]
     [MemberData(nameof(Waters))]
-    public void Given_AGeneratedShore_When_ItsColumnsAreRead_Then_EveryColumnBelowTheSeaIsWaterUpToTheSeaAndNothingIsWetAboveIt(ulong seed, Feature feature)
+    public void Given_AGeneratedShore_When_ItsColumnsAreRead_Then_EveryColumnOfWaterIsOneRunOfWaterOnSolidGroundWithNothingWetAboveIt(ulong seed, Feature feature)
     {
         var grid = WaterGrid(seed, feature);
         var wet = 0;
@@ -46,21 +45,29 @@ public sealed class ProceduralWaterTests
         {
             for (var x = 0; x < grid.SizeX; x++)
             {
-                Assert.NotEqual(BlockId.Air, grid.GetBlock(x, SeaLevel, z)); // a column is water or ground at the sea level, never open
-                Assert.NotEqual(BlockId.Water, grid.GetBlock(x, SeaLevel + 1, z));
-                if (grid.GetBlock(x, SeaLevel, z) != BlockId.Water)
+                var top = grid.SizeY - 1;
+                while (top > 0 && grid.GetBlock(x, top, z) != BlockId.Water)
+                {
+                    top--;
+                }
+
+                if (grid.GetBlock(x, top, z) != BlockId.Water)
                 {
                     continue;
                 }
 
                 wet++;
-                var y = SeaLevel;
+                var y = top;
                 while (y > 0 && grid.GetBlock(x, y - 1, z) == BlockId.Water)
                 {
                     y--;
                 }
 
                 Assert.True(y > 0 && BlockDefinition.IsSolid(grid.GetBlock(x, y - 1, z)), $"the water at {x}, {z} rests on {grid.GetBlock(x, y - 1, z)}");
+                for (var above = top + 1; above < grid.SizeY; above++)
+                {
+                    Assert.NotEqual(BlockId.Water, grid.GetBlock(x, above, z));
+                }
             }
         }
 
@@ -79,11 +86,6 @@ public sealed class ProceduralWaterTests
             {
                 for (var y = 1; y < grid.SizeY - 1; y++)
                 {
-                    if (y > SeaLevel + 2)
-                    {
-                        break;
-                    }
-
                     var now = FlowCell.Read(grid, x, y, z);
                     if (FlowRules.Next(grid, x, y, z) != now)
                     {
@@ -106,15 +108,29 @@ public sealed class ProceduralWaterTests
     }
 
     [Fact]
-    public void Given_ChunksOfTheSeaAndTheLand_When_TheyAreGenerated_Then_NoWaterIsAnythingButASource()
+    public void Given_ChunksOfRiversOfThreeSeeds_When_TheyAreGenerated_Then_ASurfaceThatStepsDownIsFallingWaterAndNothingElseFlows()
     {
         foreach (var seed in ProceduralTestWorld.Seeds)
         {
-            var (cx, cz) = ProceduralTestWorld.Find(seed, Feature.Coast);
-            var region = new GeneratedRegion(ProceduralTestWorld.Source(seed), cx - 1, cz - 1, 3, 3);
+            var (falling, thin, other) = (0, 0, 0);
+            for (var skip = 0; skip < 8; skip++)
+            {
+                var (cx, cz) = ProceduralTestWorld.Find(seed, Feature.River, skip * 7);
+                var region = new GeneratedRegion(ProceduralTestWorld.Source(seed), cx - 1, cz - 1, 3, 3);
+                foreach (var chunk in region.Chunks.Where(static c => c.HasWaterLevels))
+                {
+                    foreach (var encoded in chunk.WaterLevels.ToArray().Where(static e => e != 0))
+                    {
+                        var level = WaterLevel.FromEncoded(encoded);
+                        falling += level.Falling ? 1 : 0;
+                        thin += !level.Falling && level.Distance == 1 ? 1 : 0;
+                        other += !level.Falling && level.Distance != 1 ? 1 : 0;
+                    }
+                }
+            }
 
-            Assert.All(region.Chunks, chunk => Assert.False(chunk.HasWaterLevels));
-            Assert.Contains(region.Chunks, chunk => chunk.Blocks.ToArray().Contains(BlockId.Water));
+            Assert.True(falling > 0 && thin > 0, $"seed {seed}: {falling} falling cells and {thin} cells of thin flow in eight river chunks: no step of the water was built");
+            Assert.Equal(0, other); // the only flowing water is the falling cells and the one cell of thin flow that tops each of them
         }
     }
 }

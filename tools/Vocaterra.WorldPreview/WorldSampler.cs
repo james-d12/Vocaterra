@@ -14,7 +14,9 @@ namespace Vocaterra.WorldPreview;
 /// <param name="Snow">Whether the ground is above the snow line (temperature at the ground below the snow threshold), on land.</param>
 /// <param name="SnowLine">The lowest y at which snow lies in this column, or null when it is never cold enough.</param>
 /// <param name="TreeLine">The lowest y above which no tree grows in this column, or null when it is never cold enough.</param>
-internal readonly record struct Column(int Ground, bool Water, int WaterLevel, int Biome, bool Snow, int? SnowLine, int? TreeLine);
+/// <param name="RiverWeight">How much a river carved the column, 0 to 4 096 (0 in the valley world, which has no weights).</param>
+/// <param name="Natural">The ground before the rivers and lakes carved it.</param>
+internal readonly record struct Column(int Ground, bool Water, int WaterLevel, int Biome, bool Snow, int? SnowLine, int? TreeLine, int RiverWeight = 0, int Natural = 0);
 
 /// <summary>The columns of a square area, one for each pixel.</summary>
 internal sealed class WorldMap
@@ -30,6 +32,9 @@ internal sealed class WorldMap
         Water = new bool[width * height];
         Snow = new bool[width * height];
         Biome = new short[width * height];
+        River = new short[width * height];
+        Natural = new short[width * height];
+        WaterLevel = new short[width * height];
     }
 
     /// <summary>The block x of the first pixel.</summary>
@@ -52,6 +57,15 @@ internal sealed class WorldMap
     public bool[] Snow { get; }
 
     public short[] Biome { get; }
+
+    /// <summary>How much a river carved each column, 0 to 4 096.</summary>
+    public short[] River { get; }
+
+    /// <summary>The ground before the rivers and lakes carved it.</summary>
+    public short[] Natural { get; }
+
+    /// <summary>The y of the water's top block in each column, or -1.</summary>
+    public short[] WaterLevel { get; }
 
     /// <summary>The block x of a pixel column.</summary>
     public int BlockX(int px) => Left + (px * Scale);
@@ -99,9 +113,15 @@ internal sealed class WorldSampler
 
     public int SeaLevel => _world.Vertical.SeaLevel;
 
+    /// <summary>The height from which the rivers fade out (their sources).</summary>
+    public int RiverFadeFrom => _world.Height.Rivers.FadeFromHeight;
+
     public int MinY => _world.Vertical.MinY;
 
     public int MaxY => _world.Vertical.MaxY;
+
+    /// <summary>The river field at a block (4 096 is the top of its range): a river runs where it is near zero.</summary>
+    public int RiverField(int x, int z) => ClimateAt(x, z).River;
 
     /// <summary>The column (x, z), one climate sample at a time.</summary>
     public Column At(int x, int z) => Evaluate(x, z, ClimateAt(x, z));
@@ -150,6 +170,9 @@ internal sealed class WorldSampler
                     map.Water[i] = column.Water;
                     map.Snow[i] = column.Snow;
                     map.Biome[i] = (short)column.Biome;
+                    map.River[i] = (short)column.RiverWeight;
+                    map.Natural[i] = (short)column.Natural;
+                    map.WaterLevel[i] = (short)column.WaterLevel;
                 }
             }
         });
@@ -171,9 +194,9 @@ internal sealed class WorldSampler
     private Column Evaluate(int x, int z, in ClimateSample c)
     {
         var shape = ShapeAt(x, z, c);
-        var column = _biomes.Classify(c, shape.Height, x, z);
-        var snow = !shape.Water && ClimateLapse.Apply(c.Temperature, shape.Height, SeaLevel, _world.Climate.LapsePer100Blocks) < _snowBelow;
-        return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow));
+        var column = _biomes.Classify(c, shape.Height, x, z, shape.Water);
+        var snow = column.Snow;
+        return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow), shape.RiverWeight, shape.NaturalHeight);
     }
 
     private ClimateSample ClimateAt(int x, int z) => _places is null ? _climate.At(x, z) : _places.ClimateAt(x, z);

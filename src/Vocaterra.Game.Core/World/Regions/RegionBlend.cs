@@ -72,9 +72,34 @@ internal sealed class RegionBlend
         var floor = _floor - (int)((long)(_floor - _shoreFloor) * distance / Data.LandBias.Radius);
         return Math.Max(continentalness, floor);
     }
+
+    /// <summary>The climate of a column after the regions' bias: the continentalness pulled towards land and the erosion shaped (calm near a region, rugged in a belt beyond).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="c">The free world's climate.</param>
+    public ClimateSample Bias(int x, int z, in ClimateSample c)
+    {
+        var (region, distance) = Regions.Nearest(x, z);
+        if (region is null)
+        {
+            return c;
+        }
+
+        var floor = _floor - (int)((long)(_floor - _shoreFloor) * distance / Data.LandBias.Radius);
+        var erosion = c.Erosion;
+        if (Data.LandBias.Erosion is { } e)
+        {
+            var open = IntMath.Ramp(distance, e.FromRadius, e.ToRadius);
+            erosion = IntMath.Lerp(Math.Max(erosion, FieldScale.FromThousandths(e.Near)), erosion, open);
+            var rugged = (int)((long)open * (IntMath.One - IntMath.Ramp(distance, e.ToRadius, e.FadeRadius)) / IntMath.One);
+            erosion = IntMath.Lerp(erosion, Math.Min(erosion, FieldScale.FromThousandths(e.Far)), rugged);
+        }
+
+        return c with { Continentalness = Math.Max(c.Continentalness, floor), Erosion = erosion };
+    }
 }
 
-/// <summary>The climate with the continentalness pulled towards land round the regions (<see cref="RegionBlend"/>); the rest of the climate is the inner sampler's.</summary>
+/// <summary>The climate with the continentalness pulled towards land and the erosion shaped round the regions (<see cref="RegionBlend"/>); the rest of the climate is the inner sampler's.</summary>
 internal sealed class BlendedClimateSampler : IClimateSampler
 {
     private readonly IClimateSampler _inner;
@@ -89,8 +114,7 @@ internal sealed class BlendedClimateSampler : IClimateSampler
     /// <inheritdoc />
     public ClimateSample At(int x, int z)
     {
-        var c = _inner.At(x, z);
-        return c with { Continentalness = _blend.PullTowardsLand(x, z, c.Continentalness) };
+        return _blend.Bias(x, z, _inner.At(x, z));
     }
 
     /// <inheritdoc />
@@ -105,7 +129,7 @@ internal sealed class BlendedClimateSampler : IClimateSampler
             for (var i = 0; i < width; i++)
             {
                 var k = (j * width) + i;
-                into[k] = into[k] with { Continentalness = _blend.PullTowardsLand(x0 + i, z0 + j, into[k].Continentalness) };
+                into[k] = _blend.Bias(x0 + i, z0 + j, into[k]);
             }
         }
     }
@@ -131,11 +155,19 @@ internal sealed class BlendedHeightModel : IHeightModel
         _corridors = [.. blend.Data.ExitCorridors.Select(spec => Corridor.Build(spec, this, climate, blend))];
     }
 
+    /// <summary>The share of the free world's water a column keeps: none within the margin, growing over the headwater distance beyond it (a smoothstep) to all of it.</summary>
+    /// <param name="distance">The distance from the region's footprint.</param>
+    internal int WaterShare(int distance)
+    {
+        var margin = _blend.Data.Margin;
+        return distance <= margin ? 0 : IntMath.Smooth((distance - margin) * One / _blend.Data.Headwater.Distance);
+    }
+
     /// <summary>The ground without the corridors: the region's own inside, eased to the edge across the margin, and the inner model's beyond.</summary>
     private ColumnShape Eased(int x, int z, in ClimateSample c)
     {
-        var shape = _inner.Shape(x, z, c);
         var (region, distance) = _blend.Regions.Nearest(x, z);
+        var shape = region is not null && _inner is IHeadwaterHeightModel headwater ? headwater.Shape(x, z, c, WaterShare(distance)) : _inner.Shape(x, z, c);
         if (region is null || distance >= _blend.Data.Margin)
         {
             return shape;
@@ -165,7 +197,7 @@ internal sealed class BlendedHeightModel : IHeightModel
     private ColumnShape Own(int ground)
     {
         var water = ground < _blend.SeaLevel;
-        return new ColumnShape(ground, ground, water, water ? _blend.SeaLevel : -1, 0, 0);
+        return new ColumnShape(ground, ground, water, water ? _blend.SeaLevel : -1, 0, 0, _blend.SeaLevel);
     }
 
     // The column eased by weight towards a ground height: the water's weights give way to the ground by the same weight.
@@ -173,9 +205,10 @@ internal sealed class BlendedHeightModel : IHeightModel
     {
         var height = IntMath.Lerp(shape.Height, ground, weight);
         var natural = Math.Max(height, IntMath.Lerp(shape.NaturalHeight, ground, weight));
-        var water = height < _blend.SeaLevel;
+        var surface = shape.Surface >= 0 ? shape.Surface : _blend.SeaLevel; // the water stands at the level the free world gave the column (a river's own, or the sea's)
+        var water = height < surface;
         var keep = One - weight;
-        return new ColumnShape(height, natural, water, water ? _blend.SeaLevel : -1, (int)((long)shape.RiverWeight * keep / One), (int)((long)shape.LakeWeight * keep / One));
+        return new ColumnShape(height, natural, water, water ? surface : -1, (int)((long)shape.RiverWeight * keep / One), (int)((long)shape.LakeWeight * keep / One), surface);
     }
 
     /// <inheritdoc />

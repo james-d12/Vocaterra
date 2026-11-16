@@ -17,6 +17,12 @@ internal sealed class GenerationWorld
     /// </summary>
     public const int BankCutReach = 12;
 
+    /// <summary>How many columns the water passes read beyond a column (B02b round 3): the rivers' levels are made even across a river, the corners of a step are closed twice, and the banks are cut once (see <see cref="WaterEdgePass"/>).</summary>
+    public const int WaterReach = EvenReach + 3;
+
+    /// <summary>How far, in columns, a river's water is made to stand at one level across its width (see <see cref="WaterEdgePass"/>).</summary>
+    public const int EvenReach = 3;
+
     /// <summary>How close two trunks may stand, squared (the trees' spacing).</summary>
     public const int TreeSpacingSquared = 9;
 
@@ -37,7 +43,7 @@ internal sealed class GenerationWorld
         MaxY = data.Vertical.MaxY;
         MaxFillerDepth = biomes.Rows.Max(static r => r.FillerDepth);
         HasSurfaceStrategies = biomes.Rows.Any(static r => r.SurfaceStrategy != StrategyRegistry.PlainSurface);
-        Margin = 1 + Math.Max(Strategies.MaxCrownReach, Underground?.WaterReach ?? 0) + Strategies.MaxFade + extraMargin;
+        Margin = 1 + WaterReach + Math.Max(Strategies.MaxCrownReach, Underground?.WaterReach ?? 0) + Strategies.MaxFade + extraMargin;
     }
 
     /// <summary>The world's numbers.</summary>

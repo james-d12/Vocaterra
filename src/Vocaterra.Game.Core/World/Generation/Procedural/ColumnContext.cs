@@ -22,6 +22,7 @@ internal sealed class ColumnContext
     private readonly ClimateSample[] _climate;
     private readonly ColumnShape[] _shapes;
     private readonly int[] _heights;
+    private readonly int[] _wet; // the water's top in each column, or -1: the height model's decision, kept apart from the heights so a bank cut under a river's level does not flood
     private readonly BiomeColumn[] _biomes;
     private readonly bool[] _classified;
     private readonly ColumnSurface[] _surfaces;
@@ -41,6 +42,7 @@ internal sealed class ColumnContext
         _climate = new ClimateSample[count];
         _shapes = new ColumnShape[count];
         _heights = new int[count];
+        _wet = new int[count];
         _biomes = new BiomeColumn[count];
         _classified = new bool[count];
         _surfaces = new ColumnSurface[count];
@@ -55,6 +57,7 @@ internal sealed class ColumnContext
                 var k = (j * Size) + i;
                 _shapes[k] = world.Height.Shape(OriginX + i, OriginZ + j, _climate[k]);
                 _heights[k] = _shapes[k].Height;
+                _wet[k] = _shapes[k].Water ? _shapes[k].WaterLevel : -1;
             }
         }
     }
@@ -114,8 +117,41 @@ internal sealed class ColumnContext
     /// <param name="height">The height.</param>
     public void SetHeight(int x, int z, int height) => _heights[Index(x, z)] = height;
 
+    /// <summary>
+    /// Turns a dry column of the window into a one-block-deep column of water at a level (B02b round 3: a bank column beside two reaches of different levels becomes water, so it needs no wall beside the lower one): its working ground becomes
+    /// one block under the level, and its shape, biome and surface are read again.
+    /// </summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="level">The water's top.</param>
+    public void TurnToWater(int x, int z, int level)
+    {
+        var k = Index(x, z);
+        _heights[k] = level - 1;
+        _wet[k] = level;
+        _shapes[k] = _shapes[k] with { Height = level - 1, Water = true, WaterLevel = level, Surface = level };
+        _classified[k] = false;
+        _surfaced[k] = false;
+    }
+
+    /// <summary>Raises the water of a column that holds water to a higher level; the ground under it stays.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    /// <param name="level">The new top of the water.</param>
+    public void RaiseWater(int x, int z, int level) => _wet[Index(x, z)] = level;
+
     /// <summary>The working heights of the whole window, row by row (x fastest): a shaper changes them in place.</summary>
     public int[] Heights => _heights;
+
+    /// <summary>
+    /// The y of the top of the water in a column of the window, or -1 where there is none (B02b round 3): the height model's decision (the sea's level, or the level of the river or lake that holds the column), which the passes keep: a bank is cut or
+    /// raised but never turned into water by the cut, and a column turned into water on purpose (<see cref="TurnToWater"/>) stays so.
+    /// </summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public int WaterLevelAt(int x, int z) => _wet[Index(x, z)];
+
+    private int LevelAt(int k) => _wet[k];
 
     /// <summary>The biome of a column, chosen by the height model's ground (never by what a later pass did to it) and cached.</summary>
     /// <param name="x">The block's x.</param>
@@ -125,7 +161,7 @@ internal sealed class ColumnContext
         var k = Index(x, z);
         if (!_classified[k])
         {
-            _biomes[k] = World.Table.Classify(_climate[k], _shapes[k].Height, x, z);
+            _biomes[k] = World.Table.Classify(_climate[k], _shapes[k].Height, x, z, _shapes[k].Water);
             _classified[k] = true;
         }
 
@@ -143,7 +179,7 @@ internal sealed class ColumnContext
             var biome = BiomeAt(x, z);
             var blocks = World.Table.Surface(biome.Row);
             var height = _heights[k];
-            var water = height < World.SeaLevel;
+            var water = LevelAt(k) >= 0;
             var top = water ? blocks.Underwater : biome.Snow ? BlockId.Snow : blocks.Top;
             _surfaces[k] = new ColumnSurface(height, top, blocks.Filler, blocks.FillerDepth, water);
             _surfaced[k] = true;

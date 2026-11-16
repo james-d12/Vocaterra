@@ -138,7 +138,8 @@ public sealed class RegionBlendTests(ITestOutputHelper output)
             Assert.InRange(Height(world, x, z) - region.EdgeHeight(x, z), -1, 1); // the weight just under one: the edge's height to within a block
         }
 
-        foreach (var (x, z, _, _) in Ring(b, margin, 24).Concat(Ring(b, margin + 20, 24)))
+        var free = margin + Blend.Headwater.Distance; // the rivers and lakes are the free world's only beyond the headwaters
+        foreach (var (x, z, _, _) in Ring(b, free, 24).Concat(Ring(b, free + 20, 24)))
         {
             var c = world.Procedural.World.Climate.At(x, z);
             Assert.Equal(inner.Shape(x, z, c), RegionTestWorld.Shape(world, x, z)); // the free land: the height model's own, on the climate with the land bias

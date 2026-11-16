@@ -57,10 +57,25 @@ internal static class WorldGenValidator
             problems.Add($"{File}: regionBlend.landBias needs a shoreFloor no higher than the floor and a radius from the margin to 8192 blocks (they are {bias.ShoreFloor}, {bias.Floor} and {bias.Radius}).");
         }
 
+        if (bias.Erosion is { } e)
+        {
+            Thousandths(problems, "regionBlend.landBias.erosion.near", e.Near);
+            Thousandths(problems, "regionBlend.landBias.erosion.far", e.Far);
+            if (e.Far > e.Near || e.FromRadius < 0 || e.ToRadius <= e.FromRadius || e.FadeRadius <= e.ToRadius || e.FadeRadius > 16384)
+            {
+                problems.Add($"{File}: regionBlend.landBias.erosion needs a far no higher than the near and radii rising from 0 to at most 16384 blocks (they are {e.Near}, {e.Far}, {e.FromRadius}, {e.ToRadius} and {e.FadeRadius}).");
+            }
+        }
+
         var smoothing = blend.Smoothing;
         if (smoothing.BlurRadius < 0 || smoothing.BlurRadius > 64 || smoothing.Ease < 1 || smoothing.Ease > blend.Margin)
         {
             problems.Add($"{File}: regionBlend.edgeSmoothing needs a blurRadius from 0 to 64 columns and an ease from 1 to the margin (they are {smoothing.BlurRadius} and {smoothing.Ease}).");
+        }
+
+        if (blend.Headwater.Distance < 1 || blend.Headwater.Distance > 4096)
+        {
+            problems.Add($"{File}: regionBlend.headwater.distance must be from 1 to 4096 blocks (it is {blend.Headwater.Distance}).");
         }
 
         foreach (var corridor in blend.ExitCorridors)
@@ -86,6 +101,24 @@ internal static class WorldGenValidator
         CheckNoise(problems, "temperature", climate.Temperature);
         CheckNoise(problems, "humidity", climate.Humidity);
         CheckNoise(problems, "river", climate.River);
+        if (climate.Continents is { } c)
+        {
+            if (c.Cell < 1000 || c.Cell > 16384 || c.Jitter < 0 || c.Jitter > 900 || c.SeaBlock < 1 || c.SeaBlock > 4 || c.SeaPerBlock < 0 || c.SeaPerBlock >= c.SeaBlock * c.SeaBlock)
+            {
+                problems.Add($"{File}: climate.continents needs a cell from 1000 to 16384 blocks, a jitter from 0 to 900, a seaBlock from 1 to 4 and a seaPerBlock below the block's cells (they are {c.Cell}, {c.Jitter}, {c.SeaBlock} and {c.SeaPerBlock}).");
+            }
+
+            if (c.ChannelMin < 1 || c.Channel < c.ChannelMin || c.Channel > c.Cell / 4 || c.WidthCell < 16 || c.WidthCell > c.Cell || c.CoastCell < 16 || c.CoastCell > c.Cell || c.CoastBlocks < 0 || c.CoastBlocks * 5 > c.CoastCell || c.ScaleBlocks < 100 || c.ScaleBlocks > 32768)
+            {
+                problems.Add($"{File}: climate.continents needs a channelMin of at least 1 (so the land is never joined across a channel) and a channel from it to a quarter of the cell, a widthCell and a coastCell from 16 to the cell, coastBlocks of at most a fifth of the coastCell (so the warp never folds) and a scaleBlocks from 100 to 32768 (they are {c.ChannelMin}, {c.Channel}, {c.WidthCell}, {c.CoastCell}, {c.CoastBlocks} and {c.ScaleBlocks}).");
+            }
+        }
+
+        if (climate.Continents is { RoughBlocks: > 0 } rough && (rough.RoughCell < 16 || rough.RoughCell > rough.Cell || rough.RoughOctaves < 1 || rough.RoughOctaves > 8 || rough.RoughBlocks > rough.Cell / 4))
+        {
+            problems.Add($"{File}: climate.continents.roughBlocks needs a roughCell from 16 to the cell, 1 to 8 roughOctaves and roughBlocks of at most a quarter of the cell (the field keeps every channel at least half its least width, so the land is still never joined across it; they are {rough.RoughCell}, {rough.RoughOctaves}, {rough.RoughBlocks} and the cell {rough.Cell}).");
+        }
+
         if (climate.LapsePer100Blocks < 0 || climate.LapsePer100Blocks > 2000)
         {
             problems.Add($"{File}: climate.lapsePer100Blocks must be from 0 to 2000 thousandths (it is {climate.LapsePer100Blocks}).");
@@ -99,6 +132,16 @@ internal static class WorldGenValidator
             problems.Add($"{File}: climate.{name}.cell must be from 1 to 16384 blocks (it is {noise.Cell}).");
         }
 
+        if (noise.Round < 0 || noise.Round > 500)
+        {
+            problems.Add($"{File}: climate.{name}.round must be from 0 to 500 thousandths (it is {noise.Round}).");
+        }
+
+        if (noise.ChainBlocks < 0 || noise.ChainBlocks > 8192 || noise.ChainRound < 0 || noise.ChainRound > noise.ChainBlocks)
+        {
+            problems.Add($"{File}: climate.{name}.chainBlocks must be from 0 to 8192 blocks and chainRound from 0 to chainBlocks (they are {noise.ChainBlocks} and {noise.ChainRound}).");
+        }
+
         if (noise.Octaves < 1 || noise.Octaves > 8)
         {
             problems.Add($"{File}: climate.{name}.octaves must be from 1 to 8 (it is {noise.Octaves}).");
@@ -108,9 +151,9 @@ internal static class WorldGenValidator
             problems.Add($"{File}: climate.{name}: {noise.Octaves} octaves halve the cell {noise.Cell} below one block.");
         }
 
-        if (noise.WarpBlocks < 0 || noise.WarpBlocks > 1024 || (noise.WarpBlocks > 0 && noise.WarpCell < 1))
+        if (noise.WarpBlocks < 0 || noise.WarpBlocks > 4096 || (noise.WarpBlocks > 0 && noise.WarpCell < 1))
         {
-            problems.Add($"{File}: climate.{name}: warpBlocks must be from 0 to 1024 and, above 0, come with a warpCell of at least 1 (they are {noise.WarpBlocks} and {noise.WarpCell}).");
+            problems.Add($"{File}: climate.{name}: warpBlocks must be from 0 to 4096 and, above 0, come with a warpCell of at least 1 (they are {noise.WarpBlocks} and {noise.WarpCell}).");
         }
     }
 
@@ -152,21 +195,55 @@ internal static class WorldGenValidator
         }
 
         var r = h.Rivers;
-        if (r.Width < 1 || r.Width > 1000 || r.BedHeight >= v.SeaLevel || r.BedHeight <= v.MinY || r.FadeFromHeight >= r.FadeToHeight)
+        if (r.Width < 1 || r.Width > 1000 || r.Depth < 1 || r.Depth > 32 || r.FadeFromHeight >= r.FadeToHeight)
         {
-            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a bedHeight below the sea level and above the floor, and a fadeFromHeight below fadeToHeight.");
+            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a depth from 1 to 32, and a fadeFromHeight below fadeToHeight.");
         }
 
         Ordered(problems, "height.rivers.seaFadeFrom/seaFadeTo", r.SeaFadeFrom, r.SeaFadeTo, -1000, 1000);
-        var l = h.Lakes;
-        if (l.Cell < 1 || l.Octaves < 1 || l.Octaves > 8 || l.Cell >> (l.Octaves - 1) < 1 || l.Softness < 1 || l.BedHeight >= v.SeaLevel || l.BedHeight <= v.MinY || l.HeightFrom >= l.HeightTo)
+        if (r.PeakFadeFrom >= r.PeakFadeTo || r.PeakFadeFrom < 0)
         {
-            problems.Add($"{File}: height.lakes needs a cell its octaves can halve, a softness of at least 1, a bedHeight below the sea level and above the floor, and a heightFrom below heightTo.");
+            problems.Add($"{File}: height.rivers.peakFadeFrom must be 0 or more and below peakFadeTo (they are {r.PeakFadeFrom} and {r.PeakFadeTo}).");
+        }
+
+        if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer10Blocks < 0 || valley.WidthPer10Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000))
+        {
+            problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer10Blocks from 0 to 200 and a depthGrowth from 0 to 1000 (they are {valley.From}, {valley.WidthPer10Blocks} and {valley.DepthGrowth}).");
+        }
+
+        if (h.PeakVariation is { } pv && (pv.Cell < 1 || pv.Octaves < 1 || pv.Octaves > 8 || pv.Cell >> (pv.Octaves - 1) < 1 || pv.MinShare < 0 || pv.MinShare > 1000))
+        {
+            problems.Add($"{File}: height.peakVariation needs a cell its 1 to 8 octaves can halve and a minShare from 0 to 1000 (they are {pv.Cell}, {pv.Octaves} and {pv.MinShare}).");
+        }
+
+        if (h.Water.Step < 1 || h.Water.Step > 16 || h.Water.Clearance < 0 || h.Water.Clearance > 32)
+        {
+            problems.Add($"{File}: height.water needs a step from 1 to 16 and a clearance from 0 to 32 (they are {h.Water.Step} and {h.Water.Clearance}).");
+        }
+
+        var l = h.Lakes;
+        if (l.Cell < 1 || l.Octaves < 1 || l.Octaves > 8 || l.Cell >> (l.Octaves - 1) < 1 || l.Softness < 1 || l.Depth < 1 || l.Depth > 32 || l.HeightFrom >= l.HeightTo)
+        {
+            problems.Add($"{File}: height.lakes needs a cell its octaves can halve, a softness of at least 1, a depth from 1 to 32, and a heightFrom below heightTo.");
         }
 
         Thousandths(problems, "height.lakes.threshold", l.Threshold);
         Ordered(problems, "height.lakes.calmFrom/calmTo", l.CalmFrom, l.CalmTo, -1000, 1000);
         Ordered(problems, "height.lakes.inlandFrom/inlandTo", l.InlandFrom, l.InlandTo, -1000, 1000);
+        if (h.CoastData is { } coast)
+        {
+            Ordered(problems, "height.coast.peaksFrom/peaksTo", coast.PeaksFrom, coast.PeaksTo, -1000, 1000);
+            Ordered(problems, "height.coast.hillsFrom/hillsTo", coast.HillsFrom, coast.HillsTo, -1000, 1000);
+            if (coast.FlatFrom >= coast.FlatTo || coast.FlatFrom < 0)
+            {
+                problems.Add($"{File}: height.coast.flatFrom must be 0 or more and below flatTo (they are {coast.FlatFrom} and {coast.FlatTo}).");
+            }
+
+            if (coast.HillsFloor < 0 || coast.HillsFloor > 1000)
+            {
+                problems.Add($"{File}: height.coast.hillsFloor must be from 0 to 1000 thousandths (it is {coast.HillsFloor}).");
+            }
+        }
     }
 
     private static void CheckSpline(List<string> problems, string name, IReadOnlyList<SplinePoint> points, int minX, int maxX, int minY, int maxY)

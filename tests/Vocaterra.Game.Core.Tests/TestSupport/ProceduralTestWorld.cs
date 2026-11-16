@@ -50,22 +50,32 @@ internal static class ProceduralTestWorld
                         continue;
                     }
 
-                    var (x, z) = (gx * 64, gz * 64);
-                    var c = climate.At(x, z);
-                    var shape = model.Shape(x, z, c);
-                    var id = table.Classify(c, shape.Height, x, z).Row.Id;
-                    var hit = feature switch
+                    var found = false;
+                    var narrow = feature is Feature.River or Feature.Lake; // a river is a few blocks wide: look for it in the cell, every 8 blocks
+                    for (var sz = 0; sz < (narrow ? 64 : 1) && !found; sz += 8)
                     {
-                        Feature.River => id == "river-channel" && shape.RiverWeight > 3000,
-                        Feature.Lake => id == "lake-basin" && shape.LakeWeight > 3000,
-                        Feature.Coast => id == "beach" && Around(model, climate, x, z, shape.Height, static (_, s) => s.Water, 24),
-                        Feature.Forest => id == "dense-woodland" && shape.Height is > 34 and < 70,
-                        Feature.Mountain => shape.Height >= 200,
-                        _ => id == "plains" && shape.Height is > 36 and < 50,
-                    };
-                    if (hit && skip-- == 0)
-                    {
-                        return (x >> 4, z >> 4);
+                        for (var sx = 0; sx < (narrow ? 64 : 1) && !found; sx += 8)
+                        {
+                            var (x, z) = ((gx * 64) + sx, (gz * 64) + sz);
+                            var c = climate.At(x, z);
+                            var shape = model.Shape(x, z, c);
+                            var id = table.Classify(c, shape.Height, x, z, shape.Water).Row.Id;
+                            var hit = feature switch
+                            {
+                                Feature.River => id == "river-channel" && shape.RiverWeight > 3000,
+                                Feature.Lake => id == "lake-basin" && shape.LakeWeight > 3000,
+                                Feature.Coast => id == "beach" && Around(model, climate, x, z, shape.Height, static (_, s) => s.Water && s.WaterLevel == 32, 12),
+                                Feature.Forest => id == "dense-woodland" && shape.Height is > 34 and < 70,
+                                Feature.Mountain => shape.Height >= 200,
+                                _ => id == "plains" && shape.Height is > 36 and < 50,
+                            };
+                            if (hit && skip-- == 0)
+                            {
+                                return (x >> 4, z >> 4);
+                            }
+
+                            found = hit;
+                        }
                     }
                 }
             }
@@ -116,6 +126,7 @@ internal static class ProceduralTestWorld
         }
 
         var blocks = chunk.Blocks;
+        var levels = chunk.WaterLevels;
         for (var ly = 0; ly < 16; ly++)
         {
             for (var lz = 0; lz < 16; lz++)
@@ -126,6 +137,10 @@ internal static class ProceduralTestWorld
                     if (block != BlockId.Air)
                     {
                         _ = grid.SetBlock(ox + lx, oy + ly, oz + lz, block);
+                        if (block == BlockId.Water && !levels.IsEmpty && levels[ChunkData.Index(lx, ly, lz)] != 0)
+                        {
+                            _ = grid.SetWater(ox + lx, oy + ly, oz + lz, WaterLevel.FromEncoded(levels[ChunkData.Index(lx, ly, lz)]));
+                        }
                     }
                 }
             }

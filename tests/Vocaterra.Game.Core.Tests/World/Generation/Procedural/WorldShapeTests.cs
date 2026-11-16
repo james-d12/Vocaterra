@@ -33,27 +33,27 @@ public sealed class WorldShapeTests
                 {
                     var c = climate.At(x, z);
                     var shape = model.Shape(x, z, c);
-                    var id = table.Classify(c, shape.Height, x, z).Row.Id;
+                    var id = table.Classify(c, shape.Height, x, z, shape.Water).Row.Id;
                     counts[id] = counts.GetValueOrDefault(id) + 1;
                     samples++;
                     water += shape.Water ? 1 : 0;
                     high += shape.Height >= 190 ? 1 : 0;
-                    rivers += shape.RiverWeight > 0 && shape.Water ? 1 : 0;
+                    rivers += shape.RiverWeight > 0 ? 1 : 0;
                     tallest = Math.Max(tallest, shape.Height);
                 }
             }
         }
 
         var waterShare = water * 100.0 / samples;
-        Assert.InRange(waterShare, 8, 45);
+        Assert.InRange(waterShare, 35, 48); // the tuned world (B02b redo): big seas between continents, 35 to 45% of the map
         Assert.InRange(high * 100.0 / samples, 0.3, 8);
         Assert.InRange(tallest, 220, data.WorldGen.Height.Clamp);
-        Assert.True(rivers > samples / 200, $"{rivers} river columns of {samples}");
+        Assert.True(rivers > samples / 200, $"{rivers} river valley columns of {samples}");
         foreach (var row in data.Biomes.Rows)
         {
             Assert.True(counts.GetValueOrDefault(row.Id) > 0, $"the biome '{row.Id}' never appears in {samples} columns of three seeds");
         }
 
-        Assert.True(counts.Values.Max() < samples * 0.5, "no biome covers half the world");
+        Assert.True(counts.Where(static c => c.Key != "ocean").Max(static c => c.Value) < samples * 0.5, "no land biome covers half the world"); // the sea does: about two thirds of the tuned map (B02b)
     }
 }

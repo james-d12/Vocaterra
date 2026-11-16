@@ -32,7 +32,29 @@
         "temperature": { "$ref": "#/definitions/noise" },
         "humidity": { "$ref": "#/definitions/noise" },
         "river": { "$ref": "#/definitions/noise" },
-        "lapsePer100Blocks": { "type": "integer", "minimum": 0, "description": "The fall of the temperature, in thousandths of its range, for every 100 blocks above the sea." }
+        "lapsePer100Blocks": { "type": "integer", "minimum": 0, "description": "The fall of the temperature, in thousandths of its range, for every 100 blocks above the sea." },
+        "continents": {
+          "type": "object",
+          "description": "The continentalness as continents (B02b redo): jittered cells, a share of them open sea, a channel of sea along every border; continentalness is the signed distance from the coast. Optional; without it the continentalness is plain noise.",
+          "required": ["cell", "jitter", "seaBlock", "seaPerBlock", "channel", "channelMin", "widthCell", "coastCell", "coastBlocks", "scaleBlocks"],
+          "additionalProperties": false,
+          "properties": {
+            "cell": { "type": "integer", "minimum": 1000, "maximum": 16384, "description": "The cells' side in blocks; the continents are about this wide." },
+            "jitter": { "type": "integer", "minimum": 0, "maximum": 900, "description": "How far a cell's point strays from its centre, in thousandths of half the cell." },
+            "seaBlock": { "type": "integer", "minimum": 1, "maximum": 4, "description": "The side in cells of the blocks the cells are grouped in; each block holds a fixed number of sea cells, so the sea's share is the same everywhere." },
+            "seaPerBlock": { "type": "integer", "minimum": 0, "description": "The cells of each block, at random, that are open sea; fewer than the block's cells." },
+            "channel": { "type": "integer", "minimum": 1, "description": "The most sea each side of a border, in blocks (at most a quarter of the cell)." },
+            "channelMin": { "type": "integer", "minimum": 1, "description": "The least sea each side of a border, in blocks; at least 1, so land cells are never joined and the sea is one ocean." },
+            "widthCell": { "type": "integer", "minimum": 16, "description": "The cell in blocks of the noise that varies the channel between its least and most." },
+            "coastCell": { "type": "integer", "minimum": 16, "description": "The cell in blocks of the noise that bends the coast (a warp of the plane)." },
+            "coastBlocks": { "type": "integer", "minimum": 0, "description": "How far that warp moves a point, in blocks; at most a fifth of coastCell so it never folds." },
+            "scaleBlocks": { "type": "integer", "minimum": 100, "maximum": 32768, "description": "The blocks that make 1000 thousandths of continentalness." },
+            "roughCell": { "type": "integer", "minimum": 16, "description": "The cell in blocks of the first octave of the noise added to the distance from the coast, so the coast wanders at every scale (B02b round 3). Optional (none)." },
+            "roughBlocks": { "type": "integer", "minimum": 0, "description": "How far that noise moves the coast, in blocks (at most a quarter of the cell); the field keeps every channel at least half its least width each side, so land cells are still never joined." },
+            "roughOctaves": { "type": "integer", "minimum": 1, "maximum": 8, "description": "The octaves of that noise." },
+            "salt": { "type": "integer", "description": "A number mixed into the cells' hash: another salt is another arrangement of the same kind of world. Optional (0)." }
+          }
+        }
       }
     },
     "height": {
@@ -83,33 +105,82 @@
         },
         "rivers": {
           "type": "object",
-          "required": ["width", "bedHeight", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
+          "required": ["width", "depth", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
           "additionalProperties": false,
           "properties": {
             "width": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "How far from zero, in thousandths, the river field still carves." },
-            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the river, in blocks: the bed is this far under the water's surface." },
             "fadeFromHeight": { "type": "integer" },
             "fadeToHeight": { "type": "integer" },
             "seaFadeFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
-            "seaFadeTo": { "type": "integer", "minimum": -1000, "maximum": 1000 }
+            "seaFadeTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
+            "peakFadeFrom": { "type": "integer", "minimum": 0, "description": "The height in blocks that the ranges' peaks add to the ground, from which a river begins to fade out: a river does not cross a crest, it rises on each side in the foothills. Optional (none)." },
+            "peakFadeTo": { "type": "integer", "minimum": 1, "description": "The height the peaks add where the river is gone; above peakFadeFrom." },
+            "valley": {
+              "type": "object",
+              "description": "How the valley of a river climbs the high ground (B02b redo): above from the river's water stands deeper under the ground the higher the ground is, and the valley widens with the height.",
+              "required": ["from", "widthPer10Blocks", "depthGrowth"],
+              "additionalProperties": false,
+              "properties": {
+                "from": { "type": "integer", "description": "The land height in blocks above which the valley widens and the floor rises." },
+                "widthPer10Blocks": { "type": "integer", "minimum": 0, "maximum": 200, "description": "The thousandths of the river field the valley widens by for every 10 blocks of ground above from." },
+                "depthGrowth": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "How much deeper the valley is, in thousandths of a block, for every block of ground above from." }
+              }
+            }
+          }
+        },
+        "water": {
+          "type": "object",
+          "description": "The level of the water of the rivers and lakes (B02b round 3): the smooth ground of the column less the hills' amplitude, clearance blocks and the valley's depth, in steps of step blocks above the sea level and never under it, so a river's surface steps down its valley in flat reaches and a lake is flat at its own height. Optional (a step of 3 and a clearance of 2).",
+          "required": ["step", "clearance"],
+          "additionalProperties": false,
+          "properties": {
+            "step": { "type": "integer", "minimum": 1, "maximum": 16, "description": "The height of a step of the water's surface, in blocks." },
+            "clearance": { "type": "integer", "minimum": 0, "maximum": 32, "description": "How many blocks under the smooth ground, besides the hills' amplitude, the surface stands." }
           }
         },
         "lakes": {
           "type": "object",
-          "required": ["cell", "octaves", "threshold", "softness", "bedHeight", "calmFrom", "calmTo", "heightFrom", "heightTo", "inlandFrom", "inlandTo"],
+          "required": ["cell", "octaves", "threshold", "softness", "depth", "calmFrom", "calmTo", "heightFrom", "heightTo", "inlandFrom", "inlandTo"],
           "additionalProperties": false,
           "properties": {
             "cell": { "type": "integer", "minimum": 1 },
             "octaves": { "type": "integer", "minimum": 1, "maximum": 8 },
             "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "softness": { "type": "integer", "minimum": 1 },
-            "bedHeight": { "type": "integer", "description": "The bed's height in blocks; below the sea level." },
+            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the lake, in blocks." },
             "calmFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "calmTo": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "heightFrom": { "type": "integer" },
             "heightTo": { "type": "integer" },
             "inlandFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
             "inlandTo": { "type": "integer", "minimum": -1000, "maximum": 1000 }
+          }
+        },
+        "peakVariation": {
+          "type": "object",
+          "description": "How the peaks' height varies along a range (B02b redo): scaled by a share from minShare to all over a smooth noise, so a spine rises to summits and falls to saddles. Optional.",
+          "required": ["cell", "octaves", "minShare"],
+          "additionalProperties": false,
+          "properties": {
+            "cell": { "type": "integer", "minimum": 1, "description": "The noise's cell in blocks; the summits are about this far apart." },
+            "octaves": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "minShare": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The thousandths of the peaks' height at a saddle." }
+          }
+        },
+        "coast": {
+          "type": "object",
+          "description": "Near the sea the peaks fade out and the hills calm down (B02b), so the shore is a gentle shelf and no rugged island rises from the water. Optional; without it the peaks and hills are the same everywhere.",
+          "required": ["peaksFrom", "peaksTo", "hillsFrom", "hillsTo", "hillsFloor"],
+          "additionalProperties": false,
+          "properties": {
+            "peaksFrom": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness, in thousandths, below which the peaks show nothing." },
+            "peaksTo": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness above which the peaks show in full; above peaksFrom." },
+            "hillsFrom": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness at and below which the hills keep only hillsFloor of their amplitude." },
+            "hillsTo": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The continentalness above which the hills keep all of it; above hillsFrom." },
+            "hillsFloor": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The share of the hills' amplitude, in thousandths, that remains at the coast." },
+            "flatFrom": { "type": "integer", "minimum": 0, "description": "The ground height in blocks at and below which the hills are gone, so no speckle of flats and pools lies just over the sea. Optional (0: none)." },
+            "flatTo": { "type": "integer", "description": "The ground height in blocks above which the hills are whole again; above flatFrom." }
           }
         }
       }
@@ -151,7 +222,29 @@
           "properties": {
             "floor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at the region's edge." },
             "shoreFloor": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least continentalness, in thousandths, at radius blocks out; a little inland of the sea. No higher than the floor." },
-            "radius": { "type": "integer", "minimum": 8, "maximum": 8192, "description": "The distance in blocks over which the floor falls from floor to shoreFloor (and at that rate beyond it); at least the margin." }
+            "radius": { "type": "integer", "minimum": 8, "maximum": 8192, "description": "The distance in blocks over which the floor falls from floor to shoreFloor (and at that rate beyond it); at least the margin." },
+            "erosion": {
+              "type": "object",
+              "description": "How the erosion round a region is shaped (B02b redo): calm out to fromRadius blocks from the edge, rugged from toRadius, back to the free world's by fadeRadius.",
+              "required": ["near", "far", "fromRadius", "toRadius", "fadeRadius"],
+              "additionalProperties": false,
+              "properties": {
+                "near": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The least erosion, in thousandths, in the calm ring." },
+                "far": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The most erosion, in thousandths, in the rugged belt; no higher than near." },
+                "fromRadius": { "type": "integer", "minimum": 0, "description": "Where the calm ring ends, in blocks from the edge." },
+                "toRadius": { "type": "integer", "description": "Where the rugged belt is full." },
+                "fadeRadius": { "type": "integer", "maximum": 16384, "description": "Beyond this the free world's erosion is back." }
+              }
+            }
+          }
+        },
+        "headwater": {
+          "type": "object",
+          "description": "How the rivers and lakes near a region give way to springs and ponds (B02b): none inside the margin, growing to the free world's over distance blocks beyond it.",
+          "required": ["distance"],
+          "additionalProperties": false,
+          "properties": {
+            "distance": { "type": "integer", "minimum": 1, "maximum": 4096, "description": "The blocks beyond the margin over which a river narrows and shallows to a stream that begins at a spring, and a lake shrinks to a pond." }
           }
         },
         "edgeSmoothing": {
@@ -192,7 +285,10 @@
         "cell": { "type": "integer", "minimum": 1, "description": "The first octave's size in blocks." },
         "octaves": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Each octave halves the cell and the weight." },
         "warpCell": { "type": "integer", "minimum": 1, "description": "The warp field's cell in blocks." },
-        "warpBlocks": { "type": "integer", "minimum": 0, "description": "The farthest the warp bends the field, in blocks; 0 or absent for none." }
+        "warpBlocks": { "type": "integer", "minimum": 0, "description": "The farthest the warp bends the field, in blocks; 0 or absent for none." },
+        "round": { "type": "integer", "minimum": 0, "maximum": 500, "description": "For the ridged field: the thousandths over which the crest of each ridge is rounded; 0 or absent for a sharp crest." },
+        "chainBlocks": { "type": "integer", "minimum": 0, "maximum": 8192, "description": "For the ridges field (B02b round 3): above 0, a chain: 1 on the noise's zero lines, falling in a straight slope to 0 at this many blocks from them, so every chain has the same width; 0 or absent for the squared ridge." },
+        "chainRound": { "type": "integer", "minimum": 0, "maximum": 8192, "description": "The blocks over which the crest of a chain is rounded; at most chainBlocks." }
       }
     },
     "spline": {

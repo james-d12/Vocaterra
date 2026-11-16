@@ -93,7 +93,7 @@ public sealed class StrategyRegistryTests
                         {
                             var (x, z) = ((gx * 16) + i, (gz * 16) + j);
                             var c = climate.At(x, z);
-                            inside += table.Classify(c, model.Shape(x, z, c).Height, x, z).Row.Id == TestBiome ? 1 : 0;
+                            inside += table.Classify(c, model.Shape(x, z, c).Height, x, z, model.Shape(x, z, c).Water).Row.Id == TestBiome ? 1 : 0;
                         }
                     }
 

@@ -102,7 +102,8 @@ public sealed class TreePassTests
             var (leaves, offset) = CrownOf(block);
             Assert.Equal(leaves, region.BlockAt(x, top + offset, z));
             var c = climate.At(x, z);
-            var column = table.Classify(c, model.Shape(x, z, c).Height, x, z);
+            var shape = model.Shape(x, z, c);
+            var column = table.Classify(c, shape.Height, x, z, shape.Water);
             Assert.True(column.TreesGrow, $"the tree at {x}, {z} stands above the tree line");
             Assert.True(column.Row.Trees.Density > 0, $"the tree at {x}, {z} stands in '{column.Row.Id}', which grows none");
         }
