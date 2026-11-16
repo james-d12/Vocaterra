@@ -2660,3 +2660,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   passes the layout's ceiling; a river bed under a town is copied (only ground under the sea is refused). For B16: towns from
   world.json, each town's digest listed separately, water in a layout, the surface block from the biome. It needed one merge for a
   README conflict. Gated: 11,980 passed, 3 skipped.
+- **B10b, the body sinks into lava; the ores easier to see (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b10b-lava-sink.md`,
+  report `.claude/briefs/b10b-report.md`. Lava no longer collides with a moving body (`VoxelCollider.Collides`); `Physics/LavaMotion.cs`
+  holds its numbers beside water's `SwimMotion` (sink 0.5 against 1.5 blocks a second, swimming 0.25 against 0.6 of walking); the
+  planners still avoid it (`BlocksBody` unchanged); an orange view in lava (not yet seen in a window). The ores are five clusters each
+  with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with patina). Three B10 tests that encoded standing on
+  lava were replaced by `LavaBodyTests`. The liquids' numbers are constants, not data, for water as for lava. Gated: 11,993 passed.
