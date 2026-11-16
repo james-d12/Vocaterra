@@ -5,7 +5,7 @@ World/Generation/Procedural), content/game-v1/game/underground.json with its sch
 laid (cliffs, steep ground, scree) and its data, new blocks if needed (Voxel/BlockId, BlockDefinition, Graphics/Blocks), the preview
 tool's views of them, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b11b, already on the local branch `B11b-entrances-and-rock` (cut
-from `feature/biomes` at @@BASE@@, which holds the underground (B11), the valley's underground (B13), the final terrain (B02b) and the
+from `feature/biomes` at 3944e846, which holds the underground (B11), the valley's underground (B13), the final terrain (B02b) and the
 streamed world (B07)). Run every command from that directory. Commit after each item that builds and passes its tests, with the prefix
 `B11b: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test, format and run, every scripts/content.sh call, every preview-tool run, game run, screenshot
@@ -74,7 +74,7 @@ Deliverables:
 7. **Documents:** content/README.md (the new underground.json and surface data), the Game.Core README (the underground), docs/game/running.md
    if a flag changes.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,267 passed before, plus your new tests); format clean; content
 validate. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
