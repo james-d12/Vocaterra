@@ -463,9 +463,10 @@ placed, a shaft dug, the darkening's numbers) means re-meshing on the processor,
 the processor too.
 
 **What B17 does.** Moves the light, the fog and the water to shaders of the game's own, so the card does that work:
-1. **A shader build that works on Linux** (step 0, a spike whose result goes to the owner when it adds a tool or a dependency): mgfxc
-   under a pinned Wine in the content build; or compiled shader binaries committed beside their sources, with a check that they match;
-   or a newer MonoGame back end with a cross-platform compiler. The owner decides any new tool's licence.
+1. **Raw GLSL compiled at run time** (the owner's choice, D-game-34 item 40): shaders in OpenGL's own language, compiled by the driver at
+   start, drawn through an MIT OpenGL binding (Silk.NET or OpenTK) on MonoGame's own context with MonoGame's state saved and restored
+   round the world's passes; step 0 is a spike that proves one GLSL shader draws chunks inside MonoGame's frame (state, depth, the
+   alpha test, the far pass) before anything else moves to it. macOS is out of scope (item 39).
 2. **Light as data in the vertex:** each corner carries its sky light, block light and corner occlusion (not a finished colour); the
    shader combines them with uniforms (the sun's direction and colour, the sky's brightness for the hour and the weather, the glow's
    strength, the eye's sky share underground), so the day, the night, the weather and the darkening change without re-meshing; a placed
