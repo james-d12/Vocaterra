@@ -13,6 +13,34 @@ namespace Vocaterra.Game.Core.World.Underground;
 public sealed record BlobSpec(string Block, int Cell, int CellY, int Octaves, int Threshold);
 
 /// <summary>
+/// How far the underground reaches into the valley's own stone (B13): the strata, the ores and the caves are laid into the valley's stone only where every block is buried. All distances are in
+/// blocks and measured as a cube (the largest of the three axes), so a ball of the same radius is kept clear too.
+/// </summary>
+/// <param name="SurfaceDistance">How far a changed block stays from any air cell of the valley (the sky, a house's room, a cliff face).</param>
+/// <param name="WaterDistance">How far a changed block stays from any water cell, so water never pours in (the lake bed, the river's bed, the falls).</param>
+/// <param name="BorderMargin">How many columns in from the valley's edge nothing changes (the land outside is procedural and has its own caves).</param>
+/// <param name="SiteMargin">How far a changed block stays from a site's level ground, a named point, an NPC or the spawn (measured from the surface there).</param>
+/// <param name="PathMargin">How far a changed block stays from a trodden path.</param>
+/// <param name="PropMargin">How far a changed block stays from a block of a prop (a house, a well, a bridge, a lamp).</param>
+/// <param name="VillageSite">The site the village stands round (its level ground and its blend are the village's footprint).</param>
+/// <param name="VillageMargin">How far a changed block stays from the village's footprint.</param>
+/// <param name="PassPaths">The paths of the pass (the cutting through the ring to the east edge).</param>
+/// <param name="PassProps">The props of the pass (the rockfall).</param>
+/// <param name="PassMargin">How far a changed block stays from the pass's paths and props.</param>
+public sealed record ValleySpec(
+    int SurfaceDistance,
+    int WaterDistance,
+    int BorderMargin,
+    int SiteMargin,
+    int PathMargin,
+    int PropMargin,
+    string VillageSite,
+    int VillageMargin,
+    IReadOnlyList<string> PassPaths,
+    IReadOnlyList<string> PassProps,
+    int PassMargin);
+
+/// <summary>
 /// The rock layers: stone from the surface down to <see cref="DitherToY"/>, the deep rock below <see cref="DitherFromY"/> and between them a change dithered cell by cell (the share of deep rock
 /// falls in a straight line from all at <see cref="DitherFromY"/> to none at <see cref="DitherToY"/>), so the boundary is ragged. Blobs of other rock lie in the stone layer.
 /// </summary>
@@ -121,7 +149,8 @@ public sealed record OreSpec(string Id, string Block, IReadOnlyList<string> Repl
 /// <param name="Entrances">The entrances.</param>
 /// <param name="Lava">The lava.</param>
 /// <param name="Ores">The ores.</param>
-public sealed record UndergroundData(StrataSpec Strata, FloorSpec Floor, CaveSpec Caves, EntranceSpec Entrances, LavaSpec Lava, IReadOnlyList<OreSpec> Ores)
+/// <param name="Valley">How far the underground reaches into the valley's own stone (B13), or <see langword="null"/> for a valley of plain stone.</param>
+public sealed record UndergroundData(StrataSpec Strata, FloorSpec Floor, CaveSpec Caves, EntranceSpec Entrances, LavaSpec Lava, IReadOnlyList<OreSpec> Ores, ValleySpec? Valley = null)
 {
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/underground.json";
@@ -181,13 +210,27 @@ public sealed record UndergroundData(StrataSpec Strata, FloorSpec Floor, CaveSpe
                     Int(caves, "bedClearance")),
                 new EntranceSpec(Int(entrances, "cell"), Int(entrances, "octaves"), Int(entrances, "threshold"), Int(entrances, "minHeightAboveSea"), Int(entrances, "waterReach"), Int(entrances, "probeDepth")),
                 new LavaSpec(Text(lava, "block"), Int(lava, "level")),
-                [.. root.GetProperty("ores").EnumerateArray().Select(ParseOre)]);
+                [.. root.GetProperty("ores").EnumerateArray().Select(ParseOre)],
+                root.TryGetProperty("valley", out var valley) ? ParseValley(valley) : null);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {
             throw new InvalidDataException($"{RelativePath} is malformed: {ex.Message}", ex);
         }
     }
+
+    private static ValleySpec ParseValley(JsonElement valley) => new(
+        Int(valley, "surfaceDistance"),
+        Int(valley, "waterDistance"),
+        Int(valley, "borderMargin"),
+        Int(valley, "siteMargin"),
+        Int(valley, "pathMargin"),
+        Int(valley, "propMargin"),
+        Text(valley, "villageSite"),
+        Int(valley, "villageMargin"),
+        [.. valley.GetProperty("passPaths").EnumerateArray().Select(static e => e.GetString() ?? string.Empty)],
+        [.. valley.GetProperty("passProps").EnumerateArray().Select(static e => e.GetString() ?? string.Empty)],
+        Int(valley, "passMargin"));
 
     private static OreSpec ParseOre(JsonElement ore)
     {

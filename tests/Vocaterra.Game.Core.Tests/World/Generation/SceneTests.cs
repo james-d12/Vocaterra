@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 
@@ -35,8 +34,8 @@ public sealed class SceneTests(ITestOutputHelper output)
     public void TheSceneBuildsIdenticallyTwice()
     {
         // Two builds, not the test process's copies of one (VoxelTestSupport.BuildRoute): this is the builder's own determinism.
-        var a = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
-        var b = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var a = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
+        var b = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         Assert.Equal(a.Grid.ComputeDigestHex(), b.Grid.ComputeDigestHex());
         Assert.Equal(a.Spawn, b.Spawn);
         Assert.Equal(a.Npcs, b.Npcs);
@@ -47,7 +46,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheTestsCopyOfTheRouteIsAFreshBuildAndItsEditsStayInIt()
     {
-        var fresh = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var fresh = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         var copy = VoxelTestSupport.BuildRoute(Seed);
         Assert.Equal(GoldenDigest, copy.Grid.ComputeDigestHex());
         Assert.Equal(fresh.Grid.ComputeDigestHex(), copy.Grid.ComputeDigestHex());
@@ -596,7 +595,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var json = File.ReadAllText(VoxelTestSupport.RouteDraftPath())
             .Replace("\"props\": [", "\"props\": [ {\"type\": \"house\", \"site\": \"village\", \"dx\": 24, \"dz\": -3, \"width\": 5, \"depth\": 5, \"facing\": \"west\"},", StringComparison.Ordinal);
         var layout = SceneLayout.Parse(json);
-        var error = Assert.Throws<SceneLayoutException>(() => SceneBuilder.Build(layout, Seed));
+        var error = Assert.Throws<SceneLayoutException>(() => ValleyBuild.Build(layout, Seed));
         Assert.Contains("flat", error.Message, StringComparison.Ordinal);
     }
 
