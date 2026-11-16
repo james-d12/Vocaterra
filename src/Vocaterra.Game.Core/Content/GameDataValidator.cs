@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Atmosphere;
+using Vocaterra.Game.Core.Damage;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
@@ -92,6 +93,7 @@ public static class GameDataValidator
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
         problems.AddRange(TemperatureValidator.Validate(data.Temperature)); // I06: the terms' numbers, the bands in order, their walk factors
         problems.AddRange(EquipmentValidator.Validate(data.Equipment, data.Items)); // I03a: the slot groups, and every worn item has a slot and a group that accepts it
+        problems.AddRange(DamageValidator.Validate(data.Damage, DamageModifiers.Standard())); // I05a: the causes the code raises have rows, every modifier id is registered
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);

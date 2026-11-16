@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Vocaterra.Game.Core.Stats;
 
 namespace Vocaterra.Game.Core.Items.Gear;
 
@@ -90,6 +91,14 @@ internal static partial class EquipmentValidator
 
     private static void CheckItem(List<string> problems, EquipmentData data, ItemDefinition item)
     {
+        foreach (var (key, amount) in item.Stats ?? new Dictionary<string, double>())
+        {
+            if (StatRules.Find(key)?.Problem(amount) is { } problem) // I05a: each key the code reads has its range
+            {
+                problems.Add($"game/items.json: the stat '{key}' of '{item.Name}' is {amount}; {problem}.");
+            }
+        }
+
         if (item.Wear is null)
         {
             if (item.Stats is { Count: > 0 } || item.Look is not null)

@@ -98,10 +98,13 @@ public sealed class NeedsHud
     public bool StaminaVisible => _session.Needs.Value(NeedMeter.Stamina) < _session.Needs.Effects().StaminaMaximum - 1e-6;
 
     /// <summary>Stamina, 0 to 1 of the full bar (100).</summary>
-    public double Stamina => _session.Needs.Value(NeedMeter.Stamina) / PlayerNeeds.Full;
+    public double Stamina => _session.Needs.Value(NeedMeter.Stamina) / StaminaScale;
 
     /// <summary>Stamina's current maximum, 0 to 1 of the full bar: the bar from here to its end is dashed, for what the drives cut.</summary>
-    public double StaminaMaximum => _session.Needs.Effects().StaminaMaximum / PlayerNeeds.Full;
+    public double StaminaMaximum => _session.Needs.Effects().StaminaMaximum / StaminaScale;
+
+    // The bar's full length in meter units: 100, or the ceiling when gear raises it above 100 (I05a), so the bar always shows the whole ceiling.
+    private double StaminaScale => Math.Max(PlayerNeeds.Full, _session.Needs.Effects().StaminaMaximum);
 
     /// <summary>The icons of the drives that are at stage 1 or worse, in the order hunger, thirst, sleep; none when all are healthy.</summary>
     public IReadOnlyList<DriveIcon> Icons

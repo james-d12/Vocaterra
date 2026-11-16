@@ -31,7 +31,7 @@ public sealed class EquipmentStats : IStatContributor
 
             foreach (var (key, amount) in item.Stats)
             {
-                builder.Add(key, amount);
+                StatRules.Contribute(builder, key, amount); // the key's rule: a sum or a factor
             }
         }
     }
