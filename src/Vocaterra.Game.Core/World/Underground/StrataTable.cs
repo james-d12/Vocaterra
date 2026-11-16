@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.World.Noise;
 
 namespace Vocaterra.Game.Core.World.Underground;
 
-/// <summary>What rock lies at a place (B11, biomes plan section 3.5): stone, slate, granite or limestone, a pure function of the position.</summary>
+/// <summary>What rock lies at a place (B11, biomes plan section 3.5): stone, slate, granite, limestone or whatever the pockets of the data lay, a pure function of the position.</summary>
 public interface IStrataSelector
 {
     /// <summary>The rock at a block of the stone layers (the ground's own top and filler layers are the biome's).</summary>
@@ -16,8 +16,9 @@ public interface IStrataSelector
 
 /// <summary>
 /// The rock layers (<see cref="StrataSpec"/>): stone down to <see cref="StrataSpec.DitherToY"/>, the deep rock below <see cref="StrataSpec.DitherFromY"/>, a change between them dithered cell by
-/// cell by a hash of the position, and blobs of other rock in the stone layer where a 3D noise field passes its threshold (the first blob that does wins). <see cref="Fill"/> gives a whole chunk's
-/// rocks from the blob noise sampled once on a coarse lattice, and the same numbers <see cref="RockAt"/> gives one by one. Pure, immutable and safe from any thread.
+/// cell by a hash of the position, and pockets of other rock where a 3D noise field passes its threshold (the first row that does wins). A row names the base rocks it may replace (the stone by default) and
+/// the band of heights it lies in (B11b), so gravel, sand and dirt lie among the upper stone, granite and limestone in larger and more frequent pockets, and a darker stone in the slate.
+/// <see cref="Fill"/> gives a whole chunk's rocks from the pocket noise sampled once on a coarse lattice, and the same numbers <see cref="RockAt"/> gives one by one. Pure, immutable and safe from any thread.
 /// </summary>
 internal sealed class StrataTable : IStrataSelector
 {
@@ -29,6 +30,9 @@ internal sealed class StrataTable : IStrataSelector
     private readonly BlockId _stone;
     private readonly BlockId _deep;
     private readonly BlockId[] _blobBlocks;
+    private readonly BlockId[][] _blobIn;
+    private readonly int[] _blobMinY;
+    private readonly int[] _blobMaxY;
     private readonly int[] _blobThresholds;
     private readonly NoiseField3[] _blobFields;
     private readonly ulong _key;
@@ -45,6 +49,9 @@ internal sealed class StrataTable : IStrataSelector
         _deep = UndergroundWorld.BlockNamed(spec.Deep);
         _key = WorldRng.For(seed, "gen/strata").NextUInt64();
         _blobBlocks = [.. spec.Blobs.Select(static b => UndergroundWorld.BlockNamed(b.Block))];
+        _blobIn = [.. spec.Blobs.Select(b => b.In is null ? new[] { _stone } : b.In.Select(UndergroundWorld.BlockNamed).ToArray())];
+        _blobMinY = [.. spec.Blobs.Select(static b => b.MinY)];
+        _blobMaxY = [.. spec.Blobs.Select(static b => b.MaxY)];
         _blobThresholds = [.. spec.Blobs.Select(static b => FieldScale.FromThousandths(b.Threshold))];
         _blobFields = [.. spec.Blobs.Select((b, i) => new NoiseField3(seed, $"gen/strata/blob/{i}/{b.Block}", b.Cell, b.CellY, b.Octaves))];
     }
@@ -62,21 +69,19 @@ internal sealed class StrataTable : IStrataSelector
     public BlockId RockAt(int x, int y, int z)
     {
         var baseRock = BaseRock(x, y, z);
-        if (baseRock != _stone)
-        {
-            return baseRock;
-        }
-
         for (var i = 0; i < _blobFields.Length; i++)
         {
-            if (LatticeGrid.At(_blobFields[i].At, _spec.BlobLattice, _spec.BlobLattice, x, y, z) > _blobThresholds[i])
+            if (Applies(i, y, baseRock) && LatticeGrid.At(_blobFields[i].At, _spec.BlobLattice, _spec.BlobLattice, x, y, z) > _blobThresholds[i])
             {
                 return _blobBlocks[i];
             }
         }
 
-        return _stone;
+        return baseRock;
     }
+
+    // Whether a pocket row may replace this base rock at this height.
+    private bool Applies(int row, int y, BlockId baseRock) => y >= _blobMinY[row] && y <= _blobMaxY[row] && Array.IndexOf(_blobIn[row], baseRock) >= 0;
 
     /// <summary>
     /// The rocks of the 16 x 16 x 16 box whose first block is (x0, y0, z0) (a chunk: its corner is a multiple of 16), in <c>ChunkData</c> order, the blob noise evaluated once on the lattice and
@@ -113,18 +118,23 @@ internal sealed class StrataTable : IStrataSelector
             }
         }
 
-        if (_blobFields.Length == 0 || y0 + Size - 1 < _spec.DitherToY)
+        if (_blobFields.Length == 0)
         {
             return;
         }
 
-        // The first blob row that passes wins, so the rows are applied from the last to the first; a blob replaces stone only.
+        // The first pocket row that passes wins, so the rows are applied from the last to the first; a pocket replaces the base rocks of its row only, inside its band of heights.
         Span<sbyte> pick = stackalloc sbyte[VoxelChunk.Volume];
         pick.Fill(-1);
         var any = false;
         var cell = _spec.BlobLattice;
         for (var row = _blobFields.Length - 1; row >= 0; row--)
         {
+            if (y0 > _blobMaxY[row] || y0 + Size - 1 < _blobMinY[row])
+            {
+                continue;
+            }
+
             var grid = new LatticeGrid(_blobFields[row].At, cell, cell, x0, y0, z0, Size);
             for (var k = 0; k < grid.CellsXz; k++)
             {
@@ -134,7 +144,7 @@ internal sealed class StrataTable : IStrataSelector
                     {
                         if (grid.Max(i, j, k) > _blobThresholds[row])
                         {
-                            any |= MarkCell(grid, (i, j, k), row, pick);
+                            any |= MarkCell(grid, (i, j, k), row, pick, into[..VoxelChunk.Volume], y0);
                         }
                     }
                 }
@@ -148,15 +158,15 @@ internal sealed class StrataTable : IStrataSelector
 
         for (var at = 0; at < VoxelChunk.Volume; at++)
         {
-            if (pick[at] >= 0 && into[at] == _stone)
+            if (pick[at] >= 0)
             {
                 into[at] = _blobBlocks[pick[at]];
             }
         }
     }
 
-    // Marks the cells of a lattice cell where a blob row's noise passes its threshold; whether it marked any.
-    private bool MarkCell(LatticeGrid grid, (int I, int J, int K) cell, int row, Span<sbyte> pick)
+    // Marks the blocks of a lattice cell where a pocket row's noise passes its threshold, the base rock is one the row replaces and the height is in its band; whether it marked any.
+    private bool MarkCell(LatticeGrid grid, (int I, int J, int K) cell, int row, Span<sbyte> pick, ReadOnlySpan<BlockId> baseRocks, int y0)
     {
         var size = _spec.BlobLattice;
         var marked = false;
@@ -171,7 +181,7 @@ internal sealed class StrataTable : IStrataSelector
                 var at = ((((cell.J * size) + dy) * VoxelChunk.Size) + (cell.K * size) + dz) * VoxelChunk.Size + (cell.I * size);
                 for (var dx = 0; dx < size; dx++)
                 {
-                    if (whole || LatticeGrid.Across(left, right, dx * IntMath.One / size) > _blobThresholds[row])
+                    if (Applies(row, y0 + (cell.J * size) + dy, baseRocks[at + dx]) && (whole || LatticeGrid.Across(left, right, dx * IntMath.One / size) > _blobThresholds[row]))
                     {
                         pick[at + dx] = (sbyte)row;
                         marked = true;

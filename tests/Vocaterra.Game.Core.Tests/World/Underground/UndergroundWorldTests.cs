@@ -32,7 +32,7 @@ public sealed class UndergroundWorldTests
     {
         var names = ProceduralTestWorld.Source(42).Pipeline.PassNames;
 
-        Assert.Equal(["gen/relief", "gen/banks", "gen/waterside", "gen/surface", "gen/water", "gen/stone", "gen/strata", "gen/floor", "gen/caves", "gen/lava", "gen/ores", "gen/trees", "gen/undergrowth"], names);
+        Assert.Equal(["gen/relief", "gen/banks", "gen/waterside", "gen/surface", "gen/water", "gen/stone", "gen/strata", "gen/cliffs", "gen/floor", "gen/caves", "gen/entrances", "gen/lava", "gen/ores", "gen/linings", "gen/trees", "gen/undergrowth"], names);
         Assert.Equal(names.Count, names.Distinct(StringComparer.Ordinal).Count());
     }
 
@@ -110,6 +110,7 @@ public sealed class UndergroundWorldTests
     public void Given_TheCavesOfAPlace_When_TheAirIsCounted_Then_ThereAreCavesDeepDownAndNoneIsLostToTheSurface(ulong seed)
     {
         var area = Area(seed, Feature.Plain);
+        var passages = ProceduralTestWorld.Source(seed).World.Entrances!.Near(area.MinX, area.MinZ, area.MaxX - 1, area.MaxZ - 1);
         long deepCells = 0;
         long deepAir = 0;
         for (var z = area.MinZ; z < area.MaxZ; z++)
@@ -124,7 +125,7 @@ public sealed class UndergroundWorldTests
                 }
 
                 // Under the cover, the ground is whole except at an entrance: the layers just under the top are never air.
-                if (area.Block(x, height, z) != BlockId.Air)
+                if (area.Block(x, height, z) != BlockId.Air && !passages.Any(p => { p.Locate(x, z, out var along, out var lateral); return p.InPassage(along, lateral); }))
                 {
                     for (var y = height - Data.Caves.SurfaceCover + 1; y <= height; y++)
                     {
@@ -135,56 +136,6 @@ public sealed class UndergroundWorldTests
         }
 
         Assert.InRange(deepAir * 100.0 / deepCells, 1.0, 20.0);
-    }
-
-    [Theory]
-    [InlineData(42UL)]
-    [InlineData(7UL)]
-    [InlineData(2026UL)]
-    public void Given_TheEntrancesOfAPlace_When_TheyAreFound_Then_EachIsInAZoneOnDryLandWithACaveUnderIt(ulong seed)
-    {
-        var source = ProceduralTestWorld.Source(seed);
-        var underground = source.World.Underground!;
-        var area = Area(seed, Feature.Plain, 9);
-        var entrances = new List<(int X, int Z)>();
-        for (var z = area.MinZ + 4; z < area.MaxZ - 4; z++)
-        {
-            for (var x = area.MinX + 4; x < area.MaxX - 4; x++)
-            {
-                var height = area.Height(x, z);
-                if (area.Block(x, height, z) == BlockId.Air)
-                {
-                    entrances.Add((x, z));
-                }
-            }
-        }
-
-        Assert.NotEmpty(entrances);
-        var listed = Enumerable.Range(area.ChunkX0 + 1, area.Width - 2).SelectMany(cx => Enumerable.Range(area.ChunkZ0 + 1, area.Depth - 2).SelectMany(cz => source.EntranceColumns(cx, cz))).ToHashSet();
-        Assert.True(entrances.Where(e => e.X >= area.MinX + 16 && e.X < area.MaxX - 16 && e.Z >= area.MinZ + 16 && e.Z < area.MaxZ - 16).All(listed.Contains), "every open column is in the list the source gives");
-        Assert.True(listed.Where(e => e.X >= area.MinX + 4 && e.X < area.MaxX - 4 && e.Z >= area.MinZ + 4 && e.Z < area.MaxZ - 4).All(e => entrances.Contains(e)), "every listed column is open");
-        foreach (var (x, z) in entrances)
-        {
-            var height = area.Height(x, z);
-            Assert.True(underground.Entrances.InZone(x, z), $"{x},{z} is open but not in a zone");
-            Assert.True(height >= source.World.SeaLevel + Data.Entrances.MinHeightAboveSea, $"{x},{z} is open at height {height}");
-            for (var dz = -Data.Entrances.WaterReach; dz <= Data.Entrances.WaterReach; dz++)
-            {
-                for (var dx = -Data.Entrances.WaterReach; dx <= Data.Entrances.WaterReach; dx++)
-                {
-                    Assert.True(area.Height(x + dx, z + dz) >= source.World.SeaLevel, $"{x},{z} has water within reach");
-                }
-            }
-
-            // The shaft is open through the cover from the ground down, and meets cave air within the probe depth under the cover.
-            for (var y = height - Data.Caves.SurfaceCover + 1; y <= height; y++)
-            {
-                Assert.Equal(BlockId.Air, area.Block(x, y, z));
-            }
-
-            var meets = Enumerable.Range(height - Data.Caves.SurfaceCover - Data.Entrances.ProbeDepth, Data.Entrances.ProbeDepth + 1).Any(y => area.Block(x, y, z) == BlockId.Air);
-            Assert.True(meets, $"{x},{z}: no cave air under the shaft (ground {height})");
-        }
     }
 
     [Theory]

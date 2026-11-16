@@ -157,7 +157,7 @@ public sealed class VoxelGridTests
         }
 
         Assert.Equal(Enum.GetValues<BlockId>().Length, BlockDefinition.All.Count);
-        Assert.Equal(66, BlockDefinition.All.Count);
+        Assert.Equal(67, BlockDefinition.All.Count);
 
         // The values are hashed into every golden: pinned here so a reorder cannot go unnoticed.
         Assert.Equal(0, (int)BlockId.Air);

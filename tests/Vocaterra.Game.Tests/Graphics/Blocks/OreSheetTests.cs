@@ -14,7 +14,7 @@ public sealed class OreSheetTests
     private static readonly BlockCell[] Cells =
     [
         BlockCell.Stone, BlockCell.Cobble, BlockCell.Water, BlockCell.Slate, BlockCell.Granite, BlockCell.Limestone,
-        BlockCell.Gravel, BlockCell.Lava, BlockCell.Bedrock, BlockCell.IronOre, BlockCell.TinOre, BlockCell.CopperOre,
+        BlockCell.Gravel, BlockCell.Lava, BlockCell.Bedrock, BlockCell.IronOre, BlockCell.TinOre, BlockCell.CopperOre, BlockCell.Basalt,
     ];
 
     [Fact]

@@ -22,7 +22,12 @@ public sealed class UndergroundDataTests
         var u = Shipped;
 
         Assert.Equal(("stone", "slate", 0, 8), (u.Strata.Stone, u.Strata.Deep, u.Strata.DitherFromY, u.Strata.DitherToY));
-        Assert.Equal(["granite", "limestone"], u.Strata.Blobs.Select(static b => b.Block));
+        Assert.Equal(["gravel", "sand", "dirt", "granite", "limestone", "granite", "basalt"], u.Strata.Blobs.Select(static b => b.Block));
+        Assert.Equal(["slate"], u.Strata.Blobs[^1].In);
+        Assert.Equal((170, 12, 210), (u.Strata.Blobs[0].Threshold, -u.Strata.Blobs[0].MinY, u.Strata.Blobs[0].MaxY));
+        Assert.Equal((128, 500, 3, 4, 2, 20), (u.Entrances.Cell, u.Entrances.Chance, u.Entrances.Width, u.Entrances.Headroom, u.Entrances.Run, u.Entrances.MinDrop));
+        Assert.NotNull(u.Linings);
+        Assert.NotNull(u.SurfaceRock);
         Assert.Equal(("bedrock", -64, 1, 4), (u.Floor.Block, u.Floor.BottomY, u.Floor.MinThickness, u.Floor.MaxThickness));
         Assert.Equal((4, 8), (u.Caves.LatticeXz, u.Caves.LatticeY));
         Assert.Equal(("lava", -54), (u.Lava.Block, u.Lava.Level));
@@ -32,7 +37,7 @@ public sealed class UndergroundDataTests
         Assert.Equal([(-24, 56, 16), (80, 320, 160)], iron.Bands.Select(static b => (b.MinY, b.MaxY, b.PeakY)));
         var tin = u.Ores.Single(static o => o.Block == "tin-ore");
         Assert.Equal([(-32, 48, 8)], tin.Bands.Select(static b => (b.MinY, b.MaxY, b.PeakY)));
-        Assert.All(u.Ores, static o => Assert.Equal(["stone", "slate", "granite", "limestone"], o.Replaces));
+        Assert.All(u.Ores, static o => Assert.Equal(["stone", "slate", "granite", "limestone", "basalt"], o.Replaces));
     }
 
     [Fact]
@@ -57,6 +62,8 @@ public sealed class UndergroundDataTests
     [InlineData("not json")]
     public void Given_AFileWrongInShape_When_ItIsParsed_Then_ItIsRefused(string json) => Assert.Throws<InvalidDataException>(() => UndergroundData.Parse(json));
 
+    private static (string, int, int, int, int, IReadOnlyList<string>?, int, int) Blob(BlobSpec b) => (b.Block, b.Cell, b.CellY, b.Octaves, b.Threshold, b.In, b.MinY, b.MaxY);
+
     [Fact]
     public void Given_TheFileText_When_ItIsParsedAgain_Then_ItEqualsTheLoadedOne()
     {
@@ -64,18 +71,22 @@ public sealed class UndergroundDataTests
 
         var parsed = UndergroundData.Parse(text);
 
-        Assert.Equal(Shipped.Strata.Blobs, parsed.Strata.Blobs);
+        Assert.Equal(Shipped.Strata.Blobs.Select(Blob), parsed.Strata.Blobs.Select(Blob));
         Assert.Equal(Shipped.Caves, parsed.Caves);
-        Assert.Equal(Shipped.Entrances, parsed.Entrances);
+        Assert.Equal(Shipped.Entrances with { RimBlocks = [] }, parsed.Entrances with { RimBlocks = [] });
+        Assert.Equal(Shipped.Entrances.RimBlocks, parsed.Entrances.RimBlocks);
+        Assert.Equal(Shipped.Linings!.Rules.Select(static r => (r.Block, string.Join(',', r.In), r.Face, r.Zone, r.Chance, r.Patch, r.MinY, r.MaxY)), parsed.Linings!.Rules.Select(static r => (r.Block, string.Join(',', r.In), r.Face, r.Zone, r.Chance, r.Patch, r.MinY, r.MaxY)));
+        Assert.Equal(Shipped.SurfaceRock!.Cliff.Bands, parsed.SurfaceRock!.Cliff.Bands);
+        Assert.Equal(Shipped.SurfaceRock.Scree.Rules, parsed.SurfaceRock.Scree.Rules);
         Assert.Equal(Shipped.Ores.Select(static o => (o.Id, o.Block, o.Bands.Count)), parsed.Ores.Select(static o => (o.Id, o.Block, o.Bands.Count)));
     }
 
     [Fact]
     public void Given_ABlockTheGameLacks_When_ItIsValidated_Then_TheProblemNamesIt()
     {
-        var problems = Problems(Shipped with { Strata = Shipped.Strata with { Deep = "basalt" } });
+        var problems = Problems(Shipped with { Strata = Shipped.Strata with { Deep = "magma" } });
 
-        Assert.True(Names(problems, "basalt"));
+        Assert.True(Names(problems, "magma"));
     }
 
     [Fact]
@@ -84,7 +95,9 @@ public sealed class UndergroundDataTests
         Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { DitherFromY = 8, DitherToY = 0 } }), "ditherFromY below ditherToY"));
         Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { BlobLattice = 5 } }), "blobLattice"));
         Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Deep = "stone" } }), "different blocks"));
-        Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Blobs = [.. Shipped.Strata.Blobs, Shipped.Strata.Blobs[0]] } }), "used twice"));
+        Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Blobs = [Shipped.Strata.Blobs[0] with { In = ["water"] }] } }), "must be solid"));
+        Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Blobs = [Shipped.Strata.Blobs[0] with { In = [] }] } }), "replaces no rock"));
+        Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Blobs = [Shipped.Strata.Blobs[0] with { MinY = 50, MaxY = 10 }] } }), "minY not above maxY"));
         Assert.True(Names(Problems(Shipped with { Strata = Shipped.Strata with { Blobs = [Shipped.Strata.Blobs[0] with { Threshold = 1500 }] } }), "threshold"));
     }
 
@@ -112,11 +125,50 @@ public sealed class UndergroundDataTests
     }
 
     [Fact]
-    public void Given_BadEntrances_When_TheyAreValidated_Then_TheWaterReachMustCoverTheCavesMargin()
+    public void Given_BadEntrances_When_TheyAreValidated_Then_ThePassageMustBeWalkableAndClearOfWater()
     {
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { WaterReach = Shipped.Caves.WaterMargin - 1 } }), "waterReach"));
-        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { ProbeDepth = 0 } }), "probeDepth"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { WaterReach = Shipped.Caves.WaterMargin } }), "waterReach"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Width = 1 } }), "width"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Run = 5 } }), "no step is over one block"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Run = 0 } }), "no step is over one block"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Headroom = 2 } }), "headroom"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinDrop = 4 } }), "minDrop"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxLength = 20 } }), "maxLength"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Margin = 70 } }), "margin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Chance = 2000 } }), "chance"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MinHeightAboveSea = -1 } }), "minHeightAboveSea"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [] } }), "rimBlocks"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RimBlocks = [new BlockWeight("magma", 1)] } }), "magma"));
+    }
+
+    [Fact]
+    public void Given_BadLinings_When_TheyAreValidated_Then_EachRulesFaceZoneBlockAndBandAreChecked()
+    {
+        var rule = Shipped.Linings!.Rules[0];
+        UndergroundData With(Func<LiningRule, LiningRule> change) => Shipped with { Linings = Shipped.Linings! with { Rules = [change(rule)] } };
+
+        Assert.True(Names(Problems(With(static r => r with { Face = "sideways" })), "face"));
+        Assert.True(Names(Problems(With(static r => r with { Zone = "cold" })), "zone"));
+        Assert.True(Names(Problems(With(static r => r with { Block = "magma" })), "magma"));
+        Assert.True(Names(Problems(With(static r => r with { In = [] })), "replaces no rock"));
+        Assert.True(Names(Problems(With(static r => r with { In = ["lava"] })), "must be solid"));
+        Assert.True(Names(Problems(With(static r => r with { Chance = 0 })), "chance"));
+        Assert.True(Names(Problems(With(static r => r with { MinY = 90, MaxY = 10 })), "minY not above maxY"));
+        Assert.True(Names(Problems(With(static r => r with { Patch = new PatchSpec(0, 4, 1, 0) })), "patch"));
+        Assert.True(Names(Problems(Shipped with { Linings = Shipped.Linings with { WetReach = 30 } }), "wetReach"));
+    }
+
+    [Fact]
+    public void Given_BadSurfaceRock_When_ItIsValidated_Then_TheCliffTheScreeAndTheStreambedAreChecked()
+    {
+        var rock = Shipped.SurfaceRock!;
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Cliff = rock.Cliff with { Drop = 1 } } }), "cliff.drop"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Cliff = rock.Cliff with { Bands = [] } } }), "cliff.bands"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Cliff = rock.Cliff with { Bands = [new BlockWeight("water", 1)] } } }), "must be solid"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Scree = rock.Scree with { SteepDrop = rock.Cliff.Drop } } }), "steepDrop"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Scree = rock.Scree with { Rules = [new ScatterRule("magma", 500, null)] } } }), "magma"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Streambed = rock.Streambed with { MinWeight = 0 } } }), "minWeight"));
+        Assert.True(Names(Problems(Shipped with { SurfaceRock = rock with { Streambed = rock.Streambed with { Rules = [new ScatterRule("gravel", 0, null)] } } }), "chance"));
     }
 
     [Fact]
@@ -151,7 +203,7 @@ public sealed class UndergroundDataTests
         Assert.Equal(-54, world.LavaLevel);
         Assert.Equal(BlockId.Bedrock, world.Bedrock);
         Assert.Equal(BlockId.Lava, world.Lava);
-        Assert.Equal(3, world.WaterReach);
+        Assert.Equal(Shipped.Linings!.WetReach, world.WaterReach); // the linings' wet reach is wider than the caves' margin of 3
         Assert.Throws<ArgumentException>(() => new UndergroundWorld(Shipped with { Lava = Shipped.Lava with { Block = "magma" } }, 42));
     }
 }

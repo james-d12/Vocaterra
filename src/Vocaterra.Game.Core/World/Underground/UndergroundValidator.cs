@@ -7,12 +7,15 @@ namespace Vocaterra.Game.Core.World.Underground;
 /// The checks of <c>game/underground.json</c> that need more than its shape (B11): every block name one the game has and solid (lava is the fluid that stops a body), the strata's dither ordered
 /// and inside the world, the blobs' blocks distinct, a floor of at least one block that cannot rise into the lava, ores with unique kebab-case ids whose veins replace only solid rock (never an ore, bedrock or
 /// lava), bands that peak inside their range and lie inside the world, cave lattices that divide a chunk, thresholds inside the noise's range, the water margin no larger than the entrances' water reach
-/// and the bed clearance no smaller than the margin, and the lava level above the floor and under the dither. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
+/// and the bed clearance no smaller than the margin, and the lava level above the floor and under the dither. B11b adds the entrances' passage (wide enough to walk, steps of one block), the cave linings
+/// (known faces and zones, rocks the game has) and the surface rock (cliffs, scree and stream beds). <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
 /// </summary>
 internal static partial class UndergroundValidator
 {
     private const string File = UndergroundData.RelativePath;
     private static readonly int[] Divisors = [1, 2, 4, 8, 16];
+    private static readonly string[] LiningFaces = ["floor", "wall", "ceiling", "any"];
+    private static readonly string[] LiningZones = ["any", "damp", "wet"];
 
     /// <summary>Every problem of the underground, in a fixed order; empty when the values hold together.</summary>
     /// <param name="underground">The underground.</param>
@@ -30,6 +33,16 @@ internal static partial class UndergroundValidator
         CheckEntrances(underground, problems);
         CheckLava(underground, v, problems);
         CheckOres(underground, v, problems);
+        if (underground.Linings is { } linings)
+        {
+            CheckLinings(linings, v, problems);
+        }
+
+        if (underground.SurfaceRock is { } surfaceRock)
+        {
+            CheckSurfaceRock(surfaceRock, problems);
+        }
+
         if (underground.Valley is { } valley)
         {
             CheckValley(valley, scene, problems);
@@ -101,17 +114,25 @@ internal static partial class UndergroundValidator
             problems.Add($"{File}: strata.blobLattice must divide a chunk: 1, 2, 4, 8 or 16 (it is {s.BlobLattice}).");
         }
 
-        var seen = new HashSet<string>(StringComparer.Ordinal) { s.Stone, s.Deep };
         foreach (var blob in s.Blobs)
         {
             Block(problems, $"strata.blobs '{blob.Block}'", blob.Block, solid: true);
-            if (!seen.Add(blob.Block))
-            {
-                problems.Add($"{File}: the block '{blob.Block}' is used twice in the strata.");
-            }
-
             Noise(problems, $"strata.blobs '{blob.Block}'", blob.Cell, blob.CellY, blob.Octaves);
             Thousandths(problems, $"strata.blobs '{blob.Block}' threshold", blob.Threshold, -1000, 1000);
+            foreach (var rock in blob.In ?? [])
+            {
+                Block(problems, $"strata.blobs '{blob.Block}' in", rock, solid: true);
+            }
+
+            if (blob.MinY > blob.MaxY || blob.MaxY < v.MinY || blob.MinY > v.MaxY)
+            {
+                problems.Add($"{File}: strata.blobs '{blob.Block}' needs minY not above maxY, the band inside the world (they are {blob.MinY} and {blob.MaxY}).");
+            }
+
+            if (blob.In is { Count: 0 })
+            {
+                problems.Add($"{File}: strata.blobs '{blob.Block}' replaces no rock (in is empty).");
+            }
         }
     }
 
@@ -187,21 +208,149 @@ internal static partial class UndergroundValidator
     private static void CheckEntrances(UndergroundData d, List<string> problems)
     {
         var e = d.Entrances;
-        Noise(problems, "entrances", e.Cell, e.Cell, e.Octaves);
-        Thousandths(problems, "entrances.threshold", e.Threshold, -1000, 1000);
+        Range(problems, "entrances.cell", e.Cell, 32, 1024);
+        Thousandths(problems, "entrances.chance", e.Chance, 0, 1000);
+        if (e.Margin < 0 || (2 * e.Margin) >= e.Cell)
+        {
+            problems.Add($"{File}: entrances.margin must leave room inside the site (it is {e.Margin} of a cell of {e.Cell}).");
+        }
+
         if (e.MinHeightAboveSea < 0 || e.MinHeightAboveSea > 64)
         {
             problems.Add($"{File}: entrances.minHeightAboveSea must be from 0 to 64 blocks (it is {e.MinHeightAboveSea}).");
         }
 
-        if (e.WaterReach < d.Caves.WaterMargin || e.WaterReach > 8)
+        if (e.WaterReach < d.Caves.WaterMargin + 1 || e.WaterReach > 24)
         {
-            problems.Add($"{File}: entrances.waterReach must be from the caves' waterMargin to 8 columns (it is {e.WaterReach}).");
+            problems.Add($"{File}: entrances.waterReach must be from one over the caves' waterMargin to 24 columns (it is {e.WaterReach}).");
         }
 
-        if (e.ProbeDepth < 1 || e.ProbeDepth > 32)
+        if (e.Width < 2 || e.Width > 6)
         {
-            problems.Add($"{File}: entrances.probeDepth must be from 1 to 32 blocks (it is {e.ProbeDepth}).");
+            problems.Add($"{File}: entrances.width must be from 2 to 6 blocks, wide enough to walk (it is {e.Width}).");
+        }
+
+        if (e.Headroom < 3 || e.Headroom > 8)
+        {
+            problems.Add($"{File}: entrances.headroom must be from 3 to 8 blocks (it is {e.Headroom}).");
+        }
+
+        if (e.Run < 1 || e.Run > 4)
+        {
+            problems.Add($"{File}: entrances.run must be from 1 to 4 blocks along for each block down, so no step is over one block (it is {e.Run}).");
+        }
+
+        if (e.MinDrop < 8 || e.MinDrop > 64)
+        {
+            problems.Add($"{File}: entrances.minDrop must be from 8 to 64 blocks (it is {e.MinDrop}).");
+        }
+
+        if (e.MaxLength < e.MinDrop * e.Run || e.MaxLength > 160)
+        {
+            problems.Add($"{File}: entrances.maxLength must be from minDrop x run ({e.MinDrop * e.Run}) to 160 blocks (it is {e.MaxLength}).");
+        }
+
+        if (e.Landing < 1 || e.Landing > 12)
+        {
+            problems.Add($"{File}: entrances.landing must be from 1 to 12 blocks (it is {e.Landing}).");
+        }
+
+        if (e.RimLength < 0 || e.RimLength > 48 || e.RimWidth < 0 || e.RimWidth > 6)
+        {
+            problems.Add($"{File}: entrances.rimLength must be from 0 to 48 and rimWidth from 0 to 6 blocks (they are {e.RimLength} and {e.RimWidth}).");
+        }
+
+        Weights(problems, "entrances.rimBlocks", e.RimBlocks, true); // the floor of the stair is built of them too
+    }
+
+    private static void CheckLinings(LiningSpec linings, VerticalRange v, List<string> problems)
+    {
+        Range(problems, "linings.wetReach", linings.WetReach, 0, 16);
+        Range(problems, "linings.dampReach", linings.DampReach, 0, 16);
+        foreach (var rule in linings.Rules)
+        {
+            Block(problems, $"linings '{rule.Block}'", rule.Block, solid: true);
+            if (rule.In.Count == 0)
+            {
+                problems.Add($"{File}: the lining of '{rule.Block}' replaces no rock (in is empty).");
+            }
+
+            foreach (var rock in rule.In)
+            {
+                Block(problems, $"linings '{rule.Block}' in", rock, solid: true);
+            }
+
+            if (Array.IndexOf(LiningFaces, rule.Face) < 0)
+            {
+                problems.Add($"{File}: the lining of '{rule.Block}' has the face '{rule.Face}'; it must be floor, wall, ceiling or any.");
+            }
+
+            if (Array.IndexOf(LiningZones, rule.Zone) < 0)
+            {
+                problems.Add($"{File}: the lining of '{rule.Block}' has the zone '{rule.Zone}'; it must be any, damp or wet.");
+            }
+
+            Thousandths(problems, $"linings '{rule.Block}' chance", rule.Chance, 1, 1000);
+            if (rule.Patch is { } patch)
+            {
+                Noise(problems, $"linings '{rule.Block}' patch", patch.Cell, patch.CellY, patch.Octaves);
+                Thousandths(problems, $"linings '{rule.Block}' patch threshold", patch.Threshold, -1000, 1000);
+            }
+
+            if (rule.MinY > rule.MaxY || rule.MaxY < v.MinY || rule.MinY > v.MaxY)
+            {
+                problems.Add($"{File}: the lining of '{rule.Block}' needs minY not above maxY, the band inside the world (they are {rule.MinY} and {rule.MaxY}).");
+            }
+        }
+    }
+
+    private static void CheckSurfaceRock(SurfaceRockSpec s, List<string> problems)
+    {
+        Range(problems, "surfaceRock.cliff.drop", s.Cliff.Drop, 2, 32);
+        Range(problems, "surfaceRock.cliff.bandThickness", s.Cliff.BandThickness, 1, 16);
+        Range(problems, "surfaceRock.cliff.zoneCell", s.Cliff.ZoneCell, 4, 256);
+        Range(problems, "surfaceRock.cliff.tilt", s.Cliff.Tilt, 0, 16);
+        Weights(problems, "surfaceRock.cliff.bands", s.Cliff.Bands, true);
+        Range(problems, "surfaceRock.scree.steepDrop", s.Scree.SteepDrop, 1, 32);
+        Range(problems, "surfaceRock.scree.footReach", s.Scree.FootReach, 0, 8);
+        if (s.Scree.SteepDrop >= s.Cliff.Drop)
+        {
+            problems.Add($"{File}: surfaceRock.scree.steepDrop must be under the cliff's drop (they are {s.Scree.SteepDrop} and {s.Cliff.Drop}).");
+        }
+
+        Thousandths(problems, "surfaceRock.streambed.minWeight", s.Streambed.MinWeight, 1, 1000);
+        Scatter(problems, "surfaceRock.scree", s.Scree.Rules);
+        Scatter(problems, "surfaceRock.streambed", s.Streambed.Rules);
+    }
+
+    private static void Scatter(List<string> problems, string part, IReadOnlyList<ScatterRule> rules)
+    {
+        foreach (var rule in rules)
+        {
+            Block(problems, $"{part} '{rule.Block}'", rule.Block, solid: true);
+            Thousandths(problems, $"{part} '{rule.Block}' chance", rule.Chance, 1, 1000);
+            if (rule.Patch is { } patch)
+            {
+                Noise(problems, $"{part} '{rule.Block}' patch", patch.Cell, patch.Cell, patch.Octaves);
+                Thousandths(problems, $"{part} '{rule.Block}' patch threshold", patch.Threshold, -1000, 1000);
+            }
+        }
+    }
+
+    private static void Weights(List<string> problems, string part, IReadOnlyList<BlockWeight> weights, bool required)
+    {
+        if (required && weights.Count == 0)
+        {
+            problems.Add($"{File}: {part} lists no block.");
+        }
+
+        foreach (var weight in weights)
+        {
+            Block(problems, $"{part} '{weight.Block}'", weight.Block, solid: true);
+            if (weight.Weight < 1 || weight.Weight > 1000)
+            {
+                problems.Add($"{File}: {part} '{weight.Block}' has the weight {weight.Weight}; it must be from 1 to 1000.");
+            }
         }
     }
 

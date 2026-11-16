@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/underground.json",
-  "description": "The underground (B11): the rock layers and their blobs, the bedrock floor, the caves with their entrances, the lava and the ores. Loaded by UndergroundData (Vocaterra.Game.Core); UndergroundValidator checks the values (block names the game has, a dither in order, bands that peak inside their range, a water margin no larger than the entrances' water reach).",
+  "description": "The underground (B11, B11b): the rock layers and their pockets, the bedrock floor, the caves, the entrances' passages, the lava, the ores, the cave linings and the surface rock. Loaded by UndergroundData (Vocaterra.Game.Core); UndergroundValidator checks the values (block names the game has, a dither in order, bands that peak inside their range, passages wide enough to walk with steps of one block).",
   "type": "object",
   "required": ["schemaVersion", "strata", "floor", "caves", "entrances", "lava", "ores"],
   "additionalProperties": false,
@@ -23,7 +23,7 @@
         "blobLattice": { "enum": [1, 2, 4, 8, 16], "description": "The spacing, in blocks, the blob noise is sampled at and interpolated from." },
         "blobs": {
           "type": "array",
-          "description": "Patches of other rock in the stone layer; the first row whose noise passes its threshold wins.",
+          "description": "Pockets of other rock; the first row whose noise passes its threshold, at a height inside its band, over a base rock it replaces, wins.",
           "items": {
             "type": "object",
             "required": ["block", "cell", "cellY", "octaves", "threshold"],
@@ -33,7 +33,15 @@
               "cell": { "type": "integer", "minimum": 1, "description": "The noise's first octave's cell across, in blocks." },
               "cellY": { "type": "integer", "minimum": 1, "description": "The noise's first octave's cell up, in blocks." },
               "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
-              "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The noise value, in thousandths, above which the blob is: higher is rarer." }
+              "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The noise value, in thousandths, above which the blob is: higher is rarer." },
+              "in": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/definitions/blockName" },
+                "description": "The base rocks the pocket may replace (the layer's stone when absent)."
+              },
+              "minY": { "type": "integer", "description": "The lowest y the pocket reaches (the world's bottom when absent)." },
+              "maxY": { "type": "integer", "description": "The highest y the pocket reaches (the world's top when absent)." }
             }
           }
         }
@@ -54,7 +62,17 @@
     "caves": {
       "type": "object",
       "description": "Cheese caverns and spaghetti tunnels on a coarse lattice, and the rules that keep them clear of the ground, the water and the valley.",
-      "required": ["latticeXz", "latticeY", "topY", "surfaceCover", "cheese", "spaghetti", "underRegionCeiling", "waterMargin", "bedClearance"],
+      "required": [
+        "latticeXz",
+        "latticeY",
+        "topY",
+        "surfaceCover",
+        "cheese",
+        "spaghetti",
+        "underRegionCeiling",
+        "waterMargin",
+        "bedClearance"
+      ],
       "additionalProperties": false,
       "properties": {
         "latticeXz": { "enum": [1, 2, 4, 8, 16], "description": "The lattice spacing across, in blocks." },
@@ -88,23 +106,55 @@
             "thickness": { "type": "integer", "minimum": 1, "maximum": 500, "description": "How far from zero, in thousandths, each noise may be: the tunnel's width." }
           }
         },
-        "underRegionCeiling": { "type": "integer", "maximum": -1, "description": "The highest y a cave reaches under an authored region (its own chunks start at 0); -1 lets the caves meet the valley's own." },
+        "underRegionCeiling": {
+          "type": "integer",
+          "maximum": -1,
+          "description": "The highest y a cave reaches under an authored region (its own chunks start at 0); -1 lets the caves meet the valley's own."
+        },
         "waterMargin": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Blocks round a water cell that stay solid." },
         "bedClearance": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Blocks under the bed of a water column that stay solid (not below waterMargin)." }
       }
     },
     "entrances": {
       "type": "object",
-      "description": "Where a tunnel opens to the sky: zones of a 2D mask, opened only on dry procedural land over a cave.",
-      "required": ["cell", "octaves", "threshold", "minHeightAboveSea", "waterReach", "probeDepth"],
+      "description": "Passages a body walks down from the surface into the caves: sites of cell blocks, a share of which open a straight stair of width blocks (headroom of air above the floor, one block down every run blocks along) from a mouth inside the site, in the direction whose ground covers it best, until it meets a cave at least minDrop under the mouth, then a landing. Only on dry procedural land clear of water, river banks, regions and their margin; the first rimLength blocks stand in a rim of rock.",
+      "required": [
+        "cell",
+        "chance",
+        "margin",
+        "minHeightAboveSea",
+        "waterReach",
+        "width",
+        "headroom",
+        "run",
+        "minDrop",
+        "maxLength",
+        "landing",
+        "rimLength",
+        "rimWidth",
+        "rimBlocks"
+      ],
       "additionalProperties": false,
       "properties": {
-        "cell": { "type": "integer", "minimum": 1, "description": "The mask noise's first octave's cell, in blocks." },
-        "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
-        "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The mask value, in thousandths, above which a column is in a zone." },
-        "minHeightAboveSea": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far over the sea the ground must be." },
-        "waterReach": { "type": "integer", "minimum": 1, "maximum": 8, "description": "Columns round an entrance that hold no water (not below the caves' waterMargin)." },
-        "probeDepth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How far under a cave's top the shaft looks for cave air." }
+        "cell": { "type": "integer", "minimum": 32, "maximum": 1024, "description": "The sites' spacing, in blocks." },
+        "chance": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "The share of the sites that try to open a passage, in thousandths." },
+        "margin": { "type": "integer", "minimum": 0, "description": "How far inside its site the mouth lies, in blocks." },
+        "minHeightAboveSea": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far over the sea the ground at the mouth must be." },
+        "waterReach": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 24,
+          "description": "Columns round the passage that hold no water, river carve or lake (above the caves' waterMargin)."
+        },
+        "width": { "type": "integer", "minimum": 2, "maximum": 6, "description": "The passage's width, in blocks." },
+        "headroom": { "type": "integer", "minimum": 3, "maximum": 8, "description": "The air above the floor, in blocks." },
+        "run": { "type": "integer", "minimum": 1, "maximum": 4, "description": "The blocks along the passage for each block it drops (a step is one block)." },
+        "minDrop": { "type": "integer", "minimum": 8, "maximum": 64, "description": "How far under the mouth the passage must reach a cave." },
+        "maxLength": { "type": "integer", "minimum": 16, "maximum": 160, "description": "The longest passage, in blocks along (at least minDrop x run)." },
+        "landing": { "type": "integer", "minimum": 1, "maximum": 12, "description": "The level blocks after the passage meets its cave." },
+        "rimLength": { "type": "integer", "minimum": 0, "maximum": 48, "description": "The blocks of the passage, from the mouth, framed by the rim." },
+        "rimWidth": { "type": "integer", "minimum": 0, "maximum": 6, "description": "How wide the rim is round the passage, in blocks." },
+        "rimBlocks": { "$ref": "#/definitions/weightedBlocks", "description": "The rocks of the rim, drawn by weight." }
       }
     },
     "lava": {
@@ -120,7 +170,19 @@
     "valley": {
       "type": "object",
       "description": "B13: how far the underground reaches into the valley's own stone. Every distance is in blocks and measured as a cube (the largest of the three axes).",
-      "required": ["surfaceDistance", "waterDistance", "borderMargin", "siteMargin", "pathMargin", "propMargin", "villageSite", "villageMargin", "passPaths", "passProps", "passMargin"],
+      "required": [
+        "surfaceDistance",
+        "waterDistance",
+        "borderMargin",
+        "siteMargin",
+        "pathMargin",
+        "propMargin",
+        "villageSite",
+        "villageMargin",
+        "passPaths",
+        "passProps",
+        "passMargin"
+      ],
       "additionalProperties": false,
       "properties": {
         "surfaceDistance": { "type": "integer", "minimum": 6, "maximum": 32, "description": "How far a changed block stays from any air cell of the valley." },
@@ -130,7 +192,12 @@
         "pathMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from a trodden path." },
         "propMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from a block of a prop." },
         "villageSite": { "type": "string", "description": "The site the village stands round (a site of the scene)." },
-        "villageMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from the village's footprint (the site's level ground and blend)." },
+        "villageMargin": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64,
+          "description": "How far a changed block stays from the village's footprint (the site's level ground and blend)."
+        },
         "passPaths": { "type": "array", "items": { "type": "string" }, "description": "The paths of the pass (names of paths of the scene)." },
         "passProps": { "type": "array", "items": { "type": "string" }, "description": "The props of the pass (names of props of the scene), the rockfall." },
         "passMargin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How far a changed block stays from the pass's paths and props." }
@@ -146,7 +213,12 @@
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "The row's id (lowercase kebab-case): also the key of its random draws." },
           "block": { "$ref": "#/definitions/blockName", "description": "The ore's block." },
-          "replaces": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/blockName" }, "description": "The rocks its veins may replace; no other block is ever replaced." },
+          "replaces": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/definitions/blockName" },
+            "description": "The rocks its veins may replace; no other block is ever replaced."
+          },
           "size": {
             "type": "object",
             "required": ["min", "max"],
@@ -173,9 +245,130 @@
           }
         }
       }
+    },
+    "linings": {
+      "type": "object",
+      "description": "Rules laid over the rock a cave exposes, in order, the first that applies winning: gravel and loose stone on floors, mossy stone near an entrance's passage (damp) and near water (wet), sand and gravel where the cave lies near water.",
+      "required": ["wetReach", "dampReach", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "wetReach": { "type": "integer", "minimum": 0, "maximum": 16, "description": "Columns from a water column that count as near water." },
+        "dampReach": { "type": "integer", "minimum": 0, "maximum": 16, "description": "Blocks from an entrance's passage that count as damp." },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["block", "in", "face", "zone", "chance", "minY", "maxY"],
+            "additionalProperties": false,
+            "properties": {
+              "block": { "$ref": "#/definitions/blockName", "description": "The block the rock becomes." },
+              "in": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/blockName" }, "description": "The rocks it may replace." },
+              "face": {
+                "enum": ["floor", "wall", "ceiling", "any"],
+                "description": "Which exposed face of the rock: floor (air above), wall (air at the side), ceiling (air below)."
+              },
+              "zone": { "enum": ["any", "damp", "wet"] },
+              "chance": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "The share of the qualifying cells, in thousandths." },
+              "patch": { "$ref": "#/definitions/patch" },
+              "minY": { "type": "integer" },
+              "maxY": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "surfaceRock": {
+      "type": "object",
+      "description": "Bare and loose stone on the surface: banded rock on cliff faces, gravel scree on steep ground and at a cliff's foot, gravel in river beds and on their banks. Snow and the biome's grass elsewhere are unchanged.",
+      "required": ["cliff", "scree", "streambed"],
+      "additionalProperties": false,
+      "properties": {
+        "cliff": {
+          "type": "object",
+          "required": ["drop", "bandThickness", "zoneCell", "tilt", "bands"],
+          "additionalProperties": false,
+          "properties": {
+            "drop": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 32,
+              "description": "How far a column stands over its lowest neighbour (water counts as its surface) to be a cliff column."
+            },
+            "bandThickness": { "type": "integer", "minimum": 1, "maximum": 16, "description": "The thickness of one band, in blocks." },
+            "zoneCell": { "type": "integer", "minimum": 4, "maximum": 256, "description": "The size of the zones that draw their bands apart, in blocks." },
+            "tilt": { "type": "integer", "minimum": 0, "maximum": 16, "description": "How far the bands rise and fall across a face, in blocks." },
+            "bands": { "$ref": "#/definitions/weightedBlocks", "description": "The rocks of the bands, drawn by weight." }
+          }
+        },
+        "scree": {
+          "type": "object",
+          "required": ["steepDrop", "footReach", "rules"],
+          "additionalProperties": false,
+          "properties": {
+            "steepDrop": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How far a column stands over its lowest neighbour to be steep (under the cliff's drop)." },
+            "footReach": { "type": "integer", "minimum": 0, "maximum": 8, "description": "Columns from a cliff column the foot reaches." },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["block", "chance"],
+                "additionalProperties": false,
+                "properties": {
+                  "block": { "$ref": "#/definitions/blockName" },
+                  "chance": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "The share of the qualifying columns, in thousandths." },
+                  "patch": { "$ref": "#/definitions/patch" }
+                }
+              }
+            }
+          }
+        },
+        "streambed": {
+          "type": "object",
+          "required": ["minWeight", "rules"],
+          "additionalProperties": false,
+          "properties": {
+            "minWeight": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "How much a river must have carved a column, in thousandths of its full carve." },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["block", "chance"],
+                "additionalProperties": false,
+                "properties": {
+                  "block": { "$ref": "#/definitions/blockName" },
+                  "chance": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "The share of the qualifying columns, in thousandths." },
+                  "patch": { "$ref": "#/definitions/patch" }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
-    "blockName": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "A block's name (lowercase, words joined by a hyphen) as BlockDefinition has it." }
+    "blockName": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", "description": "A block's name (lowercase, words joined by a hyphen) as BlockDefinition has it." },
+    "weightedBlocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["block", "weight"],
+        "additionalProperties": false,
+        "properties": { "block": { "$ref": "#/definitions/blockName" }, "weight": { "type": "integer", "minimum": 1, "maximum": 1000 } }
+      }
+    },
+    "patch": {
+      "type": "object",
+      "description": "A patchy mask: a fractal noise that must pass a threshold, so a rule lays its block in clumps.",
+      "required": ["cell", "octaves", "threshold"],
+      "additionalProperties": false,
+      "properties": {
+        "cell": { "type": "integer", "minimum": 1 },
+        "cellY": { "type": "integer", "minimum": 1, "description": "The cell up (underground only; the cell when absent)." },
+        "octaves": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "threshold": { "type": "integer", "minimum": -1000, "maximum": 1000, "description": "The noise value, in thousandths, above which the rule applies." }
+      }
+    }
   }
 }

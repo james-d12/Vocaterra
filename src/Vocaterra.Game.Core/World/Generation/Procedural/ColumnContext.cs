@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// <param name="Filler">The block of the layers under it.</param>
 /// <param name="FillerDepth">How many filler layers lie under the top layer.</param>
 /// <param name="Water">Whether the column lies under the sea (it fills with water to the sea level).</param>
-internal readonly record struct ColumnSurface(int Height, BlockId Top, BlockId Filler, int FillerDepth, bool Water);
+/// <param name="Bare">Whether the surface rock (B11b: a cliff, scree, a river's bed or bank) laid the top: no tree stands and no plant grows on it.</param>
+internal readonly record struct ColumnSurface(int Height, BlockId Top, BlockId Filler, int FillerDepth, bool Water, bool Bare = false);
 
 /// <summary>
 /// A chunk column and its neighbourhood (B03): the window of 16 + 2 x margin columns on a side, with the climate and the height model's shape of every column, the heights the passes shape,
@@ -29,6 +30,7 @@ internal sealed class ColumnContext
     private readonly bool[] _surfaced;
     private readonly Lazy<List<PlantedTree>> _trees;
     private readonly Lazy<CavePlan> _caves;
+    private readonly Lazy<IReadOnlyList<EntranceRamp>> _ramps;
 
     public ColumnContext(GenerationWorld world, int chunkX, int chunkZ)
     {
@@ -49,6 +51,7 @@ internal sealed class ColumnContext
         _surfaced = new bool[count];
         _trees = new Lazy<List<PlantedTree>>(() => TreePass.Plan(this));
         _caves = new Lazy<CavePlan>(() => CavePlan.Build(this));
+        _ramps = new Lazy<IReadOnlyList<EntranceRamp>>(() => world.Entrances is null ? [] : world.Entrances.Near(OriginX, OriginZ, OriginX + Size - 1, OriginZ + Size - 1));
         world.Climate.Fill(OriginX, OriginZ, Size, Size, _climate);
         for (var j = 0; j < Size; j++)
         {
@@ -181,7 +184,8 @@ internal sealed class ColumnContext
             var height = _heights[k];
             var water = LevelAt(k) >= 0;
             var top = water ? blocks.Underwater : biome.Snow ? BlockId.Snow : blocks.Top;
-            _surfaces[k] = new ColumnSurface(height, top, blocks.Filler, blocks.FillerDepth, water);
+            var surface = new ColumnSurface(height, top, blocks.Filler, blocks.FillerDepth, water);
+            _surfaces[k] = World.SurfaceRock is { } rock ? rock.Adjust(this, x, z, surface) : surface;
             _surfaced[k] = true;
         }
 
@@ -193,6 +197,25 @@ internal sealed class ColumnContext
 
     /// <summary>What the caves may do in the chunk column, planned once from the shaped ground (B11; only for a world with an underground).</summary>
     public CavePlan CavePlan => _caves.Value;
+
+    /// <summary>The cave entrances whose passage, rim or damp zone may touch the window (B11b), found once; each is a pure description, so any chunk column of the window reads the same ones.</summary>
+    public IReadOnlyList<EntranceRamp> Ramps => _ramps.Value;
+
+    /// <summary>Whether a cave entrance's rim keeps trees and plants off the column (B11b).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public bool ClearsEntrance(int x, int z)
+    {
+        foreach (var ramp in Ramps)
+        {
+            if (ramp.Clears(x, z))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>The highest working height among the chunk column's own 16 x 16 columns.</summary>
     public int HighestOwn() => Extreme(own: true, highest: true);

@@ -10,8 +10,13 @@
     "ditherToY": 8,
     "blobLattice": 8,
     "blobs": [
-      { "block": "granite", "cell": 48, "cellY": 32, "octaves": 2, "threshold": 330 },
-      { "block": "limestone", "cell": 48, "cellY": 32, "octaves": 2, "threshold": 330 }
+      { "block": "gravel", "cell": 14, "cellY": 10, "octaves": 2, "threshold": 170, "minY": -12, "maxY": 210 },
+      { "block": "sand", "cell": 16, "cellY": 10, "octaves": 2, "threshold": 180, "minY": -4, "maxY": 110 },
+      { "block": "dirt", "cell": 16, "cellY": 10, "octaves": 2, "threshold": 170, "minY": 8, "maxY": 170 },
+      { "block": "granite", "cell": 28, "cellY": 18, "octaves": 2, "threshold": 190 },
+      { "block": "limestone", "cell": 28, "cellY": 18, "octaves": 2, "threshold": 190 },
+      { "block": "granite", "cell": 40, "cellY": 26, "octaves": 2, "threshold": 200, "in": ["slate"] },
+      { "block": "basalt", "cell": 36, "cellY": 24, "octaves": 2, "threshold": 130, "in": ["slate"] }
     ]
   },
   "floor": { "block": "bedrock", "bottomY": -64, "minThickness": 1, "maxThickness": 4 },
@@ -26,8 +31,103 @@
     "waterMargin": 3,
     "bedClearance": 16
   },
-  "entrances": { "cell": 40, "octaves": 1, "threshold": 480, "minHeightAboveSea": 4, "waterReach": 3, "probeDepth": 10 },
+  "entrances": {
+    "cell": 128,
+    "chance": 500,
+    "margin": 12,
+    "minHeightAboveSea": 4,
+    "waterReach": 10,
+    "width": 3,
+    "headroom": 4,
+    "run": 2,
+    "minDrop": 20,
+    "maxLength": 70,
+    "landing": 3,
+    "rimLength": 10,
+    "rimWidth": 2,
+    "rimBlocks": [
+      { "block": "stone", "weight": 5 },
+      { "block": "mossy-stone", "weight": 2 },
+      { "block": "granite", "weight": 1 }
+    ]
+  },
   "lava": { "block": "lava", "level": -54 },
+  "linings": {
+    "wetReach": 6,
+    "dampReach": 8,
+    "rules": [
+      {
+        "block": "mossy-stone",
+        "in": ["stone", "granite", "limestone"],
+        "face": "any",
+        "zone": "damp",
+        "chance": 520,
+        "patch": { "cell": 8, "cellY": 6, "octaves": 1, "threshold": -120 },
+        "minY": -20,
+        "maxY": 260
+      },
+      { "block": "sand", "in": ["stone", "granite", "limestone"], "face": "floor", "zone": "wet", "chance": 700, "minY": -10, "maxY": 120 },
+      { "block": "gravel", "in": ["stone", "granite", "limestone"], "face": "any", "zone": "wet", "chance": 450, "minY": -10, "maxY": 120 },
+      {
+        "block": "mossy-stone",
+        "in": ["stone", "granite", "limestone"],
+        "face": "any",
+        "zone": "wet",
+        "chance": 320,
+        "patch": { "cell": 8, "cellY": 6, "octaves": 1, "threshold": -120 },
+        "minY": -10,
+        "maxY": 120
+      },
+      {
+        "block": "gravel",
+        "in": ["stone", "granite", "limestone", "slate", "basalt"],
+        "face": "floor",
+        "zone": "any",
+        "chance": 300,
+        "patch": { "cell": 14, "cellY": 8, "octaves": 1, "threshold": -50 },
+        "minY": -50,
+        "maxY": 220
+      },
+      { "block": "cobble", "in": ["stone", "granite", "limestone", "slate"], "face": "floor", "zone": "any", "chance": 90, "minY": -50, "maxY": 220 },
+      {
+        "block": "dirt",
+        "in": ["stone", "granite", "limestone"],
+        "face": "floor",
+        "zone": "any",
+        "chance": 160,
+        "patch": { "cell": 12, "cellY": 8, "octaves": 1, "threshold": 80 },
+        "minY": 6,
+        "maxY": 200
+      }
+    ]
+  },
+  "surfaceRock": {
+    "cliff": {
+      "drop": 3,
+      "bandThickness": 3,
+      "zoneCell": 48,
+      "tilt": 5,
+      "bands": [
+        { "block": "stone", "weight": 4 },
+        { "block": "granite", "weight": 2 },
+        { "block": "limestone", "weight": 2 },
+        { "block": "slate", "weight": 1 }
+      ]
+    },
+    "scree": {
+      "steepDrop": 2,
+      "footReach": 2,
+      "rules": [
+        { "block": "gravel", "chance": 650, "patch": { "cell": 10, "octaves": 2, "threshold": -150 } }
+      ]
+    },
+    "streambed": {
+      "minWeight": 120,
+      "rules": [
+        { "block": "gravel", "chance": 500, "patch": { "cell": 9, "octaves": 2, "threshold": -100 } }
+      ]
+    }
+  },
   "valley": {
     "surfaceDistance": 8,
     "waterDistance": 16,
@@ -45,14 +145,16 @@
     {
       "id": "copper-veins",
       "block": "copper-ore",
-      "replaces": ["stone", "slate", "granite", "limestone"],
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
       "size": { "min": 3, "max": 10 },
-      "bands": [{ "minY": -16, "maxY": 112, "peakY": 48, "veins": 20 }]
+      "bands": [
+        { "minY": -16, "maxY": 112, "peakY": 48, "veins": 20 }
+      ]
     },
     {
       "id": "iron-veins",
       "block": "iron-ore",
-      "replaces": ["stone", "slate", "granite", "limestone"],
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
       "size": { "min": 3, "max": 8 },
       "bands": [
         { "minY": -24, "maxY": 56, "peakY": 16, "veins": 14 },
@@ -62,9 +164,11 @@
     {
       "id": "tin-veins",
       "block": "tin-ore",
-      "replaces": ["stone", "slate", "granite", "limestone"],
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
       "size": { "min": 3, "max": 8 },
-      "bands": [{ "minY": -32, "maxY": 48, "peakY": 8, "veins": 8 }]
+      "bands": [
+        { "minY": -32, "maxY": 48, "peakY": 8, "veins": 8 }
+      ]
     }
   ]
 }

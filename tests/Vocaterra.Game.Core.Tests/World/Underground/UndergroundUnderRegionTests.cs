@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Streaming;
 using Vocaterra.Game.Core.World.Underground;
 
@@ -8,7 +9,7 @@ namespace Vocaterra.Game.Core.Tests.World.Underground;
 
 /// <summary>
 /// The underground round and under the valley (B11): below its chunks (under y 0) the composite source serves the procedural underground, with no cave reaching up into the valley's bottom layer
-/// or near its water, and no entrance inside the region or its blend margin, where the land is the region's own or eased to its edge.
+/// or near its water, and no entrance's passage inside the region or its blend margin, where the land is the region's own or eased to its edge.
 /// </summary>
 public sealed class UndergroundUnderRegionTests
 {
@@ -25,7 +26,6 @@ public sealed class UndergroundUnderRegionTests
         {
             var plan = Valley.Procedural.ShapedColumn(cx, cz).CavePlan;
             Assert.All(plan.Ceiling, static c => Assert.True(c <= Data.Caves.UnderRegionCeiling, $"ceiling {c}"));
-            Assert.All(plan.ShaftFrom, static s => Assert.Equal(int.MaxValue, s));
             foreach (var chunk in Valley.Source.GenerateColumn(cx, cz).Take(4))
             {
                 for (var i = 0; i < ChunkData.Volume; i++)
@@ -83,40 +83,28 @@ public sealed class UndergroundUnderRegionTests
     }
 
     [Fact]
-    public void Given_TheLandRoundTheValley_When_TheEntranceZonesAreRead_Then_NoneOpensInTheRegionOrItsMarginAndSomeOpenBeyond()
+    public void Given_TheLandRoundTheValley_When_TheEntrancesAreRead_Then_NoPassageTouchesTheRegionOrItsMarginAndSomeOpenBeyond()
     {
         var margin = TestGame.Data.WorldGen.Blend.Margin;
         var regions = Valley.Procedural.World.Regions!.Regions;
-        var (opened, closedInMargin) = (0, 0);
-        for (var cz = -10; cz < 34; cz++)
+        var ramps = new HashSet<EntranceRamp>();
+        for (var cz = -10; cz < 34; cz += 4)
         {
-            for (var cx = -10; cx < 34; cx++)
+            for (var cx = -10; cx < 34; cx += 4)
             {
-                var ctx = Valley.Procedural.ShapedColumn(cx, cz);
-                var plan = ctx.CavePlan;
-                for (var lz = 0; lz < 16; lz++)
-                {
-                    for (var lx = 0; lx < 16; lx++)
-                    {
-                        var (x, z) = ((cx << 4) + lx, (cz << 4) + lz);
-                        var distance = regions.Nearest(x, z).Distance;
-                        var open = plan.ShaftFrom[(lz * 16) + lx] != int.MaxValue;
-                        if (open)
-                        {
-                            opened++;
-                            Assert.True(distance >= margin, $"an entrance at {x},{z}, {distance} blocks from the valley");
-                        }
-                        else if (distance < margin && Valley.Procedural.World.Underground!.Entrances.InZone(x, z))
-                        {
-                            closedInMargin++;
-                        }
-                    }
-                }
+                ramps.UnionWith(Valley.Procedural.World.Entrances!.Near(cx << 4, cz << 4, (cx << 4) + 63, (cz << 4) + 63));
             }
         }
 
-        Assert.True(opened > 20, $"{opened} entrances round the valley");
-        Assert.True(closedInMargin > 20, $"{closedInMargin} zone columns in the margin stay closed");
+        Assert.True(ramps.Count >= 2, $"{ramps.Count} entrances round the valley");
+        foreach (var ramp in ramps)
+        {
+            for (var i = -ramp.RimWidth; i <= ramp.Last + 1; i++)
+            {
+                var (x, z) = ramp.CentreAt(i);
+                Assert.True(regions.Nearest(x, z).Distance >= margin, $"the passage at {ramp.AnchorX},{ramp.AnchorZ} reaches {x},{z}, {regions.Nearest(x, z).Distance} blocks from the valley");
+            }
+        }
     }
 
     [Fact]
@@ -145,7 +133,6 @@ public sealed class UndergroundUnderRegionTests
         Assert.Same(town.Copy(new VoxelChunkCoord(cx, b.MinChunkY, cz)), world.Source.Generate(new VoxelChunkCoord(cx, b.MinChunkY, cz)));
         var plan = world.Procedural.ShapedColumn(cx, cz).CavePlan;
         Assert.All(plan.Ceiling, static c => Assert.True(c <= Data.Caves.UnderRegionCeiling, $"ceiling {c}"));
-        Assert.All(plan.ShaftFrom, static s => Assert.Equal(int.MaxValue, s));
 
         // Below its layers the procedural underground: slate, bedrock and caves, none above the ceiling, and equal to the procedural source's own chunk.
         var seen = new HashSet<BlockId>();
@@ -163,18 +150,12 @@ public sealed class UndergroundUnderRegionTests
         // No entrance in the town's footprint or its margin.
         var margin = TestGame.Data.WorldGen.Blend.Margin;
         var regions = world.Procedural.World.Regions!.Regions;
-        for (var z = b.MinChunkZ - 5; z <= b.MinChunkZ + b.ChunksZ + 4; z++)
+        foreach (var ramp in world.Procedural.World.Entrances!.Near((b.MinChunkX - 5) << 4, (b.MinChunkZ - 5) << 4, (b.MinChunkX + b.ChunksX + 4) << 4, (b.MinChunkZ + b.ChunksZ + 4) << 4))
         {
-            for (var x = b.MinChunkX - 5; x <= b.MinChunkX + b.ChunksX + 4; x++)
+            for (var i = 0; i <= ramp.Last; i++)
             {
-                var shafts = world.Procedural.ShapedColumn(x, z).CavePlan.ShaftFrom;
-                for (var i = 0; i < 256; i++)
-                {
-                    if (shafts[i] != int.MaxValue)
-                    {
-                        Assert.True(regions.Nearest((x << 4) + (i & 15), (z << 4) + (i >> 4)).Distance >= margin, "an entrance in the town's margin");
-                    }
-                }
+                var (x, z) = ramp.CentreAt(i);
+                Assert.True(regions.Nearest(x, z).Distance >= margin, "an entrance in the town's margin");
             }
         }
     }

@@ -136,6 +136,7 @@ public sealed record BlockDefinition(
         new(BlockId.IronOre, "iron-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.TinOre, "tin-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.CopperOre, "copper-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Basalt, "basalt", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

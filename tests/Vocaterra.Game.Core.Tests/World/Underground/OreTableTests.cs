@@ -151,11 +151,12 @@ public sealed class OreTableTests
     public void Given_APlace_When_ItsChunksAreMadeWithAndWithoutOres_Then_OnlyRockOfTheListIsReplacedByTheOresOfItsVeins(ulong seed, Feature feature)
     {
         var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
-        var with = ProceduralTestWorld.Source(seed);
-        var without = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data with { Ores = [] });
+        // The linings (B11b) run after the ores and judge a cell by its block, so the sources are compared without them: only the ores differ.
+        var with = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data with { Linings = null });
+        var without = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data with { Ores = [], Linings = null });
         var table = new OreTable(Data.Ores, seed);
         var oreBlocks = Data.Ores.Select(static o => BlockDefinition.FromName(o.Block)!.Id).ToHashSet();
-        var rocks = new HashSet<BlockId> { BlockId.Stone, BlockId.Slate, BlockId.Granite, BlockId.Limestone };
+        var rocks = Data.Ores.SelectMany(static o => o.Replaces).Select(static n => BlockDefinition.FromName(n)!.Id).ToHashSet();
         var replaced = 0;
         for (var cy = with.MinChunkY; cy < (feature == Feature.Mountain ? 14 : 5); cy++)
         {

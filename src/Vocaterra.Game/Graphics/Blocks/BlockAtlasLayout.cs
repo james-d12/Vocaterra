@@ -319,6 +319,9 @@ public enum BlockCell
     /// <summary>Copper ore: stone with orange and green flecks (B10).</summary>
     CopperOre,
 
+    /// <summary>Basalt: dark charcoal rock in narrow columns (B11b).</summary>
+    Basalt,
+
     /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
     IconBowl,
 
@@ -431,6 +434,7 @@ public static class BlockAtlasLayout
             BlockId.IronOre => BlockCell.IronOre,
             BlockId.TinOre => BlockCell.TinOre,
             BlockId.CopperOre => BlockCell.CopperOre,
+            BlockId.Basalt => BlockCell.Basalt,
             BlockId.AwningRed => BlockCell.AwningRed,
             BlockId.AwningWhite => BlockCell.AwningWhite,
             BlockId.Canvas => BlockCell.Canvas,
