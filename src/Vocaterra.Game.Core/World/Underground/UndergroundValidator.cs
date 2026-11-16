@@ -247,6 +247,7 @@ internal static partial class UndergroundValidator
             problems.Add($"{File}: entrances needs 3 <= headroomMin <= headroomMax <= 10 blocks (they are {e.HeadroomMin} and {e.HeadroomMax}).");
         }
 
+        Range(problems, "entrances.plunge", e.Plunge, 0, 16);
         if (e.SegmentMin < 2 || e.SegmentMax < e.SegmentMin || e.SegmentMax > 40)
         {
             problems.Add($"{File}: entrances needs 2 <= segmentMin <= segmentMax <= 40 blocks (they are {e.SegmentMin} and {e.SegmentMax}).");

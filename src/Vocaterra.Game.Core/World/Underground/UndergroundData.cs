@@ -199,6 +199,7 @@ public sealed record CaveSpec(
 /// <param name="WidthMax">The widest the passage is, in blocks across.</param>
 /// <param name="HeadroomMin">The lowest the passage's roof is over its floor (at least 3).</param>
 /// <param name="HeadroomMax">The highest the passage's roof is over its floor.</param>
+/// <param name="Plunge">How many blocks from the mouth the floor drops a block at every block (a steep start, so the opening is a hole and not a long trench).</param>
 /// <param name="SegmentMin">The fewest blocks of a stretch of one slope.</param>
 /// <param name="SegmentMax">The most blocks of a stretch of one slope.</param>
 /// <param name="RunMax">The gentlest slope: one block down every this many blocks along (a stretch draws from 1 to this).</param>
@@ -229,6 +230,7 @@ public sealed record EntranceSpec(
     int WidthMax,
     int HeadroomMin,
     int HeadroomMax,
+    int Plunge,
     int SegmentMin,
     int SegmentMax,
     int RunMax,
@@ -385,6 +387,7 @@ public sealed record UndergroundData(
         Int(e, "widthMax"),
         Int(e, "headroomMin"),
         Int(e, "headroomMax"),
+        Int(e, "plunge"),
         Int(e, "segmentMin"),
         Int(e, "segmentMax"),
         Int(e, "runMax"),

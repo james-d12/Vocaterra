@@ -289,7 +289,11 @@ internal sealed class EntranceSites
                 return false;
             }
 
-            if (Nodes.Count > 0 && descend)
+            if (Nodes.Count > 0 && descend && Nodes.Count <= _spec.Plunge)
+            {
+                _floor--; // the steep start: a block down at every block, so the opening is a hole
+            }
+            else if (Nodes.Count > 0 && descend)
             {
                 if (_runLeft-- <= 0)
                 {

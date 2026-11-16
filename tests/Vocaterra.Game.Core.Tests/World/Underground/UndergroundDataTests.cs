@@ -134,6 +134,7 @@ public sealed class UndergroundDataTests
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { RunMax = 0 } }), "no step is over one block"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { HeadroomMin = 2 } }), "headroomMin"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { SegmentMin = 1 } }), "segmentMin"));
+        Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Plunge = 40 } }), "plunge"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { BendSegmentMax = 1 } }), "bendSegmentMin"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { Bend = 40 } }), "bend"));
         Assert.True(Names(Problems(Shipped with { Entrances = Shipped.Entrances with { MaxTurn = 99 } }), "maxTurn"));

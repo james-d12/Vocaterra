@@ -53,19 +53,20 @@
     "bendSegmentMin": 6,
     "bendSegmentMax": 14,
     "maxTurn": 24,
-    "roughness": 800,
+    "roughness": 1000,
     "roughnessCell": 4,
     "ledges": 220,
-    "funnel": 1000,
-    "funnelLength": 10,
+    "funnel": 600,
+    "funnelLength": 8,
     "floorBlocks": [
       { "block": "gravel", "weight": 3 },
       { "block": "cobble", "weight": 1 },
       { "block": "stone", "weight": 2 },
       { "block": "dirt", "weight": 1 }
     ],
-    "bowlDepth": 4,
-    "bowlSlope": 1500
+    "bowlDepth": 3,
+    "bowlSlope": 1000,
+    "plunge": 6
   },
   "lava": { "block": "lava", "level": -54 },
   "linings": {

@@ -132,6 +132,7 @@
         "widthMax",
         "headroomMin",
         "headroomMax",
+        "plunge",
         "segmentMin",
         "segmentMax",
         "runMax",
@@ -174,6 +175,7 @@
         "widthMax": { "type": "integer", "minimum": 2, "maximum": 8, "description": "The widest the passage is, in blocks across." },
         "headroomMin": { "type": "integer", "minimum": 3, "maximum": 10, "description": "The lowest the roof is over the floor." },
         "headroomMax": { "type": "integer", "minimum": 3, "maximum": 10, "description": "The highest the roof is over the floor." },
+        "plunge": { "type": "integer", "minimum": 0, "maximum": 16, "description": "How many blocks from the mouth the floor drops a block at every block (a steep start)." },
         "segmentMin": { "type": "integer", "minimum": 2, "maximum": 40, "description": "The fewest blocks of a stretch of one slope." },
         "segmentMax": { "type": "integer", "minimum": 2, "maximum": 40, "description": "The most blocks of a stretch of one slope." },
         "runMax": {
