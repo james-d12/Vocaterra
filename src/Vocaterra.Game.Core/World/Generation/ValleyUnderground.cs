@@ -73,7 +73,8 @@ internal sealed class ValleyUnderground
         var reach = Reach(ground);
         Observer?.Invoke(reach);
         var sizeX = ground.Layout.SizeX;
-        var (chunksX, chunksY, chunksZ) = (grid.ChunksX, grid.ChunksY, grid.ChunksZ);
+        var limits = grid.Limits;
+        var (chunksX, chunksY, chunksZ) = (limits.EndChunkX, limits.EndChunkY, limits.EndChunkZ); // the valley's grid starts at chunk 0
 
         // The grid's chunk table is read here, on one thread (its lookup keeps a one-chunk cache that threads must not share).
         var chunks = new VoxelChunk?[chunksX * chunksY * chunksZ];
