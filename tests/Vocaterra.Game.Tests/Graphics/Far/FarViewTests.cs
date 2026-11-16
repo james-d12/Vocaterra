@@ -88,7 +88,8 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.NotEmpty(parents);
 
         // Walk right up to a coarse tile: its children become the leaves and are not built yet; one inline job a frame is built.
-        var target = parents.OrderBy(k => k.NearestDistance(Small, 5000, 5000)).Last();
+        var lowest = parents.Min(static k => k.Level);
+        var target = parents.Where(k => k.Level == lowest).OrderBy(k => k.NearestDistance(Small, 5000, 5000)).Last();
         var eyeX = target.MinX(Small) + (Small.SizeOf(target.Level) / 2.0);
         var eyeZ = target.MinZ(Small) + (Small.SizeOf(target.Level) / 2.0);
         view.Update(eyeX, eyeZ, Voxel, Release, 0.0);
@@ -115,6 +116,28 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.True(first > 12);
         Assert.InRange(view.Stats.Cached, 1, Math.Max(14, view.Draw.Count));
         Assert.NotEmpty(_released);
+    }
+
+    [Fact]
+    public void Given_ASettledView_When_RealChunksComeIntoTheStore_Then_TheTileOverThemIsMadeAgainAndTheRestAreKept()
+    {
+        using var pool = new JobPool(0);
+        var view = Make(pool);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        var nearest = view.Draw.First(static t => t.Key.Level == 0);
+        var built = view.Stats.Built;
+        Assert.True(nearest.Triangles > 0);
+
+        // The real chunks over the tile's footprint are all air (a quarried-away hill, say): the tile must follow.
+        view.World.IngestStack(nearest.Key.Tx, nearest.Key.Tz, (_, _, _) => null);
+        view.Update(192, 192, Voxel, Release, null);
+
+        Assert.True(view.Stale > 0 || view.Stats.Built > built);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        Assert.Equal(0, view.Stale);
+        Assert.Equal(0, nearest.Triangles);
+        Assert.InRange(view.Stats.Built - built, 1, 6); // that tile, and the coarser tiles that came to hold the real section above it
+        Assert.Empty(_released);
     }
 
     [Fact]
@@ -151,12 +174,12 @@ public sealed class FarViewTests(ITestOutputHelper output)
     {
         var scene = StreamedWorlds.Scene();
         var key = new FarTileKey(0, 1, 1); // 128 to 256 blocks: the valley's own ground
-        var before = FarTileMesher.Build(scene.Streaming!.Far.Lod(Small.TreeLevels), Small, key);
+        var before = FarTileMesher.Build(scene.Streaming!.Far.FarWorld(new Vocaterra.Game.Core.World.Lod.LodStore(), Small.TreeLevels), Small, key);
         var cell = new Vocaterra.Game.Core.Voxel.BlockPos(160, 100, 160);
         Assert.True(scene.Grid.SetBlock(cell.X, cell.Y, cell.Z, Vocaterra.Game.Core.Voxel.BlockId.Stone));
         Assert.True(scene.Grid.SetBlock(cell.X, 40, cell.Z, Vocaterra.Game.Core.Voxel.BlockId.Air));
 
-        var after = FarTileMesher.Build(scene.Streaming.Far.Lod(Small.TreeLevels), Small, key);
+        var after = FarTileMesher.Build(scene.Streaming.Far.FarWorld(new Vocaterra.Game.Core.World.Lod.LodStore(), Small.TreeLevels), Small, key);
 
         Assert.True(before.Vertices.SequenceEqual(after.Vertices));
     }

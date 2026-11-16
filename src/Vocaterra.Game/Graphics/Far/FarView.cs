@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Streaming;
 
@@ -25,6 +26,9 @@ public sealed class FarTile(FarTileKey key)
     /// <summary>The triangles the tile has.</summary>
     public int Triangles { get; set; }
 
+    /// <summary>Whether its opaque faces carry the block atlas's textures (the nearest levels) and not flat colours.</summary>
+    public bool Textured { get; set; }
+
     /// <summary>How many of the first indices are the opaque faces', and how many after them the self-lit faces' (the water's are the rest).</summary>
     public (int Opaque, int Lit, int Water) Runs { get; set; }
 
@@ -36,6 +40,19 @@ public sealed class FarTile(FarTileKey key)
 
     /// <summary>The vertices the tile has.</summary>
     public int Vertices { get; set; }
+
+    /// <summary>Takes the counts and the box of a mesh the tile now stands for.</summary>
+    /// <param name="mesh">The mesh.</param>
+    public void Adopt(FarTileMesh mesh)
+    {
+        ArgumentNullException.ThrowIfNull(mesh);
+        Box = mesh.Box;
+        Vertices = mesh.Vertices.Length;
+        Triangles = mesh.Triangles;
+        Textured = mesh.Textured;
+        Bytes = mesh.Bytes;
+        Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
+    }
 
     /// <summary>Whether a worker has made the tile.</summary>
     public bool IsBuilt => Pending is not null || Buffer is not null;
@@ -64,8 +81,10 @@ public sealed class FarView
     private const int FallbackSteps = 4;
 
     private readonly FarTerrainSampler _sampler;
-    private ILodColumnSource _source;
+    private readonly LodStore _store;
     private readonly JobPool _pool;
+    private readonly HashSet<FarTileKey> _dirty = [];
+    private readonly HashSet<FarTileKey> _rebuilding = [];
     private readonly Dictionary<FarTileKey, FarTile> _tiles = [];
     private readonly HashSet<FarTileKey> _building = [];
     private readonly ConcurrentQueue<FarTileMesh> _done = new();
@@ -84,20 +103,28 @@ public sealed class FarView
     /// <param name="sampler">The land.</param>
     /// <param name="settings">The shape of the view.</param>
     /// <param name="pool">The workers, shared with the residency.</param>
-    public FarView(FarTerrainSampler sampler, FarViewSettings settings, JobPool pool)
+    /// <param name="store">The store of sections that the tiles are made of (and that real chunks flow into), or <see langword="null"/> for a fresh one in memory.</param>
+    public FarView(FarTerrainSampler sampler, FarViewSettings settings, JobPool pool, LodStore? store = null)
     {
         ArgumentNullException.ThrowIfNull(sampler);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(pool);
         _sampler = sampler;
         Settings = settings;
-        _source = sampler.Lod(settings.TreeLevels);
+        _store = store ?? new LodStore();
+        World = sampler.FarWorld(_store, settings.TreeLevels);
         _pool = pool;
         FarPalette.Warm();
     }
 
     /// <summary>The shape of the view.</summary>
     public FarViewSettings Settings { get; private set; }
+
+    /// <summary>The far world: the store and the model that fills it; the real chunks are ingested into it.</summary>
+    public LodWorld World { get; private set; }
+
+    /// <summary>The tiles whose sections changed and are being made again (the old tile is drawn until the new one is there).</summary>
+    public int Stale => _dirty.Count + _rebuilding.Count;
 
     /// <summary>The tiles of the last <see cref="Update"/> to draw, the fallbacks first (they are drawn a little behind), then the leaves nearest first.</summary>
     public IReadOnlyList<FarTile> Draw => _draw;
@@ -155,7 +182,7 @@ public sealed class FarView
         Settings = settings;
         if (reshaped)
         {
-            _source = _sampler.Lod(settings.TreeLevels);
+            World = _sampler.FarWorld(_store, settings.TreeLevels);
         }
 
         _selectedFor = (double.NaN, 0, 0);
@@ -169,6 +196,8 @@ public sealed class FarView
             _tiles.Clear();
             _building.Clear();
             _wanted = [];
+            _dirty.Clear();
+            _rebuilding.Clear();
             _pool.Clear(JobLane.Tiles);
             while (_done.TryDequeue(out _))
             {
@@ -200,6 +229,7 @@ public sealed class FarView
             _wanted = [.. _leaves];
         }
 
+        Invalidate(dispose);
         Collect();
         Request(eyeX, eyeZ);
         if (_pool.Workers == 0)
@@ -242,23 +272,47 @@ public sealed class FarView
         }
     }
 
+    // The tiles whose sections the store changed (real chunks came in): a tile that is wanted is made again, one that is not is dropped.
+    private void Invalidate(Action<FarTile> dispose)
+    {
+        while (_store.Changed.TryDequeue(out var section))
+        {
+            var key = new FarTileKey(section.Level, section.X, section.Z);
+            if (!_tiles.TryGetValue(key, out var tile) || !tile.IsBuilt)
+            {
+                continue;
+            }
+
+            if (_wanted.Contains(key))
+            {
+                _ = _dirty.Add(key);
+            }
+            else
+            {
+                dispose(tile);
+                _ = _tiles.Remove(key);
+            }
+        }
+    }
+
     // Takes the tiles the workers finished into the cache.
     private void Collect()
     {
         while (_done.TryDequeue(out var mesh))
         {
             _ = _building.Remove(mesh.Key);
+            _ = _rebuilding.Remove(mesh.Key);
             if (!_tiles.TryGetValue(mesh.Key, out var tile))
             {
                 _tiles[mesh.Key] = tile = new FarTile(mesh.Key);
             }
 
             tile.Pending = mesh;
-            tile.Box = mesh.Box;
-            tile.Vertices = mesh.Vertices.Length;
-            tile.Triangles = mesh.Triangles;
-            tile.Bytes = mesh.Bytes;
-            tile.Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
+            if (tile.Buffer is null)
+            {
+                tile.Adopt(mesh); // a tile made again keeps its old buffers and their counts until the renderer swaps them
+            }
+
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -270,12 +324,17 @@ public sealed class FarView
     {
         var settings = Settings;
         var grey = _grey;
-        var source = _source;
+        var source = World;
         foreach (var key in _leaves)
         {
-            if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) || !_building.Add(key))
+            if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
             {
                 continue;
+            }
+
+            if (_dirty.Remove(key))
+            {
+                _ = _rebuilding.Add(key);
             }
 
             var distance = (long)key.NearestDistance(settings, eyeX, eyeZ);

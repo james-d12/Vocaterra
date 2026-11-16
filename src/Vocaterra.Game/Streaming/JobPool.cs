@@ -10,6 +10,9 @@ public enum JobLane
 
     /// <summary>The far view's terrain tiles.</summary>
     Tiles = 1,
+
+    /// <summary>B07c: the real chunks the far view's store takes in, after the tiles (a tile is what is drawn; the ring only sharpens it).</summary>
+    Ring = 2,
 }
 
 /// <summary>
@@ -24,7 +27,7 @@ public sealed class JobPool : IDisposable
     public const int MaxWorkers = 2;
 
     private readonly object _gate = new();
-    private readonly PriorityQueue<Job, long>[] _queues = [new(), new()];
+    private readonly PriorityQueue<Job, long>[] _queues = [new(), new(), new()];
     private readonly List<Thread> _threads = [];
     private int _running;
     private bool _disposed;
@@ -55,7 +58,7 @@ public sealed class JobPool : IDisposable
         {
             lock (_gate)
             {
-                return _queues[0].Count + _queues[1].Count + _running;
+                return _queues[0].Count + _queues[1].Count + _queues[2].Count + _running;
             }
         }
     }
@@ -149,6 +152,7 @@ public sealed class JobPool : IDisposable
             _disposed = true;
             _queues[0].Clear();
             _queues[1].Clear();
+            _queues[2].Clear();
             Monitor.PulseAll(_gate);
         }
 

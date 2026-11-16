@@ -12,8 +12,10 @@ namespace Vocaterra.Game.Graphics.Far;
 /// <param name="BandScale">What the bands are multiplied by: below 1 the coarser levels start nearer (less detail, cheaper), above 1 further out.</param>
 /// <param name="InnerFraction">The fraction of the voxel view distance inside which no tile is drawn (the voxel chunks cover it); a little below 1, so a chunk at the edge of the voxel zone that is not meshed yet shows the far land and not the sky.</param>
 /// <param name="MaxTiles">The most tiles kept (built and cached): past it the farthest unused ones are dropped.</param>
-/// <param name="TreeLevels">The tiles of the levels below this get every tree as its blocks (the tree pass's own placement); the tiles above get a forest as a layer of leaves on a trunk. 0 draws no single tree.</param>
-public sealed record FarViewSettings(int Range, int TileCells = 32, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.88, int MaxTiles = 4000, int TreeLevels = 4)
+/// <param name="TreeLevels">Where the store is filled from the generator's model (no real chunk yet): the levels below this get every tree as its blocks (the tree pass's own placement), the levels from it up a forest as a layer of leaves on a trunk. 0 makes no single tree.</param>
+/// <param name="TexturedLevels">The tiles of the levels below this draw every face with its block's own atlas texture (mipmapped); the tiles above draw flat averaged colours with a noise texture, merged into large quads.</param>
+/// <param name="RealRadius">How far from the eye, in blocks, workers generate the real chunks of the surface and ingest them into the store (so trees, houses and regions near the voxel zone are exact, not the model's); 0 for none.</param>
+public sealed record FarViewSettings(int Range, int TileCells = 32, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.88, int MaxTiles = 4000, int TreeLevels = 4, int TexturedLevels = 2, int RealRadius = 1000)
 {
     /// <summary>Where each level starts, in voxel view distances: level 0 is the ring just past the voxel zone (to 1.1), then each level is used out to the start of the next.</summary>
     public static IReadOnlyList<double> BandStarts { get; } = [0, 1.1, 1.5, 2.5, 4.5, 8.5, 16.5, 32.5];

@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Graphics.World;
@@ -9,28 +9,33 @@ using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests.Graphics.Far;
 
-/// <summary>The far view's tile meshes (B07c): boxes of whole blocks on the level's cells, closed and crack-free, greedy-merged, coloured from the atlas, with water and light kinds in lists of their own.</summary>
+/// <summary>The far view's tile meshes (B07c): the faces of three-dimensional sections, axis-aligned on whole voxels, closed and crack-free, overhangs kept, greedy-merged when flat and textured when near, with water and light kinds in lists of their own.</summary>
 public sealed class FarTileMesherTests(ITestOutputHelper output)
 {
     private static readonly FarViewSettings Settings = new(4096);
 
-    private sealed class Source(Func<int, int, int, LodSegment[]> make) : ILodColumnSource
+    // A world of stacks made by a function: one section of voxels at the level, the stone as high as the function says (in voxels), air over it.
+    private sealed class Land(Func<int, int, int, LodSection> make) : ILodSectionSource
     {
-        public void Fill(LodGrid grid)
+        public LodStack Stack(int level, int sx, int sz) => new(0, [make(level, sx, sz)]);
+    }
+
+    private static LodSection Heights(int sx, int sz, Func<int, int, int> height)
+    {
+        var section = LodSection.Air();
+        for (var z = 0; z < 32; z++)
         {
-            for (var j = 0; j < grid.Depth; j++)
+            for (var x = 0; x < 32; x++)
             {
-                for (var i = 0; i < grid.Width; i++)
+                for (var y = 0; y < height((sx * 32) + x, (sz * 32) + z); y++)
                 {
-                    grid.Set(i, j, make(grid.Level, grid.X0 + i, grid.Z0 + j));
+                    section.SetBlock(LodSection.Index(x, y, z), BlockId.Stone);
                 }
             }
         }
+
+        return section;
     }
-
-    private static LodSegment Run(int top, int bottom, BlockId block, byte sky = 15, byte light = 0) => new(top, bottom, block, sky, light);
-
-    private static LodSegment[] Ground(int height, BlockId top = BlockId.Grass) => [Run(height, height, top), Run(height - 1, height - 3, BlockId.Dirt), Run(height - 4, -64, BlockId.Stone)];
 
     // The quads of a mesh: four vertices each, with the normal the winding gives and the area.
     private sealed record Quad(Vector3[] Corners, Vector3 Normal, float Area, int Bucket);
@@ -44,58 +49,60 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         {
             var v = mesh.Vertices.Skip(q * 4).Take(4).Select(static x => x.Position).ToArray();
             var cross = Vector3.Cross(v[1] - v[0], v[2] - v[0]);
-            var normal = Vector3.Normalize(cross);
-            quads.Add(new Quad(v, normal, Vector3.Cross(v[1] - v[0], v[3] - v[0]).Length(), q < opaqueQuads ? 0 : q < opaqueQuads + litQuads ? 1 : 2));
+            quads.Add(new Quad(v, Vector3.Normalize(cross), Vector3.Cross(v[1] - v[0], v[3] - v[0]).Length(), q < opaqueQuads ? 0 : q < opaqueQuads + litQuads ? 1 : 2));
         }
 
         return quads;
     }
 
-    private static FarTileMesh Build(Func<int, int, int, LodSegment[]> make, int level = 2, FarTileKey? key = null) =>
-        FarTileMesher.Build(new Source(make), Settings, key ?? new FarTileKey(level, 3, -2));
+    private static FarTileMesh Mesh(ILodSectionSource source, int level = 2, int tx = 3, int tz = -2, FarViewSettings? settings = null, UInt128 grey = default) =>
+        FarTileMesher.Build(source, settings ?? Settings, new FarTileKey(level, tx, tz), grey);
 
     [Fact]
-    public void Given_FlatMeadow_When_ATileIsBuilt_Then_TheTopIsOneQuadAndTheOnlySidesAreTheSkirts()
+    public void Given_FlatLand_When_ATileIsBuilt_Then_TheTopIsOneQuadAndTheOnlySidesAreTheSkirtsOfTheEdge()
     {
-        var mesh = Build((_, _, _) => Ground(40));
+        const int Level = 2;
+        var mesh = Mesh(new Land((_, sx, sz) => Heights(sx, sz, (_, _) => 10)), Level);
         var quads = Quads(mesh);
-        var cell = Settings.CellOf(2);
-        var side = Settings.TileCells * cell;
+        var cell = Settings.CellOf(Level);
+        var skirt = ((Settings.SkirtOf(Level) + cell - 1) / cell) + 1;
 
         var tops = quads.Where(static q => q.Normal.Y > 0.99f).ToList();
         Assert.Single(tops);
-        Assert.Equal((float)side * side, tops[0].Area, 1f);
-        Assert.All(quads.Where(static q => Math.Abs(q.Normal.Y) < 0.01f), q => Assert.True(q.Corners.Min(static c => c.Y) >= 40 - Settings.SkirtOf(2) - 1));
+        Assert.Equal((float)Settings.TileCells * cell * Settings.TileCells * cell, tops[0].Area, 1f);
+        var sides = quads.Where(static q => Math.Abs(q.Normal.Y) < 0.01f).ToList();
+        Assert.Equal(4, sides.Count);
+        Assert.All(sides, q => Assert.Equal(skirt * cell, q.Corners.Max(static c => c.Y) - q.Corners.Min(static c => c.Y)));
         Assert.Equal(mesh.Triangles, quads.Count * 2);
+        Assert.False(mesh.Textured);
         Assert.Equal(0, mesh.WaterIndices);
         Assert.Equal(0, mesh.LitIndices);
     }
 
     [Fact]
-    public void Given_RuggedHeights_When_ATileIsBuilt_Then_TheFacesAreExactlyTheSurfaceOfTheBoxesWithNoCrackAndNoOverlap()
+    public void Given_RuggedHeights_When_ATileIsBuilt_Then_TheFacesAreExactlyTheSurfaceOfTheVoxelsWithNoCrackAndNoOverlap()
     {
         const int Level = 2;
-        static int Height(int cx, int cz) => 30 + (int)(((uint)((cx * 73856093) ^ (cz * 19349663)) >> 7) % 9);
+        static int Height(int cx, int cz) => 3 + (int)(((uint)((cx * 73856093) ^ (cz * 19349663)) >> 7) % 9);
         var key = new FarTileKey(Level, 3, -2);
-        var mesh = Build((l, cx, cz) => [Run(Height(cx, cz), -64, BlockId.Stone)], Level, key);
-        var quads = Quads(mesh);
-        var cell = Settings.CellOf(Level);
         var n = Settings.TileCells;
-        var skirt = Settings.SkirtOf(Level);
+        var cell = Settings.CellOf(Level);
+        var skirt = ((Settings.SkirtOf(Level) + cell - 1) / cell) + 1;
+        var mesh = Mesh(new Land((_, sx, sz) => Heights(sx, sz, Height)), Level, key.Tx, key.Tz);
+        var quads = Quads(mesh);
 
-        // The expected area: every top, and every wall down to the lower neighbour; on the tile's edge the wall is at least the skirt deep.
+        // The expected area: every top, every wall down to the lower neighbour, and along the tile's edge the voxels within the skirt of the surface.
         double expectedSides = 0;
         for (var j = 0; j < n; j++)
         {
             for (var i = 0; i < n; i++)
             {
                 var (cx, cz) = ((key.Tx * n) + i, (key.Tz * n) + j);
-                var h = Height(cx, cz) + 1;
+                var h = Height(cx, cz);
                 foreach (var (di, dj) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
                 {
                     var edge = i + di < 0 || i + di >= n || j + dj < 0 || j + dj >= n;
-                    var drop = h - (Height(cx + di, cz + dj) + 1);
-                    expectedSides += Math.Max(edge ? Math.Max(drop, skirt) : drop, 0) * (double)cell;
+                    expectedSides += (edge ? Math.Min(h, skirt) : Math.Max(0, h - Height(cx + di, cz + dj))) * (double)cell * cell;
                 }
             }
         }
@@ -105,33 +112,64 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         Assert.Equal((double)n * n * cell * cell, tops, 1);
         Assert.Equal(expectedSides, sides, 1);
         Assert.DoesNotContain(quads, static q => q.Normal.Y < -0.99f);
-        // Greedy: fewer quads than cells.
-        Assert.True(quads.Count(static q => q.Normal.Y > 0.99f) < n * n);
+        Assert.True(quads.Count(static q => q.Normal.Y > 0.99f) < n * n, "flat runs are merged");
     }
 
     [Fact]
-    public void Given_TilesOfEveryLevelOverRealLand_When_TheyAreBuilt_Then_EveryFaceIsAxisAlignedAndEveryVertexIsOnAWholeBlockAndTheLevelsCells()
+    public void Given_ABridgeOverAGapAndACaveMouth_When_ATileIsBuilt_Then_TheUndersideAndTheTunnelWallsAreDrawn()
     {
-        var lod = StreamedWorlds.Composition.World.Far.Lod(4);
+        // The three-dimensional part: stone up to 8, a bridge of stone at 14 and 15 over a trench cut 4 deep, none of which a height field has.
+        var land = new Land((_, sx, sz) =>
+        {
+            var section = Heights(sx, sz, (_, _) => 8);
+            for (var z = 8; z < 12; z++)
+            {
+                for (var x = 4; x < 28; x++)
+                {
+                    for (var y = 4; y < 8; y++)
+                    {
+                        section.SetBlock(LodSection.Index(x, y, z), BlockId.Air);
+                    }
+
+                    section.SetBlock(LodSection.Index(x, 14, z), BlockId.Planks);
+                    section.SetBlock(LodSection.Index(x, 15, z), BlockId.Planks);
+                }
+            }
+
+            return section;
+        });
+
+        var quads = Quads(Mesh(land, 1, 5, 5));
+
+        var under = quads.Where(static q => q.Normal.Y < -0.99f).ToList();
+        Assert.NotEmpty(under);
+        Assert.All(under, q => Assert.Equal(14f * 2, q.Corners[0].Y));
+        Assert.Contains(quads, static q => q.Normal.Y > 0.99f && q.Corners[0].Y == 16f * 2);
+        Assert.Contains(quads, static q => q.Normal.Y > 0.99f && q.Corners[0].Y == 4f * 2); // the trench's floor
+    }
+
+    [Fact]
+    public void Given_TilesOfEveryLevelOverRealLand_When_TheyAreBuilt_Then_EveryFaceIsAxisAlignedAndEveryVertexIsOnWholeCells()
+    {
+        var world = StreamedWorlds.Composition.World.Far.FarWorld(new LodStore(), 4);
         var total = 0;
         foreach (var level in new[] { 0, 1, 2, 3, 4, 5, 6, 7 })
         {
             var settings = new FarViewSettings(16384);
-            var key = new FarTileKey(level, level == 0 ? 15 : 7 >> level, -9 >> Math.Min(level, 3));
-            var mesh = FarTileMesher.Build(lod, settings, key);
+            var key = new FarTileKey(level, 3000 >> (5 + level), 1200 >> (5 + level));
+            var mesh = FarTileMesher.Build(world, settings, key);
             var cell = settings.CellOf(level);
-            output.WriteLine($"level {level}: {mesh.Vertices.Length / 4} quads, {mesh.Bytes / 1024} KB, {mesh.BuildMilliseconds:0} ms (Debug)");
+            output.WriteLine($"level {level}: {mesh.Vertices.Length / 4} quads, {mesh.Bytes / 1024} KB, {mesh.BuildMilliseconds:0} ms (Debug), textured {mesh.Textured}");
             foreach (var quad in Quads(mesh))
             {
                 var n = quad.Normal;
                 Assert.Equal(1, new[] { n.X, n.Y, n.Z }.Count(static c => Math.Abs(c) > 0.999f));
                 foreach (var corner in quad.Corners)
                 {
-                    Assert.Equal(0f, corner.Y - MathF.Round(corner.Y));
-                    Assert.Equal(0, ((int)corner.X % cell + cell) % cell);
-                    Assert.Equal(0, ((int)corner.Z % cell + cell) % cell);
-                    Assert.Equal(corner.X, MathF.Round(corner.X));
-                    Assert.Equal(corner.Z, MathF.Round(corner.Z));
+                    Assert.Equal(0, (((int)corner.X % cell) + cell) % cell);
+                    Assert.Equal(0, (((int)corner.Y % cell) + cell) % cell);
+                    Assert.Equal(0, (((int)corner.Z % cell) + cell) % cell);
+                    Assert.Equal(corner, new Vector3(MathF.Round(corner.X), MathF.Round(corner.Y), MathF.Round(corner.Z)));
                 }
 
                 total++;
@@ -142,53 +180,112 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_ATileWhoseEdgeStepsDownToItsNeighbour_When_ItIsBuilt_Then_TheWallReachesDownToTheNeighbourOrTheSkirtWhicheverIsDeeper()
+    public void Given_TheNearLevelsAndTheFarOnes_When_TilesAreBuilt_Then_TheNearOnesCarryAtlasTexturesOneQuadAFaceAndTheFarOnesMergeFlatColours()
     {
-        const int Level = 3;
-        var key = new FarTileKey(Level, 0, 0);
-        var n = Settings.TileCells;
-        // The land is 40 inside the tile and 5 in the border: a 35-block cliff round it.
-        var mesh = Build((_, cx, cz) => cx < 0 || cz < 0 || cx >= n || cz >= n ? Ground(5) : Ground(40), Level, key);
+        var land = new Land((_, sx, sz) => Heights(sx, sz, (_, _) => 10));
+        var near = Mesh(land, 0, 1, 1);
+        var far = Mesh(land, 2, 1, 1);
 
-        var lowest = Quads(mesh).Where(static q => Math.Abs(q.Normal.Y) < 0.01f).Min(static q => q.Corners.Min(static c => c.Y));
-        Assert.Equal(6f, lowest); // down to the neighbour's top at 6
-        Assert.True(Settings.SkirtOf(Level) < 35);
+        Assert.True(near.Textured);
+        Assert.False(far.Textured);
+        var nearTops = Quads(near).Where(static q => q.Normal.Y > 0.99f).ToList();
+        Assert.Equal(32 * 32, nearTops.Count);
+        var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(BlockAtlasLayout.CellFor(BlockId.Stone, BlockFace.Up));
+        var topVertices = near.Vertices.Take(4 * 32 * 32).Where(static v => true).ToList();
+        Assert.All(near.Vertices.Take(4), v =>
+        {
+            Assert.InRange(v.TextureCoordinate.X, u0 - 0.0001f, u1 + 0.0001f);
+            Assert.InRange(v.TextureCoordinate.Y, v0 - 0.0001f, v1 + 0.0001f);
+        });
+        Assert.NotEmpty(topVertices);
+        Assert.Single(Quads(far), static q => q.Normal.Y > 0.99f);
     }
 
     [Fact]
-    public void Given_AColumnWithACrownOverAGap_When_ATileIsBuilt_Then_TheCrownHasAnUndersideAndTheGroundUnderItIsDarker()
+    public void Given_LandUnderACrownAndInTheOpen_When_ATileIsBuilt_Then_TheSkyLightOfTheDataShadesTheLandUnderTheCrown()
     {
-        var open = Build((_, _, _) => Ground(40));
-        LodSegment[] Tree() => [Run(52, 48, BlockId.Leaves, 15), .. Ground(40).Select(static s => s with { Sky = 9 })];
-        var covered = Build((_, _, _) => Tree());
+        var land = new Land((_, sx, sz) =>
+        {
+            var section = Heights(sx, sz, (_, _) => 10);
+            for (var z = 0; z < 32; z++)
+            {
+                for (var x = 16; x < 32; x++)
+                {
+                    section.SetLight(LodSection.Index(x, 10, z), (byte)(5 << 4));
+                }
+            }
 
-        Assert.DoesNotContain(Quads(open), static q => q.Normal.Y < -0.99f);
-        Assert.Contains(Quads(covered), static q => q.Normal.Y < -0.99f);
-        var openGround = open.Vertices.First(static v => v.Position.Y == 41).Color;
-        var shaded = covered.Vertices.First(static v => v.Position.Y == 41).Color;
-        Assert.True(shaded.G < openGround.G);
+            return section;
+        });
+
+        var tops = Quads(Mesh(land, 2, 1, 1)).Where(static q => q.Normal.Y > 0.99f).ToList();
+
+        Assert.Equal(2, tops.Count);
+        var mesh = Mesh(land, 2, 1, 1);
+        var all = Quads(mesh);
+        var colours = Enumerable.Range(0, all.Count).Where(q => all[q].Normal.Y > 0.99f).Select(q => mesh.Vertices[q * 4].Color).Distinct().ToList();
+        Assert.Equal(2, colours.Count);
+        Assert.True(colours.Min(static c => c.G) < colours.Max(static c => c.G));
     }
 
     [Fact]
     public void Given_WaterAndLava_When_ATileIsBuilt_Then_TheyAreInTheirOwnListsAndTheWaterDeepensWithItsDepth()
     {
-        var mesh = Build((_, cx, cz) => cx < 48 ? [Run(32, 28, BlockId.Water), Run(27, 27, BlockId.Sand, 12), Run(26, -64, BlockId.Stone, 8)] : [Run(33, 20, BlockId.Lava, 15, 15), Run(19, -64, BlockId.Stone, 0)], 0, new FarTileKey(0, 1, 1));
+        var land = new Land((_, sx, sz) =>
+        {
+            var section = Heights(sx, sz, (_, _) => 5);
+            for (var z = 0; z < 32; z++)
+            {
+                for (var x = 0; x < 16; x++)
+                {
+                    for (var y = 5; y < 10; y++)
+                    {
+                        section.SetBlock(LodSection.Index(x, y, z), BlockId.Water);
+                    }
+                }
+
+                section.SetBlock(LodSection.Index(24, 5, z), BlockId.Lava);
+                section.SetLight(LodSection.Index(24, 5, z), 0xFF);
+            }
+
+            return section;
+        });
+
+        var mesh = Mesh(land, 0, 1, 1);
 
         var quads = Quads(mesh);
         Assert.Contains(quads, static q => q.Bucket == 2);
         Assert.Contains(quads, static q => q.Bucket == 1);
         Assert.True(mesh.WaterIndices > 0 && mesh.LitIndices > 0 && mesh.OpaqueIndices > 0);
-        Assert.All(quads.Where(static q => q.Bucket == 2), q => Assert.True(q.Normal.Y > 0.99f || Math.Abs(q.Normal.Y) < 0.01f));
+        // The tile (1, 1) of level 0 is the blocks from 32 to 64: no wall of water on its outer planes.
+        Assert.All(quads.Where(static q => q.Bucket == 2), static q => Assert.False((Math.Abs(q.Normal.X) > 0.99f && q.Corners[0].X is 32f or 64f) || (Math.Abs(q.Normal.Z) > 0.99f && q.Corners[0].Z is 32f or 64f)));
 
-        // Deeper water is more opaque and darker.
-        var shallow = Build((_, _, _) => [Run(32, 31, BlockId.Water), Run(30, 30, BlockId.Sand), Run(29, -64, BlockId.Stone)]);
-        var deep = Build((_, _, _) => [Run(32, 12, BlockId.Water), Run(11, 11, BlockId.Sand), Run(10, -64, BlockId.Stone)]);
+        var shallow = Mesh(new Land((_, sx, sz) => WaterOver(sx, sz, 1)), 2, 1, 1);
+        var deep = Mesh(new Land((_, sx, sz) => WaterOver(sx, sz, 8)), 2, 1, 1);
         var shallowColour = shallow.Vertices.Last().Color;
         var deepColour = deep.Vertices.Last().Color;
         Assert.True(deepColour.A > shallowColour.A);
         Assert.True(deepColour.B <= shallowColour.B);
         // What lies under deep water is not drawn.
-        Assert.True(deep.Triangles < shallow.Triangles + 40);
+        Assert.True(Quads(deep).Count(static q => q.Bucket == 0 && q.Normal.Y > 0.99f) == 0);
+        Assert.True(Quads(shallow).Count(static q => q.Bucket == 0 && q.Normal.Y > 0.99f) > 0);
+    }
+
+    private static LodSection WaterOver(int sx, int sz, int depth)
+    {
+        var section = Heights(sx, sz, (_, _) => 5);
+        for (var z = 0; z < 32; z++)
+        {
+            for (var x = 0; x < 32; x++)
+            {
+                for (var y = 5; y < 5 + depth; y++)
+                {
+                    section.SetBlock(LodSection.Index(x, y, z), BlockId.Water);
+                }
+            }
+        }
+
+        return section;
     }
 
     [Fact]
@@ -234,8 +331,9 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
 
         Assert.True(grey.R == grey.G && grey.G == grey.B);
         Assert.Equal(colour, other);
-        var mesh = Build((_, _, _) => Ground(40));
-        var greyMesh = FarTileMesher.Build(new Source((_, _, _) => Ground(40)), Settings, new FarTileKey(2, 3, -2), ~UInt128.Zero);
+        var land = new Land((_, sx, sz) => Heights(sx, sz, (_, _) => 10));
+        var mesh = Mesh(land);
+        var greyMesh = Mesh(land, grey: ~UInt128.Zero);
         Assert.Equal(mesh.Vertices.Select(static v => v.Position), greyMesh.Vertices.Select(static v => v.Position));
         Assert.NotEqual(mesh.Vertices.Select(static v => v.Color), greyMesh.Vertices.Select(static v => v.Color));
     }
@@ -243,8 +341,8 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
     [Fact]
     public void Given_ATileOverRealLand_When_ItIsBuiltTwiceAndFromManyThreads_Then_TheMeshIsIdentical()
     {
-        var lod = StreamedWorlds.Composition.World.Far.Lod(4);
-        var key = new FarTileKey(1, 14, -9);
+        var lod = StreamedWorlds.Composition.World.Far.FarWorld(new LodStore(), 4);
+        var key = new FarTileKey(1, 14, 9);
         var first = FarTileMesher.Build(lod, Settings, key);
         var results = new FarTileMesh[4];
 
@@ -254,6 +352,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         {
             Assert.True(first.Vertices.SequenceEqual(m.Vertices));
             Assert.Equal(first.Indices16, m.Indices16);
+            Assert.Equal(first.Textured, m.Textured);
             Assert.Equal(first.Box, m.Box);
         });
         output.WriteLine($"one level-1 tile over land outside the valley: {first.Vertices.Length} vertices, {first.Triangles} triangles, {first.Bytes / 1024.0:0} KB, {first.BuildMilliseconds:0} ms (Debug)");
@@ -263,7 +362,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
     public void Given_ATileOfTheNearRing_When_ItIsBuilt_Then_ItsBoxHoldsEveryVertexAndTheTreesStandAboveTheLand()
     {
         var sampler = StreamedWorlds.Composition.World.Far;
-        var lod = sampler.Lod(4);
+        var lod = sampler.FarWorld(new LodStore(), 4);
         // Find a tile with trees: a forest column with a tree in it.
         FarTileMesh? found = null;
         for (var tz = -40; tz < 40 && found is null; tz++)

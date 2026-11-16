@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Regions;
+using Vocaterra.Game.Core.World.Lod;
 
 namespace Vocaterra.Game.Core.World.Far;
 
@@ -59,6 +60,11 @@ public sealed class FarTerrainSampler
     /// <param name="treeLevels">The levels below this get every tree as its blocks, the levels from it up a forest as a layer of leaves.</param>
     /// <param name="mergeLevels">The highest level that is a merge of four finer columns; above it a cell is one column at its centre.</param>
     public LodModelSource Lod(int treeLevels, int mergeLevels = 3) => new(this, treeLevels, mergeLevels);
+
+    /// <summary>The far world over this model (B07c): a store of three-dimensional sections that the model fills where there is no real data, and real chunks replace.</summary>
+    /// <param name="store">The store.</param>
+    /// <param name="treeLevels">The levels below this get every tree as its blocks.</param>
+    public LodWorld FarWorld(LodStore store, int treeLevels) => new(store, new LodModelSections(Lod(treeLevels), MinY, MaxY), MinY, MaxY);
 
     /// <summary>The water's surface y.</summary>
     public int SeaLevel => _world.SeaLevel;

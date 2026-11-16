@@ -30,17 +30,24 @@ public sealed class FarTerrainRenderer : IDisposable
     private readonly GraphicsDevice _device;
     private readonly FarView _view;
     private readonly BasicEffect _effect;
+    private readonly AlphaTestEffect _solid;
     private readonly Texture2D _noise;
+    private readonly Texture2D _atlas;
+    private readonly SamplerState _atlasSampler;
     private readonly List<FarTile> _visible = [];
     private int _drawn;
 
     /// <summary>Creates the renderer of a far view.</summary>
     /// <param name="device">The graphics device.</param>
     /// <param name="view">The tiles to draw.</param>
-    public FarTerrainRenderer(GraphicsDevice device, FarView view)
+    /// <param name="atlas">The block atlas's texture, which the textured tiles are drawn with.</param>
+    /// <param name="atlasSampler">The sampler the chunks use with it.</param>
+    public FarTerrainRenderer(GraphicsDevice device, FarView view, Texture2D atlas, SamplerState atlasSampler)
     {
         _device = device;
         _view = view;
+        _atlas = atlas;
+        _atlasSampler = atlasSampler;
         _noise = FarNoise.Create(device);
         _effect = new BasicEffect(device)
         {
@@ -49,6 +56,15 @@ public sealed class FarTerrainRenderer : IDisposable
             Texture = _noise,
             LightingEnabled = false,
             FogEnabled = true,
+        };
+
+        // The opaque land and the lit blocks are cut out like the chunks' faces (leaves have holes in their art).
+        _solid = new AlphaTestEffect(device)
+        {
+            VertexColorEnabled = true,
+            FogEnabled = true,
+            AlphaFunction = CompareFunction.Greater,
+            ReferenceAlpha = 110,
         };
     }
 
@@ -79,30 +95,37 @@ public sealed class FarTerrainRenderer : IDisposable
 
         var projection = ProjectionFor(camera, settings.Range);
         var frustum = new BoundingFrustum(camera.View * projection);
-        _effect.World = Matrix.Identity;
-        _effect.View = camera.View;
-        _effect.Projection = projection;
+        foreach (var effect in new IEffectMatrices[] { _effect, _solid })
+        {
+            effect.World = Matrix.Identity;
+            effect.View = camera.View;
+            effect.Projection = projection;
+        }
+
+        _solid.DiffuseColor = state.Tint;
+        _solid.FogColor = state.FogColour;
+        _solid.FogStart = state.FogStart;
+        _solid.FogEnd = state.FogEnd;
         _effect.DiffuseColor = state.Tint;
         _effect.FogColor = state.FogColour;
         _effect.FogStart = state.FogStart;
         _effect.FogEnd = state.FogEnd;
         _device.DepthStencilState = DepthStencilState.Default;
         _device.BlendState = BlendState.Opaque;
-        _device.SamplerStates[0] = FarNoise.Sampler;
         var uploads = 0;
         var standIns = _view.FallbackCount;
         for (var i = 0; i < _view.Draw.Count; i++)
         {
             var tile = _view.Draw[i];
+            if (tile.Pending is not null && uploads < MaxUploadsPerFrame)
+            {
+                Upload(tile); // a new tile, or a tile made again that replaces its old buffers
+                uploads++;
+            }
+
             if (tile.Buffer is null)
             {
-                if (tile.Pending is null || uploads >= MaxUploadsPerFrame)
-                {
-                    continue;
-                }
-
-                Upload(tile);
-                uploads++;
+                continue;
             }
 
             if (!frustum.Intersects(tile.Box))
@@ -118,7 +141,7 @@ public sealed class FarTerrainRenderer : IDisposable
 
             // The fallbacks (an ancestor standing in for a leaf that is not built) come first in the list and are drawn a little behind, so a finer tile beside or over one wins.
             _device.RasterizerState = i < standIns ? Fallback : RasterizerState.CullClockwise;
-            Bind(tile);
+            Bind(tile, tile.Textured, solid: true);
             _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tile.Runs.Opaque / 3);
             _drawn++;
         }
@@ -126,18 +149,17 @@ public sealed class FarTerrainRenderer : IDisposable
         _device.RasterizerState = RasterizerState.CullClockwise;
 
         // The blocks that give light, in no tint: they glow at night.
-        _effect.DiffuseColor = Vector3.One;
+        _solid.DiffuseColor = Vector3.One;
         foreach (var tile in _visible)
         {
             if (tile.Runs.Lit > 0)
             {
-                Bind(tile);
+                Bind(tile, tile.Textured, solid: true);
                 _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque, tile.Runs.Lit / 3);
             }
         }
 
         // The water, translucent, from the far to the near, reading the depth and not writing it.
-        _effect.DiffuseColor = state.Tint;
         _device.BlendState = BlendState.NonPremultiplied;
         _device.DepthStencilState = DepthStencilState.DepthRead;
         for (var i = _visible.Count - 1; i >= 0; i--)
@@ -145,7 +167,7 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
-                Bind(tile);
+                Bind(tile, false, solid: false);
                 _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water / 3);
             }
         }
@@ -155,9 +177,21 @@ public sealed class FarTerrainRenderer : IDisposable
         _device.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1f, 0);
     }
 
-    private void Bind(FarTile tile)
+    private void Bind(FarTile tile, bool textured, bool solid)
     {
-        _effect.CurrentTechnique.Passes[0].Apply();
+        var texture = textured ? _atlas : _noise;
+        _device.SamplerStates[0] = textured ? _atlasSampler : FarNoise.Sampler;
+        if (solid)
+        {
+            _solid.Texture = texture;
+            _solid.CurrentTechnique.Passes[0].Apply();
+        }
+        else
+        {
+            _effect.Texture = texture;
+            _effect.CurrentTechnique.Passes[0].Apply();
+        }
+
         _device.SetVertexBuffer(tile.Buffer);
         _device.Indices = tile.Indices;
     }
@@ -176,6 +210,9 @@ public sealed class FarTerrainRenderer : IDisposable
     private void Upload(FarTile tile)
     {
         var mesh = tile.Pending!;
+        tile.Buffer?.Dispose(); // a tile made again replaces its old buffers
+        tile.Indices?.Dispose();
+        tile.Adopt(mesh);
         var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.Vertices.Length, BufferUsage.WriteOnly);
         buffer.SetData(mesh.Vertices);
         tile.Buffer = buffer;
@@ -201,5 +238,6 @@ public sealed class FarTerrainRenderer : IDisposable
     {
         _noise.Dispose();
         _effect.Dispose();
+        _solid.Dispose();
     }
 }
