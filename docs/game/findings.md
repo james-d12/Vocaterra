@@ -2674,3 +2674,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   y -9; under a town below its lowest layer (fixed on the merge with B15). Findings: a column of 24 chunks went from 1.8 to 6.4 ms in
   Debug (worst 16 ms), for B07 and B12 to re-measure; the generator version went to 2, which moved the atmosphere pins. Needed one merge
   (README, the preview CLI). Gated: 12,087 passed, 3 skipped.
+- **B13, the valley's underground (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b13-valley-underground.md`, report
+  `.claude/briefs/b13-report.md`. B11's passes laid into the valley's buried stone after the scene is built (`ValleyUnderground`,
+  `VoxelGrid.ReplaceBlocks`, not an edit), only where a per-column reach allows: 8 from air, 16 from water, 12 columns from the edge,
+  and margins round sites, paths, props, the village and the pass (a `valley` section in underground.json, validated against the
+  scene). An exact 3D distance test shows the nearest change 9 blocks from air and 17 from water; 1.5 million blocks changed; the caves
+  meet the procedural ones at y 0 with no seam (`underRegionCeiling` -9 to -1). Checked in the game: screenshots of the village and the
+  peaks are byte-identical before and after. Findings: the valley's build costs 76 ms more in Release (151 to 227 ms) and buried caves
+  add mesh faces (about 400 more buried chunks are meshed), for B07's measurements; `ChunkMesherTests`' skippable-chunk floor went from
+  2,000 to 1,500 for that reason. `SceneTests.GoldenDigest` moved once, to 83af36d3. Gated: 12,100 passed, 3 skipped.
+- **The night's in-game verification (2026-11-16, `bb145f22` against `4fc0a00f`; no repository changes).** Report
+  `.claude/briefs/v-night-verification-report.md`, pictures in `artifacts/b-series/verify/`. All 32 scripted runs pass on both builds;
+  every difference has its milestone (B08a's notch and trees, the digest lines of B05, B06 and B11, the bundle hash); nothing from B04b,
+  B09, B10, B10b, M96 or B15 shows in the valley's pictures; the pass opens, saves and reloads as B08b designed. Findings: the road from
+  the village meets a 2 to 3 block dirt riser at (318, 217) and a walk to the gate takes a 41-turn detour, and the cutting reads as a dirt
+  staircase (B08c fixes it); `scripts/compare-runs.py` hangs on long single-line saves (a quadratic mask; B08c bounds it); the tree count
+  is 1,848 after B08a (its report said 1,851; the valley's digest did not move after B08a's gate).
+- **B08c, the pass road from the village (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b08c-pass-road.md`, report
+  `.claude/briefs/b08c-report.md`. Cause: `ApplySites` blended the village's levelled ground over every cell of its 8-block ring, road
+  surfaces included, pulling the graded road down a level and leaving 2-block steps. A path that neither starts nor ends at a site now
+  keeps its own height across the site's blend; the gate moved to (318, 217) (a 5-wide road from 316 put road under the village's trees);
+  the climb is a block every second column. The walk from the village to the gate went from 41 turns and about 3,000 ticks to 6 turns
+  and 293. The cutting still climbs in 1-block steps with dirt risers (voxel stairs), for the owner to judge. compare-runs.py's mask
+  bounded: two captures compare in 4 s. `GoldenDigest` to efcfbe02. Gated: 12,103 passed, 3 skipped.

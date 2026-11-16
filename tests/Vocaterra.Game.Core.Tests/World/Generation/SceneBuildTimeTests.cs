@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation;
@@ -33,7 +32,7 @@ public sealed class SceneBuildTimeTests(ITestOutputHelper output)
         for (var attempt = 0; attempt < Attempts && built + digested >= Budget; attempt++)
         {
             var stopwatch = Stopwatch.StartNew();
-            scene = SceneBuilder.Build(layout, Seed);
+            scene = ValleyBuild.Build(layout, Seed);
             var buildTime = stopwatch.Elapsed.TotalMilliseconds;
             digest = scene.Grid.ComputeDigestHex();
             var digestTime = stopwatch.Elapsed.TotalMilliseconds - buildTime;

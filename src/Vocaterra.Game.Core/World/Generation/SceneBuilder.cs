@@ -39,10 +39,18 @@ public static class SceneBuilder
     /// <param name="seed">The world seed.</param>
     /// <param name="ground">The ground strategy, or <see langword="null"/> for the layout's hand-drawn relief (the valley).</param>
     /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
-    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground)
+    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground) => Build(layout, seed, ground, null);
+
+    /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/> with the underground laid into the valley's buried stone (B13).</summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="seed">The world seed.</param>
+    /// <param name="ground">The ground strategy, or <see langword="null"/> for the layout's hand-drawn relief (the valley).</param>
+    /// <param name="underground">The valley's underground, or <see langword="null"/> for a valley of plain stone.</param>
+    /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
+    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground, ValleyUnderground? underground)
     {
         ArgumentNullException.ThrowIfNull(layout);
-        var builder = new Builder(layout, ground);
+        var builder = new Builder(layout, ground, underground);
         return builder.Run(seed);
     }
 
@@ -60,11 +68,20 @@ public static class SceneBuilder
         private ulong _seed;
 
         private readonly IGroundShape? _ground;
+        private readonly ValleyUnderground? _underground;
+        private readonly int[] _propLow; // B13: the lowest y a prop wrote in each column (int.MaxValue where none did)
+        private readonly int[] _airLow; // B13: the lowest y a prop left non-solid in each column
+        private bool _recordProps;
 
-        public Builder(SceneLayout layout, IGroundShape? ground)
+        public Builder(SceneLayout layout, IGroundShape? ground, ValleyUnderground? underground)
         {
             _layout = layout;
             _ground = ground;
+            _underground = underground;
+            _propLow = new int[layout.SizeX * layout.SizeZ];
+            _airLow = new int[layout.SizeX * layout.SizeZ];
+            Array.Fill(_propLow, int.MaxValue);
+            Array.Fill(_airLow, int.MaxValue);
             _grid = new VoxelGrid(layout.SizeX, layout.SizeY, layout.SizeZ);
             _reserved = new bool[layout.SizeX * layout.SizeZ];
             _hard = new bool[layout.SizeX * layout.SizeZ];
@@ -76,10 +93,13 @@ public static class SceneBuilder
             _terrain = TerrainGenerator.Generate(_layout, seed, _ground);
             _forest = new TerrainNoise(seed, ForestPassName);
             FillTerrain();
+            _recordProps = true;
             foreach (var prop in _layout.Props)
             {
                 BuildProp(prop);
             }
+
+            _recordProps = false;
 
             foreach (var site in _layout.Sites)
             {
@@ -107,8 +127,10 @@ public static class SceneBuilder
 
             var trees = PlantForest(seed);
             var plants = PlantUndergrowth(seed);
+            var index = TemplateBlockIndex.Scan(_grid); // before the underground: the index lists the rarer kinds of the surface (roads, fire rings), not every ore of the deep stone
+            _underground?.Lay(_grid, new ValleyGround(_layout, _terrain, _points, npcs, _propCells, _propLow, _airLow));
             _grid.SealPristine(); // B05: what the build wrote is the world as generated; only a later write makes a chunk changed (state digest, saves)
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells, RiverCurrents.Build(_layout.River, _grid), _terrain.Height, TemplateBlockIndex.Scan(_grid));
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells, RiverCurrents.Build(_layout.River, _grid), _terrain.Height, index);
         }
 
         // ---------------------------------------------------------------- the ground
@@ -224,6 +246,15 @@ public static class SceneBuilder
             }
 
             _grid.SetBlock(x, y, z, block);
+            if (_recordProps)
+            {
+                var column = (z * _layout.SizeX) + x;
+                _propLow[column] = Math.Min(_propLow[column], y);
+                if (!BlockDefinition.IsSolid(block))
+                {
+                    _airLow[column] = Math.Min(_airLow[column], y);
+                }
+            }
         }
 
         private void CheckColumn(int x, int z, string where)

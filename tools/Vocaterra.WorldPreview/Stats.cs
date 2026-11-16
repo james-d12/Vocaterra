@@ -72,6 +72,7 @@ internal static class Stats
         text.AppendLine(Chains(map, 180, isSea));
         text.AppendLine(Coast(map, isSea));
         text.AppendLine(Pools(map, Index(sampler, "river-channel")));
+        text.AppendLine(Humps(map, Index(sampler, "river-channel")));
         var distance = DistanceFromOtherKind(map);
         text.AppendLine("coast profile (mean ground by distance from the shore, blocks):");
         text.Append("  land: ");
@@ -415,6 +416,122 @@ internal static class Stats
         }
 
         return string.Create(CultureInfo.InvariantCulture, $"coast: {points.Count} columns; the longest straight run (within a column of a line) {longest * map.Scale:0} blocks; {Pct(straight, points.Count)}% of the coast lies on a straight run of 300 blocks or more");
+    }
+
+    // River humps (round 3): the water along a river line should only fall towards the sea. The water columns are grouped into reaches (eight-connected columns at one level; the sea is one reach, a lake another); a hump is a reach of river
+    // that stands higher than every reach it touches and touches at least two (so the water falls away on both sides of it: the line rises and falls again, over a hill or a divide between two seas). Reaches of fewer than 6 columns are the contour's
+    // flicker and are not counted. A spring (one neighbour) is not a hump. The rise of a hump is its level less the highest of the floors its sides fall to (the lowest level reachable from each neighbour through lower reaches, not through the hump itself).
+    private static string Humps(WorldMap map, int riverRow)
+    {
+        int w = map.Width, h = map.Height;
+        var reach = new int[w * h];
+        Array.Fill(reach, -1);
+        var levels = new List<int>();
+        var sizes = new List<int>();
+        var riverColumns = new List<int>();
+        var stack = new Stack<int>();
+        for (var start = 0; start < reach.Length; start++)
+        {
+            if (reach[start] >= 0 || !map.Water[start])
+            {
+                continue;
+            }
+
+            var id = levels.Count;
+            levels.Add(map.WaterLevel[start]);
+            sizes.Add(0);
+            riverColumns.Add(0);
+            reach[start] = id;
+            stack.Push(start);
+            while (stack.Count > 0)
+            {
+                var i = stack.Pop();
+                sizes[id]++;
+                riverColumns[id] += map.Biome[i] == riverRow ? 1 : 0;
+                int x = i % w, y = i / w;
+                for (var dy = -1; dy <= 1; dy++)
+                {
+                    for (var dx = -1; dx <= 1; dx++)
+                    {
+                        int nx = x + dx, ny = y + dy;
+                        if (nx < 0 || ny < 0 || nx >= w || ny >= h)
+                        {
+                            continue;
+                        }
+
+                        var j = (ny * w) + nx;
+                        if (reach[j] < 0 && map.Water[j] && map.WaterLevel[j] == levels[id])
+                        {
+                            reach[j] = id;
+                            stack.Push(j);
+                        }
+                    }
+                }
+            }
+        }
+
+        var neighbours = new HashSet<int>[levels.Count];
+        for (var i = 0; i < reach.Length; i++)
+        {
+            if (reach[i] < 0)
+            {
+                continue;
+            }
+
+            int x = i % w, y = i / w;
+            for (var dy = -2; dy <= 2; dy++)
+            {
+                for (var dx = -2; dx <= 2; dx++)
+                {
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || reach[(ny * w) + nx] < 0 || reach[(ny * w) + nx] == reach[i])
+                    {
+                        continue;
+                    }
+
+                    (neighbours[reach[i]] ??= []).Add(reach[(ny * w) + nx]);
+                }
+            }
+        }
+
+        long river = riverColumns.Sum(c => (long)c);
+        long inHumps = 0;
+        var rises = new List<int>();
+        for (var r = 0; r < levels.Count; r++)
+        {
+            if (riverColumns[r] < 6 || neighbours[r] is not { Count: >= 2 } near || near.Any(n => levels[n] >= levels[r]))
+            {
+                continue;
+            }
+
+            var floors = new List<int>();
+            foreach (var n in near)
+            {
+                var seen = new HashSet<int> { r, n };
+                var queue = new Queue<int>();
+                queue.Enqueue(n);
+                var floor = levels[n];
+                while (queue.Count > 0)
+                {
+                    var m = queue.Dequeue();
+                    floor = Math.Min(floor, levels[m]);
+                    foreach (var k in neighbours[m] ?? [])
+                    {
+                        if (levels[k] < levels[r] && seen.Add(k))
+                        {
+                            queue.Enqueue(k);
+                        }
+                    }
+                }
+
+                floors.Add(floor);
+            }
+
+            inHumps += riverColumns[r];
+            rises.Add(levels[r] - floors.Max());
+        }
+
+        return string.Create(CultureInfo.InvariantCulture, $"river humps (reaches of river water higher than every reach they touch, on two sides, of 6 columns or more): {rises.Count} humps holding {Pct(inHumps, river)}% of the {river} river-water columns; the largest rise {(rises.Count == 0 ? 0 : rises.Max())} blocks, the median {(rises.Count == 0 ? 0 : rises.Order().ElementAt(rises.Count / 2))}");
     }
 
     // Water that is not a river's: the sea and the lakes (the biome row of the river's channel is the river's).

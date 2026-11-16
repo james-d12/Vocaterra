@@ -96,7 +96,7 @@ public sealed record CragSpec(int Amplitude, int Cell, int RidgesFrom, int Ridge
 /// <param name="Valley">How the river's valley climbs the high ground to its source (the file's <c>valley</c> part; none: the river is a band of fixed width cut to the bed).</param>
 /// <param name="PeakFadeFrom">The height, in blocks, that the ranges' peaks add to the ground, from which a river begins to fade out (a river does not cross a crest: it rises on each side in the foothills); with <paramref name="PeakFadeTo"/>, none by default.</param>
 /// <param name="PeakFadeTo">The height, in blocks, that the peaks add where the river is gone.</param>
-public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo, ValleySpec? Valley = null, int PeakFadeFrom = 100000, int PeakFadeTo = 100001);
+public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int FadeToHeight, int SeaFadeFrom, int SeaFadeTo, RiverValleySpec? Valley = null, int PeakFadeFrom = 100000, int PeakFadeTo = 100001);
 
 /// <summary>
 /// The valley of a river on high ground (B02b redo, round 3): above <see cref="From"/> the river's water stands deeper under the ground the higher the ground is (<see cref="DepthGrowth"/>), and the valley widens with the height so
@@ -105,7 +105,7 @@ public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int Fad
 /// <param name="From">The land height, in blocks, above which the valley widens and the floor rises with the ground.</param>
 /// <param name="WidthPer10Blocks">The thousandths of the river field the valley widens by for every 10 blocks of ground above <paramref name="From"/>.</param>
 /// <param name="DepthGrowth">How much deeper the valley is, in thousandths of a block, for every block of ground above <paramref name="From"/>.</param>
-public sealed record ValleySpec(int From, int WidthPer10Blocks, int DepthGrowth);
+public sealed record RiverValleySpec(int From, int WidthPer10Blocks, int DepthGrowth);
 
 /// <summary>
 /// The level of the water that is not the sea (B02b round 3): every river and lake has a surface of its own. It is the smooth ground of the column (before the hills) less the hills' amplitude, <see cref="Clearance"/> blocks and the valley's depth,
@@ -290,7 +290,7 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                 Int(rivers, "fadeToHeight"),
                 Int(rivers, "seaFadeFrom"),
                 Int(rivers, "seaFadeTo"),
-                rivers.TryGetProperty("valley", out var valley) ? new ValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null,
+                rivers.TryGetProperty("valley", out var valley) ? new RiverValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null,
                 rivers.TryGetProperty("peakFadeFrom", out var peakFadeFrom) ? peakFadeFrom.GetInt32() : 100000,
                 rivers.TryGetProperty("peakFadeTo", out var peakFadeTo) ? peakFadeTo.GetInt32() : 100001),
             new LakeSpec(

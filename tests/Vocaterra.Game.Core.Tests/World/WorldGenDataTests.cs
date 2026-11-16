@@ -107,7 +107,7 @@ public sealed class WorldGenDataTests
         Assert.True(Names(Problems(Shipped with { Altitude = new AltitudeData(-2000, -300) }), "snowBelowTemperature"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(200, 100, 0, 100, 500) })), "height.coast.peaksFrom/peaksTo"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { CoastData = new CoastSpec(0, 100, 0, 100, 500, 60, 40) })), "height.coast.flatFrom"));
-        Assert.True(Names(Problems(With(Shipped, static h => h with { Rivers = h.Rivers with { Valley = new ValleySpec(10, 2, 150) } })), "height.rivers.valley"));
+        Assert.True(Names(Problems(With(Shipped, static h => h with { Rivers = h.Rivers with { Valley = new RiverValleySpec(10, 2, 150) } })), "height.rivers.valley"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { WaterData = new WaterSpec(0, 2) })), "height.water"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { WaterData = new WaterSpec(3, 40) })), "height.water"));
         Assert.True(Names(Problems(With(Shipped, static h => h with { PeakVariation = new PeakVariationSpec(0, 2, 500) })), "height.peakVariation"));

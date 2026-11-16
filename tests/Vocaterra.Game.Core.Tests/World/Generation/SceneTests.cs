@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 
@@ -18,7 +17,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "b189ee0a67838d702683c259ed253a80e7310f8e24c16531ffed707b7ea2672d"; // B08a: the pass through the east ring (a road of path blocks from the village to the east edge, cut through the ring as a graded cutting, the sites paso.gate, paso.rise, paso.foot, paso and paso.edge, and the rockfall heap with its rubble that closes it); Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "efcfbe02d022c0f6623dd4a6ac46aa22a8f3e6b49b303b65ec0ff0e93c859740"; // B08c: the pass road is one road (the gate at 318, five wide, a block up every second column to the rise at 332, no riser, and the surface of a path keeps its own height across a site's blend); B13: the strata, ores and caves of underground.json laid into the valley's buried stone (at least 8 blocks from any air, 16 from any water, clear of the sites, paths, props, village, pass and rockfall; the surface is as it was; the build is ValleyBuild.Build, the plain-stone valley is ValleyBuild.Bare); B08a: the pass through the east ring (a road of path blocks from the village to the east edge, cut through the ring as a graded cutting, the sites paso.gate, paso.rise, paso.foot, paso and paso.edge, and the rockfall heap with its rubble that closes it); Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -35,8 +34,8 @@ public sealed class SceneTests(ITestOutputHelper output)
     public void TheSceneBuildsIdenticallyTwice()
     {
         // Two builds, not the test process's copies of one (VoxelTestSupport.BuildRoute): this is the builder's own determinism.
-        var a = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
-        var b = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var a = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
+        var b = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         Assert.Equal(a.Grid.ComputeDigestHex(), b.Grid.ComputeDigestHex());
         Assert.Equal(a.Spawn, b.Spawn);
         Assert.Equal(a.Npcs, b.Npcs);
@@ -47,7 +46,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheTestsCopyOfTheRouteIsAFreshBuildAndItsEditsStayInIt()
     {
-        var fresh = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var fresh = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         var copy = VoxelTestSupport.BuildRoute(Seed);
         Assert.Equal(GoldenDigest, copy.Grid.ComputeDigestHex());
         Assert.Equal(fresh.Grid.ComputeDigestHex(), copy.Grid.ComputeDigestHex());
@@ -596,7 +595,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var json = File.ReadAllText(VoxelTestSupport.RouteDraftPath())
             .Replace("\"props\": [", "\"props\": [ {\"type\": \"house\", \"site\": \"village\", \"dx\": 24, \"dz\": -3, \"width\": 5, \"depth\": 5, \"facing\": \"west\"},", StringComparison.Ordinal);
         var layout = SceneLayout.Parse(json);
-        var error = Assert.Throws<SceneLayoutException>(() => SceneBuilder.Build(layout, Seed));
+        var error = Assert.Throws<SceneLayoutException>(() => ValleyBuild.Build(layout, Seed));
         Assert.Contains("flat", error.Message, StringComparison.Ordinal);
     }
 
