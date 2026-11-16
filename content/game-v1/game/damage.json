@@ -1,0 +1,9 @@
+{
+  "$schema": "../../schema/damage.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The causes of damage the player can take and which modifiers apply to each (I05a, D-game-35 item 7). A cause is raised by the code (drowning today); a row names the modifiers that change its damage before health takes it, in the order they run. The modifier ids are the code's: armour takes 4% off per point of the armour stat, at most 80%. Armour applies to no cause today (the owner: it does not reduce drowning, lava or cold). To let armour soften a cause, add \"armour\" to that cause's modifiers; no code changes.",
+  "causes": [
+    { "id": "drowning", "modifiers": [] }
+  ]
+}

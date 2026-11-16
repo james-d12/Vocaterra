@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
@@ -130,7 +131,8 @@ public sealed partial class VoxelSession
         var stamina = Data.Needs.Stamina;
         var walk = NeedsEnabled ? Needs.Effects().WalkFactor : 1.0;
         var cold = ReadTemperature(); // I06: the band's walk factor, 1 unless the feeling is cold
-        Simulation.WalkPermille = (int)Math.Round(1000 * walk * cold * (sprinting ? stamina.SprintSpeedFactor : 1.0));
+        var gear = StatRules.Read(Simulation.Stats, StatKeys.WalkSpeed); // I05a: the worn items' factor; it applies with --needs off too (it is gear, not a need, and nothing worn leaves 1)
+        Simulation.WalkPermille = WalkSpeed.Permille(walk * cold * gear * (sprinting ? stamina.SprintSpeedFactor : 1.0));
         Simulation.GatherPermille = NeedsEnabled && PlayActive && Needs.Value(NeedMeter.Stamina) <= 0 ? (int)Math.Round(1000 * stamina.GatherSlowFactor) : 1000;
         return sprinting;
     }

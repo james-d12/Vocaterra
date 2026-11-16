@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/damage.json",
+  "description": "The causes of damage and the modifiers that apply to each (I05a, inventory-plan 3.6). Loaded by DamageData (Vocaterra.Game.Core); DamageValidator checks that every cause is one the code raises and has a row, and that every modifier id is registered in the code's DamageModifiers (today: armour), once per row.",
+  "type": "object",
+  "required": ["schemaVersion", "causes"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "causes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/cause" },
+      "description": "One row per cause the code raises."
+    }
+  },
+  "definitions": {
+    "cause": {
+      "type": "object",
+      "required": ["id", "modifiers"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The cause's id (drowning)." },
+        "modifiers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "description": "The ids of the modifiers that change this cause's damage, in the order they run (armour). Empty: the damage is taken as it is."
+        }
+      }
+    }
+  }
+}

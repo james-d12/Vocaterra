@@ -342,6 +342,14 @@ whose `statsApply` is true), the sheet is rebuilt at the end of every tick and w
 adds a constant to `StatKeys` and calls `Stats.Get(key)` (or `Sum` and `Factor`). **To add a contributor** (a meal's buff, a spell): write a class implementing `IStatContributor` and register it with
 `VoxelSimulation.StatPipeline.Add`; the sheet and its readers are not edited (`StatContributorTests` shows one). **To add an equip rule** (as `BagCapacityRule` was): one `IEquipRule` class and one
 entry in `EquipRules.Standard`. `--equip <item>` (a scripted step) gives the item and wears it in the first slot that takes it.
+**Stat consumers and damage (I05a, D-game-35 items 6 and 7).** `Stats/StatRules` holds one `StatRule` per key the code reads (sum or factor, the range one item may give, whole or not); contributors go through
+`StatRules.Contribute` and readers through `StatRules.Read`, so each key has one rule. Readers: `walkSpeed` (a factor) in `VoxelSession.PrepareTick`, multiplied with the needs', the cold's and the sprint's and clamped in
+`WalkSpeed.Permille` (10% to 250%), also with `--needs off`; `hungerDrain` and `thirstDrain` (factors) in `PlayerNeeds.Step`, times the shared `RateFactor` (sleep has none); `maxStamina` (a sum) in
+`PlayerNeeds.Effects`: the ceiling is 100 minus the stage penalties plus the bonus, never below the data's minimum (the HUD's bar scales to the ceiling when it is above 100). `PlayerNeeds.Stats` reads the simulation's sheet live,
+so nothing is stored and no digest moves. **Damage:** `DamageCause` is a data id (`drowning`); `IPlayerHealth` is decorated by `Damage/ModifiedHealth`, which runs the `IDamageModifier`s that `game/damage.json` names for
+the cause, in order (`DamageModifiers` registers them by id; `DamageValidator` refuses an unknown modifier or cause). The first is `ArmourDamageModifier` (4% per point of `armour`, at most 80%, a hit never below 1). **To make
+armour apply to a cause:** add `"armour"` to that cause's `modifiers` in `damage.json`. **To add a cause:** a `DamageCause` constant (in `Raised`) where it is raised and a row. **To add a modifier:** one class and one
+line in `DamageModifiers.Standard`.
 **The bag and its active count (I03b, inventory-plan 3.3).** `Inventory` has `BaseSlots` (`bagSlots` of `equipment.json`, 30: the hotbar's 10 and 20 more), `MaxSlots` (the base and the catalogue's `LargestCapacity`, so the
 array never grows) and `SlotCount`, the active count; `Slots` and every operation (adding, removing, exchanging, setting a slot, crafting, a purchase) see only the active slots, and a slot past the count is always
 empty. A bag is an item with a `capacity` (only one tagged `bag` and worn on the `back` may have one); `Equipment` keeps the active count at the base plus the worn capacity after every equip, unequip and restore
