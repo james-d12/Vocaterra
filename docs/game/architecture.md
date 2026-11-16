@@ -123,6 +123,8 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
 Temperature/      the temperature where the player stands and how it feels (I06): PlaceTemperature and its ITemperatureTerm terms (base, day, weather, shelter, fire), TemperatureSituation, IWarmthSource and NoWarmth, PlayerTemperature (the feeling, the band, the line once), TemperatureData (game/temperature.json) and TemperatureValidator
+Stats/            the player's stats (I03a): StatSheet (read-only sums and factors by open key), StatBuilder, IStatContributor, StatPipeline (the contributors in order, built each tick) and StatKeys (the keys code reads by name)
+  Gear/           what the player wears (I03a, under Items/; the folder is not called Equipment because the type is): EquipmentData (game/equipment.json), EquipmentGroup and EquipmentSlotSpec, EquipSlot (group and slot index), Equipment (the worn items), EquipRules and the IEquipRule classes, EquipResult (the reasons), EquipmentStats (the first IStatContributor), EquipmentValidator
 Land/             where the player may build and where land is bought (Y09, D-game-32 (c)): LandData (game/land.json) and LandValidator, LandRules (a mask per column built once from the scene and the file: protected, eligible; `CheckPlot` reads the grid for water, trees, the ground on top and the slope and answers a PlotCheck: yes or a PlotFault), Plot, Protection (village, camp, road), LandRegister (the pending and the owned plot, and the IBuildRules hook the simulation asks: protected columns refuse any block but a torch, planks come back only on owned land) and LandSave (`systems.land`)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
@@ -322,13 +324,23 @@ reads it against the player's warmth. `PlaceTemperature` sums the `ITemperatureT
 `AtmosphereSnapshot`, the feet's block, the share of covered columns from the rain's own `OverheadCover` query, and the `FireRings`) and knows none of them. The first
 terms are `BaseTemperatureTerm`, `DayTemperatureTerm` (the daylight curve), `WeatherTemperatureTerm` (one coefficient per channel, never a kind's id),
 `ShelterTemperatureTerm` and `FireTemperatureTerm`, with their numbers in `game/temperature.json` (`TemperatureData`, checked by `TemperatureValidator`).
-`PlayerTemperature` adds the warmth (`IWarmthSource`; `NoWarmth` until the equipment's `warmth` stat, I03a, is another implementation set on
-`VoxelSession.Temperature.Warmth`), picks the band, and says «Tengo frío.» once per entry into the cold. The session reads it once a tick in `PrepareTick`
+`PlayerTemperature` adds the warmth (`IWarmthSource`; since I03a the session's source is `StatWarmth`, the stat sheet's `warmth`, in tenths of a degree; `NoWarmth` stays for tests), picks the band, and says «Tengo frío.» once per entry into the cold. The session reads it once a tick in `PrepareTick`
 (`VoxelSession.Temperature.cs`): the band's walk factor multiplies `WalkPermille` beside the needs' and the sprint's. Nothing is saved; it is derived from the stored
 time, the weather and the world. `NeedsHud` shows the snowflake and the line (by the path the needs' lines take), `VoxelDebugText` the F3 line.
 **To add a term** (the biomes' climate, a cave's pull, a biome's base): write one class implementing `ITemperatureTerm` (read what it needs from the
 `TemperatureSituation`; add a member there if it needs more of the world), and register it in `TemperatureTerms.Standard` (or `PlaceTemperature.With` where the
 world is wired). `PlaceTemperature` and the other terms are not edited; a test of `TemperatureTermTests` shows a term added from a test.
+
+**Equipment and stats (I03a, D-game-35).** `game/equipment.json` lists the slot groups (clothing, armour, cosmetic, accessories, off-hand, backpack); `Items/Gear/Equipment` holds one stack of one in each slot
+and `VoxelSimulation.Equipment` is simulation state: the commands `VoxelCommandKind.Equip` (bag slot, group, slot) and `Unequip` (group, slot, bag slot or -1 for the first free one) are applied in the tick beside
+`Place` and `Craft`, raise `ItemEquipped`, `ItemUnequipped` or `EquipRefused` (the reason is an `EquipResult`), and the state, the digest (worn slots only, so nothing worn adds nothing) and `VoxelSimulationState.Worn`
+carry it (the save does not write `Worn` until I03b gives it the next version: worn items are lost on a save today). What may be worn where is `EquipRules.Standard()`: `WearMatchesRule`, `AcceptsTagRule`,
+`NoDuplicateRule`; a refusal leaves the bag and the worn items as they were. Every stat comes through `StatPipeline`: `EquipmentStats` is the first `IStatContributor` (it adds each worn item's `stats`, only in groups
+whose `statsApply` is true), the sheet is rebuilt at the end of every tick and when the equipment changes (`VoxelSimulation.Stats`), and `StatWarmth` reads its `warmth` for the temperature.
+**To add a slot group:** one row in `equipment.json` at the end (its accepted tags, flags and labels) and items with a matching `wear` and tag; no code. **To add a stat key:** put it in an item's `stats`; a reader
+adds a constant to `StatKeys` and calls `Stats.Get(key)` (or `Sum` and `Factor`). **To add a contributor** (a meal's buff, a spell): write a class implementing `IStatContributor` and register it with
+`VoxelSimulation.StatPipeline.Add`; the sheet and its readers are not edited (`StatContributorTests` shows one). **To add an equip rule** (I03b's worn bag with items cannot come off): one `IEquipRule` class and one
+entry in `EquipRules.Standard`. `--equip <item>` (a scripted step) gives the item and wears it in the first slot that takes it.
 
 ## The settlement series (Y00 to Y13): where to look
 

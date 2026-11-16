@@ -36,5 +36,16 @@ public enum VoxelCommandKind
 
     /// <summary>Craft the recipe at index <see cref="VoxelCommand.A"/> of <see cref="VoxelSimulation.Recipes"/>. A press.</summary>
     Craft = 7,
-}
 
+    /// <summary>
+    /// Wear the item in bag slot <see cref="VoxelCommand.A"/> in the equipment slot of group <see cref="VoxelCommand.B"/>, slot <see cref="VoxelCommand.C"/> (indexes into <c>game/equipment.json</c>), swapping with what is worn there:
+    /// the old item takes the bag slot the new one left (I03a). A press; a refusal changes nothing and raises <see cref="Event.SimulationEventKind.EquipRefused"/>.
+    /// </summary>
+    Equip = 8,
+
+    /// <summary>
+    /// Take off the item worn in group <see cref="VoxelCommand.A"/>, slot <see cref="VoxelCommand.B"/>, into bag slot <see cref="VoxelCommand.C"/>, or into the first free one when C is -1 (I03a). A press; a refusal (the bag is
+    /// full, the slot asked for is taken) changes nothing and raises <see cref="Event.SimulationEventKind.EquipRefused"/>.
+    /// </summary>
+    Unequip = 9,
+}

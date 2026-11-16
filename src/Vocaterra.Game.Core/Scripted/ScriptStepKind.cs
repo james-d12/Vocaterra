@@ -117,4 +117,7 @@ public enum ScriptStepKind
 
     /// <summary>Help at the open station (<c>--proc-help</c>, W07): the English and the highlight, and the row steps up a rung, as H does.</summary>
     ProcHelp,
+
+    /// <summary>Gives the item named in <see cref="ScriptStep.Value"/> (when the bag has none) and wears it in the first slot of the equipment that takes it (<c>--equip camisa</c>, I03a, a test aid like <c>--give</c>'s). The console says the slot, or why the item cannot be worn; a refusal changes nothing.</summary>
+    Equip,
 }
