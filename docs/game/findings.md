@@ -2690,3 +2690,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the village meets a 2 to 3 block dirt riser at (318, 217) and a walk to the gate takes a 41-turn detour, and the cutting reads as a dirt
   staircase (B08c fixes it); `scripts/compare-runs.py` hangs on long single-line saves (a quadratic mask; B08c bounds it); the tree count
   is 1,848 after B08a (its report said 1,851; the valley's digest did not move after B08a's gate).
+- **B08c, the pass road from the village (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b08c-pass-road.md`, report
+  `.claude/briefs/b08c-report.md`. Cause: `ApplySites` blended the village's levelled ground over every cell of its 8-block ring, road
+  surfaces included, pulling the graded road down a level and leaving 2-block steps. A path that neither starts nor ends at a site now
+  keeps its own height across the site's blend; the gate moved to (318, 217) (a 5-wide road from 316 put road under the village's trees);
+  the climb is a block every second column. The walk from the village to the gate went from 41 turns and about 3,000 ticks to 6 turns
+  and 293. The cutting still climbs in 1-block steps with dirt risers (voxel stairs), for the owner to judge. compare-runs.py's mask
+  bounded: two captures compare in 4 s. `GoldenDigest` to efcfbe02. Gated: 12,103 passed, 3 skipped.
