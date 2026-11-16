@@ -12,7 +12,7 @@ public sealed class UndergroundBlockTests
     private static readonly BlockId[] Rock = [BlockId.Slate, BlockId.Granite, BlockId.Limestone, BlockId.Gravel, BlockId.Bedrock, BlockId.IronOre, BlockId.TinOre, BlockId.CopperOre];
     private static readonly BlockId[] All = [.. Rock, BlockId.Lava];
 
-    public static TheoryData<BlockId> Blocks() => [.. All];
+    public static TheoryData<BlockId> Blocks() => [.. All, BlockId.Basalt]; // B11b appended basalt (66) after the nine
 
     [Fact]
     public void TheNineBlocksAreAppendedAfterTheCounterInTheOrderOfTheBrief()
@@ -51,6 +51,7 @@ public sealed class UndergroundBlockTests
     [InlineData(BlockId.IronOre, "iron-ore")]
     [InlineData(BlockId.TinOre, "tin-ore")]
     [InlineData(BlockId.CopperOre, "copper-ore")]
+    [InlineData(BlockId.Basalt, "basalt")]
     public void EachHasItsName(BlockId id, string name) => Assert.Equal(name, BlockDefinition.Get(id).Name);
 
     [Theory]

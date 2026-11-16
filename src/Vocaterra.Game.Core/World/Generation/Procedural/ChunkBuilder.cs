@@ -50,6 +50,15 @@ internal sealed class ChunkBuilder
     /// <param name="z">The block's z.</param>
     public BlockId Get(int x, int y, int z) => _blocks[ChunkData.Index(x - MinX, y - MinY, z - MinZ)];
 
+    /// <summary>The block at a position inside the chunk, by its offsets from the chunk's corner.</summary>
+    /// <param name="lx">The offset in x (0 to 15).</param>
+    /// <param name="ly">The offset in y (0 to 15).</param>
+    /// <param name="lz">The offset in z (0 to 15).</param>
+    public BlockId GetLocal(int lx, int ly, int lz) => _blocks[ChunkData.Index(lx, ly, lz)];
+
+    /// <summary>The chunk's blocks so far, in <see cref="ChunkData"/> order.</summary>
+    public ReadOnlySpan<BlockId> Blocks => _blocks;
+
     /// <summary>Writes a block at a world position; ignored when the position is outside the chunk.</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="y">The block's y.</param>

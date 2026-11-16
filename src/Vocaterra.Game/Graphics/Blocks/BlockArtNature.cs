@@ -22,7 +22,7 @@ public static class BlockArtNature
             or BlockCell.BirchEnd or BlockCell.SpruceLeaves or BlockCell.BirchLeaves or BlockCell.TallGrass or BlockCell.Fern or BlockCell.Reeds
             or BlockCell.YellowFlower or BlockCell.WhiteFlower or BlockCell.Waterfall or BlockCell.WaterShallow
             or BlockCell.Slate or BlockCell.Granite or BlockCell.Limestone or BlockCell.Gravel or BlockCell.Lava or BlockCell.Bedrock or BlockCell.IronOre
-            or BlockCell.TinOre or BlockCell.CopperOre => true,
+            or BlockCell.TinOre or BlockCell.CopperOre or BlockCell.Basalt => true,
         _ => false,
     };
 
@@ -103,6 +103,9 @@ public static class BlockArtNature
             case BlockCell.CopperOre:
                 StoneBody(c);
                 Clusters(c, (232, 122, 44), (118, 54, 20), (255, 178, 98), (63, 181, 154), 0x43); // a bright orange with a brown rim and a few teal patina pixels
+                break;
+            case BlockCell.Basalt:
+                Basalt(c);
                 break;
             case BlockCell.Snow:
                 Fill(c, SnowPal, 3, 5);
@@ -350,6 +353,7 @@ public static class BlockArtNature
     private static readonly (int R, int G, int B)[] SlatePal = [(44, 50, 62), (58, 66, 80), (72, 82, 98), (88, 98, 114), (106, 116, 130)];
     private static readonly (int R, int G, int B)[] GranitePal = [(128, 112, 114), (150, 132, 134), (170, 150, 150), (190, 168, 166), (208, 186, 182)];
     private static readonly (int R, int G, int B)[] LimestonePal = [(204, 196, 170), (218, 210, 184), (230, 223, 198), (240, 234, 212), (248, 244, 226)];
+    private static readonly (int R, int G, int B)[] BasaltPal = [(26, 26, 31), (38, 38, 45), (50, 50, 58), (66, 65, 74), (86, 85, 96)];
     private static readonly (int R, int G, int B)[] BedrockPal = [(14, 14, 18), (24, 24, 30), (34, 34, 42), (46, 46, 56), (62, 62, 72)];
     private static readonly (int R, int G, int B)[] LavaPal = [(150, 30, 8), (206, 64, 12), (250, 112, 20), (255, 160, 36), (255, 214, 96)];
 
@@ -417,6 +421,33 @@ public static class BlockArtNature
             for (var x = x0; x < x0 + 6 + (int)(c.H(i, 6, 9) % 4) && x < Size; x++)
             {
                 c.Set(x, y + (x % 3 == 0 ? 1 : 0), LimestonePal[0]);
+            }
+        }
+    }
+
+    // Dark charcoal in columns (B11b): narrow vertical joints that shift every few rows, a fine grain inside each column and a few pale pinholes, so it reads darker and finer than the slate's bands and lighter than bedrock.
+    private static void Basalt(Canvas c)
+    {
+        for (var y = 0; y < Size; y++)
+        {
+            var offset = (int)(c.H(y / 5, 3, 4) % 5);
+            for (var x = 0; x < Size; x++)
+            {
+                var column = (x + offset) / 5;
+                var grain = (int)(c.H(x, y, 5) % 100);
+                var tone = 1 + (int)(c.H(column, y / 4, 6) % 2) + (grain < 20 ? -1 : grain > 86 ? 1 : 0);
+                if ((x + offset) % 5 == 0)
+                {
+                    tone = 0; // the joint between two columns
+                }
+
+                if (grain > 97)
+                {
+                    c.Set(x, y, BasaltPal[4]);
+                    continue;
+                }
+
+                c.Set(x, y, BasaltPal[Math.Clamp(tone, 0, 4)]);
             }
         }
     }
