@@ -892,6 +892,9 @@ the owner's answers of 2026-11-15 are in its section 5.
     B11b and rework it" (over merging it and fixing the entrances in a B11c). Its gate was stopped and the merge undone; the rework makes
     each passage wind, vary in width and height, with noise-carved walls, an uneven floor and a mouth that fits the ground (an overhang
     in a hillside, a ragged hole on flat ground, no rim), still walkable to a cave 20 or more down. The rock variety stays.
+32. **B07c gets an Opus review before its gate** (2026-11-16, about 14:00 UTC): "once it's done, spawn an Opus 5.5 agent on high effort
+    to review the changes." When B07c reports, an Opus 5.5 agent at high effort reviews its branch (correctness, the Voxy design, the
+    store on disk, threading, performance, the tests) before the gate; its findings go back to B07c's agent or into a follow-up.
 
 ## Already decided
 
