@@ -137,20 +137,20 @@ internal sealed class EntranceSites
             return null; // the block before the mouth is the ground a body comes from: at most one block over or under the mouth's floor, so the first step is one block
         }
 
-        var walk = new Walk(spec, rng, ax, az, direction, mouthY);
+        var (nodes, advance) = StartWalk(spec, rng, ax, az, direction, mouthY);
         var lava = _underground.LavaLevel;
         var length = -1;
-        while (length < 0 && walk.Nodes.Count < spec.MaxLength)
+        while (length < 0 && nodes.Count < spec.MaxLength)
         {
-            var from = walk.Nodes.Count;
-            if (from > 0 && !walk.Advance(descend: true))
+            var from = nodes.Count;
+            if (from > 0 && !advance(true))
             {
                 return null;
             }
 
-            for (var i = from; i < walk.Nodes.Count; i++)
+            for (var i = from; i < nodes.Count; i++)
             {
-                var node = walk.Nodes[i];
+                var node = nodes[i];
                 if (node.Floor + 1 <= lava + 3 || !InBox(node, box) || !NodeHolds(probe, node, i))
                 {
                     return null;
@@ -162,10 +162,10 @@ internal sealed class EntranceSites
                 }
             }
 
-            var last = walk.Nodes[^1];
+            var last = nodes[^1];
             if (mouthY - last.Floor >= spec.MinDrop && InCave(probe, last.X, last.Floor + 1, last.Z))
             {
-                length = walk.Nodes.Count - 1;
+                length = nodes.Count - 1;
             }
         }
 
@@ -176,167 +176,145 @@ internal sealed class EntranceSites
 
         for (var i = 0; i < spec.Landing; i++)
         {
-            if (!walk.Advance(descend: false) || !InBox(walk.Nodes[^1], box) || !NodeHolds(probe, walk.Nodes[^1], walk.Nodes.Count - 1))
+            if (!advance(false) || !InBox(nodes[^1], box) || !NodeHolds(probe, nodes[^1], nodes.Count - 1))
             {
                 return null;
             }
         }
 
-        if (!WaterClear(probe, walk.Nodes))
+        if (!WaterClear(probe, nodes))
         {
             return null;
         }
 
         var key = WorldRng.For(_world.Seed, "gen/entrances/shape", ax, az).NextUInt64();
-        return new EntranceRamp([.. walk.Nodes], length, ax - dx0, az - dz0, key, spec.Roughness, spec.RoughnessCell, spec.Ledges, BowlReach);
+        return new EntranceRamp([.. nodes], length, ax - dx0, az - dz0, key, spec.Roughness, spec.RoughnessCell, spec.Ledges, BowlReach);
     }
 
-    // One walk of the path under construction: the heading that drifts (bends of a few blocks in a random sense, never straying far from the first heading), the floor that falls in stretches of one slope or
-    // runs level, and the width and headroom that drift between draws.
-    private sealed class Walk
+    // One walk of the path under construction, as a function that takes the next step and the list of cells so far: the heading drifts (bends of a few blocks in a random sense, never straying far from the first
+    // heading), the floor falls in stretches of one slope or runs level, and the width and headroom drift between draws. The state lives in the closure (a pass keeps nothing between calls).
+    private static (List<PathNode> Nodes, Func<bool, bool> Advance) StartWalk(EntranceSpec spec, WorldRng rng, int ax, int az, int direction, int mouthY)
     {
-        private readonly EntranceSpec _spec;
-        private readonly WorldRng _rng;
-        private readonly HashSet<(int, int)> _seen = [];
-        private readonly int _heading0;
-        private int _heading;
-        private int _px;
-        private int _pz;
-        private int _cx;
-        private int _cz;
-        private int _floor;
-        private int _turn;
-        private int _turnLeft;
-        private int _run;
-        private int _runLeft;
-        private int _sinceDrop;
-        private (int Half, int Head) _from;
-        private (int Half, int Head) _to;
-        private int _driftLength = 1;
-        private int _driftLeft;
+        var nodes = new List<PathNode>();
+        var seen = new HashSet<(int, int)>();
+        var heading0 = direction * 16 * 16; // sixteenths of a step of the 64-step turn: 0 east, 16 south, 32 west, 48 north
+        var heading = heading0;
+        var (px, pz) = ((ax << 10) + 512, (az << 10) + 512);
+        var (cx, cz) = (ax, az);
+        var floor = mouthY;
+        int turn = 0, turnLeft = 0, run = 0, runLeft = 0, sinceDrop = 0, driftLength = 1, driftLeft = 0;
 
-        public Walk(EntranceSpec spec, WorldRng rng, int ax, int az, int direction, int mouthY)
+        // A width (half of it, in sixteenths of a block) and a headroom (in sixteenths) drawn from the data's ranges.
+        (int Half, int Head) DrawSize() => (
+            (8 * (spec.WidthMin - 1)) + rng.NextInt((8 * (spec.WidthMax - spec.WidthMin)) + 1),
+            (16 * spec.HeadroomMin) + rng.NextInt((16 * (spec.HeadroomMax - spec.HeadroomMin)) + 1));
+        var to = DrawSize();
+        var from = to;
+
+        void Bend()
         {
-            _spec = spec;
-            _rng = rng;
-            _heading0 = direction * 16 * 16; // sixteenths of a step of the 64-step turn: 0 east, 16 south, 32 west, 48 north
-            _heading = _heading0;
-            (_px, _pz) = ((ax << 10) + 512, (az << 10) + 512);
-            (_cx, _cz) = (ax, az);
-            _floor = mouthY;
-            _to = DrawSize();
-            _from = _to;
-            Add((ax, az));
+            if (turnLeft-- <= 0)
+            {
+                turn = rng.NextInt(-spec.Bend, spec.Bend + 1);
+                turnLeft = rng.NextInt(spec.BendSegmentMin, spec.BendSegmentMax + 1);
+            }
+
+            heading += turn;
+            if (Math.Abs(heading - heading0) > spec.MaxTurn * 16)
+            {
+                heading = heading0 + (Math.Sign(heading - heading0) * spec.MaxTurn * 16);
+                turn = -turn;
+            }
         }
 
-        public List<PathNode> Nodes { get; } = [];
+        bool Add((int X, int Z) cell, bool descend)
+        {
+            if (!seen.Add(cell))
+            {
+                return false; // the path crossed itself: no passage on this draw
+            }
+
+            if (nodes.Count > 0 && descend && nodes.Count <= spec.Plunge)
+            {
+                var skip = rng.NextInt(3) == 0;
+                if (!skip || nodes.Count <= 3)
+                {
+                    floor--; // the steep start: a block down at every block for the first three, then at most blocks (not at a regular beat), so the opening is a hole and its floor a rough slope
+                }
+            }
+            else if (nodes.Count > 0 && descend)
+            {
+                if (runLeft-- <= 0)
+                {
+                    run = rng.NextInt(1000) < spec.LevelShare ? 0 : rng.NextInt(1, spec.RunMax + 1);
+                    runLeft = run == 0 ? rng.NextInt(2, 5) : rng.NextInt(spec.SegmentMin, spec.SegmentMax + 1);
+                    sinceDrop = 0;
+                }
+
+                if (run > 0 && ++sinceDrop >= run)
+                {
+                    floor--;
+                    sinceDrop = 0;
+                }
+            }
+
+            if (driftLeft <= 0)
+            {
+                from = to;
+                to = DrawSize();
+                driftLength = rng.NextInt(4, 9);
+                driftLeft = driftLength;
+            }
+
+            var step = driftLength - driftLeft--;
+            var half = from.Half + ((to.Half - from.Half) * step / driftLength);
+            var head = from.Head + ((to.Head - from.Head) * step / driftLength);
+            if (nodes.Count < spec.FunnelLength)
+            {
+                half += half * spec.Funnel * (spec.FunnelLength - nodes.Count) / (spec.FunnelLength * 1000);
+            }
+
+            nodes.Add(new PathNode(cell.X, cell.Z, floor, Math.Max(4, half), Math.Clamp((head + 8) / 16, spec.HeadroomMin, spec.HeadroomMax)));
+            return true;
+        }
 
         // The next cell of the path (a cell between when the step is diagonal, so the path stays 4-connected); false when the path crosses itself.
-        public bool Advance(bool descend)
+        bool Advance(bool descend)
         {
             for (var tries = 0; tries < 12; tries++)
             {
-                var table = (_heading >> 4) & 63;
+                var table = (heading >> 4) & 63;
                 if (descend)
                 {
                     Bend();
                 }
 
-                _px += HeadingCos[table];
-                _pz += HeadingSin[table];
-                var (nx, nz) = (_px >> 10, _pz >> 10);
-                if (nx == _cx && nz == _cz)
+                px += HeadingCos[table];
+                pz += HeadingSin[table];
+                var (nx, nz) = (px >> 10, pz >> 10);
+                if (nx == cx && nz == cz)
                 {
                     continue;
                 }
 
-                if (nx != _cx && nz != _cz)
+                if (nx != cx && nz != cz)
                 {
-                    var corner = _rng.NextInt(2) == 0 ? (nx, _cz) : (_cx, nz);
+                    var corner = rng.NextInt(2) == 0 ? (nx, cz) : (cx, nz);
                     if (!Add(corner, descend))
                     {
                         return false;
                     }
                 }
 
-                (_cx, _cz) = (nx, nz);
+                (cx, cz) = (nx, nz);
                 return Add((nx, nz), descend);
             }
 
             return false;
         }
 
-        private void Bend()
-        {
-            if (_turnLeft-- <= 0)
-            {
-                _turn = _rng.NextInt(-_spec.Bend, _spec.Bend + 1);
-                _turnLeft = _rng.NextInt(_spec.BendSegmentMin, _spec.BendSegmentMax + 1);
-            }
-
-            _heading += _turn;
-            if (Math.Abs(_heading - _heading0) > _spec.MaxTurn * 16)
-            {
-                _heading = _heading0 + (Math.Sign(_heading - _heading0) * _spec.MaxTurn * 16);
-                _turn = -_turn;
-            }
-        }
-
-        private bool Add((int X, int Z) cell, bool descend = true)
-        {
-            if (!_seen.Add(cell))
-            {
-                return false;
-            }
-
-            if (Nodes.Count > 0 && descend && Nodes.Count <= _spec.Plunge)
-            {
-                var skip = _rng.NextInt(3) == 0;
-                if (!skip || Nodes.Count <= 3)
-                {
-                    _floor--; // the steep start: a block down at every block for the first three, then at most blocks (not at a regular beat), so the opening is a hole and its floor a rough slope
-                }
-            }
-            else if (Nodes.Count > 0 && descend)
-            {
-                if (_runLeft-- <= 0)
-                {
-                    _run = _rng.NextInt(1000) < _spec.LevelShare ? 0 : _rng.NextInt(1, _spec.RunMax + 1);
-                    _runLeft = _run == 0 ? _rng.NextInt(2, 5) : _rng.NextInt(_spec.SegmentMin, _spec.SegmentMax + 1);
-                    _sinceDrop = 0;
-                }
-
-                if (_run > 0 && ++_sinceDrop >= _run)
-                {
-                    _floor--;
-                    _sinceDrop = 0;
-                }
-            }
-
-            if (_driftLeft <= 0)
-            {
-                _from = _to;
-                _to = DrawSize();
-                _driftLength = _rng.NextInt(4, 9);
-                _driftLeft = _driftLength;
-            }
-
-            var step = _driftLength - _driftLeft--;
-            var half = _from.Half + ((_to.Half - _from.Half) * step / _driftLength);
-            var head = _from.Head + ((_to.Head - _from.Head) * step / _driftLength);
-            if (Nodes.Count < _spec.FunnelLength)
-            {
-                half += half * _spec.Funnel * (_spec.FunnelLength - Nodes.Count) / (_spec.FunnelLength * 1000);
-            }
-
-            Nodes.Add(new PathNode(cell.X, cell.Z, _floor, Math.Max(4, half), Math.Clamp((head + 8) / 16, _spec.HeadroomMin, _spec.HeadroomMax)));
-            return true;
-        }
-
-        // A width (half of it, in sixteenths of a block) and a headroom (in sixteenths) drawn from the data's ranges.
-        private (int Half, int Head) DrawSize() => (
-            (8 * (_spec.WidthMin - 1)) + _rng.NextInt((8 * (_spec.WidthMax - _spec.WidthMin)) + 1),
-            (16 * _spec.HeadroomMin) + _rng.NextInt((16 * (_spec.HeadroomMax - _spec.HeadroomMin)) + 1));
+        Add((ax, az), false);
+        return (nodes, Advance);
     }
 
     private static bool InBox(PathNode node, (int MinX, int MinZ, int MaxX, int MaxZ) box) => node.X >= box.MinX && node.X <= box.MaxX && node.Z >= box.MinZ && node.Z <= box.MaxZ;
