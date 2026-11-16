@@ -9,7 +9,8 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// <param name="Depth">How far under the mouth the passage meets its cave.</param>
 /// <param name="Cover">How far the ground lies over the passage's floor twelve cells in: about 6 on level ground, more where the passage goes into a rising hillside.</param>
 /// <param name="Path">The centre cells of the path, mouth first.</param>
-public sealed record CaveEntrance(int X, int Z, int MouthY, int Length, int Landing, int Depth, int Cover, IReadOnlyList<(int X, int Z)> Path)
+/// <param name="Floors">The y of the floor block at each cell of the path.</param>
+public sealed record CaveEntrance(int X, int Z, int MouthY, int Length, int Landing, int Depth, int Cover, IReadOnlyList<(int X, int Z)> Path, IReadOnlyList<int> Floors)
 {
     /// <summary>The centre column of the passage at an index along its path (clamped to its ends).</summary>
     /// <param name="along">The index along.</param>

@@ -115,6 +115,8 @@ internal static class Cli
                 foreach (var passage in listed.OrderBy(static p => p.X).ThenBy(static p => p.Z))
                 {
                     output.WriteLine($"entrance: mouth {passage.X},{passage.Z} ground {passage.MouthY}, {passage.Length} cells along its path to a cave {passage.Depth} down, landing {passage.Landing}, ground {passage.Cover} over the floor 12 cells in");
+                    var stops = new[] { 6, passage.Length / 2, passage.Length, passage.Path.Count - 1 }.Distinct().Select(i => $"{i}: {passage.Path[i].X},{passage.Path[i].Z} floor {passage.Floors[i]}");
+                    output.WriteLine($"  stops {string.Join("; ", stops)}");
                 }
                 return 0;
             }

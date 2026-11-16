@@ -82,7 +82,7 @@ public sealed class ProceduralChunkSource : IChunkSource
     /// <param name="chunkX">The chunk column's x.</param>
     /// <param name="chunkZ">The chunk column's z.</param>
     public IReadOnlyList<CaveEntrance> CaveEntrances(int chunkX, int chunkZ) =>
-        [.. Ramps(chunkX, chunkZ).Select(r => new CaveEntrance(r.AnchorX, r.AnchorZ, r.MouthY, r.Length, r.Landing, r.MouthY - r.FloorAt(r.Length), GroundOver(r, 12), [.. r.Nodes.Select(static n => (n.X, n.Z))]))];
+        [.. Ramps(chunkX, chunkZ).Select(r => new CaveEntrance(r.AnchorX, r.AnchorZ, r.MouthY, r.Length, r.Landing, r.MouthY - r.FloorAt(r.Length), GroundOver(r, 12), [.. r.Nodes.Select(static n => (n.X, n.Z))], [.. r.Nodes.Select(static n => n.Floor)]))];
 
     // How far the model's ground lies over the passage's floor at an index along.
     private int GroundOver(EntranceRamp ramp, int along)
