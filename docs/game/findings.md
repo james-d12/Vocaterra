@@ -2771,3 +2771,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   B07 at each preset, a tile about 33 ms of worker time at High, far memory 177 to 292 MB. Open: the thin sea strip on one horizon reads
   as haze; the right-hand peaks a little greyer than B07's; a quiet re-measure; B07d (settings, pre-generation, compaction, performance).
   Gated: 12,370 passed, 3 skipped.
+- **The owner's visual bugs in play (2026-11-16 about 18:00 UTC, `feature/biomes` with B07c, seed 42; his document
+  `~/Downloads/bugs.odt`, screenshots copied to `artifacts/owner-bugs/2026-11-16/`).** (1) Random holes: three small pits in a diagonal
+  row in a meadow at (857, 71, 227), dirt walls, stone and gravel at the bottom: caves breaking the surface on their 4-block lattice
+  (B11c, after B11b). (2) The far view visible before what is in front of it: from the pass at (382.8, 59, 209.9) looking west, trees and
+  dark shapes float above the valley: far geometry shows where near chunks are not yet made (the far pass drawn first, the near chunks
+  missing in front). (3) Gaps in the distant levels while chunks draw at full resolution: from (812, 100, 762) looking east, a grey band
+  across the middle distance and mountains like arches with sky under them: a ring between the voxel zone and the far view that neither
+  draws, and missing vertical sections in far mountains. (4) Distant edges crammed and merged: from (881.9, 85, 674.7) looking east, far
+  hills squashed into jagged steps at the horizon where levels meet. (2) to (4) are B07c's far view: B07e.
