@@ -210,6 +210,9 @@ public sealed record LaunchOptions
     /// <summary>The far view's range in blocks from <c>--far-view</c> (0 for <c>off</c>), or <see langword="null"/> for the quality preset's.</summary>
     public int? FarViewRange { get; init; }
 
+    /// <summary>The decorative grass's density in percent from <c>--grass</c> (B18: 0 to 100 in steps of 10; 0 is no grass, the look of before); <see langword="null"/> leaves the saved setting (the default for a new game).</summary>
+    public int? Grass { get; init; }
+
     /// <summary>Whether <c>--pass open</c> was given: the pass cheat is on for the run (B08b), so the pass through the east ring is open from the start. The settings menu has the same switch.</summary>
     public bool PassOpen { get; init; }
 
@@ -692,7 +695,7 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -850,6 +853,16 @@ public sealed record LaunchOptions
                     }
 
                     result = arg == "--fov" ? result with { FieldOfView = number } : result with { MouseSensitivity = number };
+                    break;
+                case "--grass":
+                    var grassSpec = PlayerSettings.Spec(SettingId.Grass);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var grass) || grass > grassSpec.Max || grassSpec.Snap(grass) != grass)
+                    {
+                        error = $"--grass needs a whole number of percent from {grassSpec.Min} to {grassSpec.Max} in steps of {grassSpec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Grass = grass };
                     break;
                 case "--invert-y":
                     if (value is not ("on" or "off"))

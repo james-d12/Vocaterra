@@ -26,6 +26,7 @@ public static class MenuRows
             MenuRow.Heading("headingGraphics"),
             MenuRow.Of(settings, SettingId.Quality),
             MenuRow.Of(settings, SettingId.ViewDistance),
+            MenuRow.Of(settings, SettingId.Grass),
             MenuRow.Of(settings, SettingId.FieldOfView),
             MenuRow.Of(settings, SettingId.Blur),
             MenuRow.Of(settings, SettingId.ViewEffects),
