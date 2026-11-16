@@ -89,7 +89,7 @@ public static class WorldFactory
     internal static WorldComposition Compose(GameData data, ulong seed, RegionCatalog regions, StrategyRegistry? strategies = null)
     {
         var blend = new RegionBlend(regions, data.WorldGen.Blend, data.WorldGen.Vertical.SeaLevel);
-        var procedural = new ProceduralChunkSource(data.WorldGen, data.Biomes, seed, strategies, 0, blend);
+        var procedural = new ProceduralChunkSource(data.WorldGen, data.Biomes, seed, strategies, 0, blend, data.Underground);
         return new WorldComposition(new CompositeChunkSource(regions, procedural), new WorldQuery(procedural.World, regions), procedural);
     }
 

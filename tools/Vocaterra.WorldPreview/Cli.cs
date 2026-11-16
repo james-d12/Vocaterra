@@ -14,7 +14,8 @@ internal static class Cli
           biomes    each column in its biome row's colour, with a legend text file (id, colour, share)
           heights   sea blue by depth, lowland green to upland brown to grey stone, white above the snow line, hill-shaded, with a stats text file (lowest and highest ground, shares above 100 to 250)
           maps      both of them for the same area
-          slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level
+          slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level; with --mode blocks, the real blocks (B11: the strata, ores, caves, lava, bedrock) each in its own colour
+          entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
         options:
           --seed <n>       the world seed (default 42)
@@ -26,12 +27,12 @@ internal static class Cli
           --threads <n>    worker threads (default 4)
           --world <free|valley>  free: the procedural world alone (default); valley: the world as the game's streamed mode makes it round the valley (B06): the valley's own ground inside its footprint, the land eased into its edge across the blend margin, the continentalness pulled towards land; maps then show the footprint (red), the margin (orange) and the land-bias radius (yellow)
           --region <layout.json>  (B15) place a town from a layout file on the procedural ground (implies --world valley): its region is built at --region-x --region-z (the block of its first column, rounded down to a chunk; default 0 0) and --region-layer (its first chunk layer; default: the layer that puts its floor under its lowest ground), and the maps carry its outlines too
-          slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2)
+          slice only:  --x0 <n> --z0 <n> --x1 <n> --z1 <n> (the line; default from -2048,0 to 2048,0), --scale (blocks per pixel along the line), --zoom <n> (pixels per block of height, default 2), --mode <surface|blocks> (default surface)
         """;
 
     private static readonly HashSet<string> Known = new(StringComparer.Ordinal)
     {
-        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--region", "--region-x", "--region-z", "--region-layer",
+        "--seed", "--x", "--z", "--size", "--scale", "--out", "--content", "--threads", "--x0", "--z0", "--x1", "--z1", "--zoom", "--world", "--mode", "--region", "--region-x", "--region-z", "--region-layer",
     };
 
     /// <summary>Runs a command line. The exit code is 0 when the pictures were written, 2 for a bad command line.</summary>
@@ -45,7 +46,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "entrances"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -92,14 +93,40 @@ internal static class Cli
                 : null;
             var sampler = new WorldSampler(data, seed, threads, places);
             var started = System.Diagnostics.Stopwatch.StartNew();
+            if (command == "entrances")
+            {
+                var centreX = Int(options, "--x", 0);
+                var centreZ = Int(options, "--z", 0);
+                var side = Int(options, "--size", 1024);
+                if (side > 2048)
+                {
+                    throw new ArgumentException("entrances draws one pixel a block: --size must be 2048 or less.");
+                }
+
+                var blocks = new BlockWorld(data, seed, world == "valley", town);
+                var picture = Renderer.Entrances(blocks, sampler, centreX - (side / 2), centreZ - (side / 2), side, out var count);
+                var path = Target(outPath, $"entrances-{Prefix(places, town)}seed{seed}-x{centreX}-z{centreZ}-s{side}");
+                Save(path, picture);
+                output.WriteLine($"{path} ({side} x {side}; {count} entrance columns, {started.Elapsed.TotalSeconds:0.0} s)");
+                return 0;
+            }
+
             if (command == "slice")
             {
                 var x0 = Int(options, "--x0", -2048);
                 var z0 = Int(options, "--z0", 0);
                 var x1 = Int(options, "--x1", 2048);
                 var z1 = Int(options, "--z1", 0);
-                var image = Renderer.Slice(sampler, x0, z0, x1, z1, scale, Int(options, "--zoom", 2));
-                var path = Target(outPath, $"slice-{Prefix(places, town)}seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
+                var mode = Get(options, "--mode", "surface");
+                if (mode is not ("surface" or "blocks"))
+                {
+                    throw new ArgumentException($"--mode is surface or blocks, not '{mode}'.");
+                }
+
+                var image = mode == "blocks"
+                    ? Renderer.BlockSlice(new BlockWorld(data, seed, world == "valley", town), x0, z0, x1, z1, scale, Int(options, "--zoom", 2))
+                    : Renderer.Slice(sampler, x0, z0, x1, z1, scale, Int(options, "--zoom", 2));
+                var path = Target(outPath, $"slice-{(mode == "blocks" ? "blocks-" : string.Empty)}{Prefix(places, town)}seed{seed}-{x0},{z0}-{x1},{z1}-p{scale}");
                 Save(path, image);
                 output.WriteLine($"{path} ({image.Width} x {image.Height}, {started.Elapsed.TotalSeconds:0.0} s)");
                 return 0;

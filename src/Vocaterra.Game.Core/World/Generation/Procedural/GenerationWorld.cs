@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Regions;
+using Vocaterra.Game.Core.World.Underground;
 
 namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
@@ -19,8 +20,10 @@ internal sealed class GenerationWorld
     /// <summary>How close two trunks may stand, squared (the trees' spacing).</summary>
     public const int TreeSpacingSquared = 9;
 
-    public GenerationWorld(WorldGenData data, BiomeData biomes, ulong seed, StrategyRegistry strategies, int extraMargin, RegionBlend? blend = null)
+    public GenerationWorld(WorldGenData data, BiomeData biomes, ulong seed, StrategyRegistry strategies, int extraMargin, RegionBlend? blend = null, UndergroundData? underground = null)
     {
+        Regions = blend;
+        Underground = underground is null ? null : new UndergroundWorld(underground, seed);
         Data = data;
         Biomes = biomes;
         Seed = seed;
@@ -34,7 +37,7 @@ internal sealed class GenerationWorld
         MaxY = data.Vertical.MaxY;
         MaxFillerDepth = biomes.Rows.Max(static r => r.FillerDepth);
         HasSurfaceStrategies = biomes.Rows.Any(static r => r.SurfaceStrategy != StrategyRegistry.PlainSurface);
-        Margin = 1 + Strategies.MaxCrownReach + Strategies.MaxFade + extraMargin;
+        Margin = 1 + Math.Max(Strategies.MaxCrownReach, Underground?.WaterReach ?? 0) + Strategies.MaxFade + extraMargin;
     }
 
     /// <summary>The world's numbers.</summary>
@@ -54,6 +57,12 @@ internal sealed class GenerationWorld
 
     /// <summary>The height model with the regions' edges blended in, or <see langword="null"/> in a world with no region (it is <see cref="Height"/> when there is one).</summary>
     public BlendedHeightModel? Blended { get; }
+
+    /// <summary>The regions' blend, or <see langword="null"/> in a world with no region: the caves read the regions' footprints and margins from it (B11).</summary>
+    public RegionBlend? Regions { get; }
+
+    /// <summary>The underground (rock layers, floor, ores, caves, lava, entrances), or <see langword="null"/> for a world whose ground is plain stone (B11).</summary>
+    public UndergroundWorld? Underground { get; }
 
     /// <summary>The biome table.</summary>
     public BiomeTable Table { get; }
@@ -78,7 +87,8 @@ internal sealed class GenerationWorld
 
     /// <summary>
     /// How many columns beyond a chunk's own 16 the generator looks at. A crown reaches in from a trunk <see cref="ResolvedStrategies.MaxCrownReach"/> columns outside the chunk; the trunk's ground
-    /// is the ground after the water's edge was cut (one column more), and after the surface strategies faded at the biome's border (their widest fade more).
+    /// is the ground after the water's edge was cut (one column more), and after the surface strategies faded at the biome's border (their widest fade more). The underground reads final heights as far out as its
+    /// water rule and its entrances reach (B11), so the margin is at least that and the fade and the cut beyond it.
     /// </summary>
     public int Margin { get; }
 }
