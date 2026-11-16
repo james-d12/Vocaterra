@@ -2713,3 +2713,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   that replays on `feature/biomes` without B02b (core findings). B07's far sampler must read the per-column water (B07 part 2b).
   Merges: two (B08b to B15 and M96; then B13 and B08c, where B02b's `ValleySpec` became `RiverValleySpec` beside B13's). Gated:
   12,167 passed, 3 skipped.
+- **B07, the streamed world and the far view (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07-streamed-world.md`,
+  reports `b07-phase-a-report.md`, `b07-phase-b1-report.md`, `b07-phase-b2a-report.md`, `b07-phase-b2b-report.md`; pictures in
+  `artifacts/b-series/b07/`. The game streams the tall world by default: bands of chunks round the player (4 chunks deep, 6 underground),
+  a job pool, eviction of unedited chunks, the valley's wall kept as a barrier while the pass is locked (for walking, the collider and
+  lava), and the simulation held at a start or jump until the columns round the body are resident. The far view draws level-of-detail
+  tiles to 4, 8 and 16 km (D-game-34 item 21), lit with the chunks' sun tint and grey set, with haze from 6% of the range to the sky's
+  colour at its end; its sampler reads B02b's per-column water (58 of 60 river and lake columns equal to the generator, widest gap 3).
+  Measured on the RTX 3070 in Release at High with 16 km (a 250-block walk, load about 1.3): p50 2.5 ms, p95 7.8, p99 9.6, 3 frames
+  over 16.7 ms; 14,466 resident chunks, 549 far tiles (1.14 M triangles, 4.6 s of building). A far ring of 32 km cost 10 s of building
+  and 22 MB for no gain, so 16 km stays. Findings: the "2.6 to 5 s start hitch" of part 1 was scripted `--walk-to` route planning over
+  ungenerated land (still up to 3 s, scripted runs only); a start costs one frame of about 630 ms; rivers narrower than a far tile do
+  not show beyond the near ring; one residency test's save count is now a range (terrain-dependent). `--world valley` scripted runs
+  identical; streamed runs re-baselined (the far land and haze in every picture with sky). Gated: 12,267 passed, 3 skipped.
