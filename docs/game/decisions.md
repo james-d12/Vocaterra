@@ -887,6 +887,11 @@ the owner's answers of 2026-11-15 are in its section 5.
     colours and the card only draws, because MonoGame's shader compiler needs Wine on Linux): "yes plan the custom shaders milestone.
     Dont do any work but just document it." B17 in the biomes plan (section 3.9): light, fog and water in the game's own shaders; not to be
     launched until he says.
+31. **B11b held: its cave entrances must look natural** (2026-11-16, about 13:45 UTC, on B11b's pictures of a straight 3-wide stair
+    with flat walls and a slab rim): "The second cave entrance is that a natural cave entrance? Because it looks man made." Chosen: "Hold
+    B11b and rework it" (over merging it and fixing the entrances in a B11c). Its gate was stopped and the merge undone; the rework makes
+    each passage wind, vary in width and height, with noise-carved walls, an uneven floor and a mouth that fits the ground (an overhang
+    in a hillside, a ragged hole on flat ground, no rim), still walkable to a cave 20 or more down. The rock variety stays.
 
 ## Already decided
 
