@@ -466,6 +466,31 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     /// <summary>How many chunks in view are still waiting for their mesh (zero when the picture is complete).</summary>
     public int PendingChunks => _pending;
 
+    /// <summary>Whether every chunk in view within a few chunks of the eye (across, not up) has its mesh, and there is at least one: the near view is complete (B07b's probe of a move).</summary>
+    /// <param name="eye">The eye in blocks.</param>
+    /// <param name="chunks">The radius in chunks.</param>
+    public bool IsMeshedAround(Vector3 eye, int chunks)
+    {
+        var centre = VoxelChunkCoord.FromBlock((int)MathF.Floor(eye.X), (int)MathF.Floor(eye.Y), (int)MathF.Floor(eye.Z));
+        var any = false;
+        foreach (var coord in _wanted)
+        {
+            if (Math.Abs(coord.X - centre.X) > chunks || Math.Abs(coord.Z - centre.Z) > chunks)
+            {
+                continue;
+            }
+
+            if (!_tracker.HasMesh(coord))
+            {
+                return false;
+            }
+
+            any = true;
+        }
+
+        return any;
+    }
+
     /// <summary>
     /// Sets the block kinds drawn grey (the greyscale A/B, <see cref="GreyscaleWorld"/>): the chunks that hold a kind whose grey state changed are
     /// meshed again by the next <see cref="Remesh"/>; the other chunks keep their meshes.

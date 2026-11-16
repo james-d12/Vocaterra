@@ -49,6 +49,13 @@ public sealed class SceneDrawer : IDisposable
     private UnderwaterPass? _underwaterPass;
     private double _lastDrawMilliseconds = double.NaN;
     private StreamedWorldHost? _streaming;
+    private readonly Vocaterra.Game.Diagnostics.MoveProbe _moves = new();
+
+    // The most a frame spends meshing the near zone it has just made (B07b); the rest of the view fills in over the next frames.
+    private const double NearZoneMeshMilliseconds = 400;
+
+    // The near view the probe waits for: chunks within this many chunks of the eye across the ground (64 blocks).
+    private const int NearViewChunks = 4;
     private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _streamTimes = new();
     private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _remeshTimes = new();
 
@@ -162,6 +169,8 @@ public sealed class SceneDrawer : IDisposable
     public void DrawWorld(GraphicsDevice device, FirstPersonCamera camera, BlockPos? target, BlockPos? beacon, long tick, PlayerAvatar? avatar, ArmFrame? arm, in SkyLook look, Vector3? streamEye = null)
     {
         var renderer = Renderer;
+        var nearZoneMade = false;
+        var frameBegan = MonotonicClock.Milliseconds();
         renderer.SetAtmosphere(look); // before the meshing: a change of light band is noticed by this frame's Remesh
         var channels = _session.Simulation.Atmosphere.Channels;
         renderer.SetPrecipitation(new PrecipitationState(channels.PrecipitationKind, channels.PrecipitationIntensity, channels.Wind)); // the rain's pass reads the channels, never a kind's id (E06)
@@ -171,6 +180,7 @@ public sealed class SceneDrawer : IDisposable
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
             var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
             var phaseStart = MonotonicClock.Milliseconds();
+            nearZoneMade = false;
             if (_options.IsScreenshotRun && !_options.NoSettle)
             {
                 _ = streaming.Settle(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
@@ -178,14 +188,24 @@ public sealed class SceneDrawer : IDisposable
             else
             {
                 streaming.Update(eye.X, eye.Y, eye.Z, VoxelRenderer.ReleaseFarTile);
+                nearZoneMade = streaming.MakeNearZone(eye.X, eye.Y, eye.Z); // a start, a jump, a respawn, a load: the near zone is made now and meshed below, as a start's always was (B07b)
             }
 
             _streamTimes.Record(MonotonicClock.Milliseconds() - phaseStart);
         }
 
         var remeshStart = MonotonicClock.Milliseconds();
-        renderer.Remesh(camera.Eye, camera.Frustum, _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
-        _remeshTimes.Record(MonotonicClock.Milliseconds() - remeshStart);
+        renderer.Remesh(camera.Eye, camera.Frustum, nearZoneMade ? NearZoneMeshMilliseconds : _streaming is { IsCatchingUp: true } ? StreamedWorldHost.CatchUpMeshBudgetMilliseconds : _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
+        var remeshEnd = MonotonicClock.Milliseconds();
+        _remeshTimes.Record(remeshEnd - remeshStart);
+        if (_streaming is { } probed && _options.StreamStats)
+        {
+            var at = streamEye ?? camera.Eye;
+            if (_moves.Observe(remeshEnd, frameBegan, at.X, at.Z, probed.IsNearReady(at.X, at.Y, at.Z), renderer.IsMeshedAround(at, NearViewChunks)) is { } line)
+            {
+                _console(line); // --stream-stats: how long a start or a move took to show the world round the body (B07b)
+            }
+        }
         AdvanceUnderwater(camera);
         var amount = (float)_underwater.Amount;
         renderer.SetUnderwater(amount);

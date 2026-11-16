@@ -108,6 +108,10 @@ There is no r13: `--report-open` leaves the report panel open, and a paused worl
 - **Nothing else moved:** the ticks, the world digests, the scene (`1958 trees`, `9b952982f5e1bc44`), every other picture and every other line of the logs.
 The runs that moved only in `day` and the speech count are order-only or exact as before.
 
+## Steps after a teleport (B07b)
+
+In the streamed world a `--teleport` is followed by a hold: the simulation does not run until the world round the new place is resident (the near zone, two columns each way; `docs/game/running.md`, "The streamed world"). The steps after the teleport wait with it: a `--shot` is taken, a `--look` turned and a `--walk-to` begun only once the world is there, so `--teleport 212,256 --look 180,-8 --shot a.png` shows the lake and not the view from the start (it showed the start's before B07b). The hold costs a few frames and no more than a tick of the script's own (the teleport takes its tick); with `--no-settle` the shot is of the near zone (the far land and the rest of the ground follow over the next seconds), without it the frame settles everything first. A bounded world (`--world valley`, the baselines of the table) has no hold: the next step runs in the same tick as before, so those runs compare as they did.
+
 ## The station steps (W07)
 
 Four script steps drive the station overlay (`docs/game/activities-plan.md` 4.3, design 10.8). They need a bundle with a station and a procedure; `content/game-v1` has none until W10, so

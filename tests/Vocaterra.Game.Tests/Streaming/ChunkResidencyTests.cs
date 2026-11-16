@@ -203,6 +203,41 @@ public sealed class ChunkResidencyTests
         Assert.True(scene.Grid.IsResident(VoxelChunkCoord.FromBlock((int)(x + 700), (int)y, (int)z)) || residency.Plan!.TryGetLayers(((int)(x + 700)) >> 4, ((int)z) >> 4, out _, out _));
     }
 
+    [Fact]
+    public void Given_AJumpFarFromABusyStart_When_TheNearZoneIsMadeNow_Then_ItIsReadyBeforeTheRestOfThePlanAndTheOldPlaceAsksForNothingMore()
+    {
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(2);
+        var residency = Make(scene, pool, new BandStreamPolicy(14, 16, 3, 5));
+        var (x, y, z) = Eye(scene);
+        for (var frame = 0; frame < 30; frame++)
+        {
+            residency.Update(x, y, z, 1.5); // the start's work is queued and half done
+        }
+
+        residency.Update(x + 700, y, z, 1.5);
+        Assert.Null(residency.Plan); // a jump: the old place's plan is let go, so it asks for nothing more at the old place
+
+        Assert.True(residency.SettleNear(x + 700, y, z, 20_000));
+
+        Assert.True(residency.IsNearReady(x + 700, y, z));
+        Assert.False(residency.IsSettled, "only the near zone was made: the rest of the plan comes over the next frames");
+        Assert.Null(pool.Failure);
+    }
+
+    [Fact]
+    public void Given_NoWorkers_When_TheNearZoneIsMadeNow_Then_ItIsReadyOnTheCallersThread()
+    {
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(0);
+        var residency = Make(scene, pool);
+        var (x, y, z) = Eye(scene);
+
+        Assert.True(residency.SettleNear(x, y, z, 60_000));
+
+        Assert.True(residency.IsNearReady(x, y, z));
+    }
+
     private sealed class ThreadRecorder : IChunkResidencyListener
     {
         public HashSet<int> Threads { get; } = [];
