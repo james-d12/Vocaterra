@@ -2697,3 +2697,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the climb is a block every second column. The walk from the village to the gate went from 41 turns and about 3,000 ticks to 6 turns
   and 293. The cutting still climbs in 1-block steps with dirt risers (voxel stairs), for the owner to judge. compare-runs.py's mask
   bounded: two captures compare in 4 s. `GoldenDigest` to efcfbe02. Gated: 12,103 passed, 3 skipped.
+- **B02b, terrain tuning, three rounds (2026-11-16, on `feature/biomes`).** Briefs `.claude/briefs/b02b-terrain-tuning.md`,
+  `b02b-redo.md`, `b02b-round3.md`; reports `b02b-report.md`, `b02b-round2-report.md`, `b02b-round3-report.md`; maps in
+  `artifacts/b-series/b02b/` (`round1/`, `round2/`). Round 3 gives generated water a level per column (`ColumnShape.WaterLevel`: the
+  smooth ground less the hills' amplitude, a clearance of 2 and the valley's depth, in steps of 3 above the sea); a step is built as
+  falling water topped by one thin cell, every other water block a source, and a test wakes every water cell of three seeds' rivers,
+  lakes and coasts without a change. Rivers hold water on 99.6 to 99.9% of their line (round 2: 7 to 8%), lakes 1.5 to 3.2%
+  (0.03 to 0.6%); chains are a distance to a noise's zero line (`chainBlocks` 1500), spines 233 to 246 blocks thick; coasts warped twice
+  more with a distance noise, straight runs of 300 blocks or more from about 51% to 36%; ring walk 192 of 192 on seeds 42, 7 and 2026.
+  Findings: rivers are noise lines with no direction, so the per-column water rises and falls with the land along a line: 6.5 to 9.8%
+  of river water stands in humps (a reach higher than both neighbours), median rise one step, largest 48 to 84 blocks (seed 7's walk
+  climbs to y 98 over hills; seed 2026 joins two seas over a rise); a drainage network would fix it and goes to the owner. Test bounds
+  loosened for the thinner chains (land above 150/200/250 4/2/0.8%, river reach 85% from 93, puddles up to 8 per 8k square from 0,
+  shores 12% from 10, level tiles above 220 3% from 0). Its full run met a core fuzz seed (`2LxdNIrNHnQ6`, the recast drops a plural)
+  that replays on `feature/biomes` without B02b (core findings). B07's far sampler must read the per-column water (B07 part 2b).
+  Merges: two (B08b to B15 and M96; then B13 and B08c, where B02b's `ValleySpec` became `RiverValleySpec` beside B13's). Gated:
+  12,167 passed, 3 skipped.
