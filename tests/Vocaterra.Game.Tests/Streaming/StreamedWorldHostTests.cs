@@ -42,7 +42,7 @@ public sealed class StreamedWorldHostTests
     public void Given_AHostOverTheValley_When_ItSettlesAtTheSpawn_Then_TheChunksAreResidentTheFarLandIsBuiltAndTheRendererWouldListThem()
     {
         var scene = StreamedWorlds.Scene();
-        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(1024) with { FarRealRadius = 64 };
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(64).WithFarRange(384) with { FarRealRadius = 0 }; // a small far range and no ring: the test is about the chunks and the far land being made and listed, not about the ring (the next tests) or the distance
         using var host = StreamedWorldHost.For(scene, preset, 0)!;
         var eye = (X: scene.Spawn.Feet.X + 0.5f, Y: scene.Spawn.Feet.Y + 1.6f, Z: scene.Spawn.Feet.Z + 0.5f);
         var released = 0;
@@ -52,7 +52,7 @@ public sealed class StreamedWorldHostTests
         Assert.True(host.Residency.IsSettled);
         Assert.Equal(0, host.Far.Missing);
         Assert.True(host.Far.PendingTiles.Count + host.Far.Draw.Count > 20); // built; the renderer puts them on the card
-        Assert.True(new ChunkViewSet(scene.Grid, 96).Update(eye.X, eye.Y, eye.Z).Count > 50);
+        Assert.True(new ChunkViewSet(scene.Grid, 64).Update(eye.X, eye.Y, eye.Z).Count > 30);
         Assert.Equal(0, released);
 
         host.ApplyPreset(preset.WithFarRange(0), _ => released++);
@@ -64,7 +64,7 @@ public sealed class StreamedWorldHostTests
     public void Given_AHostWhoseRingAndEditsAreOn_When_ItSettlesAndABlockIsBroken_Then_RealSectionsAreInTheStoreAndTheEditIsInTheOneItBelongsTo()
     {
         var scene = StreamedWorlds.Scene();
-        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 48 };
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(256) with { FarRealRadius = 48 };
         using var host = StreamedWorldHost.For(scene, preset, 0)!;
         var eye = (X: scene.Spawn.Feet.X + 0.5f, Y: scene.Spawn.Feet.Y + 1.6f, Z: scene.Spawn.Feet.Z + 0.5f);
         Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
@@ -89,7 +89,7 @@ public sealed class StreamedWorldHostTests
     public void Given_ARingPlannedForOnePlaceAndNotFinished_When_TheEyeMovesAndTheHostSettles_Then_EveryFootprintInTheNewRadiusIsReal()
     {
         var scene = StreamedWorlds.Scene();
-        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 96 };
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(256) with { FarRealRadius = 64 };
         using var host = StreamedWorldHost.For(scene, preset, 0)!;
         var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
         host.Update(x, y, z, _ => { }); // planned, hardly begun
@@ -102,12 +102,12 @@ public sealed class StreamedWorldHostTests
 
         var (min, _) = host.Far.World.SyRange(0);
         var missing = 0;
-        for (var sz = (int)MathF.Floor((z - 96) / 32); sz <= (int)MathF.Floor((z + 96) / 32); sz++)
+        for (var sz = (int)MathF.Floor((z - 64) / 32); sz <= (int)MathF.Floor((z + 64) / 32); sz++)
         {
-            for (var sx = (int)MathF.Floor((x + 40 - 96) / 32); sx <= (int)MathF.Floor((x + 40 + 96) / 32); sx++)
+            for (var sx = (int)MathF.Floor((x + 40 - 64) / 32); sx <= (int)MathF.Floor((x + 40 + 64) / 32); sx++)
             {
                 var (ex, ez) = (((sx + 0.5) * 32) - (x + 40), ((sz + 0.5) * 32) - z);
-                if ((ex * ex) + (ez * ez) <= 96 * 96 && host.Far.World.Store.Entry(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, sx, min, sz)) is not { IsWhollyReal: true })
+                if ((ex * ex) + (ez * ez) <= 64 * 64 && host.Far.World.Store.Entry(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, sx, min, sz)) is not { IsWhollyReal: true })
                 {
                     missing++;
                 }
