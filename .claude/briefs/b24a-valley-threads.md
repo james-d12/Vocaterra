@@ -3,7 +3,7 @@ is Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame) and Vo
 yours. This is a small milestone: src/Vocaterra.Game.Core/World/Generation/ValleyUnderground.cs (`Lay`, the `Parallel.For` at about line
 97), its callers, and tests/Vocaterra.Game.Core.Tests/World/Underground/ValleyUndergroundTests.cs (the timing test at about line 412).
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b24a, already on the local branch `B24a-valley-threads` (cut from
-`feature/biomes` at __BASE__). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at cdbb625f). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B24a: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format through scripts/limited.sh (builds `-m:4`, tests `-m:2`; the script's caps); one
 heavy command at a time, no `&`, no wait loops on `pgrep -f`. Other agents build at the same time: expect waits. Iterate with
