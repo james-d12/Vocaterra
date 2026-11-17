@@ -247,17 +247,72 @@ internal sealed class DrainageNetwork
         var bestCore = 0;
         var bestLevel = 0;
         var bestSize = 0;
+        foreach (ref readonly var seg in Segments(ni, nj).AsSpan())
+        {
+            var (dx, dz) = (seg.Dx, seg.Dz);
+            var (ux, uz) = (seg.Ux, seg.Uz);
+            if (ChordDistanceSquared(cx - ux, cz - uz, dx, dz) > (reach + seg.Bow) * (reach + seg.Bow))
+            {
+                continue;
+            }
+
+            var t = Nearest(cx, cz, ux, uz, dx, dz, seg.Curve, out var d2);
+            if (d2 >= reach * reach)
+            {
+                continue;
+            }
+
+            var area = Lerp(seg.AreaU, seg.AreaV, t);
+            var size = SizeOf(area);
+            var taper = IntMath.Ramp(area, _spec.SourceArea, _spec.SourceArea + (_spec.SourceArea / 2));
+            var wide = (int)((long)Math.Min(Lerp(_minRamp16, _maxRamp16, size) + extra16, MaxRamp16) * share / One);
+            if (wide <= 0)
+            {
+                continue;
+            }
+
+            var d = (int)IntMath.ISqrt(d2);
+            var core = (One - IntMath.Ramp(d, 0, wide)) * taper / One; // a stream is as wide as the narrowest river from its first node, and as deep only as the ground that drains into it allows
+            if (core > bestCore)
+            {
+                bestCore = core;
+                bestLevel = Lerp(seg.LevelU, seg.LevelV, t);
+                bestSize = size;
+            }
+        }
+
+        if (bestCore == 0)
+        {
+            return false;
+        }
+
+        hit = new RiverHit(bestCore, bestLevel, bestSize);
+        return true;
+    }
+
+    // The river reaches that can touch the columns of a node's cell: every river reach (not under a lake) that starts within `_look` nodes of it, worked out once per node from the nodes round it and kept in its tile (the
+    // columns of a cell, up to 1,024, share it). Racing threads work out the same array.
+    private RiverSegment[] Segments(int ni, int nj)
+    {
+        var (cell, k) = Locate(ni, nj);
+        var known = Volatile.Read(ref cell.Near[k]);
+        if (known is not null)
+        {
+            return known;
+        }
+
+        var list = new List<RiverSegment>();
         for (var j = nj - _look; j <= nj + _look; j++)
         {
             for (var i = ni - _look; i <= ni + _look; i++)
             {
-                var (cell, k) = Locate(i, j);
-                if ((cell.Flags[k] & (RiverFlag | LakeFlag)) != RiverFlag)
+                var (c, n) = Locate(i, j);
+                if ((c.Flags[n] & (RiverFlag | LakeFlag)) != RiverFlag)
                 {
                     continue;
                 }
 
-                var dir = cell.Next[k];
+                var dir = c.Next[n];
                 if (dir < 0)
                 {
                     continue;
@@ -269,45 +324,14 @@ internal sealed class DrainageNetwork
                 var (vx, vz) = Position16(vi, vj);
                 var (dx, dz) = ((long)vx - ux, (long)vz - uz);
                 var bow = (Math.Abs(dx) + Math.Abs(dz)) * _spec.Bow / 1000;
-                if (ChordDistanceSquared(cx - ux, cz - uz, dx, dz) > (reach + bow) * (reach + bow))
-                {
-                    continue;
-                }
-
                 var sign = (Hash(i, j) & (1UL << 48)) == 0 ? 1 : -1;
-                var t = Nearest(cx, cz, ux, uz, dx, dz, sign * _spec.Bow, out var d2);
-                if (d2 >= reach * reach)
-                {
-                    continue;
-                }
-
-                var area = Lerp(cell.Area[k], vcell.Area[vk], t);
-                var size = SizeOf(area);
-                var taper = IntMath.Ramp(area, _spec.SourceArea, _spec.SourceArea + (_spec.SourceArea / 2));
-                var wide = (int)((long)Math.Min(Lerp(_minRamp16, _maxRamp16, size) + extra16, MaxRamp16) * share / One);
-                if (wide <= 0)
-                {
-                    continue;
-                }
-
-                var d = (int)IntMath.ISqrt(d2);
-                var core = (One - IntMath.Ramp(d, 0, wide)) * taper / One; // a stream is as wide as the narrowest river from its first node, and as deep only as the ground that drains into it allows
-                if (core > bestCore)
-                {
-                    bestCore = core;
-                    bestLevel = Lerp(cell.Level16[k], vcell.Level16[vk], t);
-                    bestSize = size;
-                }
+                list.Add(new RiverSegment(ux, uz, dx, dz, bow, sign * _spec.Bow, c.Area[n], vcell.Area[vk], c.Level16[n], vcell.Level16[vk]));
             }
         }
 
-        if (bestCore == 0)
-        {
-            return false;
-        }
-
-        hit = new RiverHit(bestCore, bestLevel, bestSize);
-        return true;
+        var made = list.Count == 0 ? [] : list.ToArray();
+        Volatile.Write(ref cell.Near[k], made);
+        return made;
     }
 
     /// <summary>The lake at a column: how deep the filled basin is there (the depth of the four nodes round it, blended) and the lake's level.</summary>
@@ -713,6 +737,9 @@ internal sealed class DrainageNetwork
     }
 }
 
+/// <summary>One reach of a river, with what a column's look-up needs of it (B27): the upstream node's place and the reach's chord in sixteenths of a block, the chord's bow, the bow's signed curve, and the area and level at each end.</summary>
+internal readonly record struct RiverSegment(long Ux, long Uz, long Dx, long Dz, long Bow, long Curve, int AreaU, int AreaV, int LevelU, int LevelV);
+
 /// <summary>What the drainage network keeps of the nodes of one cell, row by row.</summary>
 internal sealed class DrainageCell
 {
@@ -723,7 +750,11 @@ internal sealed class DrainageCell
         Depth = new short[side * side];
         Next = new sbyte[side * side];
         Flags = new byte[side * side];
+        Near = new RiverSegment[]?[side * side];
     }
+
+    /// <summary>The river reaches near each node's cell (B27), worked out the first time a column of the node asks; null until then.</summary>
+    public RiverSegment[]?[] Near { get; }
 
     /// <summary>The level of each node after the basins were filled, in sixteenths of a block.</summary>
     public int[] Level16 { get; }
