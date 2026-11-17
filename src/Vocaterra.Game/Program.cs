@@ -118,6 +118,12 @@ try
         session = new VoxelSession(data, options.Seed, GuideSession.DefaultStartedAt, scene, options.Credit);
     }
 
+    if (options.Pregen is { } pregenRadius)
+    {
+        // B07d: the far view's real sections of the world round a point, made on all the workers with no window, then exit.
+        return PregenCommand.Run(options, session, scene, savedSettings, pregenRadius, Console.Out);
+    }
+
     if (options.SkipToSession is { } skipTo)
     {
         // A test aid (V12c): the new game stands where a learner who did sessions 1 to n-1 would, built from the data; the console, the log and the saves say so.

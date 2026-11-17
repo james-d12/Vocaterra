@@ -19,15 +19,18 @@ public enum JobLane
 }
 
 /// <summary>
-/// The worker threads of the streamed world (B07, biomes plan section 3.7): at most <see cref="MaxWorkers"/> of them in all, shared by the residency's column jobs, the far view's tile and ring jobs and the chunk meshes (B21). A job is
+/// The worker threads of the streamed world (B07, biomes plan section 3.7): at most <see cref="MaxWorkers"/> of them in all (the player's Worker threads setting, B07d: Auto or 1 to 8; a scripted run keeps two), shared by the residency's column jobs, the far view's tile and ring jobs and the chunk meshes (B21). A job is
 /// a pure computation over the world's pure source (it never touches the voxel grid, the renderer or the simulation) whose result it hands to a queue the game loop drains. The queue is a priority
 /// queue per lane, nearest first (a lower number first), the residency lane before the tile lane, and the voxel chunks' mesh lane (B21: a pure computation over a snapshot of the blocks the game loop took) before both, up to <see cref="MeshRun"/> jobs in a row; a job that is stale by the time a worker reaches it is skipped. With no worker the pool still
 /// takes jobs and <see cref="RunInline"/> runs them on the caller's thread within a time budget, which is how the tests and the scripted runs keep a run on one thread.
 /// </summary>
 public sealed class JobPool : IDisposable
 {
-    /// <summary>The most worker threads there ever are (the owner's limit, with the game loop's own thread on top).</summary>
-    public const int MaxWorkers = 2;
+    /// <summary>The most worker threads there ever are, the bound of the Worker threads setting (D-game-34 item 42; the game loop's own thread is on top of them). Before B07d it was two.</summary>
+    public const int MaxWorkers = 8;
+
+    /// <summary>The worker threads of a scripted run, of the tests and of <c>--prefetch</c> without a count: the small number their results and the machine's limits were made for.</summary>
+    public const int ScriptedWorkers = 2;
 
     private const int RingEvery = 4;
 
@@ -37,7 +40,10 @@ public sealed class JobPool : IDisposable
     private readonly object _gate = new();
     private readonly PriorityQueue<Job, long>[] _queues = [new(), new(), new(), new()];
     private readonly List<Thread> _threads = [];
+    private readonly List<bool> _live = [];
+    private readonly List<Thread> _retired = [];
     private int _running;
+    private volatile int _workers;
     private int _sinceRing;
     private int _meshRun;
     private bool _disposed;
@@ -49,17 +55,65 @@ public sealed class JobPool : IDisposable
     /// <param name="workers">How many worker threads, 0 to <see cref="MaxWorkers"/> (more is clamped): 0 runs jobs only through <see cref="RunInline"/>.</param>
     public JobPool(int workers)
     {
-        Workers = Math.Clamp(workers, 0, MaxWorkers);
-        for (var i = 0; i < Workers; i++)
+        _workers = Math.Clamp(workers, 0, MaxWorkers);
+        lock (_gate)
         {
-            var thread = new Thread(Work) { IsBackground = true, Name = $"vocaterra-stream-{i}", Priority = ThreadPriority.BelowNormal };
-            _threads.Add(thread);
-            thread.Start();
+            StartMissingLocked();
         }
     }
 
-    /// <summary>How many worker threads run.</summary>
-    public int Workers { get; }
+    /// <summary>How many worker threads run (or are to: a thread that is told to stop ends after the job it is on).</summary>
+    public int Workers => _workers;
+
+    /// <summary>
+    /// Changes the number of worker threads while the game runs (the Worker threads setting): new threads start at once, and surplus ones end after the job each is on, so no queued job is lost and none is run twice. A pool made with no worker (a run on one thread: the tests,
+    /// <c>--prefetch 0</c>) stays that way, and a pool with workers keeps at least one.
+    /// </summary>
+    /// <param name="workers">The number of threads wanted, 1 to <see cref="MaxWorkers"/> (clamped).</param>
+    /// <returns>The number the pool now has.</returns>
+    public int Resize(int workers)
+    {
+        lock (_gate)
+        {
+            if (_disposed || _workers == 0)
+            {
+                return _workers;
+            }
+
+            _workers = Math.Clamp(workers, 1, MaxWorkers);
+            StartMissingLocked();
+            Monitor.PulseAll(_gate); // an idle thread above the new count wakes and ends
+            return _workers;
+        }
+    }
+
+    // Starts the threads the count asks for (the lock is held): thread i works while i is below the count.
+    private void StartMissingLocked()
+    {
+        for (var i = 0; i < _workers; i++)
+        {
+            if (i < _threads.Count && _threads[i] is { IsAlive: true } && _live[i])
+            {
+                continue;
+            }
+
+            var index = i;
+            var thread = new Thread(() => Work(index)) { IsBackground = true, Name = $"vocaterra-stream-{i}", Priority = ThreadPriority.BelowNormal };
+            if (i < _threads.Count)
+            {
+                _retired.Add(_threads[i]);
+                _threads[i] = thread;
+            }
+            else
+            {
+                _threads.Add(thread);
+                _live.Add(true);
+            }
+
+            _live[i] = true;
+            thread.Start();
+        }
+    }
 
     /// <summary>How many jobs wait or run.</summary>
     public int Pending
@@ -167,21 +221,38 @@ public sealed class JobPool : IDisposable
             Monitor.PulseAll(_gate);
         }
 
-        foreach (var thread in _threads)
+        List<Thread> all;
+        lock (_gate)
+        {
+            all = [.. _threads, .. _retired];
+        }
+
+        foreach (var thread in all)
         {
             _ = thread.Join(2000);
         }
     }
 
-    private void Work()
+    private void Work(int index)
     {
         while (true)
         {
             Job? job;
             lock (_gate)
             {
-                while ((job = TakeLocked()) is null)
+                while (true)
                 {
+                    if (index >= _workers && !_disposed)
+                    {
+                        _live[index] = false; // told to stop (the setting went down): this thread ends between two jobs
+                        return;
+                    }
+
+                    if ((job = TakeLocked()) is not null)
+                    {
+                        break;
+                    }
+
                     if (_disposed)
                     {
                         return;

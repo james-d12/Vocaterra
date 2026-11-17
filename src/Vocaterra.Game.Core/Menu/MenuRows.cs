@@ -27,6 +27,12 @@ public static class MenuRows
             MenuRow.Of(settings, SettingId.Quality),
             MenuRow.Of(settings, SettingId.ViewDistance),
             MenuRow.Of(settings, SettingId.Grass),
+            MenuRow.Of(settings, SettingId.FarDistance), // B07d: the far view's detail settings and the worker threads, in the Graphics group (D-game-34 item 43)
+            MenuRow.Of(settings, SettingId.FarDetail),
+            MenuRow.Of(settings, SettingId.FarTrees),
+            MenuRow.Of(settings, SettingId.FarTextures),
+            MenuRow.Of(settings, SettingId.FarExact),
+            MenuRow.Of(settings, SettingId.Workers),
             MenuRow.Of(settings, SettingId.FieldOfView),
             MenuRow.Of(settings, SettingId.Blur),
             MenuRow.Of(settings, SettingId.ViewEffects),

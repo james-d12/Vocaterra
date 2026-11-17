@@ -235,8 +235,8 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Buffer = null;
         tile.Indices?.Dispose();
         tile.Indices = null;
+        tile.Pending?.Release();
         tile.Pending = null;
-        tile.OnCard = false;
         tile.OnCard = false;
     }
 
@@ -246,23 +246,24 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Buffer?.Dispose(); // a tile made again replaces its old buffers
         tile.Indices?.Dispose();
         tile.Adopt(mesh);
-        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.Vertices.Length, BufferUsage.WriteOnly);
-        buffer.SetData(mesh.Vertices);
+        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.VertexCount, BufferUsage.WriteOnly);
+        buffer.SetData(mesh.VertexArray, 0, mesh.VertexCount);
         tile.Buffer = buffer;
-        if (mesh.Indices16 is { } narrow)
+        if (mesh.Index16Array is { } narrow)
         {
-            var indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, narrow.Length, BufferUsage.WriteOnly);
-            indices.SetData(narrow);
+            var indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, mesh.IndexCount, BufferUsage.WriteOnly);
+            indices.SetData(narrow, 0, mesh.IndexCount);
             tile.Indices = indices;
         }
         else
         {
-            var wide = mesh.Indices32!;
-            var indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, wide.Length, BufferUsage.WriteOnly);
-            indices.SetData(wide);
+            var wide = mesh.Index32Array!;
+            var indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, mesh.IndexCount, BufferUsage.WriteOnly);
+            indices.SetData(wide, 0, mesh.IndexCount);
             tile.Indices = indices;
         }
 
+        mesh.Release(); // the card has the data: the arrays go back to the pools
         tile.Pending = null;
         tile.OnCard = true;
     }

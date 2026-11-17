@@ -21,6 +21,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game/UI/Report/ReportScreen.cs"] = "the report file's date format",
         ["src/Vocaterra.Game/Diagnostics/CrashHandler.cs"] = "the crash file and the console",
         ["src/Vocaterra.Game/Diagnostics/MoveProbe.cs"] = "the --stream-stats line on the console (B07b)",
+        ["src/Vocaterra.Game/Streaming/StreamedWorldHost.cs"] = "the --stream-stats store counters and the --pregen progress line on the console (B07d)",
         ["src/Vocaterra.Game/Graphics/World/VoxelRenderer.cs"] = "the renderer's stats on the console",
         ["src/Vocaterra.Game/Startup/SoundBootstrap.cs"] = "the sound's console lines",
         ["src/Vocaterra.Game/Sound/SoundEffectOutput.cs"] = "the sound's console lines",
