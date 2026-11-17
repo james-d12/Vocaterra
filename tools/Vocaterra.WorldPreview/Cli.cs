@@ -19,6 +19,7 @@ internal static class Cli
           slice     a vertical section along a line, y -64 to 320: ground in the surface biome's colour, water, snow line, tree line, sea level; with --mode blocks, the real blocks (B11: the strata, ores, caves, lava, bedrock) each in its own colour
           drainage  the heights with the drainage network drawn over them (B02c): every reach of river as a line, thicker the more ground drains into it; with --basin-x --basin-z (a point on a river) that river's whole basin in orange
           sites     where the drainage network has something worth a picture in the area (B02c): confluences of large rivers, the steepest stretches of river, lakes with the river that leaves them; text only
+          views     good places to stand to look at a point (--x --z): dry ground a sixth of --size to half of it (default 50 to 150 blocks) from it, the highest first, with the yaw that faces the point (B02c, for pictures taken in the game); text only
           entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
         options:
@@ -51,7 +52,7 @@ internal static class Cli
         }
 
         var command = args[0];
-        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage" or "sites"))
+        if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage" or "sites" or "views"))
         {
             error.WriteLine($"Unknown command '{command}'.");
             error.WriteLine(Usage);
@@ -167,6 +168,12 @@ internal static class Cli
                     File.WriteAllText(Target(outPath, "stats-" + stem, false).Replace(".png", ".txt"), report);
                 }
 
+                return 0;
+            }
+
+            if (command == "views")
+            {
+                output.Write(Sites.Views(sampler, Int(options, "--x", 0), Int(options, "--z", 0), options.ContainsKey("--size") ? Int(options, "--size", 150) / 2 : 150));
                 return 0;
             }
 

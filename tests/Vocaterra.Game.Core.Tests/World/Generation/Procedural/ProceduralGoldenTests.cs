@@ -18,7 +18,7 @@ public sealed class ProceduralGoldenTests(ITestOutputHelper output)
     public static TheoryData<ulong, string, int, int, string> Columns => new()
     {
         { 42, "river", 39, -15, "b6964be06428c7ac68ed1f837d224336f77b72177e1b9b9467f3302f1a277fd0" },
-        { 42, "lake", 9, -60, "fe7f12d0eb4dc83841651fc7b33c3063846c85539aa0c027164978d890e9edbc" },
+        { 42, "lake", 9, -60, "05ceca8581e71534b1ecc6a6b6c075b8240e3f13a00f2dec3d4b6be0a25f4a69" },
         { 42, "coast", -20, 28, "ee3cceaf01c8edc43393d675bf675f1c0f0cf3e04ec015c5582879594df65999" },
         { 42, "forest", -40, 4, "7d288daeed6255210a336be16b32e9c36aa582302533a31ed4099d476a7d133e" },
         { 42, "mountain", -4, -4, "7ff31d7ae291b9e2b46b6368fc6758accfe71185384c88160081d7c4fb92232b" },

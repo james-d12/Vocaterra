@@ -21,29 +21,40 @@ internal static class DrainageMap
             if (path.Count > 0)
             {
                 var sink = path[^1];
-                var next = new Dictionary<(int, int), (int, int)>();
-                foreach (var r in reaches)
-                {
-                    next[(r.FromX, r.FromZ)] = (r.ToX, r.ToZ);
-                }
+                var next = reaches.ToDictionary(static r => (r.FromX, r.FromZ));
 
+                var ends = new Dictionary<(int, int), bool>(); // whether the river that runs on from a reach whose water goes under a lake ends at the sink
                 foreach (var r in reaches)
                 {
-                    var at = (r.FromX, r.FromZ);
+                    var at = r;
+                    var found = false;
                     for (var step = 0; step < 4000; step++)
                     {
-                        if (!next.TryGetValue(at, out var to))
+                        if (at.IntoLake || !next.ContainsKey((at.ToX, at.ToZ)))
                         {
+                            var key = (at.FromX, at.FromZ);
+                            if (!ends.TryGetValue(key, out found))
+                            {
+                                var onward = sampler.Height.TraceRiver(at.FromX, at.FromZ, 4000);
+                                found = onward.Count > 0 && onward[^1].X == sink.X && onward[^1].Z == sink.Z;
+                                ends[key] = found;
+                            }
+
                             break;
                         }
 
-                        if (to == (sink.X, sink.Z))
+                        if ((at.ToX, at.ToZ) == (sink.X, sink.Z))
                         {
-                            inBasin.Add((r.FromX, r.FromZ));
+                            found = true;
                             break;
                         }
 
-                        at = to;
+                        at = next[(at.ToX, at.ToZ)];
+                    }
+
+                    if (found)
+                    {
+                        inBasin.Add((r.FromX, r.FromZ));
                     }
                 }
             }

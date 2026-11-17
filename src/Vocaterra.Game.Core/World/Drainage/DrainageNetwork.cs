@@ -508,6 +508,32 @@ internal sealed class DrainageNetwork
             }
         }
 
+        // How deep each node is under a lake, and how far over its surface a node beside a lake stands.
+        short Depth(int n)
+        {
+            if (kind[n] == OutsideFlag || kind[n] == SeaFlag || !seen[n])
+            {
+                return 0;
+            }
+
+            if (filled[n] - level[n] >= LakeMin)
+            {
+                return (short)Math.Min(final[n] - level[n], short.MaxValue);
+            }
+
+            var surface = int.MinValue;
+            for (var d = 0; d < 8; d++)
+            {
+                var m = near[(n * 8) + d];
+                if (m >= 0 && kind[m] == 0 && seen[m] && filled[m] - level[m] >= LakeMin)
+                {
+                    surface = Math.Max(surface, final[m]);
+                }
+            }
+
+            return surface == int.MinValue ? (short)0 : (short)Math.Max(Math.Min(surface - level[n], 0), short.MinValue);
+        }
+
         for (var n = 0; n < count; n++)
         {
             var (i, j) = (ni[n], nj[n]);
@@ -540,7 +566,7 @@ internal sealed class DrainageNetwork
 
             cell.Level16[k] = final[n];
             cell.Area[k] = Math.Min(area[n], ushort.MaxValue);
-            cell.Depth[k] = (flags & LakeFlag) != 0 ? (ushort)Math.Min(final[n] - level[n], ushort.MaxValue) : (ushort)0;
+            cell.Depth[k] = Depth(n);
             cell.Next[k] = parent[n];
             Volatile.Write(ref cell.Flags[k], (byte)(flags | BuiltFlag));
         }
@@ -565,7 +591,7 @@ internal sealed class DrainageCell
     {
         Level16 = new int[side * side];
         Area = new int[side * side];
-        Depth = new ushort[side * side];
+        Depth = new short[side * side];
         Next = new sbyte[side * side];
         Flags = new byte[side * side];
     }
@@ -576,8 +602,8 @@ internal sealed class DrainageCell
     /// <summary>The nodes that drain through each node.</summary>
     public int[] Area { get; }
 
-    /// <summary>How far under its lake's surface each node's dented land lies, in sixteenths of a block (0 for a node that is not under a lake).</summary>
-    public ushort[] Depth { get; }
+    /// <summary>How far under its lake's surface each node's dented land lies, in sixteenths of a block; for a node beside a lake that is not under it, how far over the surface it lies, negative (so the shore is where the blended depth passes zero, between the nodes, and not on the grid); 0 elsewhere.</summary>
+    public short[] Depth { get; }
 
     /// <summary>The direction the water runs from each node, or -1.</summary>
     public sbyte[] Next { get; }
