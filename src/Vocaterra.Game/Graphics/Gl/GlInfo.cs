@@ -18,6 +18,8 @@ namespace Vocaterra.Game.Graphics.Gl;
 /// <param name="ClipControl">glClipControl, so a reversed depth range can be used (4.5 or ARB_clip_control).</param>
 /// <param name="BaseVertex">Draws with a base vertex (3.2 or ARB_draw_elements_base_vertex).</param>
 /// <param name="ShaderStorage">Shader storage buffer objects (4.3 or ARB_shader_storage_buffer_object).</param>
+/// <param name="FixedRestartIndex">The fixed primitive restart index's enable bit (4.3 or ARB_ES3_compatibility), which the state scope saves when it is there (B17b).</param>
+/// <param name="TimerQuery">Timer queries, the card's time (3.3 or ARB_timer_query, B17b).</param>
 /// <param name="MaxTextureSize">GL_MAX_TEXTURE_SIZE.</param>
 /// <param name="MaxArrayLayers">GL_MAX_ARRAY_TEXTURE_LAYERS.</param>
 public sealed record GlInfo(
@@ -35,6 +37,8 @@ public sealed record GlInfo(
     bool ClipControl,
     bool BaseVertex,
     bool ShaderStorage,
+    bool FixedRestartIndex,
+    bool TimerQuery,
     int MaxTextureSize,
     int MaxArrayLayers)
 {
@@ -69,6 +73,8 @@ public sealed record GlInfo(
             Has(4, 5, "GL_ARB_clip_control"),
             Has(3, 2, "GL_ARB_draw_elements_base_vertex"),
             Has(4, 3, "GL_ARB_shader_storage_buffer_object"),
+            Has(4, 3, "GL_ARB_ES3_compatibility"),
+            Has(3, 3, "GL_ARB_timer_query"),
             gl.GetInteger(GLEnum.MaxTextureSize),
             gl.GetInteger(GLEnum.MaxArrayTextureLayers));
     }
@@ -78,11 +84,11 @@ public sealed record GlInfo(
     {
         yield return $"gl: version {Version}, renderer {Renderer}, vendor {Vendor}";
         yield return $"gl: shading language {ShadingLanguage}, context {Major}.{Minor} {(Core ? "core" : "compatibility")} profile";
-        yield return string.Create(CultureInfo.InvariantCulture, $"gl: compute {Yn(Compute)}, multi-draw indirect {Yn(MultiDrawIndirect)} (with count {Yn(IndirectCount)}), buffer storage {Yn(BufferStorage)}, clip control {Yn(ClipControl)}, base vertex {Yn(BaseVertex)}, shader storage {Yn(ShaderStorage)}, max texture {MaxTextureSize}, max array layers {MaxArrayLayers}");
+        yield return string.Create(CultureInfo.InvariantCulture, $"gl: compute {Yn(Compute)}, multi-draw indirect {Yn(MultiDrawIndirect)} (with count {Yn(IndirectCount)}), buffer storage {Yn(BufferStorage)}, clip control {Yn(ClipControl)}, base vertex {Yn(BaseVertex)}, shader storage {Yn(ShaderStorage)}, timer query {Yn(TimerQuery)}, max texture {MaxTextureSize}, max array layers {MaxArrayLayers}");
     }
 
-    /// <summary>Whether the context can run the opaque program (<see cref="GlOpaquePass"/> asks for GLSL 3.30, so OpenGL 3.3).</summary>
-    public bool CanRunOpaquePass => Major > 3 || (Major == 3 && Minor >= 3);
+    /// <summary>Whether the context can run the chunk program (<see cref="GlChunkPass"/> asks for GLSL 3.30, so OpenGL 3.3).</summary>
+    public bool CanRunChunkPasses => Major > 3 || (Major == 3 && Minor >= 3);
 
     private static string Yn(bool value) => value ? "yes" : "missing";
 }

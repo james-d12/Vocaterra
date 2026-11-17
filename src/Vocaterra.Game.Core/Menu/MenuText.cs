@@ -12,7 +12,7 @@ public static class MenuText
             "headingSound", "headingGraphics", "headingInterface", "headingMouse", "headingNeeds", "headingCheats", "headingTesting", "headingRestart",
             "testingNote", "restartNote", "restartNote2", "restartNote3", "controlsRange", "controlsOr",
             "testDebug", "testNeedsRun", "testRefill", "testSoundsOff", "testVoicesMuted", "testShoulder", "testSave",
-            "subNeeds", "subView", "subTeleport", "subSound", "subScoring", "subFiles",
+            "subNeeds", "subView", "subTeleport", "subSound", "subScoring", "subFiles", "subEffects",
             "testNeedHunger", "testNeedThirst", "testNeedSleep", "testNeedHealth", "testNeedStamina",
             "testTimeOfDay", "testWeather", "testRunning", "testGreyscale", "testAssumeKnown", "testTips", "testBeacon", "testPlace", "testGo", "testCredit", "testCreditHalf", "testCreditFull", "testAutosave",
             "settingsOn", "settingsOff",

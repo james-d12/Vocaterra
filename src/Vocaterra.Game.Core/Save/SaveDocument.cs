@@ -123,6 +123,7 @@ public sealed record SaveDocument(
 /// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
 /// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
 /// <param name="Grass">The decorative grass's density in percent (B18, the menu), 0 to 100 in steps of 10; no field is the default (<see cref="Menu.PlayerSettings.DefaultGrass"/>), so 0 (none) is written. Written only when not the default.</param>
+/// <param name="ShadersOff">True when the player turned the game's own GLSL shaders off (B17b, the menu's Shaders row: the chunks are drawn with MonoGame's effects). Written only when true, so a save of the default is byte for byte what it was.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -136,7 +137,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -220,7 +222,8 @@ public sealed record SaveSettings(
         EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView,
         EffectiveViewDistance,
         PassCheat,
-        EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass);
+        EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass,
+        ShadersOff);
 }
 
 /// <summary>

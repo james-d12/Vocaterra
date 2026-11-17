@@ -453,6 +453,8 @@
     "ui.settingsViewDistance": "Draw distance (blocks)",
     "ui.settingsAuto": "Auto",
     "ui.settingsGrass": "Grass",
+    "ui.settingsShaders": "Shaders",
+    "ui.subEffects": "Shaders and effects",
     "ui.controlGroupGeneral": "Menu and function keys",
     "ui.controlGroupMoving": "Moving and looking",
     "ui.controlGroupDoing": "Doing things",
