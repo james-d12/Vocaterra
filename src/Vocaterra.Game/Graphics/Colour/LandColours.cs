@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Far;
 
 namespace Vocaterra.Game.Graphics.Colour;
 
