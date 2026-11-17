@@ -2819,3 +2819,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   test (passes alone in 8 s; load 11 to 15) and a new core fuzz seed, `7q7l8dSNG6n6`, which replays without B07e (no core or content
   file changed): the merge stands, the seed goes to M98. Left: a neighbour's changed edge column does not invalidate the tile beside it;
   the horizon takes about 150 s of worker time at High (B07d).
+- **B20, no snow in the valley (2026-11-17, `9d2f2139`).** The valley's snow rule (`SceneBuilder`, snow above `snowLine` 100 on gentle
+  tops) and the `snowLine` field (data, schema, parser, the sample-town fixture) are gone; the tops take the existing rule (stone above
+  `rockLine` or on steep ground, mossy stone low, grass otherwise). `SceneTests.GoldenDigest` 6f6570562b9e to 6ff0d1c82d70, the bundle
+  hash e15607e887a9 to 32c4c1b56638; the fixture's state digest did not move (the valley's blocks are not in it). The pictures from the ring
+  tops show the change best (a snow plateau before, bare stone after); from the valley floor it was only small white caps. The outside view
+  from the streamed world was not found (both tries in forest): for the owner to choose a viewpoint if wanted. Six scripted runs checked:
+  only the skyline rows changed. Gated: 12,453 passed; the one failure was `ValleyUndergroundTests`' under-one-second test (1,650 ms at
+  load), which has now failed four full runs in a row at load 11 to 19 and passes alone in 8 s: given to B24a (with C9, the eight-thread
+  `Parallel.For`).
