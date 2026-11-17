@@ -85,6 +85,11 @@ public sealed record LaunchOptions
         + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
         + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
         + "  --gl-shaders [on|off]   draw every chunk pass (the faces, the cut-outs, the grass, the glow, the water) through the game's own GLSL program on MonoGame's OpenGL context (B17b; on by default, the settings page's Shaders row; off draws with MonoGame's effects, as does a context below OpenGL 3.3 or a program that does not compile: the log's gl: lines say which). A bare --gl-shaders is on\n"
+        + "  --sun-follows-hour [on|off]  the faces are shaded by the sky's sun through the day, with the deeper dusk (B17c, B22's sun per band; on by default, the settings page's Graphics group; off keeps the afternoon sun at every hour and the older, lighter dusk)\n"
+        + "  --climate-colours [on|off]   the grass and the oak leaves take the colour of their climate (B17c, B22's land tint; on by default; off is the colour map's middle everywhere)\n"
+        + "  --water-shader [on|off]  the water's depth tint, the gentle movement of its surface and a brighter edge at grazing angles (B17c, with B22's depth tint; on by default; off is plain water; the movement and the edge need the shaders)\n"
+        + "  --height-fog [on|off]   the haze lies thicker in the low land, in the colours of the far view's (B17c; on by default; needs the shaders)\n"
+        + "  --far-light [on|off]    the far view is drawn through the same program as the chunks, in the same sun, fog and haze (B17c; on by default; needs the shaders; off draws it as before, in the day's baked light)\n"
         + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
         + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
@@ -450,6 +455,21 @@ public sealed record LaunchOptions
     /// </summary>
     public bool? GlShaders { get; init; }
 
+    /// <summary>What <c>--sun-follows-hour [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting (on for a new game).</summary>
+    public bool? SunFollowsHour { get; init; }
+
+    /// <summary>What <c>--climate-colours [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? ClimateColours { get; init; }
+
+    /// <summary>What <c>--water-shader [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? WaterShader { get; init; }
+
+    /// <summary>What <c>--height-fog [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? HeightFog { get; init; }
+
+    /// <summary>What <c>--far-light [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? FarLight { get; init; }
+
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
 
@@ -551,7 +571,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders" or "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light")
             {
                 switch (arg)
                 {
@@ -655,6 +675,25 @@ public sealed record LaunchOptions
                         }
 
                         break;
+                    case "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light":
+                        {
+                            var on = true;
+                            if (i + 1 < args.Count && args[i + 1] is "on" or "off")
+                            {
+                                on = args[++i] == "on"; // the value is optional: a bare flag is on
+                            }
+
+                            result = arg switch
+                            {
+                                "--sun-follows-hour" => result with { SunFollowsHour = on },
+                                "--climate-colours" => result with { ClimateColours = on },
+                                "--water-shader" => result with { WaterShader = on },
+                                "--height-fog" => result with { HeightFog = on },
+                                _ => result with { FarLight = on },
+                            };
+                            break;
+                        }
+
                     case "--playtest":
                         playtest = true;
                         break;

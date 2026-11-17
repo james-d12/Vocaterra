@@ -56,4 +56,22 @@ public enum SettingId
 
     /// <summary>The game's own GLSL shaders for the chunks (B17b, D-game-34 item 43): 0 off (MonoGame's effects draw the chunks), 1 on (the default; the effects draw anyway when the context cannot run the program). The graphics effects of B17c join it, each its own toggle.</summary>
     Shaders,
+
+    /// <summary>The sun follows the hour (B17c, B22's effect; item 43): 1 on (the default: the faces are shaded by the sky's sun through the day, and the dusk is the deeper one), 0 off (the sun stays where the Day band had it and the dusk is the lighter, older one).</summary>
+    SunFollowsHour,
+
+    /// <summary>The climate colours (B17c, B22's effect): 1 on (the default: the grass and the oak leaves take the colour of their climate), 0 off (the colour map's middle everywhere).</summary>
+    ClimateColours,
+
+    /// <summary>The water shader (B17c, with B22's depth tint): 1 on (the default: the tint by depth, a gentle movement of the surface and a brighter edge at grazing angles), 0 off (plain water).</summary>
+    WaterShader,
+
+    /// <summary>The fog by height (B17c): 1 on (the default: the haze lies thicker in the low land, in the same colours as the far view's), 0 off (the distance fog alone).</summary>
+    HeightFog,
+
+    /// <summary>The far view's light (B17c): 1 on (the default: the far view is drawn through the same program as the chunks, with the same sun and fog), 0 off (the far view is drawn as before, in the day's baked light).</summary>
+    FarLight,
+
+    /// <summary>The window's antialiasing (B22, moved into the Graphics group by B17c): the index of 0, 2, 4 or 8 samples a pixel (the default 4); read when the window opens, so a change takes effect at the next start.</summary>
+    Msaa,
 }

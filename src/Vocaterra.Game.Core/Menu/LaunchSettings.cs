@@ -21,6 +21,12 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="InvertY"><c>--invert-y</c>.</param>
 /// <param name="Grass"><c>--grass</c> in percent, 0 to 100 in steps of 10 (B18), or <see langword="null"/> for the save's.</param>
 /// <param name="Shaders"><c>--gl-shaders on|off</c> (B17b): the game's own GLSL shaders for the chunks, or <see langword="null"/> for the save's (on for a new game).</param>
+/// <param name="SunFollowsHour"><c>--sun-follows-hour on|off</c> (B17c), or <see langword="null"/> for the save's (on for a new game).</param>
+/// <param name="ClimateColours"><c>--climate-colours on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="WaterShader"><c>--water-shader on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="HeightFog"><c>--height-fog on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="FarLight"><c>--far-light on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="Msaa"><c>--msaa 0|2|4|8</c> (B22), or <see langword="null"/> for the save's (4 for a new game).</param>
 /// <param name="PassOpen">Whether <c>--pass open</c> was given (it only switches the pass cheat on).</param>
 public sealed record LaunchSettings(
     bool Scripted = false,
@@ -41,4 +47,10 @@ public sealed record LaunchSettings(
     double? WeatherVolume = null,
     bool PassOpen = false,
     int? Grass = null,
-    bool? Shaders = null);
+    bool? Shaders = null,
+    bool? SunFollowsHour = null,
+    bool? ClimateColours = null,
+    bool? WaterShader = null,
+    bool? HeightFog = null,
+    bool? FarLight = null,
+    int? Msaa = null);

@@ -23,6 +23,11 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident (the farthest unchanged ones are dropped past it).</param>
 /// <param name="GrassDistance">B18: how far from the eye the decorative grass layer is drawn, in blocks; it thins out over the outer half of it.</param>
 /// <param name="Shaders">B17b: whether the level turns the game's own GLSL shaders on (the settings page's Shaders row follows a change of level; every level has them on; the context may still refuse them).</param>
+/// <param name="SunFollowsHour">B17c: whether the level turns the sun following the hour on (B22's sun per band and deeper dusk; every level has it on).</param>
+/// <param name="ClimateColours">B17c: whether the level turns the climate colours on (B22's land tint; every level has them on).</param>
+/// <param name="WaterShader">B17c: whether the level turns the water shader on (the depth tint, the surface's movement and the edge): on at medium and high, off at low.</param>
+/// <param name="HeightFog">B17c: whether the level turns the fog by height on: on at medium and high, off at low.</param>
+/// <param name="FarLight">B17c: whether the level draws the far view in the chunks' light and fog (every level has it on).</param>
 /// <param name="GrassCapPercent">B18: the share of the Grass slider's density this level may reach, in percent: the slider's 100 is this share of a tuft on every grass column of the lushest biome.</param>
 public sealed record QualityPreset(
     QualityLevel Level,
@@ -41,7 +46,12 @@ public sealed record QualityPreset(
     int GrassDistance = 96,
     int GrassCapPercent = 100,
     int MultiSamples = 4,
-    bool Shaders = true)
+    bool Shaders = true,
+    bool SunFollowsHour = true,
+    bool ClimateColours = true,
+    bool WaterShader = true,
+    bool HeightFog = true,
+    bool FarLight = true)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;
@@ -49,7 +59,7 @@ public sealed record QualityPreset(
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, FarTreeLevels: 2, FarRealRadius: 560, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000, GrassDistance: 48, GrassCapPercent: 40),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true, 2200, FarRange: 4096, FarTreeLevels: 2, FarRealRadius: 560, MaxMeshedChunks: 8_000, MaxResidentChunks: 20_000, GrassDistance: 48, GrassCapPercent: 40, WaterShader: false, HeightFog: false),
         QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, FarTreeLevels: 3, FarRealRadius: 760, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000, GrassDistance: 72, GrassCapPercent: 70),
         _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, FarTreeLevels: 4, FarRealRadius: 1000, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000, GrassDistance: 96, GrassCapPercent: 100),
     };

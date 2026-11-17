@@ -124,6 +124,12 @@ public sealed record SaveDocument(
 /// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
 /// <param name="Grass">The decorative grass's density in percent (B18, the menu), 0 to 100 in steps of 10; no field is the default (<see cref="Menu.PlayerSettings.DefaultGrass"/>), so 0 (none) is written. Written only when not the default.</param>
 /// <param name="ShadersOff">True when the player turned the game's own GLSL shaders off (B17b, the menu's Shaders row: the chunks are drawn with MonoGame's effects). Written only when true, so a save of the default is byte for byte what it was.</param>
+/// <param name="SunFollowsHourOff">True when the player turned the sun following the hour off (B17c; B22's sun per band and deeper dusk). Written only when true.</param>
+/// <param name="ClimateColoursOff">True when the player turned the climate colours off (B17c; B22's land tint). Written only when true.</param>
+/// <param name="WaterShaderOff">True when the player turned the water shader off (B17c; with B22's depth tint). Written only when true.</param>
+/// <param name="HeightFogOff">True when the player turned the fog by height off (B17c). Written only when true.</param>
+/// <param name="FarLightOff">True when the player turned the far view's light off (B17c). Written only when true.</param>
+/// <param name="Msaa">The window's antialiasing in samples a pixel (0, 2, 4 or 8; B22, the menu's Graphics group since B17c); no field is the default (4). Written only when not 4, so 0 (none) is written.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -138,8 +144,24 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool SunFollowsHourOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ClimateColoursOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaterShaderOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool HeightFogOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FarLightOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Msaa = null)
 {
+    /// <summary>The window's samples a pixel in the save's settings of a new game (B22).</summary>
+    public const int DefaultMsaa = 4;
+
+    /// <summary>The samples a pixel the window may open with (0 for none).</summary>
+    public static IReadOnlyList<int> MsaaLevels { get; } = [0, 2, 4, 8];
+
+    /// <summary>The samples a pixel this setting stands for: the saved count when it is one the window offers, otherwise the default (4).</summary>
+    [JsonIgnore]
+    public int EffectiveMsaa => Msaa is { } samples && MsaaLevels.Contains(samples) ? samples : DefaultMsaa;
+
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
 
@@ -223,7 +245,13 @@ public sealed record SaveSettings(
         EffectiveViewDistance,
         PassCheat,
         EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass,
-        ShadersOff);
+        ShadersOff,
+        SunFollowsHourOff,
+        ClimateColoursOff,
+        WaterShaderOff,
+        HeightFogOff,
+        FarLightOff,
+        EffectiveMsaa == DefaultMsaa ? null : EffectiveMsaa);
 }
 
 /// <summary>

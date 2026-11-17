@@ -37,6 +37,12 @@ public sealed class PlayerSettings
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
         new(SettingId.Shaders, SettingKind.Toggle, 0, 1, 1, 1, "settingsShaders", ChoiceKeys: OnOff),
+        new(SettingId.SunFollowsHour, SettingKind.Toggle, 0, 1, 1, 1, "settingsSun", ChoiceKeys: OnOff),
+        new(SettingId.ClimateColours, SettingKind.Toggle, 0, 1, 1, 1, "settingsClimate", ChoiceKeys: OnOff),
+        new(SettingId.WaterShader, SettingKind.Toggle, 0, 1, 1, 1, "settingsWater", ChoiceKeys: OnOff),
+        new(SettingId.HeightFog, SettingKind.Toggle, 0, 1, 1, 1, "settingsHeightFog", ChoiceKeys: OnOff),
+        new(SettingId.FarLight, SettingKind.Toggle, 0, 1, 1, 1, "settingsFarLight", ChoiceKeys: OnOff),
+        new(SettingId.Msaa, SettingKind.Choice, 0, 3, 1, 2, "settingsMsaa", ChoiceKeys: ["settingsOff", "msaa2", "msaa4", "msaa8"]),
     ];
 
     private readonly int[] _values;
@@ -113,6 +119,24 @@ public sealed class PlayerSettings
     /// <summary>Whether the game's own GLSL shaders draw the chunks (B17b); the context may still refuse them, and the effects then draw.</summary>
     public bool Shaders => Get(SettingId.Shaders) == 1;
 
+    /// <summary>Whether the faces are shaded by a sun that follows the hour, with the deeper dusk (B17c; B22's sun per band).</summary>
+    public bool SunFollowsHour => Get(SettingId.SunFollowsHour) == 1;
+
+    /// <summary>Whether the grass and the oak leaves take the colour of their climate (B17c; B22's land tint).</summary>
+    public bool ClimateColours => Get(SettingId.ClimateColours) == 1;
+
+    /// <summary>Whether the water takes the water shader: the depth tint, the surface's movement and the edge (B17c).</summary>
+    public bool WaterShader => Get(SettingId.WaterShader) == 1;
+
+    /// <summary>Whether the fog is thicker in the low land (B17c).</summary>
+    public bool HeightFog => Get(SettingId.HeightFog) == 1;
+
+    /// <summary>Whether the far view is drawn in the same light and fog as the chunks (B17c).</summary>
+    public bool FarLight => Get(SettingId.FarLight) == 1;
+
+    /// <summary>The window's antialiasing in samples a pixel: 0, 2, 4 or 8 (read when the window opens).</summary>
+    public int Msaa => SaveSettings.MsaaLevels[Get(SettingId.Msaa)];
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -165,6 +189,12 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
             settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
             settings._values[(int)SettingId.Shaders] = clean.ShadersOff ? 0 : 1;
+            settings._values[(int)SettingId.SunFollowsHour] = clean.SunFollowsHourOff ? 0 : 1;
+            settings._values[(int)SettingId.ClimateColours] = clean.ClimateColoursOff ? 0 : 1;
+            settings._values[(int)SettingId.WaterShader] = clean.WaterShaderOff ? 0 : 1;
+            settings._values[(int)SettingId.HeightFog] = clean.HeightFogOff ? 0 : 1;
+            settings._values[(int)SettingId.FarLight] = clean.FarLightOff ? 0 : 1;
+            settings._values[(int)SettingId.Msaa] = SaveSettings.MsaaLevels.ToList().IndexOf(clean.EffectiveMsaa);
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -252,6 +282,36 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.Shaders] = shaders ? 1 : 0;
         }
 
+        if (launch.SunFollowsHour is { } sun)
+        {
+            settings._values[(int)SettingId.SunFollowsHour] = sun ? 1 : 0;
+        }
+
+        if (launch.ClimateColours is { } climate)
+        {
+            settings._values[(int)SettingId.ClimateColours] = climate ? 1 : 0;
+        }
+
+        if (launch.WaterShader is { } water)
+        {
+            settings._values[(int)SettingId.WaterShader] = water ? 1 : 0;
+        }
+
+        if (launch.HeightFog is { } fog)
+        {
+            settings._values[(int)SettingId.HeightFog] = fog ? 1 : 0;
+        }
+
+        if (launch.FarLight is { } far)
+        {
+            settings._values[(int)SettingId.FarLight] = far ? 1 : 0;
+        }
+
+        if (launch.Msaa is { } msaa && SaveSettings.MsaaLevels.Contains(msaa))
+        {
+            settings._values[(int)SettingId.Msaa] = SaveSettings.MsaaLevels.ToList().IndexOf(msaa);
+        }
+
         if (launch.PassOpen)
         {
             settings._values[(int)SettingId.PassCheat] = 1;
@@ -275,7 +335,13 @@ public sealed class PlayerSettings
         ViewDistance: ViewDistance ?? 0,
         PassCheat: PassCheat,
         Grass: Get(SettingId.Grass),
-        ShadersOff: !Shaders).Clamped();
+        ShadersOff: !Shaders,
+        SunFollowsHourOff: !SunFollowsHour,
+        ClimateColoursOff: !ClimateColours,
+        WaterShaderOff: !WaterShader,
+        HeightFogOff: !HeightFog,
+        FarLightOff: !FarLight,
+        Msaa: Msaa).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>
