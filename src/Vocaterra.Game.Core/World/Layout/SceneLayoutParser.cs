@@ -188,7 +188,6 @@ internal static class SceneLayoutParser
             rows,
             valley,
             GetOptionalInt(element, "rockLine") ?? 85,
-            GetOptionalInt(element, "snowLine") ?? 100,
             GetOptionalInt(element, "terrace") ?? 6,
             ceiling);
     }
