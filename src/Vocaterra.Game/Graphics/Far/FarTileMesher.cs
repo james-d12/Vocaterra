@@ -178,7 +178,9 @@ public static class FarTileMesher
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(settings);
         var started = MonotonicClock.Milliseconds();
-        return Mesh(source.Stack(key.Level, key.Tx, key.Tz), settings, key, greyKinds, started);
+        var stack = source.Stack(key.Level, key.Tx, key.Tz);
+        LodStack?[] neighbours = [source.Stack(key.Level, key.Tx + 1, key.Tz), source.Stack(key.Level, key.Tx - 1, key.Tz), source.Stack(key.Level, key.Tx, key.Tz + 1), source.Stack(key.Level, key.Tx, key.Tz - 1)];
+        return Mesh(stack, settings, key, greyKinds, started, neighbours);
     }
 
     /// <summary>The tile of a stack of sections.</summary>
@@ -187,14 +189,15 @@ public static class FarTileMesher
     /// <param name="key">The tile.</param>
     /// <param name="greyKinds">The block kinds drawn grey.</param>
     /// <param name="started">The clock when the work began.</param>
-    public static FarTileMesh Mesh(LodStack stack, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, double? started = null)
+    /// <param name="neighbours">The stacks of the four tiles at the same level beside it, +x, -x, +z, -z (a <see langword="null"/> entry or none: that side is open and gets a skirt from the tile's own ground): the tile's edge faces are culled against their voxels like faces inside, so no cliff on a border has a slot to look through.</param>
+    public static FarTileMesh Mesh(LodStack stack, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, double? started = null, LodStack?[]? neighbours = null)
     {
         ArgumentNullException.ThrowIfNull(stack);
         ArgumentNullException.ThrowIfNull(settings);
         var begin = started ?? MonotonicClock.Milliseconds();
         var textured = key.Level < settings.TexturedLevels;
         var cell = settings.CellOf(key.Level);
-        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
+        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
         var geometry = FarGeometry.Rent();
         for (var axis = 0; axis < 3; axis++)
         {
@@ -225,7 +228,7 @@ public static class FarTileMesher
         private readonly int[] _queue;
         private readonly int _length;
 
-        public Volume(LodStack stack, int cell, int skirtCells)
+        public Volume(LodStack stack, int cell, int skirtCells, LodStack?[]? neighbours = null)
         {
             Height = stack.Sections.Length * LodSection.Size;
             YBase = stack.SyMin * LodSection.Size;
@@ -270,8 +273,69 @@ public static class FarTileMesher
                 }
             }
 
+            ReadBorders(stack, neighbours);
             FindOpen((CaveDepth + cell - 1) / cell, skirtCells);
         }
+
+        // The voxels just over each side of the tile (side 0 +x, 1 -x, 2 +z, 3 -z; the row of a side is z for the x sides and x for the z sides) read from the stack of the same level beside it, and the ground of each of those columns.
+        private readonly BlockId[]?[] _border = new BlockId[]?[4];
+        private readonly int[]?[] _borderGround = new int[]?[4];
+
+        private void ReadBorders(LodStack stack, LodStack?[]? neighbours)
+        {
+            if (neighbours is null)
+            {
+                return;
+            }
+
+            for (var side = 0; side < 4 && side < neighbours.Length; side++)
+            {
+                var other = neighbours[side];
+                if (other is null || other.SyMin != stack.SyMin || other.Sections.Length != stack.Sections.Length)
+                {
+                    continue;
+                }
+
+                var blocks = new BlockId[Height * LodSection.Size];
+                var ground = new int[LodSection.Size];
+                Array.Fill(ground, int.MinValue / 2);
+                for (var s = 0; s < other.Sections.Length; s++)
+                {
+                    var section = other.Sections[s];
+                    if (section.IsUniform && section.FillBlock == BlockId.Air)
+                    {
+                        continue;
+                    }
+
+                    for (var y = 0; y < LodSection.Size; y++)
+                    {
+                        var row = (s * LodSection.Size) + y;
+                        for (var k = 0; k < LodSection.Size; k++)
+                        {
+                            var (x, z) = side switch { 0 => (0, k), 1 => (LodSection.Size - 1, k), 2 => (k, 0), _ => (k, LodSection.Size - 1) };
+                            var block = section.BlockAt(LodSection.Index(x, y, z));
+                            blocks[(row * LodSection.Size) + k] = block;
+                            if (block != BlockId.Air && block != BlockId.Water && !BlockDefinition.IsLeaves(block) && !BlockDefinition.IsTrunk(block))
+                            {
+                                ground[k] = Math.Max(ground[k], row);
+                            }
+                        }
+                    }
+                }
+
+                _border[side] = blocks;
+                _borderGround[side] = ground;
+            }
+        }
+
+        /// <summary>Whether the stack beside a side was read.</summary>
+        public bool HasBorder(int side) => _border[side] is not null;
+
+        /// <summary>The block over the edge at a side, in the row k, at height y.</summary>
+        public BlockId BorderAt(int side, int y, int k) => _border[side]![(y * LodSection.Size) + k];
+
+        /// <summary>The y of the ground (the highest solid voxel that is not a crown or a trunk) of the column beside a side, in the row k.</summary>
+        public int BorderGround(int side, int k) => _borderGround[side]![k];
 
         // The air that the outside can see: every air voxel the sky light reaches, and the air joined to it through the sides as well (an overhang's underside, a cave mouth), but only within `depth` voxels of the ground
         // over it, so the faces of caves and shafts deep under the ground are never made; along the tile's edge the air within the skirt counts too.
@@ -373,6 +437,21 @@ public static class FarTileMesher
         {
             var y = Surface(x, z);
             return y >= 0 && y < Height ? Blocks[At(x, y, z)] : BlockId.Air;
+        }
+
+        // The y of the highest solid voxel of a column that is not a crown or a trunk: the ground, from which a skirt hangs.
+        public int Ground(int x, int z)
+        {
+            for (var y = Top; y >= Bottom; y--)
+            {
+                var block = Blocks[At(x, y, z)];
+                if (block != BlockId.Air && block != BlockId.Water && !BlockDefinition.IsLeaves(block) && !BlockDefinition.IsTrunk(block))
+                {
+                    return y;
+                }
+            }
+
+            return int.MinValue / 2;
         }
 
         // The y of the highest solid voxel of a column (found once).
@@ -550,12 +629,37 @@ public static class FarTileMesher
     {
         var v = c.Volume;
         var inside = v.In(to.X, to.Y, to.Z);
-        if (!inside && to.Y >= 0 && to.Y < v.Height && (block == BlockId.Water || at.Y < v.Surface(at.X, at.Z) - c.SkirtCells))
+        var other = v.BlockAt(to.X, to.Y, to.Z);
+        if (!inside && to.Y >= 0 && to.Y < v.Height)
         {
-            return null; // over the tile's edge: only near the surface (a skirt), and never a wall of water
+            if (block == BlockId.Water)
+            {
+                return null; // never a wall of water over a tile's edge
+            }
+
+            var border = axis == 0 ? (positive ? 0 : 1) : (positive ? 2 : 3);
+            if (v.HasBorder(border))
+            {
+                // Beside a tile of the same level: a face is culled by the voxel over the edge like one inside; below the neighbour's ground it is drawn down to a skirt's depth (hiding a step to a coarser neighbour), never deeper.
+                var k = axis == 0 ? at.Z : at.X;
+                other = v.BorderAt(border, at.Y, k);
+                var ground = v.BorderGround(border, k);
+                if (at.Y < ground - c.SkirtCells || (other is not (BlockId.Air or BlockId.Water) && at.Y > ground))
+                {
+                    return null;
+                }
+
+                if (other is not (BlockId.Air or BlockId.Water))
+                {
+                    other = BlockId.Air; // within the skirt under the neighbour's ground: drawn
+                }
+            }
+            else if (at.Y < v.Ground(at.X, at.Z) - c.SkirtCells)
+            {
+                return null; // no tile beside it: a skirt from its own ground
+            }
         }
 
-        var other = v.BlockAt(to.X, to.Y, to.Z);
         if (other == BlockId.Air && inside && !v.IsOpen(to.X, to.Y, to.Z))
         {
             return null; // air sealed under the ground: nothing outside sees it

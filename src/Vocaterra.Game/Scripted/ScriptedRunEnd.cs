@@ -37,6 +37,9 @@ public sealed class ScriptedRunEnd
     /// <summary>The tick at which a run that never settles takes its picture anyway (five minutes of game time).</summary>
     public const int RunawayTicks = 60 * 60 * 5;
 
+    /// <summary>The longest, in milliseconds of the wall clock, that a settled picture waits for the far tiles to reach the card.</summary>
+    public const double UploadWaitLimitMilliseconds = 120_000;
+
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly CheckBattery _checks;
@@ -51,6 +54,7 @@ public sealed class ScriptedRunEnd
     private readonly Action<long, string>? _logRunaway;
     private bool _runaway;
     private int _settled;
+    private double? _uploadWaitStart;
     private bool _shown;
     private int _sizeFrames;
     private int _framesAtSize;
@@ -211,12 +215,25 @@ public sealed class ScriptedRunEnd
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
     // that is not waiting for its recording; a battery that rests is ready too, and a runaway run takes its picture anyway.
+    // A settled picture waits until every far tile it lists is on the card, but never for ever: after UploadWaitLimitMilliseconds of the wall clock it is taken with what is there (the run's stream line says how many were not).
+    private bool FarOnTheCard(StreamedWorldHost? streaming)
+    {
+        if (streaming is null || streaming.Far.Unuploaded == 0)
+        {
+            _uploadWaitStart = null;
+            return true;
+        }
+
+        _uploadWaitStart ??= MonotonicClock.Milliseconds();
+        return MonotonicClock.Milliseconds() - _uploadWaitStart > UploadWaitLimitMilliseconds;
+    }
+
     private bool ReadyForPicture(StreamedWorldHost? streaming)
     {
         var tick = _session.Simulation.Tick;
         return (tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
                 && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking }
-                && (streaming is null || streaming.Far.Unuploaded == 0)) // a settled picture waits until every far tile it lists is on the card
+                && FarOnTheCard(streaming)) // a settled picture waits until every far tile it lists is on the card
             || (_checks.RestsForShot && _settled >= SettleTicks)
             || RunawayAt(tick);
     }
