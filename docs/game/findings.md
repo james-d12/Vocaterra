@@ -2867,3 +2867,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   12 to 14); interleaved runs showed it was other agents' load, B21 equal or better every run. Reads by the simulation outside the resident
   set do generate chunks (about 50 at a start, about 100 over three teleports; none while walking): counted in `--stream-stats`. Two base
   bugs seen: a scripted `--place antorcha@467,61,153` shows no torch, and `--wait` never returns after a guide dialogue opens. Gated clean.
+- **B07f, the far store's edit layer (2026-11-17, `2f995552`).** Placed and broken blocks now reach the far view: an edit marks its
+  section and climbs the levels, and a save's edits load into the far store, so a 4x4 plank tower 50 high is a brown post from 1 km and
+  from a mountain 1.3 km away, and absent with an empty save. Six of the review's far-view races fixed with tests (C1 to C3, C6, C7, C10;
+  C6's disposal now spares the drawn, wanted and pending tiles B07e added). A "void" under the far land from a high stand was an early
+  shot, taken at tick 40 before the far tiles were on the card: `--shot` now waits for them, bounded at 120 s. Merging B07e exposed a
+  hang: a block placed in the near zone left the far tile over it dirty forever, so every scripted settle waited out its 300 s bound;
+  `Stale` now counts only needed tiles. Four of its tests failed under load (they waited on wall time); they now wait on their condition
+  or settle with no workers (hang guards of 30 and 60 minutes, which B24 shortens). Gated clean.
