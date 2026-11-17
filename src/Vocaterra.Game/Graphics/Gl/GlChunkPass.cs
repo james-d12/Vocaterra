@@ -285,24 +285,26 @@ public sealed unsafe class GlChunkPass : IDisposable
         return new GlChunkBuffer(_gl, handle, quads, lightHandle);
     }
 
-    /// <summary>Uploads a far-view tile's mesh (B17c): the vertices (<c>VertexPositionColorTexture</c>, 24 bytes each) and the indices (16-bit, or 32-bit when <paramref name="indices32"/> is given) into buffers of the pass's own. Binds the copy-write target only.</summary>
-    /// <param name="vertices">The tile's vertices.</param>
-    /// <param name="indices16">The 16-bit indices, or <see langword="null"/>.</param>
-    /// <param name="indices32">The 32-bit indices when there are no 16-bit ones.</param>
-    public GlFarBuffers UploadFar(ReadOnlySpan<VertexPositionColorTexture> vertices, ushort[]? indices16, int[]? indices32)
+    /// <summary>Uploads a far-view tile's mesh (B17c): the vertices (<c>VertexPositionColorTexture</c>, 24 bytes each) and the indices (16-bit, or 32-bit when <paramref name="indices16"/> is <see langword="null"/>) into buffers of the pass's own. The arrays may be longer than the counts (the mesher's pooled arrays). Binds the copy-write target only.</summary>
+    /// <param name="vertices">The vertices' array.</param>
+    /// <param name="vertexCount">How many of them are the tile's.</param>
+    /// <param name="indices16">The 16-bit indices' array, or <see langword="null"/>.</param>
+    /// <param name="indices32">The 32-bit indices' array when there are no 16-bit ones.</param>
+    /// <param name="indexCount">How many indices the tile has.</param>
+    public GlFarBuffers UploadFar(VertexPositionColorTexture[] vertices, int vertexCount, ushort[]? indices16, int[]? indices32, int indexCount)
     {
         var vertexHandle = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, vertexHandle);
-        _gl.BufferData(BufferTargetARB.CopyWriteBuffer, vertices, BufferUsageARB.StaticDraw);
+        _gl.BufferData(BufferTargetARB.CopyWriteBuffer, new ReadOnlySpan<VertexPositionColorTexture>(vertices, 0, vertexCount), BufferUsageARB.StaticDraw);
         var indexHandle = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, indexHandle);
         if (indices16 is not null)
         {
-            _gl.BufferData<ushort>(BufferTargetARB.CopyWriteBuffer, indices16, BufferUsageARB.StaticDraw);
+            _gl.BufferData(BufferTargetARB.CopyWriteBuffer, new ReadOnlySpan<ushort>(indices16, 0, indexCount), BufferUsageARB.StaticDraw);
         }
         else
         {
-            _gl.BufferData<int>(BufferTargetARB.CopyWriteBuffer, indices32!, BufferUsageARB.StaticDraw);
+            _gl.BufferData(BufferTargetARB.CopyWriteBuffer, new ReadOnlySpan<int>(indices32!, 0, indexCount), BufferUsageARB.StaticDraw);
         }
 
         _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);

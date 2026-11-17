@@ -46,3 +46,8 @@ passed the new one-level test and the rivers but failed `TerrainTuningTests...No
 retry gave the same. Reverted to `f4a153b5` (no commit); the lake levels planned as B02d.
 Gate on `f4a153b5` merged into `1afd94e2` (about 11:35): failed on B21's `ResidencyInFlightTests...TheyAllocateNothingOnTheGameThread`
 (workers 0 and 2: 64,000 bytes, expected 0): B02c's per-frame `WorldQuery` path allocates. Merge reset; sent back.
+
+Round 5 (about 12:40 UTC), head `a35863e1` (Haiku finisher after the agent stopped twice before its suite ended): `IsRead` and `Warm`
+built `new[] { -_look, 0, _look }` arrays per call (160 bytes, 400 calls a test = 64,000); plain loops now; a steady-state allocation test.
+Second gate (about 14:20): merged `4445e907`; 12,565 passed, 1 failed (`SceneBuildTimeTests`, 3,026 ms against 3,000 wall clock at load 15;
+passed alone): kept.

@@ -195,7 +195,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -214,7 +214,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _sim = session.Simulation;
         HoldTheClock(options);
-        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
+        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout, scene.Places);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
@@ -242,6 +242,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _arm = new ArmPresenter(_sim, _isSolid);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
+        ApplyFarSettings(); // B07d: the far view's detail settings, before the renderer is made
+        _drawer.ApplyWorkers(_settings.Workers); // B07d: the worker threads the pool starts with
         _drawer.ApplyGrass(_settings.Get(SettingId.Grass)); // the decorative grass's density (B18)
         _drawer.ApplyShaders(_settings.Shaders); // the game's own GLSL shaders for the chunks (B17b)
         if (options.Quality is not null)
@@ -819,7 +821,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.PlotLine = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.PlotLine);
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere, _sim.Weather.Data.CloudAltitude)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
@@ -1088,6 +1090,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _settings.Set(SettingId.TextSize, _settings.Get(SettingId.TextSize) >= spec.Max ? spec.Min : _settings.Get(SettingId.TextSize) + 1);
     }
 
+    // The far view's settings (B07d) from the player's settings, over the quality's preset.
+    private void ApplyFarSettings() => _drawer.ApplyFar(_settings.Get(SettingId.FarDistance), _settings.Get(SettingId.FarDetail), _settings.Get(SettingId.FarTrees), _settings.Get(SettingId.FarTextures), _settings.Get(SettingId.FarExact));
+
     // What a changed setting does to the running game (the menu issue): each is applied at once, and the next save keeps it. The simulation hears only the needs' two.
     private void ApplySetting(SettingId id)
     {
@@ -1117,6 +1122,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.Shaders:
                 _drawer.ApplyShaders(_settings.Shaders);
                 Console.WriteLine($"shaders: {(_settings.Shaders ? "on" : "off")}; the chunks are drawn {(_drawer.ShadersInUse ? "through the game's own GLSL program" : "with the effects")}");
+                break;
+            case SettingId.FarDistance or SettingId.FarDetail or SettingId.FarTrees or SettingId.FarTextures or SettingId.FarExact:
+                ApplyFarSettings();
+                Console.WriteLine($"far view: {(_drawer.Preset.FarRange > 0 ? $"to {_drawer.Preset.FarRange} blocks" : "off")}, detail {_settings.Get(SettingId.FarDetail)} percent, trees to level {_drawer.Preset.FarTreeLevels}, textured levels {_drawer.Preset.FarTexturedLevels}, real chunks to {_drawer.Preset.FarRealRadius} blocks");
+                break;
+            case SettingId.Workers:
+                _drawer.ApplyWorkers(_settings.Workers);
+                Console.WriteLine($"worker threads: {(_settings.Workers == 0 ? "auto" : _settings.Workers.ToString(System.Globalization.CultureInfo.InvariantCulture))}{(_drawer.Streaming is { } streaming ? $", {streaming.Pool.Workers} running" : string.Empty)}");
                 break;
             case SettingId.Grass:
                 _drawer.ApplyGrass(_settings.Get(SettingId.Grass));

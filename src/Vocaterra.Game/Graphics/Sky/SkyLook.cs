@@ -31,6 +31,7 @@ namespace Vocaterra.Game.Graphics.Sky;
 /// <param name="Fog">How thick the fog is, 0 to 1 (the weather's channel): the renderer brings the fog's distances in by it (<see cref="SkyWeather.FogReach"/>).</param>
 /// <param name="CloudCover">The weather's cloud cover, 0 to 1, that <see cref="CloudField"/> is generated at.</param>
 /// <param name="TwilightLight">How much of <see cref="SunLight"/> is the twilight keyframe's (the twilight's weight times the sunlight): B17c's <see cref="SunModel.Colour"/> swaps the dusk's deeper light for the older one by it.</param>
+/// <param name="CloudAltitude">The height of the clouds' undersides in blocks (<c>cloudAltitude</c> of <c>game/weather.json</c>, B14) that <see cref="CloudField"/> is generated at.</param>
 public readonly record struct SkyLook(
     (byte R, byte G, byte B) DomeHorizon,
     (byte R, byte G, byte B) DomeMiddle,
@@ -50,7 +51,8 @@ public readonly record struct SkyLook(
     LightBand Band,
     float Fog = 0f,
     double CloudCover = SkyWeather.FairCover,
-    float TwilightLight = 0f)
+    float TwilightLight = 0f,
+    float CloudAltitude = CloudField.Altitude)
 {
     /// <summary>The hour at which the look is the twilight keyframe itself (the middle of a dusk): what <c>--dusk</c> holds the clock at.</summary>
     public const double DuskHour = 21;
@@ -104,7 +106,8 @@ public readonly record struct SkyLook(
             LightBands.For(input.Phase, input.Daylight),
             (float)Math.Clamp(input.Fog, 0, 1),
             Math.Clamp(input.CloudCover, 0, 1),
-            blend.Twilight * sunlight);
+            blend.Twilight * sunlight,
+            (float)input.CloudAltitude);
     }
 
     /// <summary>The look the game has always had by day: noon, the day keyframe itself (the sun at 56 degrees is high enough for the whole of the noon's look).</summary>

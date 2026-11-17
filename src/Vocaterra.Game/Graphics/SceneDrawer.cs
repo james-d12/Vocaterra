@@ -12,6 +12,7 @@ using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Colour;
+using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Graphics.Sky;
@@ -93,7 +94,35 @@ public sealed class SceneDrawer : IDisposable
     /// <param name="viewDistance">The draw distance in blocks, or <see langword="null"/> for the level's own.</param>
     public void ApplyQuality(QualityLevel level, int? viewDistance = null)
     {
-        Preset = viewDistance is { } blocks ? QualityPreset.For(level).WithViewDistance(blocks) : QualityPreset.For(level);
+        _level = level;
+        _viewDistance = viewDistance;
+        Rebuild();
+    }
+
+    private QualityLevel _level = QualityLevel.High;
+    private int? _viewDistance;
+    private (int Distance, int Detail, int Trees, int Textures, int Exact) _far = (0, 100, 0, 2, 0);
+
+    /// <summary>
+    /// Takes the far view's settings (B07d; the run's start, then the settings page's rows): the distance in km (0 is the quality's own), the detail in percent, the single trees, the textured levels and the real-chunk radius, each as the setting counts it
+    /// (<see cref="FarChoices"/>). The preset in force changes and the far view follows at once, as for a quality change.
+    /// </summary>
+    /// <param name="distanceKm">The distance, 0 for the quality's own.</param>
+    /// <param name="detailPercent">The detail in percent.</param>
+    /// <param name="trees">The trees setting.</param>
+    /// <param name="textures">The textures setting.</param>
+    /// <param name="exact">The real-chunk setting.</param>
+    public void ApplyFar(int distanceKm, int detailPercent, int trees, int textures, int exact)
+    {
+        _far = (distanceKm, detailPercent, trees, textures, exact);
+        Rebuild();
+    }
+
+    // The preset of the quality, the draw distance and the far settings; the renderer and the streaming host follow it.
+    private void Rebuild()
+    {
+        var preset = _viewDistance is { } blocks ? QualityPreset.For(_level).WithViewDistance(blocks) : QualityPreset.For(_level);
+        Preset = FarChoices.Apply(preset, _far.Distance, _far.Detail, _far.Trees, _far.Textures, _far.Exact);
         if (_options.FarViewRange is { } farRange)
         {
             Preset = Preset.WithFarRange(farRange); // --far-view
@@ -106,6 +135,25 @@ public sealed class SceneDrawer : IDisposable
             _renderer.SetFarView(_streaming.Far);
         }
     }
+
+    private int _workersSetting;
+
+    /// <summary>
+    /// Takes the Worker threads setting (B07d; 0 is Auto): before <see cref="Load"/> it chooses the count the pool starts with, after it the pool is resized at once (new threads start, surplus ones end after the job each is on: no queued job is lost), unless the run is held
+    /// to a count (a scripted run, <c>--prefetch</c>).
+    /// </summary>
+    /// <param name="setting">The setting's value: 0 for Auto, else 1 to 8.</param>
+    public void ApplyWorkers(int setting)
+    {
+        _workersSetting = setting;
+        if (WorkerPlan.Change(_options.Prefetch, _options.IsScreenshotRun, setting, Environment.ProcessorCount) is { } count)
+        {
+            _ = _streaming?.Pool.Resize(count);
+            _ = _meshPool?.Resize(count);
+        }
+    }
+
+    private int WorkersAtStart() => WorkerPlan.For(_options.Prefetch, _options.Workers, _options.IsScreenshotRun, _workersSetting, Environment.ProcessorCount);
 
     private int _grassPercent;
     private GraphicsEffects _effects = GraphicsEffects.All;
@@ -196,10 +244,6 @@ public sealed class SceneDrawer : IDisposable
     /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
     public StreamedWorldHost? Streaming => _streaming;
 
-    // The far view's sections are kept on disk under the world's seed, generator version and world-generation hash (B07c): another seed or a changed world starts again.
-    private static string LodWorldName(Vocaterra.Game.Core.World.WorldStateHeader header) =>
-        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
-
     /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
     public GreyscaleWorld? Colours => _colours;
 
@@ -224,7 +268,7 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere, _session.Simulation.Weather.Data.CloudAltitude)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
         _renderer.SetGrass(_grassPercent);
         _renderer.SetEffects(_effects);
         _device = device;
@@ -235,10 +279,10 @@ public sealed class SceneDrawer : IDisposable
 
         SwitchShaders();
         _renderer.SetFigures(_figures);
-        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
+        _streaming = StreamedWorldHost.For(_session.Scene, Preset, WorkersAtStart(), StreamedWorldHost.LodWorldName(_session.Simulation.StateHeader));
         _streaming?.SetClimateColours(_effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
         _renderer.SetFarView(_streaming?.Far);
-        _meshPool = _streaming is null ? new JobPool(_options.Prefetch ?? JobPool.MaxWorkers) : null; // the bounded valley has no streaming host: its meshes get a pool of their own (the two workers are all there are, whichever world)
+        _meshPool = _streaming is null ? new JobPool(WorkersAtStart()) : null; // the bounded valley has no streaming host: its meshes get a pool of their own
         _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);

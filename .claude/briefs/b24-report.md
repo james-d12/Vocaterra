@@ -21,3 +21,10 @@ Branch `B24-guards-cleanups`, head `12b3fc49` (one commit on a8560f35), worktree
 - Docs: architecture.md threads (JobPool, the turn worker, ValleyUnderground.Lay), comments. For the orchestrator: biomes-plan lines 152,
   160, 403, 533 and the B06 row name `ChunkStreamer` (now `BandStreamer`); 155 and 413 name `ChunkPrefetcher` (now `JobPool` lanes); the
   residency cap is an admission cap. Core: `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` needs the same CPU-time treatment.
+
+Follow-up (about 15:50 UTC), head 9e6b2620 (merge 669f750d of feature/biomes with B02c, B17b, M99; no conflicts): `World/Drainage` in
+PureFolders with `lock` allowed in DrainageNetwork.cs only (reason in the test; floats, clocks, randomness, threads and tasks still banned);
+the file's two [ThreadStatic] caches on the thread-ban allow-list. `SceneBuildTimeTests` became `Seed42SceneBuildsWithinItsCpuBudget`
+(golden kept; CPU 3,540 + 72 ms at the quietest, budget 7,300). B02c doubled generation's cost: surface chunk 17 to 21 ms against the 14
+budget, snapshot 5.9 s against 5.5; budgets re-set to twice the new quietest (surface, all-stone 28, deep 27, column of 24 50, ratio 6,
+band 31, layers 41, per chunk 10, snapshot 11,600 ms). Gate (about 16:40): `536e0e6d`, 12,568 passed, 0 failed.

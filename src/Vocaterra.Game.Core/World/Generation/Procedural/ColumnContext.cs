@@ -164,7 +164,7 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
         var k = Index(x, z);
         if (!_classified[k])
         {
-            _biomes[k] = World.Table.Classify(_climate[k], _shapes[k].Height, x, z, _shapes[k].Water);
+            _biomes[k] = World.Table.Classify(_climate[k], _shapes[k].Height, x, z, _shapes[k].Water, _shapes[k].RiverWeight);
             _classified[k] = true;
         }
 

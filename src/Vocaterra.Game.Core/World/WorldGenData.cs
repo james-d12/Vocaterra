@@ -87,8 +87,8 @@ public sealed record TerraceSpec(int Step, int FromHeight, int ToHeight, int Rid
 public sealed record CragSpec(int Amplitude, int Cell, int RidgesFrom, int RidgesTo, int HeightFrom, int HeightTo);
 
 /// <summary>The rivers: carved where the river field is near zero.</summary>
-/// <param name="Width">How far from zero, in thousandths, the river field still carves.</param>
-/// <param name="Depth">How deep the water stands in the middle of the river, in blocks: the bed is this far under the water's surface.</param>
+/// <param name="Width">The width of the narrowest river, in blocks: the distance from the centre line over which the carve fades out, so the water itself is about half as wide (B02c: a river's width grows with the ground that drains into it, up to <see cref="DrainageSpec.WidthMax"/>).</param>
+/// <param name="Depth">How deep the water stands in the middle of the narrowest river, in blocks: the bed is this far under the water's surface (B02c: deeper downstream, up to <see cref="DrainageSpec.DepthMax"/>).</param>
 /// <param name="FadeFromHeight">The land height, in blocks, above which a river begins to fade out.</param>
 /// <param name="FadeToHeight">The land height, in blocks, where it is gone.</param>
 /// <param name="SeaFadeFrom">The continentalness, in thousandths, below which a river is gone (the sea needs no river).</param>
@@ -103,9 +103,9 @@ public sealed record RiverSpec(int Width, int Depth, int FadeFromHeight, int Fad
 /// its sides are slopes and not walls. The water follows the valley down (see <see cref="WaterSpec"/>); the river begins where the ground fades it out.
 /// </summary>
 /// <param name="From">The land height, in blocks, above which the valley widens and the floor rises with the ground.</param>
-/// <param name="WidthPer10Blocks">The thousandths of the river field the valley widens by for every 10 blocks of ground above <paramref name="From"/>.</param>
+/// <param name="WidthPer100Blocks">The blocks the river's width grows by for every 100 blocks of ground above <paramref name="From"/> (the valley widens as the river climbs).</param>
 /// <param name="DepthGrowth">How much deeper the valley is, in thousandths of a block, for every block of ground above <paramref name="From"/>.</param>
-public sealed record RiverValleySpec(int From, int WidthPer10Blocks, int DepthGrowth);
+public sealed record RiverValleySpec(int From, int WidthPer100Blocks, int DepthGrowth);
 
 /// <summary>
 /// The level of the water that is not the sea (B02b round 3): every river and lake has a surface of its own. It is the smooth ground of the column (before the hills) less the hills' amplitude, <see cref="Clearance"/> blocks and the valley's depth,
@@ -123,6 +123,26 @@ public sealed record WaterSpec(int Step, int Clearance);
 /// <param name="Octaves">The noise's octaves.</param>
 /// <param name="MinShare">The thousandths of the peaks' height at a saddle.</param>
 public sealed record PeakVariationSpec(int Cell, int Octaves, int MinShare);
+
+/// <summary>
+/// The drainage network (B02c, D-game-34 item 33): the rivers and lakes of the free world are not noise lines but the drainage of the land. On a grid of nodes <see cref="Spacing"/> blocks apart every node's water level is worked out
+/// (the smooth ground less the hills' amplitude, the clearance and the valley's depth, <see cref="WaterSpec"/>); the water of every node runs to the lowest neighbour by a priority flood from the sea, which fills each basin to the level of its
+/// outlet (a lake) and leaves every other node a lower neighbour downstream; a node that more than <see cref="SourceArea"/> nodes drain through is a river. The network is worked out for one cell of <see cref="Cell"/> blocks at a time over a window
+/// <see cref="Margin"/> blocks wider on every side, so it is a pure function of the seed and the same wherever it is first asked for.
+/// </summary>
+/// <param name="Spacing">The distance, in blocks, between two nodes (at least 8, and a multiple of the climate's lattice).</param>
+/// <param name="MaxNodes">The most land nodes one landmass may have: a world with no sea round its land is cut here and its water runs out at the cut.</param>
+/// <param name="SourceArea">How many nodes must drain through a node for a river to begin there.</param>
+/// <param name="FullArea">How many nodes must drain through a node for its river to be full size (wider and deeper rivers have more).</param>
+/// <param name="WidthMax">The width of the largest river, in blocks (see <see cref="RiverSpec.Width"/>).</param>
+/// <param name="DepthMax">The depth of the largest river, in blocks.</param>
+/// <param name="Jitter">How far, in blocks, a node is moved from its grid point, so the rivers do not run along the grid.</param>
+/// <param name="Bow">How far, in thousandths of a reach's length, a river bows aside between two nodes.</param>
+/// <param name="LakeBasin">How deep, in blocks, the lake field dents the land the drainage runs over: a dent the land's slope does not fill is a basin that fills to its outlet.</param>
+/// <param name="Relief">How far, in blocks, a smooth noise of <paramref name="ReliefCell"/> blocks moves the surface the water is routed over (not the water's level): on a plain whose smooth ground has no valleys the water would run in parallel lines that never meet, and the relief gathers it into rivers that join.</param>
+/// <param name="ReliefCell">The relief noise's cell, in blocks.</param>
+/// <param name="RegionClearance">How far, in blocks, beyond a region's blend margin no river and no lake begins (the headwaters start outside it).</param>
+public sealed record DrainageSpec(int Spacing, int MaxNodes, int SourceArea, int FullArea, int WidthMax, int DepthMax, int Jitter, int Bow, int LakeBasin, int Relief, int ReliefCell, int RegionClearance);
 
 /// <summary>The lakes: inland basins pulled down towards a shallow bed where the lake field is high, the land low and the erosion calm.</summary>
 /// <param name="Cell">The lake field's cell in blocks.</param>
@@ -171,6 +191,7 @@ public sealed record CoastSpec(int PeaksFrom, int PeaksTo, int HillsFrom, int Hi
 /// <param name="WaterData">The level of the rivers' and lakes' water (the file's <c>water</c> section; none: <see cref="WaterSpec"/>'s default of a step of 3 and a clearance of 2).</param>
 /// <param name="CoastData">The coast's fading of the peaks and the hills (the file's <c>coast</c> section; none when the file has none).</param>
 /// <param name="PeakVariation">How the peaks' height varies along a range (the file's <c>peakVariation</c> section; none: it does not).</param>
+/// <param name="DrainageData">The drainage network the rivers and lakes are made of (the file's <c>drainage</c> section; none: the world has no river and no lake).</param>
 public sealed record HeightData(
     IReadOnlyList<SplinePoint> Base,
     IReadOnlyList<SplinePoint> RangeFactor,
@@ -184,7 +205,8 @@ public sealed record HeightData(
     LakeSpec Lakes,
     CoastSpec? CoastData = null,
     PeakVariationSpec? PeakVariation = null,
-    WaterSpec? WaterData = null)
+    WaterSpec? WaterData = null,
+    DrainageSpec? DrainageData = null)
 {
     /// <summary>The water: the file's section, or a step of 3 and a clearance of 2.</summary>
     public WaterSpec Water => WaterData ?? new WaterSpec(3, 2);
@@ -290,7 +312,7 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                 Int(rivers, "fadeToHeight"),
                 Int(rivers, "seaFadeFrom"),
                 Int(rivers, "seaFadeTo"),
-                rivers.TryGetProperty("valley", out var valley) ? new RiverValleySpec(Int(valley, "from"), Int(valley, "widthPer10Blocks"), Int(valley, "depthGrowth")) : null,
+                rivers.TryGetProperty("valley", out var valley) ? new RiverValleySpec(Int(valley, "from"), Int(valley, "widthPer100Blocks"), Int(valley, "depthGrowth")) : null,
                 rivers.TryGetProperty("peakFadeFrom", out var peakFadeFrom) ? peakFadeFrom.GetInt32() : 100000,
                 rivers.TryGetProperty("peakFadeTo", out var peakFadeTo) ? peakFadeTo.GetInt32() : 100001),
             new LakeSpec(
@@ -313,6 +335,9 @@ public sealed record WorldGenData(VerticalRange Vertical, ClimateData Climate, H
                 : null,
             height.TryGetProperty("water", out var water)
                 ? new WaterSpec(Int(water, "step"), Int(water, "clearance"))
+                : null,
+            height.TryGetProperty("drainage", out var drainage)
+                ? new DrainageSpec(Int(drainage, "spacing"), Int(drainage, "maxNodes"), Int(drainage, "sourceArea"), Int(drainage, "fullArea"), Int(drainage, "widthMax"), Int(drainage, "depthMax"), Int(drainage, "jitter"), Int(drainage, "bow"), Int(drainage, "lakeBasin"), Int(drainage, "relief"), Int(drainage, "reliefCell"), Int(drainage, "regionClearance"))
                 : null);
     }
 

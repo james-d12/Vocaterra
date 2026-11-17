@@ -27,7 +27,7 @@ public sealed class CaveTourTests
         var kinds = options.VoxelSteps.Select(static s => s.Kind).ToList();
         Assert.Equal(3, kinds.Count(static k => k == VoxelStepKind.Teleport));
         Assert.Equal(4, kinds.Count(static k => k == VoxelStepKind.TeleportTo));
-        Assert.Contains(options.VoxelSteps, static s => s.Kind == VoxelStepKind.Place && s.X == 467 && s.Y == 61);
+        Assert.Contains(options.VoxelSteps, static s => s.Kind == VoxelStepKind.Place && s.X == 467 && s.Y == 62);
         Assert.True(options.Script.Count(static s => s.Kind == ScriptStepKind.Shot) >= 7);
     }
 
@@ -64,6 +64,12 @@ public sealed class CaveTourTests
         Assert.InRange(depths[3], 8, 24); // the winding passage, some way down
         Assert.InRange(depths[4], 15, 30); // the landing: a cave 20 or more blocks under the mouth
         Assert.True(depths[5] > 100 && depths[6] > 120, $"the cavern and the lava lake are deep ({string.Join(",", depths)})");
+        foreach (var torch in options.VoxelSteps.Where(static s => s.Kind == VoxelStepKind.Place))
+        {
+            Assert.Equal(BlockId.Air, sim.Grid.GetBlock(torch.X, torch.Y, torch.Z)); // a torch goes in an open cell (the report of a place step names the block, not the torch, so a solid cell would pass unseen)
+            Assert.True(sim.Grid.IsSolid(torch.X, torch.Y - 1, torch.Z), "with ground under it");
+        }
+
         Assert.True(sim.Grid.GetBlock(528, -54, 190) == BlockId.Lava || Enumerable.Range(-6, 13).Any(d => sim.Grid.GetBlock(528 + d, -54, 190) == BlockId.Lava || sim.Grid.GetBlock(528, -54, 190 + d) == BlockId.Lava), "lava lies at the last stop");
     }
 }

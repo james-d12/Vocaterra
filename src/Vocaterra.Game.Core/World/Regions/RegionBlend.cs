@@ -49,6 +49,18 @@ internal sealed class RegionBlend
     /// <summary>The sea level.</summary>
     public int SeaLevel => _seaLevel;
 
+    /// <summary>
+    /// Where no river and no lake may begin (B02c): inside a region's blend margin and the clearance beyond it (D-game-34 item 18: the headwaters start outside the margin, on the slopes beyond). The drainage network
+    /// treats such a node as a wall, so the water runs round it.
+    /// </summary>
+    /// <param name="clearance">The blocks beyond the margin that are kept free.</param>
+    public Func<int, int, bool> Excluder(int clearance) =>
+        (x, z) =>
+        {
+            var (region, distance) = Regions.Nearest(x, z);
+            return region is not null && distance < Data.Margin + clearance;
+        };
+
     /// <summary>The weight, 0 to <see cref="IntMath.One"/>, of the region's edge on a column that far outside (0 at the margin and beyond).</summary>
     /// <param name="distance">The distance from the footprint, at least 1.</param>
     public int EdgeWeight(int distance)
@@ -116,6 +128,9 @@ internal sealed class BlendedClimateSampler : IClimateSampler
     {
         return _blend.Bias(x, z, _inner.At(x, z));
     }
+
+    /// <inheritdoc />
+    public ClimateSample AtLatticePoint(int x, int z) => _blend.Bias(x, z, _inner.AtLatticePoint(x, z));
 
     /// <inheritdoc />
     public int TemperatureAt(int x, int y, int z) => _inner.TemperatureAt(x, y, z);

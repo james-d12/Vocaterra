@@ -93,7 +93,8 @@ public sealed record BiomeData(int DitherTemperature, int DitherHumidity, IReadO
             row.TryGetProperty("snowCap", out var snow) && snow.GetBoolean(),
             row.TryGetProperty("baseTemperature", out var baseTemperature) ? baseTemperature.GetInt32() : null,
             row.TryGetProperty("surfaceStrategy", out var surface) ? surface.GetString() ?? string.Empty : StrategyRegistry.PlainSurface,
-            row.TryGetProperty("decorStrategy", out var decorStrategy) ? decorStrategy.GetString() ?? string.Empty : StrategyRegistry.UndergrowthDecoration);
+            row.TryGetProperty("decorStrategy", out var decorStrategy) ? decorStrategy.GetString() ?? string.Empty : StrategyRegistry.UndergrowthDecoration,
+            row.TryGetProperty("ambient", out var ambient) ? [.. ambient.EnumerateObject().Select(static p => new BedShare(p.Name, p.Value.GetInt32()))] : null);
     }
 
     private static BiomeConditions ParseWhen(JsonElement when) => new(

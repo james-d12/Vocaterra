@@ -24,3 +24,10 @@ minutes on B14 and on feature/biomes (at B17b's launch) alike: the simulation ho
 teleport of a cold run waited 5 to 13 minutes on a loaded machine while the far land was made.
 Suite 12,585 passed, 1 failed (`NamePlatesTests...`, game process exit 139 under load; 9 of 9 alone); build, format, validate, lint
 clean; the last two commits (scripts, tests, docs) checked alone, not by a full run. The orchestrator killed about 20 wait loops it left.
+
+Round 2 (about 18:30 UTC), head 0e277f7e: merged feature/biomes 08bbfeb0 (B02c, B07f, B17b); conflicts in biomes.json (B02c's river
+range kept with `ambient`), manifest.json and save-v9.json (re-hashed: bundle 8818e16a..., state digest B02c's ae5f5d0e...),
+scripted-runs.md. ProceduralWaterSeedsTests 21 of 21 on B02c's rivers. Tour stops re-picked for B02c's river (1404,-72), lake
+(4528,1880), dense woodland (466,-1688). Torch pictures 20 and 21 retaken after B07f's fix (torch and warm light shown). Not retaken: 07,
+12, 14 (a full tour re-run stalled at the beach stop, 30-minute bound). Suite 12,638 passed, 4 failed (BiomeTourTests fixed; Pristine and
+an M98 fuzz test passing alone). Gate (about 19:25): `50d919a1`, 12,714 passed, 1 failed (the core lexicon wall-clock test, passing alone).

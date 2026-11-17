@@ -1503,3 +1503,12 @@ this file. What is still open is collected in [open-items](../open-items.md).
   `HomographRerollTests` section 7 (the analyzer's two readings, 5 000 draws of the pattern analyzed clean with their slots, the neighbour pattern with no `[ADV]` still draws
   `alrededor`). The silent-h seed `a2RKk5N6Ibt4` is untouched. Plan row text proposed: "M98 done: a realisation-rate gate (floors per pattern family), the fixed-seed
   coverage test truly fixed (one case per seed), and seed `7q7l8dSNG6n6` fixed in the realiser (a noun that is also an adverb is re-rolled beside an optional adverb)."
+- **M99, two silent h's in a row (2026-11-17; seed `a2RKk5N6Ibt4`, the entry above).** Core only, goldens unchanged. *Cause:* «ah hambrientos» holds a silent h at the end of
+  «ah» and another at the start of «hambrientos», and both insert an [h] at the same phone index (1, between the two a's), so the predicted-error generator makes two variants
+  with identical phones and different spans. The learner's one extra [h] aligns at that index, and `PredictedErrorMatcher` tested each variant against the heard insertions
+  without using one up, so both matched and both tagged. *Fix* (`PredictedErrorMatcher`): each heard insertion is claimed once; variants are taken in text order, so one extra [h]
+  is one `pron.silent_h`, at the first word (the audio cannot say which of the two words the [h] belongs to; the rule is the first in the text, here «ah», the injected one). Two
+  extra [h]s at the site give two tags, one per word. *Fuzz oracle:* an [h] injected at «hambrientos» is the same heard phones, so the oracle now expects the first site among the
+  injectable variants with identical phones (still exactly one tag, with the tag, phones and span of that site); no check was relaxed otherwise. Regression: four facts in
+  `GreedyPhoneScorerTests` (one h, two h's, an h at a lone second word, a silent h before a vowel word and a lone silent-h word). Plan row text proposed: "M99 done: one heard
+  extra phone is one tag (a silent h ending a word and one starting the next no longer double-tag; the first word in the text gets it), seed `a2RKk5N6Ibt4` fixed."

@@ -110,7 +110,7 @@ public sealed class BandPlan
 public readonly record struct WantedColumn(int ChunkX, int ChunkZ, int MinLayer, int MaxLayer);
 
 /// <summary>
-/// The residency policy of the tall streamed world (B07, biomes plan section 3.7), the band version of <see cref="ChunkStreamer"/>: at a distance only the surface band of each column is
+/// The residency policy of the tall streamed world (B07, biomes plan section 3.7), the band version of the first, whole-chunk policy (B06, removed in B24 as unused): at a distance only the surface band of each column is
 /// wanted (the chunks that meet the ground, decided by <see cref="SurfaceBands"/>), a chunk wholly underground only within a near radius of the player or when the player is underground, and
 /// every chunk of the band is padded by one layer and one column on every side, because the renderer meshes a chunk only when all 26 of its neighbours are resident. It reads no grid and
 /// holds no state; the caller installs what is wanted and drops what the plan no longer holds. Chunks are a pure function of their coordinates, so the policy changes performance, never results.

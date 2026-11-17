@@ -14,8 +14,8 @@ public sealed class FirstPersonCamera
     /// <summary>The vertical field of view in degrees of a new game (the menu's field of view setting changes it for a run).</summary>
     public const float FieldOfViewDegrees = 70f;
 
-    /// <summary>The near plane in blocks (small, so a block against the eye is not cut).</summary>
-    public const float NearPlane = 0.05f;
+    /// <summary>The near plane in blocks (small, so a block against the eye is not cut: the body's own radius is 0.3, three times this; 0.1 and not 0.05 since B07d, the rendering review's quick win 10: the depth step at the view distance halves, which is where the near pass's z-fighting between water and terrain shows).</summary>
+    public const float NearPlane = 0.1f;
 
     /// <summary>The default far plane in blocks; a run sets it from its view distance (<see cref="VoxelRenderer.FarPlaneFor"/>).</summary>
     public const float FarPlane = 220f;

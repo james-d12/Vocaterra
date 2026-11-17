@@ -326,6 +326,104 @@ public sealed class PlayerSettingsTests
         Assert.Equal(70, PlayerSettings.Resolve(null, new LaunchSettings(Grass: 68)).Get(SettingId.Grass));
     }
 
+    [Theory]
+    [InlineData(SettingId.Workers, -3, 0)]
+    [InlineData(SettingId.Workers, 0, 0)]
+    [InlineData(SettingId.Workers, 5, 5)]
+    [InlineData(SettingId.Workers, 8, 8)]
+    [InlineData(SettingId.Workers, 40, 8)]
+    [InlineData(SettingId.FarDistance, 99, 16)]
+    [InlineData(SettingId.FarDistance, 7, 7)]
+    [InlineData(SettingId.FarDetail, 10, 50)]
+    [InlineData(SettingId.FarDetail, 112, 100)]
+    [InlineData(SettingId.FarDetail, 900, 200)]
+    [InlineData(SettingId.FarTrees, 99, 6)]
+    [InlineData(SettingId.FarTextures, 9, 3)]
+    [InlineData(SettingId.FarExact, -2, 0)]
+    public void Given_AFarViewOrWorkerValue_When_Set_Then_ItIsLimitedToTheSettingsRangeAndSteps(SettingId id, int asked, int expected)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(id, asked);
+        Assert.Equal(expected, settings.Get(id));
+    }
+
+    [Fact]
+    public void Given_ANewGame_When_TheWorkerAndFarViewSettingsAreRead_Then_TheyAreAutoAndTheUsualLook()
+    {
+        var settings = new PlayerSettings();
+        Assert.Equal(0, settings.Workers); // Auto (D-game-34 item 42)
+        Assert.Equal("settingsAuto", PlayerSettings.Spec(SettingId.Workers).MinKey);
+        Assert.Equal(0, settings.Get(SettingId.FarDistance));
+        Assert.Equal(100, settings.Get(SettingId.FarDetail));
+        Assert.Equal(0, settings.Get(SettingId.FarTrees));
+        Assert.Equal(2, settings.Get(SettingId.FarTextures));
+        Assert.Equal(0, settings.Get(SettingId.FarExact));
+    }
+
+    [Fact]
+    public void Given_TheSettingsPage_When_TheRowsAreBuilt_Then_TheWorkerAndFarViewRowsAreInTheGraphicsGroup()
+    {
+        var rows = MenuRows.Settings(new PlayerSettings(), null);
+        var graphics = rows.ToList().FindIndex(static row => row.LabelKey == "headingGraphics");
+        var next = rows.ToList().FindIndex(graphics + 1, static row => row.Kind == MenuRowKind.Heading);
+        var inGroup = rows.Skip(graphics + 1).Take(next - graphics - 1).Select(static row => row.Id).ToList();
+        foreach (var id in new[] { SettingId.Workers, SettingId.FarDistance, SettingId.FarDetail, SettingId.FarTrees, SettingId.FarTextures, SettingId.FarExact })
+        {
+            Assert.Contains(id.ToString(), inGroup);
+        }
+    }
+
+    [Fact]
+    public void Given_WorkerAndFarViewSettings_When_SavedAndLoaded_Then_TheyComeBackAndTheDefaultsAreLeftOut()
+    {
+        var defaults = new PlayerSettings().ToSave();
+        Assert.Null(defaults.Workers);
+        Assert.Null(defaults.FarDistance);
+        Assert.Null(defaults.FarDetail);
+        Assert.Null(defaults.FarTrees);
+        Assert.Null(defaults.FarTextures);
+        Assert.Null(defaults.FarExact);
+        Assert.DoesNotContain("Workers", System.Text.Json.JsonSerializer.Serialize(defaults), StringComparison.Ordinal);
+
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Workers, 6);
+        settings.Set(SettingId.FarDistance, 12);
+        settings.Set(SettingId.FarDetail, 150);
+        settings.Set(SettingId.FarTrees, 4);
+        settings.Set(SettingId.FarTextures, 0);
+        settings.Set(SettingId.FarExact, 3);
+        var json = System.Text.Json.JsonSerializer.Serialize(settings.ToSave());
+        var again = PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!);
+        foreach (var id in new[] { SettingId.Workers, SettingId.FarDistance, SettingId.FarDetail, SettingId.FarTrees, SettingId.FarTextures, SettingId.FarExact })
+        {
+            Assert.Equal(settings.Get(id), again.Get(id));
+        }
+    }
+
+    [Fact]
+    public void Given_AWorkerOrFarViewLaunchOption_When_Resolved_Then_ItWinsOverTheSaveAndIsSnapped()
+    {
+        var saved = new SaveSettings(SoundVolumes.Default, Workers: 3, FarDistance: 4);
+        Assert.Equal(3, PlayerSettings.Resolve(saved).Workers);
+        Assert.Equal(8, PlayerSettings.Resolve(saved, new LaunchSettings(Workers: 8)).Workers);
+        Assert.Equal(0, PlayerSettings.Resolve(saved, new LaunchSettings(Workers: 0)).Workers);
+        Assert.Equal(16, PlayerSettings.Resolve(saved, new LaunchSettings(FarDistance: 16)).Get(SettingId.FarDistance));
+        Assert.Equal(125, PlayerSettings.Resolve(null, new LaunchSettings(FarDetail: 120)).Get(SettingId.FarDetail));
+        Assert.Equal(4, PlayerSettings.Resolve(null, new LaunchSettings(FarDistance: 4)).Get(SettingId.FarDistance));
+    }
+
+    [Fact]
+    public void Given_ASaveWithWildWorkerAndFarViewFields_When_Resolved_Then_TheyAreHeldToTheirRanges()
+    {
+        var wild = PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Workers: 400, FarDistance: -9, FarDetail: 5, FarTrees: 77, FarTextures: 12, FarExact: 99));
+        Assert.Equal(8, wild.Workers);
+        Assert.Equal(0, wild.Get(SettingId.FarDistance));
+        Assert.Equal(50, wild.Get(SettingId.FarDetail));
+        Assert.Equal(6, wild.Get(SettingId.FarTrees));
+        Assert.Equal(3, wild.Get(SettingId.FarTextures));
+        Assert.Equal(5, wild.Get(SettingId.FarExact));
+    }
+
     [Fact]
     public void Given_ANewGame_When_TheShadersAreRead_Then_TheyAreOnAndTheRowIsInTheGraphicsGroup()
     {

@@ -20,7 +20,9 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="FarRealRadius">B07c: how far from the eye workers make the real chunks of the surface for the far view's store: High 1,000 blocks, Medium 760, Low 560 (2.5 voxel distances, where the far view's level 2 ends).</param>
 /// <param name="MaxMeshedChunks">B07: the most chunk meshes a streamed world keeps (the nearest ones): a cap on the meshes and so on the memory of the card.</param>
 /// <param name="MultiSamples">B22: the samples per pixel of the back buffer (multisample antialiasing, 0 for none): the stair-stepped silhouettes of blocks and the shimmer of far tiles. Chosen when the window opens (the menu's quality row takes effect for it at the next start; `--msaa` overrides).</param>
-/// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident (the farthest unchanged ones are dropped past it).</param>
+/// <param name="FarBandScale">B07d: what the far view's level bands are multiplied by (the Far view detail setting, 100% is 1): above 1 the finer levels last further out.</param>
+/// <param name="FarTexturedLevels">B07d: how many of the far view's finest levels carry the block atlas's textures (the Far view textures setting, 2 usually).</param>
+/// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident: an admission cap (once the grid holds this many the residency asks for no more, nearest columns first, so a cap below what the view distance holds leaves the far land to the far view); the chunks behind the player are freed by the residency plan's own eviction, not by the cap.</param>
 /// <param name="GrassDistance">B18: how far from the eye the decorative grass layer is drawn, in blocks; it thins out over the outer half of it.</param>
 /// <param name="Shaders">B17b: whether the level turns the game's own GLSL shaders on (the settings page's Shaders row follows a change of level; every level has them on; the context may still refuse them).</param>
 /// <param name="SunFollowsHour">B17c: whether the level turns the sun following the hour on (B22's sun per band and deeper dusk; every level has it on).</param>
@@ -46,6 +48,8 @@ public sealed record QualityPreset(
     int GrassDistance = 96,
     int GrassCapPercent = 100,
     int MultiSamples = 4,
+    double FarBandScale = 1.0,
+    int FarTexturedLevels = 2,
     bool Shaders = true,
     bool SunFollowsHour = true,
     bool ClimateColours = true,
@@ -83,7 +87,7 @@ public sealed record QualityPreset(
     public QualityPreset WithFarRange(int blocks) => this with { FarRange = Math.Max(0, blocks) };
 
     /// <summary>The far view's shape for this preset: its range, with the level-of-detail layout every preset shares.</summary>
-    public Far.FarViewSettings Far => new(FarRange, TreeLevels: FarTreeLevels, RealRadius: FarRealRadius);
+    public Far.FarViewSettings Far => new(FarRange, BandScale: FarBandScale, TreeLevels: FarTreeLevels, TexturedLevels: FarTexturedLevels, RealRadius: FarRealRadius);
 
     /// <summary>The name of the level in lower case, as <c>--quality</c> takes it.</summary>
     public string Name => Level.ToString().ToLowerInvariant();

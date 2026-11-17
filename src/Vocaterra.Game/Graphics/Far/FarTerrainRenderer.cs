@@ -309,7 +309,7 @@ public sealed class FarTerrainRenderer : IDisposable
                 tile.Indices.GetData(wide);
             }
 
-            tile.GlBuffers = pass.UploadFar(vertices, narrow, wide);
+            tile.GlBuffers = pass.UploadFar(vertices, vertices.Length, narrow, wide, narrow?.Length ?? wide!.Length);
             tile.Buffer.Dispose();
             tile.Buffer = null;
             tile.Indices.Dispose();
@@ -377,6 +377,7 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Indices = null;
         tile.GlBuffers?.Dispose();
         tile.GlBuffers = null;
+        tile.Pending?.Release();
         tile.Pending = null;
         tile.OnCard = false;
     }
@@ -393,29 +394,31 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Adopt(mesh);
         if (pass is not null)
         {
-            tile.GlBuffers = pass.UploadFar(mesh.Vertices, mesh.Indices16, mesh.Indices32);
+            tile.GlBuffers = pass.UploadFar(mesh.VertexArray, mesh.VertexCount, mesh.Index16Array, mesh.Index32Array, mesh.IndexCount);
+            mesh.Release(); // the card has the data: the arrays go back to the pools
             tile.Pending = null;
             tile.OnCard = true;
             return;
         }
 
-        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.Vertices.Length, BufferUsage.WriteOnly);
-        buffer.SetData(mesh.Vertices);
+        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.VertexCount, BufferUsage.WriteOnly);
+        buffer.SetData(mesh.VertexArray, 0, mesh.VertexCount);
         tile.Buffer = buffer;
-        if (mesh.Indices16 is { } narrow)
+        if (mesh.Index16Array is { } narrow)
         {
-            var indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, narrow.Length, BufferUsage.WriteOnly);
-            indices.SetData(narrow);
+            var indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, mesh.IndexCount, BufferUsage.WriteOnly);
+            indices.SetData(narrow, 0, mesh.IndexCount);
             tile.Indices = indices;
         }
         else
         {
-            var wide = mesh.Indices32!;
-            var indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, wide.Length, BufferUsage.WriteOnly);
-            indices.SetData(wide);
+            var wide = mesh.Index32Array!;
+            var indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, mesh.IndexCount, BufferUsage.WriteOnly);
+            indices.SetData(wide, 0, mesh.IndexCount);
             tile.Indices = indices;
         }
 
+        mesh.Release(); // the card has the data: the arrays go back to the pools
         tile.Pending = null;
         tile.OnCard = true;
     }

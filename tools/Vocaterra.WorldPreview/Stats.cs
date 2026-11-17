@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 
 namespace Vocaterra.WorldPreview;
 
@@ -68,6 +69,7 @@ internal static class Stats
 
         text.AppendLine(Rivers(map));
         text.AppendLine(RiverWater(sampler, map));
+        text.AppendLine(Network(sampler, map));
         text.AppendLine(Chains(map, 150, isSea));
         text.AppendLine(Chains(map, 180, isSea));
         text.AppendLine(Coast(map, isSea));
@@ -80,6 +82,137 @@ internal static class Stats
         text.Append("  sea:  ");
         text.AppendLine(Profile(map, distance, onLand: false));
         return text.ToString();
+    }
+
+    // The drainage network (B02c) read straight from the model: the reaches of river in the area (each from a node to the node the water runs to), how many begin in it (sources) and end in it, whether the water ever rises along a reach
+    // or a chain of reaches (it must not), the share of the river's length whose chain ends in the sea or a lake (a chain that runs off the area is left out of both), the rivers per square of 16 384 blocks, and the share of the land within 500
+    // blocks of a river.
+    private static string Network(WorldSampler sampler, WorldMap map)
+    {
+        var inv = CultureInfo.InvariantCulture;
+        var x0 = map.Left;
+        var z0 = map.Top;
+        var x1 = map.Left + (map.Width * map.Scale);
+        var z1 = map.Top + (map.Height * map.Scale);
+        var reaches = sampler.Height.Reaches(x0, z0, x1, z1);
+        if (reaches.Count == 0)
+        {
+            return "network: no reaches";
+        }
+
+        var byFrom = new Dictionary<(int, int), RiverReach>();
+        foreach (var r in reaches)
+        {
+            byFrom[(r.FromX, r.FromZ)] = r;
+        }
+
+        var hasUpstream = new HashSet<(int, int)>(reaches.Select(r => (r.ToX, r.ToZ)));
+        var sources = reaches.Count(r => !hasUpstream.Contains((r.FromX, r.FromZ)));
+        long lengthTotal = 0;
+        long lengthReaching = 0;
+        long lengthLeaving = 0;
+        long lengthStranded = 0;
+        var rises = 0;
+        var chainRises = 0;
+        var largestRise = 0;
+        foreach (var r in reaches)
+        {
+            var length = (long)Math.Sqrt(Math.Pow(r.ToX - r.FromX, 2) + Math.Pow(r.ToZ - r.FromZ, 2));
+            if (r.ToLevel > r.FromLevel)
+            {
+                rises++;
+                largestRise = Math.Max(largestRise, r.ToLevel - r.FromLevel);
+            }
+
+            var end = r;
+            var steps = 0;
+            var last = r.FromLevel;
+            var outcome = 0; // 1 sea or lake, 2 leaves the area, 3 stranded
+            while (steps++ < 4000)
+            {
+                if (end.ToLevel > end.FromLevel || end.FromLevel > last)
+                {
+                    chainRises++;
+                    break;
+                }
+
+                last = end.FromLevel;
+                if (end.IntoSea || end.IntoLake)
+                {
+                    outcome = 1;
+                    break;
+                }
+
+                if (!byFrom.TryGetValue((end.ToX, end.ToZ), out var next))
+                {
+                    outcome = end.ToX <= x0 + 128 || end.ToZ <= z0 + 128 || end.ToX >= x1 - 128 || end.ToZ >= z1 - 128 ? 2 : 3;
+                    break;
+                }
+
+                end = next;
+            }
+
+            lengthTotal += length;
+            switch (outcome)
+            {
+                case 1:
+                    lengthReaching += length;
+                    break;
+                case 2:
+                    lengthLeaving += length;
+                    break;
+                case 3:
+                    lengthStranded += length;
+                    break;
+            }
+        }
+
+        // The land within 500 blocks of a river: every pixel along every reach marks a disc.
+        var w = map.Width;
+        var h = map.Height;
+        var near = new bool[w * h];
+        var radius = 500 / map.Scale;
+        foreach (var r in reaches)
+        {
+            var n = Math.Max(1, (int)(Math.Max(Math.Abs(r.ToX - r.FromX), Math.Abs(r.ToZ - r.FromZ)) / map.Scale));
+            for (var s = 0; s <= n; s++)
+            {
+                var px = ((r.FromX + ((r.ToX - r.FromX) * (long)s / n)) - map.Left) / map.Scale;
+                var pz = ((r.FromZ + ((r.ToZ - r.FromZ) * (long)s / n)) - map.Top) / map.Scale;
+                for (var dz = -radius; dz <= radius; dz++)
+                {
+                    for (var dx = -radius; dx <= radius; dx++)
+                    {
+                        if ((dx * dx) + (dz * dz) > radius * radius)
+                        {
+                            continue;
+                        }
+
+                        long qx = px + dx;
+                        long qz = pz + dz;
+                        if (qx >= 0 && qz >= 0 && qx < w && qz < h)
+                        {
+                            near[(qz * w) + qx] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        long landColumns = 0;
+        long landNear = 0;
+        for (var i = 0; i < near.Length; i++)
+        {
+            if (!map.Water[i])
+            {
+                landColumns++;
+                landNear += near[i] ? 1 : 0;
+            }
+        }
+
+        var squares = (double)map.Width * map.Scale * map.Height * map.Scale / (16384.0 * 16384.0);
+        var mouths = reaches.Count(r => r.IntoSea || r.IntoLake);
+        return string.Create(inv, $"network: {reaches.Count} reaches ({lengthTotal} blocks of river); {sources} sources ({sources / squares:0} per 16 384-block square), {mouths} reaches end in the sea or a lake; rises along a reach: {rises}{(rises == 0 ? string.Empty : $" (largest {largestRise})")}, along a chain: {chainRises}; river length whose chain ends in the sea or a lake {Pct(lengthReaching, lengthReaching + lengthStranded)}% (leaving the area {Pct(lengthLeaving, lengthTotal)}%, stranded {Pct(lengthStranded, lengthTotal)}% of the river); land within 500 blocks of a river {Pct(landNear, landColumns)}%");
     }
 
     // The rivers as bodies of columns under water that a river carved (eight neighbours): how many reach other water, the sea or a lake (a column of it within two columns of the body), and how many do not (a body that runs off the map is left out: its end is not on it).
@@ -419,7 +552,7 @@ internal static class Stats
     }
 
     // River humps (round 3): the water along a river line should only fall towards the sea. The water columns are grouped into reaches (eight-connected columns at one level; the sea is one reach, a lake another); a hump is a reach of river
-    // that stands higher than every reach it touches and touches at least two (so the water falls away on both sides of it: the line rises and falls again, over a hill or a divide between two seas). Reaches of fewer than 6 columns are the contour's
+    // that stands higher than every reach it touches and touches two on different sides (neither falls into the other through lower reaches, so the water falls away on both sides of it: the line rises and falls again, over a hill or a divide between two seas; B02c: a reach that touches a river and the sea that river runs into is a step, not a hump). Reaches of fewer than 6 columns are the contour's
     // flicker and are not counted. A spring (one neighbour) is not a hump. The rise of a hump is its level less the highest of the floors its sides fall to (the lowest level reachable from each neighbour through lower reaches, not through the hump itself).
     private static string Humps(WorldMap map, int riverRow)
     {
@@ -429,6 +562,7 @@ internal static class Stats
         var levels = new List<int>();
         var sizes = new List<int>();
         var riverColumns = new List<int>();
+        var firsts = new List<int>();
         var stack = new Stack<int>();
         for (var start = 0; start < reach.Length; start++)
         {
@@ -441,6 +575,7 @@ internal static class Stats
             levels.Add(map.WaterLevel[start]);
             sizes.Add(0);
             riverColumns.Add(0);
+            firsts.Add(start);
             reach[start] = id;
             stack.Push(start);
             while (stack.Count > 0)
@@ -497,6 +632,7 @@ internal static class Stats
         long river = riverColumns.Sum(c => (long)c);
         long inHumps = 0;
         var rises = new List<int>();
+        var where = new List<string>();
         for (var r = 0; r < levels.Count; r++)
         {
             if (riverColumns[r] < 6 || neighbours[r] is not { Count: >= 2 } near || near.Any(n => levels[n] >= levels[r]))
@@ -504,10 +640,13 @@ internal static class Stats
                 continue;
             }
 
+            // The water on each side: from each neighbour, every reach the water can fall to through lower reaches. The reach is a hump only if two of its neighbours lie on different sides: neither one falls into the other (a reach that touches a
+            // river and the sea that river runs into is a step in a river that reaches the sea, not a hump).
             var floors = new List<int>();
+            var falls = new Dictionary<int, HashSet<int>>();
             foreach (var n in near)
             {
-                var seen = new HashSet<int> { r, n };
+                var seen = new HashSet<int> { n };
                 var queue = new Queue<int>();
                 queue.Enqueue(n);
                 var floor = levels[n];
@@ -517,21 +656,32 @@ internal static class Stats
                     floor = Math.Min(floor, levels[m]);
                     foreach (var k in neighbours[m] ?? [])
                     {
-                        if (levels[k] < levels[r] && seen.Add(k))
+                        if (k != r && levels[k] < levels[m] && seen.Add(k))
                         {
                             queue.Enqueue(k);
                         }
                     }
                 }
 
+                falls[n] = seen;
                 floors.Add(floor);
+            }
+
+            var sides = near.Any(a => near.Any(b => a < b && !falls[a].Contains(b) && !falls[b].Contains(a)));
+            if (!sides)
+            {
+                continue;
             }
 
             inHumps += riverColumns[r];
             rises.Add(levels[r] - floors.Max());
+            if (where.Count < 6)
+            {
+                where.Add($"({map.BlockX(firsts[r] % w)}, {map.BlockZ(firsts[r] / w)}: level {levels[r]}, {riverColumns[r]} columns, touching levels {string.Join("/", near.Select(n => levels[n]).Order())})");
+            }
         }
 
-        return string.Create(CultureInfo.InvariantCulture, $"river humps (reaches of river water higher than every reach they touch, on two sides, of 6 columns or more): {rises.Count} humps holding {Pct(inHumps, river)}% of the {river} river-water columns; the largest rise {(rises.Count == 0 ? 0 : rises.Max())} blocks, the median {(rises.Count == 0 ? 0 : rises.Order().ElementAt(rises.Count / 2))}");
+        return string.Create(CultureInfo.InvariantCulture, $"river humps (reaches of river water higher than every reach they touch, on two sides, of 6 columns or more): {rises.Count} humps holding {Pct(inHumps, river)}% of the {river} river-water columns; the largest rise {(rises.Count == 0 ? 0 : rises.Max())} blocks, the median {(rises.Count == 0 ? 0 : rises.Order().ElementAt(rises.Count / 2))}{(where.Count == 0 ? string.Empty : "; the first: " + string.Join(" ", where))}");
     }
 
     // Water that is not a river's: the sea and the lakes (the biome row of the river's channel is the river's).

@@ -17,7 +17,6 @@ Last checked against `main`: 2026-11-15 (after pull requests #64, #65 and #66). 
 | Core D11 | Cloud cost cap for a tutor | M25 | [nlp/decisions](nlp/decisions.md) |
 | Core D13 | Pronunciation ambition | Follows M24's speech check | [nlp/decisions](nlp/decisions.md) |
 | Core D14 | German: the variety, the tagger route, content trust | M36 to M48 | [nlp/decisions](nlp/decisions.md) |
-| OpenAL's licence | B26 (the game's packages in the gate's scan, item 44) found MonoGame.Library.OpenAL 1.24.3.4 ships OpenAL Soft's native library, LGPL-2.0-or-later (a separate, replaceable shared library, as in every MonoGame desktop game). Offered: accept it as a one-package exception (the LGPL text and a source link in the release notice) or refuse it (the gate fails until the audio moves to another library) | B26's gate step | [B26 brief](../.claude/briefs/b26-game-licence-scan.md) |
 | M79 | The typo slip: a new `vocab.spelling` tag or `vocab.unknown`; a suggestion list on `ErrorTag`; the typo's weight | M79 | [core plan](nlp/implementation-plan.md) §5 |
 | M67b | Answer-set verb forms: parked, because it fails 32 game tests that pin V14's design | QA-language-5 and 10 | [core plan](nlp/implementation-plan.md) §5, [QA triage](qa-reports/README.md) |
 | D-game-1 | The final engine (MonoGame or Godot .NET) | The optional P10 spike | [game/decisions](game/decisions.md) |

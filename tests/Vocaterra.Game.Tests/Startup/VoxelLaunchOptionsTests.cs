@@ -243,6 +243,61 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheWorkersFlagTakesAutoOrOneToEightAndRefusesTheRest()
+    {
+        Assert.Null(Parse("--screenshot", "x.png").Workers); // not given: the saved setting (Auto for a new game)
+        Assert.Equal(0, Parse("--workers", "auto").Workers);
+        Assert.Equal(1, Parse("--workers", "1").Workers);
+        Assert.Equal(8, Parse("--workers", "8").Workers);
+        Assert.Contains("--workers needs auto or a number from 1 to 8", Refuse("--workers", "9"), StringComparison.Ordinal);
+        Assert.Contains("--workers needs auto or a number from 1 to 8", Refuse("--workers", "0"), StringComparison.Ordinal);
+        Assert.Contains("--workers needs auto or a number from 1 to 8", Refuse("--workers", "many"), StringComparison.Ordinal);
+        Assert.Contains("--workers", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.Equal(2, Parse("--prefetch", "2").Prefetch); // the old option keeps its range
+        Assert.Contains("--prefetch needs 0, 1 or 2", Refuse("--prefetch", "4"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheFarViewFlagsTakeTheSettingsRangesAndRefuseTheRest()
+    {
+        var options = Parse("--far-distance", "12", "--far-detail", "150", "--far-trees", "1024", "--far-textures", "3", "--far-exact", "off");
+        Assert.Equal(12, options.FarDistance);
+        Assert.Equal(150, options.FarDetail);
+        Assert.Equal(4, options.FarTrees); // 256, 512, 1024: the setting's choice 4
+        Assert.Equal(3, options.FarTextures);
+        Assert.Equal(1, options.FarExact);
+        Assert.Equal(0, Parse("--far-distance", "auto").FarDistance);
+        Assert.Equal(0, Parse("--far-trees", "auto").FarTrees);
+        Assert.Equal(1, Parse("--far-trees", "off").FarTrees);
+        Assert.Equal(6, Parse("--far-trees", "4096").FarTrees);
+        Assert.Equal(5, Parse("--far-exact", "2000").FarExact);
+        Assert.Null(Parse("--screenshot", "x.png").FarDetail);
+        Assert.Contains("--far-distance needs", Refuse("--far-distance", "17"), StringComparison.Ordinal);
+        Assert.Contains("--far-distance needs", Refuse("--far-distance", "0"), StringComparison.Ordinal);
+        Assert.Contains("--far-detail needs", Refuse("--far-detail", "110"), StringComparison.Ordinal);
+        Assert.Contains("--far-detail needs", Refuse("--far-detail", "300"), StringComparison.Ordinal);
+        Assert.Contains("--far-trees needs", Refuse("--far-trees", "300"), StringComparison.Ordinal);
+        Assert.Contains("--far-textures needs", Refuse("--far-textures", "4"), StringComparison.Ordinal);
+        Assert.Contains("--far-exact needs", Refuse("--far-exact", "700"), StringComparison.Ordinal);
+        foreach (var flag in new[] { "--far-distance", "--far-detail", "--far-trees", "--far-textures", "--far-exact", "--pregen", "--pregen-at" })
+        {
+            Assert.Contains(flag, LaunchOptions.Usage, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void ThePregenFlagsTakeARadiusAndAColumn()
+    {
+        Assert.Null(Parse("--screenshot", "x.png").Pregen);
+        var options = Parse("--pregen", "4096", "--pregen-at", "-120,300");
+        Assert.Equal(4096, options.Pregen);
+        Assert.Equal((-120, 300), options.PregenAt);
+        Assert.Contains("--pregen needs a radius", Refuse("--pregen", "10"), StringComparison.Ordinal);
+        Assert.Contains("--pregen needs a radius", Refuse("--pregen", "99999"), StringComparison.Ordinal);
+        Assert.Contains("--pregen-at needs", Refuse("--pregen-at", "somewhere"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheFieldOfViewMouseAndInvertFlagsTakeTheMenusRangesAndRefuseTheRest()
     {
         var options = Parse("--fov", "95", "--mouse-sensitivity", "250", "--invert-y", "on");
@@ -278,6 +333,17 @@ public sealed class VoxelLaunchOptionsTests
         Assert.Contains("--teleport-to needs a block", Refuse("--screenshot", "x.png", "--teleport-to", "1,2"), StringComparison.Ordinal);
         Assert.Contains("need --screenshot", Refuse("--teleport-to", "1,2,3"), StringComparison.Ordinal);
         Assert.Contains("--teleport-to", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EveryStepOfTheScriptTakesNegativeCoordinates()
+    {
+        var options = Parse("--screenshot", "x.png", "--walk-to", "-30,-40", "--interact", "-9,11,-17", "--place", "antorcha@-21,12,-21", "--pour", "-1,60,-2", "--shot", "a.png");
+        Assert.Equal([VoxelStepKind.WalkTo, VoxelStepKind.Interact, VoxelStepKind.Place, VoxelStepKind.Pour], options.VoxelSteps.Select(static s => s.Kind));
+        Assert.Equal((-30, -40), (options.VoxelSteps[0].X, options.VoxelSteps[0].Z));
+        Assert.Equal((-9, 11, -17), (options.VoxelSteps[1].X, options.VoxelSteps[1].Y, options.VoxelSteps[1].Z));
+        Assert.Equal((-21, 12, -21), (options.VoxelSteps[2].X, options.VoxelSteps[2].Y, options.VoxelSteps[2].Z));
+        Assert.Equal((-1, 60, -2), (options.VoxelSteps[3].X, options.VoxelSteps[3].Y, options.VoxelSteps[3].Z));
     }
 
     [Fact]

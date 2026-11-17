@@ -2884,3 +2884,57 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `MaxMipLevel` is the last mip level, not the base). Interleaved timings: the processor's submit time falls to a quarter or a tenth
   (meadow 1.17 to 0.36 ms, under water 3.80 to 0.35), the card's time is equal or lower in every pair (`GlCardTimer`), frame p50 lower.
   Gated clean.
+- **B02c, rivers that only fall (2026-11-17, `4445e907`).** The rivers no longer climb: a drainage network (`World/Drainage`) floods each
+  landmass by priority over 32-block nodes, so every river runs downhill to a lake or the sea, and lakes fill basins. A landmass is read
+  whole on first touch (0.25 to 0.9 s). Generator version 4 (B11b had made it 3), so the far store builds new folders; 9 of the 18 goldens
+  moved (each seed's river and lake columns re-chosen to hold water, and a few coasts and a mountain), with the fixture's state digest and
+  the atmosphere pins. Three rounds of review found: a `ThreadPool` call in Game.Core's `WorldQuery` (against the two-worker rule; now a
+  dry answer, without rivers, until the streaming workers read the landmass); 160 bytes allocated on every frame by small arrays in the
+  look-up (B21's zero-allocation test caught it in the gate; fixed); and a lake that is a staircase of three levels (41, 44, 47) with
+  walls of water between, because a lake node takes the higher level of the bank node it was found from. Three fixes for the lake broke a
+  river or puddle check, so it was reverted and planned as B02d. The new ground has almost no cliffs outside the snowy peaks (the old
+  rivers' valley walls were its cliffs): `RockVarietyTests` skips its face-rock share, with a note, when its sample holds 100 cliff
+  columns or fewer. Start to first frame +0.4 s; a settled 16 km far view about 20% slower. Gated: 12,565 passed; the one failure the
+  scene build's wall-clock timing test (3,026 ms against 3,000 at load 15), passing alone, given to B24.
+- **B24, guards and cleanups (2026-11-17, `536e0e6d`).** The purity test now covers every folder that feeds the world's blocks (all of
+  `World/Generation`, `World/Layout`, `World/Pass` and B02c's `World/Drainage`, whose one `lock` for the first-touch landmass read is
+  allowed by name while floating point, clocks and randomness stay banned there), and a new test fails for any `World/` folder that is
+  neither pure nor named with a reason. Game.Core is banned from threads, tasks, timers, file IO and environment reads, with an allow-list
+  of nine files each with its reason. Dead code removed: `ChunkStreamer` (with `StreamPolicy`) and `VoxelGrid.ResidentCoordinates`, with
+  their 9 tests. **A real bug in the resident cap** (the review's C8): `Request` ran before `Evict` and at the cap set its cursor to the
+  plan's end, so after a walk or a jump the old place's chunks held the cap and the new place got nothing (0 resident chunks at the new
+  eye after `Settle` reported done); `Evict` now runs first. The timing tests now measure CPU time, the fastest of three, alone after the
+  assembly, with budgets twice the measured cost; they caught **B02c's cost**: chunk generation about 2.5 to 3 times dearer (a surface
+  chunk 6.4 to 6.9 ms of CPU before, 17 to 21 after; the valley snapshot 2.7 to 5.9 s): the budgets were re-set to the new cost and the
+  cost itself planned as B27. Gated clean.
+- **B25, the scripted-run stall (2026-11-17, no change).** B21, B17b and B14 each saw a scripted run hang after `--place antorcha`
+  (`--wait` never returned). The cause was B07c's `FarView.Stale`, which counted changed far tiles inside the near zone, where the chunks
+  draw the columns and the tiles are never rebuilt; a block placed near the eye kept it above 0, and every later frame's `Settle` waited out
+  its 300 s bound. B07f had already fixed it (`Stale` counts only needed tiles; a regression test), and the three agents worked on bases
+  cut before B07f merged. Reproduced on B21's tip (killed at 500 s) and gone on `0d72b26b` (93 s, torch and guide dialogue shown);
+  r01-route (445 s), r40-inn (246 s), r42-camp (268 s, torch and glow shown) and the torch cave re-run. Worth knowing: every streamed
+  scripted run spends about 160 to 170 s of its first frame building a cold 16 km far view on two workers; a `timeout` must go inside
+  `scripts/limited.sh` or the wait for a slot counts against it; a capture needs the build under the repository or `--content`.
+- **B07d, the far view's remainder and worker threads (2026-11-17, `93a74756`).** The owner's item 42 is in: a "Worker threads" setting
+  (Auto, the processor count less 4 within 1 to 8, so 8 here; a launch option `--workers`), with `JobPool.MaxWorkers` 8 and the pool
+  resized while the game runs; scripted runs, tests and `--prefetch` keep 2 or fewer, and the world is identical at 1, 2, 8 and inline.
+  The 16 km far view filled after a 1.9 km teleport in 272 s at 2 workers, 147 at 4 and 110 at 8 (after a start 307, 221, 180), on a
+  machine at load 15 to 25, one round. The far view's distance, detail, tree, texture and real-land settings join the Graphics group
+  (item 43). `--pregen <blocks>` fills the far store round a point on all workers and exits (1 km in 29 s, 4 km in 340 s and 1.05 GB;
+  16 km estimated at 48 minutes and 15 GB). The store's real sections are capped at 256 MB (least recently used dropped, edited ones
+  kept, reloaded from disk); the ring plans on a worker; fsync runs on a 2 s timer; regions are compacted at start. The review's
+  surface-only ring skips only about 23% of chunk layers, not 5 to 10 times. The fsync timer reads `Environment.TickCount64` after a
+  `Stopwatch` failed `OnlyTheRealFrameClockReadsATimer`: harmless (a disk timer, not game logic), but the file belongs on that test's
+  allow-list by name rather than passing it by a different clock. Gated clean, with the game's licence scans (B26) passing in the gate
+  for the first time.
+- **B14, integration (2026-11-17, `50d919a1`).** Ambient sound follows the place: each biome row names its beds (`ambient`, weights in
+  thousandths; wind, birds, river, insects, surf), `PlaceAmbience` samples five columns six blocks out (a border is a 12-block slope) and
+  the depth (surface beds fade 3 to 14 blocks down, a quiet synthesised `cave` bed takes over), with 1.5 s cross-fades; the state digest
+  hashes biomes.json without `ambient`, so it did not move. Water at rest and exitable edges hold over seeds 42, 7 and 2026 (21 windows:
+  the pass, rivers, lakes, coasts), also on B02c's rivers. Scripted coordinates are signed; the cloud layer's height is data
+  (`cloudAltitude`, 80 to 800). The `r51-biome-tour` visits every biome, a cave with a lit torch (after B07f's stall fix) and the far
+  land, in about 10 minutes. Seen in its pictures: thin seams between spruce leaf blocks, a one-block recess in the snow, birches and oaks
+  in the taiga, streaks on distant water (probably B02d's lake steps), and the entrance's open pit hearing the cave bed while open to the
+  sky. Open: a full re-run of the tour after B02c moved its river, lake and dense-woodland stops stalled at the beach stop past a
+  30-minute bound (not diagnosed); pictures 07, 12 and 14 are of the old stops. Gated: 12,714 passed; the one failure the core's
+  wall-clock lexicon test (M100), passing alone.

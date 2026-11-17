@@ -53,6 +53,23 @@ public enum SettingId
 
     /// <summary>The decorative grass on the grass blocks' tops (B18, D-game-34 item 34): its density in percent, 0 (none: the look of before) to 100, in steps of 10.</summary>
     Grass,
+    /// <summary>The worker threads that make chunks, meshes and far tiles beside the game loop (B07d, D-game-34 item 42): 0 is Auto (the processor count less four, at least 1, at most 8), then 1 to 8. A change takes effect at once, without losing the work in the queues.</summary>
+    Workers,
+
+    /// <summary>How far the far view's land is drawn (B07d): 0 is Auto (the graphics quality's own, 4, 8 or 16 km), then 1 to 16 km.</summary>
+    FarDistance,
+
+    /// <summary>How much detail the far view keeps at a distance (B07d): the bands the finer levels last for, in percent of the usual, 50 to 200 (100 is the picture of before; more is finer and dearer).</summary>
+    FarDetail,
+
+    /// <summary>How far every tree is drawn as a tree of its own in the far view (B07d): 0 Auto (the quality's own), 1 none, then to 256 m, 512 m, 1 km, 2 km, 4 km (a forest is a canopy layer beyond).</summary>
+    FarTrees,
+
+    /// <summary>How many of the far view's finest levels draw each face with its block's texture (B07d): 0 none (flat colours), 1, 2 (the default) or 3.</summary>
+    FarTextures,
+
+    /// <summary>How far from the eye the far view is made from the real chunks the generator makes (B07d): 0 Auto (the quality's own), 1 none (the model alone), then 500 m, 1 km, 1.5 km, 2 km.</summary>
+    FarExact,
 
     /// <summary>The game's own GLSL shaders for the chunks (B17b, D-game-34 item 43): 0 off (MonoGame's effects draw the chunks), 1 on (the default; the effects draw anyway when the context cannot run the program). The graphics effects of B17c join it, each its own toggle.</summary>
     Shaders,

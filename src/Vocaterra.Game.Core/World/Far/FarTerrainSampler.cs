@@ -87,7 +87,7 @@ public sealed class FarTerrainSampler
 
         var climate = _world.Climate.At(x, z);
         var shape = _world.Height.Shape(x, z, climate);
-        var column = _world.Table.Classify(climate, shape.Height, x, z, shape.Water);
+        var column = _world.Table.Classify(climate, shape.Height, x, z, shape.Water, shape.RiverWeight);
         var blocks = _world.Table.Surface(column.Row);
         var top = shape.Water ? blocks.Underwater : column.Snow ? BlockId.Snow : blocks.Top;
         var surface = new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);
@@ -209,14 +209,14 @@ public sealed class FarTerrainSampler
         public BiomeColumn BiomeAt(int x, int z)
         {
             Read(x, z);
-            return _world.Table.Classify(_climate[0], _shape[0].Height, x, z, _shape[0].Water);
+            return _world.Table.Classify(_climate[0], _shape[0].Height, x, z, _shape[0].Water, _shape[0].RiverWeight);
         }
 
         public ColumnSurface SurfaceAt(int x, int z)
         {
             Read(x, z);
             var shape = _shape[0];
-            var biome = _world.Table.Classify(_climate[0], shape.Height, x, z, shape.Water);
+            var biome = _world.Table.Classify(_climate[0], shape.Height, x, z, shape.Water, shape.RiverWeight);
             var blocks = _world.Table.Surface(biome.Row);
             var top = shape.Water ? blocks.Underwater : biome.Snow ? BlockId.Snow : blocks.Top;
             var surface = new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);

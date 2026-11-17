@@ -36,6 +36,12 @@ public sealed class PlayerSettings
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
+        new(SettingId.Workers, SettingKind.Slider, 0, 8, 1, 0, "settingsWorkers", MinKey: "settingsAuto"),
+        new(SettingId.FarDistance, SettingKind.Slider, 0, 16, 1, 0, "settingsFarDistance", " km", MinKey: "settingsAuto"),
+        new(SettingId.FarDetail, SettingKind.Slider, 50, 200, 25, 100, "settingsFarDetail", "%"),
+        new(SettingId.FarTrees, SettingKind.Choice, 0, 6, 1, 0, "settingsFarTrees", ChoiceKeys: ["settingsAuto", "settingsOff", "farTrees256", "farTrees512", "farTrees1k", "farTrees2k", "farTrees4k"]),
+        new(SettingId.FarTextures, SettingKind.Choice, 0, 3, 1, 2, "settingsFarTextures", ChoiceKeys: ["settingsOff", "farTexturesNear", "farTexturesNormal", "farTexturesWide"]),
+        new(SettingId.FarExact, SettingKind.Choice, 0, 5, 1, 0, "settingsFarExact", ChoiceKeys: ["settingsAuto", "settingsOff", "farExact500", "farExact1000", "farExact1500", "farExact2000"]),
         new(SettingId.Shaders, SettingKind.Toggle, 0, 1, 1, 1, "settingsShaders", ChoiceKeys: OnOff),
         new(SettingId.SunFollowsHour, SettingKind.Toggle, 0, 1, 1, 1, "settingsSun", ChoiceKeys: OnOff),
         new(SettingId.ClimateColours, SettingKind.Toggle, 0, 1, 1, 1, "settingsClimate", ChoiceKeys: OnOff),
@@ -116,6 +122,8 @@ public sealed class PlayerSettings
     /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
     public double Grass => Get(SettingId.Grass) / 100.0;
 
+    /// <summary>The worker threads setting: 0 for Auto, else 1 to 8 (see <c>WorkerPlan</c> in the game for what Auto is on a machine).</summary>
+    public int Workers => Get(SettingId.Workers);
     /// <summary>Whether the game's own GLSL shaders draw the chunks (B17b); the context may still refuse them, and the effects then draw.</summary>
     public bool Shaders => Get(SettingId.Shaders) == 1;
 
@@ -188,6 +196,12 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
             settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
             settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
+            settings._values[(int)SettingId.Workers] = clean.EffectiveOf(SettingId.Workers);
+            settings._values[(int)SettingId.FarDistance] = clean.EffectiveOf(SettingId.FarDistance);
+            settings._values[(int)SettingId.FarDetail] = clean.EffectiveOf(SettingId.FarDetail);
+            settings._values[(int)SettingId.FarTrees] = clean.EffectiveOf(SettingId.FarTrees);
+            settings._values[(int)SettingId.FarTextures] = clean.EffectiveOf(SettingId.FarTextures);
+            settings._values[(int)SettingId.FarExact] = clean.EffectiveOf(SettingId.FarExact);
             settings._values[(int)SettingId.Shaders] = clean.ShadersOff ? 0 : 1;
             settings._values[(int)SettingId.SunFollowsHour] = clean.SunFollowsHourOff ? 0 : 1;
             settings._values[(int)SettingId.ClimateColours] = clean.ClimateColoursOff ? 0 : 1;
@@ -277,6 +291,22 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.Grass] = Spec(SettingId.Grass).Snap(grass);
         }
 
+        foreach (var (id, value) in new[]
+        {
+            (SettingId.Workers, launch.Workers),
+            (SettingId.FarDistance, launch.FarDistance),
+            (SettingId.FarDetail, launch.FarDetail),
+            (SettingId.FarTrees, launch.FarTrees),
+            (SettingId.FarTextures, launch.FarTextures),
+            (SettingId.FarExact, launch.FarExact),
+        })
+        {
+            if (value is { } given)
+            {
+                settings._values[(int)id] = Spec(id).Snap(given);
+            }
+        }
+
         if (launch.Shaders is { } shaders)
         {
             settings._values[(int)SettingId.Shaders] = shaders ? 1 : 0;
@@ -335,6 +365,12 @@ public sealed class PlayerSettings
         ViewDistance: ViewDistance ?? 0,
         PassCheat: PassCheat,
         Grass: Get(SettingId.Grass),
+        Workers: SaveSettings.OmitDefault(SettingId.Workers, Get(SettingId.Workers)),
+        FarDistance: SaveSettings.OmitDefault(SettingId.FarDistance, Get(SettingId.FarDistance)),
+        FarDetail: SaveSettings.OmitDefault(SettingId.FarDetail, Get(SettingId.FarDetail)),
+        FarTrees: SaveSettings.OmitDefault(SettingId.FarTrees, Get(SettingId.FarTrees)),
+        FarTextures: SaveSettings.OmitDefault(SettingId.FarTextures, Get(SettingId.FarTextures)),
+        FarExact: SaveSettings.OmitDefault(SettingId.FarExact, Get(SettingId.FarExact)),
         ShadersOff: !Shaders,
         SunFollowsHourOff: !SunFollowsHour,
         ClimateColoursOff: !ClimateColours,

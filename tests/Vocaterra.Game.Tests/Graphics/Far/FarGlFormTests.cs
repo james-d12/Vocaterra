@@ -11,7 +11,7 @@ public sealed class FarGlFormTests
     [Fact]
     public void Given_ATileWithBuffersInTheProgramsForm_When_UploadsAreChosen_Then_ItIsMadeAgainAfterTheNewTilesAndCountsAsBuilt()
     {
-        var mesh = new FarTileMesh(new FarTileKey(0, 0, 0), new VertexPositionColorTexture[4], [0, 1, 2], null, 3, 0, default(BoundingBox), 1);
+        var mesh = new FarTileMesh(new FarTileKey(0, 0, 0), new VertexPositionColorTexture[4], 4, [0, 1, 2], null, 3, 3, 0, default(BoundingBox), 1);
         var replaced = new FarTile(mesh.Key) { Pending = mesh, GlBuffers = (GlFarBuffers)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(GlFarBuffers)), OnCard = true };
         var fresh = new FarTile(new FarTileKey(0, 1, 0)) { Pending = mesh with { Key = new FarTileKey(0, 1, 0) } };
         Assert.True(replaced.HasBuffers);

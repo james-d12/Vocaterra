@@ -12,6 +12,7 @@ using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Far;
 
 namespace Vocaterra.Game.Startup;
 
@@ -92,6 +93,14 @@ public sealed record LaunchOptions
         + "  --far-light [on|off]    the far view is drawn through the same program as the chunks, in the same sun, fog and haze (B17c; on by default; needs the shaders; off draws it as before, in the day's baked light)\n"
         + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
         + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
+        + "  --workers <auto|1-8>    the worker threads for this run (B07d; the settings page's Worker threads, saved): auto is the processor count less four, at least 1 and at most 8, the default for play; a scripted run keeps 2 unless this is given; --prefetch wins over it\n"
+        + "  --far-distance <auto|km> how far the far view is drawn, in km from 1 to 16 (B07d; the page's Far view distance, saved; auto is the quality's own)\n"
+        + "  --far-detail <50-200>   the far view's detail in percent, in steps of 25 (B07d; 100 is the usual; saved)\n"
+        + "  --far-trees <auto|off|256|512|1024|2048|4096> how far every tree is drawn as its own tree in the far view, in blocks (B07d; saved)\n"
+        + "  --far-textures <0-3>    how many of the far view's finest levels carry the block textures (B07d; default 2; saved)\n"
+        + "  --far-exact <auto|off|500|1000|1500|2000> how far from the eye the far view is made from the generator's real chunks, in blocks (B07d; off is the model alone; saved)\n"
+        + "  --pregen <blocks>       make the far view's real sections for the world round a point out to this radius, on all the workers (the Worker threads setting, or --workers), with progress, and exit; a run after it finds them on disk (B07d)\n"
+        + "  --pregen-at <x,z>       the point --pregen works round (default: where the run starts)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
         + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
         + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
@@ -213,6 +222,30 @@ public sealed record LaunchOptions
 
     /// <summary>The worker threads of <c>--prefetch</c> (0 to 2), or <see langword="null"/> for the default of two.</summary>
     public int? Prefetch { get; init; }
+
+    /// <summary>The worker threads of <c>--workers</c> (B07d): 0 for <c>auto</c>, or 1 to 8; <see langword="null"/> leaves the saved setting (Auto for a new game).</summary>
+    public int? Workers { get; init; }
+
+    /// <summary>The far view's distance in km from <c>--far-distance</c> (B07d; 0 for <c>auto</c>), or <see langword="null"/> for the saved setting.</summary>
+    public int? FarDistance { get; init; }
+
+    /// <summary>The far view's detail in percent from <c>--far-detail</c> (B07d), or <see langword="null"/> for the saved setting.</summary>
+    public int? FarDetail { get; init; }
+
+    /// <summary>The far view's single trees from <c>--far-trees</c>, as the setting counts it (B07d: 0 auto, 1 off, 2 to 6 for 256 to 4,096 blocks), or <see langword="null"/>.</summary>
+    public int? FarTrees { get; init; }
+
+    /// <summary>The far view's textured levels from <c>--far-textures</c> (B07d), or <see langword="null"/>.</summary>
+    public int? FarTextures { get; init; }
+
+    /// <summary>How far the far view is made from real chunks, from <c>--far-exact</c> as the setting counts it (B07d: 0 auto, 1 off, 2 to 5 for 500 to 2,000 blocks), or <see langword="null"/>.</summary>
+    public int? FarExact { get; init; }
+
+    /// <summary>The radius in blocks of <c>--pregen</c> (B07d): the far view's real sections are made out to it, round <see cref="PregenAt"/>, and the run exits; <see langword="null"/> for a normal run.</summary>
+    public int? Pregen { get; init; }
+
+    /// <summary>The column <c>--pregen</c> works round (<c>--pregen-at</c>), or <see langword="null"/> for where the run starts.</summary>
+    public (int X, int Z)? PregenAt { get; init; }
 
     /// <summary>The far view's range in blocks from <c>--far-view</c> (0 for <c>off</c>), or <see langword="null"/> for the quality preset's.</summary>
     public int? FarViewRange { get; init; }
@@ -755,7 +788,7 @@ public sealed record LaunchOptions
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -977,6 +1010,94 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Prefetch = prefetch };
+                    break;
+                case "--workers":
+                    if (value == "auto")
+                    {
+                        result = result with { Workers = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var workers) && workers is >= 1 and <= 8)
+                    {
+                        result = result with { Workers = workers };
+                    }
+                    else
+                    {
+                        error = $"--workers needs auto or a number from 1 to 8, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--far-distance":
+                    var distanceSpec = PlayerSettings.Spec(SettingId.FarDistance);
+                    if (value == "auto")
+                    {
+                        result = result with { FarDistance = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var kilometres) && kilometres >= 1 && kilometres <= distanceSpec.Max)
+                    {
+                        result = result with { FarDistance = kilometres };
+                    }
+                    else
+                    {
+                        error = $"--far-distance needs auto or a distance in km from 1 to {distanceSpec.Max}, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--far-detail":
+                    var detailSpec = PlayerSettings.Spec(SettingId.FarDetail);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detail) || detail < detailSpec.Min || detail > detailSpec.Max || detailSpec.Snap(detail) != detail)
+                    {
+                        error = $"--far-detail needs a percent from {detailSpec.Min} to {detailSpec.Max} in steps of {detailSpec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarDetail = detail };
+                    break;
+                case "--far-trees":
+                    if (FarChoices.TreesOf(value) is not { } trees)
+                    {
+                        error = $"--far-trees needs auto, off, 256, 512, 1024, 2048 or 4096, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarTrees = trees };
+                    break;
+                case "--far-textures":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var textured) || textured > PlayerSettings.Spec(SettingId.FarTextures).Max)
+                    {
+                        error = $"--far-textures needs 0, 1, 2 or 3, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarTextures = textured };
+                    break;
+                case "--far-exact":
+                    if (FarChoices.ExactOf(value) is not { } exact)
+                    {
+                        error = $"--far-exact needs auto, off, 500, 1000, 1500 or 2000, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarExact = exact };
+                    break;
+                case "--pregen":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var pregen) || pregen < 64 || pregen > 32768)
+                    {
+                        error = $"--pregen needs a radius in blocks from 64 to 32768, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Pregen = pregen };
+                    break;
+                case "--pregen-at":
+                    if (!VoxelStep.TryParseSignedColumn(value, out var pregenX, out var pregenZ))
+                    {
+                        error = $"--pregen-at needs a block column and row, like 230,222 (a minus sign is allowed); got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { PregenAt = (pregenX, pregenZ) };
                     break;
                 case "--far-view":
                     if (value == "off")
@@ -1367,7 +1488,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--walk-to":
-                    if (!VoxelStep.TryParseColumn(value, out var walkX, out var walkZ))
+                    if (!VoxelStep.TryParseSignedColumn(value, out var walkX, out var walkZ))
                     {
                         error = $"--walk-to needs a block column and row, like 60,52; got '{value}'.";
                         return false;

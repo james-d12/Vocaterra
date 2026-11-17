@@ -4,8 +4,8 @@ using System.Text;
 namespace Vocaterra.WorldPreview;
 
 /// <summary>
-/// A river followed from a point on it (B02b round 3): the river field's zero line walked a few blocks at a time (the centre line is found again at each step by Newton's method on the field), downstream or upstream, and the ground, the natural
-/// ground and the water along it drawn as one section, so the water's surface can be seen stepping down the valley from the source to the sea. A tool, not the game's source: it uses floating point.
+/// A river followed along the drainage network (B02c): the river through the node nearest a point is traced from its source to the sea or the lake it ends in, the line is walked a few blocks at a time and the ground, the natural ground and the water along it are
+/// drawn as one section, so the water's surface can be seen stepping down the valley and never rising. A tool, not the game's source.
 /// </summary>
 internal static class RiverWalk
 {
@@ -16,48 +16,85 @@ internal static class RiverWalk
     /// <param name="Column">What the model says about it.</param>
     internal readonly record struct Sample(double Distance, int X, int Z, Column Column);
 
-    /// <summary>Walks a river from the line nearest (x, z).</summary>
+    /// <summary>Walks the river through the node nearest (x, z), in the order of the water's flow (source first).</summary>
     /// <param name="sampler">The world.</param>
-    /// <param name="x">Where to start.</param>
-    /// <param name="z">Where to start.</param>
-    /// <param name="length">How far to walk, in blocks.</param>
+    /// <param name="x">A point on or near the river.</param>
+    /// <param name="z">A point on or near the river.</param>
+    /// <param name="length">The most blocks to walk.</param>
     /// <param name="step">The blocks between two samples.</param>
-    /// <param name="downstream">Whether to walk to where the ground falls (to the sea), or the other way (to the source).</param>
-    public static List<Sample> Walk(WorldSampler sampler, int x, int z, int length, int step, bool downstream)
+    /// <param name="direction"><c>down</c>: from the point to the sea; <c>up</c>: from the source to the point; <c>both</c>: the whole river.</param>
+    public static List<Sample> Walk(WorldSampler sampler, int x, int z, int length, int step, string direction)
     {
-        var (px, pz) = Snap(sampler, x, z);
-        var (tx, tz) = Tangent(sampler, px, pz);
-        // The way down: the way along the line the natural ground ends lower after 1 500 blocks (a short look would be fooled by the hills).
-        var ahead = Run(sampler, px, pz, tx, tz, 1500, step);
-        var behind = Run(sampler, px, pz, -tx, -tz, 1500, step);
-        var aheadFalls = ahead[^1].Column.Natural < behind[^1].Column.Natural;
-        if (aheadFalls != downstream)
+        var path = sampler.Height.TraceRiver(x, z, 4000);
+        if (path.Count < 2)
         {
-            (tx, tz) = (-tx, -tz);
+            throw new ArgumentException($"No river within a few nodes of ({x}, {z}).");
         }
 
-        return Run(sampler, px, pz, tx, tz, length, step);
+        var near = 0;
+        var best = double.MaxValue;
+        for (var i = 0; i < path.Count; i++)
+        {
+            var d = Math.Pow(path[i].X - x, 2) + Math.Pow(path[i].Z - z, 2);
+            if (d < best)
+            {
+                best = d;
+                near = i;
+            }
+        }
+
+        var points = direction switch
+        {
+            "down" => path.Skip(near).ToList(),
+            "up" => path.Take(near + 1).ToList(),
+            _ => path.ToList(),
+        };
+        var line = new List<(double X, double Z)>();
+        for (var i = 0; i < points.Count - 1; i++)
+        {
+            var (ax, az) = (points[i].X, points[i].Z);
+            var (bx, bz) = (points[i + 1].X, points[i + 1].Z);
+            var steps = Math.Max(1, (int)Math.Round(Math.Sqrt(Math.Pow(bx - ax, 2) + Math.Pow(bz - az, 2)) / step));
+            for (var s = 0; s < steps; s++)
+            {
+                line.Add((ax + ((bx - ax) * (double)s / steps), az + ((bz - az) * (double)s / steps)));
+            }
+        }
+
+        line.Add((points[^1].X, points[^1].Z));
+        var total = line.Count * (double)step;
+        var from = direction == "up" ? Math.Max(0, line.Count - 1 - (length / step)) : 0;
+        var to = direction == "up" ? line.Count : Math.Min(line.Count, (length / step) + 1);
+        var samples = new List<Sample>();
+        for (var i = from; i < to; i++)
+        {
+            var (cx, cz) = Centre(sampler, line[i].X, line[i].Z);
+            samples.Add(new Sample((i - from) * (double)step, cx, cz, Evened(sampler, cx, cz)));
+        }
+
+        _ = total;
+        return samples;
     }
 
-    private static List<Sample> Run(WorldSampler sampler, double px, double pz, double tx, double tz, int length, int step)
+    // The column of the river's line: the centre of the walk's point can be a few blocks off the bowed line the network draws, so the column nearby with the most river carve is taken.
+    private static (int X, int Z) Centre(WorldSampler sampler, double px, double pz)
     {
-        var samples = new List<Sample>();
-        for (double walked = 0; walked <= length; walked += step)
+        var (bx, bz) = ((int)Math.Round(px), (int)Math.Round(pz));
+        var best = -1;
+        for (var dz = -10; dz <= 10; dz += 2)
         {
-            var (cx, cz) = ((int)Math.Round(px), (int)Math.Round(pz));
-            samples.Add(new Sample(walked, cx, cz, Evened(sampler, cx, cz)));
-            (px, pz) = (px + (tx * step), pz + (tz * step));
-            (px, pz) = SnapFrom(sampler, px, pz, 3);
-            var (nx, nz) = Tangent(sampler, px, pz);
-            if ((nx * tx) + (nz * tz) < 0)
+            for (var dx = -10; dx <= 10; dx += 2)
             {
-                (nx, nz) = (-nx, -nz);
+                var weight = sampler.At(bx + dx, bz + dz).RiverWeight;
+                if (weight > best)
+                {
+                    best = weight;
+                    (px, pz) = (bx + dx, bz + dz);
+                }
             }
-
-            (tx, tz) = (nx, nz);
         }
 
-        return samples;
+        return ((int)Math.Round(px), (int)Math.Round(pz));
     }
 
     // The column as the generator makes it: a river's water takes the highest level of the river water within 3 columns (the sea's level apart), so a step lies across the river (WaterEdgePass.EvenLevels in the core).
@@ -127,15 +164,16 @@ internal static class RiverWalk
         return image;
     }
 
-    /// <summary>A few lines about the walk: how far it went, the water's levels, the length of the reaches between steps and the height of the steps.</summary>
+    /// <summary>A few lines about the walk: how far it went, the water's levels, the length of the reaches between steps, the height of the steps and how often the water rose (it must not).</summary>
     public static string Summary(IReadOnlyList<Sample> samples)
     {
         var inv = CultureInfo.InvariantCulture;
         var text = new StringBuilder();
         var wet = samples.Count(s => s.Column.Water);
-        text.AppendLine(string.Create(inv, $"walked {samples[^1].Distance:0} blocks from ({samples[0].X}, {samples[0].Z}) to ({samples[^1].X}, {samples[^1].Z}); the ground falls from {samples[0].Column.Natural} to {samples[^1].Column.Natural}; {Pct(wet, samples.Count)}% of the samples under water"));
+        text.AppendLine(string.Create(inv, $"walked {samples[^1].Distance:0} blocks from ({samples[0].X}, {samples[0].Z}) to ({samples[^1].X}, {samples[^1].Z}); the natural ground falls from {samples[0].Column.Natural} to {samples[^1].Column.Natural}; {Pct(wet, samples.Count)}% of the samples under water"));
         var reaches = new List<(int Level, double Length)>();
         var steps = new List<int>();
+        var rises = new List<int>();
         int? level = null;
         var from = 0.0;
         foreach (var s in samples.Where(s => s.Column.Water))
@@ -144,10 +182,14 @@ internal static class RiverWalk
             {
                 reaches.Add((l, s.Distance - from));
                 steps.Add(Math.Abs(l - s.Column.WaterLevel));
+                if (s.Column.WaterLevel > l)
+                {
+                    rises.Add(s.Column.WaterLevel - l);
+                }
+
                 from = s.Distance;
             }
 
-            level ??= s.Column.WaterLevel;
             level = s.Column.WaterLevel;
         }
 
@@ -156,47 +198,8 @@ internal static class RiverWalk
             text.AppendLine(string.Create(inv, $"{reaches.Count} steps; water from y {samples.Where(s => s.Column.Water).Max(s => s.Column.WaterLevel)} down to {samples.Where(s => s.Column.Water).Min(s => s.Column.WaterLevel)}; reaches {reaches.Min(r => r.Length):0} to {reaches.Max(r => r.Length):0} blocks long (median {reaches.OrderBy(r => r.Length).ElementAt(reaches.Count / 2).Length:0}); steps of {steps.Min()} to {steps.Max()} blocks"));
         }
 
+        text.AppendLine(string.Create(inv, $"rises along the flow: {rises.Count}{(rises.Count == 0 ? string.Empty : $" (the largest {rises.Max()} blocks)")}"));
         return text.ToString();
-    }
-
-    private static (double X, double Z) Snap(WorldSampler sampler, int x, int z) => SnapFrom(sampler, x, z, 12);
-
-    // Newton's method on the river field: towards the nearest zero line.
-    private static (double X, double Z) SnapFrom(WorldSampler sampler, double x, double z, int rounds)
-    {
-        for (var i = 0; i < rounds; i++)
-        {
-            var r = sampler.RiverField((int)Math.Round(x), (int)Math.Round(z));
-            if (r == 0)
-            {
-                break;
-            }
-
-            var (gx, gz) = Gradient(sampler, x, z);
-            var g2 = (gx * gx) + (gz * gz);
-            if (g2 < 1e-9)
-            {
-                break;
-            }
-
-            (x, z) = (x - (r * gx / g2), z - (r * gz / g2));
-        }
-
-        return (x, z);
-    }
-
-    private static (double X, double Z) Gradient(WorldSampler sampler, double x, double z)
-    {
-        const int D = 4;
-        int ix = (int)Math.Round(x), iz = (int)Math.Round(z);
-        return ((sampler.RiverField(ix + D, iz) - sampler.RiverField(ix - D, iz)) / (2.0 * D), (sampler.RiverField(ix, iz + D) - sampler.RiverField(ix, iz - D)) / (2.0 * D));
-    }
-
-    private static (double X, double Z) Tangent(WorldSampler sampler, double x, double z)
-    {
-        var (gx, gz) = Gradient(sampler, x, z);
-        var n = Math.Sqrt((gx * gx) + (gz * gz));
-        return n < 1e-9 ? (1, 0) : (-gz / n, gx / n);
     }
 
     private static string Pct(long part, long whole) => (whole == 0 ? 0 : 100.0 * part / whole).ToString("0", CultureInfo.InvariantCulture);

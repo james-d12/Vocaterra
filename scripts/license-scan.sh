@@ -11,6 +11,9 @@
 # recognised licenseUrl). Packages still without a license then take a reviewed entry from scripts/license-overrides.txt when one
 # exists for the exact id and version; the override's license is checked against the allowlist like any other. The solution must
 # be restored first, because the package list comes from 'dotnet list package'.
+# scripts/license-exceptions.txt is the one place a package with a refused licence (LGPL here) may pass: an entry names one package id
+# and version, and the owner's decision and reason are recorded on its line (owner, 2026-11-17, D-game-34 item 49). It applies to that
+# exact version only and never widens the allowlist, so any other LGPL, GPL or unknown licence still fails.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,6 +21,7 @@ repo_root="$(cd "$script_dir/.." && pwd)"
 solution="$repo_root/Vocaterra.Nlp.slnf"
 allowlist="$script_dir/license-allowlist.txt"
 overrides="$script_dir/license-overrides.txt"
+exceptions="$script_dir/license-exceptions.txt"
 
 usage() {
   cat <<'EOF'
@@ -59,6 +63,7 @@ command -v python3 >/dev/null 2>&1 || fail "python3 not found on PATH"
 [ -f "$solution" ] || fail "solution not found: $solution"
 [ -f "$allowlist" ] || fail "allowlist not found: $allowlist"
 [ -f "$overrides" ] || fail "overrides file not found: $overrides"
+[ -f "$exceptions" ] || fail "exceptions file not found: $exceptions"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -67,7 +72,7 @@ if ! dotnet list "$solution" package --include-transitive --format json >"$work/
   fail "'dotnet list package' failed; restore the solution first (dotnet restore)"
 fi
 
-python3 -I - "$work/packages.json" "$allowlist" "$offline" "$overrides" <<'PY'
+python3 -I - "$work/packages.json" "$allowlist" "$offline" "$overrides" "$exceptions" <<'PY'
 import datetime
 import gzip
 import json
@@ -79,7 +84,9 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
-packages_path, allowlist_path, offline, overrides_path = sys.argv[1], sys.argv[2], sys.argv[3] == "1", sys.argv[4]
+packages_path, allowlist_path, offline, overrides_path, exceptions_path = (
+    sys.argv[1], sys.argv[2], sys.argv[3] == "1", sys.argv[4], sys.argv[5]
+)
 cache_root = os.environ.get("NUGET_PACKAGES") or os.path.join(os.path.expanduser("~"), ".nuget", "packages")
 registration_url = "https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json"
 denied_markers = ("GPL", "SSPL")  # checked on every identifier, so LGPL and AGPL are covered too
@@ -139,6 +146,29 @@ with open(overrides_path, encoding="utf-8") as handle:
         if key in overrides:
             config_error(where + ": duplicate entry for %s %s" % (fields[0], fields[1]))
         overrides[key] = {"spdx": fields[2], "url": fields[3], "reviewed": fields[4]}
+
+
+# Owner exceptions: <package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on YYYY-MM-DD>|<reason>, keyed by lowercase id and exact version.
+exceptions = {}
+with open(exceptions_path, encoding="utf-8") as handle:
+    for number, raw in enumerate(handle, 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields = [field.strip() for field in line.split("|")]
+        where = "license-exceptions.txt:%d" % number
+        if len(fields) != 6 or not all(fields):
+            config_error(where + ": expected 6 non-empty '|' separated fields")
+        if not fields[3].startswith("https://"):
+            config_error(where + ": evidence must be an https URL")
+        try:
+            datetime.date.fromisoformat(fields[4])
+        except ValueError:
+            config_error(where + ": reviewed-on must be a YYYY-MM-DD date")
+        key = (fields[0].lower(), fields[1])
+        if key in exceptions:
+            config_error(where + ": duplicate entry for %s %s" % (fields[0], fields[1]))
+        exceptions[key] = {"spdx": fields[2], "url": fields[3], "reviewed": fields[4], "reason": fields[5]}
 
 
 def is_allowed(identifier):
@@ -369,6 +399,11 @@ for (_, version), package_id in sorted(packages.items()):
         verdict, check_note = evaluate(license_text)
         if verdict != "PASS":
             note = check_note
+    exception = exceptions.get((package_id.lower(), version))
+    if verdict != "PASS" and exception is not None:
+        license_text, source = exception["spdx"], "exception"
+        verdict = "PASS"
+        note = "owner exception " + exception["reviewed"] + " (" + exception["reason"] + "): " + exception["url"]
     rows.append((package_id, version, license_text or "-", source, verdict, note or "-"))
 
 headers = ("PACKAGE", "VERSION", "LICENSE", "SOURCE", "STATUS", "NOTE")
