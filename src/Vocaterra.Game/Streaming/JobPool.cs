@@ -13,12 +13,15 @@ public enum JobLane
 
     /// <summary>B07c: the real chunks the far view's store takes in, after the tiles (a tile is what is drawn; the ring only sharpens it).</summary>
     Ring = 2,
+
+    /// <summary>B21: the voxel chunks' meshes (and grass layers), built from a snapshot of the blocks the game loop took: before the residency's jobs, but after every <see cref="JobPool.MeshRun"/> of them one residency job goes first, so the columns the meshes wait for are made too.</summary>
+    Mesh = 3,
 }
 
 /// <summary>
 /// The worker threads of the streamed world (B07, biomes plan section 3.7): at most <see cref="MaxWorkers"/> of them in all, shared by the chunk prefetcher and the far view's tile builds. A job is
 /// a pure computation over the world's pure source (it never touches the voxel grid, the renderer or the simulation) whose result it hands to a queue the game loop drains. The queue is a priority
-/// queue per lane, nearest first (a lower number first), the residency lane before the tile lane; a job that is stale by the time a worker reaches it is skipped. With no worker the pool still
+/// queue per lane, nearest first (a lower number first), the residency lane before the tile lane, and the voxel chunks' mesh lane (B21: a pure computation over a snapshot of the blocks the game loop took) before both, up to <see cref="MeshRun"/> jobs in a row; a job that is stale by the time a worker reaches it is skipped. With no worker the pool still
 /// takes jobs and <see cref="RunInline"/> runs them on the caller's thread within a time budget, which is how the tests and the scripted runs keep a run on one thread.
 /// </summary>
 public sealed class JobPool : IDisposable
@@ -28,11 +31,15 @@ public sealed class JobPool : IDisposable
 
     private const int RingEvery = 4;
 
+    /// <summary>How many mesh jobs in a row the workers take before a residency job, if one waits, gets its turn (B21).</summary>
+    public const int MeshRun = 4;
+
     private readonly object _gate = new();
-    private readonly PriorityQueue<Job, long>[] _queues = [new(), new(), new()];
+    private readonly PriorityQueue<Job, long>[] _queues = [new(), new(), new(), new()];
     private readonly List<Thread> _threads = [];
     private int _running;
     private int _sinceRing;
+    private int _meshRun;
     private bool _disposed;
     private long _completed;
     private long _skipped;
@@ -61,7 +68,7 @@ public sealed class JobPool : IDisposable
         {
             lock (_gate)
             {
-                return _queues[0].Count + _queues[1].Count + _queues[2].Count + _running;
+                return _queues[0].Count + _queues[1].Count + _queues[2].Count + _queues[3].Count + _running;
             }
         }
     }
@@ -156,6 +163,7 @@ public sealed class JobPool : IDisposable
             _queues[0].Clear();
             _queues[1].Clear();
             _queues[2].Clear();
+            _queues[3].Clear();
             Monitor.PulseAll(_gate);
         }
 
@@ -190,6 +198,15 @@ public sealed class JobPool : IDisposable
     // Takes the next job (the residency lane first, then the tiles'; but after RingEvery tile jobs in a row the ring's gets one, so a stream of tiles never starves it); the lock is held.
     private Job? TakeLocked()
     {
+        // A mesh job first (an edit's mesh, the view's fill), but not more than MeshRun in a row while a residency job waits.
+        if ((_meshRun < MeshRun || _queues[(int)JobLane.Residency].Count == 0) && _queues[(int)JobLane.Mesh].TryDequeue(out var mesh, out _))
+        {
+            _meshRun++;
+            _running++;
+            return mesh;
+        }
+
+        _meshRun = 0;
         if (_queues[(int)JobLane.Residency].TryDequeue(out var first, out _))
         {
             _running++;
@@ -203,7 +220,7 @@ public sealed class JobPool : IDisposable
             return ring;
         }
 
-        for (var lane = 1; lane < _queues.Length; lane++)
+        for (var lane = 1; lane < (int)JobLane.Mesh; lane++)
         {
             if (_queues[lane].TryDequeue(out var job, out _))
             {

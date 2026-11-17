@@ -60,6 +60,45 @@ public sealed class ChunkResidencyTests
     }
 
     [Fact]
+    public void Given_AGeneratorAndNoResidentChunk_When_TheHighestBlockOfAColumnIsAsked_Then_NothingIsInstalledTheAnswerIsTheGeneratorsAndAirIsAskedForOnce()
+    {
+        var generator = new CountingGenerator(coord => coord == Origin ? Floor(BlockId.Stone, 3) : null);
+        var grid = new VoxelGrid(WorldLimits.Default, generator);
+        var residency = new ResidencyRecorder();
+        grid.AddResidencyListener(residency);
+
+        Assert.Equal(3, grid.HighestBlock(5, 5));
+        var first = generator.Calls.Count;
+        Assert.Equal(3, grid.HighestBlock(5, 5));
+        var second = generator.Calls.Count - first;
+        Assert.Equal(-65, grid.HighestBlock(100, -100)); // a column of air all the way down
+
+        Assert.Equal(0, grid.ResidentChunkCount);
+        Assert.Equal(0, grid.ResidencyVersion);
+        Assert.Empty(residency.Installed);
+        Assert.Equal(0, grid.ChunksGeneratedByReads);
+        Assert.True(first > 5, "the layers above the ground were asked for the first time");
+        Assert.Equal(1, second); // and not again: only the chunk with ground in it is made again
+    }
+
+    [Fact]
+    public void Given_AResidentChunkOfAColumn_When_ABlockIsPlacedHighAboveTheGenerators_Then_TheHighestBlockIsTheEditAndNothingElseIsInstalled()
+    {
+        var generator = new CountingGenerator(coord => coord == Origin ? Floor(BlockId.Stone, 3) : null);
+        var grid = new VoxelGrid(WorldLimits.Default, generator);
+        Assert.Equal(BlockId.Stone, grid.GetBlock(5, 3, 5)); // the chunk at the origin is resident now
+        var resident = grid.ResidentChunkCount;
+
+        Assert.Equal(3, grid.HighestBlock(5, 5));
+        Assert.Equal(resident, grid.ResidentChunkCount);
+        Assert.True(grid.SetBlock(5, 40, 5, BlockId.Planks)); // installs the chunk above it, as a write does
+        var afterWrite = grid.ResidentChunkCount;
+
+        Assert.Equal(40, grid.HighestBlock(5, 5));
+        Assert.Equal(afterWrite, grid.ResidentChunkCount);
+    }
+
+    [Fact]
     public void Given_AGenerator_When_AMissingChunkIsRead_Then_ItIsGeneratedOnceInstalledAndNotAnEdit()
     {
         var generator = new CountingGenerator(coord => coord == Origin ? Floor(BlockId.Stone, 3) : null);
