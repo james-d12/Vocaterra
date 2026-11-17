@@ -25,6 +25,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--prefetch <0\|1\|2>` | B07: the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread) |
 | `--far-view <off\|blocks>` | B07: the far view's range in streamed worlds (256 to 65536; default the quality's: 4096, 8192, 16384) |
 | `--no-settle` | B07: a scripted run streams the world as a live one does and does not wait for everything to be in place before a picture |
+| `--gl-shaders` | B17a (a spike, off by default): the opaque chunks are drawn through the game's own GLSL program (`Graphics/Gl`) on MonoGame's OpenGL context instead of `AlphaTestEffect`; the log's `gl:` lines say what the context is; see `docs/game/b17-spike.md` |
 | `--stream-stats` | B07: a scripted run prints the residency, mesh and far-view counts and timings on a `stream:` line |
 | `--view-distance <blocks>` | draw this far instead of the quality's distance (48 to 576 in steps of 16; the menu's Draw distance, whose Auto is the quality's own) |
 | `--grass <0-100>` | B18: the decorative grass layer's density in percent, 0 to 100 in steps of 10 (the settings page's Grass slider; default 60; 0 is the look of before, no tuft drawn or built); wins over the saved setting for the run |

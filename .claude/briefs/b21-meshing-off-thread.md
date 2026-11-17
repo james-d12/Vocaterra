@@ -5,7 +5,7 @@ remesh, `ChunkMesher.Build` and its neighbourhood snapshot, `ChunkViewSet`, `Gra
 (`ChunkResidency`, `StreamedWorldHost.ApplyPreset`, `JobPool`), src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs (`HighestBlock`) and its callers
 (`Land/LandRules.cs`, `Land/CampPlan.cs`), `World/Streaming/StreamedWorld.cs` and `World/PristineChunks.cs` (`ContentOf`), and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b21, already on the local branch `B21-meshing-off-thread` (cut from
-`feature/biomes` at __BASE__). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at f1ef2e15). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B21: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every game run and screenshot through scripts/limited.sh (builds `-m:4`, tests
 `-m:2`; the caps are the script's defaults: 10 GB a command, 16 GB in all, three commands machine-wide); one heavy command at a time, no

@@ -196,6 +196,18 @@ public sealed class ScriptedRunEnd
             _console(StreamLine(renderer, streaming, timings, phases, allocations));
         }
 
+        if (_options.StreamStats)
+        {
+            var opaque = renderer.OpaquePassTimes;
+            _console(string.Create(CultureInfo.InvariantCulture, $"opaque pass ({(renderer.GlPass is null ? "effect" : "GLSL")}, processor time to submit): {opaque.Count} frames, median {opaque.Median:0.00} ms, p95 {opaque.Percentile(95):0.00} ms, p99 {opaque.Percentile(99):0.00} ms, longest {opaque.Longest:0.00} ms"));
+        }
+
+        if (renderer.GlPass is { } glPass)
+        {
+            var (errors, first) = glPass.Errors;
+            _console($"gl: the last opaque pass drew {glPass.LastPass.Quads} quads in {glPass.LastPass.DrawCalls} draw calls; {glPass.FallbackPasses} pass(es) fell back to the effect; {errors} GL error(s) cleared{(errors > 0 ? $" (first {first})" : string.Empty)}");
+        }
+
         // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.
         _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.GrassPercent > 0 ? $", grass {renderer.DrawnGrassQuads} quads (slider {renderer.GrassPercent}%, within {preset.GrassDistance} blocks, cap {preset.GrassCapPercent}%; {renderer.GrassBuilds.Built} layers built in {renderer.GrassBuilds.Milliseconds:0} ms, {renderer.GrassQuadsBuilt} quads held)" : string.Empty)}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
         var body = sim.Player;
