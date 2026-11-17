@@ -39,7 +39,7 @@ internal sealed class WorldSample
                 var (x, z) = (-half + (i * step), -half + (j * step));
                 var c = climate.At(x, z);
                 var shape = height.Shape(x, z, c);
-                var column = table.Classify(c, shape.Height, x, z, shape.Water);
+                var column = table.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight);
                 var k = (j * Size) + i;
                 Ground[k] = (short)shape.Height;
                 Water[k] = shape.Water;

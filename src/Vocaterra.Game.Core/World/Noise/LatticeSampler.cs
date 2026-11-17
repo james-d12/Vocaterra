@@ -23,6 +23,11 @@ internal sealed class LatticeSampler2
         _source = source;
     }
 
+    /// <summary>The field at a block that is a lattice point (a multiple of the cell in both axes): the source's value there, which is what <see cref="At"/> gives, without the three corners that carry no weight.</summary>
+    /// <param name="x">The block's x (a multiple of the cell).</param>
+    /// <param name="z">The block's z (a multiple of the cell).</param>
+    public int AtPoint(int x, int z) => _source(x, z);
+
     /// <summary>The field at a block, from its four lattice corners.</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>

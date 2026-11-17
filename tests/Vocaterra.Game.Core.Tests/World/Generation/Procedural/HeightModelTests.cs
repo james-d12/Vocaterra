@@ -20,6 +20,7 @@ public sealed class HeightModelTests
             Base = [new SplinePoint(-1000, baseHeight), new SplinePoint(1000, baseHeight)],
             RangeFactor = [new SplinePoint(-1000, 0), new SplinePoint(1000, 0)],
             Detail = World.Height.Detail with { CalmAmplitude = 0, RuggedAmplitude = 0 },
+            DrainageData = null, // a flat ground of synthetic climates has no drainage to read: no river and no lake
         },
     };
 
@@ -162,66 +163,106 @@ public sealed class HeightModelTests
     }
 
     [Fact]
-    public void Given_ALowlandRiverField_When_AColumnOnTheCentreLineIsShaped_Then_ItIsCarvedToABedUnderItsOwnWaterAndABankIsNot()
+    public void Given_ARiverOfTheDrainageNetwork_When_AColumnOnItsLineIsShaped_Then_ItIsCarvedToABedUnderItsOwnWaterAndABankIsNot()
     {
         var model = new HeightModel(World, 42);
+        var climate = new ClimateSampler(World, 42);
+        var reach = model.Reaches(-4096, -4096, 4096, 4096).Where(static r => !r.IntoSea && !r.IntoLake && r.Area > 600).OrderByDescending(static r => r.Area).First();
 
-        var river = model.Shape(100, 100, Climate(40, 4096, 0, river: 0));
-        var bank = model.Shape(100, 100, Climate(40, 4096, 0, river: 4096));
+        var river = default(ColumnShape);
+        var (rx, rz) = (0, 0);
+        for (var i = 0; i <= 8; i++) // the line between the two nodes is bowed a few blocks: the column of the most carve along it
+        {
+            for (var dz = -8; dz <= 8; dz += 2)
+            {
+                for (var dx = -8; dx <= 8; dx += 2)
+                {
+                    var (x, z) = (reach.FromX + ((reach.ToX - reach.FromX) * i / 8) + dx, reach.FromZ + ((reach.ToZ - reach.FromZ) * i / 8) + dz);
+                    var shape = model.Shape(x, z, climate.At(x, z));
+                    if (shape.RiverWeight > river.RiverWeight)
+                    {
+                        (river, rx, rz) = (shape, x, z);
+                    }
+                }
+            }
+        }
 
-        Assert.Equal(4096, river.RiverWeight);
+        var bank = model.Shape(rx + 200, rz, climate.At(rx + 200, rz));
+        Assert.True(river.RiverWeight > 3500, $"the carve on the line is {river.RiverWeight}");
         Assert.True(river.Water);
         Assert.True(river.WaterLevel >= World.Vertical.SeaLevel);
-        Assert.Equal(river.WaterLevel - World.Height.Rivers.Depth, river.Height); // the bed is a depth under the surface
-        Assert.Equal(0, bank.RiverWeight);
-        Assert.False(bank.Water);
+        var depth = World.Height.Rivers.Depth;
+        Assert.InRange(river.WaterLevel - river.Height, depth, World.Height.DrainageData!.DepthMax + 1); // the bed is a depth under the surface: deeper for a larger river
+        Assert.False(bank.RiverWeight > 0 && bank.Water && bank.WaterLevel == river.WaterLevel && bank.Height == river.Height, "a column 200 blocks from the line is not the river");
         Assert.True(river.NaturalHeight > river.Height, "the natural height is kept for the banks");
     }
 
     [Fact]
-    public void Given_ARiverOnHighGround_When_TheColumnIsShaped_Then_ItHoldsWaterInAValleyUnderTheGroundAndNoRiverBeginsAboveTheSources()
-    {
-        var valley = new HeightModel(Flat(150), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
-        var below = new HeightModel(Flat(150), 42).Shape(0, 0, Climate(0, 0, 0, river: 4096));
-        var source = new HeightModel(Flat(235), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
-        var gone = new HeightModel(Flat(262), 42).Shape(0, 0, Climate(0, 0, 0, river: 0));
-
-        Assert.True(valley.Water); // the water follows the valley up: it stands far over the sea
-        Assert.InRange(valley.WaterLevel, 100, 150);
-        Assert.InRange(valley.NaturalHeight - valley.Height, 15, 50); // a valley, as deep under the ground as the model says, not a trench to the sea
-        Assert.Equal(0, below.RiverWeight);
-        Assert.InRange(source.RiverWeight, 1, 2000); // near the sources the river is faint
-        Assert.Equal(0, gone.RiverWeight);
-    }
-
-    [Fact]
-    public void Given_ALowlandRiver_When_ItIsNearTheCoastAndFarInland_Then_ItHoldsWaterAtBothAndTheSurfaceIsHigherInland()
-    {
-        var model = new HeightModel(Flat(42), 42);
-        var rising = new HeightModel(World, 42);
-
-        var near = rising.Shape(0, 0, Climate(40, 4096, 0, river: 0)); // 10 thousandths: a few blocks from the shore
-        var inland = rising.Shape(0, 0, Climate(900, 4096, 0, river: 0)); // 220 thousandths: far inland of the shore
-        var mouth = rising.Shape(0, 0, Climate(8, 4096, 0, river: 0));
-
-        Assert.True(near.Water && inland.Water, "the river holds water at both");
-        Assert.True(inland.WaterLevel > near.WaterLevel, "inland the surface stands higher: the river runs down to the sea");
-        Assert.Equal(World.Vertical.SeaLevel, mouth.WaterLevel); // at the shore it is the sea's level, so it meets the sea
-        Assert.True(model.Shape(0, 0, Climate(40, 4096, 0, river: 0)).RiverWeight > 0);
-    }
-
-    [Fact]
-    public void Given_ColumnsFromTheShoreInland_When_TheWaterLevelIsRead_Then_ItRisesInWholeStepsAboveTheSea()
+    public void Given_ARiverToTheSea_When_ItsWaterIsFollowed_Then_ItMeetsTheSeaAtTheSeaLevelAndStandsInWholeStepsAboveIt()
     {
         var model = new HeightModel(World, 42);
-        var levels = Enumerable.Range(0, 150).Select(i => model.Shape(0, 0, Climate(i * 10, 4096, 0, river: 0)).Surface).ToArray();
+        var sea = World.Vertical.SeaLevel;
+        var reach = model.Reaches(-6000, -6000, 6000, 6000).Where(static r => r.IntoSea && r.Area > 300).OrderByDescending(static r => r.Area).First();
+        var path = model.TraceRiver(reach.FromX, reach.FromZ, 4000);
 
-        Assert.All(levels, level => Assert.True(level >= World.Vertical.SeaLevel));
-        Assert.Equal(World.Vertical.SeaLevel, levels[0]); // the river meets the sea at the sea's level
-        Assert.True(levels[^1] >= levels[0] + 12, "the surface rises with the land inland");
-        Assert.True(levels.Zip(levels.Skip(1), static (a, b) => b - a).All(static d => d <= World.Height.Water.Step), "and never by more than a step between two samples");
-        Assert.All(levels, level => Assert.Equal(0, (level - World.Vertical.SeaLevel) % World.Height.Water.Step)); // the surface steps in whole steps above the sea
-        Assert.True(levels.Distinct().Count() > 3, "a long reach of land has several steps");
+        Assert.True(path[^1].Sea);
+        Assert.Equal(sea, path[^1].Level); // it meets the sea at the sea's level
+        Assert.All(path, p => Assert.Equal(0, (p.Level - sea) % World.Height.Water.Step)); // the surface steps in whole steps above the sea
+        Assert.All(path, p => Assert.True(p.Level >= sea));
+        Assert.True(path.Select(static p => p.Level).Distinct().Count() > 1, "a river of this size has a step");
+    }
+
+    [Fact]
+    public void Given_ColumnsAlongTheNetwork_When_TheyAreShaped_Then_RiversFadeOutOnHighLandAndInTheOpenSea()
+    {
+        var model = new HeightModel(World, 42);
+        var climate = new ClimateSampler(World, 42);
+        var carved = 0;
+        for (var z = -8192; z < 8192; z += 24)
+        {
+            for (var x = -8192; x < 8192; x += 24)
+            {
+                var c = climate.At(x, z);
+                var shape = model.Shape(x, z, c);
+                if (shape.RiverWeight > 0)
+                {
+                    carved++;
+                    Assert.True(shape.NaturalHeight <= World.Height.Rivers.FadeToHeight + 60, $"a river carves at {x},{z}, where the ground is {shape.NaturalHeight}");
+                    Assert.True(c.Continentalness > (World.Height.Rivers.SeaFadeFrom * 4096 / 1000) - 1, "the open sea needs no river");
+                }
+            }
+        }
+
+        Assert.True(carved > 500, $"{carved} carved columns in 16 384 blocks");
+    }
+
+    [Fact]
+    public void Given_AWideRegion_When_ColumnsAreShaped_Then_LakesAppearAsFlatBodiesOfWaterWithABedAndNoLakeLiesOnHighGround()
+    {
+        var model = new HeightModel(World, 42);
+        var climate = new ClimateSampler(World, 42);
+        var lakes = 0;
+        for (var z = -8192; z < 8192; z += 16)
+        {
+            for (var x = -8192; x < 8192; x += 16)
+            {
+                var shape = model.Shape(x, z, climate.At(x, z));
+                if (shape.LakeWeight > shape.RiverWeight && shape.Water)
+                {
+                    lakes++;
+                    Assert.True(shape.Height < shape.WaterLevel, $"a lake column at {x},{z} is dry: ground {shape.Height}, water {shape.WaterLevel}");
+                    Assert.True(shape.Height >= shape.WaterLevel - World.Height.Lakes.Depth - 1 - World.Height.DrainageData!.LakeBasin, $"a lake at {x},{z} is {shape.WaterLevel - shape.Height} deep");
+                    Assert.True(shape.NaturalHeight <= World.Height.Lakes.HeightTo + 40, $"a lake at {x},{z}, where the ground is {shape.NaturalHeight}");
+                }
+
+                if (shape.LakeWeight == 0 && shape.RiverWeight == 0)
+                {
+                    Assert.Equal(shape.NaturalHeight, shape.Height);
+                }
+            }
+        }
+
+        Assert.True(lakes > 500, $"{lakes} lake columns in a 16 000-block square");
     }
 
     [Fact]
@@ -237,46 +278,6 @@ public sealed class HeightModelTests
 
         var (varied, level) = (Spread(on), Spread(off));
         Assert.True(varied >= level + 40, $"along a ridge of 12 000 blocks the crest spans {varied} blocks with the variation and {level} without");
-    }
-
-    [Fact]
-    public void Given_RiversOnHighLandAndInTheSea_When_ColumnsAreShaped_Then_TheyFadeOut()
-    {
-        var model = new HeightModel(World, 42);
-
-        Assert.Equal(0, new HeightModel(Flat(300), 42).Shape(0, 0, Climate(0, 0, 0, river: 0)).RiverWeight); // the ground above the sources: no river begins there
-        Assert.True(model.Shape(0, 0, Climate(-250, 4096, 0, river: 0)).RiverWeight < 4096 || true);
-        Assert.Equal(0, model.Shape(0, 0, Climate(-4096, 4096, 0, river: 0)).RiverWeight); // the open sea needs none
-        var seaFloor = model.Shape(0, 0, Climate(-4096, 4096, 0, river: 0));
-        Assert.Equal(seaFloor.Height, seaFloor.NaturalHeight);
-    }
-
-    [Fact]
-    public void Given_AWideRegion_When_ColumnsAreShaped_Then_LakesAppearInLowCalmInlandBasins()
-    {
-        var model = new HeightModel(World, 42);
-        var lakes = 0;
-        for (var z = -3000; z < 3000; z += 16)
-        {
-            for (var x = -3000; x < 3000; x += 16)
-            {
-                var shape = model.Shape(x, z, Climate(400, 3000, 0));
-                if (shape.LakeWeight > 0 && shape.Water)
-                {
-                    lakes++;
-                    Assert.True(shape.Height < shape.WaterLevel && shape.Height >= shape.WaterLevel - World.Height.Lakes.Depth - 1);
-                }
-
-                if (shape.LakeWeight == 0)
-                {
-                    Assert.Equal(shape.NaturalHeight, shape.Height);
-                }
-            }
-        }
-
-        Assert.True(lakes > 100, $"{lakes} lake columns in a 6000-block square of lowland");
-        Assert.Equal(0, model.Shape(0, 0, Climate(400, -4096, 0)).LakeWeight); // rugged land holds no lake
-        Assert.Equal(0, model.Shape(0, 0, Climate(4096, 3000, 0)).LakeWeight); // and neither does the high plateau
     }
 
     [Fact]

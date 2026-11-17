@@ -59,7 +59,7 @@ internal static class ProceduralTestWorld
                             var (x, z) = ((gx * 64) + sx, (gz * 64) + sz);
                             var c = climate.At(x, z);
                             var shape = model.Shape(x, z, c);
-                            var id = table.Classify(c, shape.Height, x, z, shape.Water).Row.Id;
+                            var id = table.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight).Row.Id;
                             var hit = feature switch
                             {
                                 Feature.River => id == "river-channel" && shape.RiverWeight > 3000,
