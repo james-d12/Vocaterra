@@ -19,13 +19,13 @@ public sealed class ProceduralChunkTimeTests(ITestOutputHelper output)
 {
     private const int Passes = 3;
 
-    // Measured (B24, Debug as the suite runs, CPU time, fastest of three, after B02c's drainage network doubled the cost; quietest of several runs): a surface chunk 13.9 ms, an all-stone chunk 13.6, a deep chunk 13.1, a column of 24 chunks 24.2
-    // (9.2 before the underground: a ratio of 2.9). Under load of 15 or more the figures run up to 50 percent higher (20.8 ms seen), so the budgets sit at twice the quietest.
+    // Measured (B24, Debug as the suite runs, CPU time, fastest of three, after B27's reach cache in the drainage network; B02c had doubled the cost to 13.9, 13.6, 13.1 and 24.2): a surface chunk 6.7 ms, an all-stone chunk 6.4, a deep chunk 6.4, a column of 24 chunks 17.0
+    // (4.2 before the underground: a ratio of 4.9). Under load the figures run higher, so the budgets sit at twice the quietest.
     // Each budget is twice the measurement, rounded up: a pass that costs twice as much fails.
-    private const double SurfaceBudget = 28;
-    private const double StoneBudget = 28;
-    private const double ColumnBudget = 50;
-    private const double DeepBudget = 27;
+    private const double SurfaceBudget = 14;
+    private const double StoneBudget = 13;
+    private const double ColumnBudget = 41;
+    private const double DeepBudget = 13;
     private const double RatioBound = 6;
 
     private static double Milliseconds(Action work)
