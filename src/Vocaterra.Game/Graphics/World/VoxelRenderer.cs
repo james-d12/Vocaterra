@@ -8,8 +8,10 @@ using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.Weather;
@@ -91,14 +93,19 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     // A chunk mesh is drawn with 16-bit indices, so it holds at most 65 532 vertices (16 383 quads). A full chunk of cubes tops out at 12 288 quads.
     private const int MaxQuadsPerMesh = 16383;
 
+    /// <summary>The most quads a chunk mesh holds (the size of the shared quad index buffers).</summary>
+    public const int MaxQuadsPerChunkMesh = MaxQuadsPerMesh;
+
     private readonly GraphicsDevice _device;
     private readonly BlockAtlas _atlas;
     private readonly WaterTextures _water;
     private readonly VoxelGrid _grid;
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _solid;
+    private GlOpaquePass? _glOpaque;
     private readonly SkyRenderer _sky;
     private MeshOptions _meshOptions;
+    private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
     private readonly GridBlockSource _source;
     private readonly ChunkVersionTracker _tracker;
     private ChunkViewSet _view;
@@ -117,7 +124,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private readonly PrecipitationRenderer _rain;
     private LightBand _band;
     private Vector3 _sunLight = Vector3.One;
-    private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
+    private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
     private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
     private readonly HashSet<VoxelChunkCoord> _resident = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
@@ -148,9 +155,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
     /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
+    /// <param name="groundClimate">The ground temperature and humidity at a block (<see cref="GroundClimate.Of"/>), which the grass and the oak leaves take their colour from (B22); <see langword="null"/> for the colour map's middle everywhere.</param>
     /// <param name="naturalSurface">The natural surface y of a block column (<c>IPlaceInfo.NaturalSurfaceAt</c>), from which the ground darkens with depth (B12, <see cref="SkyDepthLight"/>); <see langword="null"/> for no darkening.</param>
     /// <param name="biomeAt">The id of the biome of a block column (<c>IPlaceInfo.BiomeAt</c>), which sets how lush the decorative grass is there (B18); <see langword="null"/> where the world has no place query (the valley).</param>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, string?>? biomeAt = null)
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, string?>? biomeAt = null, Func<int, int, int, (int Temperature, int Humidity)>? groundClimate = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -194,7 +202,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _lights = new ChunkLightIndex(grid);
         _grassBiomeAt = biomeAt;
         _skyExposure = naturalSurface is null ? null : new SkyExposure(grid, naturalSurface);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band); // the lights near a chunk are put in when it is meshed (BuildChunk)
+        _ground = groundClimate;
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground); // the lights near a chunk are put in when it is meshed (BuildChunk)
         grid.AddResidencyListener(_tracker);
         grid.AddResidencyListener(this);
         SetLightTints(look);
@@ -361,7 +370,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
         _view.Detach();
         _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset)) { ResidencyRebuildCalls = 8 };
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground);
         if (remesh)
         {
             ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
@@ -396,6 +405,29 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             _grassDirty = true;
         }
     }
+
+    /// <summary>
+    /// Draws the opaque chunks through the game's own GLSL program from now on (B17a, <c>--gl-shaders</c>), or through MonoGame's effect again with <see langword="null"/>. Set it before the first
+    /// <see cref="Remesh"/>: the meshes already built are in MonoGame's buffers (the renderer lets them all go and builds them again when the pass is set).
+    /// </summary>
+    /// <param name="pass">The pass, or <see langword="null"/>. The renderer disposes it with itself.</param>
+    public void SetGlPass(GlOpaquePass? pass)
+    {
+        if (ReferenceEquals(pass, _glOpaque))
+        {
+            return;
+        }
+
+        ReleaseAllMeshes();
+        _glOpaque?.Dispose();
+        _glOpaque = pass;
+    }
+
+    /// <summary>The processor time each frame spent submitting the opaque chunk pass (the draw calls, through the effect or through the GLSL program; the card's own time is not in it), for the spike's comparison (B17a).</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats OpaquePassTimes { get; } = new();
+
+    /// <summary>The game's own GLSL pass, or <see langword="null"/> when the chunks are drawn with MonoGame's effects alone (the default).</summary>
+    public GlOpaquePass? GlPass => _glOpaque;
 
     /// <summary>The decorative grass's density in percent (0 draws nothing extra).</summary>
     public int GrassPercent => _grassPercent;
@@ -497,7 +529,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             return; // not resident, or no block that carries grass
         }
 
-        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds));
+        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds), _ground);
         if (GrassMesher.Build(_source, coord.X, coord.Y, coord.Z, options) is { } layer)
         {
             var (buffer, quads) = Upload(layer.Mesh);
@@ -899,12 +931,35 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
 
+        var opaqueStarted = MonotonicClock.Milliseconds();
+
+        // The opaque chunks through the game's own GLSL program (B17a, --gl-shaders), when the pass can draw (no render target is bound); otherwise, and by default, through AlphaTestEffect.
+        var useGl = _glOpaque is not null && _glOpaque.CanDrawNow();
+        if (useGl)
+        {
+            _glOpaque!.Begin(camera.View, camera.Projection, _solid.FogColor, _solid.FogStart, _solid.FogEnd);
+        }
+
         // The chunks are drawn grouped by the light band their mesh was built in (E02), each group tinted so that its baked light shows as the look's light: normally one group,
         // two while a change of band is being built again.
         for (var band = 0; band < LightBands.Count; band++)
         {
             if (_bandChunks[band] == 0)
             {
+                continue;
+            }
+
+            if (useGl)
+            {
+                _glOpaque!.SetDiffuse(_tints[band]);
+                foreach (var chunk in _visible)
+                {
+                    if ((int)chunk.Band == band && chunk.GlOpaque is { } glBuffer)
+                    {
+                        _glOpaque.Draw(glBuffer);
+                    }
+                }
+
                 continue;
             }
 
@@ -918,6 +973,13 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
                 }
             }
         }
+
+        if (useGl)
+        {
+            _glOpaque!.End(); // the context's state is back as MonoGame left it: the passes that follow are MonoGame's
+        }
+
+        OpaquePassTimes.Record(MonotonicClock.Milliseconds() - opaqueStarted);
 
         // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
         _solid.DiffuseColor = Vector3.One;
@@ -1177,6 +1239,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _lights.Detach();
         foreach (var chunk in _chunks.Values)
         {
+            chunk.GlOpaque?.Dispose();
             chunk.Opaque?.Dispose();
             chunk.Alpha?.Dispose();
             chunk.Plants?.Dispose();
@@ -1185,6 +1248,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             chunk.Grass?.Dispose();
         }
 
+        _glOpaque?.Dispose();
         _indices.Dispose();
         _effect.Dispose();
         _solid.Dispose();
@@ -1243,14 +1307,24 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions with { Lights = _lights.Near(coord), Sky = _skyExposure?.Tile(coord.X, coord.Z) });
-        (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
+        if (_glOpaque is { } glPass)
+        {
+            // The opaque faces go to the game's own buffers, and MonoGame gets none of them (B17a).
+            gpu.OpaqueQuads = Math.Min(meshes.Opaque.FaceCount, MaxQuadsPerMesh);
+            gpu.GlOpaque = glPass.Upload(meshes.Opaque.Vertices, gpu.OpaqueQuads);
+        }
+        else
+        {
+            (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
+        }
+
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
         (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
         (gpu.Lit, gpu.LitQuads) = Upload(meshes.LitMesh);
         (gpu.Glow, gpu.GlowQuads) = Upload(meshes.GlowMesh);
         _tracker.MarkMeshed(coord, meshes.Kinds, _band);
         gpu.Band = _band;
-        if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
+        if (gpu.HasOpaque || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
         {
             _resident.Add(coord);
         }
@@ -1378,6 +1452,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private sealed class ChunkGpu(BoundingBox box)
     {
         public VertexBuffer? Opaque;
+        public GlChunkBuffer? GlOpaque;
+        public bool HasOpaque => Opaque is not null || GlOpaque is not null;
         public int OpaqueQuads;
         public VertexBuffer? Alpha;
         public int AlphaQuads;
@@ -1396,7 +1472,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
-        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null || Plants is not null || Lit is not null) && frustum.Intersects(Box);
+        public bool Visible(BoundingFrustum frustum) => (HasOpaque || Alpha is not null || Plants is not null || Lit is not null) && frustum.Intersects(Box);
 
         public void ReleaseGrass()
         {
@@ -1411,6 +1487,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         public void Release()
         {
             ReleaseGrass();
+            GlOpaque?.Dispose();
+            GlOpaque = null;
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();

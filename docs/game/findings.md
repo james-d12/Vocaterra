@@ -2819,3 +2819,38 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   test (passes alone in 8 s; load 11 to 15) and a new core fuzz seed, `7q7l8dSNG6n6`, which replays without B07e (no core or content
   file changed): the merge stands, the seed goes to M98. Left: a neighbour's changed edge column does not invalidate the tile beside it;
   the horizon takes about 150 s of worker time at High (B07d).
+- **B20, no snow in the valley (2026-11-17, `9d2f2139`).** The valley's snow rule (`SceneBuilder`, snow above `snowLine` 100 on gentle
+  tops) and the `snowLine` field (data, schema, parser, the sample-town fixture) are gone; the tops take the existing rule (stone above
+  `rockLine` or on steep ground, mossy stone low, grass otherwise). `SceneTests.GoldenDigest` 6f6570562b9e to 6ff0d1c82d70, the bundle
+  hash e15607e887a9 to 32c4c1b56638; the fixture's state digest did not move (the valley's blocks are not in it). The pictures from the ring
+  tops show the change best (a snow plateau before, bare stone after); from the valley floor it was only small white caps. The outside view
+  from the streamed world was not found (both tries in forest): for the owner to choose a viewpoint if wanted. Six scripted runs checked:
+  only the skyline rows changed. Gated: 12,453 passed; the one failure was `ValleyUndergroundTests`' under-one-second test (1,650 ms at
+  load), which has now failed four full runs in a row at load 11 to 19 and passes alone in 8 s: given to B24a (with C9, the eight-thread
+  `Parallel.For`).
+- **B17a, a GLSL spike (2026-11-17, `1fe71da5`).** Raw GLSL compiled at run time works inside MonoGame's frame on its own context:
+  Silk.NET.OpenGL 2.22.0 (MIT, with Silk.NET.Core and Maths and Microsoft.Extensions.DependencyModel, MIT; Microsoft.DotNet.PlatformAbstractions
+  reads UNKNOWN offline but its licence file is MIT) loads its functions through `SDL_GL_GetProcAddress`. The RTX 3070 gives OpenGL 4.6
+  in a compatibility profile with compute, multi-draw indirect, buffer storage and clip control. Behind `--gl-shaders` (off by default)
+  the opaque chunk pass draws through one GLSL 330 program: 0 of 921,600 pixels differ from `AlphaTestEffect` in a meadow and in a cave lit
+  by two torches; the pass's submit time fell from 1.06 to 0.81 ms (meadow) and 1.31 to 0.73 ms (cave). Two traps found: MonoGame's
+  `Texture2D.GetData` binds its texture on the active unit (the atlas copy drew black), and passes that meet the GL pass by depth equality
+  need bit-identical positions (four dot products, not `matrix * position`). The gate's licence scan covers the core and Game.Core.Tests
+  only; a scan of `Vocaterra.Game` already FAILs or UNKNOWNs on FontStashSharp (Zlib), MonoGame's native libraries and NVorbis (proposed to
+  the owner in open items). Gated: 12,461 passed; the one failure the valley timing test (B24a).
+- **B22, a fidelity bundle (2026-11-17, `19d21747`).** Five of the rendering review's fixes on MonoGame's built-in effects. MSAA at 4x on
+  every preset (`--msaa`): the tree line's distinct colours rose from 9,153 to 17,054, with no cost measurable at 1280 x 720. A fourth
+  light band, Dawn, and each band baked with its own sun (dusk from the west at 20.2 h, dawn from the east at 5.8 h, night the moon); dusk
+  ground luma 0.62 of midday (was 0.70). The far land keeps the Day band's directions, since it is baked once. Grass tops, grass tufts and
+  oak leaves take their colour from a 5 x 5 temperature-by-humidity map (embedded `land-colours.json`, no biome ids; the far palette
+  reads the same map, so near and far meet without a seam); the art was made the pale end of the green, because a vertex colour can
+  only darken. Midday ground saturation fell from about 0.66 to 0.56. Dusk crowns went olive at first; cutting the oak map's reds by 28%
+  fixed it. Clouds have darker bottoms and smaller boxes; water is tinted per vertex by the mean depth of the four corner cells. Gated
+  clean: 12,483 passed, no failures.
+- **B24a, the valley underground's threads (2026-11-17, `ef932990`).** `ValleyUnderground.Lay` ran `Parallel.For` on up to eight threads
+  (the codebase review's C9), against the game's two-worker rule; it now runs on at most two, with the same blocks at one and two. The
+  underground adds about 2,500 ms of CPU time to the valley build (837 ms without, 3,337 ms with). Its timing test compared wall-clock
+  times and failed four full runs in a row at load 11 to 19 while passing alone; it now measures the laying's CPU time, takes the fastest
+  of three and allows 5,000 ms, and runs alone in the timing collection. The budget is generous because spin-waits under contention can
+  inflate CPU time, so it catches a doubling, not a 20% slowdown. Gated clean: 12,485 passed, no failures, the first full run in a day
+  without the valley flake.

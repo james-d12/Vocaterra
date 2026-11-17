@@ -11,7 +11,9 @@ using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.Weather;
@@ -148,8 +150,23 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
         _renderer.SetGrass(_grassPercent);
+        if (_options.GlShaders)
+        {
+            // B17a: the opaque chunks through the game's own GLSL program, when the context can run it (the gl: lines in the log say what it is, or why not); the effects draw otherwise.
+            var pass = GlOpaquePass.TryCreate(device, _blockAtlas.Texture, VoxelRenderer.MaxQuadsPerChunkMesh, _console, out var glError);
+            if (pass is null)
+            {
+                _console($"gl: shaders not used, the effects draw as always: {glError}");
+            }
+            else
+            {
+                _renderer.SetGlPass(pass);
+                _console("gl: the opaque chunks are drawn through the game's own GLSL program (opaque.vert.glsl, opaque.frag.glsl)");
+            }
+        }
+
         _renderer.SetFigures(_figures);
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);

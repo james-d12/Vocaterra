@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Generation;
 using Vocaterra.Game.Core.Voxel;
@@ -409,23 +408,24 @@ public sealed class ValleyUndergroundTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_TheValleyBuiltWithAndWithoutTheUnderground_When_TheyAreTimed_Then_TheUndergroundCostsUnderOneSecond()
+    public void Given_AnyThreadCountAskedFor_When_TheLayingDegreeIsWorkedOut_Then_ItIsAtLeastOneAndAtMostTwo()
     {
-        var layout = TestGame.Data.Scene;
-        _ = ValleyBuild.Bare(layout, Seed); // warm up the code
-        var (bare, deep) = (double.MaxValue, double.MaxValue);
-        for (var attempt = 0; attempt < 3; attempt++)
+        Assert.Equal(2, ValleyUnderground.MaxThreads);
+        Assert.Equal(ValleyUnderground.MaxThreads, Fixture.Underground.Threads);
+        foreach (var requested in new[] { int.MinValue, -3, 0, 1, 2, 3, 8, 64, int.MaxValue })
         {
-            var stopwatch = Stopwatch.StartNew();
-            _ = ValleyBuild.Bare(layout, Seed);
-            bare = Math.Min(bare, stopwatch.Elapsed.TotalMilliseconds);
-            stopwatch.Restart();
-            _ = ValleyBuild.Build(layout, Seed);
-            deep = Math.Min(deep, stopwatch.Elapsed.TotalMilliseconds);
+            var degree = ValleyUnderground.DegreeFor(requested);
+            Assert.InRange(degree, 1, 2);
+            Assert.Equal(Math.Clamp(requested, 1, 2), degree);
         }
+    }
 
-        output.WriteLine($"valley build, fastest of 3: plain stone {bare:F0} ms, with the underground {deep:F0} ms (the difference {deep - bare:F0} ms)");
-        Assert.True(deep - bare < 1000, $"the underground adds {deep - bare:F0} ms to the valley's build");
+    [Fact]
+    public void Given_TheValleyLaidOnOneThreadAndOnTwo_When_TheirBlocksAreCompared_Then_TheyAreTheSame()
+    {
+        var f = Fixture;
+        var one = SceneBuilder.Build(TestGame.Data.Scene, Seed, null, new ValleyUnderground(new UndergroundWorld(Data, Seed), Valley) { Threads = 1 });
+        Assert.Equal(f.Deep.Grid.ComputeDigestHex(), one.Grid.ComputeDigestHex());
     }
 
     private static bool IsOre(BlockId block) => block is BlockId.CopperOre or BlockId.IronOre or BlockId.TinOre;

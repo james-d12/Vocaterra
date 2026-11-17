@@ -14,15 +14,34 @@ public static class LightBands
     public const double NightUpTo = 0.12;
 
     /// <summary>How many bands there are.</summary>
-    public const int Count = 3;
+    public const int Count = 4;
 
     /// <summary>What the sun's light is multiplied by in the vertices of a band: nothing by day, <see cref="ChunkMesher.DuskLight"/> at dusk, <see cref="ChunkMesher.NightLight"/> by night.</summary>
     /// <param name="band">The band.</param>
     public static (float R, float G, float B) BakedSun(LightBand band) => band switch
     {
-        LightBand.Dusk => ChunkMesher.DuskLight,
+        LightBand.Dusk or LightBand.Dawn => ChunkMesher.DuskLight,
         LightBand.Night => ChunkMesher.NightLight,
         _ => (1f, 1f, 1f),
+    };
+
+    /// <summary>The hour whose sun a Dusk band's faces are shaded by (B22): a little before the sun sets, when it stands low in the west.</summary>
+    public const double DuskSunHour = 20.2;
+
+    /// <summary>The hour whose sun a Dawn band's faces are shaded by (B22): a little after the sun rises, low in the east.</summary>
+    public const double DawnSunHour = 5.8;
+
+    /// <summary>
+    /// The direction towards the sun that a band's faces are shaded by (B22; a unit vector, x east, y up, z south): the afternoon's of <see cref="ChunkMesher.SunDirection"/> by day, the low sun of the evening in the west at dusk
+    /// and of the morning in the east at dawn (both from <see cref="Sky.SkyArc"/>, so the faces are lit from where the sky's sun stands), the moon's at midnight by night.
+    /// </summary>
+    /// <param name="band">The band.</param>
+    public static (float X, float Y, float Z) SunDirectionOf(LightBand band) => band switch
+    {
+        LightBand.Dusk => Sky.SkyArc.SunAt(DuskSunHour),
+        LightBand.Dawn => Sky.SkyArc.SunAt(DawnSunHour),
+        LightBand.Night => Sky.SkyArc.MoonAt(0),
+        _ => ChunkMesher.SunDirection,
     };
 
     /// <summary>How strongly the lanterns glow at the keyframe of a band: half by day, fully at dusk and by night. Nothing is baked with it (E02a): <see cref="Sky.SkyKeyframe"/> blends these into the look's continuous <see cref="Sky.SkyLook.LanternStrength"/>, which the glow pass is drawn with.</summary>
@@ -30,7 +49,7 @@ public static class LightBands
     public static float LanternStrength(LightBand band) => band == LightBand.Day ? 0.5f : 1f;
 
     /// <summary>
-    /// The band to build meshes in at a moment: the day's by day, the night's by night, and across a dawn or a dusk the Dusk band, except where the light is close to the
+    /// The band to build meshes in at a moment: the day's by day, the night's by night, and across a dawn the Dawn band and across a dusk the Dusk band (B22: the sun on the faces is in the east and in the west), except where the light is close to the
     /// day's or the night's own (the first and last stretch of the change), where the nearer of those two is used, so no band is drawn far from the light it baked.
     /// </summary>
     /// <param name="phase">The phase of the day.</param>
@@ -39,7 +58,7 @@ public static class LightBands
     {
         DayPhase.Day => LightBand.Day,
         DayPhase.Night => LightBand.Night,
-        _ => daylight >= DayFrom ? LightBand.Day : daylight <= NightUpTo ? LightBand.Night : LightBand.Dusk,
+        _ => daylight >= DayFrom ? LightBand.Day : daylight <= NightUpTo ? LightBand.Night : phase == DayPhase.Dawn ? LightBand.Dawn : LightBand.Dusk,
     };
 
     /// <summary>The colour a chunk of a band is drawn with so that its baked sun light shows as <paramref name="sun"/>: the light of the moment divided by the band's baked light.</summary>
