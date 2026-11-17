@@ -129,6 +129,7 @@ public sealed record SaveDocument(
 /// <param name="FarTrees">The far view's single trees (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarTrees"/>); no field is Auto.</param>
 /// <param name="FarTextures">The far view's textured levels (B07d), 0 to 3; no field is 2.</param>
 /// <param name="FarExact">How far the far view is made from real chunks (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarExact"/>); no field is Auto.</param>
+/// <param name="ShadersOff">True when the player turned the game's own GLSL shaders off (B17b, the menu's Shaders row: the chunks are drawn with MonoGame's effects). Written only when true, so a save of the default is byte for byte what it was.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -148,7 +149,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarDetail = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTrees = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTextures = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarExact = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarExact = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -266,7 +268,8 @@ public sealed record SaveSettings(
         OmitDefault(Menu.SettingId.FarDetail, EffectiveOf(Menu.SettingId.FarDetail)),
         OmitDefault(Menu.SettingId.FarTrees, EffectiveOf(Menu.SettingId.FarTrees)),
         OmitDefault(Menu.SettingId.FarTextures, EffectiveOf(Menu.SettingId.FarTextures)),
-        OmitDefault(Menu.SettingId.FarExact, EffectiveOf(Menu.SettingId.FarExact)));
+        OmitDefault(Menu.SettingId.FarExact, EffectiveOf(Menu.SettingId.FarExact)),
+        ShadersOff);
 }
 
 /// <summary>

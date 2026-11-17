@@ -471,6 +471,8 @@
     "ui.farExact1000": "1 km",
     "ui.farExact1500": "1.5 km",
     "ui.farExact2000": "2 km",
+    "ui.settingsShaders": "Shaders",
+    "ui.subEffects": "Shaders and effects",
     "ui.controlGroupGeneral": "Menu and function keys",
     "ui.controlGroupMoving": "Moving and looking",
     "ui.controlGroupDoing": "Doing things",

@@ -156,6 +156,9 @@ public sealed class SceneDrawer : IDisposable
     private int WorkersAtStart() => WorkerPlan.For(_options.Prefetch, _options.Workers, _options.IsScreenshotRun, _workersSetting, Environment.ProcessorCount);
 
     private int _grassPercent;
+    private GraphicsDevice? _device;
+    private bool _shaders = true;
+    private bool _shadersUnavailable;
 
     /// <summary>
     /// Takes the decorative grass's density in percent (B18; the run's start, then the menu's Grass setting): before <see cref="Load"/> it is the value the renderer starts with, after it the renderer follows at once
@@ -166,6 +169,55 @@ public sealed class SceneDrawer : IDisposable
     {
         _grassPercent = percent;
         _renderer?.SetGrass(percent);
+    }
+
+    /// <summary>
+    /// Takes the Shaders setting (B17b; the run's start, then the menu's row and <c>--gl-shaders</c>): on, the chunks are drawn through the game's own GLSL program when the context can run it (the log says why not, and the effects
+    /// draw as always); off, through MonoGame's effects. Before <see cref="Load"/> it is the choice the scene starts with; after it the renderer follows at once, with no restart: the meshes are built again in the other kind of buffers
+    /// (nearest first, on the workers), so the world fills in for a moment.
+    /// </summary>
+    /// <param name="on">Whether the game's own shaders draw the chunks.</param>
+    public void ApplyShaders(bool on)
+    {
+        _shaders = on;
+        if (_renderer is not null)
+        {
+            SwitchShaders();
+        }
+    }
+
+    /// <summary>Whether the chunks are drawn through the game's own GLSL program now (false while the effects draw: the setting is off, or the context could not run the program).</summary>
+    public bool ShadersInUse => _renderer?.GlPass is not null;
+
+    private void SwitchShaders()
+    {
+        var renderer = _renderer!;
+        if (!_shaders)
+        {
+            if (renderer.GlPass is not null)
+            {
+                renderer.SetGlPass(null);
+                _console("gl: shaders off, the chunks are drawn with the effects");
+            }
+
+            return;
+        }
+
+        if (renderer.GlPass is not null || _shadersUnavailable)
+        {
+            return;
+        }
+
+        var pass = GlChunkPass.TryCreate(_device!, _blockAtlas!.Texture, _waterTextures!.Frames, VoxelRenderer.MaxQuadsPerChunkMesh, _console, out var glError);
+        if (pass is null)
+        {
+            _shadersUnavailable = true; // the same context fails the same way: said once, and the effects draw as always
+            _console($"gl: shaders not used, the effects draw as always: {glError}");
+            return;
+        }
+
+        renderer.SetGlPass(pass);
+        _console("gl: every chunk pass is drawn through the game's own GLSL program (chunk.vert.glsl, chunk.frag.glsl)");
     }
 
     /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
@@ -204,21 +256,13 @@ public sealed class SceneDrawer : IDisposable
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
         _renderer.SetGrass(_grassPercent);
-        if (_options.GlShaders)
+        _device = device;
+        if (_options.StreamStats)
         {
-            // B17a: the opaque chunks through the game's own GLSL program, when the context can run it (the gl: lines in the log say what it is, or why not); the effects draw otherwise.
-            var pass = GlOpaquePass.TryCreate(device, _blockAtlas.Texture, VoxelRenderer.MaxQuadsPerChunkMesh, _console, out var glError);
-            if (pass is null)
-            {
-                _console($"gl: shaders not used, the effects draw as always: {glError}");
-            }
-            else
-            {
-                _renderer.SetGlPass(pass);
-                _console("gl: the opaque chunks are drawn through the game's own GLSL program (opaque.vert.glsl, opaque.frag.glsl)");
-            }
+            _renderer.SetCardTimer(GlCardTimer.TryCreate(_console)); // the card's time for the chunk passes, with either path (B17b)
         }
 
+        SwitchShaders();
         _renderer.SetFigures(_figures);
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, WorkersAtStart(), StreamedWorldHost.LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);

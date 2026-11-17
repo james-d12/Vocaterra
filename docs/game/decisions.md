@@ -947,6 +947,21 @@ the owner's answers of 2026-11-15 are in its section 5.
     fog by height, the water shader, the far view's light) and B22's sun per band with the deeper dusk, climate colours and water depth
     tint, with MSAA and the grass slider moved into the group; on by default, saved, a launch option each, and the quality presets may
     set them.
+44. **The game's packages in the licence scan** (2026-11-17, about 13:10 UTC, proposed with B17a's spike): "Sure, add the game to the
+    license scan." B26: the gate scans `Vocaterra.Game`, `Vocaterra.Host` and `tools/Vocaterra.SpeechRender`; Zlib joins the allowlist
+    (FontStashSharp, SDL); overrides with evidence for NVorbis and PlatformAbstractions (MIT). MonoGame.Library.OpenAL ships OpenAL
+    Soft's native library under LGPL-2.0-or-later: asked of the owner separately.
+45. **The far view's targets** (2026-11-17, about 13:10 UTC, the rendering review's D2, D5, D6, each with the orchestrator's
+    recommendation): detail chosen by screen pixels, about 2 per block at High, rather than rings tied to the voxel view distance ("For
+    two, also go with the recommended"; in B19); the distance kept at 16 km, B19's effort spent on detail ("For free [three], go with the
+    recommended"); built things far off placed by the far view's model as trees are, option (b) ("B is okay for now. It's cheap, so we go
+    with it"); the player's own builds still reach the far view through B07f's edit layer.
+46. **The silent-h fuzz seed fixed in the core** (2026-11-17, about 13:10 UTC; seed `a2RKk5N6Ibt4`, «ah hambrientos» scored with two
+    silent h's): "Fix the silent HC, yeah, yep. Yeah, fix number five." Core milestone M99.
+47. **B03b runs** (2026-11-17, about 13:10 UTC; offered dropping it, since B14's tour photographs each biome): "For number six, yeah, run
+    that, it's fine." Read as finishing B03b after B14, for what the tour lacks; the owner was told he can say "drop".
+48. **Cave mouths in hill and cliff faces** (2026-11-17, about 13:10 UTC, B11b's follow-up): "Seven, also do that as well." B11d, after
+    B11c.
 
 ## Already decided
 

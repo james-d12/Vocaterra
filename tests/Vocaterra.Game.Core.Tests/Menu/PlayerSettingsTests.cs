@@ -423,4 +423,51 @@ public sealed class PlayerSettingsTests
         Assert.Equal(3, wild.Get(SettingId.FarTextures));
         Assert.Equal(5, wild.Get(SettingId.FarExact));
     }
+
+    [Fact]
+    public void Given_ANewGame_When_TheShadersAreRead_Then_TheyAreOnAndTheRowIsInTheGraphicsGroup()
+    {
+        var settings = new PlayerSettings();
+        Assert.True(settings.Shaders);
+        Assert.Equal(SettingKind.Toggle, PlayerSettings.Spec(SettingId.Shaders).Kind);
+        var rows = MenuRows.Settings(settings, null);
+        var graphics = rows.ToList().FindIndex(static row => row.Id == "heading.headingGraphics");
+        var interfaceGroup = rows.ToList().FindIndex(static row => row.Id == "heading.headingInterface");
+        var shaders = rows.ToList().FindIndex(static row => row.Id == nameof(SettingId.Shaders));
+        Assert.True(graphics >= 0 && shaders > graphics && shaders < interfaceGroup, "the Shaders row stands in the Graphics group");
+        Assert.Equal("Shaders", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Shaders).LabelKey));
+        Assert.Equal("Shaders and effects", TestGame.Locale.Ui("subEffects"));
+        var changed = new List<SettingId>();
+        settings.Changed += changed.Add;
+        settings.Set(SettingId.Shaders, 0);
+        settings.Set(SettingId.Shaders, 0);
+        Assert.Equal([SettingId.Shaders], changed);
+        Assert.False(settings.Shaders);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Given_TheShadersSetting_When_SavedAndLoaded_Then_ItComesBackAndTheDefaultIsLeftOut(bool on)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Shaders, on ? 1 : 0);
+        var saved = settings.ToSave();
+        Assert.Equal(!on, saved.ShadersOff);
+        Assert.Equal(on, PlayerSettings.Resolve(saved).Shaders);
+        var json = System.Text.Json.JsonSerializer.Serialize(saved);
+        Assert.Equal(!on, json.Contains("ShadersOff", StringComparison.Ordinal)); // written only when off: a save of the default is byte for byte what it was
+        Assert.Equal(on, PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!).Shaders);
+    }
+
+    [Fact]
+    public void Given_ASaveWithoutTheShadersField_When_Resolved_Then_TheyAreOnAndTheLaunchOptionWins()
+    {
+        Assert.True(PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default)).Shaders);
+        var off = new SaveSettings(SoundVolumes.Default, ShadersOff: true);
+        Assert.False(PlayerSettings.Resolve(off).Shaders);
+        Assert.True(PlayerSettings.Resolve(off, new LaunchSettings(Shaders: true)).Shaders);
+        Assert.False(PlayerSettings.Resolve(null, new LaunchSettings(Shaders: false)).Shaders);
+        Assert.True(PlayerSettings.Resolve(null, new LaunchSettings()).Shaders);
+    }
 }

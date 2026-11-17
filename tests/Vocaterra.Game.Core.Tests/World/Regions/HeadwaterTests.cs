@@ -2,7 +2,6 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Regions;
 using Xunit.Abstractions;
 
@@ -43,8 +42,6 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
     {
         var blend = data.WorldGen.Blend;
         var reach = blend.Margin + blend.Headwater.Distance + 8;
-        var free = new HeightModel(data.WorldGen, seed);
-        var climate = world.Procedural.World.Climate;
         var (water, spring, samples, widest, where, nearest, carved) = (0, 0, 0, 0, string.Empty, int.MaxValue, 0);
         for (var z = b.MinZ - reach; z <= b.MaxZ + reach; z += 2)
         {
@@ -75,7 +72,6 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
 
                 if (shape.Water && d > blend.Margin)
                 {
-                    Assert.True(free.Shape(x, z, climate.At(x, z)).Water, $"water at {x},{z} (d {d}) where the free world has none");
                     water++;
                     nearest = Math.Min(nearest, d);
                     var inner = d <= blend.Margin + (blend.Headwater.Distance / 2);
@@ -112,43 +108,43 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData("valley", 42UL)]
-    [InlineData("valley", 7UL)]
-    public void Given_AValleyWhoseRingHasRiverValleys_When_TheHeadwatersAreRead_Then_TheyBeginWellBeyondTheMarginAndShallowToNothingTowardsIt(string which, ulong seed)
+    [InlineData(42UL)]
+    [InlineData(7UL)]
+    [InlineData(2026UL)]
+    public void Given_TheValleyWorld_When_ColumnsBeyondTheHeadwatersAreRead_Then_TheRiversAreWholeAndTheDrainageRunsRoundTheMargin(ulong seed)
     {
-        var (world, bounds, data) = Setup(which, seed);
-
-        var counts = Scan(world, bounds, data, seed);
-
-        Assert.True(counts.Carved > 200, $"{counts.Carved} carved columns in the headwaters: the seed was chosen for its river valleys near the valley");
-        Assert.True(counts.Water == 0 || counts.NearestWater > Blend(data).Margin + 20, $"the nearest water is {counts.NearestWater} blocks from the footprint, well beyond the margin: the stream begins at a spring");
-    }
-
-    [Fact]
-    public void Given_TheFreeWorldAndTheValleyWorld_When_ColumnsBeyondTheHeadwatersAreCompared_Then_TheyAreTheSameWater()
-    {
-        var seed = 42UL;
         var world = RegionTestWorld.Composition(seed);
         var b = RegionTestWorld.Valley(seed).Bounds;
         var blend = TestGame.Data.WorldGen.Blend;
-        var free = new HeightModel(TestGame.Data.WorldGen, seed);
-        var climate = world.Procedural.World.Climate;
+        var clearance = TestGame.Data.WorldGen.Height.DrainageData!.RegionClearance;
         var beyond = blend.Margin + blend.Headwater.Distance;
-        var (same, total) = (0, 0);
-        for (var z = b.MinZ - beyond - 600; z <= b.MaxZ + beyond + 600; z += 6)
+        var (whole, nearest, rivers) = (0, int.MaxValue, 0);
+        for (var z = b.MinZ - 2400; z <= b.MaxZ + 2400; z += 4)
         {
-            for (var x = b.MinX - beyond - 600; x <= b.MaxX + beyond + 600; x += 6)
+            for (var x = b.MinX - 2400; x <= b.MaxX + 2400; x += 4)
             {
-                if (b.DistanceTo(x, z) < beyond)
+                var d = b.DistanceTo(x, z);
+                if (d == 0)
                 {
                     continue;
                 }
 
-                total++;
-                same += RegionTestWorld.Shape(world, x, z) == free.Shape(x, z, climate.At(x, z)) ? 1 : 0;
+                var shape = RegionTestWorld.Shape(world, x, z);
+                if (shape.RiverWeight > 0 || shape.LakeWeight > 0)
+                {
+                    nearest = Math.Min(nearest, d);
+                    rivers++;
+                }
+
+                if (d >= beyond && shape.RiverWeight > 3000)
+                {
+                    whole++;
+                }
             }
         }
 
-        Assert.Equal(total, same); // beyond the margin and the headwaters the rivers and lakes are the free world's
+        Assert.True(nearest > blend.Margin + clearance, $"water {nearest} blocks from the footprint: the network keeps {blend.Margin + clearance} blocks clear");
+        Assert.True(rivers > 0, "there is water within 2 400 blocks of the valley");
+        Assert.True(whole > 0, "beyond the headwaters a river is its whole self");
     }
 }

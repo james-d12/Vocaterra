@@ -199,14 +199,18 @@ public sealed class ScriptedRunEnd
 
         if (_options.StreamStats)
         {
-            var opaque = renderer.OpaquePassTimes;
-            _console(string.Create(CultureInfo.InvariantCulture, $"opaque pass ({(renderer.GlPass is null ? "effect" : "GLSL")}, processor time to submit): {opaque.Count} frames, median {opaque.Median:0.00} ms, p95 {opaque.Percentile(95):0.00} ms, p99 {opaque.Percentile(99):0.00} ms, longest {opaque.Longest:0.00} ms"));
+            var chunks = renderer.ChunkPassTimes;
+            _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time to submit): {chunks.Count} frames, median {chunks.Median:0.00} ms, p95 {chunks.Percentile(95):0.00} ms, p99 {chunks.Percentile(99):0.00} ms, longest {chunks.Longest:0.00} ms"));
+            if (renderer.CardTimes is { } card)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {card.Count} frames, median {card.Median:0.00} ms, p95 {card.Percentile(95):0.00} ms, p99 {card.Percentile(99):0.00} ms, longest {card.Longest:0.00} ms"));
+            }
         }
 
-        if (renderer.GlPass is { } glPass)
+        if (renderer.GlPass is { } glPass && (_options.StreamStats || glPass.Errors.Count > 0)) // quiet by default: the compared output of a run does not hold it
         {
             var (errors, first) = glPass.Errors;
-            _console($"gl: the last opaque pass drew {glPass.LastPass.Quads} quads in {glPass.LastPass.DrawCalls} draw calls; {glPass.FallbackPasses} pass(es) fell back to the effect; {errors} GL error(s) cleared{(errors > 0 ? $" (first {first})" : string.Empty)}");
+            _console($"gl: the last frame's scope drew {glPass.LastPass.Quads} quads in {glPass.LastPass.DrawCalls} draw calls with {glPass.LastPass.StateChanges} state sets; {errors} GL error(s) cleared{(errors > 0 ? $" (first {first})" : string.Empty)}");
         }
 
         // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.

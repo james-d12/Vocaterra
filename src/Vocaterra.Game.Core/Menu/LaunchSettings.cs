@@ -26,6 +26,7 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="FarTrees"><c>--far-trees</c> as the setting counts it (0 auto, 1 none, 2 to 6 the distances; B07d), or <see langword="null"/> for the save's.</param>
 /// <param name="FarTextures"><c>--far-textures</c> 0 to 3 (B07d), or <see langword="null"/> for the save's.</param>
 /// <param name="FarExact"><c>--far-exact</c> as the setting counts it (0 auto, 1 none, 2 to 5 the distances; B07d), or <see langword="null"/> for the save's.</param>
+/// <param name="Shaders"><c>--gl-shaders on|off</c> (B17b): the game's own GLSL shaders for the chunks, or <see langword="null"/> for the save's (on for a new game).</param>
 /// <param name="PassOpen">Whether <c>--pass open</c> was given (it only switches the pass cheat on).</param>
 public sealed record LaunchSettings(
     bool Scripted = false,
@@ -51,4 +52,5 @@ public sealed record LaunchSettings(
     int? FarDetail = null,
     int? FarTrees = null,
     int? FarTextures = null,
-    int? FarExact = null);
+    int? FarExact = null,
+    bool? Shaders = null);

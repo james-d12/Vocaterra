@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Lod;
 
@@ -26,7 +25,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
     private readonly Thread _writer;
     private readonly ConcurrentDictionary<LodSectionKey, byte[]> _unwritten = new();
     private readonly ReaderWriterLockSlim _swap = new();
-    private readonly long _syncTicks;
+    private readonly long _syncMilliseconds;
     private long _syncs;
     private long _loads;
     private long _compactedFiles;
@@ -49,7 +48,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
     /// <param name="syncIntervalMilliseconds">How long after an unsynced write the files are synced (tests give a short one).</param>
     public FileLodPersistence(string root, string version, int syncIntervalMilliseconds = SyncIntervalMilliseconds)
     {
-        _syncTicks = (long)(Math.Max(1, syncIntervalMilliseconds) * (Stopwatch.Frequency / 1000.0));
+        _syncMilliseconds = Math.Max(1, syncIntervalMilliseconds);
         _root = root;
         _ = Directory.CreateDirectory(root);
         var manifest = Path.Combine(root, "manifest.txt");
@@ -352,7 +351,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
                 if (unsynced)
                 {
                     // Wake in time for the sync even when nothing more is queued: the files are synced a fixed time after the first write they have not been synced for, not whenever the queue runs dry.
-                    var left = _syncTicks - (Stopwatch.GetTimestamp() - since);
+                    var left = _syncMilliseconds - (Environment.TickCount64 - since);
                     if (left <= 0)
                     {
                         SyncAll();
@@ -360,7 +359,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
                         continue;
                     }
 
-                    if (!_queue.TryTake(out item, (int)Math.Min(int.MaxValue, Math.Max(1, left * 1000 / Stopwatch.Frequency))))
+                    if (!_queue.TryTake(out item, (int)Math.Min(int.MaxValue, Math.Max(1, left))))
                     {
                         if (_queue.IsCompleted)
                         {
@@ -387,7 +386,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
                         if (!unsynced)
                         {
                             unsynced = true;
-                            since = Stopwatch.GetTimestamp();
+                            since = Environment.TickCount64;
                         }
                     }
                 }

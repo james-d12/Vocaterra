@@ -80,8 +80,9 @@ public sealed class TestingRowsTests
     public void Given_EveryHook_When_TheRowsAreBuilt_Then_TheTestingSectionIsGroupedUnderSubheadingsInOrder()
     {
         var rows = Rows(new State());
-        var headings = rows.Where(static r => r.Kind == MenuRowKind.Subheading).Select(static r => r.LabelKey).ToList();
+        var headings = rows.SkipWhile(static r => r.LabelKey != "headingTesting").Where(static r => r.Kind == MenuRowKind.Subheading).Select(static r => r.LabelKey).ToList(); // the testing section's own (the Graphics group has its "Shaders and effects", B17b)
         Assert.Equal(["subNeeds", "subView", "subTeleport", "subSound", "subScoring", "subFiles"], headings);
+        Assert.Equal(["subEffects"], rows.TakeWhile(static r => r.LabelKey != "headingTesting").Where(static r => r.Kind == MenuRowKind.Subheading).Select(static r => r.LabelKey));
         Assert.True(rows.ToList().FindIndex(static r => r.LabelKey == "headingTesting") > rows.ToList().FindIndex(static r => r.LabelKey == "headingInterface"));
         Assert.All(rows.Where(static r => r.Kind == MenuRowKind.Subheading), static r => Assert.False(r.Selectable));
         Assert.Equal(rows.Count, rows.Select(static r => r.Id).Distinct().Count()); // every row has a name of its own

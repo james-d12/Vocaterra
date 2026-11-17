@@ -70,4 +70,7 @@ public enum SettingId
 
     /// <summary>How far from the eye the far view is made from the real chunks the generator makes (B07d): 0 Auto (the quality's own), 1 none (the model alone), then 500 m, 1 km, 1.5 km, 2 km.</summary>
     FarExact,
+
+    /// <summary>The game's own GLSL shaders for the chunks (B17b, D-game-34 item 43): 0 off (MonoGame's effects draw the chunks), 1 on (the default; the effects draw anyway when the context cannot run the program). The graphics effects of B17c join it, each its own toggle.</summary>
+    Shaders,
 }

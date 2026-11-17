@@ -194,7 +194,7 @@ public sealed class ProceduralReliefRegion : IRegion
         {
             var blend = new RegionBlend(new RegionCatalog([new FootprintOnly(bounds)]), data.Blend, data.Vertical.SeaLevel);
             var climate = new BlendedClimateSampler(new ClimateSampler(data, seed), blend);
-            var height = new HeightModel(data, seed);
+            var height = new HeightModel(data, seed, climate, blend.Excluder(data.Height.DrainageData?.RegionClearance ?? 0));
             var sizeX = bounds.MaxX - bounds.MinX + 1;
             var sizeZ = bounds.MaxZ - bounds.MinZ + 1;
             var heights = new int[sizeX * sizeZ];

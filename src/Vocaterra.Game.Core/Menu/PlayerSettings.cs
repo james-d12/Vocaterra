@@ -42,6 +42,7 @@ public sealed class PlayerSettings
         new(SettingId.FarTrees, SettingKind.Choice, 0, 6, 1, 0, "settingsFarTrees", ChoiceKeys: ["settingsAuto", "settingsOff", "farTrees256", "farTrees512", "farTrees1k", "farTrees2k", "farTrees4k"]),
         new(SettingId.FarTextures, SettingKind.Choice, 0, 3, 1, 2, "settingsFarTextures", ChoiceKeys: ["settingsOff", "farTexturesNear", "farTexturesNormal", "farTexturesWide"]),
         new(SettingId.FarExact, SettingKind.Choice, 0, 5, 1, 0, "settingsFarExact", ChoiceKeys: ["settingsAuto", "settingsOff", "farExact500", "farExact1000", "farExact1500", "farExact2000"]),
+        new(SettingId.Shaders, SettingKind.Toggle, 0, 1, 1, 1, "settingsShaders", ChoiceKeys: OnOff),
     ];
 
     private readonly int[] _values;
@@ -117,6 +118,8 @@ public sealed class PlayerSettings
 
     /// <summary>The worker threads setting: 0 for Auto, else 1 to 8 (see <c>WorkerPlan</c> in the game for what Auto is on a machine).</summary>
     public int Workers => Get(SettingId.Workers);
+    /// <summary>Whether the game's own GLSL shaders draw the chunks (B17b); the context may still refuse them, and the effects then draw.</summary>
+    public bool Shaders => Get(SettingId.Shaders) == 1;
 
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
@@ -175,6 +178,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.FarTrees] = clean.EffectiveOf(SettingId.FarTrees);
             settings._values[(int)SettingId.FarTextures] = clean.EffectiveOf(SettingId.FarTextures);
             settings._values[(int)SettingId.FarExact] = clean.EffectiveOf(SettingId.FarExact);
+            settings._values[(int)SettingId.Shaders] = clean.ShadersOff ? 0 : 1;
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -273,6 +277,11 @@ public sealed class PlayerSettings
             }
         }
 
+        if (launch.Shaders is { } shaders)
+        {
+            settings._values[(int)SettingId.Shaders] = shaders ? 1 : 0;
+        }
+
         if (launch.PassOpen)
         {
             settings._values[(int)SettingId.PassCheat] = 1;
@@ -301,7 +310,8 @@ public sealed class PlayerSettings
         FarDetail: SaveSettings.OmitDefault(SettingId.FarDetail, Get(SettingId.FarDetail)),
         FarTrees: SaveSettings.OmitDefault(SettingId.FarTrees, Get(SettingId.FarTrees)),
         FarTextures: SaveSettings.OmitDefault(SettingId.FarTextures, Get(SettingId.FarTextures)),
-        FarExact: SaveSettings.OmitDefault(SettingId.FarExact, Get(SettingId.FarExact))).Clamped();
+        FarExact: SaveSettings.OmitDefault(SettingId.FarExact, Get(SettingId.FarExact)),
+        ShadersOff: !Shaders).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

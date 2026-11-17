@@ -75,7 +75,9 @@ public sealed class BiomeTableTests
 
         Assert.Equal("ocean", table.Select(Climate(continentalness: -3000, river: 0), 20, 0, 0).Id);
         Assert.Equal("river-channel", table.Select(Climate(continentalness: 800, river: 0), 28, 0, 0).Id);
-        Assert.Equal("lake-basin", table.Select(Climate(continentalness: 3000, river: 2000), 29, 0, 0).Id);
+        Assert.Equal("lake-basin", table.Select(Climate(continentalness: 3000, river: 4000), 29, 0, 0).Id);
+        Assert.Equal("river-channel", table.Classify(Climate(continentalness: 3000, river: 4096), 29, 0, 0, true, riverWeight: 3000).Row.Id); // B02c: a river's carve says it is a river, not the climate's river field
+        Assert.Equal("lake-basin", table.Classify(Climate(continentalness: 3000, river: 0), 29, 0, 0, true, riverWeight: 500).Row.Id);
         Assert.Equal("beach", table.Select(Climate(continentalness: -400, river: 4000), 33, 0, 0).Id);
     }
 
