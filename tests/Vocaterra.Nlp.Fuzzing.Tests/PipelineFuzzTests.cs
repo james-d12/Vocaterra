@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CsCheck;
@@ -169,7 +170,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         RunOpenFallback(seed: CoverageSeed);
     }
 
-    private const string CoverageSeed = "0M97OpenFall3";
+    private const string CoverageSeed = "M98Open";
 
     private void RunOpenFallback(string? seed)
     {
@@ -181,8 +182,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var coverages = Gen.OneOfConst(PipelineOptions.DefaultOpenPassMinCoverage, PipelineOptions.DefaultOpenPassMinCoverage, 0.0, 0.8, 1.0);
         var gen = Gen.Select(PipelineGen.Case(Harness), PipelineGen.Case(Harness), confidences, floors, spans, coverages, Gen.Bool, Gen.Int[0, 3], static (a, b, w, f, span, coverage, loose, same) => (a, b, w, f, span, coverage, loose, same == 0));
 
-        gen.Sample(
-            ((PipelineCase First, PipelineCase Second, double[] Confidences, double Floor, double Span, double MinCoverage, bool Loose, bool SameText) input) =>
+        void Check((PipelineCase First, PipelineCase Second, double[] Confidences, double Floor, double Span, double MinCoverage, bool Loose, bool SameText) input)
             {
                 var c = input.First with { HostTurn = false, TwoPhase = false };
                 var freeTranscript = input.SameText ? c.Transcript : input.Second.Transcript; // the same words heard twice give the same intent
@@ -292,11 +292,22 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
                 {
                     diagnostics.Count("fallback:loose-match");
                 }
-            },
-            writeLine: output.WriteLine,
-            iter: iterations,
-            threads: 1,
-            seed: seed);
+        }
+
+        if (seed is null)
+        {
+            gen.Sample(Check, writeLine: output.WriteLine, iter: iterations, threads: 1);
+        }
+        else
+        {
+            // M98: CsCheck seeds only the first case of a run (the later ones draw from its own state, fresh each run), so a run on "a fixed seed" varied: the counts of
+            // the rarer paths dipped under the floor now and then inside a full run. The stream is drawn one case per fixed seed instead (as SkipBudgetTests does), so the
+            // counts are the same on every run.
+            for (var i = 0; i < iterations; i++)
+            {
+                gen.Sample(Check, writeLine: output.WriteLine, iter: 1, threads: 1, seed: seed[..4] + i.ToString("D8", CultureInfo.InvariantCulture));
+            }
+        }
 
         output.WriteLine("Open fallback diagnostics:\n" + diagnostics.Report());
         if (seed is null)
