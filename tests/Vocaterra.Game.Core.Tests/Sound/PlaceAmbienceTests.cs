@@ -102,7 +102,7 @@ public sealed class PlaceAmbienceTests
 
     [Theory]
     [InlineData(70, 71, 0)] // standing on the ground: nothing overhead
-    [InlineData(70, 58, 1)] // twelve blocks down: the cave and nothing of the surface
+    [InlineData(70, 52, 1)] // eighteen blocks down: the cave and nothing of the surface
     public void Given_ThePlayerUnderTheGround_When_TheBedsAreChosen_Then_TheCaveBedReplacesTheSurfaceOnes(int surface, int feet, int cave)
     {
         var world = new Fake(Row("dense-woodland"), surface: surface);
@@ -121,13 +121,13 @@ public sealed class PlaceAmbienceTests
     {
         var world = new Fake(Row("dense-woodland"));
         var last = (Cave: -1.0, Birds: 2.0);
-        for (var depth = 0.0; depth <= 14; depth += 0.5)
+        for (var depth = 0.0; depth <= 16; depth += 0.5)
         {
             var feet = 70 - 1.6 - depth;
             var inputs = At(world, 10.5, feet, 10.5, Noon);
             var now = (Cave: W(inputs, AmbientBeds.Cave), Birds: W(inputs, AmbientBeds.Birds));
             Assert.True(now.Cave >= last.Cave && now.Birds <= last.Birds, $"at {depth} the cave bed is {now.Cave} and the birds {now.Birds}");
-            Assert.True(now.Cave - last.Cave < 0.4 || last.Cave < 0, "a half block deeper moves the bed by less than 0.4");
+            Assert.True(now.Cave - last.Cave < 0.2 || last.Cave < 0, "a half block deeper moves the bed by less than 0.2");
             last = now;
         }
 

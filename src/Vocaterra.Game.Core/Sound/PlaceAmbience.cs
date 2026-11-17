@@ -17,10 +17,10 @@ public sealed class PlaceAmbience
     public const int Spread = 6;
 
     /// <summary>The depth under the natural surface (in blocks) at which the cave bed starts to be heard.</summary>
-    public const double CaveFrom = 2;
+    public const double CaveFrom = 3;
 
-    /// <summary>The depth under the natural surface at which the cave bed is full and the surface beds are gone.</summary>
-    public const double CaveFull = 10;
+    /// <summary>The depth under the natural surface at which the cave bed is full and the surface beds are gone (an entrance's open pit, about ten deep, is a mix of the two).</summary>
+    public const double CaveFull = 14;
 
     private readonly double[] _shares;
 
