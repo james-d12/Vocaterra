@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Drainage;
 using Vocaterra.Game.Core.World.Generation.Procedural;
+using Vocaterra.Game.Core.World.Regions;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
@@ -384,5 +385,40 @@ public sealed class DrainageNetworkTests(ITestOutputHelper output)
 
         output.WriteLine($"seed {seed}: {checkedNodes} passage nodes, none in a carved column");
         Assert.True(checkedNodes > 50, $"{checkedNodes} nodes");
+    }
+
+    [Fact]
+    public void Given_AFreshWorld_When_AColumnOfARiverIsGeneratedThroughTheSource_Then_ItIsWarmAndTheQueryReturnsTheWater()
+    {
+        // The game loop asks the query dry until a streaming worker has read the landmass by generating a chunk round the column; nothing here starts a thread.
+        var data = TestGame.Data;
+        var found = new HeightModel(World, 7);
+        var climate = new ClimateSampler(World, 7);
+        var reach = found.Reaches(3000, 7400, 3500, 7900).OrderByDescending(static r => r.Area).First();
+        var (x, z, weight) = (0, 0, 0);
+        for (var dz = -16; dz <= 16; dz += 2)
+        {
+            for (var dx = -16; dx <= 16; dx += 2)
+            {
+                var shape = found.Shape(reach.FromX + dx, reach.FromZ + dz, climate.At(reach.FromX + dx, reach.FromZ + dz));
+                if (shape.RiverWeight > weight && shape.Water)
+                {
+                    (x, z, weight) = (reach.FromX + dx, reach.FromZ + dz, shape.RiverWeight);
+                }
+            }
+        }
+
+        Assert.True(weight > 3000, "a river column of seed 7");
+        var source = new ProceduralChunkSource(data.WorldGen, data.Biomes, 7, null, data.Underground);
+        var query = new WorldQuery(source.World, RegionCatalog.Empty);
+
+        Assert.False(source.World.Ground.IsWarm(x, z));
+        Assert.NotEqual("river-channel", query.BiomeAt(x, z).Id); // dry: the ground without the river
+        Assert.False(source.World.Ground.IsWarm(x, z), "the dry answer read nothing");
+
+        _ = source.GenerateColumn(x >> 4, z >> 4);
+
+        Assert.True(source.World.Ground.IsWarm(x, z));
+        Assert.Equal("river-channel", query.BiomeAt(x, z).Id);
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Drainage;
@@ -15,7 +14,6 @@ public sealed class WorldQuery : IPlaceInfo
 {
     private readonly GenerationWorld _world;
     private readonly RegionCatalog _regions;
-    private readonly ConcurrentDictionary<long, byte> _warming = new();
 
     internal WorldQuery(GenerationWorld world, RegionCatalog regions)
     {
@@ -47,22 +45,12 @@ public sealed class WorldQuery : IPlaceInfo
     public bool IsUnderground(int x, int y, int z) => y < NaturalSurfaceAt(x, z);
 
     // The column's shape, for a caller that may be the game loop (the sky's exposure and the residency read it every frame): where the drainage network has not read the landmass round the column yet the answer is the ground without rivers and lakes (the
-    // loop never waits for a landmass: up to a second) and a pool thread reads it, once for each 4 096-block square; the next call has the water.
+    // loop never waits for a landmass: up to a second). No thread is started here: the streaming workers read the landmass when they generate the chunks round the player (and the far view's jobs when they sample it), so the dry answer lasts only until then.
     private ColumnShape ShapeAt(int x, int z, ClimateSample climate)
     {
         if (_world.Ground.IsWarm(x, z))
         {
             return _world.Height.Shape(x, z, climate);
-        }
-
-        var key = ((long)(x >> 12) << 32) ^ (uint)(z >> 12);
-        if (_warming.TryAdd(key, 0))
-        {
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                _world.Ground.Warm(x, z);
-                _warming.TryRemove(key, out byte _);
-            });
         }
 
         using var dry = DrainageNetwork.WithoutReading();
