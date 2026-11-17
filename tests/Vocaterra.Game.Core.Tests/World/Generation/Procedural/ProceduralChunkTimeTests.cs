@@ -26,7 +26,9 @@ public sealed class ProceduralChunkTimeTests(ITestOutputHelper output)
     private const double StoneBudget = 13;
     private const double ColumnBudget = 41;
     private const double DeepBudget = 13;
-    private const double RatioBound = 6;
+    // The ratio of a column with the underground to one without: 4.7 at its quietest (B27, load 10 to 15; 4.7 to 5.3 seen). B27 made the base (the column without the underground) cheaper, so the ratio rose while the
+    // underground did not change (2.9 before B02c's network, 6 until B27). The bound is twice the quietest, rounded up.
+    private const double RatioBound = 10;
 
     private static double Milliseconds(Action work)
     {
