@@ -1323,7 +1323,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--walk-to":
-                    if (!VoxelStep.TryParseColumn(value, out var walkX, out var walkZ))
+                    if (!VoxelStep.TryParseSignedColumn(value, out var walkX, out var walkZ))
                     {
                         error = $"--walk-to needs a block column and row, like 60,52; got '{value}'.";
                         return false;

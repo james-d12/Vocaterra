@@ -281,6 +281,17 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void EveryStepOfTheScriptTakesNegativeCoordinates()
+    {
+        var options = Parse("--screenshot", "x.png", "--walk-to", "-30,-40", "--interact", "-9,11,-17", "--place", "antorcha@-21,12,-21", "--pour", "-1,60,-2", "--shot", "a.png");
+        Assert.Equal([VoxelStepKind.WalkTo, VoxelStepKind.Interact, VoxelStepKind.Place, VoxelStepKind.Pour], options.VoxelSteps.Select(static s => s.Kind));
+        Assert.Equal((-30, -40), (options.VoxelSteps[0].X, options.VoxelSteps[0].Z));
+        Assert.Equal((-9, 11, -17), (options.VoxelSteps[1].X, options.VoxelSteps[1].Y, options.VoxelSteps[1].Z));
+        Assert.Equal((-21, 12, -21), (options.VoxelSteps[2].X, options.VoxelSteps[2].Y, options.VoxelSteps[2].Z));
+        Assert.Equal((-1, 60, -2), (options.VoxelSteps[3].X, options.VoxelSteps[3].Y, options.VoxelSteps[3].Z));
+    }
+
+    [Fact]
     public void TheTeleportStepIsOneOfTheScriptsStepsInTheOrderGiven()
     {
         var options = Parse("--screenshot", "x.png", "--teleport", "230,222", "--look", "10,5", "--walk-to", "1,2");

@@ -54,6 +54,8 @@ A save of the world holds only what the player changed, and the world itself is 
   generates on read (`IChunkGenerator`) regenerates a chunk the first time a write touches it, so a streamed world needs no code of its own here (B06 supplies the chunk source).
   The restored world's state digest must equal the save's, or the save is refused. A save across bundles applies the edits by position as above.
 
+**B14 changes no save format.** The state digest's world-generation hash covers `game/biomes.json` without the `ambient` field of its rows (`WorldStateHeader.WithoutPresentation`, which cuts those properties out of the bytes before hashing), so the sound's data is editable without refusing a save: a file with no `ambient` is hashed as it stands, and a change to any other part of a row still moves the digest. The cloud layer's `cloudAltitude` is in `game/weather.json`, which the digest never read. A save records neither: they are the bundle's, not the player's.
+
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
 The format below, version 8 (before B05), is the one the `systems` map and the entries on it were written in; the current version is 9, and it is the only one read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`: "The save is format version N;

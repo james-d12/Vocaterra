@@ -12,6 +12,7 @@
     "about": { "type": "string" },
     "start": { "type": "string", "description": "The id of the kind a new game starts in." },
     "transitionSeconds": { "type": "number", "minimum": 0, "description": "How long a change from one kind to the next takes to blend the channels; not above the shortest spell." },
+    "cloudAltitude": { "type": "number", "minimum": 80, "maximum": 800, "default": 168, "description": "The height in blocks of the clouds' undersides (B14); 168 when absent, above the hills and below the great peaks. Read by the sky as the height it draws the clouds at." },
     "kinds": {
       "type": "array",
       "minItems": 1,

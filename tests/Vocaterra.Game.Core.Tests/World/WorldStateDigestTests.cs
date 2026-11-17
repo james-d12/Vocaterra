@@ -125,4 +125,22 @@ public sealed class WorldStateDigestTests
         Assert.NotEqual(new byte[WorldStateHeader.DigestLength], header.GenerationDataHash);
         Assert.Equal(header.GenerationDataHash, WorldStateHeader.For(TestGame.Bundle, 7).GenerationDataHash); // the seed is its own field
     }
+
+    private static string Stripped(string json) => System.Text.Encoding.UTF8.GetString(WorldStateHeader.WithoutPresentation(System.Text.Encoding.UTF8.GetBytes(json)));
+
+    [Fact]
+    public void Given_TheBiomesFile_When_ItsAmbientFieldsAreLeftOut_Then_TheSoundsDataIsNotPartOfTheWorldsDigest()
+    {
+        const string withBeds = "{\n  \"biomes\": [\n    {\n      \"id\": \"a\",\n      \"ambient\": { \"wind\": 300 },\n      \"top\": \"grass\"\n    },\n    { \"id\": \"b\", \"top\": \"sand\", \"ambient\": { \"surf\": 1 } }\n  ]\n}";
+        const string without = "{\n  \"biomes\": [\n    {\n      \"id\": \"a\",\n      \"top\": \"grass\"\n    },\n    { \"id\": \"b\", \"top\": \"sand\" }\n  ]\n}";
+
+        Assert.Equal(without, Stripped(withBeds)); // in the middle of a row and at its end
+        Assert.Equal(without, Stripped(without)); // a file with none is hashed as it stands
+        Assert.Equal(Stripped(withBeds.Replace("300", "999", StringComparison.Ordinal)), Stripped(withBeds));
+        Assert.NotEqual(Stripped(withBeds.Replace("grass", "dirt", StringComparison.Ordinal)), Stripped(withBeds)); // anything else still counts
+        var shipped = File.ReadAllText(Repo.Path("content", "game-v1", "game", "biomes.json"));
+        Assert.Contains("\"ambient\"", shipped, StringComparison.Ordinal);
+        Assert.DoesNotContain("ambient", Stripped(shipped), StringComparison.Ordinal);
+        Assert.Contains("\"fillerDepth\"", Stripped(shipped), StringComparison.Ordinal);
+    }
 }

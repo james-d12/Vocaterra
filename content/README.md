@@ -455,6 +455,55 @@ it is not in the bundle.
    - a kind's id typed into a source file under `src/`: `NoWeatherKindIdsInSourceTests` names the file and the line.
    The core's tests run on `content/game-v1` too (R02), so a `weather.json` error that the validator misses shows as a failing test.
 
+## Adding a biome
+
+A biome is a row of `game-v1/game/biomes.json` (B01, D-game-34; `biomes.schema.json`; `BiomeValidator` checks the values, `GameDataValidator` runs it). The rows are tried in file order and the first whose `when` holds wins,
+so the last must have none (it catches every column); no file under `src/` names a biome's id (`NoBiomeIdsInSourceTests`), so a new biome is one row and no code. The cloud layer's height is `cloudAltitude` in `game/weather.json` (B14), not here.
+
+1. **The row.** An example, `birchwood`, as it stands in the file:
+
+   ```json
+   {
+     "id": "birchwood",
+     "when": { "humidity": { "min": 150 }, "temperature": { "max": 100 } },
+     "ambient": { "birds": 1000, "insects": 700 },
+     "top": "grass", "filler": "dirt", "fillerDepth": 3,
+     "trees": { "density": 50, "species": [{ "species": "birch", "weight": 5 }, { "species": "oak", "weight": 1 }] },
+     "decor": { "density": 150, "blocks": { "fern": 2, "tall-grass": 2 } }
+   }
+   ```
+
+   - `id`: lowercase kebab-case, unique. `when`: what the row asks of a column; every part is optional and a row matches when all its parts do. The parts are `water` (the ground is below the sea), and ranges (`min`, `max`, either optional, in thousandths of the field's range; heights in blocks) of `continentalness`, `erosion`, `ridges`, `temperature`, `humidity`, `river` (the distance from a river's centre line, 0 on it), `height` and `surfaceTemperature` (the temperature at the surface height, so it falls with altitude: snow and the tree line follow it). The dither in the file's head jitters the temperature and the humidity before the rows are tried, so borders are ragged. Put the row where its conditions belong in the order: water and coast first, then the mountains from the highest and coldest down, then the lowlands' temperature and humidity lookup; a row placed above one that holds for the same columns hides it.
+   - `top`, `filler`, `fillerDepth` (0 to 16) and `underwater`: block names of the game's own table (`BlockDefinition`; the ground must be solid). `trees`: a `density` (percent of a chunk's 4 x 4 cells) and species by weight, each optionally with a `crown`; the species and crowns are code strategies (`StrategyRegistry`), so a species the code does not have is a code change. `decor`: plants by weight at a density in thousandths of the columns; `snowCap` lets snow cover the top where the surface temperature is under the world's snow threshold. `surfaceStrategy` and `decorStrategy` name code strategies that shape the biome's own ground or dress it (never a biome id); `baseTemperature` is data for the temperature system to come.
+   - **`ambient` (B14): the sound.** The beds heard there, each a weight in thousandths (0 to 1 000) at the heart of the biome: `wind`, `birds` (by day, quieter in rain), `river`, `insects` (by night) and `surf`; no other bed may be named (the cave bed follows the depth under the ground; the waterfall, village and fire follow the scene's places; the rain follows the weather). The sound blends five columns round the listener (`PlaceAmbience`), so a border is a slope of about twelve blocks and the mixer then cross-fades over 1.5 seconds. A row with no `ambient` is silent of place beds, which `PlaceAmbienceTests` forbids for the shipped rows. A new bed needs code (`AmbientBeds`, `AmbientLoops`) and an entry in the schema's `propertyNames`.
+2. **No other file.** The ground, the trees, the decor, the far view's colours (`land-colours.json` follows the climate, not the biome), the sound and the weather's cooling read the row; nothing else names it. Words for the guide (a place's name in speech) are not in the row: there is no Spanish here.
+3. **What the checks say.** `scripts/content.sh refresh` (the host's `--validate-content`) lists a problem as a `game/biomes.json:` line: an id that is not kebab-case or is used twice, a range out of its field's bounds or inverted, a block the game does not have or cannot stand on, an unknown species, crown, strategy or ambient bed, a weight out of range, and a last row that has conditions. The tests: `BiomeDataTests` (the parse and each validator rule, and that the schema's beds are the ones a biome may name), `BiomeTableTests` (the order and the first match), `NoBiomeIdsInSourceTests`, `PlaceAmbienceTests` (the bed a place in each biome hears, for every row, and a column of each biome of three seeds' real worlds). **A biome changes the world**: a new row moves the 18 procedural goldens (`ProceduralGoldenTests`) and the state digest of `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json`, since `game/biomes.json` is hashed into it; re-record them knowingly (the owner reviews the pictures), and re-hash the bundle (`scripts/content.sh refresh`).
+
+## Adding an ore
+
+An ore is a row of `ores` in `game-v1/game/underground.json` (B11, D-game-34; `underground.schema.json`; `UndergroundValidator` checks the values). The row says where and how much; the ore itself is a block of the game's table. No file under `src/` names an ore's id or block (`NoOreIdsInSourceTests`).
+
+1. **The block.** A vein of an ore the game already has (`copper-ore`, `iron-ore`, `tin-ore`; `BlockDefinition`) is one row and nothing else. A new kind of ore is a new block first, which is code: a `BlockId`, its row in `BlockDefinition` (a solid `Material.Stone` block, with the gather ticks and drop a mined ore may have), its tile in the atlas (`BlockAtlasLayout`, `BlockArtNature`), its sound surface (`Footsteps`, `SoundEventMapper`) and its Spanish noun in `game/nouns.json` and its English in `locale/`. Assets are CC0 or code-drawn (D-game-5).
+2. **The row.** An example, `iron-veins`, as it stands in the file:
+
+   ```json
+   {
+     "id": "iron-veins",
+     "block": "iron-ore",
+     "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
+     "size": { "min": 3, "max": 8 },
+     "bands": [
+       { "minY": -24, "maxY": 56, "peakY": 16, "veins": 14 },
+       { "minY": 80, "maxY": 320, "peakY": 160, "veins": 8 }
+     ]
+   }
+   ```
+
+   - `id`: kebab-case, unique. `block`: a block name. `replaces`: the rocks a vein may take (never air, water, lava, bedrock or another ore: the validator refuses an ore or the floor here).
+   - `size`: the fewest and most blocks a vein tries to hold, `1 <= min <= max <= 64`; a vein is a compact blob kept inside its chunk.
+   - `bands`: each has `minY` below `maxY` inside the world, `peakY` between them, and `veins` from 0 to 64 tried in each 16 x 16 chunk column over all its layers; the number of veins at a height falls off in a triangle from the peak, so a band is a hump, and an ore may have several (iron has a deep and a high one).
+3. **What the checks say.** `UndergroundValidator` names the ore row and the problem (`the ore 'iron-veins' has no band`, `a band of the ore ... needs minY below maxY inside the world and its peakY between them`, `the ore ... may not replace 'bedrock'`, an unknown block). The tests: `OreTableTests` (each ore inside its rows' ranges with the shape of its distribution, veins inside their chunk and band, never replacing air, water, lava, bedrock or an ore), `UndergroundDataTests` (the parse and the validator), `NoOreIdsInSourceTests`, and `ValleyUndergroundTests` for the valley's reach. The ores change blocks under the ground only: the 18 procedural goldens and the state digest move when the ore rows do (the digest hashes `game/underground.json`); the valley's own digest moves with the valley's ores. Re-record the goldens, re-hash the bundle (`scripts/content.sh refresh`) and put the new bundle hash into `save-v9.json`.
+
 ## Stations and items that share a noun (N07)
 
 A recipe's `station` is a catalogue noun that names a block (`mesa` the table, `fuego` the fire-ring stones; the fire counts only while its ring burns). When the output noun names several items

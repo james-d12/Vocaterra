@@ -66,6 +66,7 @@ public sealed class TeleportToStepTests
         Assert.Equal((x, z), (cx, cz));
         Assert.False(VoxelStep.TryParseSignedBlock("1,2", out _, out _, out _));
         Assert.False(VoxelStep.TryParseSignedColumn("a,b", out _, out _));
-        Assert.False(VoxelStep.TryParseColumn("-1,2", out _, out _)); // the unsigned reader of the other steps is as it was
+        Assert.True(VoxelStep.TryParseColumn("-1,2", out var wx, out var wz)); // B14: the plain readers of the other steps are signed too
+        Assert.Equal((-1, 2), (wx, wz));
     }
 }

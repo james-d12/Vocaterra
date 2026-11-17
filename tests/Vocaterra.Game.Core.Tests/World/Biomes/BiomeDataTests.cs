@@ -133,4 +133,35 @@ public sealed class BiomeDataTests
         Assert.True(Names(Problems(WithRow("plains", static r => r with { BaseTemperature = 2000 })), "baseTemperature"));
         Assert.True(Names(Problems(Shipped with { DitherTemperature = 900 }), "dither"));
     }
+
+    [Fact]
+    public void Given_ARowWithAnAmbientField_When_ItIsParsed_Then_ItsBedsAndWeightsAreRead()
+    {
+        var data = BiomeData.Parse(Json.Replace("\"top\": \"sand\"", "\"ambient\": { \"surf\": 800, \"wind\": 250 }, \"top\": \"sand\"", StringComparison.Ordinal));
+
+        Assert.Equal([new BedShare("surf", 800), new BedShare("wind", 250)], data.Row("wet").Ambient);
+        Assert.Null(data.Row("rest").Ambient);
+        Assert.Empty(Problems(data));
+    }
+
+    [Fact]
+    public void Given_ABadAmbientField_When_ItIsValidated_Then_EachProblemIsNamed()
+    {
+        static BiomeRow Beds(BiomeRow r, params BedShare[] beds) => r with { Ambient = beds };
+
+        Assert.True(Names(Problems(WithRow("plains", static r => Beds(r, new BedShare("thunder", 500)))), "unknown ambient bed 'thunder'"));
+        Assert.True(Names(Problems(WithRow("plains", static r => Beds(r, new BedShare("cave", 500)))), "unknown ambient bed 'cave'")); // the cave follows the depth, not a biome
+        Assert.True(Names(Problems(WithRow("plains", static r => Beds(r, new BedShare("wind", 1001)))), "from 0 to 1000"));
+        Assert.True(Names(Problems(WithRow("plains", static r => Beds(r, new BedShare("wind", -1)))), "from 0 to 1000"));
+        Assert.True(Names(Problems(WithRow("plains", static r => Beds(r, new BedShare("wind", 5), new BedShare("wind", 6)))), "twice"));
+    }
+
+    [Fact]
+    public void Given_TheSchema_When_ItsAmbientBedsAreRead_Then_TheyAreTheBedsABiomeMayName()
+    {
+        using var schema = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Repo.Path("content", "schema", "biomes.schema.json")));
+        var names = schema.RootElement.GetProperty("properties").GetProperty("biomes").GetProperty("items").GetProperty("properties").GetProperty("ambient").GetProperty("propertyNames").GetProperty("enum").EnumerateArray().Select(static e => e.GetString()).ToList();
+
+        Assert.Equal(Vocaterra.Game.Core.Sound.AmbientBeds.ByPlace.Order(StringComparer.Ordinal), names.Order(StringComparer.Ordinal));
+    }
 }
