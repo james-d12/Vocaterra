@@ -2847,3 +2847,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   only darken. Midday ground saturation fell from about 0.66 to 0.56. Dusk crowns went olive at first; cutting the oak map's reds by 28%
   fixed it. Clouds have darker bottoms and smaller boxes; water is tinted per vertex by the mean depth of the four corner cells. Gated
   clean: 12,483 passed, no failures.
+- **B24a, the valley underground's threads (2026-11-17, `ef932990`).** `ValleyUnderground.Lay` ran `Parallel.For` on up to eight threads
+  (the codebase review's C9), against the game's two-worker rule; it now runs on at most two, with the same blocks at one and two. The
+  underground adds about 2,500 ms of CPU time to the valley build (837 ms without, 3,337 ms with). Its timing test compared wall-clock
+  times and failed four full runs in a row at load 11 to 19 while passing alone; it now measures the laying's CPU time, takes the fastest
+  of three and allows 5,000 ms, and runs alone in the timing collection. The budget is generous because spin-waits under contention can
+  inflate CPU time, so it catches a doubling, not a 20% slowdown. Gated clean: 12,485 passed, no failures, the first full run in a day
+  without the valley flake.
