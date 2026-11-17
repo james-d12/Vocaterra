@@ -268,7 +268,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         }
 
         var s = WorldSample.Of(seed, 4096, 4);
-        var pools = s.Bodies(k => s.Water[k] && s.Biome[k] != s.Row("river-channel"), eight: true).Where(b => !b.AtEdge).ToArray();
+        var pools = s.Bodies(k => s.Water[k] && s.Biome[k] != s.Row("river-channel") && s.Carve[k] == 0, eight: true).Where(b => !b.AtEdge).ToArray();
         var (puddles, ponds) = (pools.Count(b => b.Count <= 3), pools.Count(b => b.Count <= 8));
         var wetShores = waterChanges.Count(c => c > 2) * 100.0 / Math.Max(1, crossings);
         var speckled = beachChanges.Count(c => c > 4) * 100.0 / Math.Max(1, crossings);

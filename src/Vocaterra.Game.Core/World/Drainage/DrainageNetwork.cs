@@ -64,8 +64,10 @@ internal sealed class DrainageNetwork
     private const byte OutsideFlag = 8;
     private const byte BuiltFlag = 16;
 
-    // A node is under a lake, and not just in a pit of the relief noise, where the flood stands this deep (sixteenths of a block) over the surface the water is routed over.
+    // A node is under a lake, and not just in a pit of the relief noise, where the flood stands this deep (sixteenths of a block) over the surface the water is routed over; and a lake is at least this many nodes
+    // (a body of fewer is a puddle: it is left to the river that runs through it).
     private const int LakeMin = 40;
+    private const int LakeNodesMin = 9;
 
     // The nodes are kept in square tiles of this many nodes a side.
     private const int Tile = 128;
@@ -485,6 +487,47 @@ internal sealed class DrainageNetwork
             area[order[o]] = 1;
         }
 
+        // The nodes under a lake: flooded deep enough, in a body of at least LakeNodesMin nodes.
+        var lake = new bool[count];
+        for (var n = 0; n < count; n++)
+        {
+            lake[n] = kind[n] == 0 && seen[n] && filled[n] - level[n] >= LakeMin;
+        }
+
+        var body = new List<int>();
+        var taken = new bool[count];
+        for (var first = 0; first < count; first++)
+        {
+            if (!lake[first] || taken[first])
+            {
+                continue;
+            }
+
+            body.Clear();
+            body.Add(first);
+            taken[first] = true;
+            for (var b = 0; b < body.Count; b++)
+            {
+                for (var d = 0; d < 8; d++)
+                {
+                    var m = near[(body[b] * 8) + d];
+                    if (m >= 0 && lake[m] && !taken[m])
+                    {
+                        taken[m] = true;
+                        body.Add(m);
+                    }
+                }
+            }
+
+            if (body.Count < LakeNodesMin)
+            {
+                foreach (var m in body)
+                {
+                    lake[m] = false;
+                }
+            }
+        }
+
         // The water's level: a lake's is its flood's, any other node's its own, and no node's is lower than the node it drains into (the nodes are taken parents first), so along a river the level only falls.
         var final = new int[count];
         for (var o = 0; o < visited; o++)
@@ -494,7 +537,7 @@ internal sealed class DrainageNetwork
             {
                 SeaFlag => _sea16,
                 Cut => water[n],
-                _ => filled[n] - level[n] >= LakeMin ? filled[n] : water[n],
+                _ => lake[n] ? filled[n] : water[n],
             };
             final[n] = parent[n] >= 0 ? Math.Max(floor, final[near[(n * 8) + parent[n]]]) : floor;
         }
@@ -516,7 +559,7 @@ internal sealed class DrainageNetwork
                 return 0;
             }
 
-            if (filled[n] - level[n] >= LakeMin)
+            if (lake[n])
             {
                 return (short)Math.Min(final[n] - level[n], short.MaxValue);
             }
@@ -525,7 +568,7 @@ internal sealed class DrainageNetwork
             for (var d = 0; d < 8; d++)
             {
                 var m = near[(n * 8) + d];
-                if (m >= 0 && kind[m] == 0 && seen[m] && filled[m] - level[m] >= LakeMin)
+                if (m >= 0 && lake[m])
                 {
                     surface = Math.Max(surface, final[m]);
                 }
@@ -558,7 +601,7 @@ internal sealed class DrainageNetwork
                     flags |= RiverFlag;
                 }
 
-                if (filled[n] - level[n] >= LakeMin)
+                if (lake[n])
                 {
                     flags |= LakeFlag;
                 }
