@@ -194,12 +194,20 @@ public sealed class PronunciationFuzzTests(ITestOutputHelper output)
                     return;
                 }
 
-                var expectedCount = result.Errors.Count(e => e.Tag == error.ErrorTag && e.Span == error.GraphemeSpan);
+                // Two sites can predict the very same heard phones (a silent h at the end of a word and another at the start of the next: one inserted
+                // [h] at one place). Nothing in the audio tells them apart, so the scorer's rule is the first site in the text (M99); the injected error is
+                // that site's. Still exactly one tag, with the injected tag, phones and span of that first site.
+                var injectedSpan = injectable
+                    .Where(v => v.ErrorTag == error.ErrorTag && v.Phones.SequenceEqual(error.Phones))
+                    .OrderBy(static v => v.GraphemeSpan.Start)
+                    .First()
+                    .GraphemeSpan;
+                var expectedCount = result.Errors.Count(e => e.Tag == error.ErrorTag && e.Span == injectedSpan);
                 if (result.Errors.Count != 1 || expectedCount != 1)
                 {
                     throw Determinism.Fail(
                         Oracle,
-                        $"Injected {error.ErrorTag} at {error.GraphemeSpan} (heard [{string.Join(' ', heard)}] for [{string.Join(' ', spokenVariant.Phones)}]) but the scorer reported [{string.Join("; ", result.Errors.Select(static e => $"{e.Tag}@{e.Span} '{e.Expected}' -> '{e.Actual}'"))}].",
+                        $"Injected {error.ErrorTag} at {injectedSpan} (heard [{string.Join(' ', heard)}] for [{string.Join(' ', spokenVariant.Phones)}]) but the scorer reported [{string.Join("; ", result.Errors.Select(static e => $"{e.Tag}@{e.Span} '{e.Expected}' -> '{e.Actual}'"))}].",
                         c);
                 }
 
