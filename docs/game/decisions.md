@@ -962,6 +962,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     that, it's fine." Read as finishing B03b after B14, for what the tour lacks; the owner was told he can say "drop".
 48. **Cave mouths in hill and cliff faces** (2026-11-17, about 13:10 UTC, B11b's follow-up): "Seven, also do that as well." B11d, after
     B11c.
+49. **OpenAL accepted** (2026-11-17, about 14:30 UTC; B26 found MonoGame.Library.OpenAL ships OpenAL Soft's native library under
+    LGPL-2.0-or-later; offered a one-package exception or refusing it): "We don't really care about license, so just accept it, it
+    doesn't really matter. This is still only an internal game, so licensing is really not a problem at the moment." A one-package
+    exception in the licence scan (LGPL stays off the general allowlist); a release would carry the LGPL text and a source link.
 
 ## Already decided
 
