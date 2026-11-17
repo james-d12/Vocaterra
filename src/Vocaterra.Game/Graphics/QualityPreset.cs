@@ -19,6 +19,7 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="FarTreeLevels">B07c: how many of the far view's finest levels draw every tree as a box (the levels end at 256, 512, 1,024 and 2,048 blocks): High 4 (every tree to about 2 km), Medium 3 (1 km), Low 2 (512 blocks); beyond, a forest is a raised canopy layer.</param>
 /// <param name="FarRealRadius">B07c: how far from the eye workers make the real chunks of the surface for the far view's store: High 1,000 blocks, Medium 760, Low 560 (2.5 voxel distances, where the far view's level 2 ends).</param>
 /// <param name="MaxMeshedChunks">B07: the most chunk meshes a streamed world keeps (the nearest ones): a cap on the meshes and so on the memory of the card.</param>
+/// <param name="MultiSamples">B22: the samples per pixel of the back buffer (multisample antialiasing, 0 for none): the stair-stepped silhouettes of blocks and the shimmer of far tiles. Chosen when the window opens (the menu's quality row takes effect for it at the next start; `--msaa` overrides).</param>
 /// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident (the farthest unchanged ones are dropped past it).</param>
 /// <param name="GrassDistance">B18: how far from the eye the decorative grass layer is drawn, in blocks; it thins out over the outer half of it.</param>
 /// <param name="GrassCapPercent">B18: the share of the Grass slider's density this level may reach, in percent: the slider's 100 is this share of a tuft on every grass column of the lushest biome.</param>
@@ -37,7 +38,8 @@ public sealed record QualityPreset(
     int MaxMeshedChunks = 24_000,
     int MaxResidentChunks = 48_000,
     int GrassDistance = 96,
-    int GrassCapPercent = 100)
+    int GrassCapPercent = 100,
+    int MultiSamples = 4)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;
@@ -49,6 +51,9 @@ public sealed record QualityPreset(
         QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true, 3400, FarRange: 8192, FarTreeLevels: 3, FarRealRadius: 760, MaxMeshedChunks: 14_000, MaxResidentChunks: 32_000, GrassDistance: 72, GrassCapPercent: 70),
         _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true, 5400, FarRange: 16384, FarTreeLevels: 4, FarRealRadius: 1000, MaxMeshedChunks: 24_000, MaxResidentChunks: 48_000, GrassDistance: 96, GrassCapPercent: 100),
     };
+
+    /// <summary>The samples per pixel the window opens with for a quality level (B22).</summary>
+    public static int MultiSamplesOf(QualityLevel level) => For(level).MultiSamples;
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>
     public static QualityLevel? Parse(string value) => value switch

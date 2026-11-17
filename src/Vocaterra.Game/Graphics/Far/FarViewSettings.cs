@@ -15,8 +15,9 @@ namespace Vocaterra.Game.Graphics.Far;
 /// <param name="MaxTiles">The most tiles kept (built and cached): past it the farthest unused ones are dropped.</param>
 /// <param name="TreeLevels">Where the store is filled from the generator's model (no real chunk yet): the levels below this get every tree as its blocks (the tree pass's own placement), the levels from it up a forest as a layer of leaves on a trunk. 0 makes no single tree.</param>
 /// <param name="TexturedLevels">The tiles of the levels below this draw every face with its block's own atlas texture (mipmapped); the tiles above draw flat averaged colours with a noise texture, merged into large quads.</param>
+/// <param name="Ground">B22: the ground temperature and humidity of a block column, from which grass and oak leaves take their colour (<see cref="FarPalette.LandTint"/>), the same map the chunk mesher reads; <see langword="null"/> for the map's middle everywhere.</param>
 /// <param name="RealRadius">How far from the eye, in blocks, workers generate the real chunks of the surface and ingest them into the store (so trees, houses and regions near the voxel zone are exact, not the model's); 0 for none.</param>
-public sealed record FarViewSettings(int Range, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.96, int MaxTiles = 4000, int TreeLevels = 4, int TexturedLevels = 2, int RealRadius = 1000)
+public sealed record FarViewSettings(int Range, int Levels = 8, double BandScale = 1.0, double InnerFraction = 0.96, int MaxTiles = 4000, int TreeLevels = 4, int TexturedLevels = 2, int RealRadius = 1000, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null)
 {
     /// <summary>Where each level starts, in voxel view distances: level 0 is the ring just past the voxel zone (to 1.1), then each level is used out to the start of the next.</summary>
     public static IReadOnlyList<double> BandStarts { get; } = [0, 1.1, 1.5, 2.5, 4.5, 8.5, 16.5, 32.5];

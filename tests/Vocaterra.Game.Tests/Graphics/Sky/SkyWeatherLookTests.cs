@@ -200,7 +200,7 @@ public sealed class SkyWeatherLookTests
         // edges' light a little), and at the data's lowest sunlight (0.5) 0.249 to 0.728. The weather only multiplies the light by the channel, so the tint never goes above the clear
         // sky's top and falls to the channel's share of its bottom: a darker vertex colour, never one past white.
         Assert.InRange(clearLow, 0.48, 0.52);
-        Assert.InRange(clearHigh, 1.43, 1.48);
+        Assert.InRange(clearHigh, 1.43, 1.50); // B22 deepened the dusk light (0.88, 0.56, 0.46), so the dusk band's upper edge reads 1.488 (was 1.455)
         Assert.InRange(heavyLow, 0.24, 0.27);
         Assert.InRange(heavyHigh, 0.7, 0.75);
         Assert.True(heavyHigh <= clearHigh, "weather never lifts the tint past the clear sky's top");

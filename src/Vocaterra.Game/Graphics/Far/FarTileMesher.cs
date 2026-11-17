@@ -197,7 +197,7 @@ public static class FarTileMesher
         var begin = started ?? MonotonicClock.Milliseconds();
         var textured = key.Level < settings.TexturedLevels;
         var cell = settings.CellOf(key.Level);
-        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make());
+        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make(), settings.Ground);
         var geometry = FarGeometry.Rent();
         for (var axis = 0; axis < 3; axis++)
         {
@@ -478,7 +478,7 @@ public static class FarTileMesher
         }
     }
 
-    private sealed record Context(Volume Volume, int Cell, int X0, int Z0, int SkirtCells, bool Textured, UInt128 Grey, Lights Light);
+    private sealed record Context(Volume Volume, int Cell, int X0, int Z0, int SkirtCells, bool Textured, UInt128 Grey, Lights Light, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null);
 
     // ---- colours
 
@@ -701,9 +701,15 @@ public static class FarTileMesher
             shade *= 1f - Occlusion(v, at.X, at.Y, at.Z);
         }
 
-        return c.Textured
-            ? new Face(Pack(White, tint, shade), FarBucket.Opaque, block, false)
-            : new Face(Pack(side ? Covered(v, c, block, at) : Rgb(block, false, c.Grey), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
+        // The biome's colour of grass and oak leaves (B22), the chunk mesher's map; 1 for every other block.
+        var land = FarPalette.LandTint(block, side, c.Ground, c.X0 + (at.X * c.Cell), (v.YBase + at.Y) * c.Cell, c.Z0 + (at.Z * c.Cell));
+        if (c.Textured)
+        {
+            return new Face(Pack((255f * land.R, 255f * land.G, 255f * land.B), tint, shade), FarBucket.Opaque, block, false);
+        }
+
+        var flat = side ? Covered(v, c, block, at) : Rgb(block, false, c.Grey);
+        return new Face(Pack((flat.R * land.R, flat.G * land.G, flat.B * land.B), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
     }
 
     // The colour of a flat level's side face: a cliff of a snow-topped column is mostly snow seen from afar (the cap would otherwise be a one-voxel line on a grey wall, and a far mountain grey), so its stone is mixed with the snow's white.

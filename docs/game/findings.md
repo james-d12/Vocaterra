@@ -2838,3 +2838,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   need bit-identical positions (four dot products, not `matrix * position`). The gate's licence scan covers the core and Game.Core.Tests
   only; a scan of `Vocaterra.Game` already FAILs or UNKNOWNs on FontStashSharp (Zlib), MonoGame's native libraries and NVorbis (proposed to
   the owner in open items). Gated: 12,461 passed; the one failure the valley timing test (B24a).
+- **B22, a fidelity bundle (2026-11-17, `19d21747`).** Five of the rendering review's fixes on MonoGame's built-in effects. MSAA at 4x on
+  every preset (`--msaa`): the tree line's distinct colours rose from 9,153 to 17,054, with no cost measurable at 1280 x 720. A fourth
+  light band, Dawn, and each band baked with its own sun (dusk from the west at 20.2 h, dawn from the east at 5.8 h, night the moon); dusk
+  ground luma 0.62 of midday (was 0.70). The far land keeps the Day band's directions, since it is baked once. Grass tops, grass tufts and
+  oak leaves take their colour from a 5 x 5 temperature-by-humidity map (embedded `land-colours.json`, no biome ids; the far palette
+  reads the same map, so near and far meet without a seam); the art was made the pale end of the green, because a vertex colour can
+  only darken. Midday ground saturation fell from about 0.66 to 0.56. Dusk crowns went olive at first; cutting the oak map's reds by 28%
+  fixed it. Clouds have darker bottoms and smaller boxes; water is tinted per vertex by the mean depth of the four corner cells. Gated
+  clean: 12,483 passed, no failures.

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "about": "The colour of grass and of oak leaves across the climate (B22, G2). A map from the column's ground temperature and humidity (fixed point, -4096 cold or dry to 4096 hot or wet, as the climate samples are) to the colour the plant shows in full light; the renderer reads it as a bilinear table, so the colour changes smoothly across the land and no biome id appears anywhere. temperatureNodes and humidityNodes are the climate values of the grid's columns and rows (strictly rising; a value outside them takes the edge's colour); grass and leaves have one row per humidity node, one #rrggbb per temperature node. A colour cannot be lighter than the picture it is brought down from (the block art is the light end of every green), which the loader and its test check. The far view takes its grass and leaves from the same map, so near and far match.",
+  "temperatureNodes": [-4096, -2048, 0, 2048, 4096],
+  "humidityNodes": [-4096, -2048, 0, 2048, 4096],
+  "grass": [
+    ["#969e80", "#92a06a", "#a0a660", "#b2a85c", "#baa656"],
+    ["#849c78", "#7ca060", "#8ca658", "#a0a656", "#b0a450"],
+    ["#6a9476", "#689e54", "#6aa646", "#7ca83e", "#90a43c"],
+    ["#609274", "#5e9c58", "#5ea440", "#64a834", "#72a636"],
+    ["#528a70", "#54945c", "#549a42", "#52a034", "#549c38"]
+  ],
+  "leaves": [
+    ["#527e66", "#4e8454", "#55884a", "#5b8642", "#5c843e"],
+    ["#487c5e", "#458246", "#488a3e", "#54883a", "#598636"],
+    ["#3c7a5e", "#3e7c42", "#418236", "#487c32", "#4f7c2e"],
+    ["#377a56", "#377e3c", "#378230", "#3a8232", "#3f7c2a"],
+    ["#317452", "#327a3a", "#317e2c", "#307a26", "#2e7822"]
+  ]
+}
