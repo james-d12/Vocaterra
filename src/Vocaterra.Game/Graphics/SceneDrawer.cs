@@ -108,6 +108,7 @@ public sealed class SceneDrawer : IDisposable
     }
 
     private int _grassPercent;
+    private GraphicsEffects _effects = GraphicsEffects.All;
     private GraphicsDevice? _device;
     private bool _shaders = true;
     private bool _shadersUnavailable;
@@ -121,6 +122,19 @@ public sealed class SceneDrawer : IDisposable
     {
         _grassPercent = percent;
         _renderer?.SetGrass(percent);
+    }
+
+    /// <summary>
+    /// Takes the graphics effects of the settings page (B17c; the run's start, then each row's change): the renderer follows at once (<see cref="VoxelRenderer.SetEffects"/>), and the far view's climate colours are made again when that one changes
+    /// (the far tiles carry them baked in: they are built again, nearest first, on the workers).
+    /// </summary>
+    /// <param name="effects">The effects.</param>
+    public void ApplyEffects(GraphicsEffects effects)
+    {
+        ArgumentNullException.ThrowIfNull(effects);
+        _effects = effects;
+        _renderer?.SetEffects(effects);
+        _streaming?.SetClimateColours(effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
     }
 
     /// <summary>
@@ -212,6 +226,7 @@ public sealed class SceneDrawer : IDisposable
         _waterTextures = new WaterTextures(device);
         _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
         _renderer.SetGrass(_grassPercent);
+        _renderer.SetEffects(_effects);
         _device = device;
         if (_options.StreamStats)
         {
@@ -221,6 +236,7 @@ public sealed class SceneDrawer : IDisposable
         SwitchShaders();
         _renderer.SetFigures(_figures);
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
+        _streaming?.SetClimateColours(_effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
         _renderer.SetFarView(_streaming?.Far);
         _meshPool = _streaming is null ? new JobPool(_options.Prefetch ?? JobPool.MaxWorkers) : null; // the bounded valley has no streaming host: its meshes get a pool of their own (the two workers are all there are, whichever world)
         _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);

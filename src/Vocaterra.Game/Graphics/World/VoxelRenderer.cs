@@ -56,7 +56,8 @@ public readonly record struct MeshStats(
 }
 
 /// <summary>
-/// Draws the voxel world with MonoGame's own effects (no custom shader: mgfxc needs Wine on Linux): <see cref="AlphaTestEffect"/> for the opaque faces and
+/// Draws the voxel world through the game's own GLSL program when the context can run it (B17a to B17c: the light is data in the meshes and the shader combines it with the hour, the weather and the glow, with fog by height, the water shader and the far view in
+/// the same light), and otherwise, or with the Shaders setting off, with MonoGame's own effects (mgfxc needs Wine on Linux; the light is then baked into the vertex colours, by bands, as it always was): <see cref="AlphaTestEffect"/> for the opaque faces and
 /// the undergrowth (a texture times the vertex colour, the light and the ambient occlusion being in the mesh, and the cut-out pixels of the leaves and the
 /// plants dropped by the alpha test), <see cref="BasicEffect"/> for the water and the small overlays. The sky comes first (<see cref="SkyRenderer"/>), then
 /// with the depth buffer on: the opaque faces of every visible chunk, the undergrowth of the chunks near the eye without culling, the figures and the
@@ -128,6 +129,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private PrecipitationState _precipitation = PrecipitationState.None;
     private readonly PrecipitationRenderer _rain;
     private LightBand _band;
+    private GraphicsEffects _effects = GraphicsEffects.All;
+    private SkyLook _rawLook;
+    private bool _farGlFailed;
     private Vector3 _sunLight = Vector3.One;
     private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
     private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
@@ -174,6 +178,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _water = water;
         _grid = grid;
         Preset = preset;
+        _rawLook = look;
         _look = look;
         _band = look.Band;
         ClearColour = new Color(look.FogColour.R, look.FogColour.G, look.FogColour.B);
@@ -211,7 +216,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _grassBiomeAt = biomeAt;
         _skyExposure = naturalSurface is null ? null : new SkyExposure(grid, naturalSurface);
         _ground = groundClimate;
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground); // the lights near a chunk are put in when it is meshed (BuildChunk)
+        _meshOptions = BaseOptions(preset); // the lights near a chunk are put in when it is meshed (BuildChunk)
         grid.AddResidencyListener(_tracker);
         grid.AddResidencyListener(this);
         _pipeline = new ChunkMeshPipeline(grid, _tracker, OptionsFor, currents) { Band = _band };
@@ -311,19 +316,21 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     /// <param name="look">The look at this moment of the cycle.</param>
     public void SetAtmosphere(in SkyLook look)
     {
-        _look = look;
-        if (look.Band != _band)
+        _rawLook = look;
+        _look = SunModel.Adjusted(look, _effects.SunFollowsHour); // with the sun not following the hour the dusk's light is the older, lighter one (B17c)
+        var band = EffectiveBand;
+        if (band != _band)
         {
-            _band = look.Band;
+            _band = band;
             _meshOptions = _meshOptions with { Band = _band };
             _pipeline.Band = _band;
             _pipeline.BandChanged();
         }
 
-        SetLightTints(look);
-        var fogEnd = FogEndNow(Preset.ViewDistance, look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
-        DryFog = new FogParameters(look.FogColour.R / 255f, look.FogColour.G / 255f, look.FogColour.B / 255f, FogStartOf(fogEnd), fogEnd);
-        _sky.SetLook(look);
+        SetLightTints(_look);
+        var fogEnd = FogEndNow(Preset.ViewDistance, _look.Fog); // the weather's fog brings the distances in (E05); the view distance and the preset set the clear-weather ones
+        DryFog = new FogParameters(_look.FogColour.R / 255f, _look.FogColour.G / 255f, _look.FogColour.B / 255f, FogStartOf(fogEnd), fogEnd);
+        _sky.SetLook(_look);
         ApplyFogState();
     }
 
@@ -406,7 +413,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
         _view.Detach();
         _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset)) { ResidencyRebuildCalls = 8 };
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground);
+        _meshOptions = BaseOptions(preset);
         if (remesh)
         {
             ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
@@ -459,6 +466,50 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         ReleaseAllGrass();
         _glPass?.Dispose();
         _glPass = pass;
+        _farGlFailed = false;
+        _band = EffectiveBand;
+        _meshOptions = BaseOptions(Preset); // the meshes carry their light as data for the program, and baked for the effects
+        _pipeline.Band = _band;
+    }
+
+    // The mesh options of a quality level as the renderer builds them now (B17c): the light as data when the program draws, the climate colours and the water's tint as the settings say.
+    private MeshOptions BaseOptions(QualityPreset preset) =>
+        new(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _effects.ClimateColours ? _ground : null, _glPass is not null, _effects.WaterShader);
+
+    // The band new meshes are baked in: the look's for the effects (the sun's multiplier and direction by band, built again when the band changes), and Day for the program, which has the light as data and builds nothing again when the hour moves
+    // (also Day for the effects with the sun not following the hour: the one direction and the tint of the light alone).
+    private LightBand EffectiveBand => LightBands.MeshBand(_look.Band, _glPass is not null, _effects.SunFollowsHour);
+
+    /// <summary>The graphics effects now in force (B17c).</summary>
+    public GraphicsEffects Effects => _effects;
+
+    /// <summary>
+    /// Takes the graphics effects of the settings page (B17c), each on or off (<see cref="GraphicsEffects"/>). The sun, the water shader and the height fog are uniforms of the program (no mesh is built again; with the effects drawing, the sun's and the water's are baked, so the
+    /// view is built again); the climate colours are in the meshes' materials, so the view is built again; the far view's light is the way the far view is drawn.
+    /// </summary>
+    /// <param name="effects">The effects.</param>
+    public void SetEffects(GraphicsEffects effects)
+    {
+        ArgumentNullException.ThrowIfNull(effects);
+        if (effects == _effects)
+        {
+            return;
+        }
+
+        var was = _effects;
+        _effects = effects;
+        _meshOptions = BaseOptions(Preset);
+        var remesh = effects.ClimateColours != was.ClimateColours || (_glPass is null && effects.WaterShader != was.WaterShader);
+        if (effects.SunFollowsHour != was.SunFollowsHour)
+        {
+            SetAtmosphere(_rawLook); // the sun's light (the deeper dusk) and, for the effects, the band the meshes are baked in
+        }
+
+        if (remesh)
+        {
+            ReleaseAllMeshes();
+            ReleaseAllGrass();
+        }
     }
 
     /// <summary>Gives the renderer a timer for the card's time round the chunk passes (B17b, <c>--stream-stats</c>); <see langword="null"/> for none. The renderer disposes it with itself.</summary>
@@ -608,7 +659,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             biomeAt = (x, z) => ids[((((z - z0) >> 2) << 2) + ((x - x0) >> 2))];
         }
 
-        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, biomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds), _ground);
+        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, biomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds), _effects.ClimateColours ? _ground : null, _glPass is not null);
         return _pipeline.SubmitGrass(coord, options, this);
     }
 
@@ -956,8 +1007,23 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         {
             RefreshColumnReadiness();
 
-            // The far view (B07): beyond the chunks, in a pass of its own with its own depth range and the same haze, then the depth is cleared and the chunks are drawn over it.
-            _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]));
+            // The far view (B07): beyond the chunks, in a pass of its own with its own depth range and the same haze, then the depth is cleared and the chunks are drawn over it. Through the program (B17c, the far view's light: the same sun, glow's colour,
+            // fog and fog by height as the chunks) when the context runs it and the setting is on; otherwise through MonoGame's effects, in the day's baked light.
+            FarGlDraw? farGl = null;
+            if (_glPass is { } through && _effects.FarLight && !_farGlFailed)
+            {
+                if (!through.HasFarTextures)
+                {
+                    _farGlFailed = !_farRenderer.PrepareGl(through);
+                }
+
+                if (!_farGlFailed)
+                {
+                    farGl = new FarGlDraw(through, LightFrame(camera.Eye, tick), _device.Viewport, _device.PresentationParameters.BackBufferHeight, _device.RenderTargetCount > 0);
+                }
+            }
+
+            _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]), farGl);
         }
 
         _device.DepthStencilState = DepthStencilState.Default;
@@ -1201,9 +1267,43 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
     }
 
-    // The chunk passes through the game's own GLSL program (B17a, B17b), in one state scope of the frame: the opaque faces by band, the lit pieces, the undergrowth and the grass (both sides showing), the glow (added, depth tested and not written),
-    // then the water from the farthest chunk to the nearest (translucent, depth read only, its own frame of the animated art). The same look as the effects' path: the same order, the same tints, the same fog. The figures, the plots' outlines and
-    // the block's frame are drawn before it (MonoGame's, opaque, depth tested): no MonoGame call may stand inside the scope. Returns the processor time spent submitting.
+    // The frame's light for the program (B17c), from the look of the moment and the effects in force: where the sun stands for the faces' shade and its colour, what the block light adds, the height fog and the water's movement. A few uniforms a frame:
+    // the hour, the weather and the glow change with no mesh built again.
+    private GlLightFrame LightFrame(Vector3 eye, long tick)
+    {
+        var direction = SunModel.ShadingDirection(_look, _effects.SunFollowsHour);
+        var (glowR, glowG, glowB) = LanternGlow.PassColour(GlowStrength);
+        var haze = _effects.HeightFog && _underwaterAmount <= 0f ? HeightFogDensity * (1f + (2f * _look.Fog)) : 0f; // thicker in fog and rain; none under water, where the water's own fog is
+        var day = ChunkMesher.SunDirection;
+        return new GlLightFrame(
+            eye,
+            new Vector3(direction.X, direction.Y, direction.Z),
+            _sunLight,
+            new Vector3(day.X, day.Y, day.Z),
+            new Vector3(glowR, glowG, glowB),
+            haze,
+            HeightFogBase,
+            1f / HeightFogScale,
+            _effects.WaterShader,
+            tick / (float)Vocaterra.Game.Core.Atmosphere.DayClock.TicksPerSecond,
+            WaterWave);
+    }
+
+    /// <summary>The fog by height's density at its base height, per block (B17c): about a tenth of the view's haze at a kilometre along the low land, thicker with distance (the far view lies in it).</summary>
+    public const float HeightFogDensity = 0.00012f;
+
+    /// <summary>The height, in blocks, at which the fog by height has its full density (the sea level and the valley floors; a ridge above it stands out of the haze).</summary>
+    public const float HeightFogBase = 64f;
+
+    /// <summary>How many blocks up the fog by height falls to a third of its density.</summary>
+    public const float HeightFogScale = 64f;
+
+    /// <summary>How far the water shader moves the surface, in blocks (B17c): a gentle swell.</summary>
+    public const float WaterWave = 0.035f;
+
+    // The chunk passes through the game's own GLSL program (B17a to B17c), in one state scope of the frame: the opaque faces and the lit pieces, the undergrowth and the grass (both sides showing), then the water from the farthest chunk to the nearest
+    // (translucent, depth read only, its own frame of the animated art). The meshes carry their light as data and the program combines it with the frame's sun, glow and haze, so there are no bands, no tints and no glow pass: the glow is the block light
+    // in the opaque faces' own vertices. The figures, the plots' outlines and the block's frame are drawn before it (MonoGame's, opaque, depth tested): no MonoGame call may stand inside the scope. Returns the processor time spent submitting.
     private double DrawChunksGl(FirstPersonCamera camera, long tick, BlockPos? highlight, PlayerAvatar? avatar, IReadOnlyList<MeshBuffer>? plotOutlines)
     {
         DrawFiguresAndOverlays(tick, highlight, avatar, plotOutlines);
@@ -1214,28 +1314,17 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var renderTarget = _device.RenderTargetCount > 0;
         var started = MonotonicClock.Milliseconds();
         _card?.Begin();
-        pass.Begin(camera.View, camera.Projection, _solid.FogColor, _solid.FogStart, _solid.FogEnd, viewport, backBufferHeight, renderTarget);
+        pass.Begin(camera.View, camera.Projection, _solid.FogColor, _solid.FogStart, _solid.FogEnd, viewport, backBufferHeight, renderTarget, LightFrame(eye, tick));
 
-        // The opaque faces, grouped by the light band their mesh was built in (E02), each group tinted so that its baked light shows as the look's light: normally one group, two while a change of band is being built again.
-        for (var band = 0; band < LightBands.Count; band++)
+        foreach (var chunk in _visible)
         {
-            if (_bandChunks[band] == 0)
+            if (chunk.GlOpaque is { } buffer)
             {
-                continue;
-            }
-
-            pass.SetDiffuse(_tints[band]);
-            foreach (var chunk in _visible)
-            {
-                if ((int)chunk.Band == band && chunk.GlOpaque is { } buffer)
-                {
-                    pass.Draw(buffer);
-                }
+                pass.Draw(buffer);
             }
         }
 
-        // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
-        pass.SetDiffuse(Vector3.One);
+        // The self-lit pieces (a lantern's glass, a torch's flame): their words are fixed, so no hour touches them.
         foreach (var chunk in _visible)
         {
             if (chunk.GlLit is { } buffer)
@@ -1249,70 +1338,27 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var plantReachSquared = (float)plantReach * plantReach;
         pass.Use(GlPassKind.Cutout);
         _drawnPlantQuads = 0;
-        for (var band = 0; band < LightBands.Count; band++)
+        foreach (var chunk in _visible)
         {
-            if (_bandChunks[band] == 0)
+            if (chunk.PlantQuads > 0 && chunk.GlPlants is { } buffer && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
             {
-                continue;
-            }
-
-            pass.SetDiffuse(_tints[band]);
-            foreach (var chunk in _visible)
-            {
-                if ((int)chunk.Band == band && chunk.PlantQuads > 0 && chunk.GlPlants is { } buffer && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
-                {
-                    pass.Draw(buffer);
-                    _drawnPlantQuads += chunk.PlantQuads;
-                }
+                pass.Draw(buffer);
+                _drawnPlantQuads += chunk.PlantQuads;
             }
         }
 
-        // The decorative grass (B18): the tufts on the grass blocks' tops, in the same pass and tint as the undergrowth, thinning out towards the edge of their distance.
+        // The decorative grass (B18): the tufts on the grass blocks' tops, in the same pass as the undergrowth, thinning out towards the edge of their distance.
         _drawnGrassQuads = 0;
         if (_grassPercent > 0)
         {
             var grassReach = (float)Preset.GrassDistance;
             var grassChunkReach = (grassReach + VoxelChunk.Size) * (grassReach + VoxelChunk.Size);
             var slider = _grassPercent / 100f;
-            for (var band = 0; band < LightBands.Count; band++)
-            {
-                if (_bandChunks[band] == 0)
-                {
-                    continue;
-                }
-
-                pass.SetDiffuse(_tints[band]);
-                foreach (var chunk in _visible)
-                {
-                    if ((int)chunk.Band == band && chunk.GlGrass is not null && Vector3.DistanceSquared(chunk.Centre, eye) <= grassChunkReach)
-                    {
-                        DrawGrass(chunk, eye, grassReach, slider);
-                    }
-                }
-            }
-        }
-
-        // The lanterns' glow (E02a): the very quads of the opaque mesh, through the same program and so the same depth to the last bit, added to the picture.
-        var glow = false;
-        foreach (var chunk in _visible)
-        {
-            if (chunk.GlGlow is not null)
-            {
-                glow = true;
-                break;
-            }
-        }
-
-        if (glow)
-        {
-            pass.Use(GlPassKind.Glow);
-            var (r, g, b) = LanternGlow.PassColour(GlowStrength);
-            pass.SetDiffuse(new Vector3(r, g, b));
             foreach (var chunk in _visible)
             {
-                if (chunk.GlGlow is { } buffer)
+                if (chunk.GlGrass is not null && Vector3.DistanceSquared(chunk.Centre, eye) <= grassChunkReach)
                 {
-                    pass.Draw(buffer);
+                    DrawGrass(chunk, eye, grassReach, slider);
                 }
             }
         }
@@ -1321,21 +1367,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         pass.Use(GlPassKind.Water);
         pass.SetWaterFrame(WaterFrames.IndexAt(tick));
         _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
-        var waterBand = -1; // the water takes its band's tint like the rest of the chunk
         foreach (var chunk in _visible)
         {
-            if (chunk.GlAlpha is not { } buffer)
+            if (chunk.GlAlpha is { } buffer)
             {
-                continue;
+                pass.Draw(buffer);
             }
-
-            if ((int)chunk.Band != waterBand)
-            {
-                waterBand = (int)chunk.Band;
-                pass.SetDiffuse(_tints[waterBand]);
-            }
-
-            pass.Draw(buffer);
         }
 
         pass.End(); // the context's state is back as MonoGame left it
@@ -1512,13 +1549,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             var glAlpha = UploadGl(glPass, result.Alpha);
             var glPlants = UploadGl(glPass, result.Plants);
             var glLit = UploadGl(glPass, result.Lit);
-            var glGlow = UploadGl(glPass, result.Glow);
             gpu.ReleaseMeshes();
             (gpu.GlOpaque, gpu.OpaqueQuads) = (glOpaque, result.Opaque.Quads);
             (gpu.GlAlpha, gpu.AlphaQuads) = (glAlpha, result.Alpha.Quads);
             (gpu.GlPlants, gpu.PlantQuads) = (glPlants, result.Plants.Quads);
             (gpu.GlLit, gpu.LitQuads) = (glLit, result.Lit.Quads);
-            (gpu.GlGlow, gpu.GlowQuads) = (glGlow, result.Glow.Quads);
         }
         else
         {
@@ -1681,7 +1716,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         return (buffer, part.Quads);
     }
 
-    private static GlChunkBuffer? UploadGl(GlChunkPass pass, MeshPart part) => part.Quads == 0 || part.Vertices is null ? null : pass.Upload(part.Vertices, part.Quads);
+    private static GlChunkBuffer? UploadGl(GlChunkPass pass, MeshPart part) => part.Quads == 0 || part.Vertices is null ? null : pass.Upload(part.Vertices, part.Lights, part.Quads);
 
     private void DrawChunk(VertexBuffer? buffer, int quads)
     {
@@ -1739,7 +1774,6 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         public GlChunkBuffer? GlAlpha;
         public GlChunkBuffer? GlPlants;
         public GlChunkBuffer? GlLit;
-        public GlChunkBuffer? GlGlow;
         public GlChunkBuffer? GlGrass;
         public bool HasOpaque => Opaque is not null || GlOpaque is not null;
         public bool HasMesh => HasOpaque || Alpha is not null || Plants is not null || Lit is not null || GlAlpha is not null || GlPlants is not null || GlLit is not null;
@@ -1787,8 +1821,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             GlAlpha?.Dispose();
             GlPlants?.Dispose();
             GlLit?.Dispose();
-            GlGlow?.Dispose();
-            GlOpaque = GlAlpha = GlPlants = GlLit = GlGlow = null;
+            GlOpaque = GlAlpha = GlPlants = GlLit = null;
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();

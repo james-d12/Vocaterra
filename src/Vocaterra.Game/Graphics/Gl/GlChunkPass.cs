@@ -17,15 +17,25 @@ public enum GlPassKind
     /// <summary>The lantern glow: the colour added to what is there, depth tested and not written, the fog colour black (it fades the glow to nothing).</summary>
     Glow,
 
-    /// <summary>The water: translucent (source alpha over the picture), depth tested and not written, no alpha test, the water's own animated texture.</summary>
+    /// <summary>The water: translucent (source alpha over the picture), depth tested and not written, no alpha test, the water's own animated texture, the light as data with the water shader's tint, movement and edge.</summary>
     Water,
+
+    /// <summary>The far view's land (B17c): opaque, back faces culled, the baked colour times the sun's light, brought from the day's sun to the moment's by each face's own direction; the atlas or the noise by <see cref="GlChunkPass.SetFarTexture"/>.</summary>
+    FarLand,
+
+    /// <summary>The far view's blocks that give light (lava): as <see cref="FarLand"/> with no light of the sun on them, so they glow at night.</summary>
+    FarLit,
+
+    /// <summary>The far view's water: translucent, depth tested and not written, the noise texture, the baked colour times the sun's light.</summary>
+    FarWater,
 }
 
 /// <summary>
-/// Every chunk pass drawn through the game's own GLSL program on MonoGame's context (B17a, B17b): the opaque faces, the lit pieces, the cut-outs, B18's grass layer, the lantern glow and the water. One program
-/// (<c>chunk.vert.glsl</c>, <c>chunk.frag.glsl</c>) does what <c>AlphaTestEffect</c> and <c>BasicEffect</c> do for the chunks (the texture times the band's tint times the vertex colour, the alpha test, the linear fog), with
-/// the vertex data in buffers of this class's own, the atlas and the water's frames in textures of its own, and one shared quad index buffer. The passes that meet by depth equality (the glow over the opaque faces)
-/// share the program and its bit-identical position transform. <see cref="Begin"/> and <see cref="End"/> are the one state scope of the frame (<see cref="GlStateSaver"/>): no MonoGame call may stand between them.
+/// Every chunk pass drawn through the game's own GLSL program on MonoGame's context (B17a, B17b, B17c): the opaque faces, the lit pieces, the cut-outs, B18's grass layer, the water, and the far view's land. One program
+/// (<c>chunk.vert.glsl</c>, <c>chunk.frag.glsl</c>) does what <c>AlphaTestEffect</c> and <c>BasicEffect</c> do for the chunks (the texture times the vertex colour, the alpha test, the fog) and, since B17c, the light: the chunk meshes carry each
+/// corner's sky light, block light, occlusion and face as data (<see cref="World.LightData"/>, a second vertex stream) and the shader combines them with the frame's sun and glow (<see cref="GlLightFrame"/>), with a fog by height and the
+/// water shader. The vertex data is in buffers of this class's own, the atlas, the water's frames and the far view's textures in textures of its own, and one shared quad index buffer. The passes that meet by depth equality share the program and its
+/// bit-identical position transform. <see cref="Begin"/> and <see cref="End"/> are the one state scope of a stretch of drawing (<see cref="GlStateSaver"/>), the chunks' and, apart, the far view's: no MonoGame call may stand between them.
 /// </summary>
 public sealed unsafe class GlChunkPass : IDisposable
 {
@@ -34,6 +44,9 @@ public sealed unsafe class GlChunkPass : IDisposable
 
     private const int VertexSize = World.MeshVertex.SizeInBytes;
     private const float AlphaReference = 110f / 255f;
+
+    // The mesher's table of how much of its colour a corner keeps by its occlusion level (B17c), the shader's too.
+    private static readonly float[] AoKeep = [World.ChunkMesher.AoKeepOf(0), World.ChunkMesher.AoKeepOf(1), World.ChunkMesher.AoKeepOf(2), World.ChunkMesher.AoKeepOf(3)];
 
     // MonoGame's sampler state of the water's frames has MaxMipLevel 5 (WaterTileLayout.MaxMipLevel: the coarsest level that still keeps one tile's picture apart from its neighbour's), which its OpenGL code sets as the
     // texture's last mip level (TEXTURE_MAX_LEVEL); the block atlas has none (all its levels are sampled). B17b's first version took it for the base level, and the water came out smooth where the effects' has its glints.
@@ -45,6 +58,8 @@ public sealed unsafe class GlChunkPass : IDisposable
     private readonly uint _vertexArray;
     private readonly uint _indexBuffer;
     private readonly uint _atlas;
+    private uint _farAtlas;
+    private uint _noise;
     private readonly uint[] _waterFrames;
     private readonly int _uWorldViewProjection;
     private readonly int _uFogVector;
@@ -53,7 +68,13 @@ public sealed unsafe class GlChunkPass : IDisposable
     private readonly int _uAlphaReference;
     private readonly int _uAtlas;
     private readonly int _uFlipY;
+    private readonly int _uLightMode;
+    private readonly int _uWater;
+    private readonly int _uRelight;
     private bool _inPass;
+    private int _modeWanted;
+    private int _modeSet = -1;
+    private GlLightFrame _light;
     private GlPassKind? _kind;
     private Vector3 _fogColour;
     private int _drawCalls;
@@ -76,7 +97,26 @@ public sealed unsafe class GlChunkPass : IDisposable
         _uAlphaReference = program.Uniform("uAlphaReference");
         _uAtlas = program.Uniform("uAtlas");
         _uFlipY = program.Uniform("uFlipY");
+        _uLightMode = program.Uniform("uLightMode");
+        _uWater = program.Uniform("uWater");
+        _uRelight = program.Uniform("uRelight");
     }
+
+    /// <summary>The uniforms of the program the pass sets (a name here that the sources do not declare would be set to nothing, silently: a test holds the two lists together).</summary>
+    public static IReadOnlyList<string> UniformNames { get; } =
+    [
+        "uWorldViewProjection", "uFogVector", "uEye", "uDiffuse", "uFlipY", "uLightMode", "uWater", "uSunDirection", "uSunColour", "uShadeTint", "uSunTint", "uBottomTint", "uSunHeight", "uAoKeep",
+        "uGlowColour", "uHeightFog", "uWaterShader", "uTime", "uWaveAmount", "uAtlas", "uFogColour", "uAlphaReference", "uRelight", "uDayDirection",
+    ];
+
+    /// <summary>The vertex attributes of the program, by location: the position, the colour and the atlas coordinate from the 24-byte <see cref="World.MeshVertex"/> stream, and the light word of <see cref="World.LightData"/> from the 4-byte stream beside it.</summary>
+    public static IReadOnlyList<(int Location, string Name, int Components, string Type)> Attributes { get; } =
+    [
+        (0, "aPosition", 3, "vec3"),
+        (1, "aColour", 4, "vec4"),
+        (2, "aUv", 2, "vec2"),
+        (3, "aLight", 4, "uvec4"),
+    ];
 
     /// <summary>What the driver says about the context (logged at the start).</summary>
     public GlInfo Info { get; private init; } = null!;
@@ -194,7 +234,7 @@ public sealed unsafe class GlChunkPass : IDisposable
     }
 
     // The texels, every mip level, in a GL texture sampled the way the MonoGame sampler state says (clamped, the given filters, the given coarsest level).
-    private static uint UploadTexture(GL gl, int baseWidth, int baseHeight, Color[][] levels, int maxLevel, GLEnum minFilter, GLEnum magFilter)
+    private static uint UploadTexture(GL gl, int baseWidth, int baseHeight, Color[][] levels, int maxLevel, GLEnum minFilter, GLEnum magFilter, GLEnum wrap = GLEnum.ClampToEdge)
     {
         gl.ActiveTexture((GLEnum)((int)GLEnum.Texture0 + TextureUnit));
         var texture = gl.GenTexture();
@@ -211,13 +251,22 @@ public sealed unsafe class GlChunkPass : IDisposable
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, maxLevel);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrap);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrap);
         return texture;
     }
 
     /// <summary>Uploads a chunk part's quads to a buffer of the pass's own (the first <paramref name="quads"/> quads of the mesh), or returns <see langword="null"/> for none. Draws nothing and leaves MonoGame's bindings alone: it binds the copy-write target, which MonoGame does not use.</summary>
-    public GlChunkBuffer? Upload(ReadOnlySpan<World.MeshVertex> vertices, int quads)
+    public GlChunkBuffer? Upload(ReadOnlySpan<World.MeshVertex> vertices, int quads) => Upload(vertices, default, quads);
+
+    /// <summary>
+    /// Uploads a chunk part's quads and, when the mesh carries its light as data (B17c), the light words beside them in a buffer of their own (4 bytes a vertex: <see cref="World.LightData"/>), or returns <see langword="null"/> for no quads.
+    /// A mesh with no light words (the lit pieces' finished colours are in a data mesh with the fixed word, so they have words too) is drawn in the baked mode.
+    /// </summary>
+    /// <param name="vertices">The vertices, four to a quad.</param>
+    /// <param name="lights">The light word of each vertex, or empty for a mesh whose colours are baked.</param>
+    /// <param name="quads">How many quads.</param>
+    public GlChunkBuffer? Upload(ReadOnlySpan<World.MeshVertex> vertices, ReadOnlySpan<uint> lights, int quads)
     {
         if (quads <= 0)
         {
@@ -227,8 +276,79 @@ public sealed unsafe class GlChunkPass : IDisposable
         var handle = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, handle);
         _gl.BufferData(BufferTargetARB.CopyWriteBuffer, vertices[..(quads * 4)], BufferUsageARB.StaticDraw);
+        uint lightHandle = 0;
+        if (lights.Length >= quads * 4)
+        {
+            lightHandle = _gl.GenBuffer();
+            _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, lightHandle);
+            _gl.BufferData(BufferTargetARB.CopyWriteBuffer, lights[..(quads * 4)], BufferUsageARB.StaticDraw);
+        }
+
         _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);
-        return new GlChunkBuffer(_gl, handle, quads);
+        return new GlChunkBuffer(_gl, handle, quads, lightHandle);
+    }
+
+    /// <summary>Uploads a far-view tile's mesh (B17c): the vertices (<c>VertexPositionColorTexture</c>, 24 bytes each) and the indices (16-bit, or 32-bit when <paramref name="indices32"/> is given) into buffers of the pass's own. Binds the copy-write target only.</summary>
+    /// <param name="vertices">The tile's vertices.</param>
+    /// <param name="indices16">The 16-bit indices, or <see langword="null"/>.</param>
+    /// <param name="indices32">The 32-bit indices when there are no 16-bit ones.</param>
+    public GlFarBuffers UploadFar(ReadOnlySpan<VertexPositionColorTexture> vertices, ushort[]? indices16, int[]? indices32)
+    {
+        var vertexHandle = _gl.GenBuffer();
+        _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, vertexHandle);
+        _gl.BufferData(BufferTargetARB.CopyWriteBuffer, vertices, BufferUsageARB.StaticDraw);
+        var indexHandle = _gl.GenBuffer();
+        _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, indexHandle);
+        if (indices16 is not null)
+        {
+            _gl.BufferData<ushort>(BufferTargetARB.CopyWriteBuffer, indices16, BufferUsageARB.StaticDraw);
+        }
+        else
+        {
+            _gl.BufferData<int>(BufferTargetARB.CopyWriteBuffer, indices32!, BufferUsageARB.StaticDraw);
+        }
+
+        _gl.BindBuffer(BufferTargetARB.CopyWriteBuffer, 0);
+        return new GlFarBuffers(_gl, vertexHandle, indexHandle, indices16 is null);
+    }
+
+    /// <summary>Draws a run of a far tile's triangle indices (B17c): <paramref name="indexCount"/> indices from the index <paramref name="firstIndex"/>, with the kind and the texture in force.</summary>
+    /// <param name="tile">The tile's buffers.</param>
+    /// <param name="firstIndex">The first index of the run.</param>
+    /// <param name="indexCount">How many indices.</param>
+    public void DrawFar(GlFarBuffers tile, int firstIndex, int indexCount)
+    {
+        if (indexCount <= 0)
+        {
+            return;
+        }
+
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, tile.Vertices);
+        _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, tile.Indices); // part of this vertex array
+        _gl.EnableVertexAttribArray(0);
+        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, VertexSize, 0);
+        _gl.EnableVertexAttribArray(1);
+        _gl.VertexAttribPointer(1, 4, VertexAttribPointerType.UnsignedByte, true, VertexSize, 12);
+        _gl.EnableVertexAttribArray(2);
+        _gl.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, VertexSize, 16);
+        if (_modeSet != 0)
+        {
+            _gl.Uniform1(_uLightMode, 0);
+            _modeSet = 0;
+        }
+
+        _gl.DisableVertexAttribArray(3);
+        var size = tile.Wide ? sizeof(int) : sizeof(ushort);
+        _gl.DrawElements(GlPrimitive.Triangles, (uint)indexCount, tile.Wide ? DrawElementsType.UnsignedInt : DrawElementsType.UnsignedShort, (void*)(firstIndex * size));
+        _drawCalls++;
+        _drawnQuads += indexCount / 6;
+    }
+
+    /// <summary>Clears the depth buffer (the far view's pass ends with it, so the chunks drawn after it with their own depth range always stand in front of the far land under them): depth writes on, the scissor test is already off in the scope.</summary>
+    public void ClearDepth()
+    {
+        _gl.DepthMask(true);
+        _gl.Clear(ClearBufferMask.DepthBufferBit);
     }
 
     /// <summary>The sign the clip y is multiplied by, and the front face, for a draw to the back buffer (<paramref name="renderTarget"/> false) or to a render target (true): MonoGame's pictures are upside down in a target, and so is the winding.</summary>
@@ -246,7 +366,8 @@ public sealed unsafe class GlChunkPass : IDisposable
     /// <param name="viewport">The device's viewport (read before the scope).</param>
     /// <param name="backBufferHeight">The back buffer's height in pixels (MonoGame's viewport y is from the top; OpenGL's is from the bottom).</param>
     /// <param name="renderTarget">Whether a render target is bound (the scene under water): the clip y and the front face turn over.</param>
-    public void Begin(in Matrix view, in Matrix projection, Vector3 fogColour, float fogStart, float fogEnd, in Viewport viewport, int backBufferHeight, bool renderTarget)
+    /// <param name="light">The frame's light (B17c): the sun, the glow, the height fog, the water shader; <see langword="null"/> for the midday's, with none of the extras.</param>
+    public void Begin(in Matrix view, in Matrix projection, Vector3 fogColour, float fogStart, float fogEnd, in Viewport viewport, int backBufferHeight, bool renderTarget, GlLightFrame? light = null)
     {
         if (_inPass)
         {
@@ -259,6 +380,7 @@ public sealed unsafe class GlChunkPass : IDisposable
         _stateChanges = 0;
         _kind = null;
         _fogColour = fogColour;
+        _light = light ?? GlLightFrame.Noon(Vector3.Zero);
         _state.Capture();
         var (flipY, clockwise) = OrientationFor(renderTarget);
         _gl.Viewport(viewport.X, renderTarget ? viewport.Y : backBufferHeight - viewport.Y - viewport.Height, (uint)viewport.Width, (uint)viewport.Height);
@@ -280,11 +402,13 @@ public sealed unsafe class GlChunkPass : IDisposable
         _gl.BlendEquationSeparate(BlendEquationModeEXT.FuncAdd, BlendEquationModeEXT.FuncAdd);
         _gl.UseProgram(_program.Handle);
         _gl.BindVertexArray(_vertexArray);
+        _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBuffer); // the far view's tiles bind their own indices to this vertex array: the shared quad indices are put back
         _gl.ActiveTexture((GLEnum)((int)GLEnum.Texture0 + TextureUnit));
         _gl.BindTexture(TextureTarget.Texture2D, _atlas);
         _gl.BindSampler(TextureUnit, 0);
         _gl.Uniform1(_uAtlas, TextureUnit);
         _gl.Uniform1(_uFlipY, flipY);
+        SetFrameUniforms();
         var viewProjection = view * projection;
         Span<float> matrix = stackalloc float[16];
         Write(viewProjection, matrix);
@@ -294,7 +418,30 @@ public sealed unsafe class GlChunkPass : IDisposable
         Use(GlPassKind.Opaque);
     }
 
-    /// <summary>Sets the context's state for a kind of draw (a no-op when the kind is the one in force). The water's frame is chosen with <see cref="SetWaterFrame"/>.</summary>
+    // The frame's light: the sun, the glow, the tints and the occlusion table of the mesher (so the baked fallback and the shader share their numbers), the fog by height, the water shader's switch, time and movement.
+    private void SetFrameUniforms()
+    {
+        var l = _light;
+        _gl.Uniform3(_program.Uniform("uEye"), l.Eye.X, l.Eye.Y, l.Eye.Z);
+        _gl.Uniform3(_program.Uniform("uSunDirection"), l.SunDirection.X, l.SunDirection.Y, l.SunDirection.Z);
+        _gl.Uniform3(_program.Uniform("uSunColour"), l.SunColour.X, l.SunColour.Y, l.SunColour.Z);
+        _gl.Uniform3(_program.Uniform("uDayDirection"), l.DayDirection.X, l.DayDirection.Y, l.DayDirection.Z);
+        _gl.Uniform3(_program.Uniform("uGlowColour"), l.GlowColour.X, l.GlowColour.Y, l.GlowColour.Z);
+        var (sr, sg, sb) = World.ChunkMesher.ShadeTint;
+        _gl.Uniform3(_program.Uniform("uShadeTint"), sr, sg, sb);
+        var (ur, ug, ub) = World.ChunkMesher.SunTint;
+        _gl.Uniform3(_program.Uniform("uSunTint"), ur, ug, ub);
+        var (br, bg, bb) = World.ChunkMesher.BottomTint;
+        _gl.Uniform3(_program.Uniform("uBottomTint"), br, bg, bb);
+        _gl.Uniform1(_program.Uniform("uSunHeight"), World.ChunkMesher.SunDirection.Y);
+        _gl.Uniform1(_program.Uniform("uAoKeep"), AoKeep);
+        _gl.Uniform4(_program.Uniform("uHeightFog"), l.HeightFogDensity, l.HeightFogBase, l.HeightFogScale, 0f);
+        _gl.Uniform1(_program.Uniform("uWaterShader"), l.WaterShader ? 1 : 0);
+        _gl.Uniform1(_program.Uniform("uTime"), l.Time);
+        _gl.Uniform1(_program.Uniform("uWaveAmount"), l.WaveAmount);
+    }
+
+    /// <summary>Sets the context's state for a kind of draw (a no-op when the kind is the one in force). The water's frame is chosen with <see cref="SetWaterFrame"/>, the far view's texture with <see cref="SetFarTexture"/>.</summary>
     /// <param name="kind">The kind.</param>
     public void Use(GlPassKind kind)
     {
@@ -305,6 +452,11 @@ public sealed unsafe class GlChunkPass : IDisposable
 
         _kind = kind;
         _stateChanges++;
+        var far = kind is GlPassKind.FarLand or GlPassKind.FarLit or GlPassKind.FarWater;
+        _modeWanted = kind is GlPassKind.Opaque or GlPassKind.Cutout or GlPassKind.Water ? 1 : 0; // the chunks' meshes carry their light as data; the far view's and the glow's colours are baked (a mesh with no light words is drawn baked too: see Draw)
+        _modeSet = -1;
+        _gl.Uniform1(_uWater, kind == GlPassKind.Water ? 1 : 0);
+        _gl.Uniform1(_uRelight, kind == GlPassKind.FarLand ? 1 : 0);
         switch (kind)
         {
             case GlPassKind.Opaque or GlPassKind.Cutout:
@@ -314,6 +466,13 @@ public sealed unsafe class GlChunkPass : IDisposable
                 _gl.Uniform1(_uAlphaReference, AlphaReference);
                 _gl.Uniform3(_uFogColour, _fogColour.X, _fogColour.Y, _fogColour.Z);
                 _gl.BindTexture(TextureTarget.Texture2D, _atlas);
+                break;
+            case GlPassKind.FarLand or GlPassKind.FarLit:
+                _gl.DepthMask(true);
+                _gl.Disable(EnableCap.Blend);
+                SetCull(true);
+                _gl.Uniform1(_uAlphaReference, AlphaReference);
+                _gl.Uniform3(_uFogColour, _fogColour.X, _fogColour.Y, _fogColour.Z);
                 break;
             case GlPassKind.Glow:
                 _gl.DepthMask(false);
@@ -331,8 +490,60 @@ public sealed unsafe class GlChunkPass : IDisposable
                 SetCull(true);
                 _gl.Uniform1(_uAlphaReference, -1f); // no alpha test: BasicEffect drew the water
                 _gl.Uniform3(_uFogColour, _fogColour.X, _fogColour.Y, _fogColour.Z);
+                if (far)
+                {
+                    _gl.BindTexture(TextureTarget.Texture2D, _noise);
+                }
+
                 break;
         }
+    }
+
+    /// <summary>Binds the far view's texture for the far draws that follow (call after <see cref="Use"/> with a far kind): the block atlas, sampled as the far view's sampler does (to the level where a texel is a whole cell), or the noise of the flat-coloured tiles.</summary>
+    /// <param name="textured">Whether the tile draws every face with its block's own atlas texture.</param>
+    public void SetFarTexture(bool textured)
+    {
+        if (_kind == GlPassKind.FarWater || !HasFarTextures)
+        {
+            return;
+        }
+
+        _gl.BindTexture(TextureTarget.Texture2D, textured ? _farAtlas : _noise);
+    }
+
+    /// <summary>Whether the far view's textures were made (<see cref="TryAddFarTextures"/>), so the far view can be drawn through this pass.</summary>
+    public bool HasFarTextures => _farAtlas != 0 && _noise != 0;
+
+    /// <summary>
+    /// Makes the far view's two textures (B17c): a copy of the block atlas sampled as the far sampler does (nearest within a level, linear between, down to the level at which one texel is a whole cell and no further, so no neighbouring cell bleeds in), and a
+    /// copy of the noise the flat-coloured tiles are textured with (every mip level, nearest up close, linear between levels, wrapping). Both are mipped.
+    /// </summary>
+    /// <param name="atlas">The block atlas's texture (its levels are copied again for the far sampler's own last level).</param>
+    /// <param name="noise">The far view's noise texture (<see cref="Far.FarNoise.Create"/>).</param>
+    /// <param name="atlasLastLevel">The last mip level the far view samples the atlas at (<c>log2</c> of a cell's size).</param>
+    public bool TryAddFarTextures(Texture2D atlas, Texture2D noise, int atlasLastLevel)
+    {
+        ArgumentNullException.ThrowIfNull(atlas);
+        ArgumentNullException.ThrowIfNull(noise);
+        if (HasFarTextures)
+        {
+            return true;
+        }
+
+        var atlasLevels = ReadLevels(atlas);
+        var noiseLevels = ReadLevels(noise);
+        var wasInScope = _inPass;
+        if (wasInScope)
+        {
+            return false; // the textures are made outside a scope (the copies read MonoGame's textures first)
+        }
+
+        _state.Capture();
+        _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+        _farAtlas = UploadTexture(_gl, atlas.Width, atlas.Height, atlasLevels, Math.Min(atlasLastLevel, atlasLevels.Length - 1), GLEnum.NearestMipmapLinear, GLEnum.Nearest);
+        _noise = UploadTexture(_gl, noise.Width, noise.Height, noiseLevels, noiseLevels.Length - 1, GLEnum.LinearMipmapLinear, GLEnum.Nearest, GLEnum.Repeat);
+        _state.Restore();
+        return _state.ClearedErrors == 0;
     }
 
     /// <summary>Binds one frame of the water's art for the water draws that follow (call after <see cref="Use"/> with <see cref="GlPassKind.Water"/>).</summary>
@@ -366,6 +577,13 @@ public sealed unsafe class GlChunkPass : IDisposable
             return;
         }
 
+        var mode = _modeWanted == 1 && buffer.LightHandle != 0 ? 1 : 0;
+        if (mode != _modeSet)
+        {
+            _gl.Uniform1(_uLightMode, mode);
+            _modeSet = mode;
+        }
+
         _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.Handle);
         _gl.EnableVertexAttribArray(0);
         _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, VertexSize, 0);
@@ -373,6 +591,17 @@ public sealed unsafe class GlChunkPass : IDisposable
         _gl.VertexAttribPointer(1, 4, VertexAttribPointerType.UnsignedByte, true, VertexSize, 12);
         _gl.EnableVertexAttribArray(2);
         _gl.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, VertexSize, 16);
+        if (buffer.LightHandle != 0)
+        {
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.LightHandle);
+            _gl.EnableVertexAttribArray(3);
+            _gl.VertexAttribIPointer(3, 4, VertexAttribIType.UnsignedByte, World.LightData.SizeInBytes, 0); // the light word: four bytes as integers (sky, block, occlusion | face | flags, extra)
+        }
+        else
+        {
+            _gl.DisableVertexAttribArray(3);
+        }
+
         _gl.DrawElementsBaseVertex(GlPrimitive.Triangles, (uint)(count * 6), DrawElementsType.UnsignedShort, (void*)0, firstQuad * 4); // offset 0 into the bound index buffer (this vertex array's)
         _drawCalls++;
         _drawnQuads += count;
@@ -395,6 +624,16 @@ public sealed unsafe class GlChunkPass : IDisposable
     public void Dispose()
     {
         _gl.DeleteTexture(_atlas);
+        if (_farAtlas != 0)
+        {
+            _gl.DeleteTexture(_farAtlas);
+        }
+
+        if (_noise != 0)
+        {
+            _gl.DeleteTexture(_noise);
+        }
+
         _gl.DeleteTextures(_waterFrames);
         _gl.DeleteBuffer(_indexBuffer);
         _gl.DeleteVertexArray(_vertexArray);

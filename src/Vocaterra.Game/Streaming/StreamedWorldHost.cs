@@ -29,6 +29,8 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly VoxelGrid _grid;
     private readonly IPlaceInfo? _places;
     private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
+    private bool _climateColours = true;
+    private QualityPreset _preset;
     private readonly JobPool _pool;
     private readonly FileLodPersistence? _persistence;
     private readonly LodEdits _edits;
@@ -46,6 +48,7 @@ public sealed class StreamedWorldHost : IDisposable
         _grid = scene.Grid;
         _places = scene.Places;
         _ground = scene.Places is { } places ? GroundClimate.Of(places) : null;
+        _preset = preset;
         _pool = new JobPool(workers);
         _viewDistance = preset.ViewDistance;
         _maxResident = preset.MaxResidentChunks;
@@ -100,7 +103,23 @@ public sealed class StreamedWorldHost : IDisposable
     }
 
     // The far view's shape for a preset, with the ground climate its grass and leaves are coloured by (B22): the same map and the same function as the chunks'.
-    private FarViewSettings FarSettings(QualityPreset preset) => preset.Far with { Ground = _ground };
+    private FarViewSettings FarSettings(QualityPreset preset) => preset.Far with { Ground = _climateColours ? _ground : null };
+
+    /// <summary>
+    /// Turns the climate colours of the far view on or off (B17c, the settings page's row): the far tiles carry them in their vertex colours, so every tile is built again (the workers' time, nearest first) when the setting changes.
+    /// </summary>
+    /// <param name="on">Whether the grass and leaves take the colour of their climate.</param>
+    /// <param name="dispose">Frees a far tile's buffer.</param>
+    public void SetClimateColours(bool on, Action<FarTile> dispose)
+    {
+        if (on == _climateColours)
+        {
+            return;
+        }
+
+        _climateColours = on;
+        Far.Reconfigure(FarSettings(_preset), dispose);
+    }
 
     // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
@@ -217,6 +236,7 @@ public sealed class StreamedWorldHost : IDisposable
             _residency.Reconfigure(PolicyFor(preset.ViewDistance), preset.MaxResidentChunks);
         }
 
+        _preset = preset;
         Far.Reconfigure(FarSettings(preset), dispose);
         _radius = RingRadius(preset);
     }

@@ -36,7 +36,7 @@ public sealed class GlShaderTests
     {
         var vertex = ShaderSources.Load(ShaderSources.ChunkVertex);
         var fragment = ShaderSources.Load(ShaderSources.ChunkFragment);
-        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUv;", "float vFog;" })
+        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUv;", "float vFog;", "vec3 vWorld;" })
         {
             Assert.Contains("out " + varying, vertex, StringComparison.Ordinal);
             Assert.Contains("in " + varying, fragment, StringComparison.Ordinal);
@@ -165,7 +165,7 @@ public sealed class GlShaderTests
     public void EveryChunkPassHasABufferInTheGlPath()
     {
         var source = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "Graphics", "World", "VoxelRenderer.cs"));
-        foreach (var part in new[] { "GlOpaque", "GlAlpha", "GlPlants", "GlLit", "GlGlow", "GlGrass" })
+        foreach (var part in new[] { "GlOpaque", "GlAlpha", "GlPlants", "GlLit", "GlGrass" })
         {
             Assert.Contains($"public GlChunkBuffer? {part};", source, StringComparison.Ordinal);
             Assert.Contains($"{part}?.Dispose();", source, StringComparison.Ordinal);
