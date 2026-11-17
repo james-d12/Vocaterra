@@ -123,6 +123,12 @@ public sealed record SaveDocument(
 /// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
 /// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
 /// <param name="Grass">The decorative grass's density in percent (B18, the menu), 0 to 100 in steps of 10; no field is the default (<see cref="Menu.PlayerSettings.DefaultGrass"/>), so 0 (none) is written. Written only when not the default.</param>
+/// <param name="Workers">The worker threads setting (B07d): 0 is Auto, else 1 to 8; no field is Auto. Written only when not Auto.</param>
+/// <param name="FarDistance">The far view's distance in km (B07d): 0 is Auto (the quality's), else 1 to 16; no field is Auto.</param>
+/// <param name="FarDetail">The far view's detail in percent (B07d), 50 to 200 in steps of 25; no field is 100.</param>
+/// <param name="FarTrees">The far view's single trees (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarTrees"/>); no field is Auto.</param>
+/// <param name="FarTextures">The far view's textured levels (B07d), 0 to 3; no field is 2.</param>
+/// <param name="FarExact">How far the far view is made from real chunks (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarExact"/>); no field is Auto.</param>
 /// <param name="ShadersOff">True when the player turned the game's own GLSL shaders off (B17b, the menu's Shaders row: the chunks are drawn with MonoGame's effects). Written only when true, so a save of the default is byte for byte what it was.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
@@ -138,6 +144,12 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Workers = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarDistance = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarDetail = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTrees = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTextures = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarExact = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
@@ -201,6 +213,34 @@ public sealed record SaveSettings(
     [JsonIgnore]
     public int EffectiveGrass => Grass is { } value ? Menu.PlayerSettings.Spec(Menu.SettingId.Grass).Snap(value) : Menu.PlayerSettings.DefaultGrass;
 
+    /// <summary>What a saved value of a setting stands for: the setting's default when the field is absent, otherwise the value snapped to the setting's range and steps (B07d: the worker count and the far view's settings).</summary>
+    /// <param name="id">The setting.</param>
+    public int EffectiveOf(Menu.SettingId id)
+    {
+        var spec = Menu.PlayerSettings.Spec(id);
+        var saved = id switch
+        {
+            Menu.SettingId.Workers => Workers,
+            Menu.SettingId.FarDistance => FarDistance,
+            Menu.SettingId.FarDetail => FarDetail,
+            Menu.SettingId.FarTrees => FarTrees,
+            Menu.SettingId.FarTextures => FarTextures,
+            Menu.SettingId.FarExact => FarExact,
+            _ => null,
+        };
+        return saved is { } value ? spec.Snap(value) : spec.Default;
+    }
+
+    /// <summary>The field to write for a setting's value: <see langword="null"/> (no field) when it is the setting's default.</summary>
+    /// <param name="id">The setting.</param>
+    /// <param name="value">The value.</param>
+    public static int? OmitDefault(Menu.SettingId id, int value)
+    {
+        var spec = Menu.PlayerSettings.Spec(id);
+        var snapped = spec.Snap(value);
+        return snapped == spec.Default ? null : snapped;
+    }
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -223,6 +263,12 @@ public sealed record SaveSettings(
         EffectiveViewDistance,
         PassCheat,
         EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass,
+        OmitDefault(Menu.SettingId.Workers, EffectiveOf(Menu.SettingId.Workers)),
+        OmitDefault(Menu.SettingId.FarDistance, EffectiveOf(Menu.SettingId.FarDistance)),
+        OmitDefault(Menu.SettingId.FarDetail, EffectiveOf(Menu.SettingId.FarDetail)),
+        OmitDefault(Menu.SettingId.FarTrees, EffectiveOf(Menu.SettingId.FarTrees)),
+        OmitDefault(Menu.SettingId.FarTextures, EffectiveOf(Menu.SettingId.FarTextures)),
+        OmitDefault(Menu.SettingId.FarExact, EffectiveOf(Menu.SettingId.FarExact)),
         ShadersOff);
 }
 

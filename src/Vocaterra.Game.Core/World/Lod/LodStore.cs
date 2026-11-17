@@ -12,7 +12,7 @@ public interface ILodPersistence
     /// <param name="key">The section.</param>
     byte[]? Load(LodSectionKey key);
 
-    /// <summary>Keeps the bytes of a section (<see cref="LodStore"/>'s own format).</summary>
+    /// <summary>Keeps the bytes of a section (<see cref="LodStore"/>'s own format). From here on <see cref="Load"/> answers these bytes (or newer ones), even before they reach the disk: the store may drop a section from memory as soon as it is saved (B07d), and the next ask must find it.</summary>
     /// <param name="key">The section.</param>
     /// <param name="blob">The bytes.</param>
     void Save(LodSectionKey key, byte[] blob);
@@ -41,7 +41,8 @@ public interface ILodEditJournal
 /// The far view's store of sections (B07c): every level of detail the world has been given, a section a key (level and place) and a packed array, whatever made it (the model, real chunks, a mip of real sections). A section is never replaced by a
 /// worse one (a model section never replaces a real one; the check, the swap and the hand-over to disk are one step under a lock of the key's stripe, so no two threads can race it and saves of a key reach the disk in the order they were made), every real
 /// change is told on <see cref="Changed"/> for the far view to remake its tiles, and real sections go to <see cref="ILodPersistence"/> as they are put, so the far world builds up and survives a restart. Model sections are not kept on disk (the
-/// model can make them again) and are dropped from memory, least recently used first, past <see cref="MaxModelBytes"/>. A torn or corrupt section reads as missing. Safe from any thread.
+/// model can make them again) and are dropped from memory, least recently used first, past <see cref="MaxModelBytes"/>; real sections are dropped the same way past <see cref="MaxRealBytes"/> once the disk holds them (B07d, the review's H5: memory stays flat
+/// over a long walk), and are read back from the disk when something asks again. A torn or corrupt section reads as missing. Safe from any thread.
 /// </summary>
 public sealed class LodStore
 {
@@ -52,17 +53,35 @@ public sealed class LodStore
     private readonly ILodPersistence? _disk;
     private long _clock;
     private long _modelBytes;
+    private long _realBytes;
+    private int _trimming;
+    private long _evicted;
+    private long _loaded;
 
     /// <summary>Creates a store.</summary>
     /// <param name="disk">Where the real sections are kept between runs, or <see langword="null"/> for none.</param>
     /// <param name="maxMipLevel">The highest level real sections are mipped up to.</param>
     /// <param name="maxModelBytes">How many packed bytes of model sections stay in memory.</param>
-    public LodStore(ILodPersistence? disk = null, int maxMipLevel = 4, long maxModelBytes = 192L * 1024 * 1024)
+    /// <param name="maxRealBytes">How many packed bytes of real sections stay in memory (with a disk: the ones past it are dropped, least recently used first, and read back when asked for; the player's edited sections stay; with no disk nothing real is ever dropped).</param>
+    public LodStore(ILodPersistence? disk = null, int maxMipLevel = 4, long maxModelBytes = 192L * 1024 * 1024, long maxRealBytes = DefaultMaxRealBytes)
     {
         _disk = disk;
         MaxMipLevel = maxMipLevel;
         MaxModelBytes = maxModelBytes;
+        MaxRealBytes = maxRealBytes;
     }
+
+    /// <summary>How many packed bytes of real sections stay in memory unless the store is told otherwise (a High walk's ring and mips are a few hundred megabytes; the disk holds the rest).</summary>
+    public const long DefaultMaxRealBytes = 256L * 1024 * 1024;
+
+    /// <summary>How many packed bytes of real sections stay in memory before the least recently used are dropped (they are on disk, and are read back when asked for).</summary>
+    public long MaxRealBytes { get; }
+
+    /// <summary>How many real sections the cap has dropped from memory so far.</summary>
+    public long Evicted => Interlocked.Read(ref _evicted);
+
+    /// <summary>How many sections were read back from the disk (a section asked for that memory did not hold).</summary>
+    public long DiskLoads => Interlocked.Read(ref _loaded);
 
     /// <summary>The highest level that is made by mipping real sections.</summary>
     public int MaxMipLevel { get; }
@@ -76,8 +95,14 @@ public sealed class LodStore
     /// <summary>How many sections the store holds in memory.</summary>
     public int Count => _memory.Count;
 
-    /// <summary>The bytes the sections hold in memory.</summary>
-    public long Bytes => _memory.Values.Sum(static s => (long)s.Entry.Packed.Length);
+    /// <summary>The bytes the sections hold in memory (the model's and the real ones').</summary>
+    public long Bytes => Interlocked.Read(ref _modelBytes) + Interlocked.Read(ref _realBytes);
+
+    /// <summary>The real sections' packed bytes as the store counts them (the limit <see cref="MaxRealBytes"/> is held against this).</summary>
+    public long RealBytes => Interlocked.Read(ref _realBytes);
+
+    /// <summary>The real sections' packed bytes counted from the sections themselves, for a test of <see cref="RealBytes"/>.</summary>
+    internal long RealBytesRecounted() => _memory.Values.Where(static s => s.Entry.Origin != LodOrigin.Model).Sum(static s => (long)s.Entry.Packed.Length);
 
     private sealed class Slot(LodEntry entry, long used)
     {
@@ -88,7 +113,7 @@ public sealed class LodStore
 
     private object StripeOf(LodSectionKey key) => _locks[(int)((uint)HashCode.Combine(key.Level, key.X, key.Y, key.Z) % Stripes)];
 
-    /// <summary>The stored section's entry, from memory or else from disk, or <see langword="null"/> (a section the disk holds torn reads as missing).</summary>
+    /// <summary>The stored section's entry, from memory or else from disk, or <see langword="null"/> (a section the disk holds torn reads as missing). A section read from the disk is kept in memory again, under the key's lock so that no put or drop of the key lands between the read and the keeping.</summary>
     /// <param name="key">The section.</param>
     public LodEntry? Entry(LodSectionKey key)
     {
@@ -98,22 +123,73 @@ public sealed class LodStore
             return slot.Entry;
         }
 
-        if (_disk?.Load(key) is { Length: > 4 } blob && blob[0] is (byte)LodOrigin.Real or (byte)LodOrigin.RealMip)
+        if (_disk is null)
         {
-            var entry = new LodEntry(blob[3..], (LodOrigin)blob[0], blob[1], blob[2]);
-            try
-            {
-                _ = LodSection.Unpack(entry.Packed);
-            }
-            catch (InvalidDataException)
-            {
-                return null;
-            }
-
-            return _memory.GetOrAdd(key, new Slot(entry, Interlocked.Increment(ref _clock))).Entry;
+            return null;
         }
 
-        return null;
+        LodEntry? loaded;
+        lock (StripeOf(key))
+        {
+            if (_memory.TryGetValue(key, out slot))
+            {
+                slot.Used = Interlocked.Increment(ref _clock);
+                return slot.Entry;
+            }
+
+            loaded = ReadFromDisk(key);
+            if (loaded is not null)
+            {
+                _memory[key] = new Slot(loaded, Interlocked.Increment(ref _clock));
+                _ = Interlocked.Add(ref _realBytes, loaded.Packed.Length);
+                _ = Interlocked.Increment(ref _loaded);
+            }
+        }
+
+        if (loaded is not null && !Monitor.IsEntered(StripeOf(key)))
+        {
+            TrimReal(); // never inside a caller's stripe lock: the trim takes other stripes' locks, and two threads doing it from inside theirs could wait for each other
+        }
+
+        return loaded;
+    }
+
+    // The entry the disk holds for a key, or null (missing, an empty drop marker, torn or foreign bytes).
+    private LodEntry? ReadFromDisk(LodSectionKey key)
+    {
+        if (_disk?.Load(key) is not { Length: > 4 } blob || blob[0] is not ((byte)LodOrigin.Real or (byte)LodOrigin.RealMip))
+        {
+            return null;
+        }
+
+        var entry = new LodEntry(blob[3..], (LodOrigin)blob[0], blob[1], blob[2]);
+        try
+        {
+            _ = LodSection.Unpack(entry.Packed);
+        }
+        catch (InvalidDataException)
+        {
+            return null;
+        }
+
+        return entry;
+    }
+
+    /// <summary>Whether the store holds a wholly real section for a key, in memory or on disk, without keeping what it reads (the ring's plan asks this of thousands of footprints, and must neither fill memory nor wait for the game thread's disk).</summary>
+    /// <param name="key">The section.</param>
+    public bool IsWhollyReal(LodSectionKey key)
+    {
+        if (_memory.TryGetValue(key, out var slot))
+        {
+            return slot.Entry.IsWhollyReal;
+        }
+
+        if (_disk?.Load(key) is not { Length: > 4 } blob)
+        {
+            return false;
+        }
+
+        return blob[0] == (byte)LodOrigin.RealMip || (blob[0] == (byte)LodOrigin.Real && blob[1] == 0xFF);
     }
 
     /// <summary>The stored section, or <see langword="null"/> (also when its bytes are torn: it is dropped, so it is made again).</summary>
@@ -202,20 +278,17 @@ public sealed class LodStore
         return true;
     }
 
-    // Swaps the entry in and hands a real one to the disk; the key's lock is held. The model bytes are counted from the slot that is in memory under the lock (nothing else changes a key's slot without it), never from an entry read earlier.
+    // Swaps the entry in and hands a real one to the disk; the key's lock is held. The bytes are counted from the slot that is in memory under the lock (nothing else changes a key's slot without it), never from an entry read earlier.
     private void Keep(LodSectionKey key, LodEntry entry)
     {
-        if (_memory.TryGetValue(key, out var old) && old.Entry.Origin == LodOrigin.Model)
+        if (_memory.TryGetValue(key, out var old))
         {
-            _ = Interlocked.Add(ref _modelBytes, -old.Entry.Packed.Length);
+            Account(old.Entry, -1);
         }
 
         _memory[key] = new Slot(entry, Interlocked.Increment(ref _clock));
-        if (entry.Origin == LodOrigin.Model)
-        {
-            _ = Interlocked.Add(ref _modelBytes, entry.Packed.Length);
-        }
-        else if (_disk is not null)
+        Account(entry, 1);
+        if (entry.Origin != LodOrigin.Model && _disk is not null)
         {
             var blob = new byte[entry.Packed.Length + 3];
             blob[0] = (byte)entry.Origin;
@@ -226,12 +299,15 @@ public sealed class LodStore
         }
     }
 
+    // Adds (sign 1) or takes off (sign -1) an entry's bytes from the count of its kind.
+    private void Account(LodEntry entry, int sign) => _ = Interlocked.Add(ref (entry.Origin == LodOrigin.Model ? ref _modelBytes : ref _realBytes), sign * (long)entry.Packed.Length);
+
     // Takes a slot out of memory and out of the count; the key's lock is held and the slot is the one in memory.
     private void Remove(LodSectionKey key, Slot slot)
     {
-        if (_memory.TryRemove(new KeyValuePair<LodSectionKey, Slot>(key, slot)) && slot.Entry.Origin == LodOrigin.Model)
+        if (_memory.TryRemove(new KeyValuePair<LodSectionKey, Slot>(key, slot)))
         {
-            _ = Interlocked.Add(ref _modelBytes, -slot.Entry.Packed.Length);
+            Account(slot.Entry, -1);
         }
     }
 
@@ -265,6 +341,29 @@ public sealed class LodStore
         return true;
     }
 
+    /// <summary>Forgets every model section in memory (B07d: the far view's tree levels changed, so the model's sections are made again; real sections stay).</summary>
+    /// <returns>How many were dropped.</returns>
+    public int DropModel()
+    {
+        var dropped = 0;
+        foreach (var (key, slot) in _memory)
+        {
+            if (slot.Entry.Origin != LodOrigin.Model)
+            {
+                continue;
+            }
+
+            lock (StripeOf(key))
+            {
+                Remove(key, slot);
+            }
+
+            dropped++;
+        }
+
+        return dropped;
+    }
+
     /// <summary>The model sections' packed bytes as the store counts them (the limit <see cref="MaxModelBytes"/> is held against this).</summary>
     public long ModelBytes => Interlocked.Read(ref _modelBytes);
 
@@ -276,6 +375,7 @@ public sealed class LodStore
         if (origin != LodOrigin.Model)
         {
             Changed.Enqueue(key); // a model section only fills what no tile was made from; real data changes what a tile shows
+            TrimReal();
         }
         else if (Interlocked.Read(ref _modelBytes) > MaxModelBytes)
         {
@@ -298,6 +398,41 @@ public sealed class LodStore
             {
                 Remove(key, slot); // only if this slot is still the one in memory; a section put over it meanwhile is not dropped and not counted twice
             }
+        }
+    }
+
+    // Drops the real sections used least recently, down to three quarters of the cap (B07d, H5): the disk holds them (the persistence answers a load with what a save was given even before the bytes reach the file), so the next ask reads them back. The player's
+    // edited sections are never dropped, and a store with no disk drops nothing. One thread trims at a time; the others carry on.
+    private void TrimReal()
+    {
+        if (_disk is null || Interlocked.Read(ref _realBytes) <= MaxRealBytes || Interlocked.CompareExchange(ref _trimming, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var victims = _memory.Where(static p => p.Value.Entry.Origin != LodOrigin.Model && p.Value.Entry.EditedMask == 0).OrderBy(static p => p.Value.Used).ToList();
+            foreach (var (key, slot) in victims)
+            {
+                if (Interlocked.Read(ref _realBytes) <= MaxRealBytes * 3 / 4)
+                {
+                    break;
+                }
+
+                lock (StripeOf(key))
+                {
+                    if (_memory.TryGetValue(key, out var current) && ReferenceEquals(current, slot))
+                    {
+                        Remove(key, slot);
+                        _ = Interlocked.Increment(ref _evicted);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            Volatile.Write(ref _trimming, 0);
         }
     }
 
@@ -386,8 +521,14 @@ public sealed class LodWorld : ILodSectionSource
             for (var i = 0; i < sections.Length; i++)
             {
                 var key = new LodSectionKey(level, sx, min + i, sz);
-                _ = Store.Put(key, made[i], LodOrigin.Model);
-                sections[i] ??= Store.Get(key) ?? made[i];
+                if (Store.Put(key, made[i], LodOrigin.Model))
+                {
+                    sections[i] ??= made[i]; // what was just kept is what this is (no read back and inflate of the bytes just packed)
+                }
+                else
+                {
+                    sections[i] ??= Store.Get(key) ?? made[i]; // a better section is there: this stack holds it
+                }
             }
         }
 
@@ -398,26 +539,38 @@ public sealed class LodWorld : ILodSectionSource
     /// <param name="sx">The stack's x, in sections.</param>
     /// <param name="sz">The stack's z.</param>
     /// <param name="chunk">The chunk at (x, y, z) in chunks, or <see langword="null"/> where there is none (air).</param>
-    public void IngestStack(int sx, int sz, Func<int, int, int, ChunkData?> chunk)
+    /// <param name="solidBelowChunkY">The chunk layers under this one are stone and are not asked for (B07d: the ring makes only the layers the far view draws; a layer under them that the world's caves and ores fill is never seen); <see cref="int.MinValue"/> asks for every layer.</param>
+    public void IngestStack(int sx, int sz, Func<int, int, int, ChunkData?> chunk, int solidBelowChunkY = int.MinValue)
     {
         ArgumentNullException.ThrowIfNull(chunk);
         lock (FootprintOf(sx, sz))
         {
-            IngestStackLocked(sx, sz, chunk);
+            IngestStackLocked(sx, sz, chunk, solidBelowChunkY);
         }
     }
 
-    private void IngestStackLocked(int sx, int sz, Func<int, int, int, ChunkData?> chunk)
+    private void IngestStackLocked(int sx, int sz, Func<int, int, int, ChunkData?> chunk, int solidBelow)
     {
         var (min, max) = SyRange(0);
         var sections = new LodSection[max - min + 1];
         for (var i = 0; i < sections.Length; i++)
         {
+            if ((2 * (min + i)) + 1 < solidBelow)
+            {
+                sections[i] = new LodSection(BlockId.Stone, 0); // both chunk layers of the section are under the made ones
+                continue;
+            }
+
             var section = LodSection.Air();
             for (var k = 0; k < 8; k++)
             {
                 var (dx, dy, dz) = (k & 1, k >> 2, (k >> 1) & 1);
-                if (chunk((2 * sx) + dx, (2 * (min + i)) + dy, (2 * sz) + dz) is { IsEmpty: false } data)
+                var cy = (2 * (min + i)) + dy;
+                if (cy < solidBelow)
+                {
+                    FillChunk(section, dx, dy, dz, BlockId.Stone);
+                }
+                else if (chunk((2 * sx) + dx, cy, (2 * sz) + dz) is { IsEmpty: false } data)
                 {
                     CopyChunk(section, data.Blocks, dx, dy, dz);
                 }
@@ -577,6 +730,22 @@ public sealed class LodWorld : ILodSectionSource
         }
 
         return dropped;
+    }
+
+    // One chunk's place in a section filled with a block.
+    private static void FillChunk(LodSection section, int dx, int dy, int dz, BlockId block)
+    {
+        var (bx, by, bz) = (dx * 16, dy * 16, dz * 16);
+        for (var y = 0; y < 16; y++)
+        {
+            for (var z = 0; z < 16; z++)
+            {
+                for (var x = 0; x < 16; x++)
+                {
+                    section.SetBlock(LodSection.Index(bx + x, by + y, bz + z), block);
+                }
+            }
+        }
     }
 
     // The chunk's blocks into the eight-chunk section at the chunk's place in it (plants and the like left out).

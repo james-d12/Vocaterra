@@ -50,7 +50,7 @@ public sealed class FarTile(FarTileKey key)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         Box = mesh.Box;
-        Vertices = mesh.Vertices.Length;
+        Vertices = mesh.VertexCount;
         Triangles = mesh.Triangles;
         Textured = mesh.Textured;
         Bytes = mesh.Bytes;
@@ -296,11 +296,16 @@ public sealed class FarView
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(dispose);
-        var reshaped = settings.Levels != Settings.Levels || settings.TreeLevels != Settings.TreeLevels;
+        var treesChanged = settings.TreeLevels != Settings.TreeLevels;
+        var reshaped = settings.Levels != Settings.Levels || treesChanged || settings.TexturedLevels != Settings.TexturedLevels; // a tile is built for its levels' textures, so a change of them makes every tile again (B07d)
         Settings = settings;
         if (reshaped)
         {
             World = _sampler.FarWorld(_store, settings.TreeLevels);
+            if (treesChanged)
+            {
+                _ = _store.DropModel(); // the model's sections were made for the old tree levels (real sections are the generator's and stay)
+            }
         }
 
         _selectedFor = (double.NaN, 0, 0);
@@ -448,6 +453,7 @@ public sealed class FarView
         {
             if (finished.Version != _version)
             {
+                finished.Mesh.Release();
                 continue; // made under settings that are gone: the key may be asked for again under the new ones and this is not its answer
             }
 
@@ -456,6 +462,7 @@ public sealed class FarView
             _ = _rebuilding.Remove(mesh.Key);
             if (!_wanted.Contains(mesh.Key) && !_tiles.ContainsKey(mesh.Key))
             {
+                mesh.Release();
                 continue; // made for a view the eye has left: not kept
             }
 
@@ -464,6 +471,7 @@ public sealed class FarView
                 _tiles[mesh.Key] = tile = new FarTile(mesh.Key);
             }
 
+            tile.Pending?.Release(); // a newer mesh of the tile replaces one the card never took
             tile.Pending = mesh;
             if (tile.Buffer is null)
             {

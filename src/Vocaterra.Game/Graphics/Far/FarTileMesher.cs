@@ -1,3 +1,4 @@
+using System.Buffers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Voxel;
@@ -21,20 +22,34 @@ public enum FarBucket
     Water,
 }
 
-/// <summary>One built far-view tile: the vertices of its faces (absolute world positions, each face its own four vertices in the colour it is lit), their triangles in three runs (opaque, lit, water), its box for culling and what it cost to make.</summary>
+/// <summary>
+/// One built far-view tile: the vertices of its faces (absolute world positions, each face its own four vertices in the colour it is lit), their triangles in three runs (opaque, lit, water), its box for culling and what it cost to make. The arrays are rented from the shared pools (B07d,
+/// the review's M3: a tile's arrays are megabytes, and at eight workers a fresh set for every tile is a gigabyte a second of large-object garbage), so they may be longer than the counts say: <see cref="Vertices"/> and the indices are views of the first <see cref="VertexCount"/> and
+/// <see cref="IndexCount"/> entries, and <see cref="Release"/> gives the arrays back once the tile's data is on the card or dropped (nothing may read the mesh after that).
+/// </summary>
 /// <param name="Key">The tile.</param>
-/// <param name="Vertices">The vertices, absolute world positions, with a coordinate into the block atlas (a textured tile) or the noise texture.</param>
-/// <param name="Indices16">The triangles' indices when the tile has few enough vertices for 16 bits, otherwise <see langword="null"/>.</param>
-/// <param name="Indices32">The triangles' indices when it has not, otherwise <see langword="null"/>.</param>
+/// <param name="VertexArray">The vertices' array, absolute world positions, with a coordinate into the block atlas (a textured tile) or the noise texture; the first <paramref name="VertexCount"/> are the tile's.</param>
+/// <param name="VertexCount">How many vertices the tile has.</param>
+/// <param name="Index16Array">The triangles' indices when the tile has few enough vertices for 16 bits, otherwise <see langword="null"/>.</param>
+/// <param name="Index32Array">The triangles' indices when it has not, otherwise <see langword="null"/>.</param>
+/// <param name="IndexCount">How many indices the tile has.</param>
 /// <param name="OpaqueIndices">How many of the first indices are the opaque faces'.</param>
 /// <param name="LitIndices">How many indices after them are the self-lit faces'; the water's are the rest.</param>
 /// <param name="Box">The box round every vertex.</param>
 /// <param name="BuildMilliseconds">The time the section fetch and the meshing took.</param>
 /// <param name="Textured">Whether the opaque faces carry the block atlas's own textures (the nearest levels) and not flat colours with the noise texture.</param>
-public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Vertices, ushort[]? Indices16, int[]? Indices32, int OpaqueIndices, int LitIndices, BoundingBox Box, double BuildMilliseconds, bool Textured = false)
+public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] VertexArray, int VertexCount, ushort[]? Index16Array, int[]? Index32Array, int IndexCount, int OpaqueIndices, int LitIndices, BoundingBox Box, double BuildMilliseconds, bool Textured = false)
 {
-    /// <summary>How many indices the tile has.</summary>
-    public int IndexCount => Indices16?.Length ?? Indices32?.Length ?? 0;
+    private int _released;
+
+    /// <summary>The tile's vertices.</summary>
+    public ArraySegment<VertexPositionColorTexture> Vertices => new(VertexArray, 0, VertexCount);
+
+    /// <summary>The triangles' indices when the tile has few enough vertices for 16 bits, otherwise <see langword="null"/>.</summary>
+    public ArraySegment<ushort>? Indices16 => Index16Array is null ? default(ArraySegment<ushort>?) : new ArraySegment<ushort>(Index16Array, 0, IndexCount);
+
+    /// <summary>The triangles' indices when it has not, otherwise <see langword="null"/>.</summary>
+    public ArraySegment<int>? Indices32 => Index32Array is null ? default(ArraySegment<int>?) : new ArraySegment<int>(Index32Array, 0, IndexCount);
 
     /// <summary>How many triangles the tile has.</summary>
     public int Triangles => IndexCount / 3;
@@ -43,11 +58,31 @@ public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Ve
     public int WaterIndices => IndexCount - OpaqueIndices - LitIndices;
 
     /// <summary>The bytes the vertices and indices take.</summary>
-    public long Bytes => ((long)Vertices.Length * VertexPositionColorTexture.VertexDeclaration.VertexStride) + (Indices16 is not null ? Indices16.Length * sizeof(ushort) : (Indices32?.Length ?? 0) * sizeof(int));
+    public long Bytes => ((long)VertexCount * VertexPositionColorTexture.VertexDeclaration.VertexStride) + (Index16Array is not null ? IndexCount * sizeof(ushort) : IndexCount * sizeof(int));
 
     /// <summary>The index at a position of the index list.</summary>
     /// <param name="position">The position.</param>
-    public int IndexAt(int position) => Indices16 is not null ? Indices16[position] : Indices32![position];
+    public int IndexAt(int position) => Index16Array is not null ? Index16Array[position] : Index32Array![position];
+
+    /// <summary>Gives the arrays back to the pools (once; later calls do nothing). The mesh must not be read afterwards.</summary>
+    public void Release()
+    {
+        if (Interlocked.Exchange(ref _released, 1) != 0)
+        {
+            return;
+        }
+
+        ArrayPool<VertexPositionColorTexture>.Shared.Return(VertexArray);
+        if (Index16Array is not null)
+        {
+            ArrayPool<ushort>.Shared.Return(Index16Array);
+        }
+
+        if (Index32Array is not null)
+        {
+            ArrayPool<int>.Shared.Return(Index32Array);
+        }
+    }
 }
 
 /// <summary>The faces of a tile as they are made: quads (four vertices of one colour) with the winding the back-face culling keeps, so a face shows from the side its normal points to and never from behind.</summary>
@@ -99,12 +134,14 @@ internal sealed class FarGeometry
         indices.Add(first + 3);
     }
 
-    /// <summary>The tile made of what was added.</summary>
+    /// <summary>The tile made of what was added: its arrays are rented from the shared pools (see <see cref="FarTileMesh"/>).</summary>
     public FarTileMesh Finish(FarTileKey key, double milliseconds, bool textured)
     {
         var total = _vertices[0].Count + _vertices[1].Count + _vertices[2].Count;
-        var vertices = new VertexPositionColorTexture[total];
-        var indices = new int[_indices[0].Count + _indices[1].Count + _indices[2].Count];
+        var count = _indices[0].Count + _indices[1].Count + _indices[2].Count;
+        var vertices = ArrayPool<VertexPositionColorTexture>.Shared.Rent(Math.Max(total, 1));
+        var narrow = total <= ushort.MaxValue ? ArrayPool<ushort>.Shared.Rent(Math.Max(count, 1)) : null;
+        var wide = narrow is null ? ArrayPool<int>.Shared.Rent(Math.Max(count, 1)) : null;
         var v = 0;
         var ix = 0;
         for (var b = 0; b < 3; b++)
@@ -112,7 +149,14 @@ internal sealed class FarGeometry
             _vertices[b].CopyTo(vertices, v);
             foreach (var index in _indices[b])
             {
-                indices[ix++] = index + v;
+                if (narrow is not null)
+                {
+                    narrow[ix++] = (ushort)(index + v);
+                }
+                else
+                {
+                    wide![ix++] = index + v;
+                }
             }
 
             v += _vertices[b].Count;
@@ -120,10 +164,10 @@ internal sealed class FarGeometry
 
         var min = new Vector3(float.MaxValue);
         var max = new Vector3(float.MinValue);
-        foreach (var vertex in vertices)
+        for (var i = 0; i < total; i++)
         {
-            min = Vector3.Min(min, vertex.Position);
-            max = Vector3.Max(max, vertex.Position);
+            min = Vector3.Min(min, vertices[i].Position);
+            max = Vector3.Max(max, vertices[i].Position);
         }
 
         if (total == 0)
@@ -131,19 +175,7 @@ internal sealed class FarGeometry
             min = max = Vector3.Zero;
         }
 
-        var box = new BoundingBox(min, max);
-        if (total <= ushort.MaxValue)
-        {
-            var narrow = new ushort[indices.Length];
-            for (var i = 0; i < narrow.Length; i++)
-            {
-                narrow[i] = (ushort)indices[i];
-            }
-
-            return new FarTileMesh(key, vertices, narrow, null, _indices[0].Count, _indices[1].Count, box, milliseconds, textured);
-        }
-
-        return new FarTileMesh(key, vertices, null, indices, _indices[0].Count, _indices[1].Count, box, milliseconds, textured);
+        return new FarTileMesh(key, vertices, total, narrow, wide, count, _indices[0].Count, _indices[1].Count, new BoundingBox(min, max), milliseconds, textured);
     }
 }
 

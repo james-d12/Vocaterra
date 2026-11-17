@@ -45,7 +45,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         var quads = new List<Quad>();
         var opaqueQuads = mesh.OpaqueIndices / 6;
         var litQuads = mesh.LitIndices / 6;
-        for (var q = 0; q < mesh.Vertices.Length / 4; q++)
+        for (var q = 0; q < mesh.Vertices.Count / 4; q++)
         {
             var v = mesh.Vertices.Skip(q * 4).Take(4).Select(static x => x.Position).ToArray();
             var cross = Vector3.Cross(v[1] - v[0], v[2] - v[0]);
@@ -160,7 +160,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
             var key = new FarTileKey(level, 3000 >> (5 + level), 1200 >> (5 + level));
             var mesh = FarTileMesher.Build(world, settings, key);
             var cell = settings.CellOf(level);
-            output.WriteLine($"level {level}: {mesh.Vertices.Length / 4} quads, {mesh.Bytes / 1024} KB, {mesh.BuildMilliseconds:0} ms (Debug), textured {mesh.Textured}");
+            output.WriteLine($"level {level}: {mesh.Vertices.Count / 4} quads, {mesh.Bytes / 1024} KB, {mesh.BuildMilliseconds:0} ms (Debug), textured {mesh.Textured}");
             foreach (var quad in Quads(mesh))
             {
                 var n = quad.Normal;
@@ -356,7 +356,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
             Assert.Equal(first.Textured, m.Textured);
             Assert.Equal(first.Box, m.Box);
         });
-        output.WriteLine($"one level-1 tile over land outside the valley: {first.Vertices.Length} vertices, {first.Triangles} triangles, {first.Bytes / 1024.0:0} KB, {first.BuildMilliseconds:0} ms (Debug)");
+        output.WriteLine($"one level-1 tile over land outside the valley: {first.Vertices.Count} vertices, {first.Triangles} triangles, {first.Bytes / 1024.0:0} KB, {first.BuildMilliseconds:0} ms (Debug)");
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
 
         var bright = mesh.Vertices.Count(static v => v.Color.R > 150 && v.Color.G > 150 && v.Color.B > 150);
         var grey = mesh.Vertices.Count(static v => v.Color.R is > 60 and < 125 && Math.Abs(v.Color.R - v.Color.B) < 20);
-        output.WriteLine($"{mesh.Vertices.Length} vertices, {bright} bright, {grey} stone grey");
+        output.WriteLine($"{mesh.Vertices.Count} vertices, {bright} bright, {grey} stone grey");
         Assert.True(bright > 0 && bright > grey, $"{bright} bright against {grey} grey");
     }
 

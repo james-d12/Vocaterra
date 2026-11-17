@@ -9,7 +9,7 @@ public sealed class FarUploadsTests
 {
     private static FarTile Tile(int level, int x, int vertices, bool uploaded = false)
     {
-        var mesh = new FarTileMesh(new FarTileKey(level, x, 0), new VertexPositionColorTexture[vertices], [0, 1, 2], null, 3, 0, default(BoundingBox), 1);
+        var mesh = new FarTileMesh(new FarTileKey(level, x, 0), new VertexPositionColorTexture[vertices], vertices, [0, 1, 2], null, 3, 3, 0, default(BoundingBox), 1);
         return new FarTile(mesh.Key) { Pending = mesh, Buffer = uploaded ? (VertexBuffer)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(VertexBuffer)) : null };
     }
 

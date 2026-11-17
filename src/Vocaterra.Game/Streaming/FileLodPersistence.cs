@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Streaming;
 /// <summary>
 /// The far view's sections on disk (B07c): a folder for one world, tied by a manifest to the generator's version and the world-generation data's hash (so a changed world starts again from nothing), holding for each level and each 8 x 8 footprints of
 /// sections one region file (<c>L{level}/r.{x}.{z}.lodr</c>): a header of 4,096 slots (a section's offset and length) and the sections' packed bytes after it, appended as they are put. A world's far view is hundreds of thousands of sections, so one file each
-/// would fill a disk's inodes; a region file is a few hundred. Reads are direct; writes are queued to a thread of their own, so no frame waits for a disk, and a slot is written after its bytes, so a crash of the process leaves the old section or the new, never half (the files are synced to the disk when the queue runs dry and at shutdown, and the manifest when it is written). A torn or foreign file reads as missing sections, and a failure on the writer thread costs the section and not the writer. Beside the regions the folder holds the edit journal (<c>edits.txt</c>, B07f): the chunks whose player-made blocks are in the sections, written through the same queue, so a run that loads another save knows which to drop. Shutdown is bounded: the writer drains what is queued, syncs and closes its own files, and the caller waits for it only up to a limit.
+/// would fill a disk's inodes; a region file is a few hundred. Reads are direct; writes are queued to a thread of their own, so no frame waits for a disk, and a slot is written after its bytes, so a crash of the process leaves the old section or the new, never half (the files are synced to the disk on a timer, <see cref="SyncIntervalMilliseconds"/> after the first write that is not synced yet, and at shutdown, and the manifest when it is written: B07d, the review's P4, where the writer synced up to 48 files whenever its queue ran dry, which a ring of small writes does every few milliseconds). A section saved is answered by <see cref="Load"/> at once, from a table of the writes the writer has not made yet, so the store may drop it from memory as soon as it is saved. Region files only grew; <see cref="Compact"/> rewrites those that hold much dead data (sections written again) keeping every live section. A torn or foreign file reads as missing sections, and a failure on the writer thread costs the section and not the writer. Beside the regions the folder holds the edit journal (<c>edits.txt</c>, B07f): the chunks whose player-made blocks are in the sections, written through the same queue, so a run that loads another save knows which to drop. Shutdown is bounded: the writer drains what is queued, syncs and closes its own files, and the caller waits for it only up to a limit.
 /// </summary>
 public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisposable
 {
@@ -23,11 +23,21 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
     private readonly Dictionary<string, FileStream> _writing = [];
     private readonly Dictionary<string, byte[]> _headers = [];
     private readonly Thread _writer;
+    private readonly ConcurrentDictionary<LodSectionKey, byte[]> _unwritten = new();
+    private readonly ReaderWriterLockSlim _swap = new();
+    private readonly long _syncMilliseconds;
+    private long _syncs;
+    private long _loads;
+    private long _compactedFiles;
+    private long _reclaimedBytes;
     private long _queued;
     private long _written;
     private volatile bool _writerDone;
     private volatile bool _closed;
     private volatile bool _queueDisposed;
+
+    /// <summary>How long after a write that is not synced yet the writer syncs the files, in milliseconds (an fsync is slow: a ring of small writes made one every few milliseconds before).</summary>
+    public const int SyncIntervalMilliseconds = 2_000;
 
     /// <summary>How long <see cref="Dispose"/> waits for the writer to drain the queue and close its files, in milliseconds.</summary>
     public const int ShutdownLimitMilliseconds = 8_000;
@@ -35,8 +45,10 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
     /// <summary>Opens (or starts) the folder of a world.</summary>
     /// <param name="root">The folder.</param>
     /// <param name="version">What the sections in it are valid for: when it differs from the manifest the folder is cleared.</param>
-    public FileLodPersistence(string root, string version)
+    /// <param name="syncIntervalMilliseconds">How long after an unsynced write the files are synced (tests give a short one).</param>
+    public FileLodPersistence(string root, string version, int syncIntervalMilliseconds = SyncIntervalMilliseconds)
     {
+        _syncMilliseconds = Math.Max(1, syncIntervalMilliseconds);
         _root = root;
         _ = Directory.CreateDirectory(root);
         var manifest = Path.Combine(root, "manifest.txt");
@@ -120,15 +132,36 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
         }
     }
 
+    /// <summary>How many loads the disk answered (a read of a region file; a section still waiting for the writer is answered from memory and is not counted).</summary>
+    public long Loads => Interlocked.Read(ref _loads);
+
+    /// <summary>How many times the writer synced the files to the disk.</summary>
+    public long Syncs => Interlocked.Read(ref _syncs);
+
+    /// <summary>How many region files have been compacted.</summary>
+    public long CompactedFiles => Interlocked.Read(ref _compactedFiles);
+
+    /// <summary>How many bytes compaction took out of the region files.</summary>
+    public long ReclaimedBytes => Interlocked.Read(ref _reclaimedBytes);
+
+    /// <summary>How many sections have been saved and not written yet.</summary>
+    public int Unwritten => _unwritten.Count;
+
     /// <inheritdoc />
     public byte[]? Load(LodSectionKey key)
     {
+        if (_unwritten.TryGetValue(key, out var waiting))
+        {
+            return waiting.Length == 0 ? null : waiting; // an empty blob is a drop: it reads as missing
+        }
+
         var slot = SlotOf(key);
         if (slot < 0)
         {
             return null;
         }
 
+        _swap.EnterReadLock(); // a compaction moves a region file's sections and its header together: a load sees the file before or after it, never half
         try
         {
             var path = RegionFile(key);
@@ -145,6 +178,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
                 return null;
             }
 
+            _ = Interlocked.Increment(ref _loads);
             using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             if (offset + (long)length > file.Length)
             {
@@ -160,6 +194,10 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
         {
             return null;
         }
+        finally
+        {
+            _swap.ExitReadLock();
+        }
     }
 
     /// <inheritdoc />
@@ -172,11 +210,13 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
 
         try
         {
+            _unwritten[key] = blob; // answered by Load from now on, until the writer has written these bytes (or newer ones)
             _ = Interlocked.Increment(ref _queued);
             _queue.Add((key, blob, null));
         }
         catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
         {
+            _ = _unwritten.TryRemove(new KeyValuePair<LodSectionKey, byte[]>(key, blob));
             _ = Interlocked.Increment(ref _written); // closed meanwhile (the world is being left): the section is made again next time
         }
     }
@@ -301,19 +341,53 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
 
     private void Write()
     {
+        var unsynced = false;
+        var since = 0L;
         try
         {
-            foreach (var (key, blob, run) in _queue.GetConsumingEnumerable())
+            while (true)
             {
+                (LodSectionKey Key, byte[] Blob, Action? Run) item;
+                if (unsynced)
+                {
+                    // Wake in time for the sync even when nothing more is queued: the files are synced a fixed time after the first write they have not been synced for, not whenever the queue runs dry.
+                    var left = _syncMilliseconds - (Environment.TickCount64 - since);
+                    if (left <= 0)
+                    {
+                        SyncAll();
+                        unsynced = false;
+                        continue;
+                    }
+
+                    if (!_queue.TryTake(out item, (int)Math.Min(int.MaxValue, Math.Max(1, left))))
+                    {
+                        if (_queue.IsCompleted)
+                        {
+                            break;
+                        }
+
+                        continue;
+                    }
+                }
+                else if (!_queue.TryTake(out item, Timeout.Infinite))
+                {
+                    break; // the queue is complete and empty
+                }
+
                 try
                 {
-                    if (run is not null)
+                    if (item.Run is not null)
                     {
-                        run();
+                        item.Run();
                     }
                     else
                     {
-                        WriteOne(key, blob);
+                        WriteOne(item.Key, item.Blob);
+                        if (!unsynced)
+                        {
+                            unsynced = true;
+                            since = Environment.TickCount64;
+                        }
                     }
                 }
                 catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -321,12 +395,15 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
                     // a section that cannot be kept (a full disk, a locked file, a bug) is made again next time; the writer goes on
                     CloseAll();
                 }
+                finally
+                {
+                    if (item.Run is null)
+                    {
+                        _ = _unwritten.TryRemove(new KeyValuePair<LodSectionKey, byte[]>(item.Key, item.Blob)); // only if no newer bytes of the key were saved meanwhile
+                    }
+                }
 
                 _ = Interlocked.Increment(ref _written);
-                if (_queue.Count == 0)
-                {
-                    SyncAll();
-                }
             }
 
             SyncAll();
@@ -364,8 +441,7 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
         var slot = SlotOf(key);
         var offset = (int)Math.Max(HeaderBytes, file.Length);
         file.Position = offset;
-        file.Write(blob);
-        file.Flush();
+        file.Write(blob); // the move of the position below puts these bytes to the file before the slot is written: a crash leaves the old section or the new
         file.Position = 8 + (slot * 8L);
         file.Write(BitConverter.GetBytes(offset));
         file.Write(BitConverter.GetBytes(blob.Length));
@@ -380,6 +456,11 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
 
     private void SyncAll()
     {
+        if (_writing.Count > 0)
+        {
+            _ = Interlocked.Increment(ref _syncs);
+        }
+
         foreach (var open in _writing.Values)
         {
             try
@@ -408,6 +489,129 @@ public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisp
         }
 
         _writing.Clear();
+    }
+
+    // Compaction ---------------------------------------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Rewrites the region files that hold much dead data (a section written again leaves its old bytes behind, and the files only ever grew), keeping every live section: for each file whose dead bytes are at least <paramref name="minDeadBytes"/> and
+    /// <paramref name="minDeadFraction"/> of its sections' bytes, a new file is written with the live sections one after the other and put in its place. It runs on the writer thread, one file a queued job, so sections go on being written between files; a load
+    /// that comes while a file is being replaced waits for the swap. Asks and returns: <see cref="CompactedFiles"/> and <see cref="ReclaimedBytes"/> say what was done.
+    /// </summary>
+    /// <param name="minDeadFraction">The share of a file's section bytes that must be dead for it to be rewritten.</param>
+    /// <param name="minDeadBytes">The least dead bytes worth a rewrite.</param>
+    public void Compact(double minDeadFraction = 0.25, long minDeadBytes = 256 * 1024) =>
+        Enqueue(() =>
+        {
+            foreach (var path in Directory.EnumerateFiles(_root, "r.*.lodr", SearchOption.AllDirectories).Order(StringComparer.Ordinal).ToList())
+            {
+                var captured = path;
+                Enqueue(() => CompactFile(captured, minDeadFraction, minDeadBytes));
+            }
+        });
+
+    private void CompactFile(string path, double minDeadFraction, long minDeadBytes)
+    {
+        var temporary = path + ".tmp";
+        try
+        {
+            using var read = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var length = read.Length;
+            if (length < HeaderBytes)
+            {
+                return;
+            }
+
+            var header = new byte[HeaderBytes];
+            read.ReadExactly(header);
+            if (!header.AsSpan(0, 4).SequenceEqual("LODR"u8))
+            {
+                return;
+            }
+
+            var live = new List<(int Slot, int Offset, int Length)>();
+            long liveBytes = 0;
+            for (var slot = 0; slot < Slots; slot++)
+            {
+                var (offset, size) = (BitConverter.ToInt32(header, 8 + (slot * 8)), BitConverter.ToInt32(header, 12 + (slot * 8)));
+                if (size > 0 && size <= MaxBlobBytes && offset >= HeaderBytes && offset + (long)size <= length)
+                {
+                    live.Add((slot, offset, size));
+                    liveBytes += size;
+                }
+            }
+
+            var dead = length - HeaderBytes - liveBytes;
+            if (dead < minDeadBytes || dead < minDeadFraction * (length - HeaderBytes))
+            {
+                return;
+            }
+
+            if (_writing.Remove(path, out var open))
+            {
+                try
+                {
+                    open.Dispose(); // the writer's own handle to the file that is about to be replaced
+                }
+                catch (IOException)
+                {
+                    // closed anyway
+                }
+            }
+
+            var table = new byte[Slots * 8];
+            long position = HeaderBytes;
+            using (var write = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                write.SetLength(HeaderBytes);
+                write.Position = 0;
+                write.Write(header.AsSpan(0, 8));
+                write.Position = HeaderBytes;
+                var buffer = new byte[MaxBlobBytes];
+                foreach (var (slot, offset, size) in live.OrderBy(static l => l.Offset))
+                {
+                    read.Position = offset;
+                    read.ReadExactly(buffer.AsSpan(0, size));
+                    write.Write(buffer.AsSpan(0, size));
+                    BitConverter.GetBytes((int)position).CopyTo(table, slot * 8);
+                    BitConverter.GetBytes(size).CopyTo(table, (slot * 8) + 4);
+                    position += size;
+                }
+
+                write.Position = 8;
+                write.Write(table);
+                write.Flush(flushToDisk: true);
+            }
+
+            _swap.EnterWriteLock();
+            try
+            {
+                File.Move(temporary, path, overwrite: true);
+                lock (_headers)
+                {
+                    _headers[path] = table;
+                }
+            }
+            finally
+            {
+                _swap.ExitWriteLock();
+            }
+
+            _ = Interlocked.Increment(ref _compactedFiles);
+            _ = Interlocked.Add(ref _reclaimedBytes, length - position);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or EndOfStreamException)
+        {
+            // the old file stays as it was: nothing was moved over it
+            try
+            {
+                File.Delete(temporary);
+            }
+            catch (Exception inner) when (inner is IOException or UnauthorizedAccessException)
+            {
+                // left for the next run to overwrite
+            }
+        }
     }
 
     /// <inheritdoc />
