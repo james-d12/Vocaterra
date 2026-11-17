@@ -2953,3 +2953,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   B27's cheaper generation, the gate's test phase took 26 minutes (Game.Core.Tests 26, Game.Tests 18) against about 50 that morning.
   Game.Core.Tests is now bound by a few single tests over 5 minutes in Debug builds: the next lever is optimised builds under test (item
   50 A). M100 put the core's last wall-clock timing test (the lexicon load) on CPU time: 541 ms, budget 1,082. Gated clean.
+- **B11c, the owner's holes in a meadow (2026-11-17, `edb8516a`).** The three pits at (857, 71, 227), seed 42, were not caves breaking
+  through the cover: they were B11's one-block entrance shafts on its mask lattice (a slice of the code he played at 18:00 on 2026-11-16
+  shows a shaft from the grass to a cave; 35 entrance columns in 32 x 32 round the spot). B11b replaced the shafts with winding passages at
+  21:39 that night. On the current world the spot is an unbroken meadow, and scans find no pit in 320,000 columns a seed (42, 7, 2026).
+  The cover rule is sound. `CaveCoverTests` guards it over three seeds. Gated with B27's ratio bound (6 to 10: the base got cheaper);
+  the gate's two failures were not theirs: B07d's `JobPoolTests` resize race (it counts threads before they start; passes alone, planned
+  in B29) and a core fuzz seed (M101).

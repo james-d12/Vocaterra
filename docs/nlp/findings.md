@@ -1519,3 +1519,9 @@ this file. What is still open is collected in [open-items](../open-items.md).
   new non-parallel `Timing` collection (`tests/Vocaterra.Nlp.Tests/TimingCollection.cs`, the game's `TimingCollection` in the core's assembly), so it runs alone. *Measured*
   (sample bundle, machine at load about 10): attempts 582, 711 and 541 ms of CPU time, fastest 541 ms. *Budget:* 1 082 ms, twice the measured cost, so a doubling of the
   load's cost fails the test. The budget is strict (`<`), so a run at exactly a doubling fails too. Full suite: 12 643 passed, 0 failed, 8 skipped (unchanged from the base).
+- **A fuzz seed on an adjective's gender (found 2026-11-17 by the B11c gate on `feature/biomes`; not changed, given to M101).** O3,
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, seed `3gcdMpDLcrQ4`: the pattern
+  `[[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ([PRON] [DET]|[DET]|[ART] [ART])?]` realised «Laná doloroso les» as a correct sentence; the
+  analyser reports `gender.agree@5+8`, expected «dolorosa». It replays (`CsCheck_Seed=3gcdMpDLcrQ4`, fails the same), and the gate's two
+  branches touched no core code (a game test file, a game test constant), so it is the core's: either the realiser paired a feminine
+  item noun with a masculine adjective it should have agreed, or the analyser misreads «Laná»'s gender. To triage in M101.
