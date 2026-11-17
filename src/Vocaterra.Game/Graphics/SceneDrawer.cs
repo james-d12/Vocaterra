@@ -12,6 +12,7 @@ using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.Weather;
@@ -101,6 +102,19 @@ public sealed class SceneDrawer : IDisposable
         }
     }
 
+    private int _grassPercent;
+
+    /// <summary>
+    /// Takes the decorative grass's density in percent (B18; the run's start, then the menu's Grass setting): before <see cref="Load"/> it is the value the renderer starts with, after it the renderer follows at once
+    /// (moving it between two values above 0 builds nothing again; 0 draws nothing extra).
+    /// </summary>
+    /// <param name="percent">The density, 0 to 100.</param>
+    public void ApplyGrass(int percent)
+    {
+        _grassPercent = percent;
+        _renderer?.SetGrass(percent);
+    }
+
     /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
     public (Vocaterra.Game.Core.Reporting.BusyFrameStats Streaming, Vocaterra.Game.Core.Reporting.BusyFrameStats Remesh) PhaseTimes => (_streamTimes, _remeshTimes);
 
@@ -135,7 +149,23 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null);
+        _renderer.SetGrass(_grassPercent);
+        if (_options.GlShaders)
+        {
+            // B17a: the opaque chunks through the game's own GLSL program, when the context can run it (the gl: lines in the log say what it is, or why not); the effects draw otherwise.
+            var pass = GlOpaquePass.TryCreate(device, _blockAtlas.Texture, VoxelRenderer.MaxQuadsPerChunkMesh, _console, out var glError);
+            if (pass is null)
+            {
+                _console($"gl: shaders not used, the effects draw as always: {glError}");
+            }
+            else
+            {
+                _renderer.SetGlPass(pass);
+                _console("gl: the opaque chunks are drawn through the game's own GLSL program (opaque.vert.glsl, opaque.frag.glsl)");
+            }
+        }
+
         _renderer.SetFigures(_figures);
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);

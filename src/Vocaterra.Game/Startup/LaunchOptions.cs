@@ -84,6 +84,7 @@ public sealed record LaunchOptions
         + "                          Off by default, kept in a save's settings\n"
         + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
         + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
+        + "  --gl-shaders            draw the opaque chunks through the game's own GLSL program on MonoGame's OpenGL context instead of AlphaTestEffect (B17a, a spike; off by default; the log's gl: lines say what the context is)\n"
         + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
         + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
@@ -209,6 +210,9 @@ public sealed record LaunchOptions
 
     /// <summary>The far view's range in blocks from <c>--far-view</c> (0 for <c>off</c>), or <see langword="null"/> for the quality preset's.</summary>
     public int? FarViewRange { get; init; }
+
+    /// <summary>The decorative grass's density in percent from <c>--grass</c> (B18: 0 to 100 in steps of 10; 0 is no grass, the look of before); <see langword="null"/> leaves the saved setting (the default for a new game).</summary>
+    public int? Grass { get; init; }
 
     /// <summary>Whether <c>--pass open</c> was given: the pass cheat is on for the run (B08b), so the pass through the east ring is open from the start. The settings menu has the same switch.</summary>
     public bool PassOpen { get; init; }
@@ -436,6 +440,12 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--no-settle</c> was given: a scripted run streams the world as a live one does (a few chunks and tiles a frame, the far land standing in), and does not wait for everything to be in place before a picture (B07, a test aid for the live path).</summary>
     public bool NoSettle { get; init; }
 
+    /// <summary>
+    /// Whether <c>--gl-shaders</c> was given (B17a, a spike): the opaque chunks are drawn through the game's own GLSL program on MonoGame's OpenGL context instead of through <c>AlphaTestEffect</c>. Off by default; the game
+    /// draws exactly as before without it, and with it when the context cannot run the program (the log says why).
+    /// </summary>
+    public bool GlShaders { get; init; }
+
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
 
@@ -524,6 +534,7 @@ public sealed record LaunchOptions
         var dev = false;
         var streamStats = false;
         var noSettle = false;
+        var glShaders = false;
         var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
@@ -536,7 +547,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders")
             {
                 switch (arg)
                 {
@@ -632,6 +643,9 @@ public sealed record LaunchOptions
                     case "--no-settle":
                         noSettle = true;
                         break;
+                    case "--gl-shaders":
+                        glShaders = true;
+                        break;
                     case "--playtest":
                         playtest = true;
                         break;
@@ -692,7 +706,7 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -850,6 +864,16 @@ public sealed record LaunchOptions
                     }
 
                     result = arg == "--fov" ? result with { FieldOfView = number } : result with { MouseSensitivity = number };
+                    break;
+                case "--grass":
+                    var grassSpec = PlayerSettings.Spec(SettingId.Grass);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var grass) || grass > grassSpec.Max || grassSpec.Snap(grass) != grass)
+                    {
+                        error = $"--grass needs a whole number of percent from {grassSpec.Min} to {grassSpec.Max} in steps of {grassSpec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Grass = grass };
                     break;
                 case "--invert-y":
                     if (value is not ("on" or "off"))
@@ -1508,6 +1532,7 @@ public sealed record LaunchOptions
             Dev = dev,
             StreamStats = streamStats,
             NoSettle = noSettle,
+            GlShaders = glShaders,
             Lodging = lodging,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,

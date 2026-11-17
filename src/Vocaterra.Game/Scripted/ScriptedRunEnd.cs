@@ -37,6 +37,9 @@ public sealed class ScriptedRunEnd
     /// <summary>The tick at which a run that never settles takes its picture anyway (five minutes of game time).</summary>
     public const int RunawayTicks = 60 * 60 * 5;
 
+    /// <summary>The longest, in milliseconds of the wall clock, that a settled picture waits for the far tiles to reach the card.</summary>
+    public const double UploadWaitLimitMilliseconds = 120_000;
+
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly CheckBattery _checks;
@@ -51,6 +54,7 @@ public sealed class ScriptedRunEnd
     private readonly Action<long, string>? _logRunaway;
     private bool _runaway;
     private int _settled;
+    private double? _uploadWaitStart;
     private bool _shown;
     private int _sizeFrames;
     private int _framesAtSize;
@@ -192,8 +196,20 @@ public sealed class ScriptedRunEnd
             _console(StreamLine(renderer, streaming, timings, phases));
         }
 
+        if (_options.StreamStats)
+        {
+            var opaque = renderer.OpaquePassTimes;
+            _console(string.Create(CultureInfo.InvariantCulture, $"opaque pass ({(renderer.GlPass is null ? "effect" : "GLSL")}, processor time to submit): {opaque.Count} frames, median {opaque.Median:0.00} ms, p95 {opaque.Percentile(95):0.00} ms, p99 {opaque.Percentile(99):0.00} ms, longest {opaque.Longest:0.00} ms"));
+        }
+
+        if (renderer.GlPass is { } glPass)
+        {
+            var (errors, first) = glPass.Errors;
+            _console($"gl: the last opaque pass drew {glPass.LastPass.Quads} quads in {glPass.LastPass.DrawCalls} draw calls; {glPass.FallbackPasses} pass(es) fell back to the effect; {errors} GL error(s) cleared{(errors > 0 ? $" (first {first})" : string.Empty)}");
+        }
+
         // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.
-        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
+        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.GrassPercent > 0 ? $", grass {renderer.DrawnGrassQuads} quads (slider {renderer.GrassPercent}%, within {preset.GrassDistance} blocks, cap {preset.GrassCapPercent}%; {renderer.GrassBuilds.Built} layers built in {renderer.GrassBuilds.Milliseconds:0} ms, {renderer.GrassQuadsBuilt} quads held)" : string.Empty)}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
         var body = sim.Player;
         _console(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {sim.Tick}, wood {sim.Inventory.Count(ItemId.Wood)}, berries {sim.Inventory.Count(ItemId.Berry)}, bottle {sim.Inventory.Count(ItemId.Bottle)}, water {sim.Inventory.Count(ItemId.WaterBottle)}, bread {sim.Inventory.Count(ItemId.Bread)}"));
         _console($"objective: {_session.Objective.Summary}");
@@ -211,12 +227,25 @@ public sealed class ScriptedRunEnd
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
     // that is not waiting for its recording; a battery that rests is ready too, and a runaway run takes its picture anyway.
+    // A settled picture waits until every far tile it lists is on the card, but never for ever: after UploadWaitLimitMilliseconds of the wall clock it is taken with what is there (the run's stream line says how many were not).
+    private bool FarOnTheCard(StreamedWorldHost? streaming)
+    {
+        if (streaming is null || streaming.Far.Unuploaded == 0)
+        {
+            _uploadWaitStart = null;
+            return true;
+        }
+
+        _uploadWaitStart ??= MonotonicClock.Milliseconds();
+        return MonotonicClock.Milliseconds() - _uploadWaitStart > UploadWaitLimitMilliseconds;
+    }
+
     private bool ReadyForPicture(StreamedWorldHost? streaming)
     {
         var tick = _session.Simulation.Tick;
         return (tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
                 && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking }
-                && (streaming is null || streaming.Far.Unuploaded == 0)) // a settled picture waits until every far tile it lists is on the card
+                && FarOnTheCard(streaming)) // a settled picture waits until every far tile it lists is on the card
             || (_checks.RestsForShot && _settled >= SettleTicks)
             || RunawayAt(tick);
     }

@@ -21,6 +21,11 @@ internal interface ITreeGround
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
     int WaterLevelAt(int x, int z);
+
+    /// <summary>Whether a cave entrance's passage, mouth or damp zone keeps trees off the column (B11b).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    bool ClearsEntrance(int x, int z);
 }
 
 /// <summary>
@@ -145,15 +150,15 @@ internal static class TreePlacement
             return null; // inside an authored region, beside its border or on an exit road: no trunk, so no crown crosses into the region (B06)
         }
 
-        if (world.Underground is { } underground && underground.Entrances.InZone(c.X, c.Z))
+        if (ctx.ClearsEntrance(c.X, c.Z))
         {
-            return null; // no trunk stands in an entrance zone, whether or not the zone opens, so none is left over a shaft (B11)
+            return null; // no trunk stands over a cave entrance's passage or at its mouth (B11b)
         }
 
         var ground = ctx.SurfaceAt(c.X, c.Z);
-        if (ground.Water || !BlockDefinition.IsSolid(ground.Top) || BesideWater(ctx, c.X, c.Z))
+        if (ground.Water || ground.Bare || !BlockDefinition.IsSolid(ground.Top) || BesideWater(ctx, c.X, c.Z))
         {
-            return null; // a trunk needs solid dry ground under it (the caves keep a cover of rock under the ground, and none stands in an entrance zone, B11), and none stands in the column a body leaves the water by
+            return null; // a trunk needs solid dry ground under it that no cliff, scree or river bed has bared (B11b), and none stands in the column a body leaves the water by
         }
 
         var pick = (int)((c.Shape >> 8) % (ulong)trees.TotalWeight);

@@ -49,7 +49,7 @@ public sealed partial class SoundEventMapper
         BlockId.Trunk or BlockId.SpruceTrunk or BlockId.BirchTrunk or BlockId.Planks or BlockId.Timber or BlockId.Crate or BlockId.Counter or BlockId.Fence or BlockId.Sign
             or BlockId.Bridge or BlockId.Door or BlockId.Table or BlockId.Stall or BlockId.Wall or BlockId.Roof or BlockId.Chest or BlockId.Torch or BlockId.Lantern => SoundMaterial.Wood,
         BlockId.Stone or BlockId.MossyStone or BlockId.Cobble or BlockId.FireRing or BlockId.Slate or BlockId.Granite or BlockId.Limestone or BlockId.Bedrock or BlockId.IronOre or BlockId.TinOre
-            or BlockId.CopperOre => SoundMaterial.Stone,
+            or BlockId.CopperOre or BlockId.Basalt => SoundMaterial.Stone,
         BlockId.Leaves or BlockId.SpruceLeaves or BlockId.BirchLeaves or BlockId.Bush or BlockId.BerryBush or BlockId.TallGrass or BlockId.Fern or BlockId.Reeds
             or BlockId.YellowFlower or BlockId.WhiteFlower or BlockId.Wheat or BlockId.Loaves => SoundMaterial.Leaf,
         _ => SoundMaterial.Soft,

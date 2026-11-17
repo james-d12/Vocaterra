@@ -218,6 +218,18 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheGrassFlagTakesTheMenusRangeAndStepsAndRefusesTheRest()
+    {
+        Assert.Null(Parse("--screenshot", "x.png").Grass); // not given: the saved setting, the default for a new game
+        Assert.Equal(0, Parse("--grass", "0").Grass);
+        Assert.Equal(100, Parse("--grass", "100").Grass);
+        Assert.Equal(40, Parse("--grass", "40").Grass);
+        Assert.Contains("--grass needs a whole number of percent from 0 to 100 in steps of 10", Refuse("--grass", "45"), StringComparison.Ordinal);
+        Assert.Contains("--grass needs a whole number", Refuse("--grass", "110"), StringComparison.Ordinal);
+        Assert.Contains("--grass needs a whole number", Refuse("--grass", "lots"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheFieldOfViewMouseAndInvertFlagsTakeTheMenusRangesAndRefuseTheRest()
     {
         var options = Parse("--fov", "95", "--mouse-sensitivity", "250", "--invert-y", "on");

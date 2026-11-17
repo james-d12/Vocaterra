@@ -44,6 +44,8 @@ internal sealed class GenerationWorld
         MaxFillerDepth = biomes.Rows.Max(static r => r.FillerDepth);
         HasSurfaceStrategies = biomes.Rows.Any(static r => r.SurfaceStrategy != StrategyRegistry.PlainSurface);
         Margin = 1 + WaterReach + Math.Max(Strategies.MaxCrownReach, Underground?.WaterReach ?? 0) + Strategies.MaxFade + extraMargin;
+        Entrances = Underground is null ? null : new EntranceSites(this);
+        SurfaceRock = underground?.SurfaceRock is { } rock ? new SurfaceRock(rock, seed) : null;
     }
 
     /// <summary>The world's numbers.</summary>
@@ -69,6 +71,12 @@ internal sealed class GenerationWorld
 
     /// <summary>The underground (rock layers, floor, ores, caves, lava, entrances), or <see langword="null"/> for a world whose ground is plain stone (B11).</summary>
     public UndergroundWorld? Underground { get; }
+
+    /// <summary>The cave entrances (B11b): the passages from the surface into the caves, or <see langword="null"/> for a world with no underground.</summary>
+    public EntranceSites? Entrances { get; }
+
+    /// <summary>The bare and loose stone of the surface (B11b: cliffs, scree, stream beds), or <see langword="null"/> when the data has none.</summary>
+    public SurfaceRock? SurfaceRock { get; }
 
     /// <summary>The biome table.</summary>
     public BiomeTable Table { get; }

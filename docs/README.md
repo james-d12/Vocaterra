@@ -65,6 +65,7 @@ Documents beside the code or data they describe stay there: `content/README.md`,
 | [water-plan](game/water-plan.md) | The H series, flowing water, swimming, breath and the view under water (built 2026-11-07 to 2026-11-08; in `main`) |
 | [weather-plan](game/weather-plan.md) | The E series, a day and night cycle and modular weather: sunny, cloudy and rain, and the NPCs' weather answer (built 2026-11-10 to 2026-11-11 on `feature/weather`, PR #64; D-game-31) |
 | [biomes-plan](game/biomes-plan.md) | The B series, a tall procedural world round hand-crafted regions: biomes, great mountain ranges, rivers, lakes and sea; caves, lava, rock layers and iron, tin and copper ores; the valley opened by a pass (registered 2026-11-15 on `feature/biomes`; D-game-34 decided) |
+| [b17-spike](game/b17-spike.md) | B17a: the opaque chunk pass drawn through the game's own GLSL program on MonoGame's context (`--gl-shaders`): the context found, the state hand-over, the pixel comparison, the costs and the recommendation for B17 (2026-11-17) |
 | [activities-plan](game/activities-plan.md) | The W series, activities and the core systems (planned 2026-11-01; W01 to W10 built, W11 onward open; D-game-23 in part and D-game-24 decided 2026-11-03; implementation scope in the adaptation design, section 17.3) |
 | [playtest](game/playtest.md) | The facilitator's script for playtests |
 | [scripted-runs](game/scripted-runs.md) | The scripted runs, the front-end's regression set |

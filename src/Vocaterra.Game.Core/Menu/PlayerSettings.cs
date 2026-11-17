@@ -12,6 +12,9 @@ namespace Vocaterra.Game.Core.Menu;
 /// </summary>
 public sealed class PlayerSettings
 {
+    /// <summary>The grass density of a new game, in percent (B18): a plain of grass shows a tuft on six columns in ten, which reads as a lush meadow without hiding the ground or the paths.</summary>
+    public const int DefaultGrass = 60;
+
     private static readonly string[] OnOff = ["settingsOff", "settingsOn"];
 
     private static readonly IReadOnlyList<SettingSpec> Specs =
@@ -32,6 +35,7 @@ public sealed class PlayerSettings
         new(SettingId.NeedsRate, SettingKind.Slider, 50, 400, 25, 100, "settingsRate", "%"),
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
+        new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
     ];
 
     private readonly int[] _values;
@@ -102,6 +106,9 @@ public sealed class PlayerSettings
     /// <summary>Whether the pass cheat is on: the pass through the east ring is open at once (B08b).</summary>
     public bool PassCheat => Get(SettingId.PassCheat) == 1;
 
+    /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
+    public double Grass => Get(SettingId.Grass) / 100.0;
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -152,6 +159,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.NeedsRate] = (int)Math.Round(clean.EffectiveNeedsRate * 100);
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
             settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
+            settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -229,6 +237,11 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = 1;
         }
 
+        if (launch.Grass is { } grass)
+        {
+            settings._values[(int)SettingId.Grass] = Spec(SettingId.Grass).Snap(grass);
+        }
+
         if (launch.PassOpen)
         {
             settings._values[(int)SettingId.PassCheat] = 1;
@@ -250,7 +263,8 @@ public sealed class PlayerSettings
         InvertY: InvertY,
         FieldOfView: Get(SettingId.FieldOfView),
         ViewDistance: ViewDistance ?? 0,
-        PassCheat: PassCheat).Clamped();
+        PassCheat: PassCheat,
+        Grass: Get(SettingId.Grass)).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

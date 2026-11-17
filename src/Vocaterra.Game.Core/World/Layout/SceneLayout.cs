@@ -138,7 +138,7 @@ public sealed class SceneLayout
     /// <summary>
     /// Parses the layout JSON (comments and trailing commas are allowed). The shape: <c>schemaVersion</c> 2, <c>name</c>, <c>size</c> {x, y, z},
     /// <c>waterLevel</c>, <c>terrain</c> {relief (one string of base-32 digits per chunk row: the height at each chunk corner divided by 4), valley,
-    /// rockLine, snowLine, terrace, ceiling}, <c>sites</c> {name: {x, z, y?, radius?, blend?}}, <c>waterfall</c> {site, top, width, plateau, pool},
+    /// rockLine, terrace, ceiling}, <c>sites</c> {name: {x, z, y?, radius?, blend?}}, <c>waterfall</c> {site, top, width, plateau, pool},
     /// <c>lake</c> {site, rx, rz, depth}, <c>river</c> {halfWidth, depth, bank, path: [[x, z]...]}, <c>paths</c> [{name, from, to, via: [[x, z]...],
     /// halfWidth, mode: grade|follow}], <c>stamps</c> {name: {legend: {char: block}, layers: [[row...]...]}}, <c>props</c> [{type, site?, dx?, dz?, x?, z?,
     /// name?, width?, depth?, height?, length?, facing?, axis?, stamp?, block?}], <c>npcs</c> [{name, site?, dx?, dz?, x?, z?, facing}], <c>spawn</c>

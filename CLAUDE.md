@@ -28,8 +28,8 @@ Facts every session needs:
   (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; one again on 2026-11-15, "only have 1 agent max", D-game-34 item 17; up to four since that evening, "you can have up to 4 agents now", item 19); every heavy command (dotnet
-  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; one again on 2026-11-15, "only have 1 agent max", D-game-34 item 17; up to four since that evening, "you can have up to 4 agents now", item 19; up to five since 2026-11-16 22:30 UTC, "5 agents and 3 gates looks ok", item 38); every heavy command (dotnet
+  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most three at
   once machine-wide, caps each at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, and all of them together at 16 GB (8 GB until 2026-11-16, raised by the owner) and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,

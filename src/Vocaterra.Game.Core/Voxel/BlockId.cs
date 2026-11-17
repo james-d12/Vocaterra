@@ -203,4 +203,7 @@ public enum BlockId : ushort
 
     /// <summary>Copper ore: stone with orange and green flecks (solid, not gatherable; no item and no noun in this series). Appended in B10.</summary>
     CopperOre = 65,
+
+    /// <summary>Basalt: dark, fine-grained underground rock in columns, a darker stone laid among the slate (solid, not gatherable). Appended in B11b.</summary>
+    Basalt = 66,
 }
