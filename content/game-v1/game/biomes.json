@@ -8,41 +8,49 @@
     {
       "id": "river-channel",
       "when": { "water": true, "continentalness": { "min": 0 }, "river": { "max": 750 } },
+      "ambient": { "river": 1000, "birds": 300, "insects": 300 },
       "top": "sand", "filler": "dirt", "fillerDepth": 3
     },
     {
       "id": "ocean",
       "when": { "water": true, "continentalness": { "max": 20 } },
+      "ambient": { "surf": 1000, "wind": 300 },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {
       "id": "lake-basin",
       "when": { "water": true },
+      "ambient": { "river": 600, "birds": 400, "insects": 300 },
       "top": "sand", "filler": "dirt", "fillerDepth": 3
     },
     {
       "id": "beach",
       "when": { "water": false, "continentalness": { "max": 16 }, "height": { "max": 36 } },
+      "ambient": { "surf": 800, "wind": 300, "birds": 200 },
       "top": "sand", "filler": "sand", "fillerDepth": 4
     },
     {
       "id": "jagged-peaks",
       "when": { "height": { "min": 190 }, "ridges": { "min": 600 }, "surfaceTemperature": { "max": -400 } },
+      "ambient": { "wind": 1000 },
       "top": "stone", "filler": "stone", "fillerDepth": 3, "snowCap": true
     },
     {
       "id": "stony-peaks",
       "when": { "height": { "min": 190 } },
+      "ambient": { "wind": 1000 },
       "top": "stone", "filler": "stone", "fillerDepth": 3
     },
     {
       "id": "snowy-slopes",
       "when": { "height": { "min": 120 }, "surfaceTemperature": { "max": -400 } },
+      "ambient": { "wind": 800, "birds": 100 },
       "top": "stone", "filler": "stone", "fillerDepth": 3, "snowCap": true
     },
     {
       "id": "grove",
       "when": { "height": { "min": 90 }, "surfaceTemperature": { "max": -150 } },
+      "ambient": { "wind": 300, "birds": 600, "insects": 500 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 35, "species": [{ "species": "spruce", "weight": 1 }] },
       "decor": { "density": 60, "blocks": { "fern": 1 } }
@@ -50,12 +58,14 @@
     {
       "id": "meadow",
       "when": { "height": { "min": 90 } },
+      "ambient": { "birds": 900, "insects": 700, "wind": 200 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "decor": { "density": 350, "blocks": { "yellow-flower": 4, "white-flower": 4, "tall-grass": 2 } }
     },
     {
       "id": "taiga",
       "when": { "temperature": { "max": -300 } },
+      "ambient": { "birds": 500, "insects": 300, "wind": 300 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 45, "species": [{ "species": "spruce", "weight": 1 }] },
       "decor": { "density": 120, "blocks": { "fern": 3, "tall-grass": 1 } }
@@ -63,6 +73,7 @@
     {
       "id": "plains",
       "when": { "humidity": { "max": -150 } },
+      "ambient": { "birds": 700, "insects": 700, "wind": 400 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 4, "species": [{ "species": "oak", "weight": 1 }] },
       "decor": { "density": 250, "blocks": { "tall-grass": 6, "yellow-flower": 1, "white-flower": 1 } }
@@ -70,6 +81,7 @@
     {
       "id": "birchwood",
       "when": { "humidity": { "min": 150 }, "temperature": { "max": 100 } },
+      "ambient": { "birds": 1000, "insects": 700 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 50, "species": [{ "species": "birch", "weight": 5 }, { "species": "oak", "weight": 1 }] },
       "decor": { "density": 150, "blocks": { "fern": 2, "tall-grass": 2 } }
@@ -77,12 +89,14 @@
     {
       "id": "dense-woodland",
       "when": { "humidity": { "min": 150 } },
+      "ambient": { "birds": 1000, "insects": 800 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 80, "species": [{ "species": "oak", "weight": 4 }, { "species": "birch", "weight": 1 }] },
       "decor": { "density": 200, "blocks": { "fern": 4, "tall-grass": 2 } }
     },
     {
       "id": "woodland",
+      "ambient": { "birds": 900, "insects": 800 },
       "top": "grass", "filler": "dirt", "fillerDepth": 3,
       "trees": { "density": 40, "species": [{ "species": "oak", "weight": 4 }, { "species": "birch", "weight": 1 }] },
       "decor": { "density": 150, "blocks": { "tall-grass": 4, "fern": 2 } }

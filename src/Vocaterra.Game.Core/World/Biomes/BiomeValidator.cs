@@ -92,6 +92,29 @@ internal static partial class BiomeValidator
         CheckStrategy(problems, row, "decorStrategy", row.DecorStrategy, strategies.DecorationNames);
         CheckTrees(row, strategies, problems);
         CheckDecor(row, problems);
+        CheckAmbient(row, problems);
+    }
+
+    private static void CheckAmbient(BiomeRow row, List<string> problems)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var share in row.Ambient ?? [])
+        {
+            if (!Sound.AmbientBeds.ByPlace.Contains(share.Bed, StringComparer.Ordinal))
+            {
+                problems.Add($"{File}: '{row.Id}' names the unknown ambient bed '{share.Bed}' (a biome may name {string.Join(", ", Sound.AmbientBeds.ByPlace)}).");
+            }
+
+            if (share.Weight < 0 || share.Weight > 1000)
+            {
+                problems.Add($"{File}: the ambient weight of '{share.Bed}' in '{row.Id}' must be from 0 to 1000 thousandths (it is {share.Weight}).");
+            }
+
+            if (!seen.Add(share.Bed))
+            {
+                problems.Add($"{File}: '{row.Id}' lists the ambient bed '{share.Bed}' twice.");
+            }
+        }
     }
 
     private static void CheckStrategy(List<string> problems, BiomeRow row, string part, string name, IReadOnlyList<string> known)

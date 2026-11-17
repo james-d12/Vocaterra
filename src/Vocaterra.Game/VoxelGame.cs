@@ -214,7 +214,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _sim = session.Simulation;
         HoldTheClock(options);
-        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
+        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout, scene.Places);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
@@ -815,7 +815,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.PlotLine = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.PlotLine);
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere, _sim.Weather.Data.CloudAltitude)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)

@@ -76,6 +76,11 @@ public sealed record DecorRule(int Density, IReadOnlyList<DecorEntry> Blocks)
     public static DecorRule None { get; } = new(0, []);
 }
 
+/// <summary>How much one ambient sound bed is heard in a biome (B14): a bed named by its id and a weight in thousandths.</summary>
+/// <param name="Bed">The bed's id (one of <see cref="Sound.AmbientBeds.ByPlace"/>).</param>
+/// <param name="Weight">How loud it is at the heart of the biome, 0 to 1 000 thousandths of the bed's full weight.</param>
+public sealed record BedShare(string Bed, int Weight);
+
 /// <summary>
 /// One row of <c>game/biomes.json</c> (B01, D-game-34): a biome is data, never an enum. The table tries the rows in order and the first whose conditions hold wins; what the row
 /// carries is what the surface passes and the decorators read (the ground's blocks, the trees and the undergrowth), by name.
@@ -93,6 +98,7 @@ public sealed record DecorRule(int Density, IReadOnlyList<DecorEntry> Blocks)
 /// <param name="BaseTemperature">An optional base temperature of the biome in thousandths, for the temperature system to come (data only: nothing reads it yet).</param>
 /// <param name="SurfaceStrategy">The name of the code strategy that shapes the biome's own ground (B03, D-game-34 item 13), a name of the strategy and never a biome id.</param>
 /// <param name="DecorStrategy">The name of the code strategy that dresses the biome's ground with plants.</param>
+/// <param name="Ambient">The ambient sound beds heard in the biome (B14, <c>ambient</c> in <c>game/biomes.json</c>), or <see langword="null"/> for none: the sound reads these and never the biome's id.</param>
 public sealed record BiomeRow(
     int Index,
     string Id,
@@ -106,4 +112,5 @@ public sealed record BiomeRow(
     bool SnowCap,
     int? BaseTemperature,
     string SurfaceStrategy = Generation.Procedural.StrategyRegistry.PlainSurface,
-    string DecorStrategy = Generation.Procedural.StrategyRegistry.UndergrowthDecoration);
+    string DecorStrategy = Generation.Procedural.StrategyRegistry.UndergrowthDecoration,
+    IReadOnlyList<BedShare>? Ambient = null);

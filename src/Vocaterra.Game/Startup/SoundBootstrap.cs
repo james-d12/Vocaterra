@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Sound;
 
@@ -27,7 +28,8 @@ public static class SoundBootstrap
     /// <param name="session">The session (the seed, the lessons' book, the events already in it).</param>
     /// <param name="saved">The volumes a loaded save holds, or <see langword="null"/>.</param>
     /// <param name="layout">The scene's layout, or <see langword="null"/>.</param>
-    public static SoundParts Create(LaunchOptions options, VoxelSession session, SoundVolumes? saved, SceneLayout? layout)
+    /// <param name="info">The world's place query (B14), from which the biome's data and the depth under the ground choose the ambient beds, or <see langword="null"/> where the world has none (the valley alone).</param>
+    public static SoundParts Create(LaunchOptions options, VoxelSession session, SoundVolumes? saved, SceneLayout? layout, IPlaceInfo? info = null)
     {
         var volumes = SoundSetup.VolumesFor(options.Sound, saved);
         ISoundOutput output = SoundSetup.UsesNullOutput(options.Sound) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
@@ -41,7 +43,7 @@ public static class SoundBootstrap
         }
 
         var places = layout is null ? new AmbientPlaces(null, null, null, [], null, [], []) : AmbientPlaces.From(layout);
-        var ambient = new AmbientSound(mixer, places);
+        var ambient = new AmbientSound(mixer, places, info);
         var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book), ambient);
         sound.SkipEvents(session.Events.Count);
         return new SoundParts(sound, output, log);

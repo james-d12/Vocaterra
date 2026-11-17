@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Sound;
 
@@ -19,6 +20,9 @@ public sealed class AmbientSound
 
     private readonly SoundMixer _mixer;
     private readonly AmbientPlaces _places;
+    private readonly IPlaceInfo? _info;
+    private (int X, int Y, int Z) _readAt = (int.MinValue, 0, 0);
+    private PlaceAmbience? _read;
     private readonly List<(long Tick, double Pan)> _chirps = [];
     private long _nextChirpCluster = -1;
     private long _nextCrackle = -1;
@@ -28,10 +32,30 @@ public sealed class AmbientSound
     /// <summary>Creates the ambient sound over the mixer.</summary>
     /// <param name="mixer">The mixer.</param>
     /// <param name="places">The scene's places.</param>
-    public AmbientSound(SoundMixer mixer, AmbientPlaces places)
+    /// <param name="info">The world's place query (B14): the biome's data and the depth under the ground choose the beds; <see langword="null"/> for the scene's places and the height alone.</param>
+    public AmbientSound(SoundMixer mixer, AmbientPlaces places, IPlaceInfo? info = null)
     {
         _mixer = mixer ?? throw new ArgumentNullException(nameof(mixer));
         _places = places ?? throw new ArgumentNullException(nameof(places));
+        _info = info;
+    }
+
+    // The place's reading, asked again only when the listener's feet move to another block (the model is pure, so a block's answer does not change).
+    private PlaceAmbience? PlaceOfListener(Listener listener)
+    {
+        if (_info is null)
+        {
+            return null;
+        }
+
+        var cell = ((int)Math.Floor(listener.X), (int)Math.Floor(listener.Y), (int)Math.Floor(listener.Z));
+        if (_read is null || cell != _readAt)
+        {
+            _read = PlaceAmbience.At(_info, listener.X, listener.Y, listener.Z);
+            _readAt = cell;
+        }
+
+        return _read;
     }
 
     /// <summary>The beds' weights for a listener (the same as <see cref="AmbientBeds.At"/>).</summary>
@@ -40,7 +64,7 @@ public sealed class AmbientSound
     /// <param name="fireLit">Whether the fire at the guide's camp is lit.</param>
     /// <param name="highestBlock">Reads the highest block of a column of the world (the rain is lower under cover), or <see langword="null"/> for open ground.</param>
     /// <param name="campFire">The middle of the player's own camp's fire ring while it burns (Y12), or <see langword="null"/>.</param>
-    public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock, campFire);
+    public IReadOnlyList<BedInput> WeightsAt(Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null) => AmbientBeds.At(_places, listener, atmosphere, fireLit, highestBlock, campFire, PlaceOfListener(listener));
 
     /// <summary>
     /// One tick: the beds' targets are set for the listener, a line is logged when the place or its weights change (rounded to a tenth), and the chirps and crackles
@@ -60,7 +84,7 @@ public sealed class AmbientSound
         var weights = inputs.ToDictionary(static b => b.Bed, static b => b.Weight, StringComparer.Ordinal);
         _firePan = inputs.First(static b => b.Bed == AmbientBeds.Fire).Pan;
 
-        var place = AmbientBeds.PlaceOf(_places, listener);
+        var place = AmbientBeds.PlaceOf(_places, listener, PlaceOfListener(listener));
         var heard = string.Join(' ', AmbientBeds.All.Where(bed => Math.Round(weights[bed], 1) > 0).Select(bed => $"{bed}={weights[bed]:0.0}"));
         var note = $"{place} {heard}";
         if (note != _lastNote)

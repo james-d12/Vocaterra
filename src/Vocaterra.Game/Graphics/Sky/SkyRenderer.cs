@@ -323,7 +323,7 @@ public sealed class SkyRenderer : IDisposable
 
     private void DrawClouds(FirstPersonCamera camera, Matrix projection, long tick)
     {
-        CloudField.Generate(camera.Eye.X, camera.Eye.Z, tick, _boxes, _look.CloudCover);
+        CloudField.Generate(camera.Eye.X, camera.Eye.Z, tick, _boxes, _look.CloudCover, _look.CloudAltitude);
         var needed = _boxes.Count * 5 * 6;
         if (_clouds.Length < needed)
         {

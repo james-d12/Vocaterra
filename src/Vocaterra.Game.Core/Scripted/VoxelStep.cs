@@ -53,27 +53,8 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
     /// <summary>A step that lets a held weather run on.</summary>
     public static VoxelStep RunWeather() => new(VoxelStepKind.RunWeather);
 
-    /// <summary>Reads <c>x,z</c> (two non-negative integers).</summary>
+    /// <summary>Reads <c>x,z</c> (two integers, a minus sign allowed: the world runs on both sides of the origin, B14).</summary>
     public static bool TryParseColumn(string value, out int x, out int z)
-    {
-        x = 0;
-        z = 0;
-        var parts = value.Split(',');
-        return parts.Length == 2 && TryInt(parts[0], out x) && TryInt(parts[1], out z);
-    }
-
-    /// <summary>Reads <c>x,y,z</c> (three non-negative integers).</summary>
-    public static bool TryParseBlock(string value, out int x, out int y, out int z)
-    {
-        x = 0;
-        y = 0;
-        z = 0;
-        var parts = value.Split(',');
-        return parts.Length == 3 && TryInt(parts[0], out x) && TryInt(parts[1], out y) && TryInt(parts[2], out z);
-    }
-
-    /// <summary>Reads <c>x,z</c> (two integers, a minus sign allowed: the world runs on both sides of the origin, B12).</summary>
-    public static bool TryParseSignedColumn(string value, out int x, out int z)
     {
         x = 0;
         z = 0;
@@ -81,8 +62,8 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
         return parts.Length == 2 && TrySigned(parts[0], out x) && TrySigned(parts[1], out z);
     }
 
-    /// <summary>Reads <c>x,y,z</c> (three integers, a minus sign allowed).</summary>
-    public static bool TryParseSignedBlock(string value, out int x, out int y, out int z)
+    /// <summary>Reads <c>x,y,z</c> (three integers, a minus sign allowed, B14).</summary>
+    public static bool TryParseBlock(string value, out int x, out int y, out int z)
     {
         x = 0;
         y = 0;
@@ -91,7 +72,11 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
         return parts.Length == 3 && TrySigned(parts[0], out x) && TrySigned(parts[1], out y) && TrySigned(parts[2], out z);
     }
 
-    private static bool TrySigned(string text, out int value) => int.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value);
+    /// <summary>The same as <see cref="TryParseColumn"/> (B12 named it before the plain readers were signed).</summary>
+    public static bool TryParseSignedColumn(string value, out int x, out int z) => TryParseColumn(value, out x, out z);
 
-    private static bool TryInt(string text, out int value) => int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+    /// <summary>The same as <see cref="TryParseBlock"/>.</summary>
+    public static bool TryParseSignedBlock(string value, out int x, out int y, out int z) => TryParseBlock(value, out x, out y, out z);
+
+    private static bool TrySigned(string text, out int value) => int.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value);
 }

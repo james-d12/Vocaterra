@@ -57,6 +57,27 @@ public sealed class WeatherDataTests
     }
 
     [Fact]
+    public void TheCloudAltitudeIsReadFromTheFileAndDefaultsTo168()
+    {
+        Assert.Equal(168, WeatherData.Parse(Json).CloudAltitude);
+        Assert.Equal(168, WeatherData.Default.CloudAltitude);
+        Assert.Equal(168, Shipped.CloudAltitude);
+        Assert.Equal(250, WeatherData.Parse(Json.Replace("\"transitionSeconds\": 5,", "\"transitionSeconds\": 5, \"cloudAltitude\": 250,", StringComparison.Ordinal)).CloudAltitude);
+    }
+
+    [Theory]
+    [InlineData(79)]
+    [InlineData(801)]
+    [InlineData(double.NaN)]
+    public void ACloudAltitudeOutOfRangeIsRefused(double altitude) => Assert.True(Names(Problems(Shipped with { CloudAltitude = altitude }), "cloudAltitude"));
+
+    [Theory]
+    [InlineData(80)]
+    [InlineData(300)]
+    [InlineData(800)]
+    public void ACloudAltitudeInRangeIsAccepted(double altitude) => Assert.Empty(Problems(Shipped with { CloudAltitude = altitude }));
+
+    [Fact]
     public void TheDefaultDataIsOneNeutralKindThatHoldsTogether()
     {
         Assert.Single(WeatherData.Default.Kinds);
