@@ -53,4 +53,7 @@ public enum SettingId
 
     /// <summary>The decorative grass on the grass blocks' tops (B18, D-game-34 item 34): its density in percent, 0 (none: the look of before) to 100, in steps of 10.</summary>
     Grass,
+
+    /// <summary>The game's own GLSL shaders for the chunks (B17b, D-game-34 item 43): 0 off (MonoGame's effects draw the chunks), 1 on (the default; the effects draw anyway when the context cannot run the program). The graphics effects of B17c join it, each its own toggle.</summary>
+    Shaders,
 }

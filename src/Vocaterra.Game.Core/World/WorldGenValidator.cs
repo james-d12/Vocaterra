@@ -195,9 +195,9 @@ internal static class WorldGenValidator
         }
 
         var r = h.Rivers;
-        if (r.Width < 1 || r.Width > 1000 || r.Depth < 1 || r.Depth > 32 || r.FadeFromHeight >= r.FadeToHeight)
+        if (r.Width < 1 || r.Width > 64 || r.Depth < 1 || r.Depth > 32 || r.FadeFromHeight >= r.FadeToHeight)
         {
-            problems.Add($"{File}: height.rivers needs a width from 1 to 1000, a depth from 1 to 32, and a fadeFromHeight below fadeToHeight.");
+            problems.Add($"{File}: height.rivers needs a width from 1 to 64 blocks, a depth from 1 to 32, and a fadeFromHeight below fadeToHeight.");
         }
 
         Ordered(problems, "height.rivers.seaFadeFrom/seaFadeTo", r.SeaFadeFrom, r.SeaFadeTo, -1000, 1000);
@@ -206,9 +206,14 @@ internal static class WorldGenValidator
             problems.Add($"{File}: height.rivers.peakFadeFrom must be 0 or more and below peakFadeTo (they are {r.PeakFadeFrom} and {r.PeakFadeTo}).");
         }
 
-        if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer10Blocks < 0 || valley.WidthPer10Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000))
+        if (r.Valley is { } valley && (valley.From < v.SeaLevel || valley.From >= r.FadeToHeight || valley.WidthPer100Blocks < 0 || valley.WidthPer100Blocks > 200 || valley.DepthGrowth < 0 || valley.DepthGrowth > 1000))
         {
-            problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer10Blocks from 0 to 200 and a depthGrowth from 0 to 1000 (they are {valley.From}, {valley.WidthPer10Blocks} and {valley.DepthGrowth}).");
+            problems.Add($"{File}: height.rivers.valley needs a from between the sea level and fadeToHeight, a widthPer100Blocks from 0 to 200 and a depthGrowth from 0 to 1000 (they are {valley.From}, {valley.WidthPer100Blocks} and {valley.DepthGrowth}).");
+        }
+
+        if (h.DrainageData is { } drainage)
+        {
+            CheckDrainage(problems, drainage, r, world.Climate.LatticeBlocks);
         }
 
         if (h.PeakVariation is { } pv && (pv.Cell < 1 || pv.Octaves < 1 || pv.Octaves > 8 || pv.Cell >> (pv.Octaves - 1) < 1 || pv.MinShare < 0 || pv.MinShare > 1000))
@@ -243,6 +248,46 @@ internal static class WorldGenValidator
             {
                 problems.Add($"{File}: height.coast.hillsFloor must be from 0 to 1000 thousandths (it is {coast.HillsFloor}).");
             }
+        }
+    }
+
+    // The drainage network's numbers (B02c): a grid of nodes, a cap on a landmass, widths between the narrowest river's and a maximum, and a source area below the full one.
+    private static void CheckDrainage(List<string> problems, DrainageSpec d, RiverSpec rivers, int lattice)
+    {
+        if (d.Spacing < 8 || d.Spacing > 256 || lattice < 1 || d.Spacing % lattice != 0)
+        {
+            problems.Add($"{File}: height.drainage.spacing must be from 8 to 256 blocks and a multiple of the climate's lattice, {lattice} (it is {d.Spacing}).");
+            return;
+        }
+
+        if (d.MaxNodes < 10_000 || d.MaxNodes > 4_000_000)
+        {
+            problems.Add($"{File}: height.drainage.maxNodes must be from 10000 to 4000000 (it is {d.MaxNodes}).");
+        }
+
+        if (d.SourceArea < 1 || d.SourceArea >= d.FullArea || d.FullArea > 65000)
+        {
+            problems.Add($"{File}: height.drainage needs a sourceArea of at least 1 below fullArea, and a fullArea of at most 65000 nodes (they are {d.SourceArea} and {d.FullArea}).");
+        }
+
+        if (d.WidthMax < rivers.Width || d.WidthMax > 64 || d.DepthMax < rivers.Depth || d.DepthMax > 32)
+        {
+            problems.Add($"{File}: height.drainage needs a widthMax from rivers.width to 64 blocks and a depthMax from rivers.depth to 32 (they are {d.WidthMax} and {d.DepthMax}).");
+        }
+
+        if (d.Jitter < 0 || d.Jitter * 4 > d.Spacing || d.Bow < 0 || d.Bow > 500)
+        {
+            problems.Add($"{File}: height.drainage needs a jitter of at most a quarter of the spacing and a bow from 0 to 500 thousandths of a reach (they are {d.Jitter} and {d.Bow}).");
+        }
+
+        if (d.Relief < 0 || d.Relief > 16 || d.ReliefCell < 16 || d.ReliefCell > 8192)
+        {
+            problems.Add($"{File}: height.drainage needs a relief from 0 to 16 blocks and a reliefCell from 16 to 8192 blocks (they are {d.Relief} and {d.ReliefCell}).");
+        }
+
+        if (d.LakeBasin < 0 || d.LakeBasin > 64 || d.RegionClearance < 0 || d.RegionClearance > 4096)
+        {
+            problems.Add($"{File}: height.drainage needs a lakeBasin from 0 to 64 blocks and a regionClearance from 0 to 4096 blocks (they are {d.LakeBasin} and {d.RegionClearance}).");
         }
     }
 

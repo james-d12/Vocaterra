@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
+using Vocaterra.Game.Core.World.Drainage;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Regions;
 
@@ -30,16 +31,29 @@ public sealed class WorldQuery : IPlaceInfo
     public BiomeRow BiomeAt(int x, int z)
     {
         var climate = _world.Climate.At(x, z);
-        var shape = _world.Height.Shape(x, z, climate);
-        return _world.Table.Classify(climate, shape.Height, x, z, shape.Water).Row;
+        var shape = ShapeAt(x, z, climate);
+        return _world.Table.Classify(climate, shape.Height, x, z, shape.Water, shape.RiverWeight).Row;
     }
 
     /// <inheritdoc />
     public IRegion? RegionAt(int x, int z) => _regions.RegionAt(x, z);
 
     /// <inheritdoc />
-    public int NaturalSurfaceAt(int x, int z) => _world.Height.Shape(x, z, _world.Climate.At(x, z)).Height;
+    public int NaturalSurfaceAt(int x, int z) => ShapeAt(x, z, _world.Climate.At(x, z)).Height;
 
     /// <inheritdoc />
     public bool IsUnderground(int x, int y, int z) => y < NaturalSurfaceAt(x, z);
+
+    // The column's shape, for a caller that may be the game loop (the sky's exposure and the residency read it every frame): where the drainage network has not read the landmass round the column yet the answer is the ground without rivers and lakes (the
+    // loop never waits for a landmass: up to a second). No thread is started here: the streaming workers read the landmass when they generate the chunks round the player (and the far view's jobs when they sample it), so the dry answer lasts only until then.
+    private ColumnShape ShapeAt(int x, int z, ClimateSample climate)
+    {
+        if (_world.Ground.IsWarm(x, z))
+        {
+            return _world.Height.Shape(x, z, climate);
+        }
+
+        using var dry = DrainageNetwork.WithoutReading();
+        return _world.Height.Shape(x, z, climate);
+    }
 }
