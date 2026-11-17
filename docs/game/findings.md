@@ -2875,3 +2875,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   hang: a block placed in the near zone left the far tile over it dirty forever, so every scripted settle waited out its 300 s bound;
   `Stale` now counts only needed tiles. Four of its tests failed under load (they waited on wall time); they now wait on their condition
   or settle with no workers (hang guards of 30 and 60 minutes, which B24 shortens). Gated clean.
+- **B17b, every chunk pass on the game's GLSL (2026-11-17, `860a4a28`).** The faces, lit pieces, cut-outs, B18's grass, the glow and the
+  water draw through one GLSL program (`GlChunkPass`), on by default; the far view, the sky, the figures, rain and the UI stay on MonoGame.
+  One GL state scope a frame, with no MonoGame call inside it (the figures and outlines are drawn before it). The underwater render target
+  works through a flip uniform. A "Shaders" row in the settings' new Graphics group (saved only when off, so default saves are unchanged),
+  `--gl-shaders on|off`, and an automatic fallback to the effects below GL 3.3 or on a compile failure. Seven of eight comparison views are
+  pixel-identical to the effects; the shore differs on 3 pixels by 1/255 (a first run differed on 1.2% of the water: MonoGame's
+  `MaxMipLevel` is the last mip level, not the base). Interleaved timings: the processor's submit time falls to a quarter or a tenth
+  (meadow 1.17 to 0.36 ms, under water 3.80 to 0.35), the card's time is equal or lower in every pair (`GlCardTimer`), frame p50 lower.
+  Gated clean.
