@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Far;
@@ -7,6 +8,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Far;
 
 /// <summary>The far view's sampler (B07, D-game-34 item 21): the land read from the height model and the biome table with no chunk generated; pure, deterministic and the same land the generator makes.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
 {
     private static FarTerrainSampler Sampler => RegionTestWorld.Composition().World.Far;

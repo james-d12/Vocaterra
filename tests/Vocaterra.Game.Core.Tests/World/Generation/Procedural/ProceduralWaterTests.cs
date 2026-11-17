@@ -8,6 +8,7 @@ namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 /// The procedural water (B03, H07, D-game-26, B02b round 3): the sea, every river and every lake hold water at a level of their own, every water block is a source (a river's surface steps down in falling water, built the way the valley's rapids
 /// are), so the whole of it is at rest from the start (waking every water block changes nothing), a column of water is one run of water on solid ground, and every edge of the water can be left by a body in it.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class ProceduralWaterTests
 {
     private const int Layers = 14; // y 0 to 223: the sea at 32, rivers and lakes at their own levels, the shores and the trees round them

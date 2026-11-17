@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Graphics.Blocks;
@@ -10,6 +11,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Tests.Graphics.Far;
 
 /// <summary>The far view's tile meshes (B07c): the faces of three-dimensional sections, axis-aligned on whole voxels, closed and crack-free, overhangs kept, greedy-merged when flat and textured when near, with water and light kinds in lists of their own.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class FarTileMesherTests(ITestOutputHelper output)
 {
     private static readonly FarViewSettings Settings = new(4096);

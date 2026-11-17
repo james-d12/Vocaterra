@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.World.Noise;
 namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 
 /// <summary>The tall world's ground (B01): the three splines, the caps, terraces, crags, rivers and lakes, and the water rule.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class HeightModelTests
 {
     private static WorldGenData World => TestGame.Data.WorldGen;

@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Far;
 
 /// <summary>The far view's columns made from the generator's model (B07c): the trees are the tree pass's own, the columns are the generated blocks, a coarser level is the merge of finer ones, and the same cell is the same column from any thread.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class LodModelSourceTests(ITestOutputHelper output)
 {
     private static FarTerrainSampler SamplerOf(ulong seed) => new(ProceduralTestWorld.Source(seed).World, RegionCatalog.Empty);

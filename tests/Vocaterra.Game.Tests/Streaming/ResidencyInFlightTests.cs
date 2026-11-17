@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Menu;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Streaming;
@@ -11,6 +12,7 @@ namespace Vocaterra.Game.Tests.Streaming;
 /// The residency with packages in flight (B21, review C4 and C5): a jump leaves the old place's jobs running, a quality change leaves the old radii's, and neither may lose a column, make one twice, install what the plan does not
 /// hold or leave a chunk half installed; and the settled driver's frames, and the grid's reads, make no garbage and no chunk.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class ResidencyInFlightTests
 {
     private static (float X, float Y, float Z) Eye(Scene scene) => (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
