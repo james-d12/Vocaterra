@@ -211,6 +211,28 @@ public sealed class FarViewTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Given_TheClimateColoursTurnedOff_When_TheViewIsReconfigured_Then_EveryTileIsMadeAgainBecauseTheColoursAreInTheirVertices()
+    {
+        // B17c: the climate colours are baked into the far tiles' vertex colours, so the setting that swaps the ground function drops and rebuilds them; the same function again keeps them.
+        using var pool = new JobPool(0);
+        Func<int, int, int, (int Temperature, int Humidity)> ground = static (_, _, _) => (10, 20);
+        var view = Make(pool, Small with { Ground = ground });
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        var cached = view.Stats.Cached;
+        Assert.True(cached > 0);
+
+        view.Reconfigure(Small with { Ground = ground, Range = 1536 }, Release);
+        Assert.Equal(cached, view.Stats.Cached); // the same ground function: the tiles are kept
+        Assert.Empty(_released);
+
+        view.Reconfigure(Small with { Ground = null }, Release);
+        Assert.Equal(0, view.Stats.Cached);
+        Assert.Equal(cached, _released.Count);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000)); // and built again with the colour map's middle
+        Assert.True(view.Stats.Cached > 0);
+    }
+
+    [Fact]
     public void Given_TheFarViewOff_When_ItIsUpdated_Then_NothingIsBuiltOrDrawn()
     {
         using var pool = new JobPool(0);

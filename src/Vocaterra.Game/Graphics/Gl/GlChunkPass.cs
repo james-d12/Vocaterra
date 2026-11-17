@@ -14,9 +14,6 @@ public enum GlPassKind
     /// <summary>The cut-outs (the plants, the grass layer): as <see cref="Opaque"/> with both sides of a quad showing.</summary>
     Cutout,
 
-    /// <summary>The lantern glow: the colour added to what is there, depth tested and not written, the fog colour black (it fades the glow to nothing).</summary>
-    Glow,
-
     /// <summary>The water: translucent (source alpha over the picture), depth tested and not written, no alpha test, the water's own animated texture, the light as data with the water shader's tint, movement and edge.</summary>
     Water,
 
@@ -473,15 +470,6 @@ public sealed unsafe class GlChunkPass : IDisposable
                 SetCull(true);
                 _gl.Uniform1(_uAlphaReference, AlphaReference);
                 _gl.Uniform3(_uFogColour, _fogColour.X, _fogColour.Y, _fogColour.Z);
-                break;
-            case GlPassKind.Glow:
-                _gl.DepthMask(false);
-                _gl.Enable(EnableCap.Blend);
-                _gl.BlendFuncSeparate(BlendingFactor.One, BlendingFactor.One, BlendingFactor.Zero, BlendingFactor.One); // the colour is added to what is there; the alpha is left alone
-                SetCull(true);
-                _gl.Uniform1(_uAlphaReference, AlphaReference);
-                _gl.Uniform3(_uFogColour, 0f, 0f, 0f); // the fog fades the glow to nothing instead of adding haze
-                _gl.BindTexture(TextureTarget.Texture2D, _atlas);
                 break;
             default:
                 _gl.DepthMask(false);

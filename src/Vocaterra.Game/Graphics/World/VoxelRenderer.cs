@@ -1289,8 +1289,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             WaterWave);
     }
 
-    /// <summary>The fog by height's density at its base height, per block (B17c): about a tenth of the view's haze at a kilometre along the low land, thicker with distance (the far view lies in it).</summary>
-    public const float HeightFogDensity = 0.00012f;
+    /// <summary>The fog by height's density at its base height, per block (B17c): about 8 percent haze for a kilometre of the low land in the ray's way (half a percent at the near view's 60 blocks, 3 percent at its edge), more with distance: the far view lies in it.</summary>
+    public const float HeightFogDensity = 0.00008f;
 
     /// <summary>The height, in blocks, at which the fog by height has its full density (the sea level and the valley floors; a ridge above it stands out of the haze).</summary>
     public const float HeightFogBase = 64f;
