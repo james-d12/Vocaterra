@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.IO.Compression;
 using Vocaterra.Game.Core.Voxel;
 
@@ -197,11 +198,10 @@ public sealed class LodSection
             return [0, (byte)((ushort)_fill & 0xFF), (byte)((ushort)_fill >> 8), _fillLight];
         }
 
-        using var memory = new MemoryStream();
-        memory.WriteByte(1);
-        using (var deflate = new DeflateStream(memory, CompressionLevel.Fastest, leaveOpen: true))
+        // The planes are laid out in a pooled array (96 KB is over the large-object threshold: a fresh one for every section kept would be gen-2 garbage; B07d, the review's M3).
+        var raw = ArrayPool<byte>.Shared.Rent(Volume * 3);
+        try
         {
-            var raw = new byte[Volume * 3];
             for (var i = 0; i < Volume; i++)
             {
                 raw[i] = (byte)((ushort)_blocks[i] & 0xFF);
@@ -209,50 +209,78 @@ public sealed class LodSection
                 raw[(2 * Volume) + i] = _light![i];
             }
 
-            deflate.Write(raw);
-        }
+            using var memory = new MemoryStream();
+            memory.WriteByte(1);
+            using (var deflate = new DeflateStream(memory, CompressionLevel.Fastest, leaveOpen: true))
+            {
+                deflate.Write(raw, 0, Volume * 3);
+            }
 
-        return memory.ToArray();
+            return memory.ToArray();
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(raw);
+        }
     }
 
     /// <summary>The section a packed array holds.</summary>
     /// <param name="packed">The bytes <see cref="Pack"/> made.</param>
     /// <exception cref="InvalidDataException">The bytes are not a section (torn or corrupt): the length, the kind or the deflated size is wrong.</exception>
-    public static LodSection Unpack(ReadOnlySpan<byte> packed)
+    public static LodSection Unpack(byte[] packed)
     {
-        if (packed.Length < 4 || packed[0] > 1)
+        ArgumentNullException.ThrowIfNull(packed);
+        return Unpack(packed, packed.Length);
+    }
+
+    /// <summary>The section a packed array holds.</summary>
+    /// <param name="packed">The bytes <see cref="Pack"/> made.</param>
+    /// <exception cref="InvalidDataException">The bytes are not a section (torn or corrupt): the length, the kind or the deflated size is wrong.</exception>
+    public static LodSection Unpack(ReadOnlySpan<byte> packed) => Unpack(packed.ToArray(), packed.Length);
+
+    // Reads from the array itself (no copy of the deflated bytes) into a pooled plane buffer.
+    private static LodSection Unpack(byte[] packed, int length)
+    {
+        if (length < 4 || packed[0] > 1)
         {
             throw new InvalidDataException("Not a packed section.");
         }
 
         if (packed[0] == 0)
         {
-            return packed.Length == 4 ? new LodSection((BlockId)(packed[1] | (packed[2] << 8)), packed[3]) : throw new InvalidDataException("A uniform section is four bytes.");
+            return length == 4 ? new LodSection((BlockId)(packed[1] | (packed[2] << 8)), packed[3]) : throw new InvalidDataException("A uniform section is four bytes.");
         }
 
-        var raw = new byte[Volume * 3];
+        var raw = ArrayPool<byte>.Shared.Rent(Volume * 3);
         try
         {
-            using var input = new MemoryStream(packed[1..].ToArray());
-            using var deflate = new DeflateStream(input, CompressionMode.Decompress);
-            deflate.ReadExactly(raw);
-            if (deflate.ReadByte() != -1)
+            try
             {
-                throw new InvalidDataException("A section holds more than its voxels.");
+                using var input = new MemoryStream(packed, 1, length - 1, writable: false);
+                using var deflate = new DeflateStream(input, CompressionMode.Decompress);
+                deflate.ReadExactly(raw, 0, Volume * 3);
+                if (deflate.ReadByte() != -1)
+                {
+                    throw new InvalidDataException("A section holds more than its voxels.");
+                }
             }
-        }
-        catch (EndOfStreamException ex)
-        {
-            throw new InvalidDataException("A section holds fewer than its voxels.", ex);
-        }
+            catch (EndOfStreamException ex)
+            {
+                throw new InvalidDataException("A section holds fewer than its voxels.", ex);
+            }
 
-        var section = new LodSection(BlockId.Air, 0) { _blocks = new BlockId[Volume], _light = new byte[Volume] };
-        for (var i = 0; i < Volume; i++)
-        {
-            section._blocks![i] = (BlockId)(raw[i] | (raw[Volume + i] << 8));
-            section._light![i] = raw[(2 * Volume) + i];
-        }
+            var section = new LodSection(BlockId.Air, 0) { _blocks = new BlockId[Volume], _light = new byte[Volume] };
+            for (var i = 0; i < Volume; i++)
+            {
+                section._blocks![i] = (BlockId)(raw[i] | (raw[Volume + i] << 8));
+                section._light![i] = raw[(2 * Volume) + i];
+            }
 
-        return section;
+            return section;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(raw);
+        }
     }
 }

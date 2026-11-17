@@ -36,6 +36,12 @@ public sealed class PlayerSettings
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
+        new(SettingId.Workers, SettingKind.Slider, 0, 8, 1, 0, "settingsWorkers", MinKey: "settingsAuto"),
+        new(SettingId.FarDistance, SettingKind.Slider, 0, 16, 1, 0, "settingsFarDistance", " km", MinKey: "settingsAuto"),
+        new(SettingId.FarDetail, SettingKind.Slider, 50, 200, 25, 100, "settingsFarDetail", "%"),
+        new(SettingId.FarTrees, SettingKind.Choice, 0, 6, 1, 0, "settingsFarTrees", ChoiceKeys: ["settingsAuto", "settingsOff", "farTrees256", "farTrees512", "farTrees1k", "farTrees2k", "farTrees4k"]),
+        new(SettingId.FarTextures, SettingKind.Choice, 0, 3, 1, 2, "settingsFarTextures", ChoiceKeys: ["settingsOff", "farTexturesNear", "farTexturesNormal", "farTexturesWide"]),
+        new(SettingId.FarExact, SettingKind.Choice, 0, 5, 1, 0, "settingsFarExact", ChoiceKeys: ["settingsAuto", "settingsOff", "farExact500", "farExact1000", "farExact1500", "farExact2000"]),
     ];
 
     private readonly int[] _values;
@@ -109,6 +115,9 @@ public sealed class PlayerSettings
     /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
     public double Grass => Get(SettingId.Grass) / 100.0;
 
+    /// <summary>The worker threads setting: 0 for Auto, else 1 to 8 (see <c>WorkerPlan</c> in the game for what Auto is on a machine).</summary>
+    public int Workers => Get(SettingId.Workers);
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -160,6 +169,12 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
             settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
             settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
+            settings._values[(int)SettingId.Workers] = clean.EffectiveOf(SettingId.Workers);
+            settings._values[(int)SettingId.FarDistance] = clean.EffectiveOf(SettingId.FarDistance);
+            settings._values[(int)SettingId.FarDetail] = clean.EffectiveOf(SettingId.FarDetail);
+            settings._values[(int)SettingId.FarTrees] = clean.EffectiveOf(SettingId.FarTrees);
+            settings._values[(int)SettingId.FarTextures] = clean.EffectiveOf(SettingId.FarTextures);
+            settings._values[(int)SettingId.FarExact] = clean.EffectiveOf(SettingId.FarExact);
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -242,6 +257,22 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.Grass] = Spec(SettingId.Grass).Snap(grass);
         }
 
+        foreach (var (id, value) in new[]
+        {
+            (SettingId.Workers, launch.Workers),
+            (SettingId.FarDistance, launch.FarDistance),
+            (SettingId.FarDetail, launch.FarDetail),
+            (SettingId.FarTrees, launch.FarTrees),
+            (SettingId.FarTextures, launch.FarTextures),
+            (SettingId.FarExact, launch.FarExact),
+        })
+        {
+            if (value is { } given)
+            {
+                settings._values[(int)id] = Spec(id).Snap(given);
+            }
+        }
+
         if (launch.PassOpen)
         {
             settings._values[(int)SettingId.PassCheat] = 1;
@@ -264,7 +295,13 @@ public sealed class PlayerSettings
         FieldOfView: Get(SettingId.FieldOfView),
         ViewDistance: ViewDistance ?? 0,
         PassCheat: PassCheat,
-        Grass: Get(SettingId.Grass)).Clamped();
+        Grass: Get(SettingId.Grass),
+        Workers: SaveSettings.OmitDefault(SettingId.Workers, Get(SettingId.Workers)),
+        FarDistance: SaveSettings.OmitDefault(SettingId.FarDistance, Get(SettingId.FarDistance)),
+        FarDetail: SaveSettings.OmitDefault(SettingId.FarDetail, Get(SettingId.FarDetail)),
+        FarTrees: SaveSettings.OmitDefault(SettingId.FarTrees, Get(SettingId.FarTrees)),
+        FarTextures: SaveSettings.OmitDefault(SettingId.FarTextures, Get(SettingId.FarTextures)),
+        FarExact: SaveSettings.OmitDefault(SettingId.FarExact, Get(SettingId.FarExact))).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

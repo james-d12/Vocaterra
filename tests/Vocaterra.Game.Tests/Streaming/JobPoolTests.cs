@@ -9,14 +9,75 @@ public sealed class JobPoolTests
     [InlineData(0, 0)]
     [InlineData(1, 1)]
     [InlineData(2, 2)]
-    [InlineData(7, 2)]
+    [InlineData(7, 7)]
+    [InlineData(8, 8)]
+    [InlineData(50, 8)]
     [InlineData(-3, 0)]
-    public void Given_ARequestedNumberOfWorkers_When_APoolIsMade_Then_ItHasAtMostTwo(int asked, int expected)
+    public void Given_ARequestedNumberOfWorkers_When_APoolIsMade_Then_ItHasAtMostTheSettingsEight(int asked, int expected)
     {
         using var pool = new JobPool(asked);
 
         Assert.Equal(expected, pool.Workers);
-        Assert.Equal(2, JobPool.MaxWorkers);
+        Assert.Equal(8, JobPool.MaxWorkers);
+    }
+
+    [Fact]
+    public void Given_APoolWithWorkers_When_ItIsResized_Then_ThreadsStartAndEndWithoutLosingAJob()
+    {
+        using var pool = new JobPool(2);
+        var ran = 0;
+        var threads = new System.Collections.Concurrent.ConcurrentDictionary<int, bool>();
+        using var gate = new ManualResetEventSlim();
+        const int Jobs = 400;
+        for (var i = 0; i < Jobs; i++)
+        {
+            pool.Submit(JobLane.Tiles, i, static () => false, () =>
+            {
+                threads[Environment.CurrentManagedThreadId] = true;
+                _ = gate.Wait(2000);
+                _ = Interlocked.Increment(ref ran);
+            });
+        }
+
+        Assert.Equal(8, pool.Resize(8));
+        Assert.Equal(8, pool.Workers);
+        gate.Set();
+        Assert.Equal(1, pool.Resize(1)); // down again, mid-queue
+        Assert.Equal(1, pool.Workers);
+        var until = Environment.TickCount64 + 30_000;
+        while (Volatile.Read(ref ran) < Jobs && Environment.TickCount64 < until)
+        {
+            Thread.Sleep(5);
+        }
+
+        Assert.Equal(Jobs, ran); // every queued job ran once: no loss and no duplicate
+        Assert.Equal(Jobs, pool.Completed);
+        Assert.Equal(0, pool.Pending);
+        Assert.InRange(threads.Count, 2, 8);
+        Assert.Equal(8, pool.Resize(99)); // clamped to the bound
+        Assert.Equal(1, pool.Resize(-4)); // and a pool with workers keeps one
+    }
+
+    [Fact]
+    public void Given_APoolWithNoWorker_When_ItIsResized_Then_ItStaysInline()
+    {
+        using var pool = new JobPool(0);
+
+        Assert.Equal(0, pool.Resize(6));
+        Assert.Equal(0, pool.Workers);
+    }
+
+    [Fact]
+    public void Given_AResizedPool_When_ItIsDisposed_Then_EveryThreadEnds()
+    {
+        var pool = new JobPool(4);
+        _ = pool.Resize(8);
+        _ = pool.Resize(2);
+        _ = pool.Resize(6);
+
+        pool.Dispose();
+
+        Assert.True(pool.Pending == 0);
     }
 
     [Fact]

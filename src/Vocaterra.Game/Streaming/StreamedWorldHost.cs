@@ -52,9 +52,10 @@ public sealed class StreamedWorldHost : IDisposable
         Bands = new ColumnBandCache(_world.Bands);
         _residency = MakeResidency(preset);
         _persistence = lodWorld is null && lodFolder is null ? null : new FileLodPersistence(lodFolder ?? FileLodPersistence.FolderFor(lodWorld!), "lod-format-" + LodFormat + "; " + lodWorld);
-        Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence));
+        Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence, maxRealBytes: MaxRealBytes()));
         _radius = RingRadius(preset);
-        _ring = new LodRing(Far.World, _world, _pool);
+        _ring = new LodRing(Far.World, _world, _pool, Bands) { PlanOnWorker = Environment.GetEnvironmentVariable("VOCATERRA_RING_PLAN") != "game", SurfaceOnly = Environment.GetEnvironmentVariable("VOCATERRA_RING_SURFACE") != "off" };
+        _persistence?.Compact(); // the region files that hold much dead data are rewritten in the background, a file at a time between the writes
 
         // The far store's edits are the loaded save's (B07f): what the last run left in the sections and this world does not hold is dropped (the ring makes those footprints again from the generator), and every chunk this world has changed is queued to be taken in, so a save's buildings stand in the far view at the start.
         var current = _grid.ChangedChunkCoords();
@@ -102,6 +103,15 @@ public sealed class StreamedWorldHost : IDisposable
     // The far view's shape for a preset, with the ground climate its grass and leaves are coloured by (B22): the same map and the same function as the chunks'.
     private FarViewSettings FarSettings(QualityPreset preset) => preset.Far with { Ground = _ground };
 
+    // The cap on the real sections the far store keeps in memory: VOCATERRA_LOD_MEMORY_MB (0 for none, a dev run that measures what the cap saves), else the store's default.
+    private static long MaxRealBytes() =>
+        long.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_MEMORY_MB"), out var megabytes) ? (megabytes <= 0 ? long.MaxValue : megabytes * 1024 * 1024) : LodStore.DefaultMaxRealBytes;
+
+    /// <summary>The name of the folder a world's far sections are kept in on disk (its seed, generator version and world-generation hash), so another seed or a changed world starts again.</summary>
+    /// <param name="header">The world's header.</param>
+    public static string LodWorldName(WorldStateHeader header) =>
+        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
+
     // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
 
@@ -145,6 +155,18 @@ public sealed class StreamedWorldHost : IDisposable
 
     /// <summary>The bytes those sections take, packed.</summary>
     public long LodBytes => Far.World.Store.Bytes;
+
+    /// <summary>The far store's counters for a run's report (B07d): sections in memory and their bytes, what the cap dropped, what was read back, and the disk's own counts.</summary>
+    public string LodStoreSummary
+    {
+        get
+        {
+            var store = Far.World.Store;
+            var disk = _persistence is null ? string.Empty : $", disk {_persistence.Loads} reads {_persistence.Syncs} syncs {_persistence.CompactedFiles} files compacted ({_persistence.ReclaimedBytes / (1024.0 * 1024.0):0.0} MB)";
+            var (made, skipped) = _ring.Layers;
+            return $"real {store.RealBytes / (1024.0 * 1024.0):0.0} MB of {(store.MaxRealBytes == long.MaxValue ? "no cap" : $"{store.MaxRealBytes / (1024 * 1024)} MB")}, {store.Evicted} dropped, {store.DiskLoads} read back, model {store.ModelBytes / (1024.0 * 1024.0):0.0} MB, ring layers {made} made {skipped} not needed{disk}";
+        }
+    }
 
     /// <summary>How many chunks of the player's edits were taken into the store.</summary>
     public long EditedChunksTaken => _edits.Ingested;
@@ -243,6 +265,7 @@ public sealed class StreamedWorldHost : IDisposable
     /// <returns>Whether everything settled.</returns>
     public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose, double? limitMilliseconds = null)
     {
+        var settleBegan = MonotonicClock.Milliseconds();
         var chunks = limitMilliseconds is { } given ? _residency.Settle(eyeX, eyeY, eyeZ, given) : _residency.Settle(eyeX, eyeY, eyeZ);
         var started = MonotonicClock.Milliseconds();
         var tiles = false;
@@ -263,7 +286,90 @@ public sealed class StreamedWorldHost : IDisposable
             }
         }
 
+        var took = MonotonicClock.Milliseconds() - settleBegan;
+        if (took >= SettleReportMilliseconds)
+        {
+            _settles.Add(took); // a scripted run settles every frame; only the ones that waited for something (a start, a teleport) are kept
+        }
+
         return chunks && tiles && _ring.IsIdle;
+    }
+
+    private const double SettleReportMilliseconds = 100;
+
+    private readonly List<double> _settles = [];
+
+    /// <summary>How long each settle that took 100 ms or more took, in milliseconds (B07d: a scripted run's picture waits for the chunks, the ring and the tiles, so this is the fill time of the view after a start and after each teleport; <c>--stream-stats</c> prints it).</summary>
+    public IReadOnlyList<double> SettleMilliseconds => _settles;
+
+    /// <summary>
+    /// Fills the far store with the real sections of the world round a place, on all the workers, and returns (B07d, <c>--pregen</c>): the ring runs alone out to the radius (no tile is built, nothing is drawn), reporting its progress, and the disk is
+    /// flushed, so a later run's ring finds those footprints real on disk and the far view over them is built from the store at once. A footprint already on disk is not made again, so the command can be stopped and run again.
+    /// </summary>
+    /// <param name="eyeX">The place's x.</param>
+    /// <param name="eyeZ">The place's z.</param>
+    /// <param name="radius">The radius in blocks.</param>
+    /// <param name="report">Told the progress about every <paramref name="reportEveryMilliseconds"/>.</param>
+    /// <param name="reportEveryMilliseconds">How often to report, in milliseconds.</param>
+    /// <returns>What was done.</returns>
+    public PregenResult Pregenerate(double eyeX, double eyeZ, int radius, Action<PregenProgress> report, double reportEveryMilliseconds = 2_000)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        _radius = radius;
+        var started = MonotonicClock.Milliseconds();
+        var lastReport = started;
+        var doneAtStart = _ring.Done;
+        var total = -1L;
+        var store = Far.World.Store;
+        while (true)
+        {
+            _ring.Update(eyeX, eyeZ, radius);
+            _edits.Update();
+            if (_pool.Workers == 0)
+            {
+                _ = _pool.RunInline(20);
+            }
+
+            while (store.Changed.TryDequeue(out _))
+            {
+                // nobody draws: the far view's list of changed sections would only grow
+            }
+
+            if (total < 0 && _ring.HasPlan)
+            {
+                total = (_ring.Done - doneAtStart) + _ring.Pending; // what the first plan found not made yet (the footprints already real on disk are not in it)
+            }
+
+            var now = MonotonicClock.Milliseconds();
+            if (now - lastReport >= reportEveryMilliseconds)
+            {
+                lastReport = now;
+                report(new PregenProgress(_ring.Done - doneAtStart, Math.Max(total, 0), now - started, _ring.Layers.Made, _ring.Layers.Skipped));
+            }
+
+            if (_ring.HasPlan && _ring.IsIdle && _edits.IsIdle)
+            {
+                break;
+            }
+
+            if (_pool.Failure is { } failure)
+            {
+                throw new InvalidOperationException("A worker failed while the far store was being made.", failure);
+            }
+
+            if (_pool.Workers > 0)
+            {
+                Thread.Sleep(2);
+            }
+        }
+
+        var made = _ring.Done - doneAtStart;
+        _persistence?.Flush(TimeSpan.FromMinutes(5));
+        _persistence?.Compact();
+        _ = _persistence?.Flush(TimeSpan.FromMinutes(5));
+        var elapsed = MonotonicClock.Milliseconds() - started;
+        report(new PregenProgress(made, Math.Max(total, made), elapsed, _ring.Layers.Made, _ring.Layers.Skipped));
+        return new PregenResult(made, Math.Max(total, made), elapsed, store.RealBytes, _persistence?.Root);
     }
 
     /// <summary>The longest a settle waits for the ring and the tiles made again over it, in milliseconds.</summary>
@@ -388,3 +494,29 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
         _ = _grid.RemoveListener(this);
     }
 }
+
+/// <summary>How far <see cref="StreamedWorldHost.Pregenerate"/> has come.</summary>
+/// <param name="Done">The footprints made so far (32 x 32 blocks each, the whole height of the world).</param>
+/// <param name="Total">The footprints the first plan found to make.</param>
+/// <param name="Milliseconds">The time since it began.</param>
+/// <param name="LayersMade">The chunk layers generated.</param>
+/// <param name="LayersSkipped">The chunk layers left as stone because the far view never draws them.</param>
+public readonly record struct PregenProgress(long Done, long Total, double Milliseconds, long LayersMade, long LayersSkipped)
+{
+    /// <summary>The footprints a second.</summary>
+    public double Rate => Milliseconds <= 0 ? 0 : Done / (Milliseconds / 1000.0);
+
+    /// <summary>The seconds still to go at the rate so far, or <see langword="null"/> before there is a rate.</summary>
+    public double? EtaSeconds => Rate <= 0 || Total <= 0 ? null : Math.Max(0, Total - Done) / Rate;
+
+    /// <summary>The line the command prints.</summary>
+    public string Line => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"pregen: {Done} of {Total} footprints ({(Total > 0 ? 100.0 * Done / Total : 100.0):0.0} %), {Rate:0.0} a second, {Milliseconds / 1000.0:0} s{(EtaSeconds is { } eta ? $", about {eta:0} s to go" : string.Empty)}");
+}
+
+/// <summary>What <see cref="StreamedWorldHost.Pregenerate"/> did.</summary>
+/// <param name="Footprints">The footprints made.</param>
+/// <param name="Planned">The footprints the plan found not made yet.</param>
+/// <param name="Milliseconds">How long it took.</param>
+/// <param name="RealBytesInMemory">The real sections' packed bytes the store holds in memory at the end (the cap drops the rest; they are on disk).</param>
+/// <param name="Folder">The folder on disk the sections are in, or <see langword="null"/> when there is none.</param>
+public sealed record PregenResult(long Footprints, long Planned, double Milliseconds, long RealBytesInMemory, string? Folder);
