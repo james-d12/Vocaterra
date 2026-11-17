@@ -1023,6 +1023,19 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   (`OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`) it asserts the same floor, `min(5, iterations / 60)` for each of the ten paths, which the fixed seed meets
   the same way on every run.
 
+### Found and fixed in M98 (2026-11-17; the review's T3, a flaky coverage test, seed `7q7l8dSNG6n6`)
+
+- **The realisation rate (`RealisationRateTests`).** The skip budget bounds each reason's share of the draws; this test bounds what the re-rolls leave out in all. It draws
+  2 000 recipes of O3's stream (one case per fixed seed, as CsCheck seeds only a run's first case), prints per pattern family (`catalog`, `skeleton`, `random`) the recipes
+  realised, the skips and the rejected draws by reason, and fails when a family falls under its floor: the share of recipes that gave a sentence, or the share of draws kept.
+  Measured on `content/game-v1` at M98: recipes realised 99.57 % / 100 % / 97.38 % (all 98.95 %), draws kept 95.12 % / 98.62 % / 86.48 % (all 92.87 %); the floors are about
+  five points lower (0.95, 0.95, 0.92, 0.95 and 0.90, 0.93, 0.80, 0.88). A content edit moves the rates a little; never lower a floor to pass a change that makes the
+  generator avoid more.
+- **`OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed` was not on a fixed seed** (M97's claim above is corrected): CsCheck seeds only the first case, so 299 of 300 cases
+  were random. It now draws one case per seed (`M98Open<i>`); its counts are identical on every run (lowest 9, floor 5), inside a full run of the project too.
+- **O3, seed `7q7l8dSNG6n6`** (a generator fix, no engine change): `alrededor` (noun and adverb) drawn for `[NOUN:item]` in a pattern with an optional `[ADV]` is the adverb
+  to the matcher and yields no item. Re-rolled (`skip:noun-reads-as-adverb`); `HomographRerollTests` section 7.
+
 ## Adding to the suite
 
 `PipelineHarness` exposes what an oracle needs: `Bundle`, `NewServices` (scripted word recognizer, optional fake phoneme recognizer, fake embedder,
