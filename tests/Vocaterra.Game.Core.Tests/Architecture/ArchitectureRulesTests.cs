@@ -44,6 +44,7 @@ public sealed class ArchitectureRulesTests
     {
         ["Session/TurnWorker.cs"] = "the turn worker's own thread runs the recognizer and the language engine off the game thread, and reads the recorded WAV it is handed",
         ["World/Generation/ValleyUnderground.cs"] = "the bounded valley's underground is laid column by column on at most two threads (B24a, the two-worker rule); the result is identical at any thread count (tested)",
+        ["World/Drainage/DrainageNetwork.cs"] = "two [ThreadStatic] scratch caches (the last cell read, a no-read counter): per-thread state the workers never share, not a thread of its own",
         ["Save/SaveFile.cs"] = "the save file: written to a temporary file and moved over the old one, read back whole",
         ["Content/LocaleBundle.cs"] = "loads the locale bundle from its folder, beside the game bundle",
         ["Session/GameBundle.cs"] = "finds the game bundle's folder: the environment variable, then the folders above the program",

@@ -31,7 +31,14 @@ public sealed partial class ProceduralWorldPurityTests
         "src/Vocaterra.Game.Core/World/Generation",
         "src/Vocaterra.Game.Core/World/Layout",
         "src/Vocaterra.Game.Core/World/Pass",
+        "src/Vocaterra.Game.Core/World/Drainage",
     ];
+
+    /// <summary>
+    /// Files allowed one <c>lock</c> and nothing else banned: the drainage network reads a landmass on first touch and the workers share the result, so its build is guarded (B02c). Floating point, clocks, random
+    /// classes, threads and tasks stay banned in these files, so the arithmetic check still covers them.
+    /// </summary>
+    private static readonly string[] LockAllowedFiles = ["World/Drainage/DrainageNetwork.cs"];
 
     /// <summary>The folders of <c>World/</c> that are not pure on purpose, each with its reason; every other folder must be in <see cref="PureFolders"/>.</summary>
     private static readonly Dictionary<string, string> NotPureWorldFolders = new()
@@ -143,7 +150,8 @@ public sealed partial class ProceduralWorldPurityTests
                 {
                     number++;
                     var code = Strings().Replace(Comment().Replace(line, string.Empty), "\"\"");
-                    found.AddRange(Banned().Matches(code).Select(m => $"{Path.GetRelativePath(Repo.Root, file)}:{number}: {m.Value}"));
+                    var lockAllowed = LockAllowedFiles.Any(a => file.Replace('\\', '/').EndsWith(a, StringComparison.Ordinal));
+                    found.AddRange(Banned().Matches(code).Where(m => !(lockAllowed && m.Value == "lock")).Select(m => $"{Path.GetRelativePath(Repo.Root, file)}:{number}: {m.Value}"));
                 }
             }
         }

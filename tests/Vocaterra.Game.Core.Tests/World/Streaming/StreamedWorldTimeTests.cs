@@ -15,10 +15,10 @@ namespace Vocaterra.Game.Core.Tests.World.Streaming;
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class StreamedWorldTimeTests(ITestOutputHelper output)
 {
-    // Measured (B24, Debug as the suite runs, CPU time, fastest of three): a column's band 5.6 ms, its band layers 10.4 (2.5 a chunk), a plan of 28 columns' radius 1.1. Each budget is twice the measurement, rounded up.
-    private const double BandBudget = 12;
-    private const double MadeBudget = 21;
-    private const double PerChunkBudget = 5;
+    // Measured (B24, Debug as the suite runs, CPU time, fastest of three): (after B02c's drainage network, quietest of several runs) a column's band 15.4 ms, its band layers 20.4 (4.8 a chunk), a plan of 28 columns' radius 0.9; the band cost rose under load to 18. Each budget is twice the measurement, rounded up.
+    private const double BandBudget = 31;
+    private const double MadeBudget = 41;
+    private const double PerChunkBudget = 10;
     private const double PlanBudget = 3;
 
     // The CPU milliseconds one call costs: after one warm-up call, the fastest of three passes of `repeats` calls.

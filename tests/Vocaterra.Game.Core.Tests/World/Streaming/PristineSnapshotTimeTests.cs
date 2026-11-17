@@ -17,8 +17,8 @@ public sealed class PristineSnapshotTimeTests(ITestOutputHelper output)
 {
     private const int Passes = 3;
 
-    // Measured (B24, Debug as the suite runs, CPU time, fastest of three): 2,740 ms a snapshot on average over the three windows. The budget is twice the measurement, rounded up.
-    private const double BudgetMilliseconds = 5_500;
+    // Measured (B24, Debug as the suite runs, CPU time, fastest of three): 5,780 ms a snapshot on average over the three windows (after B02c's drainage network; 2,740 before it). The budget is twice the measurement, rounded up.
+    private const double BudgetMilliseconds = 11_600;
 
     [Fact]
     public void Given_ThreeWindowsOfTheStreamedWorld_When_TheyAreSnapshotWithoutInstalling_Then_TheCpuTimePerSnapshotIsWithinBudget()
