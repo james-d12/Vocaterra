@@ -1,22 +1,14 @@
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.World.Biomes;
 using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 
-/// <summary>
-/// The owner's map reviews of B02 carried out (B02b and its redo, D-game-34 items 16 and 20), as numbers over a 16 384 x 16 384 block square of each shipped seed, one sample every 32 blocks (the rivers one every 8, the pools one
-/// every 4 over 8 192 blocks): the sea is 35 to 45% of the map, one connected ocean between continents thousands of blocks across, and inland water is a lake; the ranges are higher and more common than before, run in chains and
-/// have peaks and saddles, not plateaus; the shore is a clean gentle shelf, the sea floor deepens offshore and no pool or speckle lies on the beach or the lowland; the snow lies only high and cold lowland stays taiga; the ground has
-/// no cliffs; and the rivers' valleys run down from the ranges to water that reaches the sea or a lake. The bounds hold the shape of the tuned world with room for the data to be tuned again, never its exact numbers.
-/// </summary>
+/// <summary>The rest of TerrainTuningTests's tests (B28 split the slow ones into classes of their own, sharing TerrainTuningTestsBase).</summary>
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
-public sealed class TerrainTuningTests(ITestOutputHelper output)
+public sealed class TerrainTuningTests(ITestOutputHelper output) : TerrainTuningTestsBase(output)
 {
-    public static TheoryData<ulong> Seeds => new() { 42UL, 7UL, 2026UL };
-
     [Theory]
     [MemberData(nameof(Seeds))]
     public void Given_ASeed_When_TheSeasAreMapped_Then_TheyAreAboutFortyPercentOneOceanBetweenContinentsOfThousandsOfBlocks(ulong seed)
@@ -36,7 +28,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         var landTotal = land.Sum(b => b.Count);
         var big = land.Where(b => b.Count >= 400).Sum(b => b.Count) * 100.0 / landTotal;
         var sizes = land.Where(b => !b.AtEdge).Select(b => Math.Max(b.WidthBlocks, b.DepthBlocks)).Order().ToArray();
-        output.WriteLine($"seed {seed}: ocean {share:0.0}% of the columns, the largest sea {largest:0.0}% of it, lake-basin {lakes:0.00}%; in 32 768 blocks {land.Count} bodies of land, {big:0.0}% of the land in those of 400 samples or more, whole continents (not cut by the square) {string.Join(", ", sizes.Where(z => z >= 3000))} blocks across");
+        Output.WriteLine($"seed {seed}: ocean {share:0.0}% of the columns, the largest sea {largest:0.0}% of it, lake-basin {lakes:0.00}%; in 32 768 blocks {land.Count} bodies of land, {big:0.0}% of the land in those of 400 samples or more, whole continents (not cut by the square) {string.Join(", ", sizes.Where(z => z >= 3000))} blocks across");
 
         Assert.InRange(share, 35, 46); // B02: 14%, round 1: 59 to 65%
         Assert.True(wideLargest >= 95, $"the largest sea is {wideLargest:0.0}% of the ocean in 32 768 blocks (and {largest:0.0}% in 16 384)"); // B02: 6%
@@ -44,81 +36,6 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         Assert.True(big >= 95, $"{big:0.0}% of the land is in continents");
         Assert.True(land.Take(5).All(b => Math.Max(b.WidthBlocks, b.DepthBlocks) >= 5000), "the five biggest bodies of land are continents 5 000 blocks across or more");
         Assert.True(land[0].WidthBlocks >= 8000 || land[0].DepthBlocks >= 8000, "the biggest is 8 000 blocks across or more");
-    }
-
-    [Theory]
-    [MemberData(nameof(Seeds))]
-    public void Given_ASeed_When_TheRangesAreMapped_Then_TheyAreChainsOfPeaksAndSaddlesNotPlateaus(ulong seed)
-    {
-        var s = WorldSample.Of(seed);
-        var land = s.Ground.Where((_, k) => !s.Water[k]).ToArray();
-        double Above(int y) => land.Count(h => h > y) * 100.0 / land.Length;
-        var ranges = s.Bodies(k => !s.Water[k] && s.Ground[k] > 150, eight: true);
-        var inRange = ranges.Sum(b => b.Count);
-        var big = ranges.Where(b => b.Count >= 100).Sum(b => b.Count) * 100.0 / inRange;
-        var longest = ranges.Max(b => Math.Max(b.WidthBlocks, b.DepthBlocks));
-
-        // Flatness of the high land: over the columns above 220, the spread of height within 64 blocks, and the 64 x 64 block tiles that lie wholly above 220 and are level.
-        var f = WorldSample.Of(seed, 6144, 8);
-        var n = f.Size;
-        int At(int x, int z) => f.Ground[(z * n) + x];
-        var (high, spreadSum, tiles, levelTiles) = (0, 0L, 0, 0);
-        for (var z = 8; z < n - 8; z += 2)
-        {
-            for (var x = 8; x < n - 8; x += 2)
-            {
-                if (At(x, z) <= 220 || f.Water[(z * n) + x])
-                {
-                    continue;
-                }
-
-                int lo = int.MaxValue, hi = int.MinValue;
-                for (var dz = -4; dz <= 4; dz++)
-                {
-                    for (var dx = -4; dx <= 4; dx++)
-                    {
-                        (lo, hi) = (Math.Min(lo, At(x + dx, z + dz)), Math.Max(hi, At(x + dx, z + dz)));
-                    }
-                }
-
-                high++;
-                spreadSum += hi - lo;
-            }
-        }
-
-        for (var z = 0; z + 8 <= n; z += 8)
-        {
-            for (var x = 0; x + 8 <= n; x += 8)
-            {
-                int lo = int.MaxValue, hi = int.MinValue;
-                for (var dz = 0; dz < 8; dz++)
-                {
-                    for (var dx = 0; dx < 8; dx++)
-                    {
-                        (lo, hi) = (Math.Min(lo, At(x + dx, z + dz)), Math.Max(hi, At(x + dx, z + dz)));
-                    }
-                }
-
-                if (lo > 220)
-                {
-                    tiles++;
-                    levelTiles += hi - lo < 6 ? 1 : 0;
-                }
-            }
-        }
-
-        var spread = high == 0 ? 0 : spreadSum / (double)high;
-        output.WriteLine($"seed {seed}: land above 150/200/250: {Above(150):0.0}% {Above(200):0.0}% {Above(250):0.0}%; {ranges.Count} ranges above 150, {big:0.0}% of the columns in ranges of 100 samples or more, the longest {longest} blocks across; {high} sampled columns above 220 vary by {spread:0.0} blocks within 64 blocks, {tiles} tiles of 64 x 64 blocks lie wholly above 220 and {levelTiles} of them are level within 6 blocks");
-
-        Assert.True(Above(150) >= 4, $"{Above(150):0.0}% of the land is above 150"); // B02: 5%, round 2: 10 to 19% in broad massifs; chains are thinner
-        Assert.True(Above(200) >= 2, $"{Above(200):0.0}% above 200"); // B02: 2%
-        Assert.True(Above(250) >= 0.8, $"{Above(250):0.0}% above 250"); // B02: 0.3%
-        Assert.True(big >= 80, $"{big:0.0}% of the high ground is in ranges of some size");
-        Assert.True(longest >= 2500, $"the longest range spans {longest} blocks");
-        Assert.InRange(land.Max(), 250, 310);
-        Assert.True(tiles >= 100, $"{tiles} tiles above 220");
-        Assert.True(spread >= 20, $"the high land varies by {spread:0.0} blocks within 64 blocks"); // a plateau would be near 0
-        Assert.True(levelTiles * 100.0 / tiles <= 3, $"{levelTiles} of {tiles} tiles above 220 are level"); // round 1 had flat snow tablelands: a chain's rounded crest may hold a few level tiles, not a plateau
     }
 
     [Theory]
@@ -162,7 +79,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
             }
         }
 
-        output.WriteLine($"seed {seed}: the largest step {biggest}; {steep * 100.0 / pairs:0.000}% of {pairs} land pairs step 5 or more; {walls * 100.0 / tests:0.00}% of {tests} stretches rise 40 in 40 columns");
+        Output.WriteLine($"seed {seed}: the largest step {biggest}; {steep * 100.0 / pairs:0.000}% of {pairs} land pairs step 5 or more; {walls * 100.0 / tests:0.00}% of {tests} stretches rise 40 in 40 columns");
         Assert.True(biggest <= 9, $"a step of {biggest}"); // B01's bound
         Assert.True(steep * 100.0 / pairs < 0.05, $"{steep} of {pairs} pairs step 5 or more"); // B02: 0.07%
         Assert.True(walls * 100.0 / tests < 1.5, $"{walls} of {tests} stretches are walls"); // B02: 5%
@@ -215,69 +132,13 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
 
         var (landNear, landFar, seaNear, seaMid, seaFar) = (Mean(false, 0, 128), Mean(false, 128, 512), Mean(true, 0, 64), Mean(true, 128, 384), Mean(true, 1024, int.MaxValue));
         var deep = Enumerable.Range(0, n * n).Where(k => s.Biome[k] == s.Row("ocean")).Count(k => s.Ground[k] <= 0) * 100.0 / Enumerable.Range(0, n * n).Count(k => s.Biome[k] == s.Row("ocean"));
-        output.WriteLine($"seed {seed}: mean ground on land within 128 blocks of the shore {landNear:0.0}, 128 to 512 {landFar:0.0}; at sea within 64 blocks {seaNear:0.0}, 128 to 384 {seaMid:0.0}, over 1024 {seaFar:0.0}; {deep:0.0}% of the sea is at y 0 or below");
+        Output.WriteLine($"seed {seed}: mean ground on land within 128 blocks of the shore {landNear:0.0}, 128 to 512 {landFar:0.0}; at sea within 64 blocks {seaNear:0.0}, 128 to 384 {seaMid:0.0}, over 1024 {seaFar:0.0}; {deep:0.0}% of the sea is at y 0 or below");
 
         Assert.InRange(landNear, 32, 44); // B02: 37 to 61 within the first 128 blocks (it rose to 61)
         Assert.InRange(seaNear, 24, 32); // the floor is under the sea level but barely
         Assert.True(seaMid < seaNear - 3, $"the floor deepens: {seaNear:0.0} at the shore, {seaMid:0.0} 128 to 384 blocks out");
         Assert.True(seaFar <= 0, $"far offshore the floor is at y {seaFar:0.0}"); // B02: no floor under y 10
         Assert.True(deep >= 20, $"{deep:0.0}% of the sea is at y 0 or below");
-    }
-
-    [Theory]
-    [MemberData(nameof(Seeds))]
-    public void Given_ASeed_When_RowsCrossTheCoastAndTheLowlandIsSearchedForPools_Then_TheShoreIsOneCleanStripAndNoPuddleLiesOnTheLand(ulong seed)
-    {
-        var data = TestGame.Data;
-        var climate = new ClimateSampler(data.WorldGen, seed);
-        var model = new HeightModel(data.WorldGen, seed);
-        var table = new BiomeTable(data.Biomes, data.WorldGen, seed);
-        var beach = table.Rows.First(r => r.Id == "beach").Index;
-        var (crossings, worstWater, worstBeach, beachFlips) = (0, 0, 0, 0);
-        var (waterChanges, beachChanges) = (new List<int>(), new List<int>());
-        for (var z = -7000; z <= 7000; z += 700)
-        {
-            var transitions = new List<int>();
-            var water = new bool[16385];
-            var isBeach = new bool[16385];
-            for (var i = 0; i <= 16384; i++)
-            {
-                var (x, c) = (-8192 + i, climate.At(-8192 + i, z));
-                var shape = model.Shape(x, z, c);
-                water[i] = shape.Water;
-                isBeach[i] = table.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight).Row.Index == beach;
-                if (i > 0 && water[i] != water[i - 1] && c.Continentalness * 1000 / 4096 <= 20)
-                {
-                    transitions.Add(i);
-                }
-            }
-
-            for (var t = 0; t < transitions.Count;)
-            {
-                var group = transitions.Skip(t).TakeWhile(i => i - transitions[t] <= 300).ToList();
-                t += group.Count;
-                var (from, to) = (Math.Max(1, group[0] - 300), Math.Min(16384, group[^1] + 300));
-                var flips = Enumerable.Range(from, to - from).Count(i => isBeach[i] != isBeach[i - 1]);
-                crossings++;
-                waterChanges.Add(group.Count);
-                beachChanges.Add(flips);
-                worstWater = Math.Max(worstWater, group.Count);
-                worstBeach = Math.Max(worstBeach, flips);
-                beachFlips += flips;
-            }
-        }
-
-        var s = WorldSample.Of(seed, 4096, 4);
-        var pools = s.Bodies(k => s.Water[k] && s.Biome[k] != s.Row("river-channel") && s.Carve[k] == 0, eight: true).Where(b => !b.AtEdge).ToArray();
-        var (puddles, ponds) = (pools.Count(b => b.Count <= 3), pools.Count(b => b.Count <= 8));
-        var wetShores = waterChanges.Count(c => c > 2) * 100.0 / Math.Max(1, crossings);
-        var speckled = beachChanges.Count(c => c > 4) * 100.0 / Math.Max(1, crossings);
-        output.WriteLine($"seed {seed}: {crossings} shores crossed; land/water changes at one shore: most {worstWater}, {wetShores:0.0}% of shores more than 2; beach/not-beach changes within 300 blocks of a shore: most {worstBeach}, mean {beachFlips / (double)Math.Max(1, crossings):0.0}, {speckled:0.0}% of shores more than 4; in 8 192 blocks {pools.Length} bodies of water, {puddles} of 3 samples (48 columns) or fewer, {ponds} of 8 or fewer");
-
-        Assert.True(crossings >= 5, $"{crossings} shores crossed");
-        Assert.True(wetShores <= 12, $"{wetShores:0.0}% of the shores change between land and water more than twice"); // one shore, one change; a bay or a river's mouth may add
-        Assert.True(speckled <= 12, $"{speckled:0.0}% of the shores flicker between beach and not beach more than 4 times"); // the strip begins and ends
-        Assert.True(puddles <= 8, $"{puddles} puddles"); // round 1 left dozens of small ponds and flats on the lowland; a wandering coast pinches off a few inlets of a few columns (round 2: none)
     }
 
     [Theory]
@@ -291,7 +152,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
             .Where(k => !s.Water[k] && s.Ground[k] < 90 && s.Temperature[k] <= -300 && s.Biome[k] != beach && s.Biome[k] != river && s.Biome[k] != lake && s.Biome[k] != ocean)
             .ToArray();
         var green = coldLowland.Count(k => s.Biome[k] == taiga) * 100.0 / Math.Max(1, coldLowland.Length);
-        output.WriteLine($"seed {seed}: the lowest snow-covered ground {snowLow}; {coldLowland.Length} cold lowland samples, {green:0.0}% taiga, {coldLowland.Count(k => s.Snow[k])} of them under snow");
+        Output.WriteLine($"seed {seed}: the lowest snow-covered ground {snowLow}; {coldLowland.Length} cold lowland samples, {green:0.0}% taiga, {coldLowland.Count(k => s.Snow[k])} of them under snow");
 
         Assert.True(snowLow >= 120, $"snow lies at {snowLow}"); // B02: 32, on the cold lowland by the sea
         Assert.True(coldLowland.Length > 300, $"{coldLowland.Length} cold lowland samples");
@@ -326,7 +187,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
             }
         }
 
-        output.WriteLine($"seed {seed}: {total} river-water columns; {reaching * 100.0 / Math.Max(1, total):0.0}% are in rivers that reach the sea or a lake");
+        Output.WriteLine($"seed {seed}: {total} river-water columns; {reaching * 100.0 / Math.Max(1, total):0.0}% are in rivers that reach the sea or a lake");
         Assert.True(total > 1000, $"{total} river columns");
         Assert.True(reaching * 100.0 / total >= 85, $"{reaching * 100.0 / total:0.0}% reach water"); // B02: 65 to 73%; the rivers now run the whole way from the ranges, so a few end in a closed basin
     }
@@ -402,7 +263,7 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         }
 
         var longest = bodies.Max(b => b.Extent);
-        output.WriteLine($"seed {seed}: {bodies.Count} bodies of land above 150 inside the square; thickness (area-weighted median) {median:0} blocks; the longest spans {longest} blocks; {chains:0.0}% of the area in chains, {massifs:0.0}% in massifs");
+        Output.WriteLine($"seed {seed}: {bodies.Count} bodies of land above 150 inside the square; thickness (area-weighted median) {median:0} blocks; the longest spans {longest} blocks; {chains:0.0}% of the area in chains, {massifs:0.0}% in massifs");
 
         Assert.InRange(median, 100, 500); // round 2: broad massifs (900 to 2 800 wide)
         Assert.True(chains >= 85, $"{chains:0.0}% of the high land is in chains");
@@ -479,43 +340,10 @@ public sealed class TerrainTuningTests(ITestOutputHelper output)
         }
 
         var share = straight * 100.0 / points.Count;
-        output.WriteLine($"seed {seed}: {points.Count} coast columns; the longest straight run {longest * s.Step:0} blocks; {share:0.0}% of the coast lies on a straight run of 300 blocks or more");
+        Output.WriteLine($"seed {seed}: {points.Count} coast columns; the longest straight run {longest * s.Step:0} blocks; {share:0.0}% of the coast lies on a straight run of 300 blocks or more");
 
         Assert.True(points.Count > 3000, $"{points.Count} coast columns");
         Assert.True(share <= 50, $"{share:0.0}% of the coast runs straight for 300 blocks or more");
         Assert.True(longest * s.Step <= 1200, $"the coast runs straight for {longest * s.Step:0} blocks");
-    }
-
-    [Theory]
-    [MemberData(nameof(Seeds))]
-    public void Given_ASeed_When_TheRiverLinesAreRead_Then_NearlyAllHoldWaterAtManyLevelsAndLakesAreCommon(ulong seed)
-    {
-        // Round 3 (D-game-34 item 24): rivers hold water all the way down. The river's line is where the carve is nearly full (0.9 or more); below the height rivers fade out from (190: above it the river begins) nearly every column of it is under water,
-        // and the surface stands at many different levels, stepping down. Round 2: 7% (the water was the sea's).
-        var s = WorldSample.Of(seed, 8192, 8);
-        var (line, wet) = (0, 0);
-        var levels = new HashSet<int>();
-        for (var k = 0; k < s.Ground.Length; k++)
-        {
-            if (s.Carve[k] < 230 || s.Natural[k] <= 33 || s.Natural[k] > 190)
-            {
-                continue;
-            }
-
-            line++;
-            if (s.Water[k])
-            {
-                wet++;
-                levels.Add(s.Level[k]);
-            }
-        }
-
-        var lakes = s.Biome.Count(b => b == s.Row("lake-basin")) * 100.0 / s.Ground.Length;
-        output.WriteLine($"seed {seed}: {line} river-line columns below 190, {wet * 100.0 / Math.Max(1, line):0.0}% under water, {levels.Count} different water levels; lake-basin {lakes:0.00}% of the columns");
-
-        Assert.True(line > 3000, $"{line} river-line columns");
-        Assert.True(wet * 100.0 / line >= 95, $"{wet * 100.0 / line:0.0}% of the river line holds water");
-        Assert.True(levels.Count >= 8, $"{levels.Count} water levels");
-        Assert.True(lakes >= 0.5, $"lake-basin is {lakes:0.00}% of the columns"); // round 2: 0.03 to 0.6%
     }
 }

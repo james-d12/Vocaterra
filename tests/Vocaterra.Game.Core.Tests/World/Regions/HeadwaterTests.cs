@@ -1,100 +1,12 @@
-using Vocaterra.Game.Core.Content;
-using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Regions;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Regions;
 
-/// <summary>
-/// The rivers and lakes near a region (B02b, D-game-34 item 18): none inside the blend margin; over the headwater distance beyond it a river narrows and shallows to a stream whose bed rises to meet the ground (it
-/// starts at a spring) and a lake shrinks to a pond, so no trench ends in a wall and no lake is cut by a line. Read from the blend's own numbers, for the valley and for a region of another size and place.
-/// </summary>
-public sealed class HeadwaterTests(ITestOutputHelper output)
+/// <summary>The rest of HeadwaterTests's tests (B28 split the slow ones into classes of their own, sharing HeadwaterTestsBase).</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
+public sealed class HeadwaterTests(ITestOutputHelper output) : HeadwaterTestsBase(output)
 {
-    /// <summary>The largest step between two neighbouring columns the terrain is held to.</summary>
-    private const int StepBound = 9;
-
-    public static TheoryData<string, ulong> Regions => new()
-    {
-        { "valley", 42UL },
-        { "valley", 7UL },
-        { "valley", 2026UL },
-        { "small", 42UL },
-    };
-
-    private static (WorldComposition World, RegionBounds Bounds, GameData Data) Setup(string which, ulong seed) => which == "valley"
-        ? (RegionTestWorld.Composition(seed), RegionTestWorld.Valley(seed).Bounds, TestGame.Data)
-        : (SmallWorld.Value, RegionTestWorld.Small().Bounds, RegionTestWorld.WithoutCorridors());
-
-    private static readonly Lazy<WorldComposition> SmallWorld = new(() => WorldFactory.Compose(RegionTestWorld.WithoutCorridors(), 42, new RegionCatalog([RegionTestWorld.Small()])));
-
-    // The share of the free world's water at a distance from the footprint: none within the margin, a smoothstep over the headwater distance beyond it.
-    private static int Share(RegionBlendData blend, int distance) =>
-        distance <= blend.Margin ? 0 : IntMath.Smooth((distance - blend.Margin) * IntMath.One / blend.Headwater.Distance);
-
-    private sealed record Counts(int Water, int Spring, int Samples, int WidestStep, string Where, int NearestWater, int Carved);
-
-    private static RegionBlendData Blend(GameData data) => data.WorldGen.Blend;
-
-    private static Counts Scan(WorldComposition world, RegionBounds b, GameData data, ulong seed)
-    {
-        var blend = data.WorldGen.Blend;
-        var reach = blend.Margin + blend.Headwater.Distance + 8;
-        var (water, spring, samples, widest, where, nearest, carved) = (0, 0, 0, 0, string.Empty, int.MaxValue, 0);
-        for (var z = b.MinZ - reach; z <= b.MaxZ + reach; z += 2)
-        {
-            for (var x = b.MinX - reach; x <= b.MaxX + reach; x += 2)
-            {
-                var d = b.DistanceTo(x, z);
-                if (d == 0 || d > reach)
-                {
-                    continue;
-                }
-
-                samples++;
-                var shape = RegionTestWorld.Shape(world, x, z);
-                var share = Share(blend, d);
-                if (d <= blend.Margin)
-                {
-                    Assert.True(shape.RiverWeight == 0 && shape.LakeWeight == 0 && !shape.Water, $"water inside the margin at {x},{z} (d {d})");
-                }
-
-                // The water is only ever the free world's, thinned: a river or lake weight never exceeds the share, and a column is under water only where the free world has water there.
-                Assert.InRange(shape.RiverWeight, 0, share + 1);
-                Assert.InRange(shape.LakeWeight, 0, share + 1);
-                if (shape.RiverWeight > 0 && d > blend.Margin)
-                {
-                    carved++;
-                    Assert.InRange(shape.NaturalHeight - shape.Height, 0, 2 + (int)((long)share * 55 / IntMath.One)); // the channel's floor rises to the ground towards the region: a valley that shallows to nothing, not a trench
-                }
-
-                if (shape.Water && d > blend.Margin)
-                {
-                    water++;
-                    nearest = Math.Min(nearest, d);
-                    var inner = d <= blend.Margin + (blend.Headwater.Distance / 2);
-                    if (inner)
-                    {
-                        spring++;
-                        Assert.InRange(data.WorldGen.Vertical.SeaLevel - shape.Height, 1, 3); // the first half of the way a stream is a shallow groove, not a trench
-                    }
-                }
-
-                // No trench ends in a wall: the ground steps no more than the bound to its neighbours across the margin and the headwaters.
-                var east = Math.Abs(shape.Height - RegionTestWorld.Shape(world, x + 1, z).Height);
-                var south = Math.Abs(shape.Height - RegionTestWorld.Shape(world, x, z + 1).Height);
-                if (Math.Max(east, south) > widest)
-                {
-                    (widest, where) = (Math.Max(east, south), $"{x},{z} (d {d})");
-                }
-            }
-        }
-
-        return new Counts(water, spring, samples, widest, where, nearest, carved);
-    }
-
     [Theory]
     [MemberData(nameof(Regions))]
     public void Given_ARegion_When_TheWaterNearItIsRead_Then_NoRiverOrLakeReachesTheMarginAndTheRestThinsOutIntoSpringsAndPonds(string which, ulong seed)
@@ -103,48 +15,7 @@ public sealed class HeadwaterTests(ITestOutputHelper output)
 
         var counts = Scan(world, bounds, data, seed);
 
-        output.WriteLine($"{which} seed {seed}: {counts.Water} water columns beyond the margin within the headwaters ({counts.Spring} in the inner half, the nearest {counts.NearestWater} blocks from the footprint) of {counts.Samples} sampled; the largest step {counts.WidestStep} at {counts.Where}");
+        Output.WriteLine($"{which} seed {seed}: {counts.Water} water columns beyond the margin within the headwaters ({counts.Spring} in the inner half, the nearest {counts.NearestWater} blocks from the footprint) of {counts.Samples} sampled; the largest step {counts.WidestStep} at {counts.Where}");
         Assert.True(counts.WidestStep <= StepBound, $"a step of {counts.WidestStep} at {counts.Where}");
-    }
-
-    [Theory]
-    [InlineData(42UL)]
-    [InlineData(7UL)]
-    [InlineData(2026UL)]
-    public void Given_TheValleyWorld_When_ColumnsBeyondTheHeadwatersAreRead_Then_TheRiversAreWholeAndTheDrainageRunsRoundTheMargin(ulong seed)
-    {
-        var world = RegionTestWorld.Composition(seed);
-        var b = RegionTestWorld.Valley(seed).Bounds;
-        var blend = TestGame.Data.WorldGen.Blend;
-        var clearance = TestGame.Data.WorldGen.Height.DrainageData!.RegionClearance;
-        var beyond = blend.Margin + blend.Headwater.Distance;
-        var (whole, nearest, rivers) = (0, int.MaxValue, 0);
-        for (var z = b.MinZ - 2400; z <= b.MaxZ + 2400; z += 4)
-        {
-            for (var x = b.MinX - 2400; x <= b.MaxX + 2400; x += 4)
-            {
-                var d = b.DistanceTo(x, z);
-                if (d == 0)
-                {
-                    continue;
-                }
-
-                var shape = RegionTestWorld.Shape(world, x, z);
-                if (shape.RiverWeight > 0 || shape.LakeWeight > 0)
-                {
-                    nearest = Math.Min(nearest, d);
-                    rivers++;
-                }
-
-                if (d >= beyond && shape.RiverWeight > 3000)
-                {
-                    whole++;
-                }
-            }
-        }
-
-        Assert.True(nearest > blend.Margin + clearance, $"water {nearest} blocks from the footprint: the network keeps {blend.Margin + clearance} blocks clear");
-        Assert.True(rivers > 0, "there is water within 2 400 blocks of the valley");
-        Assert.True(whole > 0, "beyond the headwaters a river is its whole self");
     }
 }

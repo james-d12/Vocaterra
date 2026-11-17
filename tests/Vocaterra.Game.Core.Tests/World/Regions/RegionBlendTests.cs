@@ -14,6 +14,7 @@ namespace Vocaterra.Game.Core.Tests.World.Regions;
 /// The blend of the procedural land into the valley's edge (B06): no step across the border and the margin beyond the bound the terrain tuning holds the land to, the ground free beyond the margin, the land
 /// bias that keeps the sea away, the rivers and lakes fading out, the trees keeping off the border and thinning across the margin, and the exit corridor.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class RegionBlendTests(ITestOutputHelper output)
 {
     /// <summary>The largest step between two neighbouring columns the terrain is held to (B01's cliff bound, B03's border bound).</summary>
