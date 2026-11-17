@@ -2884,3 +2884,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `MaxMipLevel` is the last mip level, not the base). Interleaved timings: the processor's submit time falls to a quarter or a tenth
   (meadow 1.17 to 0.36 ms, under water 3.80 to 0.35), the card's time is equal or lower in every pair (`GlCardTimer`), frame p50 lower.
   Gated clean.
+- **B02c, rivers that only fall (2026-11-17, `4445e907`).** The rivers no longer climb: a drainage network (`World/Drainage`) floods each
+  landmass by priority over 32-block nodes, so every river runs downhill to a lake or the sea, and lakes fill basins. A landmass is read
+  whole on first touch (0.25 to 0.9 s). Generator version 4 (B11b had made it 3), so the far store builds new folders; 9 of the 18 goldens
+  moved (each seed's river and lake columns re-chosen to hold water, and a few coasts and a mountain), with the fixture's state digest and
+  the atmosphere pins. Three rounds of review found: a `ThreadPool` call in Game.Core's `WorldQuery` (against the two-worker rule; now a
+  dry answer, without rivers, until the streaming workers read the landmass); 160 bytes allocated on every frame by small arrays in the
+  look-up (B21's zero-allocation test caught it in the gate; fixed); and a lake that is a staircase of three levels (41, 44, 47) with
+  walls of water between, because a lake node takes the higher level of the bank node it was found from. Three fixes for the lake broke a
+  river or puddle check, so it was reverted and planned as B02d. The new ground has almost no cliffs outside the snowy peaks (the old
+  rivers' valley walls were its cliffs): `RockVarietyTests` skips its face-rock share, with a note, when its sample holds 100 cliff
+  columns or fewer. Start to first frame +0.4 s; a settled 16 km far view about 20% slower. Gated: 12,565 passed; the one failure the
+  scene build's wall-clock timing test (3,026 ms against 3,000 at load 15), passing alone, given to B24.
