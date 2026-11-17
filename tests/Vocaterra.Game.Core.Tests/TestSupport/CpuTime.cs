@@ -9,6 +9,28 @@ namespace Vocaterra.Game.Core.Tests.TestSupport;
 /// </summary>
 internal static class CpuTime
 {
+    /// <summary>
+    /// The factor every CPU budget is multiplied by (B30): 1 locally, 4 when CI=true or GITHUB_ACTIONS=true (a GitHub runner has 4 cores and is about four times slower), or the value of
+    /// VOCATERRA_TIMING_FACTOR. The core's tests have the same rule in Vocaterra.Nlp.Tests.TimingFactor.
+    /// </summary>
+    public static double Factor { get; } = ReadFactor();
+
+    /// <summary>A budget as measured on the development machine, in milliseconds, scaled by <see cref="Factor"/>.</summary>
+    public static double Budget(double localMilliseconds) => localMilliseconds * Factor;
+
+    private static double ReadFactor()
+    {
+        var text = Environment.GetEnvironmentVariable("VOCATERRA_TIMING_FACTOR");
+        if (double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var set) && set > 0)
+        {
+            return set;
+        }
+
+        return IsTrue("CI") || IsTrue("GITHUB_ACTIONS") ? 4 : 1;
+    }
+
+    private static bool IsTrue(string name) => string.Equals(Environment.GetEnvironmentVariable(name), "true", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>The CPU time, in milliseconds, of this process while <paramref name="action"/> runs, on any thread.</summary>
     public static double Milliseconds(Action action)
     {

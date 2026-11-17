@@ -172,7 +172,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
 public class GeneratedLexiconLoadTimeTests(ITestOutputHelper output)
 {
     // Measured (M100, the sample bundle, one run at load about 10): the load takes 541 ms of CPU time, the fastest of three (582, 711, 541). The budget is twice that.
-    private const double LoadBudgetMilliseconds = 1082;
+    private static readonly double LoadBudgetMilliseconds = Vocaterra.Nlp.Tests.TimingFactor.Scale(1082);
 
     [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]

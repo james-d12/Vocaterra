@@ -22,10 +22,10 @@ public sealed class ProceduralChunkTimeTests(ITestOutputHelper output)
     // Measured (B24, Debug as the suite runs, CPU time, fastest of three, after B27's reach cache in the drainage network; B02c had doubled the cost to 13.9, 13.6, 13.1 and 24.2): a surface chunk 6.7 ms, an all-stone chunk 6.4, a deep chunk 6.4, a column of 24 chunks 17.0
     // (4.2 before the underground: a ratio of 4.9). Under load the figures run higher, so the budgets sit at twice the quietest.
     // Each budget is twice the measurement, rounded up: a pass that costs twice as much fails.
-    private const double SurfaceBudget = 14;
-    private const double StoneBudget = 13;
-    private const double ColumnBudget = 41;
-    private const double DeepBudget = 13;
+    private static readonly double SurfaceBudget = CpuTime.Budget(14);
+    private static readonly double StoneBudget = CpuTime.Budget(13);
+    private static readonly double ColumnBudget = CpuTime.Budget(41);
+    private static readonly double DeepBudget = CpuTime.Budget(13);
     // The ratio of a column with the underground to one without: 4.7 at its quietest (B27, load 10 to 15; 4.7 to 5.3 seen). B27 made the base (the column without the underground) cheaper, so the ratio rose while the
     // underground did not change (2.9 before B02c's network, 6 until B27). The bound is twice the quietest, rounded up.
     private const double RatioBound = 10;

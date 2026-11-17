@@ -16,7 +16,7 @@ public sealed class SceneBuildTimeTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // Measured (B24, Debug, CPU time, fastest of three attempts, with the drainage network): build 3,540 ms and digest 72 ms after the merge of B02c (4,121 and 119 in an earlier, busier run). The budget is twice the quieter, rounded up.
-    private const double Budget = 7300;
+    private static readonly double Budget = CpuTime.Budget(7300);
 
     [Fact]
     public void Seed42SceneMatchesTheGoldenAndBuildsWithinItsCpuBudget()
