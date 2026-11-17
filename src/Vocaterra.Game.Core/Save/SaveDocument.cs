@@ -122,6 +122,7 @@ public sealed record SaveDocument(
 /// <param name="FieldOfView">The vertical field of view in degrees (the menu), 60 to 110; 0 (and so no field) is the default 70. Written only when not 70.</param>
 /// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
 /// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
+/// <param name="Grass">The decorative grass's density in percent (B18, the menu), 0 to 100 in steps of 10; no field is the default (<see cref="Menu.PlayerSettings.DefaultGrass"/>), so 0 (none) is written. Written only when not the default.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -134,7 +135,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool InvertY = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null)
 {
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
@@ -193,6 +195,10 @@ public sealed record SaveSettings(
         }
     }
 
+    /// <summary>The grass density in percent this setting stands for (the default when the field is absent), within the menu's range and steps.</summary>
+    [JsonIgnore]
+    public int EffectiveGrass => Grass is { } value ? Menu.PlayerSettings.Spec(Menu.SettingId.Grass).Snap(value) : Menu.PlayerSettings.DefaultGrass;
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -213,7 +219,8 @@ public sealed record SaveSettings(
         InvertY,
         EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView,
         EffectiveViewDistance,
-        PassCheat);
+        PassCheat,
+        EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass);
 }
 
 /// <summary>

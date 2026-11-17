@@ -2794,3 +2794,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
   worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
   mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.
+- **The owner's picture tour (2026-11-16, no repository change; `artifacts/b-series/tour/`, index.md).** Seeds 42, 1, 7, 2026 and 99999 from
+  high ground, a mountain range, ocean views, and the cave on seed 42 through B11b's natural entrance (a torch-lit landing, the lava lake),
+  High, midday, Release. Findings: a teleport to a new area took 40 to 135 s for the far view on an empty cache (B07d's fill speed); the
+  cave mouth is hard to find from outside (a 2 to 3 block pit in meadow); `--teleport-to x,y,z` over a passage stood the camera on the
+  surface above it, not in the passage (B24); snow-covered summits read flat white; seed 99999 is 79% water with no real range.
+- **B18, grass density (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b18-grass-density.md`, report `.claude/briefs/b18-report.md`,
+  pictures in `artifacts/b-series/b18/`. A render-only layer (`GrassMesher`): crossed tall-grass tufts on grass tops where the cell above
+  is air, from a pinned cell hash (stable; more density only adds tufts), weighted by biome through `IPlaceInfo` (plains and meadow 1.0,
+  woods 0.85 to 0.9, grove 0.5, taiga 0.4, others 0.3; data in an embedded `GrassBiomes.json`, outside the world-generation files so the
+  save digest does not move); a Grass slider (0 to 100, default 60, saved, `--grass`), presets 48 / 72 / 96 blocks with caps 40 / 70 / 100%;
+  0 is the old look byte for byte. No measurable frame cost (scene draw median within noise at 0, 60, 100); a layer 0.2 ms a chunk; about
+  3.6 MB at High. One merge (B07c's presets). Its first gate's run on feature/biomes crashed a game-window test (exit 139, passing alone in
+  20 min: the far view's settle in Debug, given to B07e); its merge's full run tripped M97's fixed-seed coverage test (passes alone; M98).
+  Gated: 12,448 passed, 3 skipped.

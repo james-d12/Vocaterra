@@ -50,4 +50,7 @@ public enum SettingId
 
     /// <summary>The pass cheat (B08b): 0 off, 1 on. On, the pass through the east ring opens at once (and stays open when it is turned off again).</summary>
     PassCheat,
+
+    /// <summary>The decorative grass on the grass blocks' tops (B18, D-game-34 item 34): its density in percent, 0 (none: the look of before) to 100, in steps of 10.</summary>
+    Grass,
 }

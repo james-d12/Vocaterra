@@ -136,12 +136,23 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private FarView? _far;
     private FarTerrainRenderer? _farRenderer;
     private float _farRange;
+    private readonly GrassBiomes _grassBiomes = GrassBiomes.Shipped;
+    private Func<int, int, string?>? _grassBiomeAt;
+    private int _grassPercent;
+    private bool _grassDirty;
+    private bool _grassScanned;
+    private Vector3 _grassScanEye;
+    private int _drawnGrassQuads;
+    private int _grassBuilt;
+    private double _grassMilliseconds;
+    private readonly List<VoxelChunkCoord> _grassScratch = [];
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
     /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
     /// <param name="groundClimate">The ground temperature and humidity at a block (<see cref="GroundClimate.Of"/>), which the grass and the oak leaves take their colour from (B22); <see langword="null"/> for the colour map's middle everywhere.</param>
     /// <param name="naturalSurface">The natural surface y of a block column (<c>IPlaceInfo.NaturalSurfaceAt</c>), from which the ground darkens with depth (B12, <see cref="SkyDepthLight"/>); <see langword="null"/> for no darkening.</param>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, int, (int Temperature, int Humidity)>? groundClimate = null)
+    /// <param name="biomeAt">The id of the biome of a block column (<c>IPlaceInfo.BiomeAt</c>), which sets how lush the decorative grass is there (B18); <see langword="null"/> where the world has no place query (the valley).</param>
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, string?>? biomeAt = null, Func<int, int, int, (int Temperature, int Humidity)>? groundClimate = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -183,6 +194,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _sky = new SkyRenderer(device, look);
         _rain = new PrecipitationRenderer(device, grid, log);
         _lights = new ChunkLightIndex(grid);
+        _grassBiomeAt = biomeAt;
         _skyExposure = naturalSurface is null ? null : new SkyExposure(grid, naturalSurface);
         _ground = groundClimate;
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground); // the lights near a chunk are put in when it is meshed (BuildChunk)
@@ -341,7 +353,13 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         var remesh = preset.AmbientOcclusion != Preset.AmbientOcclusion || preset.PlantKeepPercent != Preset.PlantKeepPercent;
+        var regrow = preset.GrassCapPercent != Preset.GrassCapPercent;
         Preset = preset;
+        if (regrow)
+        {
+            ReleaseAllGrass(); // the layer holds the tufts up to the quality's cap: built again, near the eye, by the next Remesh
+        }
+
         var fogEnd = FogEndNow(preset.ViewDistance, _look.Fog);
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
         _view.Detach();
@@ -355,6 +373,181 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _wanted = [];
         _checkedEdits = -1;
         ApplyFogState(); // the fog of the new distance
+    }
+
+    /// <summary>
+    /// The decorative grass's density, 0 to 100 percent (B18, the settings page's Grass slider). Moving it between two values above 0 builds nothing again: each chunk's grass layer holds the tufts up to the quality's cap
+    /// in the order of their density rank, and the slider only chooses how many tiers of it are drawn. From 0 the layers are built near the eye by the next <see cref="Remesh"/>; to 0 they are let go and nothing extra is drawn.
+    /// </summary>
+    /// <param name="percent">The density in percent.</param>
+    public void SetGrass(int percent)
+    {
+        percent = Math.Clamp(percent, 0, 100);
+        if (percent == _grassPercent)
+        {
+            return;
+        }
+
+        var wasOff = _grassPercent == 0;
+        _grassPercent = percent;
+        if (percent == 0)
+        {
+            ReleaseAllGrass();
+        }
+        else if (wasOff)
+        {
+            _grassDirty = true;
+        }
+    }
+
+    /// <summary>The decorative grass's density in percent (0 draws nothing extra).</summary>
+    public int GrassPercent => _grassPercent;
+
+    /// <summary>How many quads of decorative grass the last <see cref="DrawWorld"/> drew.</summary>
+    public int DrawnGrassQuads => _drawnGrassQuads;
+
+    /// <summary>How many chunks' grass layers were built so far, and the time they took in milliseconds (a build is apart from the chunk's own mesh).</summary>
+    public (int Built, double Milliseconds) GrassBuilds => (_grassBuilt, _grassMilliseconds);
+
+    /// <summary>How many quads of grass the chunks near the eye hold right now (what is built, drawn or not).</summary>
+    public int GrassQuadsBuilt
+    {
+        get
+        {
+            var quads = 0;
+            foreach (var chunk in _chunks.Values)
+            {
+                quads += chunk.GrassQuads;
+            }
+
+            return quads;
+        }
+    }
+
+    // Lets every chunk's grass layer go (the setting went to 0, or the quality's cap changed); the next scan builds them again if they are wanted.
+    private void ReleaseAllGrass()
+    {
+        foreach (var chunk in _chunks.Values)
+        {
+            chunk.ReleaseGrass();
+        }
+
+        _grassDirty = true;
+    }
+
+    // Builds the grass layers of the chunks within reach of the eye that have none yet, nearest first, and lets go of the layers of the chunks well beyond it. Chunks come and go with the eye, so the scan runs when the
+    // eye has moved a few blocks, a chunk was meshed again or a layer is still due; the budget bounds a frame's work like the chunk meshes' (always one build, so the view fills).
+    private void UpdateGrass(Vector3 eye, double? budgetMilliseconds, double started)
+    {
+        if (_grassPercent == 0)
+        {
+            return;
+        }
+
+        if (!_grassDirty && _grassScanned && Vector3.DistanceSquared(eye, _grassScanEye) < 16f)
+        {
+            return;
+        }
+
+        _grassScanned = true;
+        _grassScanEye = eye;
+        var reach = Preset.GrassDistance + VoxelChunk.Size + (VoxelChunk.Size / 2);
+        var reachSquared = (float)reach * reach;
+        var keepSquared = (float)(reach + (2 * VoxelChunk.Size)) * (reach + (2 * VoxelChunk.Size));
+        var due = _grassScratch;
+        due.Clear();
+        foreach (var coord in _resident)
+        {
+            var gpu = _chunks[coord];
+            var distance = Vector3.DistanceSquared(gpu.Centre, eye);
+            if (gpu.GrassBuilt)
+            {
+                if (distance > keepSquared)
+                {
+                    gpu.ReleaseGrass();
+                }
+            }
+            else if (distance <= reachSquared)
+            {
+                due.Add(coord);
+            }
+        }
+
+        due.Sort((a, b) => Vector3.DistanceSquared(_chunks[a].Centre, eye).CompareTo(Vector3.DistanceSquared(_chunks[b].Centre, eye)));
+        var built = 0;
+        foreach (var coord in due)
+        {
+            if (budgetMilliseconds is { } budget && built > 0 && MonotonicClock.Milliseconds() - started >= budget)
+            {
+                break;
+            }
+
+            BuildGrass(coord, _chunks[coord]);
+            built++;
+        }
+
+        _grassDirty = built < due.Count; // chunks are still waiting: the next frame goes on
+        due.Clear();
+    }
+
+    private void BuildGrass(VoxelChunkCoord coord, ChunkGpu gpu)
+    {
+        var started = MonotonicClock.Milliseconds();
+        gpu.ReleaseGrass();
+        gpu.GrassBuilt = true;
+        if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & _grassBiomes.TopMask) == UInt128.Zero)
+        {
+            return; // not resident, or no block that carries grass
+        }
+
+        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds), _ground);
+        if (GrassMesher.Build(_source, coord.X, coord.Y, coord.Z, options) is { } layer)
+        {
+            var (buffer, quads) = Upload(layer.Mesh);
+            gpu.Grass = buffer;
+            gpu.GrassQuads = quads;
+            gpu.GrassStart = layer.QuadrantStart;
+            gpu.GrassCumulative = layer.Cumulative;
+        }
+
+        _grassBuilt++;
+        _grassMilliseconds += MonotonicClock.Milliseconds() - started;
+    }
+
+    // The grass of a chunk, drawn quadrant by quadrant: the slider's share of the density rank tiers, thinned by the distance from the eye of the quadrant's middle, so the layer thins out over its outer half with no
+    // edge to see: a tuft at a time goes, a quadrant at a time (8 blocks), never a whole chunk. No allocation.
+    private void DrawGrass(ChunkGpu chunk, Vector3 eye, float reach, float slider)
+    {
+        var buffer = chunk.Grass;
+        if (buffer is null || chunk.GrassStart is not { } start || chunk.GrassCumulative is not { } cumulative)
+        {
+            return;
+        }
+
+        var origin = chunk.Box.Min;
+        var dy = eye.Y - chunk.Centre.Y;
+        for (var q = 0; q < GrassMesher.Quadrants; q++)
+        {
+            var dx = eye.X - (origin.X + ((q & 1) == 0 ? VoxelChunk.Size / 4f : 3f * VoxelChunk.Size / 4f));
+            var dz = eye.Z - (origin.Z + ((q & 2) == 0 ? VoxelChunk.Size / 4f : 3f * VoxelChunk.Size / 4f));
+            var distance = MathF.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
+            var share = Math.Clamp((reach - distance) / (reach * 0.5f), 0f, 1f) * slider;
+            var tiers = (int)((share * GrassMesher.Tiers) + 0.5f);
+            if (tiers <= 0)
+            {
+                continue;
+            }
+
+            var quads = cumulative[(q * (GrassMesher.Tiers + 1)) + Math.Min(tiers, GrassMesher.Tiers)];
+            if (quads == 0)
+            {
+                continue;
+            }
+
+            _device.SetVertexBuffer(buffer);
+            _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, start[q] * 4, 0, quads * 2);
+            _drawnGrassQuads += quads;
+        }
     }
 
     // Lets every mesh go and forgets the versions the tracker holds, so the next Remesh builds the view again, nearest first.
@@ -635,6 +828,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         _pending = due.Count - built;
+        if (built > 0)
+        {
+            _grassDirty = true; // a chunk was meshed again: its grass layer went with the old mesh
+        }
+
+        UpdateGrass(eye, budgetMilliseconds, started);
         return built;
     }
 
@@ -738,6 +937,32 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
                 {
                     DrawChunk(chunk.Plants, chunk.PlantQuads);
                     _drawnPlantQuads += chunk.PlantQuads;
+                }
+            }
+        }
+
+        // The decorative grass (B18): the tufts on the grass blocks' tops, in the same pass and tint as the undergrowth, thinning out towards the edge of their distance.
+        _drawnGrassQuads = 0;
+        if (_grassPercent > 0)
+        {
+            var grassReach = (float)Preset.GrassDistance;
+            var grassChunkReach = (grassReach + VoxelChunk.Size) * (grassReach + VoxelChunk.Size);
+            var slider = _grassPercent / 100f;
+            for (var band = 0; band < LightBands.Count; band++)
+            {
+                if (_bandChunks[band] == 0)
+                {
+                    continue;
+                }
+
+                _solid.DiffuseColor = _tints[band];
+                _solid.CurrentTechnique.Passes[0].Apply();
+                foreach (var chunk in _visible)
+                {
+                    if ((int)chunk.Band == band && chunk.Grass is not null && Vector3.DistanceSquared(chunk.Centre, eye) <= grassChunkReach)
+                    {
+                        DrawGrass(chunk, eye, grassReach, slider);
+                    }
                 }
             }
         }
@@ -945,6 +1170,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             chunk.Plants?.Dispose();
             chunk.Lit?.Dispose();
             chunk.Glow?.Dispose();
+            chunk.Grass?.Dispose();
         }
 
         _indices.Dispose();
@@ -1149,14 +1375,30 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         public int LitQuads;
         public VertexBuffer? Glow;
         public int GlowQuads;
+        public VertexBuffer? Grass;
+        public int GrassQuads;
+        public int[]? GrassStart;
+        public int[]? GrassCumulative;
+        public bool GrassBuilt;
         public LightBand Band;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
         public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null || Plants is not null || Lit is not null) && frustum.Intersects(Box);
 
+        public void ReleaseGrass()
+        {
+            Grass?.Dispose();
+            Grass = null;
+            GrassQuads = 0;
+            GrassStart = null;
+            GrassCumulative = null;
+            GrassBuilt = false;
+        }
+
         public void Release()
         {
+            ReleaseGrass();
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();

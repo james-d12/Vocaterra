@@ -18,7 +18,7 @@ Last checked against `main`: 2026-11-15 (after pull requests #64, #65 and #66). 
 | Core D13 | Pronunciation ambition | Follows M24's speech check | [nlp/decisions](nlp/decisions.md) |
 | Core D14 | German: the variety, the tagger route, content trust | M36 to M48 | [nlp/decisions](nlp/decisions.md) |
 | Core fuzz | A silent-h seed (`a2RKk5N6Ibt4`, «ah hambrientos» scored with two silent h's) replays on `feature/biomes`: a core fix like M97, to authorise | A gate's full run fails on it at random seeds | [core findings](nlp/findings.md) (last entry) |
-| Rendering | The review's decisions D1 to D6: game worker threads, a pixels-per-voxel detail target, B17's shader toolchain, macOS in scope, the distance target, built things far off | B07d, B17, B19 | [rendering review](research/2026-11-16-rendering-and-distance-review.md) |
+| Rendering | The review's decisions D1, D2, D5, D6: game worker threads, a pixels-per-voxel detail target, the distance target, built things far off (D4: macOS out of scope, item 39; D3: raw GLSL at run time, item 40) | B07d, B17, B19 | [rendering review](research/2026-11-16-rendering-and-distance-review.md) |
 | M79 | The typo slip: a new `vocab.spelling` tag or `vocab.unknown`; a suggestion list on `ErrorTag`; the typo's weight | M79 | [core plan](nlp/implementation-plan.md) §5 |
 | M67b | Answer-set verb forms: parked, because it fails 32 game tests that pin V14's design | QA-language-5 and 10 | [core plan](nlp/implementation-plan.md) §5, [QA triage](qa-reports/README.md) |
 | D-game-1 | The final engine (MonoGame or Godot .NET) | The optional P10 spike | [game/decisions](game/decisions.md) |

@@ -925,6 +925,13 @@ the owner's answers of 2026-11-15 are in its section 5.
     paralel", then, offered 6 agents with 3 slots, 8 with 3, or 6 with 2: "what about 4 agents like now, but one extra slot", then "5
     agents and 3 gates looks ok". Up to five building agents; limited.sh runs three heavy commands at once (`VOCATERRA_HEAVY_SLOTS`
     default 3); 10 GB a command and 16 GB in all unchanged.
+39. **macOS is out of scope** (2026-11-16, about 22:45 UTC, the rendering review's D4): "macOS does not matter". Opens the raw OpenGL 4.x route
+    (OpenGL 4.6 is not available on macOS) for B17's shaders and B19's later steps.
+40. **B17's shaders as raw GLSL compiled at run time** (2026-11-16, about 22:50 UTC, the rendering review's D3, offered (a) mgfxc on a Windows
+    CI runner with committed binaries, (b) a pinned Wine, (c) raw GLSL on MonoGame's OpenGL context through an MIT binding (Silk.NET or
+    OpenTK), (d) waiting for MonoGame's new back ends): "Let's go with c". The driver compiles the shaders at start; the world's drawing
+    goes through the binding on MonoGame's own context with its state saved and restored; it opens OpenGL 4.x for B19's step 2. B17 starts
+    with a spike proving one GLSL shader draws chunks inside MonoGame's frame.
 
 ## Already decided
 
