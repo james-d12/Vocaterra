@@ -144,12 +144,17 @@ public sealed class ChunkMeshPipelineTests
         var chunks = rig.Wanted.Where(c => rig.Grid.TryGetChunk(c, out var chunk) && (chunk.KindMask & biomes.TopMask) != UInt128.Zero).Take(40).ToList();
         Assert.True(chunks.Count > 10, $"{chunks.Count} chunks with grass");
 
+        var started = Environment.TickCount64;
         foreach (var coord in chunks)
         {
-            Assert.True(rig.Pipeline.SubmitGrass(coord, options, rig));
+            while (!rig.Pipeline.SubmitGrass(coord, options, rig))
+            {
+                _ = rig.Frame(); // the workers have all they can take: a frame takes back what they finished
+                Thread.Sleep(1);
+                Assert.True(Environment.TickCount64 - started < 60_000, "the workers did not take the jobs");
+            }
         }
 
-        var started = Environment.TickCount64;
         while (rig.Grass.Count < chunks.Count)
         {
             _ = rig.Frame();
