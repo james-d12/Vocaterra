@@ -163,24 +163,41 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
         Assert.All(imported.Entries, entry => Assert.All(entry.Form, character => Assert.True(char.IsLetter(character), $"'{entry.Form}' contains '{character}'")));
         Assert.DoesNotContain(imported.Entries, entry => entry.Pos == "art" || entry.Pos == "num");
     }
+}
+
+/// <summary>
+/// The lexicon load's CPU-time budget (M100). It runs alone in the timing collection, so no other test of the assembly is loading the machine while it measures.
+/// </summary>
+[Collection(TimingCollection.Name)]
+public class GeneratedLexiconLoadTimeTests(ITestOutputHelper output)
+{
+    // Measured (M100, the sample bundle, one run at load about 10): the load takes 541 ms of CPU time, the fastest of three (582, 711, 541). The budget is twice that.
+    private const double LoadBudgetMilliseconds = 1082;
 
     [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void LoadingTheBundleIsFastEnough()
     {
-        var timings = new List<long>();
+        // The CPU time of this process (any thread) while the load runs, the fastest of three attempts (M100): another process's load does not count
+        // against it, and a real slowdown adds CPU time in every attempt. Measured on the sample bundle (see docs/nlp/findings.md, M100).
+        var attempts = new List<double>();
         for (var run = 0; run < 3; run++)
         {
-            var watch = Stopwatch.StartNew();
-            _ = SpanishContent.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
-            timings.Add(watch.ElapsedMilliseconds);
+            attempts.Add(CpuMilliseconds(() => SpanishContent.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true })));
         }
 
-        var ordered = timings.Order().ToArray();
-        output.WriteLine($"ContentLoader.Load with hash verification: {string.Join(", ", timings)} ms (median {ordered[ordered.Length / 2]} ms)");
+        var fastest = attempts.Min();
+        output.WriteLine($"ContentLoader.Load with hash verification, CPU time: {string.Join(", ", attempts.Select(ms => ms.ToString("F0", CultureInfo.InvariantCulture)))} ms (fastest {fastest:F0} ms)");
 
-        // The recorded gate is 300 ms for a release build on a development machine; a test run is a debug build on whatever machine runs it, so only a generous
-        // bound is asserted here. The measurement above goes into docs/nlp/lexicon.md.
-        Assert.True(ordered[ordered.Length / 2] < 3000, "Loading the bundle takes more than three seconds.");
+        Assert.True(fastest < LoadBudgetMilliseconds, $"Loading the bundle takes {fastest:F0} ms of CPU time; the budget is {LoadBudgetMilliseconds:F0} ms.");
+    }
+
+    private static double CpuMilliseconds(Action action)
+    {
+        using var process = Process.GetCurrentProcess();
+        var before = process.TotalProcessorTime;
+        action();
+        process.Refresh();
+        return (process.TotalProcessorTime - before).TotalMilliseconds;
     }
 }

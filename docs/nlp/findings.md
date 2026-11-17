@@ -1512,3 +1512,10 @@ this file. What is still open is collected in [open-items](../open-items.md).
   injectable variants with identical phones (still exactly one tag, with the tag, phones and span of that site); no check was relaxed otherwise. Regression: four facts in
   `GreedyPhoneScorerTests` (one h, two h's, an h at a lone second word, a silent h before a vowel word and a lone silent-h word). Plan row text proposed: "M99 done: one heard
   extra phone is one tag (a silent h ending a word and one starting the next no longer double-tag; the first word in the text gets it), seed `a2RKk5N6Ibt4` fixed."
+- **M100, the lexicon load test on CPU time (2026-11-17).** Tests only (`tests/Vocaterra.Nlp.Tests`), no core or pack change, goldens unchanged. *Cause:*
+  `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` took the median of three wall-clock loads against 3 000 ms, so a busy machine (other agents' builds) made the gate
+  fail (B24's report; the codebase review's T2). *Fix:* the test now measures the CPU time of this process (any thread) while `SpanishContent.Load` runs with hash
+  verification, the fastest of three attempts, the same method as the game's `CpuTime` helper (B24). It sits in its own class, `GeneratedLexiconLoadTimeTests`, in a
+  new non-parallel `Timing` collection (`tests/Vocaterra.Nlp.Tests/TimingCollection.cs`, the game's `TimingCollection` in the core's assembly), so it runs alone. *Measured*
+  (sample bundle, machine at load about 10): attempts 582, 711 and 541 ms of CPU time, fastest 541 ms. *Budget:* 1 082 ms, twice the measured cost, so a doubling of the
+  load's cost fails the test. The budget is strict (`<`), so a run at exactly a doubling fails too. Full suite: 12 643 passed, 0 failed, 8 skipped (unchanged from the base).
