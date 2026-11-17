@@ -2915,3 +2915,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   r01-route (445 s), r40-inn (246 s), r42-camp (268 s, torch and glow shown) and the torch cave re-run. Worth knowing: every streamed
   scripted run spends about 160 to 170 s of its first frame building a cold 16 km far view on two workers; a `timeout` must go inside
   `scripts/limited.sh` or the wait for a slot counts against it; a capture needs the build under the repository or `--content`.
+- **B07d, the far view's remainder and worker threads (2026-11-17, `93a74756`).** The owner's item 42 is in: a "Worker threads" setting
+  (Auto, the processor count less 4 within 1 to 8, so 8 here; a launch option `--workers`), with `JobPool.MaxWorkers` 8 and the pool
+  resized while the game runs; scripted runs, tests and `--prefetch` keep 2 or fewer, and the world is identical at 1, 2, 8 and inline.
+  The 16 km far view filled after a 1.9 km teleport in 272 s at 2 workers, 147 at 4 and 110 at 8 (after a start 307, 221, 180), on a
+  machine at load 15 to 25, one round. The far view's distance, detail, tree, texture and real-land settings join the Graphics group
+  (item 43). `--pregen <blocks>` fills the far store round a point on all workers and exits (1 km in 29 s, 4 km in 340 s and 1.05 GB;
+  16 km estimated at 48 minutes and 15 GB). The store's real sections are capped at 256 MB (least recently used dropped, edited ones
+  kept, reloaded from disk); the ring plans on a worker; fsync runs on a 2 s timer; regions are compacted at start. The review's
+  surface-only ring skips only about 23% of chunk layers, not 5 to 10 times. The fsync timer reads `Environment.TickCount64` after a
+  `Stopwatch` failed `OnlyTheRealFrameClockReadsATimer`: harmless (a disk timer, not game logic), but the file belongs on that test's
+  allow-list by name rather than passing it by a different clock. Gated clean, with the game's licence scans (B26) passing in the gate
+  for the first time.
