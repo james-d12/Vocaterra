@@ -508,14 +508,6 @@ public sealed class VoxelGrid : IVoxelWriter
     /// <summary>The resident chunks' coordinates in no fixed order (a snapshot), for a host's residency driver (<see cref="World.Streaming.GridResidency"/>); the simulation never enumerates them.</summary>
     internal List<VoxelChunkCoord> ResidentCoordinateList() => new(_chunks.Keys);
 
-    /// <summary>The resident chunks' coordinates in a fixed order (layer, then row, then column), for the streamer's policy; the simulation never enumerates them.</summary>
-    internal List<VoxelChunkCoord> ResidentCoordinates()
-    {
-        var coords = new List<VoxelChunkCoord>(_chunks.Keys);
-        coords.Sort(static (a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.Z != b.Z ? a.Z.CompareTo(b.Z) : a.X.CompareTo(b.X));
-        return coords;
-    }
-
     /// <summary>
     /// The resident chunks that are <see cref="VoxelChunk.IsChanged"/>, sorted by coordinate (layer, then row, then column): the world's state (B05). The state digest and a save
     /// write exactly these. The cost is one cheap test per resident chunk plus a digest per chunk that was written.

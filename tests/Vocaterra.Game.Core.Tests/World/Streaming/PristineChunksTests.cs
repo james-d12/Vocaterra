@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
@@ -66,9 +65,7 @@ public sealed class PristineChunksTests(ITestOutputHelper output)
             var feet = new BlockPos(x, 70, z);
             var window = WorldWindow.For(transient, x, 70, z);
 
-            var watch = Stopwatch.StartNew();
             var cold = WorldFacts.Snapshot(transient.Grid, nouns, directions, window, new PristineChunks(transient.Streaming!));
-            var elapsed = watch.Elapsed.TotalMilliseconds;
 
             // The same world with every chunk of the window's columns resident, the rock under the ground as well: the residency must not change what the guide sees.
             for (var cz = window.MinZ >> 4; cz < (window.EndZ + 15) >> 4; cz++)
@@ -92,8 +89,7 @@ public sealed class PristineChunksTests(ITestOutputHelper output)
                 Assert.Equal(warm.NearestOfNoun(from, lemma), cold.NearestOfNoun(from, lemma));
             }
 
-            output.WriteLine($"snapshot at ({x}, {z}): {elapsed:0} ms without installing, {window.EndX - window.MinX} x {window.EndY - window.MinY} x {window.EndZ - window.MinZ} blocks");
-            Assert.True(elapsed < 20_000, $"{elapsed} ms");
+            output.WriteLine($"snapshot at ({x}, {z}): {window.EndX - window.MinX} x {window.EndY - window.MinY} x {window.EndZ - window.MinZ} blocks"); // its cost is held to a budget by PristineSnapshotTimeTests
         }
     }
 
