@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Far;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Gl;
@@ -104,6 +105,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private GlOpaquePass? _glOpaque;
     private readonly SkyRenderer _sky;
     private MeshOptions _meshOptions;
+    private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
     private readonly GridBlockSource _source;
     private readonly ChunkVersionTracker _tracker;
     private ChunkViewSet _view;
@@ -122,7 +124,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private readonly PrecipitationRenderer _rain;
     private LightBand _band;
     private Vector3 _sunLight = Vector3.One;
-    private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
+    private readonly Vector3[] _tints = [Vector3.One, Vector3.One, Vector3.One, Vector3.One]; // the tint of each band (LightBands.Tint), indexed by LightBand
     private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
     private readonly HashSet<VoxelChunkCoord> _resident = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
@@ -153,9 +155,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
     /// <summary>Creates the renderer for a grid, a quality preset and the sky's look at the start. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
     /// <param name="log">Where the rain says it has no style for a precipitation kind (once), or <see langword="null"/>.</param>
+    /// <param name="groundClimate">The ground temperature and humidity at a block (<see cref="GroundClimate.Of"/>), which the grass and the oak leaves take their colour from (B22); <see langword="null"/> for the colour map's middle everywhere.</param>
     /// <param name="naturalSurface">The natural surface y of a block column (<c>IPlaceInfo.NaturalSurfaceAt</c>), from which the ground darkens with depth (B12, <see cref="SkyDepthLight"/>); <see langword="null"/> for no darkening.</param>
     /// <param name="biomeAt">The id of the biome of a block column (<c>IPlaceInfo.BiomeAt</c>), which sets how lush the decorative grass is there (B18); <see langword="null"/> where the world has no place query (the valley).</param>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, string?>? biomeAt = null)
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, WaterTextures water, VoxelGrid grid, QualityPreset preset, in SkyLook look, RiverCurrents? currents = null, Action<string>? log = null, Func<int, int, int>? naturalSurface = null, Func<int, int, string?>? biomeAt = null, Func<int, int, int, (int Temperature, int Humidity)>? groundClimate = null)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -199,7 +202,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _lights = new ChunkLightIndex(grid);
         _grassBiomeAt = biomeAt;
         _skyExposure = naturalSurface is null ? null : new SkyExposure(grid, naturalSurface);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band); // the lights near a chunk are put in when it is meshed (BuildChunk)
+        _ground = groundClimate;
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground); // the lights near a chunk are put in when it is meshed (BuildChunk)
         grid.AddResidencyListener(_tracker);
         grid.AddResidencyListener(this);
         SetLightTints(look);
@@ -366,7 +370,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         DryFog = new FogParameters(DryFog.Red, DryFog.Green, DryFog.Blue, FogStartOf(fogEnd), fogEnd);
         _view.Detach();
         _view = new ChunkViewSet(_grid, preset.ViewDistance, MeshCap(preset)) { ResidencyRebuildCalls = 8 };
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band, null, _ground);
         if (remesh)
         {
             ReleaseAllMeshes(); // the corners and the undergrowth are in the meshes: build them again
@@ -525,7 +529,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             return; // not resident, or no block that carries grass
         }
 
-        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds));
+        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds), _ground);
         if (GrassMesher.Build(_source, coord.X, coord.Y, coord.Z, options) is { } layer)
         {
             var (buffer, quads) = Upload(layer.Mesh);

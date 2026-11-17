@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Colour;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -11,8 +12,9 @@ namespace Vocaterra.Game.Graphics.World;
 /// <param name="BiomeAt">The id of the biome of a block column, or <see langword="null"/> for a world that has no place query (every column then has <see cref="GrassBiomes.WeightOf"/> of <see langword="null"/>).</param>
 /// <param name="Sky">The surface of the chunk column, to darken a tuft that stands under a roof of ground (B12), or <see langword="null"/>.</param>
 /// <param name="Band">The light band whose sun is baked into the colours (the same as the chunk's own mesh, which the layer is drawn with).</param>
+/// <param name="Ground">The ground temperature and humidity at a block (B22, <see cref="GroundClimate.Of"/>), from which a tuft takes the same land colour as the chunk's own grass and tall grass (<see cref="ColumnTints"/>); <see langword="null"/> for the colour map's middle.</param>
 /// <param name="Grey">Whether the block's tuft is drawn from the grey copy of the atlas (the greyscale view).</param>
-public sealed record GrassLayerOptions(float Cap, GrassBiomes Data, Func<int, int, string?>? BiomeAt, SkySurface? Sky, LightBand Band, bool Grey);
+public sealed record GrassLayerOptions(float Cap, GrassBiomes Data, Func<int, int, string?>? BiomeAt, SkySurface? Sky, LightBand Band, bool Grey, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null);
 
 /// <summary>
 /// The decorative grass of one chunk (B18): the quads of its tufts, in four quadrants of 8 x 8 columns, each quadrant ordered by tier (a tuft's rank in the density, so the first tiers hold the tufts a low
@@ -85,6 +87,7 @@ public static class GrassMesher
         var weights = new float[16]; // the biome's weight at the middle of each 4 x 4 block of the chunk, read when first needed
         Array.Fill(weights, -1f);
         var tufts = new List<Tuft>();
+        var land = new ColumnTints(LandColours.Default, options.Ground, x0, z0);
         for (var lz = 0; lz < VoxelChunk.Size; lz++)
         {
             for (var lx = 0; lx < VoxelChunk.Size; lx++)
@@ -134,7 +137,7 @@ public static class GrassMesher
         foreach (var tuft in tufts)
         {
             var before = mesh.FaceCount;
-            AddTuft(mesh, tuft, sun, options.Sky, u0, v0, u1, v1);
+            AddTuft(mesh, tuft, sun, options.Sky, land.Grass(tuft.X, tuft.Y, tuft.Z), u0, v0, u1, v1);
             quadrantQuads[tuft.Quadrant] += mesh.FaceCount - before;
         }
 
@@ -175,7 +178,7 @@ public static class GrassMesher
 
     // One tuft: two quads crossing on the diagonals of the cell's top, jittered and a little narrower than the cell so it stays over its own block (a path or a doorstep beside it is never covered),
     // one of three heights and one of three tints from the hash, brighter at the tip than at the root, in the band's sun and the sky's light.
-    private static void AddTuft(MeshBuffer buffer, Tuft tuft, (float R, float G, float B) sun, SkySurface? sky, float u0, float v0, float u1, float v1)
+    private static void AddTuft(MeshBuffer buffer, Tuft tuft, (float R, float G, float B) sun, SkySurface? sky, (float R, float G, float B) land, float u0, float v0, float u1, float v1)
     {
         var h = CellHash(tuft.X, tuft.Y, tuft.Z);
         var h2 = BlockArtNature.Mix((uint)tuft.Z, (uint)tuft.X + 0x3c6e, (uint)tuft.Y + 0xa54f);
@@ -184,7 +187,8 @@ public static class GrassMesher
         var variant = (int)((h2 >> 8) % 3);
         var height = (variant switch { 0 => 0.34f, 1 => 0.5f, _ => 0.68f }) + ((((h2 >> 12) & 7) / 7f) * 0.1f);
         var half = 0.31f + ((((h2 >> 16) & 3) / 3f) * 0.06f);
-        var tint = ((h >> 28) % 3) switch { 0 => (1f, 1f, 1f), 1 => (0.93f, 1f, 0.86f), _ => (0.86f, 0.97f, 0.92f) };
+        var variation = ((h >> 28) % 3) switch { 0 => (1f, 1f, 1f), 1 => (0.93f, 1f, 0.86f), _ => (0.86f, 0.97f, 0.92f) };
+        var tint = (variation.Item1 * land.R, variation.Item2 * land.G, variation.Item3 * land.B); // the land's colour at the column (B22, as the chunk's tall grass takes it) with the tuft's own small variation on top
         var light = sky is null ? 1f : sky.FactorAt(tuft.X, tuft.Y + 1, tuft.Z);
         var root = MeshVertex.Pack(Channel(184, sun.R, tint.Item1, light), Channel(206, sun.G, tint.Item2, light), Channel(196, sun.B, tint.Item3, light));
         var tip = MeshVertex.Pack(Channel(255, sun.R, tint.Item1, light), Channel(252, sun.G, tint.Item2, light), Channel(240, sun.B, tint.Item3, light));

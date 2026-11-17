@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Colour;
 
 namespace Vocaterra.Game.Graphics.Far;
 
@@ -36,6 +37,64 @@ public static class FarPalette
 
     private static (byte R, byte G, byte B) Mix((byte R, byte G, byte B) a, (byte R, byte G, byte B) b, float share) =>
         ((byte)(a.R + ((b.R - a.R) * share)), (byte)(a.G + ((b.G - a.G) * share)), (byte)(a.B + ((b.B - a.B) * share)));
+
+    /// <summary>The climate step the far view's colours are looked up at (B22): the map is smooth, and a far run of faces merges while its colour is one, so the tint changes in patches of this many climate units (about one colour level apart).</summary>
+    public const int ClimateStep = 128;
+
+    /// <summary>
+    /// What a block's colour is multiplied by at a column (B22, G2): the grass and the oak leaves take the colour of <see cref="LandColours"/> at the column's ground climate, the same map the chunk mesher reads, so the far land is the green of the near;
+    /// a grass block's side takes part of it, as in the near view. 1 for every other block.
+    /// </summary>
+    /// <param name="block">The block.</param>
+    /// <param name="side">Whether the face is a side.</param>
+    /// <param name="ground">The ground temperature and humidity at a block (x, y, z), or <see langword="null"/> for the map's middle.</param>
+    /// <param name="x">The block's x.</param>
+    /// <param name="y">The block's y.</param>
+    /// <param name="z">The block's z.</param>
+    public static (float R, float G, float B) LandTint(BlockId block, bool side, Func<int, int, int, (int Temperature, int Humidity)>? ground, int x, int y, int z)
+    {
+        if (block is not (BlockId.Grass or BlockId.Leaves))
+        {
+            return (1f, 1f, 1f);
+        }
+
+        var (t, h) = ground is null ? (LandColours.NeutralTemperature, LandColours.NeutralHumidity) : Climate(ground, x, y, z);
+        t = (int)Math.Round(t / (double)ClimateStep) * ClimateStep;
+        h = (int)Math.Round(h / (double)ClimateStep) * ClimateStep;
+        var map = LandColours.Default;
+        if (block == BlockId.Leaves)
+        {
+            return map.LeafTint(t, h);
+        }
+
+        var tint = map.GrassTint(t, h);
+        return side ? LandColours.Partly(tint, LandColours.SideShare) : tint;
+    }
+
+    // The climate of a 16-block cell, once per worker thread (a far tile asks for it for every face of grass or leaves, and the climate does not change within a few blocks): a small cache per thread, dropped when the world's function changes or it grows.
+    [ThreadStatic]
+    private static Dictionary<(int X, int Y, int Z), (int Temperature, int Humidity)>? _cells;
+
+    [ThreadStatic]
+    private static object? _cellsFor;
+
+    private static (int Temperature, int Humidity) Climate(Func<int, int, int, (int Temperature, int Humidity)> ground, int x, int y, int z)
+    {
+        if (_cells is null || !ReferenceEquals(_cellsFor, ground) || _cells.Count > 8192)
+        {
+            _cells = [];
+            _cellsFor = ground;
+        }
+
+        var key = (x >> 4, y >> 4, z >> 4);
+        if (!_cells.TryGetValue(key, out var found))
+        {
+            found = ground((key.Item1 << 4) + 8, (key.Item2 << 4) + 8, (key.Item3 << 4) + 8);
+            _cells[key] = found;
+        }
+
+        return found;
+    }
 
     /// <summary>The colour of the sea: the water art's average.</summary>
     public static (byte R, byte G, byte B) Water => Of(BlockId.Water);
