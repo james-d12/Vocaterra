@@ -184,7 +184,7 @@ Live tests share **one** `GlProbeGame`: a third MonoGame window in the test host
 | grass | the meadow with B18's grass at 60 percent | 0 | 0 | 0 |
 
 The first run of the shore view differed on 1.23 percent of the pixels (up to 96 of 255, all on the water): the water frames had been copied with the sampler's `MaxMipLevel` as the base level instead of the last level; with that read as MonoGame reads it (`TEXTURE_MAX_LEVEL`) the water is
-the effects' water to a step. The cave view of B17a (two torches placed beside the camera) cannot be scripted any more: since B21 the scripted sequence (`--give`, `--place antorcha@...`, `--wait`) stalled a run at the wait for over 20 minutes in the effects' path (`--gl-shaders off`), so it is not the GLSL's; the cause was not looked for here, and the B21 report names a torch problem of the scripted `--place`), so the cave view is the landing without torches and the torches are the village street at midnight. The scripted runs' pictures on both paths: {{RUNS}}
+the effects' water to a step. The cave view of B17a (two torches placed beside the camera) cannot be scripted any more: since B21 the scripted sequence (`--give`, `--place antorcha@...`, `--wait`) stalled a run at the wait for over 20 minutes in the effects' path (`--gl-shaders off`), so it is not the GLSL's; the cause was not looked for here, and the B21 report names a torch problem of the scripted `--place`), so the cave view is the landing without torches and the torches are the village street at midnight. The scripted runs on both paths are below.
 
 **Frame times and the card's time** (`--stream-stats`, 240 frames, medians; interleaved effect and GLSL runs, 2 or 3 each in the valley views, 1 in the streamed ones; the machine was shared with up to four other agents' builds, tests and game windows, load 8 to 16 on 16 cores, and the card with their windows: read
 the pairs, not the absolute numbers; the card's time is a `GL_TIME_ELAPSED` query round the chunk passes):
@@ -215,3 +215,20 @@ Start-up costs a little more (the compile, link and the copies of the atlas and 
 - Live tests share one MonoGame window (a third window in the test host hangs): new live tests use `GlProbeGame.Shared` and put the state back.
 - Still not done: the atlas as an array texture, a compact vertex, indirect and multi-draw (B19), the context request (default 4.6 compatibility here, unknown elsewhere; `GlInfo` checks the version and the log says which), macOS (out of scope).
 
+
+## The scripted runs, both paths
+
+`scripts/scripted-runs.sh` with `GAME_BIN` a one-line wrapper that adds `--gl-shaders off` for the effects' capture, the default for the GLSL one, then `scripts/compare-runs.py`: **r14-third** (the behind-the-shoulder avatar), **r15-grey-dusk** (greyscale, dusk) and **r31-lake** (walks into the lake: the
+surface, under water through the render target, the shore): every file of every run (6 pictures, saves, the session logs, stdout) is **byte for byte the same** on both paths, apart from the four `gl:` start-up lines the GL path prints in stdout (the context's facts and the path in force);
+`compare-runs.py` now masks `gl:` lines, so two captures of the same steps compare equal whichever path drew them. **Not compared:** r42-camp, r01-route and r40-inn place a torch: r42-camp stalled at its `--wait` after the placed torch in the effects' path for 8 minutes and was killed (the same stall as the cave view's torches, above; not
+the GLSL's); the other scripted runs draw the same scenes as the views of the table.
+
+## The gate
+
+Build `-warnaserror` 0 warnings (the solution, Debug; the game in Release); `scripts/test.sh full`: 12,518 passed, 8 skipped (3 model-gated, and the 5 live-GL tests of this file, which skip without `VOCATERRA_GL_TESTS=1`), 4 failed on the first run: two wall-clock tests that fail when the machine is loaded
+(`SceneBuildTimeTests.Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds`, `StreamedWorldTimeTests...WithinBudget`: both pass alone, 82 of 82 with the other changed tests, 14 s), and two of this milestone's own that the Graphics group's new sub-heading and a file list needed (fixed: 82 of 82). With `VOCATERRA_GL_TESTS=1`: 17 of 17 of `GlShaderTests` on the RTX 3070
+(the program compiles and links, every embedded source compiles, a broken one is reported with the driver's log, the scope restores what it captured after every kind of draw, and a quad drawn through the pass and through `BasicEffect` to the back buffer and to a render target gives the same pixels).
+`dotnet format --verify-no-changes` clean; `scripts/content.sh validate` OK (lint 0 errors; game-v1's bundle unchanged, the locale bundle's manifest refreshed for the two new strings); licence scan (the gate's, offline) PASSED; no package added.
+
+**What the plans should say** (the documents this milestone may not edit): `docs/game/implementation-plan.md` section 4.14, row B17b: done, with this section and the numbers above; `docs/game/biomes-plan.md` section 3.9: B17b's items 1, 2, 3, 5 and 6 of the spike are done and the GL path is the default (on; the Shaders row; the fallback automatic);
+`docs/game/decisions.md`: D-game-34 item 43 is met for the GL path (a Shaders toggle in a "Shaders and effects" group of the Graphics settings, on by default, a quality level sets it, B17c's effects join it each with its own toggle).
