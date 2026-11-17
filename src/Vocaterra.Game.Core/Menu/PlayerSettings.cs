@@ -36,6 +36,7 @@ public sealed class PlayerSettings
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
+        new(SettingId.Shaders, SettingKind.Toggle, 0, 1, 1, 1, "settingsShaders", ChoiceKeys: OnOff),
     ];
 
     private readonly int[] _values;
@@ -109,6 +110,9 @@ public sealed class PlayerSettings
     /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
     public double Grass => Get(SettingId.Grass) / 100.0;
 
+    /// <summary>Whether the game's own GLSL shaders draw the chunks (B17b); the context may still refuse them, and the effects then draw.</summary>
+    public bool Shaders => Get(SettingId.Shaders) == 1;
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -160,6 +164,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
             settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
             settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
+            settings._values[(int)SettingId.Shaders] = clean.ShadersOff ? 0 : 1;
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -242,6 +247,11 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.Grass] = Spec(SettingId.Grass).Snap(grass);
         }
 
+        if (launch.Shaders is { } shaders)
+        {
+            settings._values[(int)SettingId.Shaders] = shaders ? 1 : 0;
+        }
+
         if (launch.PassOpen)
         {
             settings._values[(int)SettingId.PassCheat] = 1;
@@ -264,7 +274,8 @@ public sealed class PlayerSettings
         FieldOfView: Get(SettingId.FieldOfView),
         ViewDistance: ViewDistance ?? 0,
         PassCheat: PassCheat,
-        Grass: Get(SettingId.Grass)).Clamped();
+        Grass: Get(SettingId.Grass),
+        ShadersOff: !Shaders).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

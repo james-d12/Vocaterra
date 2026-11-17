@@ -76,7 +76,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Scripted/VoxelScript.cs"] = "the scripted runs' console",
         ["src/Vocaterra.Game/Graphics/Gl/GlInfo.cs"] = "the OpenGL path's console lines and errors (B17a, --gl-shaders)",
         ["src/Vocaterra.Game/Graphics/Gl/GlLoader.cs"] = "the OpenGL path's console lines and errors (B17a, --gl-shaders)",
-        ["src/Vocaterra.Game/Graphics/Gl/GlOpaquePass.cs"] = "the OpenGL path's console lines and errors (B17a, --gl-shaders)",
+        ["src/Vocaterra.Game/Graphics/Gl/GlChunkPass.cs"] = "the OpenGL path's console lines and errors (B17a, B17b, --gl-shaders)",
         ["src/Vocaterra.Game/Graphics/Gl/GlProgram.cs"] = "the OpenGL path's console lines and errors (B17a, --gl-shaders)",
         ["src/Vocaterra.Game/Graphics/Weather/PrecipitationField.cs"] = "the console line that says a precipitation kind has no style (E06)",
         ["src/Vocaterra.Game.Core/Sound/SoundMixer.cs"] = "the sound's console lines",

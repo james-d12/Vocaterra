@@ -30,6 +30,8 @@ public static class MenuRows
             MenuRow.Of(settings, SettingId.FieldOfView),
             MenuRow.Of(settings, SettingId.Blur),
             MenuRow.Of(settings, SettingId.ViewEffects),
+            MenuRow.Subheading("subEffects"), // the graphics effects of B17b and B17c: each its own toggle, on by default
+            MenuRow.Of(settings, SettingId.Shaders),
             MenuRow.Heading("headingInterface"),
             MenuRow.Of(settings, SettingId.TextSize),
             MenuRow.Heading("headingMouse"),
