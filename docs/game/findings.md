@@ -2946,3 +2946,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   to twice the new cost. One side effect: the underground cost ratio (a column with the underground against without) rose to about 8
   under load, past its bound of 6, because the base got cheaper while the underground did not (passing alone): its bound is re-set from
   a new measurement. Gated: 12,713 passed; the failures that ratio and the core's lexicon wall-clock test (M100), both passing alone.
+- **B28, test speed, and M100 (2026-11-17, `88521d07`, `12ae33c8`, gated together).** The throughput study found the full suite had grown
+  from 7 to 50 minutes in two days. B28 split the longest test classes so xUnit runs their tests in parallel (StreamedWorldHostTests's 13
+  tests ran one after another for 45 minutes), raised Game.Core.Tests from 3 to 6 threads (peak memory 5.5 GB), ran NamePlates' two game
+  processes side by side, and marked about 35 slow classes so the fast tier takes 3 minutes. No test was added, removed or weakened. With
+  B27's cheaper generation, the gate's test phase took 26 minutes (Game.Core.Tests 26, Game.Tests 18) against about 50 that morning.
+  Game.Core.Tests is now bound by a few single tests over 5 minutes in Debug builds: the next lever is optimised builds under test (item
+  50 A). M100 put the core's last wall-clock timing test (the lexicon load) on CPU time: 541 ms, budget 1,082. Gated clean.
