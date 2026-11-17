@@ -5,11 +5,11 @@ namespace Vocaterra.Game.Graphics.Gl;
 /// <summary>The game's GLSL sources, embedded in the assembly (<c>Graphics/Gl/Shaders/*.glsl</c>, B17a): nothing is searched for next to the executable.</summary>
 public static class ShaderSources
 {
-    /// <summary>The opaque chunk pass's vertex shader.</summary>
-    public const string OpaqueVertex = "opaque.vert.glsl";
+    /// <summary>The chunk passes' vertex shader (B17b: one program for the opaque faces, the lit pieces, the cut-outs, the grass, the glow and the water).</summary>
+    public const string ChunkVertex = "chunk.vert.glsl";
 
-    /// <summary>The opaque chunk pass's fragment shader.</summary>
-    public const string OpaqueFragment = "opaque.frag.glsl";
+    /// <summary>The chunk passes' fragment shader.</summary>
+    public const string ChunkFragment = "chunk.frag.glsl";
 
     /// <summary>The names of every shader source the assembly embeds.</summary>
     public static IReadOnlyList<string> Names { get; } = Assembly.GetExecutingAssembly().GetManifestResourceNames()
@@ -20,7 +20,7 @@ public static class ShaderSources
 
     private const string Prefix = "Vocaterra.Game.Shaders.";
 
-    /// <summary>Reads one embedded source by its file name (<see cref="OpaqueVertex"/>).</summary>
+    /// <summary>Reads one embedded source by its file name (<see cref="ChunkVertex"/>).</summary>
     /// <exception cref="InvalidOperationException">The assembly does not hold it.</exception>
     public static string Load(string name)
     {

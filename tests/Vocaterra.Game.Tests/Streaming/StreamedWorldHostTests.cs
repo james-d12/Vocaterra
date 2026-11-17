@@ -8,8 +8,18 @@ using Vocaterra.Game.Streaming;
 namespace Vocaterra.Game.Tests.Streaming;
 
 /// <summary>The streamed world's host (B07): none for the bounded valley, the worker threads and the residency and the far view for the streamed world, and radii that follow the view distance.</summary>
-public sealed class StreamedWorldHostTests
+public sealed class StreamedWorldHostTests : IDisposable
 {
+    private readonly List<string> _folders = [];
+
+    public void Dispose()
+    {
+        foreach (var folder in _folders.Where(Directory.Exists))
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+
     [Fact]
     public void Given_TheBoundedValleyAndAStreamedWorld_When_AHostIsAsked_Then_OnlyTheStreamedWorldHasOne()
     {
@@ -115,5 +125,169 @@ public sealed class StreamedWorldHostTests
         }
 
         Assert.Equal(0, missing);
+    }
+
+    // B07f, C2: the far store's edits are the loaded save's, whatever the last run left in the world's folder.
+    // The settles of these tests wait on the condition (no worker, the host steps itself), not on the clock: the bound is only a guard against a hang, so a gate beside other agents cannot fail them.
+    private const double HangGuardMilliseconds = 3_600_000;
+
+    private string NewFolder()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "vocaterra-host-test-" + Guid.NewGuid().ToString("N"));
+        _folders.Add(folder);
+        return folder;
+    }
+
+    private static QualityPreset EditPreset() => QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 64 };
+
+    // A house block in the air over the ground beside the spawn.
+    private static (int X, int Y, int Z) HouseSpot(Scene scene) => ((int)MathF.Floor(scene.Spawn.Feet.X) + 3, (int)MathF.Floor(scene.Spawn.Feet.Y) + 2, (int)MathF.Floor(scene.Spawn.Feet.Z) + 3);
+
+    private static (float X, float Y, float Z) Eye(Scene scene) => (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
+
+    private static Vocaterra.Game.Core.World.Lod.LodSection FarSection(StreamedWorldHost host, (int X, int Y, int Z) at) =>
+        host.Far.World.Stack(0, at.X >> 5, at.Z >> 5).Sections[(at.Y >> 5) - host.Far.World.SyRange(0).Min];
+
+    private static Vocaterra.Game.Core.Voxel.BlockId FarBlock(StreamedWorldHost host, (int X, int Y, int Z) at) =>
+        FarSection(host, at).BlockAt(Vocaterra.Game.Core.World.Lod.LodSection.Index(at.X & 31, at.Y & 31, at.Z & 31));
+
+    private static void Settled(StreamedWorldHost host, Scene scene)
+    {
+        var eye = Eye(scene);
+        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
+    }
+
+    [Fact]
+    public void Given_ASaveWithAnEditLoadedIntoAFreshHost_When_TheHostSettles_Then_TheEditIsInTheFarStoreAtOnceAndSurvivesARestartOnTheSameSave()
+    {
+        var folder = NewFolder();
+        var preset = EditPreset();
+        var spot = HouseSpot(StreamedWorlds.Scene());
+        for (var run = 0; run < 2; run++)
+        {
+            var scene = StreamedWorlds.Scene(); // what SaveGame.Restore leaves: the edit is in the grid before the host exists
+            Assert.True(scene.Grid.SetBlock(spot.X, spot.Y, spot.Z, Vocaterra.Game.Core.Voxel.BlockId.Planks));
+            using var host = StreamedWorldHost.For(scene, preset, 0, "w", folder)!;
+
+            Settled(host, scene);
+
+            Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Planks, FarBlock(host, spot));
+            Assert.Equal(0, host.EditsDropped);
+            Assert.True(host.EditedChunksTaken >= 1);
+        }
+    }
+
+    [Fact]
+    public void Given_AWorldWhoseFolderHoldsTheEditOfAnotherSave_When_ASaveWithoutItIsLoadedOnTheSameSeed_Then_TheEditIsNotInTheFarViewAndTheGeneratorsStackIsThere()
+    {
+        var folder = NewFolder();
+        var preset = EditPreset();
+        var first = StreamedWorlds.Scene();
+        var spot = HouseSpot(first);
+        Assert.True(first.Grid.SetBlock(spot.X, spot.Y, spot.Z, Vocaterra.Game.Core.Voxel.BlockId.Planks));
+        using (var host = StreamedWorldHost.For(first, preset, 0, "w", folder)!)
+        {
+            Settled(host, first);
+            Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Planks, FarBlock(host, spot));
+        }
+
+        var second = StreamedWorlds.Scene(); // another save of the seed: no edit
+        using var other = StreamedWorldHost.For(second, preset, 0, "w", folder)!;
+        Assert.True(other.EditsDropped > 0);
+        Settled(other, second);
+
+        Assert.NotEqual(Vocaterra.Game.Core.Voxel.BlockId.Planks, FarBlock(other, spot));
+        var entry = other.Far.World.Store.Entry(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, spot.X >> 5, spot.Y >> 5, spot.Z >> 5))!;
+        Assert.Equal(0, entry.EditedMask);
+        Assert.Equal(0xFF, entry.RealMask);
+    }
+
+    [Fact]
+    public void Given_ABuildMadeInARunThatIsQuitWithoutSaving_When_TheSaveIsLoadedAgain_Then_TheFarViewDoesNotShowIt()
+    {
+        var folder = NewFolder();
+        var preset = EditPreset();
+        var run = StreamedWorlds.Scene();
+        var spot = HouseSpot(run);
+        using (var host = StreamedWorldHost.For(run, preset, 0, "w", folder)!)
+        {
+            Settled(host, run);
+            Assert.True(run.Grid.SetBlock(spot.X, spot.Y, spot.Z, Vocaterra.Game.Core.Voxel.BlockId.Planks)); // built in play
+            Settled(host, run);
+            Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Planks, FarBlock(host, spot));
+        }
+
+        var loaded = StreamedWorlds.Scene(); // the last save has no house
+        using var again = StreamedWorldHost.For(loaded, preset, 0, "w", folder)!;
+        Settled(again, loaded);
+
+        Assert.True(again.EditsDropped > 0);
+        Assert.NotEqual(Vocaterra.Game.Core.Voxel.BlockId.Planks, FarBlock(again, spot));
+    }
+
+    [Fact]
+    public void Given_AHostWithTwoWorkersWhoseRingAndWritesAreInFlight_When_ItIsDisposed_Then_ItReturnsWithinABoundAndThrowsNothing()
+    {
+        var folder = NewFolder();
+        var scene = StreamedWorlds.Scene();
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 192 };
+        var spot = HouseSpot(scene);
+        Assert.True(scene.Grid.SetBlock(spot.X, spot.Y, spot.Z, Vocaterra.Game.Core.Voxel.BlockId.Planks));
+        var host = StreamedWorldHost.For(scene, preset, 2, "w", folder)!;
+        var eye = Eye(scene);
+        for (var frame = 0; frame < 30; frame++)
+        {
+            host.Update(eye.X, eye.Y, eye.Z, _ => { });
+            Thread.Sleep(5);
+        }
+
+        var started = Environment.TickCount64;
+        host.Dispose();
+        var took = Environment.TickCount64 - started;
+
+        Assert.True(took < 15_000, $"dispose took {took} ms");
+        Assert.Null(host.Pool.Failure);
+        Assert.True(File.Exists(Path.Combine(folder, "manifest.txt")));
+    }
+
+    [Fact]
+    public void Given_ABuildFarOutsideTheRingButInsideTheFarRange_When_ASavedGameWithItIsLoaded_Then_TheFarTilesOverItAreMadeFromIt()
+    {
+        // B07f: the build stands 600 blocks from the eye, where the ring (64 blocks here) has made nothing real: the far tiles must still show it, at every level.
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 64 };
+        long Vertices(bool build)
+        {
+            var scene = StreamedWorlds.Scene();
+            var (hx, hz) = ((int)MathF.Floor(scene.Spawn.Feet.X) + 600, (int)MathF.Floor(scene.Spawn.Feet.Z));
+            if (build)
+            {
+                var y = 150;
+                while (scene.Grid.GetBlock(hx, y, hz) != Vocaterra.Game.Core.Voxel.BlockId.Air)
+                {
+                    y += 8;
+                }
+
+                for (var dy = 0; dy < 8; dy++)
+                {
+                    for (var dx = 0; dx < 8; dx++)
+                    {
+                        for (var dz = 0; dz < 8; dz++)
+                        {
+                            _ = scene.Grid.SetBlock(hx + dx, y + dy, hz + dz, Vocaterra.Game.Core.Voxel.BlockId.Planks);
+                        }
+                    }
+                }
+            }
+
+            using var host = StreamedWorldHost.For(scene, preset, 0)!;
+            var eye = Eye(scene);
+            Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
+            return host.Far.Stats.Vertices; // every tile built (none is on a card here, so the draw list is empty)
+        }
+
+        var without = Vertices(build: false);
+        var with = Vertices(build: true);
+
+        Assert.NotEqual(without, with); // the cube changes the tiles that cover it (a solid mass hides the faces under it and makes its own), at levels the ring never reached
     }
 }

@@ -332,6 +332,82 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.True(view.Stats.Built > FarTileSelector.Select(Small, 192, 192, Voxel).Count - 1);
     }
 
+    // These tests wait on a condition (a job started, a job finished, a tile built), never on the clock: the bound is only a guard against a hang, so a machine under load (a gate beside other agents) cannot fail them.
+    private const long HangGuardMilliseconds = 1_800_000;
+
+    private sealed class GatedDisk : Vocaterra.Game.Core.World.Lod.ILodPersistence
+    {
+        public ManualResetEventSlim Started { get; } = new();
+
+        public ManualResetEventSlim Release { get; } = new();
+
+        public byte[]? Load(Vocaterra.Game.Core.World.Lod.LodSectionKey key)
+        {
+            Started.Set();
+            Release.Wait();
+            return null;
+        }
+
+        public void Save(Vocaterra.Game.Core.World.Lod.LodSectionKey key, byte[] blob)
+        {
+        }
+    }
+
+    [Fact]
+    public void Given_ATileJobRunningWhenTheViewIsReshaped_When_ItFinishesAfterwards_Then_ItsMeshIsRefusedAndTheViewIsBuiltFromTheNewSettingsAlone()
+    {
+        // B07f, C7: a job of the old settings finishing after the lane was cleared was taken for the answer to a newer request of the same key.
+        using var pool = new JobPool(1);
+        var gate = new GatedDisk();
+        var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(gate));
+        view.Update(192, 192, Voxel, Release, 0);
+        Assert.True(gate.Started.Wait(TimeSpan.FromMinutes(30)), "a tile job is running");
+
+        var reshaped = Small with { Levels = 6 };
+        view.Reconfigure(reshaped, Release);
+        gate.Release.Set();
+        var until = Environment.TickCount64 + HangGuardMilliseconds;
+        while (pool.Pending > 0 && Environment.TickCount64 < until)
+        {
+            Thread.Sleep(5); // the old job finishes and leaves its mesh in the view's queue
+        }
+
+        view.Update(192, 192, Voxel, Release, 0); // collects what the old job left: nothing of it may be taken (what this call asks for has not been collected yet)
+        Assert.Equal(0, view.Stats.Cached);
+        Assert.Equal(0, view.Stats.Built);
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
+
+        var leaves = FarTileSelector.Select(reshaped, 192, 192, Voxel).Count;
+        Assert.Equal(leaves, view.Stats.Built);
+        Assert.Equal(0, view.Stale);
+    }
+
+    [Fact]
+    public void Given_ATileWhoseNewerMeshWaitsAndWhoseOldBufferIsOnTheCard_When_TheEyeLeavesAndComesBack_Then_ItIsMadeAgainAndNotShownFromTheOldBuffer()
+    {
+        // B07f, C6: the newer mesh of a tile nobody wants was dropped and the tile kept its old buffer, as if it were current.
+        using var pool = new JobPool(0);
+        var view = Make(pool);
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
+        var tile = view.PendingTiles.First(static t => t.Key.Level == 0); // built, not on the card (no renderer here): made to look like a tile on the card with a newer mesh waiting
+        tile.OnCard = true;
+        tile.Buffer = (Microsoft.Xna.Framework.Graphics.VertexBuffer)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Microsoft.Xna.Framework.Graphics.VertexBuffer));
+        Assert.NotNull(tile.Pending);
+
+        for (var frame = 0; frame < 20; frame++)
+        {
+            view.Update(9000, 9000, Voxel, Release, 0);
+        }
+
+        Assert.Contains(tile, _released);
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
+        var again = view.PendingTiles.First(t => t.Key == tile.Key);
+        Assert.NotSame(tile, again);
+        Assert.Null(again.Buffer);
+        Assert.NotNull(again.Pending);
+        Assert.Equal(0, view.Stale);
+    }
+
     [Fact]
     public void Given_NoColumnDrawnYet_When_TheNearZoneIsToldAndTheEyeStaysAMoment_Then_FarTilesFillTheZoneAndLeaveItAgainWhenItsColumnsAreDrawn()
     {
@@ -372,5 +448,31 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.Equal(12f, FarTerrainRenderer.NearPlaneFor(64));
         Assert.Equal(400 / 7f, FarTerrainRenderer.NearPlaneFor(400), 3);
         Assert.Equal(64f, FarTerrainRenderer.NearPlaneFor(2000));
+    }
+
+    [Fact]
+    public void Given_AFillerTileInsideTheNearZoneThatIsBuilt_When_ItsColumnsAreDrawnAndItsSectionChanges_Then_ItIsDroppedAndNeverHoldsASettleUp()
+    {
+        // B07f: an edit under the player's feet marked the filler tile over it dirty, nothing remade it (its columns are drawn by the chunks), and Stale stayed above 0, so every settle of a scripted run waited out its bound (300 s a frame).
+        using var pool = new JobPool(0);
+        var store = new Vocaterra.Game.Core.World.Lod.LodStore();
+        var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, store);
+        view.SetNearReady(static (_, _) => false);
+        FarTile? inner = null;
+        var until = Environment.TickCount64 + HangGuardMilliseconds;
+        while (inner is null && Environment.TickCount64 < until)
+        {
+            view.Update(192, 192, Voxel, Release, null);
+            inner = view.PendingTiles.FirstOrDefault(static t => t.Key.FarthestDistance(Small, 192, 192) < Small.InnerFraction * Voxel);
+            Thread.Sleep(20);
+        }
+
+        Assert.NotNull(inner);
+        view.SetNearReady(static (_, _) => true);
+        store.Changed.Enqueue(new Vocaterra.Game.Core.World.Lod.LodSectionKey(inner.Key.Level, inner.Key.Tx, 0, inner.Key.Tz));
+        view.Update(192, 192, Voxel, Release, null);
+
+        Assert.Equal(0, view.Stale);
+        Assert.Contains(inner, _released);
     }
 }

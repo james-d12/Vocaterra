@@ -137,4 +137,114 @@ public sealed class FileLodPersistenceTests : IDisposable
         third.Flush();
         Assert.NotNull(new LodStore(third).Get(c));
     }
+
+    [Fact]
+    public void Given_ChunksRecordedInTheEditJournal_When_TheFolderIsOpenedAgain_Then_TheyAreThereReplaceMakesTheListExactlyTheNewOnesAndAnotherVersionClearsIt()
+    {
+        var a = new VoxelChunkCoord(3, -2, 9);
+        var b = new VoxelChunkCoord(-40, 4, 0);
+        var c = new VoxelChunkCoord(7, 7, 7);
+        using (var disk = new FileLodPersistence(_folder, "v1"))
+        {
+            Assert.Empty(disk.Edited());
+            disk.Record(a);
+            disk.Record(a);
+            disk.Record(b);
+            disk.Flush();
+        }
+
+        using (var again = new FileLodPersistence(_folder, "v1"))
+        {
+            Assert.Equivalent(new[] { a, b }, again.Edited());
+            again.Replace([c, a]);
+            again.Record(b);
+            again.Flush();
+        }
+
+        using (var third = new FileLodPersistence(_folder, "v1"))
+        {
+            Assert.Equivalent(new[] { a, b, c }, third.Edited());
+            third.Replace([]);
+            third.Flush();
+        }
+
+        using (var fourth = new FileLodPersistence(_folder, "v1"))
+        {
+            Assert.Empty(fourth.Edited());
+            fourth.Record(a);
+            fourth.Flush();
+        }
+
+        using var other = new FileLodPersistence(_folder, "v2");
+        Assert.Empty(other.Edited());
+    }
+
+    [Fact]
+    public void Given_ManyWritesQueuedAndASmallLimit_When_TheWriterIsShutDown_Then_TheCallReturnsWithinTheLimitAndTheWriterFinishesAndClosesItsFilesOnItsOwn()
+    {
+        var big = LodSection.Air();
+        var random = new Random(5);
+        for (var i = 0; i < LodSection.Volume; i++)
+        {
+            big.SetBlock(i, (BlockId)random.Next(1, 20));
+        }
+
+        var disk = new FileLodPersistence(_folder, "v1");
+        var store = new LodStore(disk);
+        for (var x = 0; x < 120; x++)
+        {
+            _ = store.Put(new LodSectionKey(0, x, 0, 0), big, LodOrigin.Real, 0xFF);
+        }
+
+        var started = Environment.TickCount64;
+        var finished = disk.Shutdown(TimeSpan.FromMilliseconds(1));
+        var took = Environment.TickCount64 - started;
+
+        Assert.True(took < 1500, $"shutdown took {took} ms");
+        Assert.False(finished && !disk.IsWriterStopped);
+        var until = Environment.TickCount64 + 60_000;
+        while (!disk.IsWriterStopped && Environment.TickCount64 < until)
+        {
+            Thread.Sleep(10);
+        }
+
+        Assert.True(disk.IsWriterStopped);
+        using var again = new FileLodPersistence(_folder, "v1");
+        Assert.NotNull(new LodStore(again).Get(new LodSectionKey(0, 119, 0, 0))); // the writer drained the queue before it stopped
+        disk.Dispose(); // a second call is harmless
+    }
+
+    [Fact]
+    public void Given_WritesStillComingIn_When_TheWriterIsDisposed_Then_LaterSavesAndJournalCallsAreIgnoredWithoutThrowing()
+    {
+        var disk = new FileLodPersistence(_folder, "v1");
+        var store = new LodStore(disk);
+        var stop = false;
+        Exception? failure = null;
+        var writer = new Thread(() =>
+        {
+            try
+            {
+                for (var x = 0; !Volatile.Read(ref stop); x++)
+                {
+                    _ = store.Put(new LodSectionKey(0, x % 64, 0, 0), new LodSection(BlockId.Stone, (byte)(x % 7)), LodOrigin.Real, 0xFF);
+                    disk.Record(new VoxelChunkCoord(x, 0, 0));
+                }
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+            }
+        });
+        writer.Start();
+        Thread.Sleep(50);
+
+        disk.Dispose();
+        Thread.Sleep(20);
+        Volatile.Write(ref stop, true);
+
+        writer.Join();
+        Assert.Null(failure);
+        Assert.True(disk.IsWriterStopped);
+    }
 }

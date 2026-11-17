@@ -2867,3 +2867,32 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   12 to 14); interleaved runs showed it was other agents' load, B21 equal or better every run. Reads by the simulation outside the resident
   set do generate chunks (about 50 at a start, about 100 over three teleports; none while walking): counted in `--stream-stats`. Two base
   bugs seen: a scripted `--place antorcha@467,61,153` shows no torch, and `--wait` never returns after a guide dialogue opens. Gated clean.
+- **B07f, the far store's edit layer (2026-11-17, `2f995552`).** Placed and broken blocks now reach the far view: an edit marks its
+  section and climbs the levels, and a save's edits load into the far store, so a 4x4 plank tower 50 high is a brown post from 1 km and
+  from a mountain 1.3 km away, and absent with an empty save. Six of the review's far-view races fixed with tests (C1 to C3, C6, C7, C10;
+  C6's disposal now spares the drawn, wanted and pending tiles B07e added). A "void" under the far land from a high stand was an early
+  shot, taken at tick 40 before the far tiles were on the card: `--shot` now waits for them, bounded at 120 s. Merging B07e exposed a
+  hang: a block placed in the near zone left the far tile over it dirty forever, so every scripted settle waited out its 300 s bound;
+  `Stale` now counts only needed tiles. Four of its tests failed under load (they waited on wall time); they now wait on their condition
+  or settle with no workers (hang guards of 30 and 60 minutes, which B24 shortens). Gated clean.
+- **B17b, every chunk pass on the game's GLSL (2026-11-17, `860a4a28`).** The faces, lit pieces, cut-outs, B18's grass, the glow and the
+  water draw through one GLSL program (`GlChunkPass`), on by default; the far view, the sky, the figures, rain and the UI stay on MonoGame.
+  One GL state scope a frame, with no MonoGame call inside it (the figures and outlines are drawn before it). The underwater render target
+  works through a flip uniform. A "Shaders" row in the settings' new Graphics group (saved only when off, so default saves are unchanged),
+  `--gl-shaders on|off`, and an automatic fallback to the effects below GL 3.3 or on a compile failure. Seven of eight comparison views are
+  pixel-identical to the effects; the shore differs on 3 pixels by 1/255 (a first run differed on 1.2% of the water: MonoGame's
+  `MaxMipLevel` is the last mip level, not the base). Interleaved timings: the processor's submit time falls to a quarter or a tenth
+  (meadow 1.17 to 0.36 ms, under water 3.80 to 0.35), the card's time is equal or lower in every pair (`GlCardTimer`), frame p50 lower.
+  Gated clean.
+- **B02c, rivers that only fall (2026-11-17, `4445e907`).** The rivers no longer climb: a drainage network (`World/Drainage`) floods each
+  landmass by priority over 32-block nodes, so every river runs downhill to a lake or the sea, and lakes fill basins. A landmass is read
+  whole on first touch (0.25 to 0.9 s). Generator version 4 (B11b had made it 3), so the far store builds new folders; 9 of the 18 goldens
+  moved (each seed's river and lake columns re-chosen to hold water, and a few coasts and a mountain), with the fixture's state digest and
+  the atmosphere pins. Three rounds of review found: a `ThreadPool` call in Game.Core's `WorldQuery` (against the two-worker rule; now a
+  dry answer, without rivers, until the streaming workers read the landmass); 160 bytes allocated on every frame by small arrays in the
+  look-up (B21's zero-allocation test caught it in the gate; fixed); and a lake that is a staircase of three levels (41, 44, 47) with
+  walls of water between, because a lake node takes the higher level of the bank node it was found from. Three fixes for the lake broke a
+  river or puddle check, so it was reverted and planned as B02d. The new ground has almost no cliffs outside the snowy peaks (the old
+  rivers' valley walls were its cliffs): `RockVarietyTests` skips its face-rock share, with a note, when its sample holds 100 cliff
+  columns or fewer. Start to first frame +0.4 s; a settled 16 km far view about 20% slower. Gated: 12,565 passed; the one failure the
+  scene build's wall-clock timing test (3,026 ms against 3,000 at load 15), passing alone, given to B24.

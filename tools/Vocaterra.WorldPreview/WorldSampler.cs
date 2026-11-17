@@ -109,6 +109,9 @@ internal sealed class WorldSampler
 
     public Palette Palette { get; }
 
+    /// <summary>The height model (B02c: its drainage network is what the river and drainage commands follow).</summary>
+    public HeightModel Height => _height;
+
     public IReadOnlyList<BiomeRow> Rows => _biomes.Rows;
 
     public int SeaLevel => _world.Vertical.SeaLevel;
@@ -119,9 +122,6 @@ internal sealed class WorldSampler
     public int MinY => _world.Vertical.MinY;
 
     public int MaxY => _world.Vertical.MaxY;
-
-    /// <summary>The river field at a block (4 096 is the top of its range): a river runs where it is near zero.</summary>
-    public int RiverField(int x, int z) => ClimateAt(x, z).River;
 
     /// <summary>The column (x, z), one climate sample at a time.</summary>
     public Column At(int x, int z) => Evaluate(x, z, ClimateAt(x, z));
@@ -194,7 +194,7 @@ internal sealed class WorldSampler
     private Column Evaluate(int x, int z, in ClimateSample c)
     {
         var shape = ShapeAt(x, z, c);
-        var column = _biomes.Classify(c, shape.Height, x, z, shape.Water);
+        var column = _biomes.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight);
         var snow = column.Snow;
         return new Column(shape.Height, shape.Water, shape.WaterLevel, column.Row.Index, snow, LineAt(c.Temperature, _snowBelow), LineAt(c.Temperature, _treeLineBelow), shape.RiverWeight, shape.NaturalHeight);
     }

@@ -195,7 +195,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.GlShaders));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -243,6 +243,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         _drawer.ApplyGrass(_settings.Get(SettingId.Grass)); // the decorative grass's density (B18)
+        _drawer.ApplyShaders(_settings.Shaders); // the game's own GLSL shaders for the chunks (B17b)
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -1063,6 +1064,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.Quality or SettingId.ViewDistance:
                 _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance);
                 Console.WriteLine($"graphics quality: {_drawer.Preset.Name}, view distance {_drawer.Preset.ViewDistance} blocks");
+                if (id == SettingId.Quality)
+                {
+                    _settings.Set(SettingId.Shaders, _drawer.Preset.Shaders ? 1 : 0); // a quality level sets the graphics toggles (D-game-34 item 43); each can be changed on its own after it
+                }
+
+                break;
+            case SettingId.Shaders:
+                _drawer.ApplyShaders(_settings.Shaders);
+                Console.WriteLine($"shaders: {(_settings.Shaders ? "on" : "off")}; the chunks are drawn {(_drawer.ShadersInUse ? "through the game's own GLSL program" : "with the effects")}");
                 break;
             case SettingId.Grass:
                 _drawer.ApplyGrass(_settings.Get(SettingId.Grass));
