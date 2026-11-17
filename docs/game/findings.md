@@ -2938,3 +2938,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   sky. Open: a full re-run of the tour after B02c moved its river, lake and dense-woodland stops stalled at the beach stop past a
   30-minute bound (not diagnosed); pictures 07, 12 and 14 are of the old stops. Gated: 12,714 passed; the one failure the core's
   wall-clock lexicon test (M100), passing alone.
+- **B27, the drainage network's cost (2026-11-17, `accc36b1`).** B02c had made generation 2.5 to 3 times dearer. A profile found the cost
+  in `River()`: every column scanned the 9 x 9 drainage nodes round its own (about 47,000 look-ups a 24 x 24 window), almost none of them
+  holding a river. Each node now keeps the river reaches within its look window in its tile, computed once, and a column runs the same
+  arithmetic over those few: byte-identical (goldens, the scene digest, the fixture's digest and the atmosphere pins unchanged). A surface
+  chunk 13.9 to 6.7 ms of CPU (B02c's base was 6.4 to 6.9), all-stone 13.6 to 6.4, the valley snapshot 5.8 to 2.9 s; B24's budgets halved
+  to twice the new cost. One side effect: the underground cost ratio (a column with the underground against without) rose to about 8
+  under load, past its bound of 6, because the base got cheaper while the underground did not (passing alone): its bound is re-set from
+  a new measurement. Gated: 12,713 passed; the failures that ratio and the core's lexicon wall-clock test (M100), both passing alone.

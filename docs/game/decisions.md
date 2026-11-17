@@ -966,6 +966,12 @@ the owner's answers of 2026-11-15 are in its section 5.
     LGPL-2.0-or-later; offered a one-package exception or refusing it): "We don't really care about license, so just accept it, it
     doesn't really matter. This is still only an internal game, so licensing is really not a problem at the moment." A one-package
     exception in the licence scan (LGPL stays off the general allowlist); a release would carry the LGPL text and a source link.
+50. **The throughput study's changes, once the running work drains** (2026-11-17, about 20:20 UTC; the study
+    docs/research/2026-11-17-ai-development-throughput.md, offered (A) tests in Release builds, (B) a new slot policy in limited.sh, (C) a
+    gate that skips the test run when the agent's full run covered the exact tree, (D) a test-time report in the gate): "For the meta agent
+    analysis can we kickoff [it] once all current active work is done". Read as yes to A to D (A only after one measurement shows it
+    faster with the goldens unchanged; B keeps the slice's 14-core and memory caps), applied by one milestone with nothing else running;
+    no new milestone starts until the running ones have merged. The owner was told he can drop any of A to D.
 
 ## Already decided
 
