@@ -246,4 +246,45 @@ public sealed class StreamedWorldHostTests : IDisposable
         Assert.Null(host.Pool.Failure);
         Assert.True(File.Exists(Path.Combine(folder, "manifest.txt")));
     }
+
+    [Fact]
+    public void Given_ABuildFarOutsideTheRingButInsideTheFarRange_When_ASavedGameWithItIsLoaded_Then_TheFarTilesOverItAreMadeFromIt()
+    {
+        // B07f: the build stands 600 blocks from the eye, where the ring (64 blocks here) has made nothing real: the far tiles must still show it, at every level.
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(1024) with { FarRealRadius = 64 };
+        long Triangles(bool build)
+        {
+            var scene = StreamedWorlds.Scene();
+            var (hx, hz) = ((int)MathF.Floor(scene.Spawn.Feet.X) + 600, (int)MathF.Floor(scene.Spawn.Feet.Z));
+            if (build)
+            {
+                var y = 150;
+                while (scene.Grid.GetBlock(hx, y, hz) != Vocaterra.Game.Core.Voxel.BlockId.Air)
+                {
+                    y += 8;
+                }
+
+                for (var dy = 0; dy < 8; dy++)
+                {
+                    for (var dx = 0; dx < 8; dx++)
+                    {
+                        for (var dz = 0; dz < 8; dz++)
+                        {
+                            _ = scene.Grid.SetBlock(hx + dx, y + dy, hz + dz, Vocaterra.Game.Core.Voxel.BlockId.Planks);
+                        }
+                    }
+                }
+            }
+
+            using var host = StreamedWorldHost.For(scene, preset, 0)!;
+            var eye = Eye(scene);
+            Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
+            return host.Far.Draw.Sum(static t => (long)t.Triangles);
+        }
+
+        var without = Triangles(build: false);
+        var with = Triangles(build: true);
+
+        Assert.NotEqual(without, with); // the cube changes the tiles that cover it (a solid mass hides the faces under it and makes its own), at levels the ring never reached
+    }
 }
