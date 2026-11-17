@@ -3,7 +3,7 @@ Vocaterra.Game.Core (the engine-free logic), Vocaterra.Game (MonoGame DesktopGL 
 (Vocaterra.Nlp*) is not yours. B17b is the first half of B17 (rendering on the graphics card); B17c (light as data, fog, water, the far view
 on the same light model) follows it, then B23 (propagated light). Keep the vertex layout open for B17c, but do not move the light yet.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b17b, already on the local branch `B17b-gl-passes` (cut from
-`feature/biomes` at BASE). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at 91fe07ec). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B17b: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every game run and screenshot through scripts/limited.sh (builds `-m:4`, tests
 `-m:2`; the script's caps: 10 GB a command, 16 GB in all, three commands machine-wide); one heavy command at a time, no `&`, no wait
@@ -58,7 +58,7 @@ Deliverables (the spike's recommendation, items 1, 2, 3, 5 and 6):
 8. Documents: docs/game/b17-spike.md gets a "B17b" section (what moved, the comparison, the measurements, what B17c inherits);
    docs/game/architecture.md (the drawing), the Game README, docs/game/running.md (the option).
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (the count on feature/biomes at your base, plus your new tests); format
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,514 passed on feature/biomes before, plus your new tests); format
 clean; content validate; the licence scan clean. A timing test that fails under load: rerun it alone and say so. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
