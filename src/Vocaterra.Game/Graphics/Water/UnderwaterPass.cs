@@ -109,7 +109,7 @@ public sealed class UnderwaterPass : IDisposable
         }
 
         Dispose();
-        _scene = new RenderTarget2D(_device, width, height, false, SurfaceFormat.Color, DepthFormat.Depth24);
+        _scene = new RenderTarget2D(_device, width, height, false, SurfaceFormat.Color, DepthFormat.Depth24, _device.PresentationParameters.MultiSampleCount, RenderTargetUsage.DiscardContents); // B22: antialiased like the window
         var (hw, hh) = UnderwaterGeometry.CopySize(width, height, 2);
         _half = new RenderTarget2D(_device, hw, hh, false, SurfaceFormat.Color, DepthFormat.None);
         if (_settings.Downscale >= 4)

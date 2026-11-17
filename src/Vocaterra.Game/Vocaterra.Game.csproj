@@ -50,6 +50,11 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- The colour of grass and leaves across the climate (B22): data read by the chunk mesher and the far view. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics/Colour/land-colours.json" LogicalName="Vocaterra.Game.Graphics.Colour.land-colours.json" />
+  </ItemGroup>
+
   <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
   <ItemGroup>
     <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />

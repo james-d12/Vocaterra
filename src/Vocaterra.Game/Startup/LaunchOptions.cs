@@ -147,6 +147,7 @@ public sealed record LaunchOptions
         + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the save's); the fog closes in at that distance\n"
         + "  --underwater-blur <off|low|medium|high>  how much the view softens under water (H05; default low)\n"
         + "  --view-distance <blocks>     draw this far instead of the quality's distance (48 to 576 in steps of 16, the menu's Draw distance; or the save's; default Auto)\n"
+        + "  --msaa <0|2|4|8>        the samples per pixel of the window's antialiasing, 0 for none (B22; default the quality's: 4 at medium and high; changing the quality in the menu takes effect for it at the next start)\n"
         + "  --fov <degrees>         the vertical field of view, 60 to 110 in steps of 5 (default 70, or the save's; the menu's Field of view)\n"
         + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
         + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
@@ -368,6 +369,9 @@ public sealed record LaunchOptions
 
     /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the save's (else the quality's own); the run's draw distance is the menu setting <see cref="SettingId.ViewDistance"/>.</summary>
     public int? ViewDistance { get; init; }
+
+    /// <summary>The samples per pixel given by <c>--msaa</c> (0, 2, 4 or 8), or <see langword="null"/> for the quality's own (B22).</summary>
+    public int? Msaa { get; init; }
 
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
@@ -691,7 +695,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -1161,6 +1165,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ViewDistance = viewDistance };
+                    break;
+                case "--msaa":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var msaa) || msaa is not (0 or 2 or 4 or 8))
+                    {
+                        error = $"--msaa needs 0, 2, 4 or 8 samples; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Msaa = msaa };
                     break;
                 case "--teleport":
                     if (!VoxelStep.TryParseSignedColumn(value, out var teleportX, out var teleportZ))

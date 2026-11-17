@@ -53,12 +53,12 @@ public static class BlockArtNature
         switch (cell)
         {
             case BlockCell.GrassTop:
-                Fill(c, Grass, 3, 3);
+                Fill(c, GrassBase, 3, 3);
                 break;
             case BlockCell.GrassSide:
                 Fill(c, Dirt, 2, 3);
                 Pebbles(c, 7, 14, 0xA1);
-                Cap(c, Grass, 3, 3, 0x11);
+                Cap(c, GrassRim, 3, 3, 0x11);
                 break;
             case BlockCell.Dirt:
                 Fill(c, Dirt, 2, 3);
@@ -191,6 +191,11 @@ public static class BlockArtNature
     // ---------------------------------------------------------------- palettes (dark to light)
 
     private static readonly (int R, int G, int B)[] Grass = [(60, 150, 38), (74, 170, 44), (88, 188, 52), (104, 204, 60), (132, 224, 80)];
+
+    // B22: the grass top, its rim on the side and the oak leaves are drawn pale and nearly neutral, to be multiplied by the biome's colour (Graphics/Colour/LandColours: a vertex colour can only darken a picture, so the picture is the light end of
+    // every green and the data's colour is what it is brought down to). The rim is a little darker than the top, because a side face is only partly tinted (the dirt under it is not green).
+    private static readonly (int R, int G, int B)[] GrassBase = [(166, 206, 118), (180, 216, 130), (194, 226, 142), (208, 236, 154), (226, 248, 176)];
+    private static readonly (int R, int G, int B)[] GrassRim = [(126, 172, 84), (138, 184, 92), (148, 194, 100), (160, 204, 110), (176, 216, 126)];
     private static readonly (int R, int G, int B)[] Dirt = [(104, 68, 40), (122, 82, 48), (140, 96, 56), (158, 110, 66), (178, 128, 80)];
     private static readonly (int R, int G, int B)[] StonePal = [(98, 102, 112), (122, 126, 134), (146, 150, 158), (170, 174, 180), (194, 198, 204)];
     private static readonly (int R, int G, int B)[] SnowPal = [(196, 216, 244), (218, 234, 252), (236, 246, 255), (248, 252, 255), (255, 255, 255)];
@@ -201,10 +206,18 @@ public static class BlockArtNature
     private static readonly (int R, int G, int B)[] SpruceRings = [(140, 102, 64), (170, 128, 82), (196, 154, 102), (214, 176, 124), (228, 194, 144)];
     private static readonly (int R, int G, int B)[] BirchBarkPal = [(168, 164, 154), (196, 192, 182), (222, 218, 208), (240, 236, 226), (252, 250, 244)];
     private static readonly (int R, int G, int B)[] BirchRings = [(176, 150, 100), (200, 176, 124), (222, 200, 148), (238, 220, 172), (248, 234, 196)];
-    private static readonly (int R, int G, int B)[] OakLeaves = [(24, 104, 32), (36, 136, 40), (52, 168, 48), (82, 198, 58), (122, 224, 78)];
-    private static readonly (int R, int G, int B)[] SpruceLeavesPal = [(16, 70, 52), (24, 96, 62), (34, 124, 72), (54, 152, 90), (86, 180, 112)];
-    private static readonly (int R, int G, int B)[] BirchLeavesPal = [(70, 140, 34), (94, 168, 40), (126, 196, 52), (164, 220, 70), (200, 236, 100)];
-    private static readonly (int R, int G, int B)[] BushPal = [(28, 112, 36), (40, 144, 42), (58, 172, 50), (88, 200, 60), (124, 224, 80)];
+    private static readonly (int R, int G, int B)[] OakLeaves = [(110, 160, 96), (124, 176, 104), (140, 192, 114), (160, 208, 124), (184, 228, 146)];
+    private static readonly (int R, int G, int B)[] SpruceLeavesPal = Desaturate([(16, 70, 52), (24, 96, 62), (34, 124, 72), (54, 152, 90), (86, 180, 112)], 0.2f);
+    private static readonly (int R, int G, int B)[] BirchLeavesPal = Desaturate([(70, 140, 34), (94, 168, 40), (126, 196, 52), (164, 220, 70), (200, 236, 100)], 0.3f);
+    private static readonly (int R, int G, int B)[] BushPal = Desaturate([(28, 112, 36), (40, 144, 42), (58, 172, 50), (88, 200, 60), (124, 224, 80)], 0.3f);
+
+    // A palette moved a share of the way to the grey of each colour's own brightness (B22: less saturation overall).
+    private static (int R, int G, int B)[] Desaturate((int R, int G, int B)[] palette, float share) =>
+        [.. palette.Select(c =>
+        {
+            var luma = (0.3f * c.R) + (0.59f * c.G) + (0.11f * c.B);
+            return ((int)(c.R + ((luma - c.R) * share)), (int)(c.G + ((luma - c.G) * share)), (int)(c.B + ((luma - c.B) * share)));
+        })];
 
     // ---------------------------------------------------------------- the picture buffer
 
@@ -826,11 +839,11 @@ public static class BlockArtNature
             {
                 var y = Size - 1 - k;
                 var x = x0 + (k > height / 2 ? lean : 0);
-                var colour = Lerp((44, 128, 36), (150, 232, 84), k, Math.Max(1, height - 1));
+                var colour = Lerp((110, 160, 96), (206, 240, 160), k, Math.Max(1, height - 1));
                 c.Set(x, y, colour);
                 if (k < height / 2 && (index % 2 == 0))
                 {
-                    c.Set(x + 1, y, Lerp((38, 112, 30), (112, 200, 66), k, height));
+                    c.Set(x + 1, y, Lerp((98, 140, 84), (170, 220, 130), k, height));
                 }
             }
 
@@ -853,19 +866,19 @@ public static class BlockArtNature
                 var y = sy + ((ty - sy) * i / steps);
                 var bow = (i * (steps - i)) / Math.Max(1, steps) / 2; // the stem arches
                 var px = x + (tx < sx ? -bow : tx > sx ? bow : 0);
-                c.Set(px, y, (40, 118, 40));
+                c.Set(px, y, (104, 146, 96));
                 var reach = Math.Min(3, 1 + (steps - i) / 3);
                 if (i > 2 && i % 2 == 1)
                 {
                     for (var k = 1; k <= reach; k++)
                     {
-                        c.Set(px - k, y + (k / 2), Lerp((50, 150, 46), (110, 216, 74), k, 3));
-                        c.Set(px + k, y + (k / 2), Lerp((50, 150, 46), (110, 216, 74), k, 3));
+                        c.Set(px - k, y + (k / 2), Lerp((112, 164, 98), (176, 226, 138), k, 3));
+                        c.Set(px + k, y + (k / 2), Lerp((112, 164, 98), (176, 226, 138), k, 3));
                     }
                 }
             }
 
-            c.Set(tx, ty, (130, 232, 90));
+            c.Set(tx, ty, (206, 244, 160));
         }
     }
 

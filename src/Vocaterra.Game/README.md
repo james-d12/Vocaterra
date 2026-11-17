@@ -71,8 +71,9 @@ one tick; the camera holds the old height and lets it go over 8 ticks).
 
 `ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque
 cube (or the same kind of transparent block: leaves against leaves, of any tree; water against water), so a block shut in on all sides has no face. **The light (S14)
-is in the vertex colours**: each face is shaded by a sun that stands high in the north-west (`ChunkMesher.SunDirection`; the faces keep this direction all day, so the shaded side of a block does not move
-with the sun, a known limit of E02; the sky's sun is on its own arc, see "The day cycle" below),
+is in the vertex colours**: each face is shaded by a sun that stands high in the north-west by day (`ChunkMesher.SunDirection`, the Day band's sun; B22: **each light band bakes its own sun**, `LightBands.SunDirectionOf`: the sky's own
+sun at 5.8 o'clock low in the east for the Dawn band and at 20.2 low in the west for the Dusk band (`SkyArc`, so the faces are lit from where the sky's sun stands), the moon at midnight for the Night band; a face's share of the sun is its
+normal's dot with that direction over the *Day* sun's height, so a low sun lights its own side fully and the tops only a fraction: the ground darkens as the sun goes down, `ChunkMesher.SunShare(face, band)`; the far view and the figures keep the Day band's directions),
 so the top is full and warm (a tint of 1.0, 0.98, 0.92), the west and north faces about two thirds of the way to it, and the east, south and bottom faces dark and
 blue (the shade fills with sky); and every cube vertex is darkened by its **ambient occlusion** (0 to 3 of the three blocks that touch the corner: a vertex keeps 1.0, 0.82,
 0.66 or 0.5 of its light), the quad's diagonal turned to follow the darker corners. Stone is also tinted by height (`RockTint`: warm and earthy at the foot of the
@@ -179,14 +180,14 @@ ranks every cell by its hash: at 0.42 the boxes are today's exactly; a higher co
 (`CellAlpha`, monotonic in the cover), so no cloud pops during a blend; at a full cover the field holds 467 boxes, 14 010 vertices (5 850 at the fair cover). A full cover is still scattered slabs over a grey dome, not a
 solid ceiling. The lanterns' glow is its own layer (below) and is not dimmed by the weather.
 
-**Light without a full remesh.** The light is baked per vertex, so it comes in three **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1), Dusk (`DuskLight`) and
+**Light without a full remesh.** The light is baked per vertex, so it comes in four **bands** (`LightBand`, `LightBands`): Day (the sun's multiplier 1), Dusk and Dawn (both `DuskLight`, a deep amber of (0.88, 0.56, 0.46) since B22, each with its own sun, above) and
 Night (`NightLight`); the bands bake the sun's light only, the lanterns' glow is its own layer (E02a). `MeshOptions.Band` says which a mesh bakes (the faces, the plants and the water take the band's sun multiplier; the lanterns' glass and a torch's flame, which are their own light, are
-in a separate mesh with none). Dawn and dusk use the Dusk band except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.43, 5.51, 20.49 and 21.57 o'clock (4.24, 5.7, 20.3 and 21.76 before E11 eased the daylight). A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
+in a separate mesh with none). A dawn uses the Dawn band and a dusk the Dusk band (B22) except at the ends (`LightBands.DayFrom`, `NightUpTo`: daylight above 0.85 is the Day band, below 0.12 the Night band), so the band changes at about 4.43, 5.51, 20.49 and 21.57 o'clock (4.24, 5.7, 20.3 and 21.76 before E11 eased the daylight). A change of band makes the meshes of the other bands **stale**, not due (`ChunkVersionTracker.IsBandStale`; each mesh remembers its band): `Remesh` builds them again nearest and in view first within the
 frame's budget, the old mesh staying on screen until its replacement is built. Chunks are drawn grouped by band, each group with `DiffuseColor = the look's sun light / the band's baked sun light`
 (`LightBands.Tint`), so every chunk shows the same sun light during the swap and the light moves smoothly through the day with no step at a band's edge. The same `DiffuseColor` carries the light to the figures and the
 avatar (the look's sun light itself) and to the held arm (`ArmLight.At` takes the look's sun light and lantern strength). The glow is not in the bands (E02a, below), so it shows no step.
 Measured on this VM (software GL, `--quality low`/default): a whole band change takes about 6.5 s
-(low) and 14 s (default) of building behind the frame budget, the worst frame about 20 ms (low) and 11 ms (default). The faces keep the fixed sun direction of the mesher: no shadows move with the sun.
+(low) and 14 s (default) of building behind the frame budget, the worst frame about 20 ms (low) and 11 ms (default). A band's mesh is baked with its band's sun direction, so the lit side of a block changes with the band (a remesh, behind the budget); no cast shadows move with the sun.
 
 **The lanterns' glow as its own layer (E02a).** The light a lantern or a post torch throws on the faces near it is not baked with the sun's: the base meshes (opaque, undergrowth, water) hold the face tint, the ambient occlusion and the band's sun
 multiplier only, and `ChunkMeshes.GlowMesh` holds, for every cube face a light reaches (leaves too), the very same quad (the same four positions in the same order, the same texture coordinates), its vertex colour the reach of
@@ -263,6 +264,22 @@ others come through the platform's text input).
 line, `SceneLocator`, the asset paths), `Diagnostics/` (the session log, the crash handler, the clocks), `Input/` (the devices, `InputSnapshot` and
 `KeyMap`, Keys to `GameKey`), `Sound/` (the outputs and the microphone), `Graphics/` (the renderers and the meshers, by feature) and `UI/` (the
 layers and their layouts, by feature). Both trees are in `docs/game/architecture.md`.
+
+## Colour and antialiasing (B22)
+
+**Colour by climate.** Grass, the oak's leaves, the tall grass and the fern take their colour from a map of the column's ground temperature and humidity (`Graphics/Colour/land-colours.json`, embedded, `LandColours`; 5 x 5 nodes each for grass and
+leaves, a bilinear lookup, no biome id anywhere) instead of one lime green: hot and dry grass is olive-yellow, wet and cool grass blue-green, with the temperate meadow at (106, 166, 70) against the old (89, 179, 49): about 0.58 saturated, not 0.73.
+A vertex colour can only darken a picture, so the block art of the grass top, its rim and the oak leaves is the pale, nearly neutral end of each green (`BlockArtNature`: `GrassBase`, `GrassRim`, `OakLeaves`, the tall grass and fern pictures) and
+the data's colour is divided by the art's average per channel at load (the loader and `LandColoursTests` refuse a colour lighter than its art). The mesher reads the climate through `MeshOptions.Ground` (the renderer builds it from the scene's
+`IPlaceInfo`: the temperature at the block, lowered with height, and the column's humidity; `GroundClimate.Of`), once per column of a chunk (`ColumnTints`); a grass block's top takes the whole tint, its sides 0.55 of it (the dirt under the rim is only a little
+greened), the bottom none; the birch, spruce and bush pictures are desaturated a little and untinted. **The far view takes the same map** (`FarPalette.LandTint`, called by `FarTileMesher` with the face's own position and the settings' `Ground`, from
+`StreamedWorldHost`): the climate is looked up per 16-block cell and rounded to steps of 128, so runs of far faces keep one colour and merge, and the near and the far meadow are the same green.
+
+**Antialiasing.** The window opens with multisample antialiasing (`QualityPreset.MultiSamples`: 4 samples at every level, `GraphicsDeviceManager.PreferMultiSampling` and the presentation parameters' `MultiSampleCount`); `--msaa 0|2|4|8`
+overrides it. It is chosen when the window opens: changing the quality in the menu takes effect for it at the next start. The underwater pass's scene target takes the device's count.
+
+**Water by depth.** The surface of water is tinted per vertex by the mean depth of the four cells that meet at the corner (`WaterDepthTint`, land counting 0): white at the shore and in the shallows, (0.56, 0.70, 0.90) from six blocks down, smoothly between;
+the clearer alpha at the shore corners is as it was. **Clouds** have a darker, bluer underside (`SkyPalette.CloudBottom` (150, 168, 204)) and boxes a little smaller (30 to 50 by 18 to 30); their height is still `CloudField.Altitude`, which becomes data in B14.
 
 ## The streamed world and the far view (B07)
 

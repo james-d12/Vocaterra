@@ -218,6 +218,19 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheMsaaFlagTakesTheSampleCountsAndTheQualityPresetsCarryTheirOwn()
+    {
+        Assert.Null(Parse("--quality", "low").Msaa);
+        Assert.Equal(0, Parse("--msaa", "0").Msaa);
+        Assert.Equal(8, Parse("--msaa", "8").Msaa);
+        Assert.Contains("--msaa needs 0, 2, 4 or 8", Refuse("--msaa", "3"), StringComparison.Ordinal);
+        Assert.Contains("--msaa needs 0, 2, 4 or 8", Refuse("--msaa", "lots"), StringComparison.Ordinal);
+        Assert.Contains("--msaa", LaunchOptions.Usage, StringComparison.Ordinal);
+        Assert.All(Enum.GetValues<QualityLevel>(), static level => Assert.Contains(QualityPreset.MultiSamplesOf(level), new[] { 0, 2, 4, 8 }));
+        Assert.True(QualityPreset.MultiSamplesOf(QualityLevel.High) >= 4, "the default look is antialiased");
+    }
+
+    [Fact]
     public void TheFieldOfViewMouseAndInvertFlagsTakeTheMenusRangesAndRefuseTheRest()
     {
         var options = Parse("--fov", "95", "--mouse-sensitivity", "250", "--invert-y", "on");

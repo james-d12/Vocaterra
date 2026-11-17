@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Streaming;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Far;
 
 namespace Vocaterra.Game.Streaming;
@@ -27,6 +28,7 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly StreamedWorld _world;
     private readonly VoxelGrid _grid;
     private readonly IPlaceInfo? _places;
+    private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
     private readonly JobPool _pool;
     private readonly FileLodPersistence? _persistence;
     private readonly LodEdits _edits;
@@ -42,16 +44,20 @@ public sealed class StreamedWorldHost : IDisposable
         _world = scene.Streaming!;
         _grid = scene.Grid;
         _places = scene.Places;
+        _ground = scene.Places is { } places ? GroundClimate.Of(places) : null;
         _pool = new JobPool(workers);
         _viewDistance = preset.ViewDistance;
         Bands = new ColumnBandCache(_world.Bands);
         _residency = MakeResidency(preset);
         _persistence = lodWorld is null ? null : new FileLodPersistence(FileLodPersistence.FolderFor(lodWorld), "lod-format-" + LodFormat + "; " + lodWorld);
-        Far = new FarView(_world.Far, preset.Far, _pool, new LodStore(_persistence));
+        Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence));
         _radius = RingRadius(preset);
         _ring = new LodRing(Far.World, _world, _pool);
         _edits = new LodEdits(_grid, Far.World, _pool);
     }
+
+    // The far view's shape for a preset, with the ground climate its grass and leaves are coloured by (B22): the same map and the same function as the chunks'.
+    private FarViewSettings FarSettings(QualityPreset preset) => preset.Far with { Ground = _ground };
 
     // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
@@ -165,7 +171,7 @@ public sealed class StreamedWorldHost : IDisposable
             _residency = MakeResidency(preset);
         }
 
-        Far.Reconfigure(preset.Far, dispose);
+        Far.Reconfigure(FarSettings(preset), dispose);
         _radius = RingRadius(preset);
     }
 
