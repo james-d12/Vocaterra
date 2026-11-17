@@ -1,7 +1,7 @@
 You are implementing B11c, "Caves breaking the surface", for the Vocaterra repository (C#, .NET 10). The game is Vocaterra.Game.Core (the
 engine-free logic), Vocaterra.Game (MonoGame DesktopGL 3.8.6) and Vocaterra.Host; the language core (Vocaterra.Nlp*) is not yours.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b11c, already on the local branch `B11c-caves-surface` (cut from
-`feature/biomes` at BASE). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at f9093bb4). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B11c: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every game run and screenshot through scripts/limited.sh (builds `-m:4`, tests
 `-m:2`; the script's caps); one heavy command at a time, no `&`, no wait loops on `pgrep -f` or on a file (a loop left behind runs forever).
@@ -42,7 +42,7 @@ Deliverables:
 4. Pictures in /home/james/Dev/Vocaterra/artifacts/b-series/b11c/ with an index.md: the owner's spot before and after (Release, High,
    midday, the same camera as his screenshot if it can be found), a WorldPreview slice through it, and an entrance that still works.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (COUNT passed on feature/biomes before, plus your new tests); format clean;
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,569 passed on feature/biomes before, plus your new tests); format clean;
 content validate. A timing test that fails under load: rerun it alone and say so. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6

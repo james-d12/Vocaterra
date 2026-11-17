@@ -149,15 +149,15 @@ Tests mirror these folders. Everything is in `Vocaterra.Game.Core` unless the fo
 | `World/Underground/` | `UndergroundData`, `StrataTable : IStrataSelector`, `OreTable`, `OreRow`, `CaveField : ICaveField`, `UndergroundValidator` | Rock layers, ores, caves and lava, from data |
 | `World/Generation/Procedural/` | `IHeightModel`, `HeightModel`, `IColumnShaper`, `IChunkDecorator`, `GenerationPipeline`, the passes, `ProceduralChunkSource` | Turning climate into blocks |
 | `World/Regions/` | `IRegion`, `RegionCatalog`, `AuthoredReliefRegion`, `ProceduralReliefRegion` (B15), `RegionBlend` | Hand-crafted areas |
-| `World/Streaming/` | `IChunkSource`, `CompositeChunkSource`, `ChunkData`, `ChunkCoord3`, `ChunkStreamer` | What is loaded |
+| `World/Streaming/` | `IChunkSource`, `CompositeChunkSource`, `ChunkData`, `ChunkCoord3`, `BandStreamer` (`ChunkStreamer` until B24) | What is loaded |
 | `World/` | `WorldFactory`, `WorldQuery : IPlaceInfo`, `WorldGenData` | Wiring, and the shared place query |
 | `Voxel/` | `VoxelGrid` (sparse inside), `IVoxelReader`, internal `IVoxelWriter`, `IChunkResidencyListener` | Storage |
-| Game: `World/` | `ChunkPrefetcher` | Optional worker threads that call the pure source |
+| Game: `Streaming/` | `JobPool` (its lanes: residency, mesh, far tiles, ring; `ChunkPrefetcher` until B07) | Worker threads that call the pure source |
 
 Notes on the table:
 - **`ProceduralChunkSource`'s passes** are the surface, river banks, the `BankBesideWater` port, strata, ores, caves, lava, the floor, trees
   and undergrowth.
-- **`ChunkStreamer`** holds the residency policy only.
+- **`BandStreamer`** (`ChunkStreamer` until B24) holds the residency policy only; the resident cap is an admission cap, with the plan's eviction freeing room (B24).
 - **`WorldFactory`** is the composition root.
 - **`AuthoredReliefRegion`** is the valley. **`ProceduralReliefRegion`** places towns.
 
@@ -400,7 +400,7 @@ The underground is chunk-local and a pure function of (x, y, z). It is configure
     - Fire rings come from the region template.
     - `WorldFacts` gets a window: the region the player stands in, which keeps the guide's answers in the valley byte-identical. Otherwise
       it is a box of radius 128, from 64 blocks below the player to 64 above.
-  - **The residency policy lives in Core.** `ChunkStreamer` returns the wanted chunks (nearest first, with a fixed tie-break) and the
+  - **The residency policy lives in Core.** `BandStreamer` (`ChunkStreamer` until B24) returns the wanted chunks (nearest first, with a fixed tie-break) and the
     chunks that may be evicted. It changes performance, never results.
 - **A surface band and a near zone keep a tall world affordable.** The view radius at High covers about 1,960 columns, and a mountain column
   can hold 20 full chunks. So:
@@ -410,7 +410,7 @@ The underground is chunk-local and a pure function of (x, y, z). It is configure
     is underground. Caves inside a distant mountain are never meshed.
   - A cave mouth seen from afar shows as a dark opening.
 - **Threads live only in the Game project.**
-  - `ChunkPrefetcher` calls the pure source on at most 2 workers. The game loop installs what they produce, unless the chunk was already
+  - The job pool (`ChunkPrefetcher` until B07) calls the pure source on its workers (2 until B07d's setting). The game loop installs what they produce, unless the chunk was already
     generated on read; duplicates are dropped.
   - Workers never touch `VoxelGrid`.
   - If generation on the game loop's thread, under a per-frame budget, keeps up with walking (about 51 columns for each chunk boundary
@@ -742,3 +742,4 @@ series, `docs/game/biomes-plan.md`).*
 | B07f | done 2026-11-17 | `2f995552`: 12,531 passed, 0 failed, 5 skipped | the far store's edit layer and the review's far-view races (C1 to C3, C6, C7, C10, with race tests): placed and broken blocks climb the levels, so a 4x4 tower 50 high shows as a post from 1 km and 1.3 km and is absent with an empty save; `--shot` waits for the far tiles on the card (an early shot had looked like a void); a near-zone edit no longer leaves a far tile dirty forever (a scripted settle hang); `LodEdits` allocates nothing per frame | `artifacts/b-series/b07f/` (outside git), `.claude/briefs/b07f-report.md` |
 | B17b | done 2026-11-17 | `860a4a28`: 12,539 passed, 0 failed, 8 skipped | every chunk pass (faces, lit pieces, cut-outs, grass, glow, water) on the game's GLSL, on by default with a "Shaders" row in the settings' Graphics group and the effects as fallback (below GL 3.3 or a compile failure); one GL state scope a frame; under water through a flip uniform; a card timer in `--stream-stats`; seven of eight views pixel-identical to the effects (the shore 3 pixels by 1/255); processor submit time a quarter to a tenth, the card's equal or lower | `artifacts/b-series/b17b/` (outside git), `docs/game/b17-spike.md` (B17b section), `.claude/briefs/b17b-report.md` |
 | B02c | done 2026-11-17 | `4445e907`: 12,565 passed, 1 failed, 8 skipped (the failure `SceneBuildTimeTests`, 3,026 ms against a 3,000 ms wall-clock budget at load 15, passing alone; given to B24) | rivers that only fall: a drainage network (a priority flood over 32-block nodes, each landmass read whole on first touch, 0.25 to 0.9 s) carves rivers and lakes; generator version 4; 9 of 18 goldens and the fixture's digest re-recorded; the far sampler and the entrances pass the river carve; the game loop never waits for a landmass (a dry answer until the streaming workers read it) and allocates nothing per frame; start to first frame +0.4 s, a settled 16 km far view about 20% slower; lakes still come out as steps of levels (B02d) | pictures `artifacts/b-series/b02c/` (outside git), `.claude/briefs/b02c-report.md` |
+| B24 | done 2026-11-17 | `536e0e6d`: 12,568 passed, 0 failed, 8 skipped | guards and cleanups: the purity test over every folder that feeds the world (`World/Drainage` included, its one `lock` allowed by name), Game.Core banned from threads, tasks, timers, file IO and environment reads with an allow-list; dead code removed (`ChunkStreamer`, `VoxelGrid.ResidentCoordinates`); the resident cap's bug fixed (after a walk or jump the old place held the cap and the new place loaded nothing); a persistence read-during-write test; timing tests on CPU time with budgets twice the measured cost, so they hold under load; `SettleGuard` for hang guards | `.claude/briefs/b24-report.md` |
