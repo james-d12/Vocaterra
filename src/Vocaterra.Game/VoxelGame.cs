@@ -827,7 +827,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _drawer.Renderer,
             _drawer.Preset,
             _drawer.Streaming,
-            _drawer.PhaseTimes);
+            _drawer.PhaseTimes,
+            _drawer.PhaseAllocations);
     }
 
     /// <inheritdoc />

@@ -6,18 +6,22 @@ namespace Vocaterra.Game.Graphics.World;
 /// Which chunks of a large world are worth meshing and drawing from where the eye is (S13): the ones whose box is within the view distance of the
 /// eye, that are resident and that hold something at all. An empty chunk (the sky over the valley) is never in the set, nor is one the grid does not hold (it is read
 /// by <see cref="VoxelGrid.TryGetChunk"/>, which never generates). The list is nearest first, and is rebuilt only when the eye moves to another chunk, a block is edited
-/// or a chunk is installed or evicted, so asking for it every frame costs nothing. No graphics type is used, so it is tested without a window.
+/// or a chunk is installed or evicted, so asking for it every frame costs nothing. A block edit asks for a new list only when it changes which chunks are in the set (the first block in an empty chunk, the last one out of a chunk), told by the grid's change
+/// listener (B21, review P2: it was every edit, and a water flow tick is one): an edit that leaves a chunk as full of something as it was costs the set nothing. No graphics type is used, so it is tested without a window.
 /// On a streamed grid (B07) a chunk is listed only when all 26 chunks round it are resident too (the mesher reads the diagonal cells for the corner shading, three cells down for the water and nine
 /// blocks across for a lantern's glow, and a chunk that is not resident reads as air, which would draw a wall at the seam of a half-loaded world); the readiness of a chunk is kept as chunks come and go,
 /// the distance is across (the surface band, not the height, decides what is above and below), and at most <c>maxChunks</c> of the nearest are listed.
 /// </summary>
-public sealed class ChunkViewSet : IChunkResidencyListener
+public sealed class ChunkViewSet : IChunkResidencyListener, IBlockChangeListener
 {
     private const int Size = VoxelChunk.Size;
     private readonly VoxelGrid _grid;
     private List<VoxelChunkCoord> _wanted = [];
     private (int X, int Y, int Z) _eyeChunk = (int.MinValue, 0, 0);
     private long _editCount = -1;
+    private long _eventsAtBuild;
+    private long _events;
+    private bool _membershipChanged;
     private long _residency = -1;
     private float _eyeX, _eyeY, _eyeZ;
     private readonly int _maxChunks;
@@ -40,6 +44,7 @@ public sealed class ChunkViewSet : IChunkResidencyListener
         _grid = grid;
         ViewDistance = viewDistance;
         _maxChunks = maxChunks;
+        grid.AddListener(this);
         if (grid.IsStreamed)
         {
             foreach (var coord in grid.ResidentChunks)
@@ -52,7 +57,26 @@ public sealed class ChunkViewSet : IChunkResidencyListener
     }
 
     /// <summary>Stops listening to the grid (the renderer made another view set, or is gone).</summary>
-    public void Detach() => _grid.RemoveResidencyListener(this);
+    public void Detach()
+    {
+        _ = _grid.RemoveResidencyListener(this);
+        _ = _grid.RemoveListener(this);
+    }
+
+    /// <summary>How many times the list was made again (a sort of the chunks in reach): the tests count it, to see that an edit does not make one.</summary>
+    public long Rebuilds { get; private set; }
+
+    /// <inheritdoc />
+    public void OnBlockChanged(BlockChange change)
+    {
+        _events++;
+        // Only a chunk that becomes non-empty (its first block) or empty (its last) changes what the set lists.
+        if ((change.OldBlock == BlockId.Air || change.NewBlock == BlockId.Air) && _grid.TryGetChunk(VoxelChunkCoord.FromBlock(change.Position.X, change.Position.Y, change.Position.Z), out var chunk)
+            && (chunk.IsEmpty || (change.OldBlock == BlockId.Air && chunk.NonAirCount == 1)))
+        {
+            _membershipChanged = true;
+        }
+    }
 
     /// <summary>How many chunks are ready to mesh on a streamed grid (resident, with all 26 neighbours resident or outside the world), whether or not they are in view.</summary>
     public int ReadyChunks => _ready.Count;
@@ -135,14 +159,19 @@ public sealed class ChunkViewSet : IChunkResidencyListener
         _calls++;
         // On a streamed grid chunks come and go every frame while the world loads; the list is rebuilt for that at most once in a few frames (a chunk becomes ready a few frames late, which no one sees),
         // and at once when the eye changes chunk or a block is edited.
-        var residencyOnly = eyeChunk == _eyeChunk && _editCount == _grid.EditCount && _residency != _grid.ResidencyVersion;
-        if (eyeChunk == _eyeChunk && _editCount == _grid.EditCount && (_residency == _grid.ResidencyVersion || (_grid.IsStreamed && residencyOnly && _calls - _builtAt < ResidencyRebuildCalls)))
+        // An edit the grid did not tell the listener of (a column fill after the set was made) shows as edits that outnumber the events heard; the list is then made again, as it was for every edit before.
+        var unheard = _grid.EditCount - _editCount != _events - _eventsAtBuild;
+        var unchanged = eyeChunk == _eyeChunk && !_membershipChanged && !unheard;
+        var residencyOnly = unchanged && _residency != _grid.ResidencyVersion;
+        if (unchanged && (_residency == _grid.ResidencyVersion || (_grid.IsStreamed && residencyOnly && _calls - _builtAt < ResidencyRebuildCalls)))
         {
             return _wanted;
         }
 
         _builtAt = _calls;
-
+        Rebuilds++;
+        _membershipChanged = false;
+        _eventsAtBuild = _events;
         _eyeChunk = eyeChunk;
         (_eyeX, _eyeY, _eyeZ) = (eyeX, eyeY, eyeZ);
         _editCount = _grid.EditCount;

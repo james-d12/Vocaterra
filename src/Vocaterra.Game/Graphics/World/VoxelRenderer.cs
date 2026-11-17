@@ -13,6 +13,7 @@ using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.Water;
 using Vocaterra.Game.Graphics.Weather;
+using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -66,7 +67,7 @@ public readonly record struct MeshStats(
 /// it without a remesh: every mesh bakes the sun's light of one of three bands (<see cref="LightBand"/>) and is drawn with a tint that brings that baked light to the light of the
 /// moment, so the chunks of two bands show the same light while a change of band is built again in the background.
 /// </summary>
-public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
+public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunkMeshSink
 {
     /// <summary>The colour of the day's haze at the horizon (<see cref="SkyPalette.Horizon"/>), which is the clear colour and the fog's at noon, so far land fades into the sky.</summary>
     public static readonly Color Sky = new(SkyPalette.Horizon.R, SkyPalette.Horizon.G, SkyPalette.Horizon.B);
@@ -89,7 +90,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     };
 
     // A chunk mesh is drawn with 16-bit indices, so it holds at most 65 532 vertices (16 383 quads). A full chunk of cubes tops out at 12 288 quads.
-    private const int MaxQuadsPerMesh = 16383;
+    private const int MaxQuadsPerMesh = MeshPart.MaxQuads;
+
+    // The longest a scripted run's Remesh with no budget waits for the workers, in milliseconds of the wall clock.
+    private const double RemeshWaitLimitMilliseconds = 120_000;
 
     private readonly GraphicsDevice _device;
     private readonly BlockAtlas _atlas;
@@ -121,8 +125,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private readonly int[] _bandChunks = new int[LightBands.Count]; // how many visible chunks each band has this frame
     private readonly HashSet<VoxelChunkCoord> _resident = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
-    private long _checkedEdits = -1;
-    private long _checkedResidency = -1;
+    private readonly ChunkMeshPipeline _pipeline;
+    private readonly List<VoxelChunkCoord> _greyScratch = [];
+    private readonly GrassOrder _grassOrder;
+    private long _meshVersion;
+    private long _readinessVersion = -1;
     private int _meshed;
     private double _totalMilliseconds;
     private double _longestMilliseconds;
@@ -197,6 +204,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, null, _band); // the lights near a chunk are put in when it is meshed (BuildChunk)
         grid.AddResidencyListener(_tracker);
         grid.AddResidencyListener(this);
+        _pipeline = new ChunkMeshPipeline(grid, _tracker, OptionsFor, currents) { Band = _band };
+        _grassOrder = new GrassOrder(this);
         SetLightTints(look);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
         for (var i = 0; i < _scratchIndices.Length / 6; i++)
@@ -207,6 +216,30 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
     /// <summary>The lanterns and post torches of the world (S15): the places the glow comes from, kept current by the light index (<see cref="ChunkLightIndex"/>) as lights are placed, removed, installed or evicted.</summary>
     public IReadOnlyList<BlockPos> Lights => _lights.All;
+
+    /// <summary>
+    /// Gives the renderer the worker threads to build chunk meshes and grass layers on (B21): the streamed world's pool, or one of the bounded valley's own; <see langword="null"/> (the start) builds them on the game thread within the frame's
+    /// budget, as before. The workers build from a snapshot of the blocks taken on the game thread (<see cref="ChunkSnapshot"/>) and the game thread puts the result on the card within the budget.
+    /// </summary>
+    /// <param name="pool">The pool, or <see langword="null"/>.</param>
+    public void SetMeshPool(JobPool? pool) => _pipeline.Pool = pool;
+
+    /// <summary>Whether chunk meshes are built on worker threads.</summary>
+    public bool MeshesOnWorkers => _pipeline.IsAsync;
+
+    /// <summary>What the meshing pipeline has done (jobs, results refused as stale, edits meshed in their own frame), for the stream stats line.</summary>
+    public string MeshingSummary => string.Create(
+        System.Globalization.CultureInfo.InvariantCulture,
+        $"meshing: {(_pipeline.IsAsync ? "on workers" : "on the game thread")}, {_pipeline.Submitted} jobs, {_pipeline.Installed} installed, {_pipeline.Refused} refused as stale, {_pipeline.InlineEdits} edits meshed in their frame, {_pipeline.Pending} pending, worker time {_pipeline.BuildMilliseconds.Total:0} ms (longest {_pipeline.BuildMilliseconds.Longest:0.0})");
+
+    /// <summary>How many chunks of the streamed grid a read on the game thread generated and installed (the residency driver makes them on the workers; this is what slipped past it).</summary>
+    public long ChunksGeneratedByReads => _grid.ChunksGeneratedByReads;
+
+    /// <summary>The pipeline that decides which chunks to mesh (tests read its counters).</summary>
+    internal ChunkMeshPipeline Pipeline => _pipeline;
+
+    // The mesh options of a chunk as they are now: the quality's, the band's, the lights near it and the sky over it (read on the game thread).
+    private MeshOptions OptionsFor(VoxelChunkCoord coord) => _meshOptions with { Lights = _lights.Near(coord), Sky = _skyExposure?.Tile(coord.X, coord.Z) };
 
     /// <summary>The colour the target is cleared to and the fog's colour: the look's horizon colour (<see cref="SkyLook.FogColour"/>); the water's while the view is under water.</summary>
     public Color ClearColour { get; private set; }
@@ -273,6 +306,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             _band = look.Band;
             _meshOptions = _meshOptions with { Band = _band };
+            _pipeline.Band = _band;
+            _pipeline.BandChanged();
         }
 
         SetLightTints(look);
@@ -368,7 +403,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         _wanted = [];
-        _checkedEdits = -1;
+        _pipeline.SetWanted(_wanted);
         ApplyFogState(); // the fog of the new distance
     }
 
@@ -470,45 +505,61 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             }
         }
 
-        due.Sort((a, b) => Vector3.DistanceSquared(_chunks[a].Centre, eye).CompareTo(Vector3.DistanceSquared(_chunks[b].Centre, eye)));
-        var built = 0;
+        _grassOrder.Eye = eye;
+        due.Sort(_grassOrder);
+        var submitted = 0;
+        var waiting = false;
         foreach (var coord in due)
         {
-            if (budgetMilliseconds is { } budget && built > 0 && MonotonicClock.Milliseconds() - started >= budget)
+            if (budgetMilliseconds is { } budget && submitted > 0 && MonotonicClock.Milliseconds() - started >= budget)
             {
+                waiting = true;
                 break;
             }
 
-            BuildGrass(coord, _chunks[coord]);
-            built++;
+            if (_pipeline.IsGrassFlying(coord))
+            {
+                continue; // its layer is on its way
+            }
+
+            if (!SubmitGrass(coord, _chunks[coord]))
+            {
+                waiting = true; // the workers have all they can take: the next frame goes on
+                break;
+            }
+
+            submitted++;
         }
 
-        _grassDirty = built < due.Count; // chunks are still waiting: the next frame goes on
+        _grassDirty = waiting; // chunks are still waiting: the next frame goes on
         due.Clear();
     }
 
-    private void BuildGrass(VoxelChunkCoord coord, ChunkGpu gpu)
+    // Hands a chunk's grass layer to the workers (the biomes of its sixteen 4 x 4 blocks and the sky's tile are read here, on the game thread); a chunk with no block that carries grass has none to build. Returns false when the job was not taken.
+    private bool SubmitGrass(VoxelChunkCoord coord, ChunkGpu gpu)
     {
-        var started = MonotonicClock.Milliseconds();
-        gpu.ReleaseGrass();
-        gpu.GrassBuilt = true;
         if (!_grid.TryGetChunk(coord, out var chunk) || (chunk.KindMask & _grassBiomes.TopMask) == UInt128.Zero)
         {
-            return; // not resident, or no block that carries grass
+            gpu.ReleaseGrass();
+            gpu.GrassBuilt = true; // not resident, or no block that carries grass
+            return true;
         }
 
-        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, _grassBiomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds));
-        if (GrassMesher.Build(_source, coord.X, coord.Y, coord.Z, options) is { } layer)
+        Func<int, int, string?>? biomeAt = null;
+        if (_grassBiomeAt is { } lookup)
         {
-            var (buffer, quads) = Upload(layer.Mesh);
-            gpu.Grass = buffer;
-            gpu.GrassQuads = quads;
-            gpu.GrassStart = layer.QuadrantStart;
-            gpu.GrassCumulative = layer.Cumulative;
+            var (x0, z0) = (coord.X * VoxelChunk.Size, coord.Z * VoxelChunk.Size);
+            var ids = new string?[16];
+            for (var cell = 0; cell < ids.Length; cell++)
+            {
+                ids[cell] = lookup(x0 + ((cell & 3) << 2) + 2, z0 + ((cell >> 2) << 2) + 2);
+            }
+
+            biomeAt = (x, z) => ids[((((z - z0) >> 2) << 2) + ((x - x0) >> 2))];
         }
 
-        _grassBuilt++;
-        _grassMilliseconds += MonotonicClock.Milliseconds() - started;
+        var options = new GrassLayerOptions(Preset.GrassCapPercent / 100f, _grassBiomes, biomeAt, _skyExposure?.Tile(coord.X, coord.Z), gpu.Band, ChunkMesher.IsGrey(BlockId.Grass, _tracker.GreyKinds));
+        return _pipeline.SubmitGrass(coord, options, this);
     }
 
     // The grass of a chunk, drawn quadrant by quadrant: the slider's share of the density rank tiers, thinned by the distance from the eye of the quadrant's middle, so the layer thins out over its outer half with no
@@ -557,6 +608,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
         _resident.Clear();
         _tracker.DiscardAll();
+        _pipeline.Reset();
+        _meshVersion++;
     }
 
     /// <summary>
@@ -627,6 +680,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     // Which chunk columns the near zone has wholly drawn (every chunk the view wants in the column has its mesh, and there is one): the far view covers the others (B07e), so no column of the zone is sky or a floating slab while its chunks are made.
     private void RefreshColumnReadiness()
     {
+        if (_readinessVersion == _meshVersion)
+        {
+            return; // no chunk got or lost a mesh and the wanted chunks are the same since the last frame
+        }
+
+        _readinessVersion = _meshVersion;
         _columnReady.Clear();
         foreach (var coord in _wanted)
         {
@@ -732,116 +791,88 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     /// <param name="greyKinds">One bit per block kind (<see cref="ChunkMesher.KindBit"/>); 0 draws the whole world in colour.</param>
     public void SetGreyKinds(UInt128 greyKinds)
     {
-        if (_tracker.SetGreyKinds(greyKinds) > 0)
+        _greyScratch.Clear();
+        if (_tracker.ChangeGreyKinds(greyKinds, _greyScratch))
         {
-            _checkedEdits = -1;
+            // The meshes in flight were built with the old set: refused when they come back. The chunks that hold a kind whose state changed are built again in the background, the old meshes on screen until then.
+            _pipeline.BumpEpoch();
+            foreach (var coord in _greyScratch)
+            {
+                _pipeline.Invalidate(coord);
+            }
         }
 
         _far?.SetGreyKinds(greyKinds, FarTerrainRenderer.Release); // the far land has the chunks' colours (B07)
     }
 
     /// <summary>
-    /// Builds the meshes the eye needs: the chunks in view whose mesh is missing or out of date, in-frustum ones first and nearest first, until the
-    /// time budget is spent (always at least one, so the view fills even on a slow frame); and lets go of the meshes of the chunks that went out of
-    /// range. Returns how many meshes it built. A mesh built in another light band than the look's (E02) is stale, not due: it stays on screen, drawn with its band's
-    /// tint, until its replacement is built; the due chunks come first, then the stale ones, each group in-frustum first and nearest first, all within the same budget.
+    /// Builds the meshes the eye needs: the chunks in view whose mesh is missing or out of date, in-frustum ones first and nearest first, and lets go of the meshes of the chunks that went out of range. Returns how many meshes it put on
+    /// the card. The blocks each chunk reads are copied on this thread and the meshes are built on the workers (<see cref="SetMeshPool"/>); this call takes back what they finished within the time budget (always at least one, so the
+    /// view fills even on a slow frame), meshes a chunk that an edit just changed near the eye in the same call, so a block broken or placed shows in the frame, and hands the workers the next chunks (B21). With no workers the
+    /// chunks are built here, as they were before. A chunk whose blocks changed after its snapshot is built again, never shown from the old blocks; the old mesh stays on screen until the new one replaces it. A mesh built in another light band than the
+    /// look's (E02) is stale, not due: it stays on screen, drawn with its band's tint, until its replacement is built; the due chunks come first, then the stale ones.
     /// </summary>
     /// <param name="eye">The eye in blocks.</param>
     /// <param name="frustum">The camera's frustum, to build what is on screen first, or <see langword="null"/>.</param>
-    /// <param name="budgetMilliseconds">The most time to spend, or <see langword="null"/> to build everything that is due (a scripted run before its screenshot).</param>
+    /// <param name="budgetMilliseconds">The most time to spend on this thread, or <see langword="null"/> to build everything that is due and wait for it (a scripted run before its screenshot).</param>
     public int Remesh(Vector3 eye, BoundingFrustum? frustum = null, double? budgetMilliseconds = null)
+    {
+        var built = RemeshOnce(eye, frustum, budgetMilliseconds);
+        if (budgetMilliseconds is not null)
+        {
+            return built;
+        }
+
+        // No budget: the view is made before the call returns. The workers take their time; this thread waits for them and takes what they finish.
+        var waitStarted = MonotonicClock.Milliseconds();
+        while ((_pipeline.Busy || (_grassPercent > 0 && _grassDirty)) && MonotonicClock.Milliseconds() - waitStarted < RemeshWaitLimitMilliseconds)
+        {
+            if (_pipeline.IsAsync)
+            {
+                Thread.Sleep(1);
+            }
+
+            built += RemeshOnce(eye, frustum, null);
+        }
+
+        return built;
+    }
+
+    private int RemeshOnce(Vector3 eye, BoundingFrustum? frustum, double? budgetMilliseconds)
     {
         UpdateEyeSky(eye);
         var wanted = _view.Update(eye.X, eye.Y, eye.Z);
         var started = MonotonicClock.Milliseconds();
-        if (!ReferenceEquals(wanted, _wanted) || _checkedEdits != _grid.EditCount || _checkedResidency != _grid.ResidencyVersion)
+        if (!ReferenceEquals(wanted, _wanted))
         {
             _wanted = wanted;
             ReleaseOutOfRange(eye);
+            _pipeline.SetWanted(wanted);
+            _meshVersion++;
         }
 
-        // Which chunks in view are due: never meshed, or edited (any edit since the last full check makes every meshed chunk's key worth comparing).
         // A light placed or removed (or a chunk that holds one coming or going) changes the glow of the chunks within its reach, whose blocks did not change: they are meshed again.
-        foreach (var light in _lights.TakeChanged())
+        var lights = _lights.TakeChanged();
+        for (var i = 0; i < lights.Count; i++)
         {
-            foreach (var reached in ChunkLightIndex.ChunksReachedBy(light))
+            foreach (var reached in ChunkLightIndex.ChunksReachedBy(lights[i]))
             {
-                _tracker.Discard(reached);
+                _pipeline.Invalidate(reached);
             }
         }
 
         // A block placed or removed where it changes how far down the open sky reaches (B12) changes the darkening of the chunks under it: they are meshed again.
         if (_skyExposure is not null)
         {
-            foreach (var under in _skyExposure.TakeDirty())
+            var dirty = _skyExposure.TakeDirty();
+            for (var i = 0; i < dirty.Count; i++)
             {
-                _tracker.Discard(under);
+                _pipeline.Invalidate(dirty[i]);
             }
         }
 
-        // Installing or evicting a chunk changes what the layers across its edges are (the keys of its neighbours), as an edit does, on a grid whose chunks are not all there; on a streamed grid a chunk
-        // is listed only once its whole neighbourhood is resident, and what a chunk holds when it comes back is what it held when it went (a changed chunk is never dropped), so a residency change
-        // alone leaves every mesh's key as it was and only an edit asks for the keys to be compared.
-        var recheck = _checkedEdits != _grid.EditCount || (!_grid.IsStreamed && _checkedResidency != _grid.ResidencyVersion);
-        var due = new List<VoxelChunkCoord>();
-        var offscreen = new List<VoxelChunkCoord>();
-        List<VoxelChunkCoord>? stale = null;
-        List<VoxelChunkCoord>? staleOffscreen = null;
-        foreach (var coord in wanted)
-        {
-            var isDue = !_tracker.HasMesh(coord) || (recheck && _tracker.IsDue(coord));
-            var isStale = !isDue && _tracker.IsBandStale(coord, _band);
-            if (!isDue && !isStale)
-            {
-                continue;
-            }
-
-            var inView = frustum is null || frustum.Intersects(GpuOf(coord).Box);
-            if (isDue)
-            {
-                (inView ? due : offscreen).Add(coord);
-            }
-            else if (inView)
-            {
-                (stale ??= []).Add(coord);
-            }
-            else
-            {
-                (staleOffscreen ??= []).Add(coord);
-            }
-        }
-
-        _checkedEdits = _grid.EditCount;
-        _checkedResidency = _grid.ResidencyVersion;
-        if (stale is not null)
-        {
-            due.AddRange(stale);
-        }
-
-        due.AddRange(offscreen);
-        if (staleOffscreen is not null)
-        {
-            due.AddRange(staleOffscreen);
-        }
-
-        var built = 0;
-        foreach (var coord in due)
-        {
-            if (budgetMilliseconds is { } budget && built > 0 && MonotonicClock.Milliseconds() - started >= budget)
-            {
-                break;
-            }
-
-            BuildChunk(coord);
-            built++;
-        }
-
-        _pending = due.Count - built;
-        if (built > 0)
-        {
-            _grassDirty = true; // a chunk was meshed again: its grass layer went with the old mesh
-        }
-
+        var built = _pipeline.Frame(eye, frustum, budgetMilliseconds, started, this);
+        _pending = _pipeline.Pending;
         UpdateGrass(eye, budgetMilliseconds, started);
         return built;
     }
@@ -1172,6 +1203,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _grid.RemoveResidencyListener(_tracker);
         _grid.RemoveResidencyListener(this);
         _view.Detach();
+        _pipeline.Dispose();
         _far?.Clear(FarTerrainRenderer.Release); // the far tiles' GPU buffers are freed with the device still alive, not left to finalizers that run after it is gone (a native crash at exit)
         _farRenderer?.Dispose();
         _lights.Detach();
@@ -1222,34 +1254,39 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         }
 
         _resident.Remove(coord);
+        _meshVersion++;
     }
 
-    private void BuildChunk(VoxelChunkCoord coord)
+    /// <inheritdoc />
+    void IChunkMeshSink.Install(ChunkMeshResult result)
     {
-        var started = MonotonicClock.Milliseconds();
-        if (!_grid.TryGetChunk(coord, out var chunk))
-        {
-            return; // not resident (never generated for a mesh): the view set does not list it
-        }
-
+        var coord = result.Coord;
         var gpu = GpuOf(coord);
-        gpu.Release();
-        if (ChunkMesher.IsBuried(_source, chunk))
+        _meshVersion++;
+        if (result.Buried)
         {
+            gpu.Release();
             _buriedSkipped++;
-            _tracker.MarkMeshed(coord, chunk.KindMask, _band);
+            _tracker.MarkMeshed(coord, result.Kinds, result.Band);
             _resident.Remove(coord);
             return;
         }
 
-        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions with { Lights = _lights.Near(coord), Sky = _skyExposure?.Tile(coord.X, coord.Z) });
-        (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
-        (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
-        (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
-        (gpu.Lit, gpu.LitQuads) = Upload(meshes.LitMesh);
-        (gpu.Glow, gpu.GlowQuads) = Upload(meshes.GlowMesh);
-        _tracker.MarkMeshed(coord, meshes.Kinds, _band);
-        gpu.Band = _band;
+        // The new buffers go in place of the old in one step, so the chunk is never drawn without its mesh between two frames (an edit does not flicker).
+        var (opaque, opaqueQuads) = Upload(result.Opaque);
+        var (alpha, alphaQuads) = Upload(result.Alpha);
+        var (plants, plantQuads) = Upload(result.Plants);
+        var (lit, litQuads) = Upload(result.Lit);
+        var (glow, glowQuads) = Upload(result.Glow);
+        gpu.ReleaseMeshes();
+        (gpu.Opaque, gpu.OpaqueQuads) = (opaque, opaqueQuads);
+        (gpu.Alpha, gpu.AlphaQuads) = (alpha, alphaQuads);
+        (gpu.Plants, gpu.PlantQuads) = (plants, plantQuads);
+        (gpu.Lit, gpu.LitQuads) = (lit, litQuads);
+        (gpu.Glow, gpu.GlowQuads) = (glow, glowQuads);
+        _tracker.MarkMeshed(coord, result.Kinds, result.Band);
+        gpu.Band = result.Band;
+        gpu.GrassBuilt = false; // the grass layer was made for the old blocks: built again, and the old one drawn until the new one comes
         if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
         {
             _resident.Add(coord);
@@ -1259,10 +1296,55 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
             _resident.Remove(coord);
         }
 
-        var spent = MonotonicClock.Milliseconds() - started;
+        _grassDirty = true;
         _meshed++;
-        _totalMilliseconds += spent;
-        _longestMilliseconds = Math.Max(_longestMilliseconds, spent);
+        _totalMilliseconds += result.Milliseconds;
+        _longestMilliseconds = Math.Max(_longestMilliseconds, result.Milliseconds);
+    }
+
+    /// <inheritdoc />
+    void IChunkMeshSink.InstallGrass(ChunkMeshResult result)
+    {
+        if (_grassPercent == 0)
+        {
+            return; // the slider went to 0 while the layer was being made
+        }
+
+        if (!_chunks.TryGetValue(result.Coord, out var gpu) || result.Band != gpu.Band)
+        {
+            _grassDirty = true; // the chunk's mesh was built again in another band meanwhile: the layer is made for that one
+            return;
+        }
+
+        gpu.ReleaseGrass();
+        gpu.GrassBuilt = true;
+        if (result.GrassStart is { } start && result.GrassCumulative is { } cumulative)
+        {
+            var (buffer, quads) = Upload(result.GrassMesh);
+            gpu.Grass = buffer;
+            gpu.GrassQuads = quads;
+            gpu.GrassStart = start;
+            gpu.GrassCumulative = cumulative;
+        }
+
+        _grassBuilt++;
+        _grassMilliseconds += result.Milliseconds;
+    }
+
+    /// <inheritdoc />
+    void IChunkMeshSink.GrassRefused(VoxelChunkCoord coord) => _grassDirty = true;
+
+    /// <inheritdoc />
+    void IChunkMeshSink.Release(VoxelChunkCoord coord)
+    {
+        if (_chunks.TryGetValue(coord, out var gpu))
+        {
+            gpu.Release();
+        }
+
+        _tracker.Discard(coord);
+        _resident.Remove(coord);
+        _meshVersion++;
     }
 
     // A chunk that has a mesh but is beyond the keep distance of the eye lets it go (and is due again if the eye comes back).
@@ -1289,6 +1371,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             _chunks[c].Release();
             _tracker.Discard(c);
+            _pipeline.Forget(c);
             _resident.Remove(c);
             _released++;
         }
@@ -1326,17 +1409,16 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         indices[i + 5] = (short)(v + 3);
     }
 
-    private (VertexBuffer? Buffer, int Quads) Upload(MeshBuffer mesh)
+    private (VertexBuffer? Buffer, int Quads) Upload(MeshPart part)
     {
-        var quads = Math.Min(mesh.FaceCount, MaxQuadsPerMesh);
-        if (quads == 0)
+        if (part.Quads == 0 || part.Vertices is null)
         {
             return (null, 0);
         }
 
-        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, quads * 4, BufferUsage.WriteOnly);
-        buffer.SetData(mesh.ToArray(), 0, quads * 4);
-        return (buffer, quads);
+        var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, part.Quads * 4, BufferUsage.WriteOnly);
+        buffer.SetData(part.Vertices, 0, part.Quads * 4);
+        return (buffer, part.Quads);
     }
 
     private void DrawChunk(VertexBuffer? buffer, int quads)
@@ -1375,6 +1457,19 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _device.Indices = _indices; // the user-array draw leaves no index buffer bound; the chunk draws set it again
     }
 
+    // Nearest to the eye first (the grass scan sorts with this one object, so a scan makes no closure).
+    private sealed class GrassOrder(VoxelRenderer owner) : IComparer<VoxelChunkCoord>
+    {
+        public Vector3 Eye { get; set; }
+
+        public int Compare(VoxelChunkCoord a, VoxelChunkCoord b)
+        {
+            var da = Vector3.DistanceSquared(owner._chunks[a].Centre, Eye);
+            var db = Vector3.DistanceSquared(owner._chunks[b].Centre, Eye);
+            return da != db ? da.CompareTo(db) : a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.Z != b.Z ? a.Z.CompareTo(b.Z) : a.X.CompareTo(b.X);
+        }
+    }
+
     private sealed class ChunkGpu(BoundingBox box)
     {
         public VertexBuffer? Opaque;
@@ -1411,6 +1506,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         public void Release()
         {
             ReleaseGrass();
+            ReleaseMeshes();
+        }
+
+        public void ReleaseMeshes()
+        {
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();
