@@ -548,7 +548,7 @@ public sealed class LodWorld : ILodSectionSource
             });
         }
 
-        Upgrade(key, refresh: true);
+        Upgrade(key, refresh: true, fill: true);
     }
 
     /// <summary>
@@ -611,23 +611,27 @@ public sealed class LodWorld : ILodSectionSource
 
     /// <summary>
     /// Mips the sections above a real section that are wholly made of real ones, up to the store's highest mip level. A child outside the level's vertical range (over the world's ceiling, under its floor) counts as a real section of air or
-    /// of stone, so the levels at the top and the bottom of the world are mipped like the rest. With <paramref name="refresh"/> the parents that were mipped before are made again from whatever their children hold now (after an edit).
+    /// of stone, so the levels at the top and the bottom of the world are mipped like the rest. With <paramref name="refresh"/> the parents that were mipped before are made again from whatever their children hold now (after an edit). With
+    /// <paramref name="fill"/> (an edit, B07f) the climb does not stop under a parent that is not wholly real: its other children are made from the model where the store holds none, and the parent is kept as a partly real section
+    /// (<see cref="LodOrigin.Real"/> with no real chunk of its own to rank it over the model's and under a mip of real sections), so a house built far from the eye shows at every level of the far view and not only where the ring has made the land real.
     /// </summary>
     /// <param name="key">The real section that changed.</param>
     /// <param name="refresh">Whether to remake the parents that exist, from their children as they are.</param>
-    public void Upgrade(LodSectionKey key, bool refresh = false)
+    /// <param name="fill">Whether to make the parents that do not exist or are not wholly real, from the model's sections where the store has none.</param>
+    public void Upgrade(LodSectionKey key, bool refresh = false, bool fill = false)
     {
         var at = key;
         while (at.Level < Store.MaxMipLevel)
         {
             var parent = at.Parent;
-            if (refresh && Store.Entry(parent) is not { Origin: LodOrigin.RealMip })
+            if (refresh && !fill && Store.Entry(parent) is not { Origin: LodOrigin.RealMip })
             {
                 return;
             }
 
             var (min, max) = SyRange(at.Level);
             var children = new LodSection[8];
+            var whole = true;
             for (var c = 0; c < 8; c++)
             {
                 var child = parent.Child(c & 1, c >> 2, (c >> 1) & 1);
@@ -639,9 +643,16 @@ public sealed class LodWorld : ILodSectionSource
                 {
                     children[c] = new LodSection(BlockId.Stone, 0);
                 }
-                else if (Store.Entry(child) is { } entry && (refresh || entry.IsWhollyReal) && Store.Get(child) is { } section)
+                else if (Store.Entry(child) is { } entry && (refresh || fill || entry.IsWhollyReal) && Store.Get(child) is { } section)
                 {
                     children[c] = section;
+                    whole &= entry.IsWhollyReal;
+                }
+                else if (fill)
+                {
+                    var stack = Stack(child.Level, child.X, child.Z);
+                    children[c] = Store.Get(child) ?? stack.Sections[child.Y - stack.SyMin];
+                    whole = false;
                 }
                 else
                 {
@@ -649,7 +660,13 @@ public sealed class LodWorld : ILodSectionSource
                 }
             }
 
-            if (!Store.Put(parent, LodMip.Parent(children), LodOrigin.RealMip) && !refresh)
+            var mip = LodMip.Parent(children);
+            if (fill && !whole)
+            {
+                // Over the model's and over a partly real one, never over a mip of real sections.
+                _ = Store.Update(parent, existing => existing is { Origin: LodOrigin.RealMip } ? null : (mip, LodOrigin.Real, (byte)0, (byte)0));
+            }
+            else if (!Store.Put(parent, mip, LodOrigin.RealMip) && !refresh && !fill)
             {
                 return;
             }

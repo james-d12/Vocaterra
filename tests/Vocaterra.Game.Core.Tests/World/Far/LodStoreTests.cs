@@ -668,4 +668,42 @@ public sealed class LodStoreTests(ITestOutputHelper output)
         Assert.Equal(BlockId.Air, store.Get(new LodSectionKey(0, 0, 2, 0))!.BlockAt(LodSection.Index(7, 3, 5)));
         Assert.Equal(0, store.Entry(new LodSectionKey(0, 0, 2, 0))!.EditedMask);
     }
+
+    [Fact]
+    public void Given_AnEditFarFromEveryRealStack_When_ItIsIngested_Then_EveryLevelAboveHoldsItAsAPartlyRealSectionAndARealMipLaterTakesItsPlace()
+    {
+        // B07f: an edit was told at level 0 only, because the levels above were remade only where the ring had made all eight children real: a house far from the eye never showed in the far view.
+        var store = new LodStore(maxMipLevel: 4);
+        var world = WorldOf(42, store, treeLevels: 1);
+        var coord = new VoxelChunkCoord(640, 12, 640); // over the ground, where the model is air (x 10240, y 192)
+        var (bx, by, bz) = (coord.X << 4, coord.Y << 4, coord.Z << 4);
+        Assert.Equal(BlockId.Air, world.Stack(0, bx >> 5, bz >> 5).Sections[(by >> 5) - world.SyRange(0).Min].BlockAt(LodSection.Index(bx & 31, by & 31, bz & 31)));
+
+        world.IngestChunk(coord, Enumerable.Repeat(BlockId.Timber, ChunkData.Volume).ToArray());
+
+        for (var level = 1; level <= 4; level++)
+        {
+            var key = new LodSectionKey(level, bx >> (5 + level), by >> (5 + level), bz >> (5 + level));
+            var entry = store.Entry(key);
+            Assert.True(entry is { Origin: LodOrigin.Real }, $"level {level}: {entry?.Origin}");
+            Assert.False(entry!.IsWhollyReal);
+            var voxel = LodSection.Index((bx >> level) & 31, (by >> level) & 31, (bz >> level) & 31);
+            Assert.Equal(BlockId.Timber, store.Get(key)!.BlockAt(voxel));
+        }
+
+        // The ring then makes the four stacks round it real: level 1 becomes a mip of real sections, with the edit in it, and the levels above stay as they were.
+        var (sx, sz) = (bx >> 5, bz >> 5);
+        for (var dz = 0; dz < 2; dz++)
+        {
+            for (var dx = 0; dx < 2; dx++)
+            {
+                world.IngestStack(sx + dx, sz + dz, GeneratorChunk);
+            }
+        }
+
+        var up = new LodSectionKey(1, sx >> 1, by >> 6, sz >> 1);
+        Assert.Equal(LodOrigin.RealMip, store.Entry(up)!.Origin);
+        Assert.Equal(BlockId.Timber, store.Get(up)!.BlockAt(LodSection.Index((bx >> 1) & 31, (by >> 1) & 31, (bz >> 1) & 31)));
+        Assert.Equal(LodOrigin.Real, store.Entry(new LodSectionKey(2, bx >> 7, by >> 7, bz >> 7))!.Origin);
+    }
 }
