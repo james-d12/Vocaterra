@@ -2896,3 +2896,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   rivers' valley walls were its cliffs): `RockVarietyTests` skips its face-rock share, with a note, when its sample holds 100 cliff
   columns or fewer. Start to first frame +0.4 s; a settled 16 km far view about 20% slower. Gated: 12,565 passed; the one failure the
   scene build's wall-clock timing test (3,026 ms against 3,000 at load 15), passing alone, given to B24.
+- **B24, guards and cleanups (2026-11-17, `536e0e6d`).** The purity test now covers every folder that feeds the world's blocks (all of
+  `World/Generation`, `World/Layout`, `World/Pass` and B02c's `World/Drainage`, whose one `lock` for the first-touch landmass read is
+  allowed by name while floating point, clocks and randomness stay banned there), and a new test fails for any `World/` folder that is
+  neither pure nor named with a reason. Game.Core is banned from threads, tasks, timers, file IO and environment reads, with an allow-list
+  of nine files each with its reason. Dead code removed: `ChunkStreamer` (with `StreamPolicy`) and `VoxelGrid.ResidentCoordinates`, with
+  their 9 tests. **A real bug in the resident cap** (the review's C8): `Request` ran before `Evict` and at the cap set its cursor to the
+  plan's end, so after a walk or a jump the old place's chunks held the cap and the new place got nothing (0 resident chunks at the new
+  eye after `Settle` reported done); `Evict` now runs first. The timing tests now measure CPU time, the fastest of three, alone after the
+  assembly, with budgets twice the measured cost; they caught **B02c's cost**: chunk generation about 2.5 to 3 times dearer (a surface
+  chunk 6.4 to 6.9 ms of CPU before, 17 to 21 after; the valley snapshot 2.7 to 5.9 s): the budgets were re-set to the new cost and the
+  cost itself planned as B27. Gated clean.

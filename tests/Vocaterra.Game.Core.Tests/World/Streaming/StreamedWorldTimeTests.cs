@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
@@ -9,26 +8,34 @@ namespace Vocaterra.Game.Core.Tests.World.Streaming;
 
 /// <summary>
 /// What streaming the tall world costs per chunk (B07), beside <c>SceneBuildTimeTests</c> and <c>RegionTimeTests</c>: the surface band of a column, a column's band layers made from one window, the install, the plan, the far land's sample.
-/// The bounds are loose; the numbers go to the output for the report.
+/// The numbers go to the output for the report. What is asserted (B24, review T2) is CPU time, the fastest of three passes over the repeats, against a budget of twice what a pass measured on the
+/// development machine, so a busy machine does not fail it and a step that has become twice as slow does.
 /// </summary>
 [Collection(TimingCollection.Name)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class StreamedWorldTimeTests(ITestOutputHelper output)
 {
+    // Measured (B24, Debug as the suite runs, CPU time, fastest of three): (after B02c's drainage network, quietest of several runs) a column's band 15.4 ms, its band layers 20.4 (4.8 a chunk), a plan of 28 columns' radius 0.9; the band cost rose under load to 18. Each budget is twice the measurement, rounded up.
+    private const double BandBudget = 31;
+    private const double MadeBudget = 41;
+    private const double PerChunkBudget = 10;
+    private const double PlanBudget = 3;
+
+    // The CPU milliseconds one call costs: after one warm-up call, the fastest of three passes of `repeats` calls.
     private static double Time(Action action, int repeats)
     {
         action();
-        var watch = Stopwatch.StartNew();
-        for (var i = 0; i < repeats; i++)
+        return CpuTime.Fastest(3, () =>
         {
-            action();
-        }
-
-        return watch.Elapsed.TotalMilliseconds / repeats;
+            for (var i = 0; i < repeats; i++)
+            {
+                action();
+            }
+        }) / repeats;
     }
 
     [Fact]
-    public void Given_ColumnsOutsideTheValley_When_TheirBandsAndLayersAreMade_Then_TheTimePerChunkIsReportedAndWithinBudget()
+    public void Given_ColumnsOutsideTheValley_When_TheirBandsAndLayersAreMade_Then_TheCpuTimePerChunkIsReportedAndWithinBudget()
     {
         var world = RegionTestWorld.Composition().World;
         var columns = Enumerable.Range(0, 24).Select(static i => (X: 60 + (i * 7), Z: -40 + ((i * 13) % 50))).ToList();
@@ -61,11 +68,12 @@ public sealed class StreamedWorldTimeTests(ITestOutputHelper output)
         var cache = new Dictionary<(int, int), ColumnBand>();
         ColumnBand Cached(int x, int z) => cache.TryGetValue((x, z), out var b) ? b : cache[(x, z)] = new ColumnBand(3, 5);
         _ = streamer.Plan(new VoxelChunkCoord(100, 4, 0), false, Cached);
-        var plan = Time(() => _ = streamer.Plan(new VoxelChunkCoord(100, 4, 0), false, Cached), 5);
+        var plan = Time(() => _ = streamer.Plan(new VoxelChunkCoord(100, 4, 0), false, Cached), 20); // the process clock ticks every 10 ms, so enough repeats to span several
 
-        output.WriteLine($"a column's band {band:F2} ms (about {layers:F1} layers); its band layers and a layer each side {made:F2} ms ({made / (layers + 2):F2} ms a chunk), a whole column of 24 layers {whole:F2} ms; one chunk installed and dropped {install * 1000:F0} us; a plan of 28 columns' radius (cached bands) {plan:F1} ms (Debug, one thread)");
-        Assert.True(band < 200, $"{band} ms");
-        Assert.True(made < 400, $"{made} ms");
-        Assert.True(plan < 500, $"{plan} ms");
+        output.WriteLine($"a column's band {band:F2} ms (about {layers:F1} layers); its band layers and a layer each side {made:F2} ms ({made / (layers + 2):F2} ms a chunk), a whole column of 24 layers {whole:F2} ms; one chunk installed and dropped {install * 1000:F0} us; a plan of 28 columns' radius (cached bands) {plan:F1} ms (CPU time, fastest of three)");
+        Assert.True(band < BandBudget, $"a column's band takes {band:F2} ms of CPU time (budget {BandBudget})");
+        Assert.True(made < MadeBudget, $"a column's band layers take {made:F2} ms of CPU time (budget {MadeBudget})");
+        Assert.True(made / (layers + 2) < PerChunkBudget, $"a chunk of a band takes {made / (layers + 2):F2} ms of CPU time (budget {PerChunkBudget})");
+        Assert.True(plan < PlanBudget, $"a plan takes {plan:F1} ms of CPU time (budget {PlanBudget})");
     }
 }

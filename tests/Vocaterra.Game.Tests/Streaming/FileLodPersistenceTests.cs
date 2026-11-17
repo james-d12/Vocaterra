@@ -247,4 +247,53 @@ public sealed class FileLodPersistenceTests : IDisposable
         Assert.Null(failure);
         Assert.True(disk.IsWriterStopped);
     }
+
+    [Fact]
+    public void Given_ASectionRewrittenManyTimesByTheWriter_When_ThreadsLoadItAllTheWhile_Then_EveryReadIsOneWholeVersionNeverAMixAndTheLastWriteWins()
+    {
+        // B24 (review T1): a read during a write. Each version of the blob is one repeated byte whose value fixes its length, so a torn read (the header pointing at bytes the writer has not finished, or half of one version
+        // and half of the next) shows as a mixed or mismatched blob. The readers spin until the writer has drained: no sleep makes the overlap likely, the writer's own work does.
+        const int Versions = 1500;
+        static byte[] Version(int v) => Enumerable.Repeat((byte)((v % 200) + 1), 300 + (((v % 200) + 1) * 10)).ToArray();
+        var key = new LodSectionKey(1, 5, 2, 9);
+        var other = new LodSectionKey(1, 5, 3, 9); // the same region, a neighbouring slot: its header entry is rewritten by the same writes
+        using var disk = new FileLodPersistence(_folder, "v1");
+        var done = false;
+        var reads = 0;
+        var failures = new System.Collections.Concurrent.ConcurrentBag<string>();
+        var readers = Enumerable.Range(0, 3).Select(_ => new Thread(() =>
+        {
+            while (!Volatile.Read(ref done))
+            {
+                var blob = disk.Load(key);
+                _ = Interlocked.Increment(ref reads);
+                if (blob is null)
+                {
+                    continue; // nothing written yet, or the slot's bytes not complete: a miss is allowed, a wrong blob is not
+                }
+
+                var fill = blob[0];
+                if (blob.Length != 300 + (fill * 10) || blob.Any(b => b != fill))
+                {
+                    failures.Add($"a read of {blob.Length} bytes starting {fill} is not one version");
+                }
+            }
+        })).ToList();
+        readers.ForEach(static t => t.Start());
+
+        for (var v = 0; v < Versions; v++)
+        {
+            disk.Save(key, Version(v));
+            disk.Save(other, Version(v + 50));
+        }
+
+        Assert.True(disk.Flush(TimeSpan.FromSeconds(60)));
+        Volatile.Write(ref done, true);
+        readers.ForEach(static t => t.Join());
+
+        Assert.Empty(failures);
+        Assert.True(reads > 0);
+        Assert.Equal(Version(Versions - 1), disk.Load(key));
+        Assert.Equal(Version(Versions - 1 + 50), disk.Load(other));
+    }
 }

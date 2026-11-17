@@ -19,7 +19,7 @@ public enum JobLane
 }
 
 /// <summary>
-/// The worker threads of the streamed world (B07, biomes plan section 3.7): at most <see cref="MaxWorkers"/> of them in all (the player's Worker threads setting, B07d: Auto or 1 to 8; a scripted run keeps two), shared by the chunk prefetcher, the voxel meshes and the far view's tile builds. A job is
+/// The worker threads of the streamed world (B07, biomes plan section 3.7): at most <see cref="MaxWorkers"/> of them in all (the player's Worker threads setting, B07d: Auto or 1 to 8; a scripted run keeps two), shared by the residency's column jobs, the far view's tile and ring jobs and the chunk meshes (B21). A job is
 /// a pure computation over the world's pure source (it never touches the voxel grid, the renderer or the simulation) whose result it hands to a queue the game loop drains. The queue is a priority
 /// queue per lane, nearest first (a lower number first), the residency lane before the tile lane, and the voxel chunks' mesh lane (B21: a pure computation over a snapshot of the blocks the game loop took) before both, up to <see cref="MeshRun"/> jobs in a row; a job that is stale by the time a worker reaches it is skipped. With no worker the pool still
 /// takes jobs and <see cref="RunInline"/> runs them on the caller's thread within a time budget, which is how the tests and the scripted runs keep a run on one thread.

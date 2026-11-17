@@ -77,7 +77,7 @@ public sealed class ChunkResidency
     /// <param name="policy">The radii.</param>
     /// <param name="pool">The workers (shared with the far view); with none the driver generates inline.</param>
     /// <param name="places">The place query, to know when the player is underground; <see langword="null"/> for never.</param>
-    /// <param name="maxResident">The most chunks to keep resident: once the grid holds this many nothing new is asked for.</param>
+    /// <param name="maxResident">The most chunks to keep resident: once the grid holds this many nothing new is asked for (after the chunks the plan let go have been dropped, so the old place never holds the cap against the new one).</param>
     /// <param name="bands">The band cache, shared with whatever else asks for bands; a new one when <see langword="null"/>.</param>
     public ChunkResidency(VoxelGrid grid, StreamedWorld world, BandStreamPolicy policy, JobPool pool, IPlaceInfo? places = null, int maxResident = int.MaxValue, ColumnBandCache? bands = null)
     {
@@ -201,8 +201,8 @@ public sealed class ChunkResidency
         Install();
         if (_planNow is { } plan)
         {
+            Evict(plan); // before the asks: the room a drop makes is used in the same frame, and the cap never waits on chunks the plan no longer holds
             Request(plan);
-            Evict(plan);
         }
     }
 
@@ -415,7 +415,12 @@ public sealed class ChunkResidency
 
             if (_grid.ResidentChunkCount >= _maxResident)
             {
-                _cursor = columns.Count; // the cap: nothing new is asked for (the plan's own eviction frees room as the player moves on); a cap too low only leaves the far land to the far view
+                if (_evictCursor < _evictions.Count)
+                {
+                    break; // B24 (review C8): what the plan let go is still to be dropped, and it is what holds the cap (the old place after a walk or a jump): wait for the room, keeping the place in the plan
+                }
+
+                _cursor = columns.Count; // the cap: nothing new is asked for; a cap too low only leaves the far land to the far view
                 break;
             }
 

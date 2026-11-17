@@ -111,6 +111,41 @@ public sealed class ResidencyInFlightTests
     }
 
     [Fact]
+    public void Given_ColumnJobsInFlight_When_TheCapDropsBelowWhatTheRadiiHold_Then_NothingMoreIsAskedForTheNearestLandIsKeptAndNoChunkIsHalfInstalled()
+    {
+        // B24 (review T1 and C8): a quality change can lower the cap while jobs are in flight. The jobs already made are installed whole (a few chunks past the cap at most), nothing new is asked for, and the
+        // chunks round the eye are the ones that stay.
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(1);
+        var residency = new ChunkResidency(scene.Grid, scene.Streaming!, new BandStreamPolicy(8, 10, 2, 3), pool, scene.Places);
+        var (x, y, z) = Eye(scene);
+        Warm(residency, x, z, 16);
+        using var gate = Hold(pool);
+        residency.Update(x, y, z, null);
+        residency.Update(x, y, z, null);
+        Assert.True(residency.Flying > 4);
+
+        var flying = residency.Flying;
+        const int Cap = 200;
+        residency.Reconfigure(new BandStreamPolicy(8, 10, 2, 3), Cap);
+        gate.Set();
+        Assert.True(residency.Settle(x, y, z));
+
+        var plan = residency.Plan!;
+        var count = scene.Grid.ResidentChunkCount;
+        Assert.InRange(count, 1, Cap + (flying * 12)); // what was in flight is installed whole, so the count may pass the cap by the chunks of those columns, no more
+        Assert.All(Resident(scene), chunk => Assert.True(plan.Holds(chunk)));
+        Assert.Equal(residency.Stats.Installed - residency.Stats.Evicted, count);
+        var (cx, cz) = ((int)MathF.Floor(x / 16), (int)MathF.Floor(z / 16));
+        Assert.Contains(Resident(scene), c => c.X == cx && c.Z == cz); // the eye's own column is resident
+
+        var made = residency.ColumnsGenerated;
+        Assert.True(residency.Settle(x, y, z));
+        Assert.Equal(made, residency.ColumnsGenerated); // over the cap, nothing more is asked for
+        Assert.Equal(count, scene.Grid.ResidentChunkCount);
+    }
+
+    [Fact]
     public void Given_AHostWithJobsInFlight_When_TheQualityChanges_Then_TheSameResidencyGoesOnAndSettlesAtTheNewDistance()
     {
         var scene = StreamedWorlds.Scene();
