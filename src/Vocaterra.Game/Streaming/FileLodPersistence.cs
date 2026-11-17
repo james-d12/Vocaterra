@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Lod;
 
 namespace Vocaterra.Game.Streaming;
@@ -6,9 +7,9 @@ namespace Vocaterra.Game.Streaming;
 /// <summary>
 /// The far view's sections on disk (B07c): a folder for one world, tied by a manifest to the generator's version and the world-generation data's hash (so a changed world starts again from nothing), holding for each level and each 8 x 8 footprints of
 /// sections one region file (<c>L{level}/r.{x}.{z}.lodr</c>): a header of 4,096 slots (a section's offset and length) and the sections' packed bytes after it, appended as they are put. A world's far view is hundreds of thousands of sections, so one file each
-/// would fill a disk's inodes; a region file is a few hundred. Reads are direct; writes are queued to a thread of their own, so no frame waits for a disk, and a slot is written after its bytes, so a crash of the process leaves the old section or the new, never half (the files are synced to the disk when the queue runs dry and at shutdown, and the manifest when it is written). A torn or foreign file reads as missing sections, and a failure on the writer thread costs the section and not the writer.
+/// would fill a disk's inodes; a region file is a few hundred. Reads are direct; writes are queued to a thread of their own, so no frame waits for a disk, and a slot is written after its bytes, so a crash of the process leaves the old section or the new, never half (the files are synced to the disk when the queue runs dry and at shutdown, and the manifest when it is written). A torn or foreign file reads as missing sections, and a failure on the writer thread costs the section and not the writer. Beside the regions the folder holds the edit journal (<c>edits.txt</c>, B07f): the chunks whose player-made blocks are in the sections, written through the same queue, so a run that loads another save knows which to drop. Shutdown is bounded: the writer drains what is queued, syncs and closes its own files, and the caller waits for it only up to a limit.
 /// </summary>
-public sealed class FileLodPersistence : ILodPersistence, IDisposable
+public sealed class FileLodPersistence : ILodPersistence, ILodEditJournal, IDisposable
 {
     private const int Slots = 8 * 8 * 64;
     private const int HeaderBytes = 8 + (Slots * 8);
@@ -16,12 +17,20 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
     private const int MaxBlobBytes = 1 << 20;
 
     private readonly string _root;
-    private readonly BlockingCollection<(LodSectionKey Key, byte[] Blob)> _queue = new(new ConcurrentQueue<(LodSectionKey, byte[])>());
+    private readonly BlockingCollection<(LodSectionKey Key, byte[] Blob, Action? Run)> _queue = new(new ConcurrentQueue<(LodSectionKey, byte[], Action?)>());
+    private readonly HashSet<VoxelChunkCoord> _edited = [];
+    private readonly string _journalFile;
     private readonly Dictionary<string, FileStream> _writing = [];
     private readonly Dictionary<string, byte[]> _headers = [];
     private readonly Thread _writer;
     private long _queued;
     private long _written;
+    private volatile bool _writerDone;
+    private volatile bool _closed;
+    private volatile bool _queueDisposed;
+
+    /// <summary>How long <see cref="Dispose"/> waits for the writer to drain the queue and close its files, in milliseconds.</summary>
+    public const int ShutdownLimitMilliseconds = 8_000;
 
     /// <summary>Opens (or starts) the folder of a world.</summary>
     /// <param name="root">The folder.</param>
@@ -31,8 +40,10 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
         _root = root;
         _ = Directory.CreateDirectory(root);
         var manifest = Path.Combine(root, "manifest.txt");
+        _journalFile = Path.Combine(root, "edits.txt");
         if (!File.Exists(manifest) || File.ReadAllText(manifest) != version)
         {
+            File.Delete(_journalFile);
             foreach (var directory in Directory.GetDirectories(root, "L*"))
             {
                 Directory.Delete(directory, recursive: true);
@@ -43,6 +54,7 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
             stream.Flush(flushToDisk: true);
         }
 
+        ReadJournal();
         _writer = new Thread(Write) { IsBackground = true, Name = "lod-writer" };
         _writer.Start();
     }
@@ -153,7 +165,7 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
     /// <inheritdoc />
     public void Save(LodSectionKey key, byte[] blob)
     {
-        if (_queue.IsAddingCompleted || SlotOf(key) < 0 || blob.Length > MaxBlobBytes)
+        if (_closed || SlotOf(key) < 0 || blob.Length > MaxBlobBytes)
         {
             return;
         }
@@ -161,7 +173,7 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
         try
         {
             _ = Interlocked.Increment(ref _queued);
-            _queue.Add((key, blob));
+            _queue.Add((key, blob, null));
         }
         catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
         {
@@ -169,37 +181,161 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
         }
     }
 
-    /// <summary>Waits until everything queued has been written.</summary>
-    public void Flush()
+    /// <summary>Waits until everything queued has been written, at most <see cref="ShutdownLimitMilliseconds"/>.</summary>
+    public void Flush() => _ = Flush(TimeSpan.FromMilliseconds(ShutdownLimitMilliseconds));
+
+    /// <summary>Waits until everything queued has been written, or the writer has stopped, or the limit has passed.</summary>
+    /// <param name="limit">The longest to wait.</param>
+    /// <returns>Whether everything queued was written.</returns>
+    public bool Flush(TimeSpan limit)
     {
-        while (Interlocked.Read(ref _written) < Interlocked.Read(ref _queued) && _writer.IsAlive)
+        var until = Environment.TickCount64 + (long)limit.TotalMilliseconds;
+        while (Interlocked.Read(ref _written) < Interlocked.Read(ref _queued))
         {
+            if (!_writer.IsAlive || Environment.TickCount64 > until)
+            {
+                return Interlocked.Read(ref _written) >= Interlocked.Read(ref _queued);
+            }
+
             Thread.Sleep(2);
+        }
+
+        return true;
+    }
+
+    /// <summary>Whether the writer thread has ended (it closes its files on the way out).</summary>
+    public bool IsWriterStopped => _writerDone;
+
+    // The journal ------------------------------------------------------------------------------------------------------------------------------
+
+    private void ReadJournal()
+    {
+        try
+        {
+            if (!File.Exists(_journalFile))
+            {
+                return;
+            }
+
+            foreach (var line in File.ReadLines(_journalFile))
+            {
+                var parts = line.Split(' ');
+                if (parts.Length == 3 && int.TryParse(parts[0], System.Globalization.CultureInfo.InvariantCulture, out var x) && int.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var y) && int.TryParse(parts[2], System.Globalization.CultureInfo.InvariantCulture, out var z))
+                {
+                    _ = _edited.Add(new VoxelChunkCoord(x, y, z));
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _edited.Clear(); // an unreadable journal says nothing about which sections hold edits, so the sections start again
+            foreach (var directory in Directory.GetDirectories(_root, "L*"))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    private static string Line(VoxelChunkCoord coord) => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{coord.X} {coord.Y} {coord.Z}");
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<VoxelChunkCoord> Edited()
+    {
+        lock (_edited)
+        {
+            return [.. _edited];
+        }
+    }
+
+    /// <inheritdoc />
+    public void Record(VoxelChunkCoord coord)
+    {
+        lock (_edited)
+        {
+            if (!_edited.Add(coord))
+            {
+                return;
+            }
+        }
+
+        Enqueue(() => File.AppendAllText(_journalFile, Line(coord) + "\n"));
+    }
+
+    /// <inheritdoc />
+    public void Replace(IReadOnlyCollection<VoxelChunkCoord> coords)
+    {
+        ArgumentNullException.ThrowIfNull(coords);
+        var text = string.Concat(coords.OrderBy(static c => c.Y).ThenBy(static c => c.Z).ThenBy(static c => c.X).Select(static c => Line(c) + "\n"));
+        lock (_edited)
+        {
+            _edited.Clear();
+            _edited.UnionWith(coords);
+        }
+
+        Enqueue(() =>
+        {
+            var temporary = _journalFile + ".tmp";
+            File.WriteAllText(temporary, text);
+            File.Move(temporary, _journalFile, overwrite: true);
+        });
+    }
+
+    // A journal write goes through the section writer's queue, so it is made in order with the sections' saves.
+    private void Enqueue(Action run)
+    {
+        if (_closed)
+        {
+            return;
+        }
+
+        try
+        {
+            _ = Interlocked.Increment(ref _queued);
+            _queue.Add((default, [], run));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
+        {
+            _ = Interlocked.Increment(ref _written);
         }
     }
 
     private void Write()
     {
-        foreach (var (key, blob) in _queue.GetConsumingEnumerable())
+        try
         {
-            try
+            foreach (var (key, blob, run) in _queue.GetConsumingEnumerable())
             {
-                WriteOne(key, blob);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                // a section that cannot be kept (a full disk, a locked file, a bug) is made again next time; the writer goes on
-                CloseAll();
+                try
+                {
+                    if (run is not null)
+                    {
+                        run();
+                    }
+                    else
+                    {
+                        WriteOne(key, blob);
+                    }
+                }
+                catch (Exception ex) when (ex is not OutOfMemoryException)
+                {
+                    // a section that cannot be kept (a full disk, a locked file, a bug) is made again next time; the writer goes on
+                    CloseAll();
+                }
+
+                _ = Interlocked.Increment(ref _written);
+                if (_queue.Count == 0)
+                {
+                    SyncAll();
+                }
             }
 
-            _ = Interlocked.Increment(ref _written);
-            if (_queue.Count == 0)
-            {
-                SyncAll();
-            }
+            SyncAll();
         }
-
-        SyncAll();
+        finally
+        {
+            CloseAll(); // the writer opened the files and the writer closes them, after its last write
+            _writerDone = true;
+        }
     }
 
     private void WriteOne(LodSectionKey key, byte[] blob)
@@ -275,12 +411,30 @@ public sealed class FileLodPersistence : ILodPersistence, IDisposable
     }
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-        _queue.CompleteAdding();
-        _ = _writer.Join(30_000);
-        CloseAll();
+    public void Dispose() => _ = Shutdown(TimeSpan.FromMilliseconds(ShutdownLimitMilliseconds));
 
-        _queue.Dispose();
+    /// <summary>
+    /// Stops taking writes, lets the writer drain the queue, sync and close its files, and waits for it up to <paramref name="limit"/>. A writer that is not done by then (a slow disk) is left to finish on its own thread, a background thread that never holds the
+    /// process: nothing here touches its files, so there is no second closer to race it.
+    /// </summary>
+    /// <param name="limit">The longest to wait.</param>
+    /// <returns>Whether the writer finished in time.</returns>
+    public bool Shutdown(TimeSpan limit)
+    {
+        if (_queueDisposed)
+        {
+            return true;
+        }
+
+        _closed = true;
+        _queue.CompleteAdding();
+        var finished = _writer.Join(limit);
+        if (finished)
+        {
+            _queueDisposed = true;
+            _queue.Dispose();
+        }
+
+        return finished;
     }
 }

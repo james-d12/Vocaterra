@@ -313,16 +313,26 @@ public static class ChunkMesher
     /// </summary>
     public static bool IsBuried(IBlockSource blocks, VoxelChunk chunk)
     {
-        ArgumentNullException.ThrowIfNull(blocks);
         ArgumentNullException.ThrowIfNull(chunk);
-        if (chunk.NonAirCount != VoxelChunk.Volume || (chunk.KindMask & NotOpaqueCubes) != UInt128.Zero)
+        return IsBuried(blocks, chunk.Coord, chunk.NonAirCount, chunk.KindMask);
+    }
+
+    /// <summary>The same test from what a snapshot holds of the chunk (B21): its coordinates, how many blocks are not air and the kinds it holds.</summary>
+    /// <param name="blocks">The blocks round the chunk.</param>
+    /// <param name="coord">The chunk's coordinates.</param>
+    /// <param name="nonAirCount">How many of the chunk's blocks are not air.</param>
+    /// <param name="kindMask">The kinds the chunk holds (<see cref="KindBit"/>).</param>
+    public static bool IsBuried(IBlockSource blocks, VoxelChunkCoord coord, int nonAirCount, UInt128 kindMask)
+    {
+        ArgumentNullException.ThrowIfNull(blocks);
+        if (nonAirCount != VoxelChunk.Volume || (kindMask & NotOpaqueCubes) != UInt128.Zero)
         {
             return false;
         }
 
-        var x0 = chunk.Coord.X * VoxelChunk.Size;
-        var y0 = chunk.Coord.Y * VoxelChunk.Size;
-        var z0 = chunk.Coord.Z * VoxelChunk.Size;
+        var x0 = coord.X * VoxelChunk.Size;
+        var y0 = coord.Y * VoxelChunk.Size;
+        var z0 = coord.Z * VoxelChunk.Size;
         const int N = VoxelChunk.Size;
         for (var a = 0; a < N; a++)
         {

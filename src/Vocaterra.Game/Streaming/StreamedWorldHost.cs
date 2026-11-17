@@ -33,13 +33,14 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly FileLodPersistence? _persistence;
     private readonly LodEdits _edits;
     private readonly LodRing _ring;
-    private ChunkResidency _residency;
+    private readonly ChunkResidency _residency;
     private double _heldSince = double.NaN;
     private double _catchUpUntil = double.NegativeInfinity;
     private int _viewDistance;
+    private int _maxResident;
     private int _radius;
 
-    private StreamedWorldHost(Scene scene, QualityPreset preset, int workers, string? lodWorld)
+    private StreamedWorldHost(Scene scene, QualityPreset preset, int workers, string? lodWorld, string? lodFolder)
     {
         _world = scene.Streaming!;
         _grid = scene.Grid;
@@ -47,13 +48,55 @@ public sealed class StreamedWorldHost : IDisposable
         _ground = scene.Places is { } places ? GroundClimate.Of(places) : null;
         _pool = new JobPool(workers);
         _viewDistance = preset.ViewDistance;
+        _maxResident = preset.MaxResidentChunks;
         Bands = new ColumnBandCache(_world.Bands);
         _residency = MakeResidency(preset);
-        _persistence = lodWorld is null ? null : new FileLodPersistence(FileLodPersistence.FolderFor(lodWorld), "lod-format-" + LodFormat + "; " + lodWorld);
+        _persistence = lodWorld is null && lodFolder is null ? null : new FileLodPersistence(lodFolder ?? FileLodPersistence.FolderFor(lodWorld!), "lod-format-" + LodFormat + "; " + lodWorld);
         Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence));
         _radius = RingRadius(preset);
         _ring = new LodRing(Far.World, _world, _pool);
-        _edits = new LodEdits(_grid, Far.World, _pool);
+
+        // The far store's edits are the loaded save's (B07f): what the last run left in the sections and this world does not hold is dropped (the ring makes those footprints again from the generator), and every chunk this world has changed is queued to be taken in, so a save's buildings stand in the far view at the start.
+        var current = _grid.ChangedChunkCoords();
+        if (_persistence is not null)
+        {
+            EditsDropped = DropStaleEdits(current);
+        }
+
+        _edits = new LodEdits(_grid, Far.World, _pool, _persistence);
+        _edits.Seed(current);
+    }
+
+    /// <summary>How many sections of the store were dropped at the start because they held edits that the world loaded does not have (a save without them, a new game, a quit without saving).</summary>
+    public int EditsDropped { get; }
+
+    // The footprints that hold a recorded edit this world lacks are forgotten; the journal then lists the world's own changed chunks.
+    private int DropStaleEdits(IReadOnlyList<VoxelChunkCoord> current)
+    {
+        var journal = _persistence!;
+        var held = new HashSet<VoxelChunkCoord>(current);
+        var footprints = new HashSet<(int Sx, int Sz)>();
+        foreach (var coord in journal.Edited())
+        {
+            if (!held.Contains(coord))
+            {
+                _ = footprints.Add((coord.X >> 1, coord.Z >> 1));
+            }
+        }
+
+        var dropped = 0;
+        foreach (var (sx, sz) in footprints)
+        {
+            dropped += Far.World.ResetFootprint(sx, sz);
+        }
+
+        journal.Replace(current);
+        if (dropped > 0)
+        {
+            _ = journal.Flush(TimeSpan.FromSeconds(10)); // a section asked about before its drop reached the disk would read the old bytes
+        }
+
+        return dropped;
     }
 
     // The far view's shape for a preset, with the ground climate its grass and leaves are coloured by (B22): the same map and the same function as the chunks'.
@@ -63,15 +106,16 @@ public sealed class StreamedWorldHost : IDisposable
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
 
     /// <summary>The version of the sections' format and of how they are made: a change makes every world's saved sections start again.</summary>
-    public const int LodFormat = 2;
+    public const int LodFormat = 3;
 
     /// <summary>The host of a scene's streaming, or <see langword="null"/> when the scene's grid is bounded (the valley).</summary>
     /// <param name="scene">The scene.</param>
     /// <param name="preset">The quality in force (the view distance, the far range).</param>
     /// <param name="workers">The worker threads, 0 to 2: 0 keeps everything on the game loop's thread.</param>
     /// <param name="lodWorld">The name of the world the far view's sections are kept under on disk (its seed, generator version and world-generation hash), or <see langword="null"/> to keep them in memory only.</param>
-    public static StreamedWorldHost? For(Scene scene, QualityPreset preset, int workers, string? lodWorld = null) =>
-        scene.Grid.IsStreamed && scene.Streaming is not null ? new StreamedWorldHost(scene, preset, workers, lodWorld) : null;
+    /// <param name="lodFolder">The folder to keep them in instead of the one named for the world (tests).</param>
+    public static StreamedWorldHost? For(Scene scene, QualityPreset preset, int workers, string? lodWorld = null, string? lodFolder = null) =>
+        scene.Grid.IsStreamed && scene.Streaming is not null ? new StreamedWorldHost(scene, preset, workers, lodWorld, lodFolder) : null;
 
     /// <summary>The residency radii for a view distance: the voxel view reaches its distance plus a chunk, the meshes need a chunk each side more, the keep adds slack.</summary>
     /// <param name="viewDistance">The voxel view distance in blocks.</param>
@@ -165,10 +209,12 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="dispose">Frees a far tile's buffer.</param>
     public void ApplyPreset(QualityPreset preset, Action<FarTile> dispose)
     {
-        if (preset.ViewDistance != _viewDistance)
+        if (preset.ViewDistance != _viewDistance || preset.MaxResidentChunks != _maxResident)
         {
+            // The same driver takes the new radii (B21, review C5): what its workers are making and have made stays valid, where a new driver forgot it and left its jobs to finish for nobody.
             _viewDistance = preset.ViewDistance;
-            _residency = MakeResidency(preset);
+            _maxResident = preset.MaxResidentChunks;
+            _residency.Reconfigure(PolicyFor(preset.ViewDistance), preset.MaxResidentChunks);
         }
 
         Far.Reconfigure(FarSettings(preset), dispose);
@@ -193,10 +239,11 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="eyeY">The eye's y.</param>
     /// <param name="eyeZ">The eye's z.</param>
     /// <param name="dispose">Frees a far tile's buffer.</param>
+    /// <param name="limitMilliseconds">The longest each wait takes (the chunks, the tiles, the ring), or <see langword="null"/> for the usual bounds: a test on a loaded machine gives a generous one, so it waits on the condition and not on the clock.</param>
     /// <returns>Whether everything settled.</returns>
-    public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose)
+    public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose, double? limitMilliseconds = null)
     {
-        var chunks = _residency.Settle(eyeX, eyeY, eyeZ);
+        var chunks = limitMilliseconds is { } given ? _residency.Settle(eyeX, eyeY, eyeZ, given) : _residency.Settle(eyeX, eyeY, eyeZ);
         var started = MonotonicClock.Milliseconds();
         var tiles = false;
         // The ring's real chunks come into the store and the tiles over them are made again: a picture waits for both (a scripted run only; a live game's frames go on).
@@ -204,8 +251,8 @@ public sealed class StreamedWorldHost : IDisposable
         {
             _ring.Update(eyeX, eyeZ, _radius);
             _edits.Update();
-            tiles = Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
-            if ((_ring.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > SettleLimitMilliseconds)
+            tiles = limitMilliseconds is { } far ? Far.Settle(eyeX, eyeZ, _viewDistance, dispose, far) : Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
+            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
             {
                 break;
             }
@@ -225,9 +272,9 @@ public sealed class StreamedWorldHost : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        // Bounded all through (C10): the pool waits a couple of seconds for a job that is still running, then the writer is asked to drain, sync and close its own files, and is waited for up to a limit; it never holds the exit.
         _edits.Dispose();
         _pool.Dispose();
-        _persistence?.Flush();
         _persistence?.Dispose();
     }
 
@@ -241,25 +288,34 @@ public sealed class StreamedWorldHost : IDisposable
 /// </summary>
 internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, IDisposable
 {
-    private const int PerFrame = 2;
+    private const int PerFrame = 16;
 
     private readonly VoxelGrid _grid;
     private readonly LodWorld _world;
     private readonly JobPool _pool;
+    private readonly ILodEditJournal? _journal;
     private readonly HashSet<VoxelChunkCoord> _dirty = [];
     private readonly System.Collections.Concurrent.ConcurrentDictionary<VoxelChunkCoord, BlockId[]> _latest = new();
     private long _ingested;
+    private int _open;
 
-    public LodEdits(VoxelGrid grid, LodWorld world, JobPool pool)
+    public LodEdits(VoxelGrid grid, LodWorld world, JobPool pool, ILodEditJournal? journal = null)
     {
         _grid = grid;
         _world = world;
         _pool = pool;
+        _journal = journal;
         grid.AddResidencyListener(this);
         grid.AddListener(this);
     }
 
     public long Ingested => Interlocked.Read(ref _ingested);
+
+    /// <summary>Whether nothing waits to be copied and no job is queued or running.</summary>
+    public bool IsIdle => _dirty.Count == 0 && Volatile.Read(ref _open) == 0;
+
+    /// <summary>Queues chunks to be taken in (a loaded save's changed chunks, at the start).</summary>
+    public void Seed(IEnumerable<VoxelChunkCoord> coords) => _dirty.UnionWith(coords);
 
     public void OnChunkInstalled(VoxelChunkCoord coord)
     {
@@ -275,12 +331,18 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
 
     public void OnBlockChanged(BlockChange change) => _ = _dirty.Add(new VoxelChunkCoord(change.Position.X >> VoxelChunk.Shift, change.Position.Y >> VoxelChunk.Shift, change.Position.Z >> VoxelChunk.Shift));
 
-    /// <summary>One frame: a couple of the changed chunks are copied and sent to the workers.</summary>
+    /// <summary>One frame: some of the changed chunks are copied and sent to the workers.</summary>
     public void Update()
     {
         for (var n = 0; n < PerFrame && _dirty.Count > 0; n++)
         {
-            var coord = _dirty.First();
+            var coord = default(VoxelChunkCoord);
+            foreach (var next in _dirty)
+            {
+                coord = next; // the struct enumerator allocates nothing, where First() allocates every frame while edits are pending
+                break;
+            }
+
             _ = _dirty.Remove(coord);
             if (!_grid.TryGetChunk(coord, out var chunk))
             {
@@ -300,12 +362,21 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
                 continue;
             }
 
+            _journal?.Record(coord); // before the edit reaches the store, so the journal always covers what the store holds
+            _ = Interlocked.Increment(ref _open);
             _pool.Submit(JobLane.Ring, 0, static () => false, () =>
             {
-                if (_latest.TryRemove(coord, out var newest))
+                try
                 {
-                    _world.IngestChunk(coord, newest);
-                    _ = Interlocked.Increment(ref _ingested);
+                    if (_latest.TryRemove(coord, out var newest))
+                    {
+                        _world.IngestChunk(coord, newest);
+                        _ = Interlocked.Increment(ref _ingested);
+                    }
+                }
+                finally
+                {
+                    _ = Interlocked.Decrement(ref _open);
                 }
             });
         }

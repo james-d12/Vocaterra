@@ -30,3 +30,9 @@ seeds, new test). `RockVarietyTests`' face-rock share now skipped, with a note, 
 ground has almost no non-snow cliffs (the old rivers' valley walls were its cliffs). Suite 12,479 passed, 0 failed. Pictures in
 artifacts/b-series/b02c/ ("After the merge"): a lake in the far tiles (seed 2026), cave entrances beside a river from above and in section
 (seed 7); no in-game cave-mouth picture (holes between trees).
+
+Round 3 (about 08:35 UTC), head `f4a153b5`: `WorldQuery` no longer queues on the .NET pool; it keeps `IsWarm` and the dry answer until the
+streaming workers or the far jobs read the landmass (no case found they never warm: `IsWarm` checks nodes within 128 blocks, all the same
+landmass or sea). New test: a fresh seed-7 world's river column is dry, then warm with water after its chunk is generated through the
+source. `JobPool` and `StreamedWorldHost` untouched. Merged `ef932990` with no conflicts and no pin moved. Suite 12,508 passed, 1 failed
+(`PristineChunksTests...ASnapshotIsTaken`, 21.6 s at load 17, passing alone 3 of 3).

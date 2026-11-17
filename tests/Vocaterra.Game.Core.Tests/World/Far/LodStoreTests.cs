@@ -18,7 +18,17 @@ public sealed class LodStoreTests(ITestOutputHelper output)
 
         public byte[]? Load(LodSectionKey key) => Files.TryGetValue(key, out var blob) ? blob : null;
 
-        public void Save(LodSectionKey key, byte[] blob) => Files[key] = blob;
+        public int SaveDelayMilliseconds { get; init; }
+
+        public void Save(LodSectionKey key, byte[] blob)
+        {
+            if (SaveDelayMilliseconds > 0)
+            {
+                Thread.Sleep(SaveDelayMilliseconds); // a slow disk keeps a store step open longer, so the threads of a test overlap
+            }
+
+            Files[key] = blob;
+        }
     }
 
     private static LodWorld WorldOf(ulong seed, LodStore? store = null, int treeLevels = 2)
@@ -472,5 +482,228 @@ public sealed class LodStoreTests(ITestOutputHelper output)
 
         Assert.True(store.Count < 150, $"{store.Count} sections");
         Assert.NotNull(store.Entry(real));
+    }
+
+    // The generator's stack as a ring ingest makes it (stone under chunk row 4, a column of planks in each footprint) and an edit's chunk (a house block in the second section up).
+    private static ChunkData? GeneratorChunk(int cx, int cy, int cz) => cy < 4 ? new ChunkData(new VoxelChunkCoord(cx, cy, cz), Enumerable.Repeat(BlockId.Timber, ChunkData.Volume).ToArray(), null) : null; // a block the model never makes, so a section the model made is told from one the generator did
+
+    private static BlockId[] HouseChunk()
+    {
+        var blocks = new BlockId[ChunkData.Volume];
+        blocks[(((3 << 4) | 5) << 4) | 7] = BlockId.Planks;
+        return blocks;
+    }
+
+    private static void AssertSameBlocks(LodSection expected, LodSection actual, string where)
+    {
+        for (var i = 0; i < LodSection.Volume; i++)
+        {
+            if (expected.BlockAt(i) != actual.BlockAt(i))
+            {
+                Assert.Fail($"{where}: voxel {i} is {actual.BlockAt(i)}, not {expected.BlockAt(i)}");
+            }
+        }
+    }
+
+    [Fact]
+    public void Given_TheRingsStackAndAnEditsChunkOfTheSameFootprint_When_TheyAreIngestedOnTwoThreadsManyTimes_Then_TheRealBlocksAndTheEditBothSurviveInMemoryAndOnDisk()
+    {
+        // B07f, C1: the edit's relight used to write back the stack it had read before the ring's real sections arrived, over them.
+        var disk = new MemoryDisk { SaveDelayMilliseconds = 1 };
+        var world = WorldOf(42, new LodStore(disk), treeLevels: 1);
+        var (min, max) = world.SyRange(0);
+        var edit = HouseChunk();
+        var reference = WorldOf(42, new LodStore(), treeLevels: 1);
+        reference.IngestStack(0, 0, GeneratorChunk);
+        reference.IngestChunk(new VoxelChunkCoord(0, 4, 0), edit);
+
+        for (var round = 0; round < 90; round++)
+        {
+            var (sx, sz) = (round, 7);
+            var coord = new VoxelChunkCoord(2 * sx, 4, 2 * sz); // a chunk of the second section from the ground (cy 4 is section 2)
+            using var go = new ManualResetEventSlim();
+            Exception? failure = null;
+            Thread Start(Action work) => new(() =>
+            {
+                try
+                {
+                    go.Wait();
+                    work();
+                }
+                catch (Exception ex)
+                {
+                    failure = ex;
+                }
+            });
+            var ring = Start(() =>
+            {
+                Thread.Sleep(round); // the ring's ingest begins a millisecond later each round, so it overlaps every point of the edit's relight
+                world.IngestStack(sx, sz, (cx, cy, cz) => GeneratorChunk(cx - (2 * sx), cy, cz - (2 * sz)));
+            });
+            var player = Start(() => world.IngestChunk(coord, edit));
+            ring.Start();
+            player.Start();
+            go.Set();
+            ring.Join();
+            player.Join();
+            Assert.Null(failure);
+
+            for (var sy = min; sy <= max; sy++)
+            {
+                var key = new LodSectionKey(0, sx, sy, sz);
+                var entry = world.Store.Entry(key)!;
+                Assert.Equal(LodOrigin.Real, entry.Origin);
+                Assert.Equal(0xFF, entry.RealMask);
+                var here = world.Store.Get(key)!;
+                AssertSameBlocks(reference.Store.Get(new LodSectionKey(0, 0, sy, 0))!, here, $"round {round} section {sy}");
+                var saved = disk.Files[key];
+                Assert.Equal(LodOrigin.Real, (LodOrigin)saved[0]);
+                AssertSameBlocks(here, LodSection.Unpack(saved[3..]), $"round {round} section {sy} on disk");
+            }
+
+            Assert.Equal(1 << 0, world.Store.Entry(new LodSectionKey(0, sx, 2, sz))!.EditedMask & 1);
+        }
+    }
+
+    [Fact]
+    public void Given_TwoThreadsEditingChunksOfTheSameStackWhileTheRingIngestsIt_When_TheyAreDone_Then_BothEditsAreInAndTheStackIsStillTheGenerators()
+    {
+        var world = WorldOf(42, new LodStore(new MemoryDisk()), treeLevels: 1);
+        var edit = HouseChunk();
+        for (var round = 0; round < 40; round++)
+        {
+            var sx = round;
+            Parallel.Invoke(
+                () => world.IngestStack(sx, 3, (cx, cy, cz) => GeneratorChunk(cx - (2 * sx), cy, cz - 6)),
+                () => world.IngestChunk(new VoxelChunkCoord(2 * sx, 4, 6), edit),
+                () => world.IngestChunk(new VoxelChunkCoord((2 * sx) + 1, 4, 6), edit));
+            var section = world.Store.Get(new LodSectionKey(0, sx, 2, 3))!;
+            Assert.Equal(BlockId.Planks, section.BlockAt(LodSection.Index(7, 3, 5)));
+            Assert.Equal(BlockId.Planks, section.BlockAt(LodSection.Index(16 + 7, 3, 5)));
+            Assert.Equal(BlockId.Timber, world.Store.Get(new LodSectionKey(0, sx, 1, 3))!.BlockAt(LodSection.Index(9, 9, 9)));
+        }
+    }
+
+    [Fact]
+    public void Given_ManyThreadsPuttingUpdatingAndTrimmingModelSections_When_TheyAreDone_Then_TheModelByteCountIsExact()
+    {
+        // B07f, C3: a slot trimmed between an Entry() and a Keep() was subtracted twice.
+        var store = new LodStore(maxModelBytes: 4 * 10);
+        Parallel.For(0, 8, worker =>
+        {
+            var random = new Random(worker);
+            for (var i = 0; i < 3000; i++)
+            {
+                var key = new LodSectionKey(0, random.Next(40), 0, 0);
+                var section = new LodSection(random.Next(2) == 0 ? BlockId.Dirt : BlockId.Stone, (byte)random.Next(2));
+                switch (random.Next(3))
+                {
+                    case 0:
+                        _ = store.Put(key, section, LodOrigin.Model);
+                        break;
+                    case 1:
+                        _ = store.Update(key, _ => (section, LodOrigin.Model, (byte)0, (byte)0));
+                        break;
+                    default:
+                        _ = store.Update(key, _ => (section, LodOrigin.Real, (byte)0xFF, (byte)0)); // a real one over a model one takes it out of the count
+                        break;
+                }
+            }
+        });
+
+        Assert.Equal(store.ModelBytesRecounted(), store.ModelBytes);
+        Assert.True(store.ModelBytes >= 0);
+    }
+
+    [Fact]
+    public void Given_ACorruptModelSectionInMemory_When_ItIsAsked_Then_ItIsDroppedAndTheModelByteCountFollows()
+    {
+        var store = new LodStore();
+        var key = new LodSectionKey(0, 1, 1, 1);
+        _ = store.Put(new LodSectionKey(0, 2, 2, 2), new LodSection(BlockId.Dirt, 0), LodOrigin.Model);
+        Assert.True(store.PutEntry(key, new LodEntry([1, 2, 3, 4, 5, 6], LodOrigin.Model, 0)));
+        Assert.Equal(10, store.ModelBytes);
+
+        Assert.Null(store.Get(key));
+
+        Assert.Equal(4, store.ModelBytes);
+        Assert.Equal(store.ModelBytesRecounted(), store.ModelBytes);
+        Assert.Equal(1, store.Count);
+    }
+
+    [Fact]
+    public void Given_AFootprintHoldingAnEdit_When_ItIsReset_Then_ItsSectionsAndTheMipsOverThemAreGoneInMemoryAndOnDiskAndTheFarViewIsTold()
+    {
+        var disk = new MemoryDisk();
+        var store = new LodStore(disk, maxMipLevel: 2);
+        var world = WorldOf(42, store, treeLevels: 1);
+        var (min, max) = world.SyRange(0);
+        for (var dz = 0; dz < 2; dz++)
+        {
+            for (var dx = 0; dx < 2; dx++)
+            {
+                world.IngestStack(dx, dz, GeneratorChunk);
+            }
+        }
+
+        world.IngestChunk(new VoxelChunkCoord(0, 4, 0), HouseChunk());
+        Assert.NotNull(store.Entry(new LodSectionKey(1, 0, 0, 0)));
+        store.Changed.Clear();
+
+        var dropped = world.ResetFootprint(0, 0);
+
+        Assert.True(dropped >= max - min + 1, $"{dropped} dropped");
+        for (var sy = min; sy <= max; sy++)
+        {
+            Assert.Null(store.Entry(new LodSectionKey(0, 0, sy, 0)));
+        }
+
+        Assert.Null(store.Entry(new LodSectionKey(1, 0, 0, 0)));
+        Assert.NotNull(store.Entry(new LodSectionKey(0, 1, 1, 0))); // the next footprint is untouched
+        Assert.Contains(new LodSectionKey(0, 0, 2, 0), store.Changed);
+        Assert.Null(new LodStore(disk).Entry(new LodSectionKey(0, 0, 2, 0))); // a store opened on the same disk finds nothing there
+
+        // The generator's stack makes it again, without the edit.
+        world.IngestStack(0, 0, GeneratorChunk);
+        Assert.Equal(BlockId.Air, store.Get(new LodSectionKey(0, 0, 2, 0))!.BlockAt(LodSection.Index(7, 3, 5)));
+        Assert.Equal(0, store.Entry(new LodSectionKey(0, 0, 2, 0))!.EditedMask);
+    }
+
+    [Fact]
+    public void Given_AnEditFarFromEveryRealStack_When_ItIsIngested_Then_EveryLevelAboveHoldsItAsAPartlyRealSectionAndARealMipLaterTakesItsPlace()
+    {
+        // B07f: an edit was told at level 0 only, because the levels above were remade only where the ring had made all eight children real: a house far from the eye never showed in the far view.
+        var store = new LodStore(maxMipLevel: 4);
+        var world = WorldOf(42, store, treeLevels: 1);
+        var coord = new VoxelChunkCoord(640, 12, 640); // over the ground, where the model is air (x 10240, y 192)
+        var (bx, by, bz) = (coord.X << 4, coord.Y << 4, coord.Z << 4);
+        Assert.Equal(BlockId.Air, world.Stack(0, bx >> 5, bz >> 5).Sections[(by >> 5) - world.SyRange(0).Min].BlockAt(LodSection.Index(bx & 31, by & 31, bz & 31)));
+
+        world.IngestChunk(coord, Enumerable.Repeat(BlockId.Timber, ChunkData.Volume).ToArray());
+
+        for (var level = 1; level <= 4; level++)
+        {
+            var key = new LodSectionKey(level, bx >> (5 + level), by >> (5 + level), bz >> (5 + level));
+            var entry = store.Entry(key);
+            Assert.True(entry is { Origin: LodOrigin.Real }, $"level {level}: {entry?.Origin}");
+            Assert.False(entry!.IsWhollyReal);
+            var voxel = LodSection.Index((bx >> level) & 31, (by >> level) & 31, (bz >> level) & 31);
+            Assert.Equal(BlockId.Timber, store.Get(key)!.BlockAt(voxel));
+        }
+
+        // The ring then makes the four stacks round it real: level 1 becomes a mip of real sections, with the edit in it, and the levels above stay as they were.
+        var (sx, sz) = (bx >> 5, bz >> 5);
+        for (var dz = 0; dz < 2; dz++)
+        {
+            for (var dx = 0; dx < 2; dx++)
+            {
+                world.IngestStack(sx + dx, sz + dz, GeneratorChunk);
+            }
+        }
+
+        var up = new LodSectionKey(1, sx >> 1, by >> 6, sz >> 1);
+        Assert.Equal(LodOrigin.RealMip, store.Entry(up)!.Origin);
+        Assert.Equal(BlockId.Timber, store.Get(up)!.BlockAt(LodSection.Index((bx >> 1) & 31, (by >> 1) & 31, (bz >> 1) & 31)));
+        Assert.Equal(LodOrigin.Real, store.Entry(new LodSectionKey(2, bx >> 7, by >> 7, bz >> 7))!.Origin);
     }
 }

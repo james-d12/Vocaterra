@@ -19,3 +19,12 @@ holds planks at levels 0 to 4 (260, 84, 23, 6, 3), the empty save none. Pictures
 shows a large pale void under the far land on its base (no B07e).
 Sent back (about 04:40) to merge feature/biomes (B07e; one test-file conflict), re-take the high view settled (the void), and a tall bright
 tower seen from about 1 km in both saves.
+
+Round 2 (about 07:55 UTC 2026-11-17), head `1049d6d2`: merged feature/biomes at B07e/B17a/B20/B18 (`06716bfa`; one conflict in FarViewTests,
+both kept; C6's disposal now spares `_draw`, `_wanted` and `_pending`). The void under the far land from a high stand was an early shot
+(tick 40, before the far tiles were on the card): `--shot` now waits for `FarOnTheCard`, bounded at 120 s. A second bug the merge exposed:
+a block placed in the near zone left the far tile over it dirty forever, so every scripted `Settle` waited out its 300 s bound (a tower
+build hung): `Stale` counts only needed dirty tiles and `Invalidate` drops an unneeded changed tile (test). Tower pictures in
+artifacts/b-series/b07f/: a 4x4 plank tower 50 high at (420..423, 300..303) is a brown post from 1,000 blocks and from a mountain 1.3 km off,
+absent with the empty save. Suite at load 25 to 30: 5 failures passing alone (the valley timing test, and four of B07f's settle-bound
+tests). Sent back to make those four hold under load; it conflicts with B21 and B22 in `StreamedWorldHost.cs`, so it merges after B21.

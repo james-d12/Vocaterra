@@ -130,9 +130,9 @@ public sealed class SkyExposure : IChunkResidencyListener, IBlockChangeListener
 
         var bottom = (p.Y - MaxShaft - SkyDepthLight.FalloffBlocks) >> VoxelChunk.Shift;
         var top = (p.Y + 1) >> VoxelChunk.Shift;
-        foreach (var dz in new[] { -1, 0, 1 })
+        for (var dz = -1; dz <= 1; dz++)
         {
-            foreach (var dx in new[] { -1, 0, 1 })
+            for (var dx = -1; dx <= 1; dx++)
             {
                 var cx = (p.X + dx) >> VoxelChunk.Shift;
                 var cz = (p.Z + dz) >> VoxelChunk.Shift;
