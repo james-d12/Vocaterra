@@ -2927,3 +2927,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `Stopwatch` failed `OnlyTheRealFrameClockReadsATimer`: harmless (a disk timer, not game logic), but the file belongs on that test's
   allow-list by name rather than passing it by a different clock. Gated clean, with the game's licence scans (B26) passing in the gate
   for the first time.
+- **B14, integration (2026-11-17, `50d919a1`).** Ambient sound follows the place: each biome row names its beds (`ambient`, weights in
+  thousandths; wind, birds, river, insects, surf), `PlaceAmbience` samples five columns six blocks out (a border is a 12-block slope) and
+  the depth (surface beds fade 3 to 14 blocks down, a quiet synthesised `cave` bed takes over), with 1.5 s cross-fades; the state digest
+  hashes biomes.json without `ambient`, so it did not move. Water at rest and exitable edges hold over seeds 42, 7 and 2026 (21 windows:
+  the pass, rivers, lakes, coasts), also on B02c's rivers. Scripted coordinates are signed; the cloud layer's height is data
+  (`cloudAltitude`, 80 to 800). The `r51-biome-tour` visits every biome, a cave with a lit torch (after B07f's stall fix) and the far
+  land, in about 10 minutes. Seen in its pictures: thin seams between spruce leaf blocks, a one-block recess in the snow, birches and oaks
+  in the taiga, streaks on distant water (probably B02d's lake steps), and the entrance's open pit hearing the cave bed while open to the
+  sky. Open: a full re-run of the tour after B02c moved its river, lake and dense-woodland stops stalled at the beach stop past a
+  30-minute bound (not diagnosed); pictures 07, 12 and 14 are of the old stops. Gated: 12,714 passed; the one failure the core's
+  wall-clock lexicon test (M100), passing alone.
