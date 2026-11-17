@@ -83,19 +83,19 @@ size is its plan row's.
 | A series whose decision names its model (none since 2026-11-06: the V series follows the size rule, D-game-22) | as named | as named |
 
 Never set an effort level the owner or a decision has not asked for, and never raise a model or effort for length. One agent per
-milestone, at most two building agents at a time.
+milestone, at most five building agents at a time (D-game-34 item 38).
 
 ## Machine resources (owner, 2026-10-22: never max out the computer; 2026-11-05: up to two agents within the machine's limits)
 
 The desktop crashed twice on 2026-10-22 when two agents built and tested at once with no limits (16 cores, 11 GiB of RAM, 2 GiB of
 swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's within the maximum CPU and memory usage of the machine".
 
-- **At most two building agents at a time** (up to four since 2026-11-15 about 21:45 UTC, the owner: "you can have up to 4 agents now", D-game-34 item 19; that day it was three, then one, item 17), on milestones whose dependencies are met and whose code does not overlap (both may edit
+- **At most two building agents at a time** (up to four since 2026-11-15 about 21:45 UTC, the owner: "you can have up to 4 agents now", D-game-34 item 19; up to five since 2026-11-16 about 22:30 UTC, "5 agents and 3 gates looks ok", item 38, with three limited.sh slots; that day it was three, then one, item 17), on milestones whose dependencies are met and whose code does not overlap (both may edit
   `content/game-v1`: the second to merge re-runs the content loop on its merge). An agent that runs no build, test or `dotnet run` at all
   (pure reading or writing docs) may run beside them, at most three in total. Each agent's worktree takes about 3.5 GB once built: check
   the disk before launching the second.
 - **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
-  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has two machine-wide slots (a third command waits), waits until
+  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has three machine-wide slots since 2026-11-16 (two before; a fourth command waits), waits until
   at least 3 GB is free and the load is under the core count, then runs the command capped at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, in
   one slice that caps all of them together at 16 GB (the owner, 2026-11-16: "increase the shared pool to 12 is fine", then "i would increase to 16gb"; 8 GB before) and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
   command's peak memory. A command over a cap is killed inside its scope (exit 137 or 143); the fix is lower parallelism or a rerun when

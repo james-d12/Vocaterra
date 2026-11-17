@@ -90,10 +90,16 @@ public sealed class FarTerrainSampler
         var column = _world.Table.Classify(climate, shape.Height, x, z, shape.Water);
         var blocks = _world.Table.Surface(column.Row);
         var top = shape.Water ? blocks.Underwater : column.Snow ? BlockId.Snow : blocks.Top;
-        var grows = !shape.Water && column.TreesGrow;
+        var surface = new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);
+        if (_world.SurfaceRock is { } rock)
+        {
+            surface = rock.Adjust(new FarGround(_world), x, z, surface, foot: false); // the cliffs' bands and the steep scree show from afar (B11b); the foot's scree is too fine for it
+        }
+
+        var grows = !shape.Water && column.TreesGrow && !surface.Bare;
         var forest = grows ? column.Row.Trees.Density : 0;
         var (leaves, canopy) = grows ? _crowns[column.Row.Index] : (BlockId.Air, 0);
-        return new FarSample(shape.Height, shape.Water ? Even(x, z, shape.WaterLevel) : -1, top, column.Snow, forest, blocks.Filler, blocks.FillerDepth, forest > 0 ? leaves : BlockId.Air, forest > 0 ? canopy : 0);
+        return new FarSample(shape.Height, shape.Water ? Even(x, z, shape.WaterLevel) : -1, surface.Top, column.Snow, forest, surface.Filler, surface.FillerDepth, forest > 0 ? leaves : BlockId.Air, forest > 0 ? canopy : 0);
     }
 
     /// <summary>
@@ -191,7 +197,7 @@ public sealed class FarTerrainSampler
     }
 
     // The height model's ground for the tree placement: the biome and the layers of a column as the model and the table give them, no pass having shaped them. It holds the last column it read in small arrays (a candidate asks the biome, then the surface, of the same column).
-    private sealed class FarGround : ITreeGround
+    private sealed class FarGround : ITreeGround, IRockGround
     {
         private readonly GenerationWorld _world;
         private readonly int[] _at = [int.MinValue, int.MinValue];
@@ -213,13 +219,47 @@ public sealed class FarTerrainSampler
             var biome = _world.Table.Classify(_climate[0], shape.Height, x, z, shape.Water);
             var blocks = _world.Table.Surface(biome.Row);
             var top = shape.Water ? blocks.Underwater : biome.Snow ? BlockId.Snow : blocks.Top;
-            return new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);
+            var surface = new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);
+            return _world.SurfaceRock is { } rock ? rock.Adjust(this, x, z, surface) : surface; // the trees skip the columns the surface rock bares, as the generator's do (B11b)
+        }
+
+        public int HeightAt(int x, int z)
+        {
+            Read(x, z);
+            return _shape[0].Height;
+        }
+
+        public bool InWindow(int x, int z) => true;
+
+        public ColumnShape ShapeAt(int x, int z)
+        {
+            Read(x, z);
+            return _shape[0];
         }
 
         public int WaterLevelAt(int x, int z)
         {
             Read(x, z);
             return _shape[0].Water ? _shape[0].WaterLevel : -1;
+        }
+
+        // A cave entrance's passage and mouth keep trees off, as in the generator: the entrance sites are planned from the height model and the cave field alone, so the far view finds the same ones (B11b).
+        public bool ClearsEntrance(int x, int z)
+        {
+            if (_world.Entrances is not { } entrances)
+            {
+                return false;
+            }
+
+            foreach (var ramp in entrances.Near(x, z, x, z))
+            {
+                if (ramp.Clears(x, z))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void Read(int x, int z)

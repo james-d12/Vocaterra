@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Tests.Graphics.World;
 /// <summary>B10: the nine underground blocks mesh (their ids are above 63, which the mesher's tables must cover), draw opaque art of their own, and lava is a light kind like the lantern.</summary>
 public sealed class UndergroundBlockMeshTests
 {
-    private static readonly BlockId[] New = [BlockId.Slate, BlockId.Granite, BlockId.Limestone, BlockId.Gravel, BlockId.Lava, BlockId.Bedrock, BlockId.IronOre, BlockId.TinOre, BlockId.CopperOre];
+    private static readonly BlockId[] New = [BlockId.Slate, BlockId.Granite, BlockId.Limestone, BlockId.Gravel, BlockId.Lava, BlockId.Bedrock, BlockId.IronOre, BlockId.TinOre, BlockId.CopperOre, BlockId.Basalt];
 
     public static TheoryData<BlockId> Blocks() => [.. New];
 

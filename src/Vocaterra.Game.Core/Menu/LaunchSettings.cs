@@ -19,6 +19,7 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="FieldOfView"><c>--fov</c> in degrees, 60 to 110 in steps of 5.</param>
 /// <param name="MouseSensitivity"><c>--mouse-sensitivity</c> in percent, 25 to 300 in steps of 5.</param>
 /// <param name="InvertY"><c>--invert-y</c>.</param>
+/// <param name="Grass"><c>--grass</c> in percent, 0 to 100 in steps of 10 (B18), or <see langword="null"/> for the save's.</param>
 /// <param name="PassOpen">Whether <c>--pass open</c> was given (it only switches the pass cheat on).</param>
 public sealed record LaunchSettings(
     bool Scripted = false,
@@ -37,4 +38,5 @@ public sealed record LaunchSettings(
     double? VoiceVolume = null,
     double? UiVolume = null,
     double? WeatherVolume = null,
-    bool PassOpen = false);
+    bool PassOpen = false,
+    int? Grass = null);

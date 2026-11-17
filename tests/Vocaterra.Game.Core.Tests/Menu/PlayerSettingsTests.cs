@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Tests.Menu;
@@ -259,5 +260,69 @@ public sealed class PlayerSettingsTests
             Assert.Equal(spec.Default, spec.Snap(spec.Default));
             Assert.True(spec.Kind != SettingKind.Slider || (spec.Max - spec.Min) % spec.Step == 0, spec.Id.ToString());
         });
+    }
+
+    [Theory]
+    [InlineData(-5, 0)]
+    [InlineData(0, 0)]
+    [InlineData(34, 30)]
+    [InlineData(35, 40)]
+    [InlineData(100, 100)]
+    [InlineData(900, 100)]
+    public void Given_AGrassValue_When_Set_Then_ItIsLimitedToZeroToOneHundredInStepsOfTen(int asked, int expected)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Grass, asked);
+        Assert.Equal(expected, settings.Get(SettingId.Grass));
+        Assert.Equal(expected / 100.0, settings.Grass);
+    }
+
+    [Fact]
+    public void Given_ANewGame_When_TheGrassIsRead_Then_ItIsTheLushDefaultAndMovingItIsTold()
+    {
+        var settings = new PlayerSettings();
+        Assert.Equal(PlayerSettings.DefaultGrass, settings.Get(SettingId.Grass));
+        Assert.Equal(SettingKind.Slider, PlayerSettings.Spec(SettingId.Grass).Kind);
+        var changed = new List<SettingId>();
+        settings.Changed += changed.Add;
+        settings.Set(SettingId.Grass, 100);
+        settings.Set(SettingId.Grass, 100);
+        Assert.Equal([SettingId.Grass], changed);
+        Assert.Contains(MenuRows.Settings(settings, null), static row => row.Id == nameof(SettingId.Grass));
+        Assert.Equal("Grass", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Grass).LabelKey));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(PlayerSettings.DefaultGrass)]
+    [InlineData(100)]
+    [InlineData(10)]
+    public void Given_AGrassSetting_When_SavedAndLoaded_Then_ItComesBack(int percent)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Grass, percent);
+        var saved = settings.ToSave();
+        Assert.Equal(percent == PlayerSettings.DefaultGrass ? null : percent, saved.Grass); // the default is left out, as the other settings' defaults are (zero is written: it is not the default)
+        Assert.Equal(percent, PlayerSettings.Resolve(saved).Get(SettingId.Grass));
+        var json = System.Text.Json.JsonSerializer.Serialize(saved);
+        var again = System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!;
+        Assert.Equal(percent, PlayerSettings.Resolve(again).Get(SettingId.Grass));
+    }
+
+    [Fact]
+    public void Given_ASaveWithoutTheGrassField_When_Resolved_Then_TheDefaultHolds()
+    {
+        Assert.Equal(PlayerSettings.DefaultGrass, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default)).Get(SettingId.Grass));
+        Assert.Equal(100, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Grass: 4000)).Get(SettingId.Grass));
+    }
+
+    [Fact]
+    public void Given_AGrassLaunchOption_When_Resolved_Then_ItWinsOverTheSaveAndIsSnapped()
+    {
+        var saved = new SaveSettings(SoundVolumes.Default, Grass: 20);
+        Assert.Equal(20, PlayerSettings.Resolve(saved).Get(SettingId.Grass));
+        Assert.Equal(80, PlayerSettings.Resolve(saved, new LaunchSettings(Grass: 80)).Get(SettingId.Grass));
+        Assert.Equal(0, PlayerSettings.Resolve(saved, new LaunchSettings(Grass: 0)).Get(SettingId.Grass));
+        Assert.Equal(70, PlayerSettings.Resolve(null, new LaunchSettings(Grass: 68)).Get(SettingId.Grass));
     }
 }

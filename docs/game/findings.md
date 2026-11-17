@@ -2783,3 +2783,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   later: "running with --configuration Release fixed most of the issues ... take note that it was in Debug mode which could explain the
   slow rendering": (2) to (4) are mostly the far view not yet built in a slow Debug build; B07e reproduces each in Release, fixes what
   persists once settled, and makes the in-between state while the far view builds tidy. (1) is generation and stays (B11c).
+- **B11b, natural cave entrances and rock variety (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11b-entrances-and-rock.md`,
+  report `.claude/briefs/b11b-report.md`, pictures in `artifacts/b-series/b11b/` (and `tour/`). B11's entrances were pits with no walkable
+  way down (B12's finding); the first rework built straight 3-wide stairs with slab rims, which the owner held as man-made (D-game-34 item
+  31); the second makes each entrance a winding passage (width 2 to 6, headroom 3 to 7, noise-carved walls, an uneven floor, a ragged
+  mouth with no rim), walkable to a cave 20 or more blocks down (tested from every sampled mouth). Rock variety (item 27): plain stone on
+  cave faces from 88 to 96% to 48 to 57% (gravel, sand, dirt, granite, limestone, the new basalt; linings near passages and water),
+  cliff bands and scree at the surface, all as data; generator version 3. Merges: four (B12's cave tour moved onto a natural entrance;
+  B07c's `TreePlacement` kept as the one source with the mouths cleared in the shared query; the far view shows cliff bands and scree).
+  Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
+  worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
+  mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.
+- **The owner's picture tour (2026-11-16, no repository change; `artifacts/b-series/tour/`, index.md).** Seeds 42, 1, 7, 2026 and 99999 from
+  high ground, a mountain range, ocean views, and the cave on seed 42 through B11b's natural entrance (a torch-lit landing, the lava lake),
+  High, midday, Release. Findings: a teleport to a new area took 40 to 135 s for the far view on an empty cache (B07d's fill speed); the
+  cave mouth is hard to find from outside (a 2 to 3 block pit in meadow); `--teleport-to x,y,z` over a passage stood the camera on the
+  surface above it, not in the passage (B24); snow-covered summits read flat white; seed 99999 is 79% water with no real range.
+- **B18, grass density (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b18-grass-density.md`, report `.claude/briefs/b18-report.md`,
+  pictures in `artifacts/b-series/b18/`. A render-only layer (`GrassMesher`): crossed tall-grass tufts on grass tops where the cell above
+  is air, from a pinned cell hash (stable; more density only adds tufts), weighted by biome through `IPlaceInfo` (plains and meadow 1.0,
+  woods 0.85 to 0.9, grove 0.5, taiga 0.4, others 0.3; data in an embedded `GrassBiomes.json`, outside the world-generation files so the
+  save digest does not move); a Grass slider (0 to 100, default 60, saved, `--grass`), presets 48 / 72 / 96 blocks with caps 40 / 70 / 100%;
+  0 is the old look byte for byte. No measurable frame cost (scene draw median within noise at 0, 60, 100); a layer 0.2 ms a chunk; about
+  3.6 MB at High. One merge (B07c's presets). Its first gate's run on feature/biomes crashed a game-window test (exit 139, passing alone in
+  20 min: the far view's settle in Debug, given to B07e); its merge's full run tripped M97's fixed-seed coverage test (passes alone; M98).
+  Gated: 12,448 passed, 3 skipped.
