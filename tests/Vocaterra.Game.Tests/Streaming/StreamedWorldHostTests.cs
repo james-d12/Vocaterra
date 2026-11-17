@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Streaming;
+using Vocaterra.Game.Tests.TestSupport;
 
 namespace Vocaterra.Game.Tests.Streaming;
 
@@ -128,8 +129,7 @@ public sealed class StreamedWorldHostTests : IDisposable
     }
 
     // B07f, C2: the far store's edits are the loaded save's, whatever the last run left in the world's folder.
-    // The settles of these tests wait on the condition (no worker, the host steps itself), not on the clock: the bound is only a guard against a hang, so a gate beside other agents cannot fail them.
-    private const double HangGuardMilliseconds = 3_600_000;
+    // The settles of these tests wait on the condition (no worker, the host steps itself), not on the clock: the guard against a hang is progress (SettleGuard), so a busy machine that keeps working cannot fail them.
 
     private string NewFolder()
     {
@@ -151,10 +151,13 @@ public sealed class StreamedWorldHostTests : IDisposable
     private static Vocaterra.Game.Core.Voxel.BlockId FarBlock(StreamedWorldHost host, (int X, int Y, int Z) at) =>
         FarSection(host, at).BlockAt(Vocaterra.Game.Core.World.Lod.LodSection.Index(at.X & 31, at.Y & 31, at.Z & 31));
 
+    private static bool SettleHost(StreamedWorldHost host, (float X, float Y, float Z) eye) =>
+        SettleGuard.Settle(limit => host.Settle(eye.X, eye.Y, eye.Z, _ => { }, limit), () => host.Residency.Stats.Installed + host.Far.Stats.Built + host.Ring.Done + host.EditedChunksTaken);
+
     private static void Settled(StreamedWorldHost host, Scene scene)
     {
         var eye = Eye(scene);
-        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
+        Assert.True(SettleHost(host, eye), "the host settles (no slice without progress)");
     }
 
     [Fact]
@@ -281,7 +284,7 @@ public sealed class StreamedWorldHostTests : IDisposable
 
             using var host = StreamedWorldHost.For(scene, preset, 0)!;
             var eye = Eye(scene);
-            Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
+            Assert.True(SettleHost(host, eye), "the host settles (no slice without progress)");
             return host.Far.Stats.Vertices; // every tile built (none is on a card here, so the draw list is empty)
         }
 

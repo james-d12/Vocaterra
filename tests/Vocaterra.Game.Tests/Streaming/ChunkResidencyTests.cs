@@ -166,6 +166,27 @@ public sealed class ChunkResidencyTests
     }
 
     [Fact]
+    public void Given_ACapOnResidentChunks_When_ThePlayerMovesOn_Then_TheCapIsAnAdmissionLimitAndThePlansEvictionFreesTheRoomBehindThem()
+    {
+        // B24 (review C8): the cap stops new asks; it does not evict chunks the plan still holds (that would be asked for again at once and thrash). What is behind the player is freed by the plan's
+        // own eviction, so the count stays near the cap over a walk and the land at the new eye fills nearest first.
+        var scene = StreamedWorlds.Scene();
+        using var pool = new JobPool(0);
+        var residency = Make(scene, pool, max: 300);
+        var (x, y, z) = Eye(scene);
+        Assert.True(residency.Settle(x, y, z));
+        var here = new VoxelChunkCoord((int)MathF.Floor(x) >> 4, (int)MathF.Floor(y) >> 4, (int)MathF.Floor(z) >> 4);
+        Assert.True(scene.Grid.IsResident(here), "the eye's own chunk comes first");
+
+        Assert.True(residency.Settle(x + 700, y, z));
+
+        Assert.InRange(scene.Grid.ResidentChunkCount, 100, 300 + 30);
+        Assert.False(scene.Grid.IsResident(here), "the plan's eviction freed the chunks behind the player");
+        var ahead = new VoxelChunkCoord((int)MathF.Floor(x + 700) >> 4, (int)MathF.Floor(y) >> 4, (int)MathF.Floor(z) >> 4);
+        Assert.True(scene.Grid.IsResident(ahead), "the nearest land to the new eye is resident");
+    }
+
+    [Fact]
     public void Given_ChunksInstalledByTheResidency_When_TheyAreCompared_Then_EachEqualsWhatTheSourceGenerates()
     {
         var scene = StreamedWorlds.Scene();

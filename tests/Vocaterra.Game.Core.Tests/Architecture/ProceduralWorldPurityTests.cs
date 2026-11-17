@@ -24,11 +24,20 @@ public sealed partial class ProceduralWorldPurityTests
         "src/Vocaterra.Game.Core/World/Climate",
         "src/Vocaterra.Game.Core/World/Biomes",
         "src/Vocaterra.Game.Core/World/Underground",
-        "src/Vocaterra.Game.Core/World/Generation/Procedural",
         "src/Vocaterra.Game.Core/World/Streaming",
         "src/Vocaterra.Game.Core/World/Regions",
         "src/Vocaterra.Game.Core/World/Far",
+        // B24 (review A1): the rest of what the generator reads, so a thread, a clock or a float cannot enter the world's blocks beside Procedural/.
+        "src/Vocaterra.Game.Core/World/Generation",
+        "src/Vocaterra.Game.Core/World/Layout",
+        "src/Vocaterra.Game.Core/World/Pass",
     ];
+
+    /// <summary>The folders of <c>World/</c> that are not pure on purpose, each with its reason; every other folder must be in <see cref="PureFolders"/>.</summary>
+    private static readonly Dictionary<string, string> NotPureWorldFolders = new()
+    {
+        ["Lod"] = "the far view's store: locks, interlocked counters and a disk writer's queue are its job (B07f), and it is not read by the generator",
+    };
 
     private static readonly string[] PureNamespaces =
     [
@@ -77,7 +86,7 @@ public sealed partial class ProceduralWorldPurityTests
         Assert.Contains(typeof(AuthoredReliefRegion), checkedTypes);
         Assert.Contains(typeof(RegionCatalog), checkedTypes);
         Assert.Contains(typeof(CompositeChunkSource), checkedTypes);
-        Assert.Contains(typeof(ChunkStreamer), checkedTypes);
+        Assert.Contains(typeof(BandStreamer), checkedTypes);
         Assert.Contains(checkedTypes, t => typeof(IRegion).IsAssignableFrom(t) && !t.IsInterface);
         Assert.Contains(checkedTypes, t => typeof(IChunkSource).IsAssignableFrom(t) && t == typeof(CompositeChunkSource));
         Assert.Contains(checkedTypes, t => typeof(IClimateSampler).IsAssignableFrom(t) && t.Namespace == "Vocaterra.Game.Core.World.Regions");
@@ -140,6 +149,20 @@ public sealed partial class ProceduralWorldPurityTests
         }
 
         Assert.True(found.Count == 0, "These belong outside the pure world code:\n" + string.Join("\n", found));
+    }
+
+    [Fact]
+    public void Given_EveryFolderOfTheWorld_When_TheyAreListed_Then_EachIsPureOrNamedAsNotPureWithAReason()
+    {
+        // A new folder under World/ (the drainage network of B02c, say) fails here until it joins PureFolders or is named with its reason.
+        var world = Repo.Path("src", "Vocaterra.Game.Core", "World");
+        var unlisted = Directory.EnumerateDirectories(world)
+            .Select(static d => Path.GetFileName(d))
+            .Where(name => !PureFolders.Contains($"src/Vocaterra.Game.Core/World/{name}") && !NotPureWorldFolders.ContainsKey(name!)
+                && !PureFolders.Any(f => f.StartsWith($"src/Vocaterra.Game.Core/World/{name}/", StringComparison.Ordinal)))
+            .ToList();
+
+        Assert.True(unlisted.Count == 0, "World folders that are neither pure nor named as not pure: " + string.Join(", ", unlisted));
     }
 
     [Fact]

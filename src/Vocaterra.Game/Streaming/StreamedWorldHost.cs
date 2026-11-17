@@ -283,8 +283,9 @@ public sealed class StreamedWorldHost : IDisposable
 }
 
 /// <summary>
-/// The player's edits into the far world's store (B07c): a chunk that a save loaded changed, or that a block was changed in, is copied (on the game loop's thread, 8 KB) and handed to a worker that voxelises it into the real level-0 section it belongs to
-/// and mips the levels above, so a removed tree or a house built stays that way when it is far off, and after a restart.
+/// The player's edits into the far world's store (B07c, B07f): a chunk that a save loaded changed (queued when the host is made, since the save is restored before the host exists), or that a block was changed in, is copied (on the game loop's thread, 8 KB)
+/// and handed to a job of the ring lane that voxelises it into the real level-0 section it belongs to and mips the levels above, so a removed tree or a house built stays that way when it is far off, and after a restart. The ring's own ingests run on the
+/// same lane, on up to two workers, so the store serialises the work of one footprint (one of 64 striped locks) and the edit journal in the LOD folder says which chunks hold edits, so another save of the seed does not show them.
 /// </summary>
 internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, IDisposable
 {
