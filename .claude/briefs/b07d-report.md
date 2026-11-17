@@ -20,3 +20,5 @@ Environment.TickCount64); after the fixes only build, format and the affected cl
 Left: a second interleaved round on a quiet machine; the old ring against the new on fill time; persisting the model's sections if a
 16 km view must be complete at open (only the ring's real radius is stored, about 1 to 2 km).
 Sent back (about 16:55) to merge B24 (conflicts in JobPool.cs, QualityPreset.cs, architecture.md) and run the full suite.
+
+Round 3 (about 17:40 UTC), head 307963fc: merged efc7037b (B24); conflicts in JobPool.cs, QualityPreset.cs, architecture.md resolved with B24's wording plus the setting; the fsync timer reads Environment.TickCount64 (a Stopwatch had failed ArchitectureRulesTests.OnlyTheRealFrameClockReadsATimer; the file is in Vocaterra.Game, outside the Game.Core ban). Full suite 12,643 passed, 8 skipped, 0 failed.
