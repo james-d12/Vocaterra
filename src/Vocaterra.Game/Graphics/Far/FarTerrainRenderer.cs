@@ -20,13 +20,15 @@ public readonly record struct FarDrawState(Vector3 FogColour, float FogStart, fl
 /// </summary>
 public sealed class FarTerrainRenderer : IDisposable
 {
-    /// <summary>The far pass's near plane in blocks: the land closer than this is the voxel chunks' (or a hole in them, which a tile this near would show for a few frames).</summary>
+    /// <summary>The far pass's least near plane in blocks.</summary>
     public const float NearPlane = 12f;
+
+    /// <summary>The far pass's near plane for a voxel view distance: a seventh of it, at most 64 blocks (the land closer than this is the voxel chunks' for sure, and the depth precision at the horizon is five times better than at 12).</summary>
+    /// <param name="voxelViewDistance">The voxel zone's radius in blocks.</param>
+    public static float NearPlaneFor(int voxelViewDistance) => Math.Clamp(voxelViewDistance / 7f, NearPlane, 64f);
 
     // The most bytes of meshes one frame hands to the card: the coarse levels first, so a settled view reaches its horizon in a few frames, and a walk's few new tiles never make a hitch.
     private const long MaxUploadBytesPerFrame = 8L * 1024 * 1024;
-
-    private static readonly RasterizerState Fallback = new() { CullMode = CullMode.CullClockwiseFace, DepthBias = 2f, SlopeScaleDepthBias = 2f };
 
     private readonly GraphicsDevice _device;
     private readonly FarView _view;
@@ -85,10 +87,19 @@ public sealed class FarTerrainRenderer : IDisposable
     /// <summary>The perspective projection the far pass uses: the camera's field of view and aspect, its own near and far plane.</summary>
     /// <param name="camera">The camera.</param>
     /// <param name="range">The far view's range in blocks.</param>
-    public static Matrix ProjectionFor(FirstPersonCamera camera, float range)
+    /// <param name="near">The near plane.</param>
+    public static Matrix ProjectionFor(FirstPersonCamera camera, float range, float near = NearPlane)
     {
         var aspect = camera.Projection.M22 / camera.Projection.M11;
-        return Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(camera.FieldOfView), aspect, NearPlane, (range * 1.05f) + 64f);
+        return Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(camera.FieldOfView), aspect, near, (range * 1.05f) + 64f);
+    }
+
+    /// <summary>What the far range is multiplied by for the choice of tiles: the fog is planar and the choice radial, so at the side of the picture land needs a reach of range over the cosine of the angle to end in full fog.</summary>
+    /// <param name="camera">The camera.</param>
+    public static double ReachFor(FirstPersonCamera camera)
+    {
+        var halfWidth = camera.Projection.M11 > 0 ? 1.0 / camera.Projection.M11 : 1.0; // tan of the half horizontal field of view
+        return Math.Sqrt(1 + (halfWidth * halfWidth));
     }
 
     /// <summary>Draws the tiles in view from the camera, then clears the depth buffer for the voxel pass.</summary>
@@ -99,12 +110,19 @@ public sealed class FarTerrainRenderer : IDisposable
         _drawn = 0;
         _visible.Clear();
         var settings = _view.Settings;
-        if (!settings.Enabled || _view.Draw.Count == 0)
+        if (!settings.Enabled)
         {
             return;
         }
 
-        var projection = ProjectionFor(camera, settings.Range);
+        UploadPending(settings.TopLevel); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        if (_view.Draw.Count == 0)
+        {
+            return;
+        }
+
+        var projection = ProjectionFor(camera, settings.Range, NearPlaneFor(_view.VoxelViewDistance));
+        _view.ReachScale = ReachFor(camera);
         _frustum.Matrix = camera.View * projection;
         foreach (var effect in _matrices)
         {
@@ -123,8 +141,7 @@ public sealed class FarTerrainRenderer : IDisposable
         _effect.FogEnd = state.FogEnd;
         _device.DepthStencilState = DepthStencilState.Default;
         _device.BlendState = BlendState.Opaque;
-        UploadPending(settings.TopLevel);
-        var standIns = _view.FallbackCount;
+        _device.RasterizerState = RasterizerState.CullClockwise;
         for (var i = 0; i < _view.Draw.Count; i++)
         {
             var tile = _view.Draw[i];
@@ -144,8 +161,7 @@ public sealed class FarTerrainRenderer : IDisposable
                 continue;
             }
 
-            // The fallbacks (an ancestor standing in for a leaf that is not built) come first in the list and are drawn a little behind, so a finer tile beside or over one wins.
-            _device.RasterizerState = i < standIns ? Fallback : RasterizerState.CullClockwise;
+            // Levels never overlap (a stand-in covers its leaves alone, until they are all on the card), so no depth bias is needed or used.
             Bind(tile, tile.Textured, solid: true);
             _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tile.Runs.Opaque / 3);
             _drawn++;
@@ -185,7 +201,7 @@ public sealed class FarTerrainRenderer : IDisposable
     // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
     private void UploadPending(int topLevel)
     {
-        FarUploads.Choose(_view.Draw, topLevel, MaxUploadBytesPerFrame, _uploads);
+        FarUploads.Choose(_view.PendingTiles, topLevel, MaxUploadBytesPerFrame, _uploads);
         foreach (var tile in _uploads)
         {
             Upload(tile);
@@ -220,6 +236,8 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Indices?.Dispose();
         tile.Indices = null;
         tile.Pending = null;
+        tile.OnCard = false;
+        tile.OnCard = false;
     }
 
     private void Upload(FarTile tile)
@@ -246,6 +264,7 @@ public sealed class FarTerrainRenderer : IDisposable
         }
 
         tile.Pending = null;
+        tile.OnCard = true;
     }
 
     /// <inheritdoc />

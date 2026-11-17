@@ -133,6 +133,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     private int _buriedSkipped;
     private int _released;
     private int _pending;
+    private readonly Dictionary<(int X, int Z), bool> _columnReady = [];
     private FarView? _far;
     private FarTerrainRenderer? _farRenderer;
     private float _farRange;
@@ -616,6 +617,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
     public void SetFarView(FarView? far)
     {
         _far = far;
+        far?.SetNearReady((cx, cz) => _columnReady.TryGetValue((cx, cz), out var ready) && ready);
         far?.SetGreyKinds(_tracker.GreyKinds, FarTerrainRenderer.Release);
         var range = far is { Settings.Enabled: true } ? far.Settings.Range : 0;
         _farRenderer ??= far is null ? null : new FarTerrainRenderer(_device, far, _atlas.Texture);
@@ -623,6 +625,17 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             _farRange = range;
             SetAtmosphere(_look);
+        }
+    }
+
+    // Which chunk columns the near zone has wholly drawn (every chunk the view wants in the column has its mesh, and there is one): the far view covers the others (B07e), so no column of the zone is sky or a floating slab while its chunks are made.
+    private void RefreshColumnReadiness()
+    {
+        _columnReady.Clear();
+        foreach (var coord in _wanted)
+        {
+            var key = (coord.X, coord.Z);
+            _columnReady[key] = (!_columnReady.TryGetValue(key, out var before) || before) && _tracker.HasMesh(coord);
         }
     }
 
@@ -855,6 +868,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
 
         if (_far is { Settings.Enabled: true } && _farRenderer is not null)
         {
+            RefreshColumnReadiness();
+
             // The far view (B07): beyond the chunks, in a pass of its own with its own depth range and the same haze, then the depth is cleared and the chunks are drawn over it.
             _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]));
         }
@@ -1161,6 +1176,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _grid.RemoveResidencyListener(_tracker);
         _grid.RemoveResidencyListener(this);
         _view.Detach();
+        _far?.Clear(FarTerrainRenderer.Release); // the far tiles' GPU buffers are freed with the device still alive, not left to finalizers that run after it is gone (a native crash at exit)
         _farRenderer?.Dispose();
         _lights.Detach();
         foreach (var chunk in _chunks.Values)

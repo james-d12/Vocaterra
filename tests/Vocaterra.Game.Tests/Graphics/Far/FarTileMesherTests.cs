@@ -102,7 +102,8 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
                 foreach (var (di, dj) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
                 {
                     var edge = i + di < 0 || i + di >= n || j + dj < 0 || j + dj >= n;
-                    expectedSides += (edge ? Math.Min(h, skirt) : Math.Max(0, h - Height(cx + di, cz + dj))) * (double)cell * cell;
+                    // Over a tile's edge a face is culled by the neighbour's voxels like one inside, and drawn down to a skirt under the neighbour's ground.
+                    expectedSides += (edge ? Math.Max(0, h - Math.Max(0, Height(cx + di, cz + dj) - skirt)) : Math.Max(0, h - Height(cx + di, cz + dj))) * (double)cell * cell;
                 }
             }
         }
@@ -426,5 +427,56 @@ public sealed class FarTileMesherTests(ITestOutputHelper output)
         var grey = mesh.Vertices.Count(static v => v.Color.R is > 60 and < 125 && Math.Abs(v.Color.R - v.Color.B) < 20);
         output.WriteLine($"{mesh.Vertices.Length} vertices, {bright} bright, {grey} stone grey");
         Assert.True(bright > 0 && bright > grey, $"{bright} bright against {grey} grey");
+    }
+
+    [Fact]
+    public void Given_ACliffOnATileBorderTallerThanTheSkirt_When_ATileIsBuilt_Then_ItsEdgeWallReachesDownToTheNeighboursGroundWithNoSlot()
+    {
+        const int Level = 2;
+        // The tile is 30 voxels high; the tile on its +x side is 6: a wall of 24 voxels over the border, far more than the skirt's 4 (the review's H3).
+        var land = new Land((_, sx, sz) => Heights(sx, sz, (cx, _) => cx < (Settings.TileCells * 3) + Settings.TileCells ? 30 : 6));
+        var cell = Settings.CellOf(Level);
+        var skirt = (Settings.SkirtOf(Level) + cell - 1) / cell;
+        var mesh = Mesh(land, Level, 3, -2);
+
+        var east = Quads(mesh).Where(q => q.Normal.X > 0.99f).Sum(static q => (double)q.Area);
+
+        // From a skirt under the neighbour's ground (its top voxel is 5) to the top, the whole border row long.
+        var expected = (30 - (6 - 1 - skirt)) * (double)cell * Settings.TileCells * cell;
+        Assert.Equal(expected, east, 1);
+    }
+
+    [Fact]
+    public void Given_ATileWithNoNeighbourStacks_When_ItIsBuilt_Then_ItsEdgesGetASkirtFromItsOwnGroundNotFromItsCrowns()
+    {
+        const int Level = 2;
+        var section = LodSection.Air();
+        for (var z = 0; z < 32; z++)
+        {
+            for (var x = 0; x < 32; x++)
+            {
+                for (var y = 0; y < 10; y++)
+                {
+                    section.SetBlock(LodSection.Index(x, y, z), BlockId.Stone);
+                }
+
+                if (x == 31)
+                {
+                    for (var y = 10; y < 20; y++)
+                    {
+                        section.SetBlock(LodSection.Index(x, y, z), BlockId.Leaves); // a hedge of crowns along the +x edge
+                    }
+                }
+            }
+        }
+
+        var key = new FarTileKey(Level, 3, -2);
+        var mesh = FarTileMesher.Mesh(new LodStack(0, [section]), Settings, key);
+
+        var cell = Settings.CellOf(Level);
+        var skirt = (Settings.SkirtOf(Level) + cell - 1) / cell;
+        var east = Quads(mesh).Where(q => q.Normal.X > 0.99f).Sum(static q => (double)q.Area);
+        // The stone's wall from a skirt under its ground (10) to 10, and the crowns' 10 voxels: measured from the crown tops (20) the skirt would have cut the stone wall off.
+        Assert.Equal(((10 - (10 - 1 - skirt)) + 10) * (double)cell * 32 * cell, east, 1);
     }
 }
