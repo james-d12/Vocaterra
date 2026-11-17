@@ -1,7 +1,7 @@
 You are implementing B07d, "The far view's remainder", for the Vocaterra repository (C#, .NET 10). The game is Vocaterra.Game.Core (the
 engine-free logic), Vocaterra.Game (MonoGame DesktopGL 3.8.6) and Vocaterra.Host; the language core (Vocaterra.Nlp*) is not yours.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b07d, already on the local branch `B07d-far-remainder` (cut from
-`feature/biomes` at BASE). Run every command from that directory. Commit after each step that builds and passes its tests, with the
+`feature/biomes` at a8560f35). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B07d: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every game run and screenshot through scripts/limited.sh (builds `-m:4`, tests
 `-m:2`; the script's caps); one heavy command at a time, no `&`, no wait loops on `pgrep -f` or on a file (a loop left behind runs forever:
@@ -51,7 +51,7 @@ Deliverables:
 6. **Documents:** docs/game/running.md (the settings, `--workers`, `--pregen`), docs/game/architecture.md (the store, the threads), the
    Game README.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (COUNT passed on feature/biomes before, plus your new tests); format
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,531 passed on feature/biomes before, plus your new tests); format
 clean; content validate. A timing test that fails under load: rerun it alone and say so. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6
