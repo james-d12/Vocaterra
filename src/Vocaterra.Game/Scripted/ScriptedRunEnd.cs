@@ -176,7 +176,8 @@ public sealed class ScriptedRunEnd
 
         _framesAtSize = sized ? _framesAtSize + 1 : 0;
         var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames, _framesAtSize);
-        if (mayShoot && _shots.Take() is { } shot)
+        // A --shot waits as the final picture does until every far tile it lists is on the card (B07f: the shot of a step after a teleport was taken in the first frame, before the card had the far land, and showed a void under a high eye).
+        if (mayShoot && FarOnTheCard(streaming) && _shots.Take() is { } shot)
         {
             var saved = ScreenshotWriter.TrySave(device, shot);
             _console($"shot: {shot} ({(saved ? "saved" : "FAILED")}) at tick {sim.Tick}, {_session.Objective.Summary}");

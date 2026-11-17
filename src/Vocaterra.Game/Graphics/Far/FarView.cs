@@ -152,7 +152,23 @@ public sealed class FarView
     public string LevelSummary => string.Join(", ", _draw.GroupBy(static t => t.Key.Level).OrderBy(static g => g.Key).Select(static g => $"L{g.Key} {g.Count()} tiles {g.Sum(static t => (long)t.Triangles) / 1000}k"));
 
     /// <summary>The tiles whose sections changed and are being made again (the old tile is drawn until the new one is there).</summary>
-    public int Stale => _dirty.Count + _rebuilding.Count;
+    public int Stale
+    {
+        get
+        {
+            // A changed tile that is not needed (its columns are drawn by the chunks) is made again when it is, not now: it never holds a settle up (B07f).
+            var stale = _rebuilding.Count;
+            foreach (var key in _dirty)
+            {
+                if (IsNeeded(key))
+                {
+                    stale++;
+                }
+            }
+
+            return stale;
+        }
+    }
 
     /// <summary>The tiles of the last <see cref="Update"/> to draw, the fallbacks first (they are drawn a little behind), then the leaves nearest first.</summary>
     public IReadOnlyList<FarTile> Draw => _draw;
@@ -400,13 +416,13 @@ public sealed class FarView
                 continue;
             }
 
-            if (_wanted.Contains(key))
+            if (_wanted.Contains(key) && IsNeeded(key))
             {
                 _ = _dirty.Add(key);
             }
             else
             {
-                dispose(tile);
+                dispose(tile); // not drawn now: made again from the new sections when it is wanted and needed
                 _ = _tiles.Remove(key);
             }
         }

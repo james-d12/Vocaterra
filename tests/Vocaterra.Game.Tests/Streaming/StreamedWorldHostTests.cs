@@ -251,8 +251,8 @@ public sealed class StreamedWorldHostTests : IDisposable
     public void Given_ABuildFarOutsideTheRingButInsideTheFarRange_When_ASavedGameWithItIsLoaded_Then_TheFarTilesOverItAreMadeFromIt()
     {
         // B07f: the build stands 600 blocks from the eye, where the ring (64 blocks here) has made nothing real: the far tiles must still show it, at every level.
-        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(1024) with { FarRealRadius = 64 };
-        long Triangles(bool build)
+        var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(768) with { FarRealRadius = 64 };
+        long Vertices(bool build)
         {
             var scene = StreamedWorlds.Scene();
             var (hx, hz) = ((int)MathF.Floor(scene.Spawn.Feet.X) + 600, (int)MathF.Floor(scene.Spawn.Feet.Z));
@@ -279,11 +279,11 @@ public sealed class StreamedWorldHostTests : IDisposable
             using var host = StreamedWorldHost.For(scene, preset, 0)!;
             var eye = Eye(scene);
             Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
-            return host.Far.Draw.Sum(static t => (long)t.Triangles);
+            return host.Far.Stats.Vertices; // every tile built (none is on a card here, so the draw list is empty)
         }
 
-        var without = Triangles(build: false);
-        var with = Triangles(build: true);
+        var without = Vertices(build: false);
+        var with = Vertices(build: true);
 
         Assert.NotEqual(without, with); // the cube changes the tiles that cover it (a solid mass hides the faces under it and makes its own), at levels the ring never reached
     }
