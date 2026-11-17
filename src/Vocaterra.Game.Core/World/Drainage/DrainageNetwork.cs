@@ -91,6 +91,9 @@ internal sealed class DrainageNetwork
     [ThreadStatic]
     private static CellCache? s_last;
 
+    [ThreadStatic]
+    private static int s_noRead;
+
     /// <summary>Creates the network of one world.</summary>
     /// <param name="spec">The network's numbers.</param>
     /// <param name="seaLevel">The sea level, in blocks.</param>
@@ -112,6 +115,84 @@ internal sealed class DrainageNetwork
         _look = (int)((need + spec.Jitter + spec.Spacing - 1 + spec.Spacing - 1) / spec.Spacing);
         _minRamp16 = narrowest * 16;
         _maxRamp16 = spec.WidthMax * 16;
+    }
+
+    /// <summary>
+    /// Makes the calling thread's <see cref="River"/> and <see cref="Lake"/> find nothing, and read no landmass, until the scope is disposed: a thread that must never wait for a landmass (the game loop's) asks for a column dry and has the landmass
+    /// read in the background (<see cref="IsRead"/>, <see cref="Warm"/>).
+    /// </summary>
+    public static NoReadScope WithoutReading()
+    {
+        s_noRead++;
+        return default;
+    }
+
+    /// <summary>The end of a <see cref="WithoutReading"/> scope.</summary>
+    public readonly struct NoReadScope : IDisposable
+    {
+        /// <inheritdoc />
+        public void Dispose() => s_noRead--;
+    }
+
+    /// <summary>
+    /// Whether everything a column's river and lake look-up reads is ready: the nodes round it are read, or are sea (or excluded) and so are known at once. When it is not, the column's first look-up would read a landmass (up to a second):
+    /// the caller asks for the column <see cref="WithoutReading"/> and calls <see cref="Warm"/> on another thread.
+    /// </summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public bool IsRead(int x, int z)
+    {
+        var (ni, nj) = (IntMath.DivDown(x, _spacing), IntMath.DivDown(z, _spacing));
+        foreach (var dj in new[] { -_look, 0, _look })
+        {
+            foreach (var di in new[] { -_look, 0, _look })
+            {
+                if (!Ready(ni + di, nj + dj))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>Reads the landmasses round a column (the ones <see cref="IsRead"/> waits for), waiting for the lock if another thread is reading.</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public void Warm(int x, int z)
+    {
+        var (ni, nj) = (IntMath.DivDown(x, _spacing), IntMath.DivDown(z, _spacing));
+        foreach (var dj in new[] { -_look, 0, _look })
+        {
+            foreach (var di in new[] { -_look, 0, _look })
+            {
+                _ = Locate(ni + di, nj + dj);
+            }
+        }
+    }
+
+    // A node that is read, or that is sea or excluded (which is settled here, without the lock); land that is not read is not ready.
+    private bool Ready(int i, int j)
+    {
+        var (ti, tj) = (IntMath.DivDown(i, Tile), IntMath.DivDown(j, Tile));
+        var cell = _tiles.GetOrAdd(Key(ti, tj), static _ => new DrainageCell(Tile));
+        var k = ((j - (tj * Tile)) * Tile) + (i - (ti * Tile));
+        if ((Volatile.Read(ref cell.Flags[k]) & BuiltFlag) != 0)
+        {
+            return true;
+        }
+
+        var node = _surface.NodeAt(i * _spacing, j * _spacing);
+        if (!node.Sea && !node.Excluded)
+        {
+            return false;
+        }
+
+        cell.Level16[k] = _sea16;
+        cell.Next[k] = -1;
+        Volatile.Write(ref cell.Flags[k], (byte)((node.Sea ? SeaFlag : OutsideFlag) | BuiltFlag));
+        return true;
     }
 
     /// <summary>The distance between two nodes, in blocks.</summary>
@@ -153,7 +234,7 @@ internal sealed class DrainageNetwork
     public bool River(int x, int z, int extra16, int share, out RiverHit hit)
     {
         hit = default;
-        if (share <= 0)
+        if (share <= 0 || s_noRead > 0)
         {
             return false;
         }
@@ -236,6 +317,11 @@ internal sealed class DrainageNetwork
     public bool Lake(int x, int z, out LakeHit hit)
     {
         hit = default;
+        if (s_noRead > 0)
+        {
+            return false;
+        }
+
         var ni = IntMath.DivDown(x, _spacing);
         var nj = IntMath.DivDown(z, _spacing);
         var fx = IntMath.Mod(x, _spacing) * One / _spacing;

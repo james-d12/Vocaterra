@@ -101,11 +101,28 @@ public sealed class SceneDrawer : IDisposable
         }
     }
 
+    private int _grassPercent;
+
+    /// <summary>
+    /// Takes the decorative grass's density in percent (B18; the run's start, then the menu's Grass setting): before <see cref="Load"/> it is the value the renderer starts with, after it the renderer follows at once
+    /// (moving it between two values above 0 builds nothing again; 0 draws nothing extra).
+    /// </summary>
+    /// <param name="percent">The density, 0 to 100.</param>
+    public void ApplyGrass(int percent)
+    {
+        _grassPercent = percent;
+        _renderer?.SetGrass(percent);
+    }
+
     /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
     public (Vocaterra.Game.Core.Reporting.BusyFrameStats Streaming, Vocaterra.Game.Core.Reporting.BusyFrameStats Remesh) PhaseTimes => (_streamTimes, _remeshTimes);
 
     /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
     public StreamedWorldHost? Streaming => _streaming;
+
+    // The far view's sections are kept on disk under the world's seed, generator version and world-generation hash (B07c): another seed or a changed world starts again.
+    private static string LodWorldName(Vocaterra.Game.Core.World.WorldStateHeader header) =>
+        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
 
     /// <summary>The colours of the world (the greyscale view and what counts as known in it), after <see cref="Load"/>; <see langword="null"/> before.</summary>
     public GreyscaleWorld? Colours => _colours;
@@ -131,9 +148,10 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null);
+        _renderer.SetGrass(_grassPercent);
         _renderer.SetFigures(_figures);
-        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers);
+        _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);

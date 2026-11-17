@@ -4,7 +4,7 @@ This milestone's work is in the game: the procedural world's rivers and lakes (W
 and lake fields, the water and bank passes, the edge pass), the blend's headwater part in World/Regions, content/game-v1/game/world.json
 (and biomes.json if the river row needs it) with schema and validator, the preview tool's river and stats commands, and their tests.
 Where to work: the worktree /home/james/Dev/Vocaterra/.claude/worktrees/b02c, already on the local branch `B02c-river-drainage` (cut from
-`feature/biomes` at @@BASE@@, which holds B02b's terrain (a water level per column, rivers as noise lines), the streamed world (B07) and the
+`feature/biomes` at 41fd2825, which holds B02b's terrain (a water level per column, rivers as noise lines), the streamed world (B07) and the
 underground (B11, B13, B12)). Run every command from that directory. Commit after each step that builds and passes its tests, with the
 prefix `B02c: `. Do not push. Never push or merge feature/biomes or main. Leave the worktree clean on its branch.
 Resources: every dotnet restore, build, test and format, every scripts/content.sh call, every preview-tool run, game run and screenshot
@@ -65,7 +65,7 @@ Deliverables:
    drainage basin with its tributaries, and in the game: a river stepping down a valley from above, a confluence, a lake with its outlet.
 7. **Documents:** content/README.md (the new world.json parameters), the Game.Core README (rivers), the preview tool's README.
 
-Gate: build with -warnaserror (0 warnings); scripts/test.sh full (@@COUNT@@ passed before, plus your new tests); format clean; content
+Gate: build with -warnaserror (0 warnings); scripts/test.sh full (12,305 passed before, plus your new tests); format clean; content
 validate. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6

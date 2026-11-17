@@ -71,33 +71,38 @@ public sealed class ProceduralChunkSource : IChunkSource
     }
 
     /// <summary>
-    /// The columns of a chunk column that open a cave entrance (B11): where the entrance mask has a zone on dry procedural land with a cave under it and a shaft is cut from the ground down to the cave.
-    /// Empty for a source with no underground. The preview tool draws them.
+    /// The mouths of the cave entrances in a chunk column (B11b): the column of each passage's mouth (its first block along) that lies in the chunk column. Empty for a source with no underground. The preview
+    /// tool draws them.
     /// </summary>
     /// <param name="chunkX">The chunk column's x.</param>
     /// <param name="chunkZ">The chunk column's z.</param>
-    public IReadOnlyList<(int X, int Z)> EntranceColumns(int chunkX, int chunkZ)
+    public IReadOnlyList<(int X, int Z)> EntranceColumns(int chunkX, int chunkZ) => [.. Ramps(chunkX, chunkZ).Select(static r => (r.AnchorX, r.AnchorZ))];
+
+    /// <summary>The cave entrances whose mouth lies in a chunk column, with their direction and depth (B11b): what the preview tool lists and draws. Empty for a source with no underground.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public IReadOnlyList<CaveEntrance> CaveEntrances(int chunkX, int chunkZ) =>
+        [.. Ramps(chunkX, chunkZ).Select(r => new CaveEntrance(r.AnchorX, r.AnchorZ, r.MouthY, r.Length, r.Landing, r.MouthY - r.FloorAt(r.Length), GroundOver(r, 12), [.. r.Nodes.Select(static n => (n.X, n.Z))], [.. r.Nodes.Select(static n => n.Floor)]))];
+
+    // How far the model's ground lies over the passage's floor at an index along.
+    private int GroundOver(EntranceRamp ramp, int along)
     {
-        var found = new List<(int X, int Z)>();
-        if (_world.Underground is null)
+        var (x, z) = ramp.CentreAt(along);
+        return _world.Height.Shape(x, z, _world.Climate.At(x, z)).Height - ramp.FloorAt(along);
+    }
+
+    /// <summary>The passages whose mouth lies in a chunk column (for the tests and the preview).</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    internal IReadOnlyList<EntranceRamp> Ramps(int chunkX, int chunkZ)
+    {
+        if (_world.Entrances is not { } sites)
         {
-            return found;
+            return [];
         }
 
-        var ctx = ShapedColumn(chunkX, chunkZ);
-        var plan = ctx.CavePlan;
-        for (var lz = 0; lz < VoxelChunk.Size; lz++)
-        {
-            for (var lx = 0; lx < VoxelChunk.Size; lx++)
-            {
-                if (plan.ShaftFrom[(lz * VoxelChunk.Size) + lx] != int.MaxValue)
-                {
-                    found.Add((ctx.ChunkMinX + lx, ctx.ChunkMinZ + lz));
-                }
-            }
-        }
-
-        return found;
+        var (minX, minZ) = (chunkX << VoxelChunk.Shift, chunkZ << VoxelChunk.Shift);
+        return [.. sites.Near(minX, minZ, minX + VoxelChunk.Size - 1, minZ + VoxelChunk.Size - 1).Where(r => r.AnchorX >= minX && r.AnchorX < minX + VoxelChunk.Size && r.AnchorZ >= minZ && r.AnchorZ < minZ + VoxelChunk.Size)];
     }
 
     /// <summary>A chunk column's window after the shapers have run: its final heights and biomes, which the tests read to check the ground (the blocks of a chunk also hold the trees).</summary>

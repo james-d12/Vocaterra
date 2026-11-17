@@ -94,7 +94,7 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
                 var (x, z) = (map.BlockX(px), map.BlockZ(py));
                 var c = climate.At(x, z);
                 var shape = height.Shape(x, z, c);
-                Assert.Equal(table.Classify(c, shape.Height, x, z, shape.Water).Snow, map.Snow[(py * map.Width) + px]);
+                Assert.Equal(table.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight).Snow, map.Snow[(py * map.Width) + px]);
             }
         }
     }
@@ -199,7 +199,7 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
                 var z = top + (py * scale);
                 var c = climate.At(x, z);
                 var shape = height.Shape(x, z, c);
-                var row = table.Classify(c, shape.Height, x, z, shape.Water).Row;
+                var row = table.Classify(c, shape.Height, x, z, shape.Water, shape.RiverWeight).Row;
                 seen.Add(row.Index);
                 Assert.Equal(palette.Of(row), PngDecoder.Pixel(image, px, py));
             }

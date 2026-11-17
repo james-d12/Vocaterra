@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Streaming;
 
@@ -19,14 +20,45 @@ public sealed class FarTile(FarTileKey key)
     /// <summary>The vertices on the graphics card, once uploaded.</summary>
     public VertexBuffer? Buffer { get; set; }
 
+    /// <summary>The indices on the graphics card, once uploaded.</summary>
+    public IndexBuffer? Indices { get; set; }
+
+    /// <summary>Whether the tile's buffers are on the graphics card, so it can be drawn (a tile that is only <see cref="Pending"/> cannot: its leaf is drawn from a coarser tile until it is).</summary>
+    public bool OnCard { get; set; }
+
+    /// <summary>The triangles the tile has.</summary>
+    public int Triangles { get; set; }
+
+    /// <summary>Whether its opaque faces carry the block atlas's textures (the nearest levels) and not flat colours.</summary>
+    public bool Textured { get; set; }
+
+    /// <summary>How many of the first indices are the opaque faces', and how many after them the self-lit faces' (the water's are the rest).</summary>
+    public (int Opaque, int Lit, int Water) Runs { get; set; }
+
+    /// <summary>The memory the tile holds, in bytes.</summary>
+    public long Bytes { get; set; }
+
     /// <summary>The box round the tile, once it is built.</summary>
     public BoundingBox Box { get; set; }
 
     /// <summary>The vertices the tile has.</summary>
     public int Vertices { get; set; }
 
+    /// <summary>Takes the counts and the box of a mesh the tile now stands for.</summary>
+    /// <param name="mesh">The mesh.</param>
+    public void Adopt(FarTileMesh mesh)
+    {
+        ArgumentNullException.ThrowIfNull(mesh);
+        Box = mesh.Box;
+        Vertices = mesh.Vertices.Length;
+        Triangles = mesh.Triangles;
+        Textured = mesh.Textured;
+        Bytes = mesh.Bytes;
+        Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
+    }
+
     /// <summary>Whether a worker has made the tile.</summary>
-    public bool IsBuilt => Pending is not null || Buffer is not null;
+    public bool IsBuilt => Pending is not null || Buffer is not null || OnCard;
 }
 
 /// <summary>What the far view holds and what it cost, for the run's report.</summary>
@@ -38,29 +70,49 @@ public sealed class FarTile(FarTileKey key)
 /// <param name="Triangles">The triangles of the last draw list.</param>
 /// <param name="BuildMilliseconds">The sampling and meshing time of every tile built, summed over every thread.</param>
 /// <param name="LongestBuildMilliseconds">The slowest tile.</param>
-/// <param name="Bytes">The memory the cached tiles hold (16 bytes a vertex, on the card or waiting to go there).</param>
+/// <param name="Bytes">The memory the cached tiles hold (vertices and indices, on the card or waiting to go there).</param>
 public readonly record struct FarViewStats(int Cached, int Drawn, int Building, long Built, long Vertices, long Triangles, double BuildMilliseconds, double LongestBuildMilliseconds, long Bytes);
 
 /// <summary>
 /// The far view's tiles, chosen and cached (B07, D-game-34 item 21): each frame it asks <see cref="FarTileSelector"/> which tiles the eye needs, starts the missing ones on the shared worker threads
 /// (nearest first, after the voxel residency's own jobs), collects the finished ones, and answers which tiles to draw. A tile whose own mesh is not ready yet is stood in for by its nearest cached
 /// ancestor (its fallback, drawn a little behind), so walking does not open holes. Tiles are kept by key and only dropped past the cap, the farthest unused first, so crossing a tile edge builds only the
-/// tiles that newly become leaves. A tile is a pure function of the seed and its key, so a player's edits never show at a distance. No graphics device is touched here: the renderer uploads.
+/// tiles that newly become leaves. A tile is a pure function of the sections of its footprint; a player's edit shows at a distance once the edited chunk has been ingested into the store (the store tells the change, and a tile over it, built or being built, is made again). No graphics device is touched here: the renderer uploads.
 /// </summary>
 public sealed class FarView
 {
     private const int FallbackSteps = 4;
 
+    // From this level up (cells of 16 blocks and more) tiles are made before the finer ones that are as near.
+    private const int CoarseFirstFrom = 4;
+    private const double InnerGraceMilliseconds = 700;
+
     private readonly FarTerrainSampler _sampler;
+    private readonly LodStore _store;
     private readonly JobPool _pool;
+    private readonly HashSet<FarTileKey> _dirty = [];
+    private readonly HashSet<FarTileKey> _rebuilding = [];
     private readonly Dictionary<FarTileKey, FarTile> _tiles = [];
     private readonly HashSet<FarTileKey> _building = [];
+    private readonly HashSet<FarTileKey> _bad = [];
+    private readonly HashSet<FarTileKey> _standIns = [];
+    private readonly HashSet<FarTileKey> _used = [];
+    private readonly Dictionary<FarTileKey, double> _unready = [];
+    private readonly List<FarTileKey> _idle = [];
+    private int _trims;
+    private readonly ConcurrentQueue<FarTileKey> _failed = new();
     private readonly ConcurrentQueue<FarTileMesh> _done = new();
     private readonly List<FarTile> _draw = [];
     private readonly List<FarTile> _fallbacks = [];
+    private readonly List<FarTile> _pending = [];
+    private Func<int, int, bool>? _nearReady;
+    private double _reach = 1.0;
+    private int _unuploaded;
     private volatile HashSet<FarTileKey> _wanted = [];
     private IReadOnlyList<FarTileKey> _leaves = [];
     private (double X, double Z, int Voxel) _selectedFor = (double.NaN, 0, 0);
+    private double _selectedReach = 1.0;
+    private (double X, double Z) _eye;
     private UInt128 _grey;
     private long _built;
     private double _buildTicks;
@@ -71,19 +123,34 @@ public sealed class FarView
     /// <param name="sampler">The land.</param>
     /// <param name="settings">The shape of the view.</param>
     /// <param name="pool">The workers, shared with the residency.</param>
-    public FarView(FarTerrainSampler sampler, FarViewSettings settings, JobPool pool)
+    /// <param name="store">The store of sections that the tiles are made of (and that real chunks flow into), or <see langword="null"/> for a fresh one in memory.</param>
+    public FarView(FarTerrainSampler sampler, FarViewSettings settings, JobPool pool, LodStore? store = null)
     {
         ArgumentNullException.ThrowIfNull(sampler);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(pool);
         _sampler = sampler;
         Settings = settings;
+        _store = store ?? new LodStore();
+        World = sampler.FarWorld(_store, settings.TreeLevels);
         _pool = pool;
         FarPalette.Warm();
     }
 
     /// <summary>The shape of the view.</summary>
     public FarViewSettings Settings { get; private set; }
+
+    /// <summary>The voxel zone's radius in blocks at the last update.</summary>
+    public int VoxelViewDistance => _selectedFor.Voxel;
+
+    /// <summary>The far world: the store and the model that fills it; the real chunks are ingested into it.</summary>
+    public LodWorld World { get; private set; }
+
+    /// <summary>The listed tiles and their triangles by level, for a run's report: "L0 12 tiles 340k, L1 ...".</summary>
+    public string LevelSummary => string.Join(", ", _draw.GroupBy(static t => t.Key.Level).OrderBy(static g => g.Key).Select(static g => $"L{g.Key} {g.Count()} tiles {g.Sum(static t => (long)t.Triangles) / 1000}k"));
+
+    /// <summary>The tiles whose sections changed and are being made again (the old tile is drawn until the new one is there).</summary>
+    public int Stale => _dirty.Count + _rebuilding.Count;
 
     /// <summary>The tiles of the last <see cref="Update"/> to draw, the fallbacks first (they are drawn a little behind), then the leaves nearest first.</summary>
     public IReadOnlyList<FarTile> Draw => _draw;
@@ -92,7 +159,81 @@ public sealed class FarView
     public int FallbackCount => _fallbacks.Count;
 
     /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet.</summary>
-    public int Missing => _leaves.Count(key => !(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt));
+    public int Missing
+    {
+        get
+        {
+            var missing = 0;
+            foreach (var key in _leaves)
+            {
+                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key) && !IsInner(key))
+                {
+                    missing++;
+                }
+            }
+
+            return missing;
+        }
+    }
+
+    /// <summary>The leaves whose mesh the renderer has not yet put on the card (a leaf of it is drawn from a coarser tile, or not at all, until it is): a settled picture waits for this to be none.</summary>
+    public int Unuploaded => _unuploaded;
+
+    /// <summary>The built tiles of the last <see cref="Update"/> that wait for the card (the leaves' and the coarser tiles that stand in for them), for the renderer to upload.</summary>
+    public IReadOnlyList<FarTile> PendingTiles => _pending;
+
+    /// <summary>
+    /// Tells the far view which chunk columns the near zone has drawn: with it, the far view also covers the part of the voxel zone whose columns are not all drawn yet (a slow machine, a jump), so nothing there is sky or a floating slab, and leaves
+    /// out the tiles over columns that are. Without it the tiles wholly inside the zone are never drawn.
+    /// </summary>
+    /// <param name="ready">Whether a chunk column (x, z in chunks) is drawn; <see langword="null"/> for the far view to keep out of the zone.</param>
+    public void SetNearReady(Func<int, int, bool>? ready)
+    {
+        if ((ready is null) != (_nearReady is null))
+        {
+            _selectedFor = (double.NaN, 0, 0);
+        }
+
+        _nearReady = ready;
+    }
+
+    /// <summary>What the range is multiplied by for the choice of tiles (the renderer's: the fog is planar, the choice radial, so at the screen's side a tile needs a longer reach to end in full fog).</summary>
+    public double ReachScale
+    {
+        get => _reach;
+        set => _reach = Math.Clamp(value, 1.0, 1.6);
+    }
+
+    // Whether a leaf lies wholly inside the zone the voxel chunks cover.
+    private bool IsInner(FarTileKey key) => _nearReady is not null && key.FarthestDistance(Settings, _eye.X, _eye.Z) < Settings.InnerFraction * _selectedFor.Voxel;
+
+    // Whether a leaf has to be drawn: not when it lies wholly inside the zone whose chunk columns are all drawn.
+    private bool IsNeeded(FarTileKey key)
+    {
+        if (!IsInner(key) || _nearReady is not { } ready)
+        {
+            return true;
+        }
+
+        var size = Settings.SizeOf(key.Level);
+        var (c0x, c0z) = (key.MinX(Settings) >> 4, key.MinZ(Settings) >> 4);
+        var (c1x, c1z) = ((key.MinX(Settings) + size - 1) >> 4, (key.MinZ(Settings) + size - 1) >> 4);
+        for (var cz = c0z; cz <= c1z; cz++)
+        {
+            for (var cx = c0x; cx <= c1x; cx++)
+            {
+                if (!ready(cx, cz))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>The tiles whose build failed (a torn section, a bug): they are left out until their sections change, so a bad one never holds a settle up.</summary>
+    public int Failed => _bad.Count;
 
     /// <summary>What the view holds and cost.</summary>
     public FarViewStats Stats
@@ -100,12 +241,14 @@ public sealed class FarView
         get
         {
             long vertices = 0;
+            long bytes = 0;
             foreach (var tile in _tiles.Values)
             {
                 vertices += tile.Vertices;
+                bytes += tile.Bytes;
             }
 
-            return new FarViewStats(_tiles.Count, _draw.Count, _building.Count, _built, vertices, _drawnTriangles, TimeSpan.FromTicks((long)_buildTicks).TotalMilliseconds, _longest, vertices * 16);
+            return new FarViewStats(_tiles.Count, _draw.Count, _building.Count, _built, vertices, _drawnTriangles, TimeSpan.FromTicks((long)_buildTicks).TotalMilliseconds, _longest, bytes);
         }
     }
 
@@ -135,8 +278,13 @@ public sealed class FarView
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(dispose);
-        var reshaped = settings.BaseCell != Settings.BaseCell || settings.TileCells != Settings.TileCells || settings.Levels != Settings.Levels;
+        var reshaped = settings.Levels != Settings.Levels || settings.TreeLevels != Settings.TreeLevels;
         Settings = settings;
+        if (reshaped)
+        {
+            World = _sampler.FarWorld(_store, settings.TreeLevels);
+        }
+
         _selectedFor = (double.NaN, 0, 0);
         if (reshaped)
         {
@@ -148,6 +296,9 @@ public sealed class FarView
             _tiles.Clear();
             _building.Clear();
             _wanted = [];
+            _dirty.Clear();
+            _rebuilding.Clear();
+            _bad.Clear();
             _pool.Clear(JobLane.Tiles);
             while (_done.TryDequeue(out _))
             {
@@ -171,14 +322,17 @@ public sealed class FarView
         }
 
         // The leaves change only when the eye moves far enough to cross a tile edge or a split distance, a few blocks at the finest level: re-select when it moved at least a cell.
-        var step = Settings.BaseCell;
-        if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance)
+        var step = 8;
+        _eye = (eyeX, eyeZ);
+        if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance || Math.Abs(_reach - _selectedReach) > 0.05)
         {
-            _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance);
+            _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance, _nearReady is not null, _reach);
             _selectedFor = (eyeX, eyeZ, voxelViewDistance);
+            _selectedReach = _reach;
             _wanted = [.. _leaves];
         }
 
+        Invalidate(dispose);
         Collect();
         Request(eyeX, eyeZ);
         if (_pool.Workers == 0)
@@ -221,20 +375,66 @@ public sealed class FarView
         }
     }
 
+    // The tiles whose sections the store changed (real chunks came in): a tile that is wanted is made again, one that is not is dropped.
+    private void Invalidate(Action<FarTile> dispose)
+    {
+        while (_store.Changed.TryDequeue(out var section))
+        {
+            var key = new FarTileKey(section.Level, section.X, section.Z);
+            _ = _bad.Remove(key);
+            if (_building.Contains(key))
+            {
+                _ = _dirty.Add(key); // being made from the sections as they were: made again when it is done
+                continue;
+            }
+
+            if (!_tiles.TryGetValue(key, out var tile) || !tile.IsBuilt)
+            {
+                continue;
+            }
+
+            if (_wanted.Contains(key))
+            {
+                _ = _dirty.Add(key);
+            }
+            else
+            {
+                dispose(tile);
+                _ = _tiles.Remove(key);
+            }
+        }
+    }
+
     // Takes the tiles the workers finished into the cache.
     private void Collect()
     {
+        while (_failed.TryDequeue(out var failed))
+        {
+            _ = _building.Remove(failed);
+            _ = _rebuilding.Remove(failed);
+            _ = _bad.Add(failed);
+        }
+
         while (_done.TryDequeue(out var mesh))
         {
             _ = _building.Remove(mesh.Key);
+            _ = _rebuilding.Remove(mesh.Key);
+            if (!_wanted.Contains(mesh.Key) && !_tiles.ContainsKey(mesh.Key))
+            {
+                continue; // made for a view the eye has left: not kept
+            }
+
             if (!_tiles.TryGetValue(mesh.Key, out var tile))
             {
                 _tiles[mesh.Key] = tile = new FarTile(mesh.Key);
             }
 
             tile.Pending = mesh;
-            tile.Box = mesh.Box;
-            tile.Vertices = mesh.Vertices.Length;
+            if (tile.Buffer is null)
+            {
+                tile.Adopt(mesh); // a tile made again keeps its old buffers and their counts until the renderer swaps them
+            }
+
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -246,20 +446,64 @@ public sealed class FarView
     {
         var settings = Settings;
         var grey = _grey;
+        var source = World;
         foreach (var key in _leaves)
         {
-            if ((_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) || !_building.Add(key))
+            if (!IsNeeded(key))
+            {
+                _ = _unready.Remove(key);
+                continue;
+            }
+
+            if (IsInner(key) && !(_tiles.TryGetValue(key, out var have) && have.IsBuilt))
+            {
+                // Inside the zone, the far land is only a filler until the chunks are drawn: it is made only for columns that have stayed undrawn for a moment (a jump, a slow machine), so a normal arrival makes none.
+                var now = MonotonicClock.Milliseconds();
+                if (!_unready.TryGetValue(key, out var since))
+                {
+                    _unready[key] = now;
+                    continue;
+                }
+
+                if (now - since < InnerGraceMilliseconds)
+                {
+                    continue;
+                }
+            }
+
+            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
             {
                 continue;
             }
 
-            var distance = (long)key.NearestDistance(settings, eyeX, eyeZ);
+            if (_dirty.Remove(key))
+            {
+                _ = _rebuilding.Add(key);
+            }
+
+            // The coarse levels are cheap and cover the horizon: they are made early (their distance counts a sixteenth), so a view that has just begun shows the far land at once and the detail comes in from the near out.
+            var distance = (long)key.NearestDistance(settings, eyeX, eyeZ) / (key.Level >= CoarseFirstFrom ? 16 : 1);
             var captured = key;
             _pool.Submit(
                 JobLane.Tiles,
                 distance,
                 () => !_wanted.Contains(captured),
-                () => _done.Enqueue(FarTileMesher.Build(_sampler, settings, captured, grey)));
+                () =>
+                {
+                    try
+                    {
+                        _done.Enqueue(FarTileMesher.Build(source, settings, captured, grey));
+                    }
+                    catch (Exception ex) when (ex is not OutOfMemoryException)
+                    {
+                        _failed.Enqueue(captured); // a torn section or a bug in one tile: the key is released, the others go on
+                    }
+                });
+        }
+
+        if (_unready.Count > 0 && _unready.Count > _leaves.Count)
+        {
+            _unready.Clear();
         }
 
         // A job skipped as stale leaves its key in _building: forget the keys that are no longer wanted so they can be asked for again.
@@ -269,60 +513,168 @@ public sealed class FarView
         }
     }
 
-    // The draw list: each leaf's own tile when built, else the nearest built ancestor (once), drawn behind.
+    // The draw list: a leaf's own tile once it is on the card; until then the nearest coarser tile that is stands in for it, and while one does every leaf under it waits and the stand-in alone covers the ground (levels never overlap: a swap
+    // is whole, when all the leaves under a stand-in are on the card, so no face of a coarser tile is ever behind or in front of a finer one's). A built tile waiting for the card is in PendingTiles, coarse levels first.
     private void Assemble()
     {
         _draw.Clear();
         _fallbacks.Clear();
-        var standIns = new HashSet<FarTileKey>();
+        _standIns.Clear();
+        _pending.Clear();
+        _unuploaded = 0;
         long triangles = 0;
-        var perTile = FarTileTopology.TriangleCount(Settings.TileCells);
+        var top = Settings.TopLevel;
         foreach (var key in _leaves)
         {
-            if (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt)
+            if (!IsNeeded(key))
             {
-                _draw.Add(tile);
-                triangles += perTile;
+                continue;
+            }
+
+            _tiles.TryGetValue(key, out var tile);
+            if (tile?.Pending is not null)
+            {
+                _unuploaded++;
+                _pending.Add(tile);
+            }
+
+            if (tile is { OnCard: true })
+            {
                 continue;
             }
 
             var ancestor = key;
-            for (var step = 0; step < FallbackSteps && ancestor.Level < Settings.TopLevel; step++)
+            for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
             {
                 ancestor = ancestor.GetParent();
-                if (_tiles.TryGetValue(ancestor, out var stand) && stand.IsBuilt)
+                if (_tiles.TryGetValue(ancestor, out var stand))
                 {
-                    if (standIns.Add(ancestor))
+                    if (stand.OnCard)
                     {
-                        _fallbacks.Add(stand);
-                        triangles += perTile;
+                        _ = _standIns.Add(ancestor);
+                        break;
                     }
 
-                    break;
+                    if (stand.Pending is not null && !_pending.Contains(stand))
+                    {
+                        _pending.Add(stand);
+                    }
                 }
             }
+        }
+
+        foreach (var key in _standIns)
+        {
+            var stand = _tiles[key];
+            _fallbacks.Add(stand);
+            triangles += stand.Triangles;
+        }
+
+        foreach (var key in _leaves)
+        {
+            if (!_tiles.TryGetValue(key, out var tile) || !tile.OnCard || !IsNeeded(key) || CoveredByStandIn(key, top))
+            {
+                continue;
+            }
+
+            _draw.Add(tile);
+            triangles += tile.Triangles;
         }
 
         _draw.InsertRange(0, _fallbacks);
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
     }
 
-    // Drops the farthest tiles that are not wanted or standing in, past the cap.
+    private bool CoveredByStandIn(FarTileKey key, int top)
+    {
+        if (_standIns.Count == 0)
+        {
+            return false;
+        }
+
+        var ancestor = key;
+        for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
+        {
+            ancestor = ancestor.GetParent();
+            if (_standIns.Contains(ancestor))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Drops the farthest tiles that are not wanted or standing in, past the cap; and, now and then, the meshes still waiting in memory of tiles that are no longer drawn (the eye moved on before the card took them).
     private void Trim(double eyeX, double eyeZ, Action<FarTile> dispose)
     {
         var settings = Settings;
+        _trims++;
+        if (_trims % 16 == 0)
+        {
+            DropUnwantedPending(dispose);
+        }
+
         if (_tiles.Count <= settings.MaxTiles)
         {
             return;
         }
 
-        var used = new HashSet<FarTileKey>(_draw.Select(static t => t.Key));
-        used.UnionWith(_wanted);
-        var victims = _tiles.Keys.Where(key => !used.Contains(key)).OrderByDescending(key => key.NearestDistance(settings, eyeX, eyeZ)).Take(_tiles.Count - settings.MaxTiles).ToList();
+        _used.Clear();
+        foreach (var tile in _draw)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        _used.UnionWith(_wanted);
+        foreach (var tile in _pending)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        var victims = _tiles.Keys.Where(key => !_used.Contains(key)).OrderByDescending(key => key.NearestDistance(settings, eyeX, eyeZ)).Take(_tiles.Count - settings.MaxTiles).ToList();
         foreach (var key in victims)
         {
             dispose(_tiles[key]);
             _ = _tiles.Remove(key);
+        }
+    }
+
+    private void DropUnwantedPending(Action<FarTile> dispose)
+    {
+        _used.Clear();
+        foreach (var tile in _draw)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        _used.UnionWith(_wanted);
+        foreach (var tile in _pending)
+        {
+            _ = _used.Add(tile.Key);
+        }
+
+        _idle.Clear();
+        foreach (var (key, tile) in _tiles)
+        {
+            if (tile.Pending is not null && !_used.Contains(key))
+            {
+                _idle.Add(key);
+            }
+        }
+
+        foreach (var key in _idle)
+        {
+            var tile = _tiles[key];
+            if (tile.Buffer is null)
+            {
+                dispose(tile);
+                _ = _tiles.Remove(key);
+            }
+            else
+            {
+                tile.Pending = null; // the card's buffers stay; the memory of the newer mesh goes
+            }
         }
     }
 
@@ -339,6 +691,7 @@ public sealed class FarView
         _tiles.Clear();
         _draw.Clear();
         _building.Clear();
+        _bad.Clear();
         _wanted = [];
         _pool.Clear(JobLane.Tiles);
     }

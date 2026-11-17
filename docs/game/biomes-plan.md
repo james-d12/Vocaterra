@@ -463,9 +463,10 @@ placed, a shaft dug, the darkening's numbers) means re-meshing on the processor,
 the processor too.
 
 **What B17 does.** Moves the light, the fog and the water to shaders of the game's own, so the card does that work:
-1. **A shader build that works on Linux** (step 0, a spike whose result goes to the owner when it adds a tool or a dependency): mgfxc
-   under a pinned Wine in the content build; or compiled shader binaries committed beside their sources, with a check that they match;
-   or a newer MonoGame back end with a cross-platform compiler. The owner decides any new tool's licence.
+1. **Raw GLSL compiled at run time** (the owner's choice, D-game-34 item 40): shaders in OpenGL's own language, compiled by the driver at
+   start, drawn through an MIT OpenGL binding (Silk.NET or OpenTK) on MonoGame's own context with MonoGame's state saved and restored
+   round the world's passes; step 0 is a spike that proves one GLSL shader draws chunks inside MonoGame's frame (state, depth, the
+   alpha test, the far pass) before anything else moves to it. macOS is out of scope (item 39).
 2. **Light as data in the vertex:** each corner carries its sky light, block light and corner occlusion (not a finished colour); the
    shader combines them with uniforms (the sun's direction and colour, the sky's brightness for the hour and the weather, the glow's
    strength, the eye's sky share underground), so the day, the night, the weather and the darkening change without re-meshing; a placed
@@ -481,6 +482,34 @@ the processor too.
 **Not in B17** (shader-pack effects, which the owner set aside for the far view's work): shadow maps, screen-space ambient occlusion,
 volumetric clouds and fog, bloom, reflections. Propagated sky and block light (section 6) becomes cheaper to add after B17 but is not
 part of it.
+
+
+### 3.10 The far view at scale (B19, planned only)
+
+The owner, 2026-11-16 (D-game-34 item 35): asked what it takes to reach the render distances of Voxy and Distant Horizons ("the render
+distance for that is crazy ... What things do we need to do to get to that level? Because that's what we want to achieve"), then: "Use
+those as reference", meaning his three screenshots of Voxy in Minecraft, kept outside git in `artifacts/reference/voxy/` (an index there
+says what each shows: every tree a crown of its own for kilometres, lakes and rivers with shores, villages far off, ridge after ridge of
+mountains to a horizon tens of kilometres away; shader effects excluded). Not to be launched until he says.
+
+**Where the limits are** (after B07c): distance itself is cheap, since each doubling adds one coarser level of about the same cost. What
+limits it is (1) building the far data on the processor (a settled High view at 16 km took about 150 s of worker time in B07c's review),
+(2) draw calls (thousands of tiles, each its own draw and effect bind), (3) the card's memory and bandwidth (fat vertices with light baked
+in), and (4) precision at tens of kilometres (single-precision positions, one depth range).
+
+**What B19 does** (after B07c, B07d and B17):
+1. **A measured spike first:** the far view pushed to 32 and 64 km at High on the RTX 3070 with B07c's design; where the time goes (data,
+   draw calls, the card, memory); the result decides the rest and whether step 2 below is needed. Its findings go to the owner.
+2. **Step 1, within MonoGame:** tiles merged into large shared buffers per level (a handful of draws a level, not thousands), a 3D tree of
+   sections for culling, occlusion culling (hardware queries, or a coarse depth raster of near hills on the processor), camera-relative
+   rendering and depth split into ranges, the far levels' cost per frame bounded; built on B17's shaders (compact vertices, light on the
+   card, texture arrays). Target: 32 to 64 km at High within 60 fps, the reference pictures' look without their shader effects.
+3. **Step 2, only if the spike shows step 1 cannot reach the target:** rendering driven by the card as Voxy does (compute traversal,
+   occlusion on the card, indirect draws). MonoGame DesktopGL has no compute shaders or indirect draws, so this needs OpenGL 4.6 beside
+   MonoGame through a binding, a newer MonoGame back end, or the open engine decision (D-game-1): the owner's choice, with the spike's
+   numbers.
+4. **Kept:** the world unchanged; the far view's data and disk store from B07c and B07d; pictures from the reference pictures' kinds of
+   viewpoint (a valley from a hill, a plain of lakes from a mountain, a forest by a river), before and after.
 
 ## 4. Milestones
 
@@ -505,7 +534,9 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B07 | The game streams the tall world by default; `--world valley` keeps the old bounded valley. Budgeted generation, surface-band residency and eviction, 26-neighbour mesh gating, the valley's edge kept as a wall for the body while the pass is locked (B08b's state) and lifted all the way round when it opens (owner, 2026-11-15: the player may then leave anywhere; the pass is the easy road), far plane and fog for height, a settle step before shots, sparse rain cover, the optional prefetcher. **The far view** (owner, 2026-11-15, D-game-34 item 21: folded into B07, like the Distant Horizons mod): beyond the voxel chunks, level-of-detail terrain tiles read straight from the pure height model and biome table (no chunks generated), coarser with distance, built and cached on worker threads, with skirts, water, snow, a forest tint and haze to the sky, out to **16 km at 60 fps on the High preset** on the owner's machine. **A performance gate on the VM:** the streamed preset distances are set by measurement | L | Sonnet high | B06, B08b | pictures (owner review) |
 | B07b | Streamed-world fixes from the world QA pass (2026-11-16): scripted steps wait while the body is held; a far teleport or respawn makes its near zone like a start; a teleport onto water stands on the surface | S/M | Sonnet medium | B07 | runs, tests |
 | B07c | Far view like Voxy (items 25, 26, 29): 3D voxel LOD sections from real chunks and the generator's model, on disk per world, textured block faces, stored light, CPU culling | L | Sonnet high | B07 | pictures (owner review), measurement |
-| B07d | The far view's remainder (item 29): detail settings, world import or pre-generation, performance tuning | M | Sonnet high | B07c | measurement |
+| B07e | The far view's seams and gaps, reviewed in Release (the owner's bugs, taken in Debug; Release fixed most): fix what persists settled; a tidy state while the far view builds | M | Sonnet high | B07c | pictures from the owner's positions |
+| B07f | The far store's edit layer (codebase review C1 to C3, C6, C7, C10): edits from a save in the far view, overlays per save, races fixed with tests | M | Sonnet high | B07c | tests |
+| B07d | The far view's remainder (items 29, 37): settings, pre-generation, compaction, the store's memory and IO (an LRU of real sections, disk checks off the game thread, fsync on a timer, a surface-only ring, pooling) | M | Sonnet high | B07c | measurement |
 | B08a | The pass through the east ring in the bounded valley: the relief lowered, the road from the village to the east edge, the `paso` site (no label) and the rockfall that closes the pass, all in `scene.json` | S/M | Sonnet medium | B00 | valley golden, bundle, runs |
 | B08b | The pass's lock: the list of required lessons in `world.json` (all of today's), the unlock rule in Core, a cheat setting in the settings menu, the rockfall removed (saved like any change) when the pass opens | S/M | Sonnet medium | B01, B08a | bundle, runs |
 | B08c | The pass road from the village: one continuous road of path blocks with no riser or detour (found in the game, 2026-11-16); the run comparison's speed | S | Sonnet medium | B08b, B13 | valley golden, runs |
@@ -514,12 +545,21 @@ design-heavy work, and Opus only on request. Every milestone is gated with
 | B10b | The body sinks into lava: slow sinking, moving and swimming up, climbing out at an edge; no damage in this series (owner, 2026-11-15); the ores easier to see by colour | S | Sonnet medium | B10 | nothing |
 | B11 | The underground generation, configured by `underground.json` (schema, validator, `NoOreIdsInSourceTests`): strata, ores, cheese and spaghetti caves on a coarse 3D lattice, entrances, lava level, the bedrock floor. Tests: chunk-locality, no cave within reach of water, no entrance in a region or on a path, ore counts per seed within ranges, lava at rest, time per chunk. Vertical slices in the preview tool | L | Sonnet high | B03, B10 | procedural goldens |
 | B11b | Cave entrances you can walk into; more rock variety in caves and on bare stone (item 27): gravel, sand, dirt and stone kinds in pockets and bands, as data | M/L | Sonnet high | B11, B12 | pictures (owner review) |
+| B11c | Caves breaking the surface (the owner's bug 1): no cave opens at the surface except through an entrance | S/M | Sonnet medium | B11b | pictures |
 | B12 | The underground in play: darkening by depth, lava light, a light index that follows placed torches, the near zone for underground chunks (wider when the player is underground); a scripted cave tour; a VM performance check | M/L | Sonnet high | B07, B11 | pictures (owner review) |
 | B13 | The valley's underground: the strata, ore and cave passes in the valley's own stone, at least 8 blocks deep and away from sites, paths, water and the village. Re-records the valley goldens once | M | Sonnet medium | B08b, B11 | valley golden (owner review) |
 | B14 | Integration: ambient sound by biome and underground from `IPlaceInfo`; water-at-rest and exitable-edge checks over 3 seeds; signed coordinates in scripted runs; the cloud layer's height as data; a scripted tour through the pass into each biome and down a cave; documents (`architecture.md`, `saves.md`, `running.md`, and "Adding a biome" and "Adding an ore" in `content/README.md`) and findings | M | Sonnet medium | B12, B13 | new runs |
 | B15 | Towns: `IGroundShape`, a `ProceduralReliefRegion` at an offset, and one tiny sample town with no content words | L | Sonnet high | B06 | none: the valley golden must hold |
 | B16 | Regions that can grow, shrink and multiply (owner, 2026-11-15; last, after everything else): (1) regions declared in `world.json` (id, layout file, position; the size from the layout; no region's size or position in code), with a validator that refuses overlapping regions or margins and a test region, only in test data, at another size and position that loads, blends and validates with no code change; (2) a region's relief may mark cells "generated ground", so only the terrain wanted by hand is drawn; (3) rivers, lakes and waterfalls as lists in a layout; (4) the valley's trees placed per chunk, so a resize does not reshuffle them. The aim: doubling the valley is a change of data (its size, the ring, the hand-drawn terrain, the sites), not of code | L | Sonnet high | B14, B15 | valley golden once (item 4) |
 | B17 | Rendering on the graphics card (section 3.9; D-game-34 item 30; planned only, not to be launched until the owner says): a shader build that works on Linux (spike first), light as data in the vertex (sky, block, occlusion) combined in a voxel shader with the hour, weather and glow as uniforms (no re-mesh for a light change), fog by distance and height, a water shader, the far view on the same light model; the midday look kept within a tolerance | L | Sonnet high | B07c, B12 | pictures (owner review), measurement |
+| B17a | B17's step 0: a GLSL spike drawing chunks on MonoGame's context through an OpenGL binding, state saved and restored; a report on the fit | S/M | Sonnet high | B07c | picture, report |
+| B18 | Grass density (item 34): render-only decorative grass on grass tops, a settings slider, a denser default; the world unchanged | M | Sonnet medium | B07, B12 | pictures (owner review), measurement |
+| B19 | The far view at scale (section 3.10; D-game-34 item 35; planned only, not to be launched until the owner says): a measured spike at 32 and 64 km first; then merged buffers per level, a 3D section tree for culling, occlusion culling, camera-relative rendering and depth ranges on B17's shaders; rendering driven by the card only if the spike shows it is needed (an engine-level choice for the owner); the owner's Voxy pictures (`artifacts/reference/voxy/`) as the target look | L | Sonnet high | B07c, B07d, B17 | pictures (owner review), measurement |
+| B20 | No snow in the valley (item 36): the ring's tops without snow, as the slope would carry; the valley golden re-recorded once | S/M | Sonnet medium | B13 | valley golden, pictures |
+| B21 | Meshing off the game thread, dirty-only rechecks, no per-frame allocation (review P1, P2, P5) | M/L | Sonnet high | B07e | measurement |
+| B22 | Fidelity bundle: MSAA, a moving sun, biome colours, clouds, water (review G2 to G6) | S/M | Sonnet medium | B07c | pictures (owner review) |
+| B23 | Sky and block light propagation with smooth light (review G1) | L | Sonnet high | B21 | pictures (owner review), measurement |
+| B24 | Guards and cleanups (review A1, A2, C8, C9, T1, T2, docs) | S/M | Sonnet medium | B07f, B21 | tests |
 
 **Order** (owner, 2026-11-15: "as much in parallel as we can", up to three building agents at once; later the same day "only have 1
 agent max", so one at a time; that evening "you can have up to 4 agents now", D-game-34 item 19): each milestone starts as soon as
@@ -690,3 +730,7 @@ series, `docs/game/biomes-plan.md`).*
 | B07 | done 2026-11-16 | `7fd0b8fd`: 12,267 passed, 3 skipped | the streamed world by default (band streaming, a job pool, residency and eviction, the valley's wall kept while the pass is locked, the body held until the world round it is resident) and the far view (level-of-detail tiles to 4, 8 and 16 km, D-game-34 item 21), lit like the chunks, haze from 6% of the range, water from B02b's per-column levels. Release at High with 16 km on the RTX 3070: p50 2.5 ms, p95 7.8, p99 9.6, none over 100 ms outside a start (one 630 ms frame, the synchronous near zone); `--world valley` runs identical; pictures in `artifacts/b-series/b07/`. Open: rivers narrower than a far tile do not show beyond the near ring; scripted `--walk-to` over ungenerated land plans for up to 3 s | reports `.claude/briefs/b07-*-report.md` |
 | B12 | done 2026-11-16 | `54cecc7b`: 12,293 passed, 3 skipped | the underground in play: darkening by depth from the pure height model (6-block fall to 0.28 of the sun, smooth per corner; open faces unchanged, the valley above ground identical), torches, lanterns, post torches and lava as glowing kinds (a placed torch lights a cave at once, about 8 blocks), a surface edit re-meshes the chunks beneath, the cave tour `r50-cave-tour`, `--teleport-to`; Release p95 about 10 ms underground; pictures in `artifacts/b-series/b12/`. Open: entrances are pits with no walkable way down (B11b); far from light a cave is nearly black at 0.28 (the owner to judge) | report `.claude/briefs/b12-report.md` |
 | B07b | done 2026-11-16 | `15eb6a1c`: 12,305 passed, 3 skipped | the world QA pass's bugs: steps after a teleport wait for the world; a far teleport, respawn or load makes its near zone at once (one frame of 0.8 to 1 s, near view complete in about 1 s on a quiet machine, instead of about 3 s of sky); a teleport onto water stands at the surface; the start's first frame is longer (1.0 to 1.6 s) | report `.claude/briefs/b07b-report.md` |
+| B07c | done 2026-11-16 | `23c5795f`: 12,370 passed, 3 skipped | the far view like Voxy: 3D voxel sections at 8 levels from the generator's model and real chunks (edits kept), on disk per world, textured near levels, stored light, water and snow and peaks kept at every level, the horizon to 16 km at High (an 8 MB upload budget, coarse first); an Opus review found the upload cap, water and surface rules, silhouettes, the ring, races, edits, mips and corruption, all fixed but region compaction; p95 about 3 to 4 ms above B07 at load 7 to 11 (to re-measure quietly) | reports `.claude/briefs/b07c-report.md`, `b07c-review.md` |
+| B11b | done 2026-11-16 | `80382d33`: 12,399 passed, 3 skipped | natural cave entrances (winding, varied width and height, noise-carved walls, ragged mouths, walkable to a cave 20 or more down) and rock variety (plain stone on cave faces from about 90% to about 50%; gravel, sand, dirt, granite, limestone, basalt; cliff bands and scree), generator version 3; the cave tour through a natural entrance | report `.claude/briefs/b11b-report.md` |
+| B18 | done 2026-11-16 | `72c3cd53`: 12,448 passed, 3 skipped | grass density: a render-only tuft layer by biome on grass tops, a Grass slider (default 60), no measurable frame cost | report `.claude/briefs/b18-report.md` |
+| B07e | done 2026-11-17 | `84e1e2cb`: 12,451 passed, 3 skipped (two failures not B07e's: the valley timing test, passing alone in 8 s, and a new core fuzz seed) | the far view's seams and gaps: none of the owner's four bugs shows settled in Release; no overlapping levels (a stand-in until all its leaves are on the card), drawing decided by what is on the card, neighbour-aware tile edges and skirts, far tiles over undrawn near columns, tile choice by range over cos(half FOV), the far near plane a seventh of the view; uploads ran only when something was drawn (fixed); the game-window test 2.5 min (was 20) | report `.claude/briefs/b07e-report.md` |

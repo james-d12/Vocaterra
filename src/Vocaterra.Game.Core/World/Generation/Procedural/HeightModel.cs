@@ -281,6 +281,16 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel, IDrainage
         return (int)((long)lake16 * water / One);
     }
 
+    /// <summary>Whether a column's rivers and lakes can be read without waiting for a landmass to be read (B02c): no network, or everything the look-up reads is read (see <see cref="Warm"/>).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public bool IsWarm(int x, int z) => _network is null || _network.IsRead(x, z);
+
+    /// <summary>Reads the landmasses round a column into the drainage network (up to a second for a large continent; for a thread that may wait: a worker, never the game loop).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="z">The block's z.</param>
+    public void Warm(int x, int z) => _network?.Warm(x, z);
+
     /// <summary>Whether this model has a drainage network (the world's data has a <c>drainage</c> section): without one the world has no river and no lake.</summary>
     public bool HasDrainage => _network is not null;
 

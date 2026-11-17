@@ -899,6 +899,39 @@ the owner's answers of 2026-11-15 are in its section 5.
     remain at 28% daylight, that's fine. Kick off an agent for the river drainage issue and the core fuzz fixes as well." B12's cave
     minimum 0.28 stands. B02c (rivers that only fall: a drainage network, closing B02b's river humps) and the core's M97 (the fuzz seeds
     `2LxdNIrNHnQ6` and `9kz6LGNo8tf2`, and the load-sensitive OpenFallback coverage oracle) are launched.
+34. **More grass, with a slider** (2026-11-16, about 16:00 UTC): "there's not a lot of grass, I guess. Could we increase the volume of
+    grass? Perhaps make that a slider in the settings as well." B18: a decorative grass layer drawn on grass-block tops (crossed tufts
+    like the undergrowth's tall grass, at positions from a hash of the cell, no world block, no collision, not saved), its density a
+    slider on the settings page (saved with the other settings), its default denser than today's look; the generated world and the
+    valley unchanged (a setting must not change the world's blocks). Then: "at least, you know, grass in the plains and the forests and
+    stuff like that": lush in plains, meadows and forest floors, sparser in taiga and dry land, none on sand, snow or stone.
+35. **The far view at Voxy's distances: B19 documented, his screenshots the reference** (2026-11-16, about 16:10 UTC): after asking what it
+    takes to reach Voxy's and Distant Horizons' render distances ("that's what we want to achieve") and hearing the four limits (building
+    the data, draw calls, the card's memory, precision) and a two-step plan (within MonoGame first; card-driven rendering only if needed):
+    "Use those as reference" (his three Voxy screenshots of item 29, kept outside git in `artifacts/reference/voxy/`, third-party, never
+    committed). B19 in the biomes plan (section 3.10), planned only like B17.
+36. **No snow in the valley** (2026-11-16, about 18:15 UTC): "can you add a milestone to remove the snow from the valley, it now doesnt
+    make sense to have snow on the mountain when the valley with the procedural generated area". The hand-crafted valley lays snow on its
+    ring's tops above `snowLine` 100 (scene.json; `SceneBuilder`), while the generated land round it has snow only above y 120 on its
+    mountains. B20 removes the valley's snow (the tops become the stone or grass the slope would carry); snowfall as weather is unchanged.
+37. **All the codebase review's fixes, go** (2026-11-16, about 22:15 UTC, on `docs/research/2026-11-16-codebase-review.md`: "go ahead with all
+    the fixes recommended from review"). Planned in this order, at most four agents at once: B07f (the far store's edit layer: C1 to C3,
+    C6, C7, C10, race tests), B22 (a fidelity bundle with built-in effects: MSAA, a moving sun and deeper dusk, biome colour maps, clouds and
+    water), B21 (meshing off the game thread, dirty-only rechecks, per-frame allocations: P1, P2, P5, C4, C5, C11), B23 (sky and block light
+    propagation with smooth light: G1), B07d widened (the far store's memory and IO: P3, P4, real-section LRU, compaction, with the
+    rendering review's R1), B24 (guards and cleanups: A1, A2, C8, C9, T1, T2, the docs) and the core's M98 (a realisation-rate gate for the
+    fuzz generator: T3). The rendering review's decisions D1 to D6 stay open (B07d gets a worker-count setting whose default is the owner's).
+38. **Five agents, three slots** (2026-11-16, about 22:30 UTC): "we have a good amount of memory available so we can have more agents run in
+    paralel", then, offered 6 agents with 3 slots, 8 with 3, or 6 with 2: "what about 4 agents like now, but one extra slot", then "5
+    agents and 3 gates looks ok". Up to five building agents; limited.sh runs three heavy commands at once (`VOCATERRA_HEAVY_SLOTS`
+    default 3); 10 GB a command and 16 GB in all unchanged.
+39. **macOS is out of scope** (2026-11-16, about 22:45 UTC, the rendering review's D4): "macOS does not matter". Opens the raw OpenGL 4.x route
+    (OpenGL 4.6 is not available on macOS) for B17's shaders and B19's later steps.
+40. **B17's shaders as raw GLSL compiled at run time** (2026-11-16, about 22:50 UTC, the rendering review's D3, offered (a) mgfxc on a Windows
+    CI runner with committed binaries, (b) a pinned Wine, (c) raw GLSL on MonoGame's OpenGL context through an MIT binding (Silk.NET or
+    OpenTK), (d) waiting for MonoGame's new back ends): "Let's go with c". The driver compiles the shaders at start; the world's drawing
+    goes through the binding on MonoGame's own context with its state saved and restored; it opens OpenGL 4.x for B19's step 2. B17 starts
+    with a spike proving one GLSL shader draws chunks inside MonoGame's frame.
 
 ## Already decided
 

@@ -5,8 +5,8 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 
 /// <summary>
 /// The caves (B11): cheese caverns and spaghetti tunnels (<see cref="CaveField"/>, sampled on a coarse lattice and interpolated) are cut out of the rock in every cell the column's plan allows
-/// (<see cref="CavePlan"/>: under the surface cover, clear of water, under the region floor), and the entrance shafts are cut from a cave up through the ground. Only rock is cut: never air,
-/// water or the bedrock floor.
+/// (<see cref="CavePlan"/>: under the surface cover, clear of water, under the region floor). Only rock is cut: never air, water or the bedrock floor. The entrances' passages are
+/// <see cref="EntrancePass"/>'s.
 /// </summary>
 internal sealed class CavePass : IChunkDecorator
 {
@@ -40,7 +40,7 @@ internal sealed class CavePass : IChunkDecorator
                 for (var lx = 0; lx < VoxelChunk.Size; lx++, index++)
                 {
                     var k = (lz * VoxelChunk.Size) + lx;
-                    if (!((kinds[index] != CaveKind.None && y <= plan.Ceiling[k]) || y >= plan.ShaftFrom[k]))
+                    if (kinds[index] == CaveKind.None || y > plan.Ceiling[k])
                     {
                         continue;
                     }

@@ -37,6 +37,9 @@ public sealed class ScriptedRunEnd
     /// <summary>The tick at which a run that never settles takes its picture anyway (five minutes of game time).</summary>
     public const int RunawayTicks = 60 * 60 * 5;
 
+    /// <summary>The longest, in milliseconds of the wall clock, that a settled picture waits for the far tiles to reach the card.</summary>
+    public const double UploadWaitLimitMilliseconds = 120_000;
+
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly CheckBattery _checks;
@@ -51,6 +54,7 @@ public sealed class ScriptedRunEnd
     private readonly Action<long, string>? _logRunaway;
     private bool _runaway;
     private int _settled;
+    private double? _uploadWaitStart;
     private bool _shown;
     private int _sizeFrames;
     private int _framesAtSize;
@@ -179,7 +183,7 @@ public sealed class ScriptedRunEnd
             ExitCode = WorstExit(ExitCode, saved, false);
         }
 
-        if (!mayShoot || _options.ScreenshotPath is not { } path || !ReadyForPicture())
+        if (!mayShoot || _options.ScreenshotPath is not { } path || !ReadyForPicture(streaming))
         {
             return;
         }
@@ -193,7 +197,7 @@ public sealed class ScriptedRunEnd
         }
 
         // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.
-        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
+        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.GrassPercent > 0 ? $", grass {renderer.DrawnGrassQuads} quads (slider {renderer.GrassPercent}%, within {preset.GrassDistance} blocks, cap {preset.GrassCapPercent}%; {renderer.GrassBuilds.Built} layers built in {renderer.GrassBuilds.Milliseconds:0} ms, {renderer.GrassQuadsBuilt} quads held)" : string.Empty)}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
         var body = sim.Player;
         _console(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {sim.Tick}, wood {sim.Inventory.Count(ItemId.Wood)}, berries {sim.Inventory.Count(ItemId.Berry)}, bottle {sim.Inventory.Count(ItemId.Bottle)}, water {sim.Inventory.Count(ItemId.WaterBottle)}, bread {sim.Inventory.Count(ItemId.Bread)}"));
         _console($"objective: {_session.Objective.Summary}");
@@ -206,16 +210,30 @@ public sealed class ScriptedRunEnd
         var far = streaming.Far.Stats;
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached, {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms");
+            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms");
     }
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
     // that is not waiting for its recording; a battery that rests is ready too, and a runaway run takes its picture anyway.
-    private bool ReadyForPicture()
+    // A settled picture waits until every far tile it lists is on the card, but never for ever: after UploadWaitLimitMilliseconds of the wall clock it is taken with what is there (the run's stream line says how many were not).
+    private bool FarOnTheCard(StreamedWorldHost? streaming)
+    {
+        if (streaming is null || streaming.Far.Unuploaded == 0)
+        {
+            _uploadWaitStart = null;
+            return true;
+        }
+
+        _uploadWaitStart ??= MonotonicClock.Milliseconds();
+        return MonotonicClock.Milliseconds() - _uploadWaitStart > UploadWaitLimitMilliseconds;
+    }
+
+    private bool ReadyForPicture(StreamedWorldHost? streaming)
     {
         var tick = _session.Simulation.Tick;
         return (tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
-                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
+                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking }
+                && FarOnTheCard(streaming)) // a settled picture waits until every far tile it lists is on the card
             || (_checks.RestsForShot && _settled >= SettleTicks)
             || RunawayAt(tick);
     }

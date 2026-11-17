@@ -34,9 +34,9 @@ internal sealed class GenerationWorld
         Biomes = biomes;
         Seed = seed;
         Climate = blend is null ? new ClimateSampler(data, seed) : new BlendedClimateSampler(new ClimateSampler(data, seed), blend);
-        var ground = new HeightModel(data, seed, Climate, blend?.Excluder(data.Height.DrainageData?.RegionClearance ?? 0));
-        Blended = blend is null ? null : new BlendedHeightModel(ground, Climate, blend);
-        Height = Blended is null ? ground : Blended;
+        Ground = new HeightModel(data, seed, Climate, blend?.Excluder(data.Height.DrainageData?.RegionClearance ?? 0));
+        Blended = blend is null ? null : new BlendedHeightModel(Ground, Climate, blend);
+        Height = Blended is null ? Ground : Blended;
         Table = new BiomeTable(biomes, data, seed);
         Strategies = strategies.Resolve(new StrategyContext(seed, data, biomes));
         SeaLevel = data.Vertical.SeaLevel;
@@ -45,6 +45,8 @@ internal sealed class GenerationWorld
         MaxFillerDepth = biomes.Rows.Max(static r => r.FillerDepth);
         HasSurfaceStrategies = biomes.Rows.Any(static r => r.SurfaceStrategy != StrategyRegistry.PlainSurface);
         Margin = 1 + WaterReach + Math.Max(Strategies.MaxCrownReach, Underground?.WaterReach ?? 0) + Strategies.MaxFade + extraMargin;
+        Entrances = Underground is null ? null : new EntranceSites(this);
+        SurfaceRock = underground?.SurfaceRock is { } rock ? new SurfaceRock(rock, seed) : null;
     }
 
     /// <summary>The world's numbers.</summary>
@@ -62,6 +64,9 @@ internal sealed class GenerationWorld
     /// <summary>The height model.</summary>
     public IHeightModel Height { get; }
 
+    /// <summary>The height model of the free world, under <see cref="Height"/> (its drainage network is read a landmass at a time: <see cref="HeightModel.IsWarm"/> and <see cref="HeightModel.Warm"/>).</summary>
+    public HeightModel Ground { get; }
+
     /// <summary>The height model with the regions' edges blended in, or <see langword="null"/> in a world with no region (it is <see cref="Height"/> when there is one).</summary>
     public BlendedHeightModel? Blended { get; }
 
@@ -70,6 +75,12 @@ internal sealed class GenerationWorld
 
     /// <summary>The underground (rock layers, floor, ores, caves, lava, entrances), or <see langword="null"/> for a world whose ground is plain stone (B11).</summary>
     public UndergroundWorld? Underground { get; }
+
+    /// <summary>The cave entrances (B11b): the passages from the surface into the caves, or <see langword="null"/> for a world with no underground.</summary>
+    public EntranceSites? Entrances { get; }
+
+    /// <summary>The bare and loose stone of the surface (B11b: cliffs, scree, stream beds), or <see langword="null"/> when the data has none.</summary>
+    public SurfaceRock? SurfaceRock { get; }
 
     /// <summary>The biome table.</summary>
     public BiomeTable Table { get; }

@@ -7,7 +7,7 @@
   "name": "sample-town",
   "size": { "x": 96, "y": 96, "z": 96 },
   "waterLevel": 1,
-  "terrain": { "valley": 36, "rockLine": 200, "snowLine": 200, "terrace": 0, "ceiling": 88 },
+  "terrain": { "valley": 36, "rockLine": 200, "terrace": 0, "ceiling": 88 },
   "sites": {
     "square": { "x": 48, "z": 48, "radius": 7, "blend": 8 },
     "plot.a": { "x": 24, "z": 40, "radius": 6, "blend": 6 },

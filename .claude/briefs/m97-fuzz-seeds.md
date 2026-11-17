@@ -5,7 +5,7 @@ must not change. Do the work yourself; do not spawn subagents. Commit prefix `M9
 
 ## Where to work, and committing
 Work only in the git worktree `/home/james/Dev/Vocaterra/.claude/worktrees/m97`, already on the local branch `M97-fuzz-seeds` (from
-`feature/biomes` at @@BASE@@). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree. Commit after each step that builds
+`feature/biomes` at 41fd2825). cd there first; never edit `/home/james/Dev/Vocaterra` or another worktree. Commit after each step that builds
 and passes its tests. Do not push; never push or merge `feature/*` or `main`. Wait for each command to finish (no wait loops on `pgrep -f`).
 
 ## Resources, environment, rules
@@ -47,7 +47,7 @@ and passes its tests. Do not push; never push or merge `feature/*` or `main`. Wa
 - `docs/nlp/findings.md`: an entry per finding resolved (cause, fix, seeds).
 
 ## Gate
-Build with -warnaserror (0 warnings); `scripts/test.sh full` (@@COUNT@@ passed before, plus your new tests); format clean; the core
+Build with -warnaserror (0 warnings); `scripts/test.sh full` (12,305 passed before, plus your new tests); format clean; the core
 demo line from CLAUDE.md unchanged in substance. Commit messages end with
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01F9jKDbkPTqABsu7sLVD9h6

@@ -1835,6 +1835,21 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M97 (O5 seed 2LxdNIrNHnQ6): a noun that is also a determiner or a quantifier adjective (cuanto, the noun, and cuánto) right before another noun is, to the
+            // analyzer without the grammar that binds it as a noun, that noun's determiner: «cuanto almuerzos veintiocho señoras transportan» is clean through its grammar,
+            // but once a mutation leaves a word the grammar cannot bind («zeponefu») nothing matches and cuanto asks for almuerzo (noun.number), which is no fault of the
+            // mutation. The realiser does not model that reading, so such a noun in such a place is re-rolled.
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(static r => IsDeterminerAdjective(r) || (r.Pos == LexiconSchema.Adjective && r.Lemma is "cuanto" or "cuánto"))
+                && NextContent(i) is var nounAfter and >= 0
+                && (_items[nounAfter].Kind == Kind.Noun || _items[nounAfter].Readings.Any(static r => r.Pos == LexiconSchema.Noun)))
+            {
+                skip = "noun-reads-as-determiner";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M74 (the merge gate's O3 seed 8vYtnrmXN4e2; older than M74, the same recipe realises it on 45305998): a noun that is also one of the common descriptive
             // adjectives of the reading resolver's M69 rule (IAnalysisRules.IsPredicateAdjective: cómoda, the chest of drawers, and cómodo; clara, the egg white, and
             // claro), right after a finite form of ser or estar (past skippable words, no determiner between), is read by the analyzer as the predicate adjective
