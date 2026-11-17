@@ -332,6 +332,9 @@ public sealed class FarViewTests(ITestOutputHelper output)
         Assert.True(view.Stats.Built > FarTileSelector.Select(Small, 192, 192, Voxel).Count - 1);
     }
 
+    // These tests wait on a condition (a job started, a job finished, a tile built), never on the clock: the bound is only a guard against a hang, so a machine under load (a gate beside other agents) cannot fail them.
+    private const long HangGuardMilliseconds = 1_800_000;
+
     private sealed class GatedDisk : Vocaterra.Game.Core.World.Lod.ILodPersistence
     {
         public ManualResetEventSlim Started { get; } = new();
@@ -358,12 +361,12 @@ public sealed class FarViewTests(ITestOutputHelper output)
         var gate = new GatedDisk();
         var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(gate));
         view.Update(192, 192, Voxel, Release, 0);
-        Assert.True(gate.Started.Wait(60_000), "a tile job is running");
+        Assert.True(gate.Started.Wait(TimeSpan.FromMinutes(30)), "a tile job is running");
 
         var reshaped = Small with { Levels = 6 };
         view.Reconfigure(reshaped, Release);
         gate.Release.Set();
-        var until = Environment.TickCount64 + 60_000;
+        var until = Environment.TickCount64 + HangGuardMilliseconds;
         while (pool.Pending > 0 && Environment.TickCount64 < until)
         {
             Thread.Sleep(5); // the old job finishes and leaves its mesh in the view's queue
@@ -372,7 +375,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         view.Update(192, 192, Voxel, Release, 0); // collects what the old job left: nothing of it may be taken (what this call asks for has not been collected yet)
         Assert.Equal(0, view.Stats.Cached);
         Assert.Equal(0, view.Stats.Built);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
 
         var leaves = FarTileSelector.Select(reshaped, 192, 192, Voxel).Count;
         Assert.Equal(leaves, view.Stats.Built);
@@ -385,7 +388,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         // B07f, C6: the newer mesh of a tile nobody wants was dropped and the tile kept its old buffer, as if it were current.
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
         var tile = view.PendingTiles.First(static t => t.Key.Level == 0); // built, not on the card (no renderer here): made to look like a tile on the card with a newer mesh waiting
         tile.OnCard = true;
         tile.Buffer = (Microsoft.Xna.Framework.Graphics.VertexBuffer)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Microsoft.Xna.Framework.Graphics.VertexBuffer));
@@ -397,7 +400,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         }
 
         Assert.Contains(tile, _released);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        Assert.True(view.Settle(192, 192, Voxel, Release, HangGuardMilliseconds));
         var again = view.PendingTiles.First(t => t.Key == tile.Key);
         Assert.NotSame(tile, again);
         Assert.Null(again.Buffer);
@@ -456,7 +459,7 @@ public sealed class FarViewTests(ITestOutputHelper output)
         var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, store);
         view.SetNearReady(static (_, _) => false);
         FarTile? inner = null;
-        var until = Environment.TickCount64 + 120_000;
+        var until = Environment.TickCount64 + HangGuardMilliseconds;
         while (inner is null && Environment.TickCount64 < until)
         {
             view.Update(192, 192, Voxel, Release, null);

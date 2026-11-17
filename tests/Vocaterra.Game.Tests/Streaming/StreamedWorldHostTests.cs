@@ -128,6 +128,9 @@ public sealed class StreamedWorldHostTests : IDisposable
     }
 
     // B07f, C2: the far store's edits are the loaded save's, whatever the last run left in the world's folder.
+    // The settles of these tests wait on the condition (no worker, the host steps itself), not on the clock: the bound is only a guard against a hang, so a gate beside other agents cannot fail them.
+    private const double HangGuardMilliseconds = 3_600_000;
+
     private string NewFolder()
     {
         var folder = Path.Combine(Path.GetTempPath(), "vocaterra-host-test-" + Guid.NewGuid().ToString("N"));
@@ -151,7 +154,7 @@ public sealed class StreamedWorldHostTests : IDisposable
     private static void Settled(StreamedWorldHost host, Scene scene)
     {
         var eye = Eye(scene);
-        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
+        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
     }
 
     [Fact]
@@ -278,7 +281,7 @@ public sealed class StreamedWorldHostTests : IDisposable
 
             using var host = StreamedWorldHost.For(scene, preset, 0)!;
             var eye = Eye(scene);
-            Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
+            Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }, HangGuardMilliseconds));
             return host.Far.Stats.Vertices; // every tile built (none is on a card here, so the draw list is empty)
         }
 

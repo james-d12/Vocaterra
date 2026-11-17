@@ -229,10 +229,11 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="eyeY">The eye's y.</param>
     /// <param name="eyeZ">The eye's z.</param>
     /// <param name="dispose">Frees a far tile's buffer.</param>
+    /// <param name="limitMilliseconds">The longest each wait takes (the chunks, the tiles, the ring), or <see langword="null"/> for the usual bounds: a test on a loaded machine gives a generous one, so it waits on the condition and not on the clock.</param>
     /// <returns>Whether everything settled.</returns>
-    public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose)
+    public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose, double? limitMilliseconds = null)
     {
-        var chunks = _residency.Settle(eyeX, eyeY, eyeZ);
+        var chunks = limitMilliseconds is { } given ? _residency.Settle(eyeX, eyeY, eyeZ, given) : _residency.Settle(eyeX, eyeY, eyeZ);
         var started = MonotonicClock.Milliseconds();
         var tiles = false;
         // The ring's real chunks come into the store and the tiles over them are made again: a picture waits for both (a scripted run only; a live game's frames go on).
@@ -240,8 +241,8 @@ public sealed class StreamedWorldHost : IDisposable
         {
             _ring.Update(eyeX, eyeZ, _radius);
             _edits.Update();
-            tiles = Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
-            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > SettleLimitMilliseconds)
+            tiles = limitMilliseconds is { } far ? Far.Settle(eyeX, eyeZ, _viewDistance, dispose, far) : Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
+            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
             {
                 break;
             }
