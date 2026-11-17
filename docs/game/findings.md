@@ -2828,3 +2828,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   only the skyline rows changed. Gated: 12,453 passed; the one failure was `ValleyUndergroundTests`' under-one-second test (1,650 ms at
   load), which has now failed four full runs in a row at load 11 to 19 and passes alone in 8 s: given to B24a (with C9, the eight-thread
   `Parallel.For`).
+- **B17a, a GLSL spike (2026-11-17, `1fe71da5`).** Raw GLSL compiled at run time works inside MonoGame's frame on its own context:
+  Silk.NET.OpenGL 2.22.0 (MIT, with Silk.NET.Core and Maths and Microsoft.Extensions.DependencyModel, MIT; Microsoft.DotNet.PlatformAbstractions
+  reads UNKNOWN offline but its licence file is MIT) loads its functions through `SDL_GL_GetProcAddress`. The RTX 3070 gives OpenGL 4.6
+  in a compatibility profile with compute, multi-draw indirect, buffer storage and clip control. Behind `--gl-shaders` (off by default)
+  the opaque chunk pass draws through one GLSL 330 program: 0 of 921,600 pixels differ from `AlphaTestEffect` in a meadow and in a cave lit
+  by two torches; the pass's submit time fell from 1.06 to 0.81 ms (meadow) and 1.31 to 0.73 ms (cave). Two traps found: MonoGame's
+  `Texture2D.GetData` binds its texture on the active unit (the atlas copy drew black), and passes that meet the GL pass by depth equality
+  need bit-identical positions (four dot products, not `matrix * position`). The gate's licence scan covers the core and Game.Core.Tests
+  only; a scan of `Vocaterra.Game` already FAILs or UNKNOWNs on FontStashSharp (Zlib), MonoGame's native libraries and NVorbis (proposed to
+  the owner in open items). Gated: 12,461 passed; the one failure the valley timing test (B24a).
