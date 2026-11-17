@@ -33,10 +33,11 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly FileLodPersistence? _persistence;
     private readonly LodEdits _edits;
     private readonly LodRing _ring;
-    private ChunkResidency _residency;
+    private readonly ChunkResidency _residency;
     private double _heldSince = double.NaN;
     private double _catchUpUntil = double.NegativeInfinity;
     private int _viewDistance;
+    private int _maxResident;
     private int _radius;
 
     private StreamedWorldHost(Scene scene, QualityPreset preset, int workers, string? lodWorld)
@@ -47,6 +48,7 @@ public sealed class StreamedWorldHost : IDisposable
         _ground = scene.Places is { } places ? GroundClimate.Of(places) : null;
         _pool = new JobPool(workers);
         _viewDistance = preset.ViewDistance;
+        _maxResident = preset.MaxResidentChunks;
         Bands = new ColumnBandCache(_world.Bands);
         _residency = MakeResidency(preset);
         _persistence = lodWorld is null ? null : new FileLodPersistence(FileLodPersistence.FolderFor(lodWorld), "lod-format-" + LodFormat + "; " + lodWorld);
@@ -165,10 +167,12 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="dispose">Frees a far tile's buffer.</param>
     public void ApplyPreset(QualityPreset preset, Action<FarTile> dispose)
     {
-        if (preset.ViewDistance != _viewDistance)
+        if (preset.ViewDistance != _viewDistance || preset.MaxResidentChunks != _maxResident)
         {
+            // The same driver takes the new radii (B21, review C5): what its workers are making and have made stays valid, where a new driver forgot it and left its jobs to finish for nobody.
             _viewDistance = preset.ViewDistance;
-            _residency = MakeResidency(preset);
+            _maxResident = preset.MaxResidentChunks;
+            _residency.Reconfigure(PolicyFor(preset.ViewDistance), preset.MaxResidentChunks);
         }
 
         Far.Reconfigure(FarSettings(preset), dispose);

@@ -40,18 +40,23 @@ public sealed class ChunkResidency
 
     private readonly VoxelGrid _grid;
     private readonly StreamedWorld _world;
-    private readonly BandStreamer _streamer;
+    private BandStreamer _streamer;
     private readonly ColumnBandCache _bands;
     private readonly JobPool _pool;
     private readonly IPlaceInfo? _places;
-    private readonly int _maxResident;
+    private int _maxResident;
     private readonly ConcurrentQueue<ColumnPackage> _done = new();
     private readonly HashSet<long> _inFlight = [];
     private readonly ConcurrentDictionary<long, byte> _bandJobs = new();
-    private readonly (int Dx, int Dz)[] _reach;
+    private (int Dx, int Dz)[] _reach;
     private volatile BandPlan? _planNow; // read by the workers' staleness checks
     private VoxelChunkCoord _planFor;
-    private int _epoch; // counts the jumps (a new plan for a place far from the last): the jobs of an older epoch queue behind every job of the newer one (B07b)
+    private int _epoch; // counts the jumps (a new plan for a place far from the last): the jobs of an older epoch queue behind every job of the newer one (B07b), do nothing when a worker reaches them, and their packages are told apart (B21)
+    private int _flying; // the column jobs submitted whose packages the game loop has not taken yet, of every epoch (a jump forgets its columns in _inFlight, not these)
+    private long _scannedAt = -1; // the grid's residency version when the last pass over the plan's columns found nothing to ask for
+    private bool _needRescan;
+    private double _started; // the clock at the start of the Update in progress, and its budget: what Over reads (a method, so a frame makes no closure)
+    private double? _budget;
     private bool _planUnderground;
     private bool _planDue = true;
     private int _cursor;
@@ -64,6 +69,7 @@ public sealed class ChunkResidency
     private long _dropped;
     private long _plans;
     private long _generateMicroseconds;
+    private long _columnsGenerated;
 
     /// <summary>Creates the driver of a streamed grid.</summary>
     /// <param name="grid">The streamed grid; only the game loop's thread touches it.</param>
@@ -93,6 +99,22 @@ public sealed class ChunkResidency
         _reach = Disc(_streamer.BandReach);
     }
 
+    /// <summary>
+    /// Takes other radii and another cap while the driver goes on (a quality change, B21): what the workers are making stays valid (a chunk is a function of its coordinates, the plan in force keeps filtering what is installed) and the next
+    /// plan, made at once from the radii, asks for and drops what the new radii hold, so a change loses no package, makes no column twice and leaves no chunk half installed (a package is installed whole).
+    /// </summary>
+    /// <param name="policy">The radii.</param>
+    /// <param name="maxResident">The most chunks to keep resident.</param>
+    public void Reconfigure(BandStreamPolicy policy, int maxResident)
+    {
+        _streamer = new BandStreamer(policy, _grid.Limits);
+        _reach = Disc(_streamer.BandReach);
+        _maxResident = maxResident;
+        _planDue = true;
+        (_cursor, _evictions, _evictCursor) = (0, [], 0); // the old plan's list of what to drop is not the new radii's; the plan in force stays until the new one is made, so what arrives meanwhile is installed by it
+        _needRescan = true;
+    }
+
     /// <summary>The radii in force.</summary>
     public BandStreamPolicy Policy => _streamer.Policy;
 
@@ -102,8 +124,8 @@ public sealed class ChunkResidency
     /// <summary>The plan in force, or <see langword="null"/> before the first one is made.</summary>
     public BandPlan? Plan => _planNow;
 
-    /// <summary>Whether everything the plan wants is resident, nothing is being made and nothing is left to drop: what a scripted run waits for before a picture.</summary>
-    public bool IsSettled => _planNow is { } plan && !_planDue && _inFlight.Count == 0 && _done.IsEmpty && _cursor >= plan.Columns.Count && _evictCursor >= _evictions.Count;
+    /// <summary>Whether everything the plan wants is resident, nothing is being made (no column job is left with a worker or in the queue, of the old place too) and nothing is left to drop: what a scripted run waits for before a picture.</summary>
+    public bool IsSettled => _planNow is { } plan && !_planDue && _inFlight.Count == 0 && _flying == 0 && _done.IsEmpty && _cursor >= plan.Columns.Count && _evictCursor >= _evictions.Count;
 
     /// <summary>
     /// Whether the chunks under and round a place are resident: the plan is for the chunk column the place is in and every column within <see cref="NearReadyRadius"/> of it holds what the plan wants of it. The game
@@ -135,6 +157,12 @@ public sealed class ChunkResidency
         return true;
     }
 
+    /// <summary>How many column jobs were handed to the workers and whose packages the game loop has not taken yet, of every epoch (after a jump the old place's are still counted until they come back).</summary>
+    public int Flying => _flying;
+
+    /// <summary>How many columns were made, on a worker or inline, over every plan: a column made for a place the player had left, or made twice, shows here (the tests compare it with the columns resident).</summary>
+    public long ColumnsGenerated => Interlocked.Read(ref _columnsGenerated);
+
     /// <summary>What the driver has done.</summary>
     public ResidencyStats Stats => new(_grid.ResidentChunkCount, _planNow?.Columns.Count ?? 0, _inFlight.Count, _installed, _evicted, _dropped, _plans, Interlocked.Read(ref _generateMicroseconds) / 1000.0);
 
@@ -148,8 +176,8 @@ public sealed class ChunkResidency
     /// <param name="budgetMilliseconds">The most time to spend on the game loop's thread, or <see langword="null"/> for as much as it takes (the settle step).</param>
     public void Update(float eyeX, float eyeY, float eyeZ, double? budgetMilliseconds)
     {
-        var started = MonotonicClock.Milliseconds();
-        bool Over() => budgetMilliseconds is { } budget && MonotonicClock.Milliseconds() - started >= budget;
+        _started = MonotonicClock.Milliseconds();
+        _budget = budgetMilliseconds;
         _frames++;
         var feet = VoxelChunkCoord.FromBlock((int)MathF.Floor(eyeX), (int)MathF.Floor(eyeY), (int)MathF.Floor(eyeZ));
         var underground = _places?.IsUnderground((int)MathF.Floor(eyeX), (int)MathF.Floor(eyeY), (int)MathF.Floor(eyeZ)) ?? false;
@@ -167,16 +195,19 @@ public sealed class ChunkResidency
 
         if (_planDue)
         {
-            TryPlan(Over);
+            TryPlan();
         }
 
-        Install(Over);
+        Install();
         if (_planNow is { } plan)
         {
-            Request(plan, Over);
-            Evict(plan, Over);
+            Request(plan);
+            Evict(plan);
         }
     }
+
+    // Whether the frame's budget is spent (the Update in progress's).
+    private bool Over() => _budget is { } budget && MonotonicClock.Milliseconds() - _started >= budget;
 
     /// <summary>
     /// Brings the world round the eye fully up to date before the call returns (the settle step of a scripted run, and a teleport): plans, makes and installs every wanted column, waiting for the workers, and
@@ -253,7 +284,7 @@ public sealed class ChunkResidency
     // Makes the plan. The bands nearest the player are asked for first; once the near ones are known a plan is made at once, from the bands known so far (a column whose band is not known yet is not
     // wanted yet), and made again every few frames while the rest arrive, so the world round the player starts to fill in a moment after a start or a jump and not after every band in the disc
     // is made. Only a plan made with every band known lets chunks go.
-    private void TryPlan(Func<bool> over)
+    private void TryPlan()
     {
         var pending = false;
         var nearPending = false;
@@ -269,7 +300,7 @@ public sealed class ChunkResidency
 
             if (_pool.Workers == 0)
             {
-                if (over())
+                if (Over())
                 {
                     pending = true;
                     nearPending |= (dx * dx) + (dz * dz) <= NearPlanRadiusSquared;
@@ -317,14 +348,20 @@ public sealed class ChunkResidency
         _evictCursor = 0;
     }
 
-    // Installs the columns the workers finished that the plan still wants.
-    private void Install(Func<bool> over)
+    // Installs the columns the workers finished that the plan still wants. A package of an older epoch (a column asked for at the place before a jump) is used for what the plan wants of it (a chunk is a function of its
+    // coordinates, so what an old job made is right for the new place too) but never frees a request slot: the jump cleared them and the key may now stand for a request of the new place.
+    private void Install()
     {
         var plan = _planNow;
         var installs = 0;
         while (_done.TryDequeue(out var package))
         {
-            _ = _inFlight.Remove(ColumnBandCache.KeyOf(package.ChunkX, package.ChunkZ));
+            _flying--;
+            if (package.Epoch == _epoch)
+            {
+                _ = _inFlight.Remove(ColumnBandCache.KeyOf(package.ChunkX, package.ChunkZ));
+            }
+
             if (plan is not null && plan.TryGetLayers(package.ChunkX, package.ChunkZ, out var min, out var max))
             {
                 foreach (var chunk in package.Layers)
@@ -339,9 +376,10 @@ public sealed class ChunkResidency
             else
             {
                 _dropped++;
+                _needRescan = true; // the plan may come back to the column
             }
 
-            if (installs >= 96 || over())
+            if (installs >= 96 || Over())
             {
                 return;
             }
@@ -349,14 +387,17 @@ public sealed class ChunkResidency
     }
 
     // Asks for the missing columns of the plan, nearest first.
-    private void Request(BandPlan plan, Func<bool> over)
+    private void Request(BandPlan plan)
     {
         var columns = plan.Columns;
         if (_cursor >= columns.Count)
         {
-            if (_inFlight.Count == 0 && _frames % RescanFrames == 0)
+            // A column whose package was dropped, or whose chunks were evicted by a read's side effects, is asked for again: a pass over the plan every few frames, and only when something could have changed (B21).
+            if (_inFlight.Count == 0 && _frames % RescanFrames == 0 && (_needRescan || _scannedAt != _grid.ResidencyVersion))
             {
-                _cursor = 0; // a column whose package was dropped, or whose chunks were evicted by a read's side effects, is asked for again
+                _cursor = 0;
+                _needRescan = false;
+                _scannedAt = _grid.ResidencyVersion;
             }
             else
             {
@@ -367,7 +408,7 @@ public sealed class ChunkResidency
         var submitted = 0;
         while (_cursor < columns.Count)
         {
-            if (_pool.Workers == 0 ? over() : submitted >= MaxSubmitsPerFrame || _inFlight.Count >= MaxInFlight)
+            if (_pool.Workers == 0 ? Over() : submitted >= MaxSubmitsPerFrame || _inFlight.Count >= MaxInFlight)
             {
                 break;
             }
@@ -408,14 +449,16 @@ public sealed class ChunkResidency
             }
 
             _ = _inFlight.Add(key);
+            _flying++;
             var distance = PriorityOf(((long)(column.ChunkX - _planFor.X) * (column.ChunkX - _planFor.X)) + ((long)(column.ChunkZ - _planFor.Z) * (column.ChunkZ - _planFor.Z)));
-            var (cx, cz, lo, hi) = (column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer);
-            // A column the player has moved away from by the time a worker reaches it is not made, but its package still comes back (empty), so the game loop forgets that it asked.
+            var (cx, cz, lo, hi, epoch) = (column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer, _epoch);
+            // A column the player has moved away from by the time a worker reaches it (the plan no longer holds it, or a jump made the request old) is not made, but its package still comes back (empty), so the game loop
+            // forgets that it asked.
             _pool.Submit(
                 JobLane.Residency,
                 distance,
                 static () => false,
-                () => _done.Enqueue(new ColumnPackage(cx, cz, _planNow is not { } current || !current.TryGetLayers(cx, cz, out _, out _) ? [] : Generate(cx, cz, lo, hi))));
+                () => _done.Enqueue(new ColumnPackage(cx, cz, epoch, epoch != Volatile.Read(ref _epoch) || _planNow is not { } current || !current.TryGetLayers(cx, cz, out _, out _) ? [] : Generate(cx, cz, lo, hi))));
             submitted++;
             _cursor++;
         }
@@ -439,6 +482,7 @@ public sealed class ChunkResidency
     private IReadOnlyList<ChunkData> Generate(int chunkX, int chunkZ, int minLayer, int maxLayer)
     {
         var started = MonotonicClock.Milliseconds();
+        _ = Interlocked.Increment(ref _columnsGenerated);
         var layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer);
         _ = Interlocked.Add(ref _generateMicroseconds, (long)((MonotonicClock.Milliseconds() - started) * 1000));
         return layers;
@@ -458,10 +502,10 @@ public sealed class ChunkResidency
     }
 
     // Drops what the plan no longer holds, a bounded number a frame; a chunk that changed stays (the grid refuses it).
-    private void Evict(BandPlan plan, Func<bool> over)
+    private void Evict(BandPlan plan)
     {
         var dropped = 0;
-        while (_evictCursor < _evictions.Count && dropped < MaxEvictionsPerFrame && !over())
+        while (_evictCursor < _evictions.Count && dropped < MaxEvictionsPerFrame && !Over())
         {
             var chunk = _evictions[_evictCursor++];
             if (!plan.Holds(chunk) && GridResidency.TryEvict(_grid, chunk))
@@ -492,5 +536,5 @@ public sealed class ChunkResidency
         return [.. list.Select(static t => (t.Dx, t.Dz))];
     }
 
-    private sealed record ColumnPackage(int ChunkX, int ChunkZ, IReadOnlyList<ChunkData> Layers);
+    private sealed record ColumnPackage(int ChunkX, int ChunkZ, int Epoch, IReadOnlyList<ChunkData> Layers);
 }

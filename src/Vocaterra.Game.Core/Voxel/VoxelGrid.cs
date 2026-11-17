@@ -38,6 +38,15 @@ public sealed class VoxelGrid : IVoxelWriter
     private readonly List<IBlockChangeListener> _listeners = [];
     private readonly List<IChunkResidencyListener> _residencyListeners = [];
 
+    // The listeners as arrays that are replaced, never changed, when one is added or removed: a change or an install or eviction walks the array it found without copying it (a listener may add or remove
+    // listeners, or edit the grid, while it is told, and the walk goes on over the listeners there were).
+    private IBlockChangeListener[] _listenerArray = [];
+    private IChunkResidencyListener[] _residencyArray = [];
+
+    // The chunks of air that were asked for from the generator, without installing, by HighestBlock (what the generator makes is the same whenever it is asked, so it is asked once).
+    private readonly HashSet<VoxelChunkCoord> _generatedAir = [];
+    private long _readGenerated;
+
     /// <summary>Creates a bounded grid: the box from (0, 0, 0), a positive multiple of 16 blocks in every direction.</summary>
     internal VoxelGrid(int sizeX, int sizeY, int sizeZ)
     {
@@ -124,6 +133,12 @@ public sealed class VoxelGrid : IVoxelWriter
     /// reader that polls compares it with the value it last saw; <see cref="IChunkResidencyListener"/> says which chunk.
     /// </summary>
     public long ResidencyVersion { get; private set; }
+
+    /// <summary>
+    /// How many chunks of a streamed grid a read or a write generated and installed on the calling thread (B21): <see cref="GetBlock"/>, <see cref="GetWater"/>, <see cref="IsSolid"/> and the edits go through the generator for a chunk that is not
+    /// resident, where the residency driver (<see cref="World.Streaming.GridResidency"/>) would have made it on a worker. Near the player it is zero (the simulation waits for the near zone); the count says how often the game loop paid for a chunk itself.
+    /// </summary>
+    public long ChunksGeneratedByReads => _readGenerated;
 
     /// <summary>The coordinates of the resident chunks (a live view, in no fixed order): a reader on the game loop's thread walks it without copying, and never while a chunk is installed or evicted.</summary>
     public IReadOnlyCollection<VoxelChunkCoord> ResidentChunks => _chunks.Keys;
@@ -240,16 +255,30 @@ public sealed class VoxelGrid : IVoxelWriter
         if (!_residencyListeners.Contains(listener))
         {
             _residencyListeners.Add(listener);
+            _residencyArray = [.. _residencyListeners];
         }
     }
 
     /// <summary>Unregisters a residency listener; returns whether it was registered.</summary>
-    public bool RemoveResidencyListener(IChunkResidencyListener listener) => _residencyListeners.Remove(listener);
+    public bool RemoveResidencyListener(IChunkResidencyListener listener)
+    {
+        var removed = _residencyListeners.Remove(listener);
+        if (removed)
+        {
+            _residencyArray = [.. _residencyListeners];
+        }
+
+        return removed;
+    }
 
     /// <summary>
     /// The y of the highest block in the column that is not air, or <c>Limits.MinY - 1</c> (-1 on a bounded grid) when the column is empty or outside the limits.
-    /// Trees and roofs count. A streamed grid generates the chunks of the column it does not hold, so the answer never depends on what is resident.
+    /// Trees and roofs count. A streamed grid reads the chunks of the column it holds, and for a layer it does not hold it asks the generator without installing what it makes (B21, review C11): the answer
+    /// never depends on what is resident (a resident chunk is what the generator made, or what the player changed it to, and a chunk of air that the generator made is remembered), and no chunk of air is installed,
+    /// so the sound's per-tick look at the player's column and a plot's check cost no residency churn.
     /// </summary>
+    /// <param name="x">The column's x.</param>
+    /// <param name="z">The column's z.</param>
     public int HighestBlock(int x, int z)
     {
         if ((uint)(x - _limits.MinX) >= (uint)_limits.SizeX || (uint)(z - _limits.MinZ) >= (uint)_limits.SizeZ)
@@ -257,25 +286,92 @@ public sealed class VoxelGrid : IVoxelWriter
             return _limits.MinY - 1;
         }
 
+        var (cx, cz) = (x >> VoxelChunk.Shift, z >> VoxelChunk.Shift);
+        var (lx, lz) = (x & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1));
         for (var cy = _limits.EndChunkY - 1; cy >= _limits.MinChunkY; cy--)
         {
-            var chunk = ReadChunk(x >> VoxelChunk.Shift, cy, z >> VoxelChunk.Shift);
-            if (chunk is null || chunk.IsEmpty)
+            if (_streamed)
             {
+                var resident = Find(cx, cy, cz);
+                if (resident is null)
+                {
+                    if (PeekGenerated(new VoxelChunkCoord(cx, cy, cz), lx, lz) is { } top)
+                    {
+                        return top;
+                    }
+
+                    continue;
+                }
+
+                if (HighestIn(resident, cy, lx, lz) is { } found)
+                {
+                    return found;
+                }
+
                 continue;
             }
 
-            for (var ly = VoxelChunk.Size - 1; ly >= 0; ly--)
+            var chunk = ReadChunk(cx, cy, cz);
+            if (chunk is not null && HighestIn(chunk, cy, lx, lz) is { } y)
             {
-                if (chunk[x & (VoxelChunk.Size - 1), ly, z & (VoxelChunk.Size - 1)] != BlockId.Air)
-                {
-                    return (cy << VoxelChunk.Shift) + ly;
-                }
+                return y;
             }
         }
 
         return _limits.MinY - 1;
     }
+
+    private static int? HighestIn(VoxelChunk chunk, int cy, int lx, int lz)
+    {
+        if (chunk.IsEmpty)
+        {
+            return null;
+        }
+
+        for (var ly = VoxelChunk.Size - 1; ly >= 0; ly--)
+        {
+            if (chunk[lx, ly, lz] != BlockId.Air)
+            {
+                return (cy << VoxelChunk.Shift) + ly;
+            }
+        }
+
+        return null;
+    }
+
+    // The highest block of a column of a chunk that is not resident, from what the generator makes for it (never installed); chunks it makes as air are remembered.
+    private int? PeekGenerated(VoxelChunkCoord coord, int lx, int lz)
+    {
+        if (_generator is null || _generatedAir.Contains(coord))
+        {
+            return null;
+        }
+
+        var content = _generator.Generate(coord);
+        if (content is null)
+        {
+            if (_generatedAir.Count >= MaxRememberedAir)
+            {
+                _generatedAir.Clear();
+            }
+
+            _ = _generatedAir.Add(coord);
+            return null;
+        }
+
+        var blocks = content.Blocks;
+        for (var ly = VoxelChunk.Size - 1; ly >= 0; ly--)
+        {
+            if (blocks[(((ly * VoxelChunk.Size) + lz) * VoxelChunk.Size) + lx] != BlockId.Air)
+            {
+                return (coord.Y << VoxelChunk.Shift) + ly;
+            }
+        }
+
+        return null;
+    }
+
+    private const int MaxRememberedAir = 1 << 16;
 
     /// <summary>
     /// The world digest: the SHA-256 of the grid size (three 32-bit little-endian integers: X, Y, Z) followed by the 32-byte digest of every
@@ -401,7 +497,7 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         ResidencyVersion++;
-        foreach (var listener in _residencyListeners.ToArray())
+        foreach (var listener in _residencyArray)
         {
             listener.OnChunkEvicted(coord);
         }
@@ -557,16 +653,26 @@ public sealed class VoxelGrid : IVoxelWriter
         if (!_listeners.Contains(listener))
         {
             _listeners.Add(listener);
+            _listenerArray = [.. _listeners];
         }
     }
 
     /// <summary>Unregisters a listener; returns whether it was registered.</summary>
-    public bool RemoveListener(IBlockChangeListener listener) => _listeners.Remove(listener);
+    public bool RemoveListener(IBlockChangeListener listener)
+    {
+        var removed = _listeners.Remove(listener);
+        if (removed)
+        {
+            _listenerArray = [.. _listeners];
+        }
+
+        return removed;
+    }
 
     private void Raise(BlockChange change)
     {
-        // Iterate a snapshot: a listener may add or remove listeners, or edit the grid, while it is told.
-        foreach (var listener in _listeners.ToArray())
+        // Iterate the array as it is now: a listener may add or remove listeners, or edit the grid, while it is told.
+        foreach (var listener in _listenerArray)
         {
             listener.OnBlockChanged(change);
         }
@@ -632,7 +738,11 @@ public sealed class VoxelGrid : IVoxelWriter
     private VoxelChunk? ChunkForWrite(int cx, int cy, int cz, BlockId block) =>
         ReadChunk(cx, cy, cz) ?? (block == BlockId.Air ? null : Create(new VoxelChunkCoord(cx, cy, cz), null));
 
-    private VoxelChunk Generate(VoxelChunkCoord coord) => Create(coord, _generator!.Generate(coord));
+    private VoxelChunk Generate(VoxelChunkCoord coord)
+    {
+        _readGenerated++;
+        return Create(coord, _generator!.Generate(coord));
+    }
 
     private VoxelChunk Create(VoxelChunkCoord coord, ChunkContent? content)
     {
@@ -652,7 +762,7 @@ public sealed class VoxelGrid : IVoxelWriter
         if (_streamed)
         {
             ResidencyVersion++;
-            foreach (var listener in _residencyListeners.ToArray())
+            foreach (var listener in _residencyArray)
             {
                 listener.OnChunkInstalled(coord);
             }

@@ -45,15 +45,22 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
     /// </summary>
     public UInt128 GreyKinds { get; private set; }
 
+    /// <summary>How many keys were worked out so far (<see cref="KeyOf"/>, seven lookups each): the renderer asks for a key only where something may have changed, and the tests count it.</summary>
+    public long KeysComputed { get; private set; }
+
     /// <summary>The key of a chunk as the grid is now (a chunk that is not resident has the version 0 and layers of air on every side it would show).</summary>
-    public ChunkKey KeyOf(VoxelChunkCoord coord) => new(
-        _grid.TryGetChunk(coord, out var chunk) ? chunk.Version : 0,
-        Layer(coord.X + 1, coord.Y, coord.Z, BlockFace.West),
-        Layer(coord.X - 1, coord.Y, coord.Z, BlockFace.East),
-        Layer(coord.X, coord.Y + 1, coord.Z, BlockFace.Down),
-        Layer(coord.X, coord.Y - 1, coord.Z, BlockFace.Up),
-        Layer(coord.X, coord.Y, coord.Z + 1, BlockFace.North),
-        Layer(coord.X, coord.Y, coord.Z - 1, BlockFace.South));
+    public ChunkKey KeyOf(VoxelChunkCoord coord)
+    {
+        KeysComputed++;
+        return new ChunkKey(
+            _grid.TryGetChunk(coord, out var chunk) ? chunk.Version : 0,
+            Layer(coord.X + 1, coord.Y, coord.Z, BlockFace.West),
+            Layer(coord.X - 1, coord.Y, coord.Z, BlockFace.East),
+            Layer(coord.X, coord.Y + 1, coord.Z, BlockFace.Down),
+            Layer(coord.X, coord.Y - 1, coord.Z, BlockFace.Up),
+            Layer(coord.X, coord.Y, coord.Z + 1, BlockFace.North),
+            Layer(coord.X, coord.Y, coord.Z - 1, BlockFace.South));
+    }
 
     /// <summary>
     /// The chunks of a bounded grid whose mesh is missing or built from older blocks, in chunk order (layer, row, column), resident or not.
@@ -157,6 +164,34 @@ public sealed class ChunkVersionTracker : IChunkResidencyListener
         }
 
         return due;
+    }
+
+    /// <summary>
+    /// Sets the grey set like <see cref="SetGreyKinds"/>, without making any chunk due: the meshes stay current in the tracker's eyes and the chunks that hold a kind whose grey state changed are put in <paramref name="affected"/>, for a
+    /// renderer that builds them again in the background and keeps the old mesh on screen until then (B21).
+    /// </summary>
+    /// <param name="greyKinds">One bit per block kind; 0 draws the whole world in colour.</param>
+    /// <param name="affected">Where to put the chunks to build again.</param>
+    /// <returns>Whether the set changed.</returns>
+    public bool ChangeGreyKinds(UInt128 greyKinds, ICollection<VoxelChunkCoord> affected)
+    {
+        ArgumentNullException.ThrowIfNull(affected);
+        var changed = greyKinds ^ GreyKinds;
+        GreyKinds = greyKinds;
+        if (changed == 0)
+        {
+            return false;
+        }
+
+        foreach (var (coord, entry) in _entries)
+        {
+            if ((entry.Kinds & changed) != 0 && entry.Meshed is not null)
+            {
+                affected.Add(coord);
+            }
+        }
+
+        return true;
     }
 
     /// <summary>Nothing to do: a chunk that comes in is due until it is meshed, and the chunks beside it see its layers in their keys.</summary>
