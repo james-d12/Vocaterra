@@ -36,3 +36,13 @@ streaming workers or the far jobs read the landmass (no case found they never wa
 landmass or sea). New test: a fresh seed-7 world's river column is dry, then warm with water after its chunk is generated through the
 source. `JobPool` and `StreamedWorldHost` untouched. Merged `ef932990` with no conflicts and no pin moved. Suite 12,508 passed, 1 failed
 (`PristineChunksTests...ASnapshotIsTaken`, 21.6 s at load 17, passing alone 3 of 3).
+
+Round 4 (about 11:00 UTC), lake lines: the cause is B02c's. `DrainageNetwork.ReadLandmass` gives a lake node max(its flood level, the
+level of the node it was found from), and that node can be a bank node whose level is higher, so one lake (seed 2026, round 5300 to 6900,
+600 to 800) became steps of 47, 45, 43 (and 41) with walls of water between: the two dark lines in the far-view picture. Attempts: a body
+raised to its highest node broke `HeightModelTests...WaterIsExactlyWhere...` (banks leak); a plain lowest-node flatten broke the
+river-never-rises tests; a lake node taking its own flood level, each body flattened to its lowest node and the bank chain below capped
+passed the new one-level test and the rivers but failed `TerrainTuningTests...NoPuddleLiesOnTheLand` (seed 7: 9 puddles, limit 8), and a
+retry gave the same. Reverted to `f4a153b5` (no commit); the lake levels planned as B02d.
+Gate on `f4a153b5` merged into `1afd94e2` (about 11:35): failed on B21's `ResidencyInFlightTests...TheyAllocateNothingOnTheGameThread`
+(workers 0 and 2: 64,000 bytes, expected 0): B02c's per-frame `WorldQuery` path allocates. Merge reset; sent back.
