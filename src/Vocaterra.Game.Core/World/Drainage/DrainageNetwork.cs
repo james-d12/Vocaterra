@@ -143,9 +143,9 @@ internal sealed class DrainageNetwork
     public bool IsRead(int x, int z)
     {
         var (ni, nj) = (IntMath.DivDown(x, _spacing), IntMath.DivDown(z, _spacing));
-        foreach (var dj in new[] { -_look, 0, _look })
+        for (var dj = -_look; dj <= _look; dj += _look) // no array of the three offsets: the game loop asks this every frame and must allocate nothing
         {
-            foreach (var di in new[] { -_look, 0, _look })
+            for (var di = -_look; di <= _look; di += _look)
             {
                 if (!Ready(ni + di, nj + dj))
                 {
@@ -163,9 +163,9 @@ internal sealed class DrainageNetwork
     public void Warm(int x, int z)
     {
         var (ni, nj) = (IntMath.DivDown(x, _spacing), IntMath.DivDown(z, _spacing));
-        foreach (var dj in new[] { -_look, 0, _look })
+        for (var dj = -_look; dj <= _look; dj += _look)
         {
-            foreach (var di in new[] { -_look, 0, _look })
+            for (var di = -_look; di <= _look; di += _look)
             {
                 _ = Locate(ni + di, nj + dj);
             }

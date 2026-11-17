@@ -421,4 +421,34 @@ public sealed class DrainageNetworkTests(ITestOutputHelper output)
         Assert.True(source.World.Ground.IsWarm(x, z));
         Assert.Equal("river-channel", query.BiomeAt(x, z).Id);
     }
+
+    [Fact]
+    public void Given_AWarmModel_When_IsWarmAndADryScopeAreAskedEveryFrame_Then_NothingIsAllocated()
+    {
+        // The game loop asks IsWarm and takes a dry scope for every column it looks at, every frame: the look-up of the nodes round a column built an array of offsets per call (160 bytes), and that was 64 000 bytes in the residency test.
+        var model = new HeightModel(World, 7);
+        var climate = new ClimateSampler(World, 7);
+        model.Warm(3200, 7600);
+        _ = model.Shape(3200, 7600, climate.At(3200, 7600));
+        var climateAt = climate.At(3300, 7650);
+        _ = model.Shape(3300, 7650, climateAt); // everything the loop below reads is built
+        var warm = false;
+        var before = 0L;
+        for (var round = 0; round < 2; round++) // the first round makes what the second reads (a thread's static, a tile of nodes); the second is the steady state of a frame
+        {
+            before = GC.GetAllocatedBytesForCurrentThread();
+            for (var i = 0; i < 1000; i++)
+            {
+                warm = model.IsWarm(3200, 7600);
+                using (DrainageNetwork.WithoutReading())
+                {
+                    warm &= model.IsWarm(3200 + (i & 7), 7600);
+                }
+            }
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.True(warm);
+        Assert.Equal(0, allocated);
+    }
 }
