@@ -2854,3 +2854,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   of three and allows 5,000 ms, and runs alone in the timing collection. The budget is generous because spin-waits under contention can
   inflate CPU time, so it catches a doubling, not a 20% slowdown. Gated clean: 12,485 passed, no failures, the first full run in a day
   without the valley flake.
+- **B21, meshing off the game thread (2026-11-17, `28d0478c`).** The game thread meshed 3 to 5 chunks a frame inline (the codebase review's
+  P1); now it copies what the mesher reads into a `ChunkSnapshot` (the chunk, its 18-block layer, two layers under, the blocks near lights,
+  the river currents) and the job pool's two workers mesh it on a new mesh lane; the game thread uploads within the frame budget. Each
+  chunk has a stamp (its edits, a neighbour's border edits, the chunk above, a light, the sky's reach): a job built from an older stamp is
+  refused and requeued. An edit within 40 blocks of the eye meshes on the game thread in its own frame, so it shows at once. Block changes
+  mark dirty chunks; nothing re-sorts per edit; steady frames allocate nothing in residency and remesh. Jumps and preset changes no longer
+  lose or double-install chunks (an epoch per jump; the residency reconfigured in place), and `HighestBlock` reads without installing. The
+  gains: the near view complete after a jump in about 3 s at High (was 7), frames while the 16 km far view fills 4 to 5 ms (were 12 to 14,
+  the base's game thread at 98% of a core); the whole view only 20 to 40% faster, because the same two workers now also mesh (the
+  review's 3 to 5x needs more workers: D-game-34 item 42). A High teleport with the far view on first looked slower (28 to 31 ms against
+  12 to 14); interleaved runs showed it was other agents' load, B21 equal or better every run. Reads by the simulation outside the resident
+  set do generate chunks (about 50 at a start, about 100 over three teleports; none while walking): counted in `--stream-stats`. Two base
+  bugs seen: a scripted `--place antorcha@467,61,153` shows no torch, and `--wait` never returns after a guide dialogue opens. Gated clean.

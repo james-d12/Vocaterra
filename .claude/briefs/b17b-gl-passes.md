@@ -43,7 +43,10 @@ Deliverables (the spike's recommendation, items 1, 2, 3, 5 and 6):
    is bound, or give the scene its own target); no fallback count left over.
 4. **The default and the fallback:** when the comparison below holds, the GL path becomes the default and `--gl-shaders off` (or similar)
    keeps the effects as the fallback; the effects are used automatically when `GlInfo` reports a context below 3.3 or a shader fails to
-   compile (one clear log line). Say what you chose. A settings-page row is not needed.
+   compile (one clear log line). Say what you chose. **The owner (2026-11-17, D-game-34 item 43): "all the additional graphics we're
+   adding probably should be toggleable via a setting."** So the GL path is a row on the settings page ("Shaders": on or off, saved, and a
+   launch option), and the settings page gets a Graphics group that B17c's effects will join (each its own toggle, on by default, with the
+   quality presets able to set them). Changing it in play takes effect without a restart if that is simple; otherwise say it needs one.
 5. **The card's time:** a GL timer query round the world's passes, its median in `--stream-stats` (with the processor's submit time).
 6. **Measured and compared:** `scripts/gl-compare.sh` widened to these views, effect against GL, Release, High: a meadow at midday, the
    valley wood at dusk (B22's dawn and dusk bands), a cave lit by torches, a pool or lake shore (water), under water, the village street,
@@ -51,7 +54,7 @@ Deliverables (the spike's recommendation, items 1, 2, 3, 5 and 6):
    scripted runs' pictures compared on both paths (`compare-runs.py`); every difference explained. Frame times and the card's time both
    ways (interleave A/B runs: other agents load the machine).
 7. Tests: the shader sources compile (live-GL, skipped without the variable); the state scope restores what it captured (live-GL); the
-   default and the fallback options; the render-target flip; the built-in path unchanged.
+   default and the fallback options; the settings row saved and read back; the render-target flip; the built-in path unchanged.
 8. Documents: docs/game/b17-spike.md gets a "B17b" section (what moved, the comparison, the measurements, what B17c inherits);
    docs/game/architecture.md (the drawing), the Game README, docs/game/running.md (the option).
 

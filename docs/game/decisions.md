@@ -941,6 +941,12 @@ the owner's answers of 2026-11-15 are in its section 5.
     we should allow that to be configured in the game as well." The setting is on the settings page (Auto or 1 to 8) and a launch
     option; scripted runs, tests and agents keep 2 (the machine rules for builds are unchanged). It lands with B07d; `JobPool.MaxWorkers`
     (2) becomes the setting's bound. The world does not depend on the count.
+43. **Every added graphics effect has a setting** (2026-11-17, about 08:45 UTC): "For the B17 work, all the additional graphics we're
+    adding probably should be toggleable via a setting"; asked about B22's (already merged): "Sure, add those as well. Probably group them
+    under the graphics setting." A Graphics group on the settings page: B17b's shaders on or off, then each B17c effect (light as data,
+    fog by height, the water shader, the far view's light) and B22's sun per band with the deeper dusk, climate colours and water depth
+    tint, with MSAA and the grass slider moved into the group; on by default, saved, a launch option each, and the quality presets may
+    set them.
 
 ## Already decided
 
