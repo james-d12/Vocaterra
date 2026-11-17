@@ -972,6 +972,13 @@ the owner's answers of 2026-11-15 are in its section 5.
     analysis can we kickoff [it] once all current active work is done". Read as yes to A to D (A only after one measurement shows it
     faster with the goldens unchanged; B keeps the slice's 14-core and memory caps), applied by one milestone with nothing else running;
     no new milestone starts until the running ones have merged. The owner was told he can drop any of A to D.
+51. **feature/biomes into main by the morning of 2026-11-18** (2026-11-17, about 23:15 UTC): "Don't worry about the caching for now.
+    We'll come back to performance later on. We need to basically just finish up everything and get this feature biome merged to main by
+    tomorrow morning"; asked which milestones go in first: "Small ones only (Recommended)": M101, B11d and B02d join B17c and B03b,
+    with B30 (CI ready: the timing tests on CI's slower runner, CI's timeout); B29 (item 50's changes), B23, B16 and the caching ideas
+    wait until after the merge, on a fresh branch from main. The orchestrator opens the pull request; the owner merges it. Also: "Make
+    sure to include document any milestones that we haven't accomplished once this is done, because we'll obviously need to do that in
+    a fresh agent on a fresh PR": a new handover lists them.
 
 ## Already decided
 
