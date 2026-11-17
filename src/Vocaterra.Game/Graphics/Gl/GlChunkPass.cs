@@ -35,8 +35,9 @@ public sealed unsafe class GlChunkPass : IDisposable
     private const int VertexSize = World.MeshVertex.SizeInBytes;
     private const float AlphaReference = 110f / 255f;
 
-    // MonoGame's sampler state of the water's frames has MaxMipLevel 5, which its OpenGL code sets as the texture's base level (the finest level sampled): the copy does the same.
-    private const int WaterBaseLevel = 5;
+    // MonoGame's sampler state of the water's frames has MaxMipLevel 5 (WaterTileLayout.MaxMipLevel: the coarsest level that still keeps one tile's picture apart from its neighbour's), which its OpenGL code sets as the
+    // texture's last mip level (TEXTURE_MAX_LEVEL); the block atlas has none (all its levels are sampled). B17b's first version took it for the base level, and the water came out smooth where the effects' has its glints.
+    private const int WaterMaxLevel = 5;
 
     private readonly GL _gl;
     private readonly GlProgram _program;
@@ -155,11 +156,11 @@ public sealed unsafe class GlChunkPass : IDisposable
 
         gl.BufferData<ushort>(BufferTargetARB.ElementArrayBuffer, indices, BufferUsageARB.StaticDraw);
         gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4); // the texels are four bytes each (RGBA8)
-        var atlasTexture = UploadTexture(gl, atlas.Width, atlas.Height, atlasLevels, 0, GLEnum.NearestMipmapLinear, GLEnum.Nearest); // the block atlas sampler's settings: nearest within a level, linear between
+        var atlasTexture = UploadTexture(gl, atlas.Width, atlas.Height, atlasLevels, atlasLevels.Length - 1, GLEnum.NearestMipmapLinear, GLEnum.Nearest); // the block atlas sampler's settings: nearest within a level, linear between
         var frames = new uint[frameLevels.Count];
         for (var i = 0; i < frames.Length; i++)
         {
-            frames[i] = UploadTexture(gl, waterFrames[i].Width, waterFrames[i].Height, frameLevels[i], WaterBaseLevel, GLEnum.LinearMipmapLinear, GLEnum.Linear); // WaterTextures.Sampler: trilinear
+            frames[i] = UploadTexture(gl, waterFrames[i].Width, waterFrames[i].Height, frameLevels[i], WaterMaxLevel, GLEnum.LinearMipmapLinear, GLEnum.Linear); // WaterTextures.Sampler: trilinear
         }
 
         state.Restore();
@@ -192,8 +193,8 @@ public sealed unsafe class GlChunkPass : IDisposable
         return levels;
     }
 
-    // The texels, every mip level, in a GL texture sampled the way the MonoGame sampler state says (clamped, the given filters, the given finest level).
-    private static uint UploadTexture(GL gl, int baseWidth, int baseHeight, Color[][] levels, int baseLevel, GLEnum minFilter, GLEnum magFilter)
+    // The texels, every mip level, in a GL texture sampled the way the MonoGame sampler state says (clamped, the given filters, the given coarsest level).
+    private static uint UploadTexture(GL gl, int baseWidth, int baseHeight, Color[][] levels, int maxLevel, GLEnum minFilter, GLEnum magFilter)
     {
         gl.ActiveTexture((GLEnum)((int)GLEnum.Texture0 + TextureUnit));
         var texture = gl.GenTexture();
@@ -206,8 +207,8 @@ public sealed unsafe class GlChunkPass : IDisposable
             gl.TexImage2D<Color>(TextureTarget.Texture2D, level, InternalFormat.Rgba8, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, levels[level]);
         }
 
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, baseLevel);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levels.Length - 1);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, maxLevel);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);

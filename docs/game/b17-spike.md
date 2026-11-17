@@ -1,4 +1,4 @@
-# B17a: a GLSL spike on MonoGame's context (2026-11-17)
+# B17a: a GLSL spike on MonoGame's context (2026-11-17); B17b: every chunk pass on it (below)
 
 Goal (D-game-34 items 30, 39, 40; `docs/game/biomes-plan.md` section 3.9): prove that the game can draw its chunks with its own OpenGL shaders, compiled at run time by the
 driver, inside MonoGame's frame, and say how well it fits. The spike draws the **opaque chunk pass** through one GLSL program behind `--gl-shaders` (off by default). The sky, the far
@@ -137,3 +137,81 @@ The route works: one context, no second window, the same picture to the pixel, a
 Size of the remaining B17 work: **L**, as the plan has it. The spike has done the toolchain part (the context, the loader, the program, the state hand-over, one pass and the
 comparison harness, which is the part the plan feared: no Wine, no content pipeline, the licence settled), leaving the other passes (the cut-outs and the water are the awkward ones),
 render targets, the atlas as a texture array, light as data, the fog, timer queries, the fallback policy and the tests. Item 1 above (all the chunk passes in one step) is the bulk of it, perhaps M by itself.
+
+
+---
+
+# B17b: every chunk pass on the game's own GLSL (2026-11-17)
+
+Goal (D-game-34 items 40, 41 and 43; the spike's recommendation 1, 2, 3, 5 and 6): the opaque faces, the lit pieces, the cut-outs, B18's grass layer, the lantern glow and the water all drawn through the game's GLSL on MonoGame's
+context in one state scope a frame, with the picture of the effects; a Shaders row on the settings page and a launch option; the card's time measured. Branch `B17b-gl-passes`, code in `src/Vocaterra.Game/Graphics/Gl/`.
+
+## What moved
+
+| Piece | Where | What changed |
+|---|---|---|
+| One program | `Shaders/chunk.vert.glsl`, `chunk.frag.glsl` (`opaque.*` renamed) | Texel times (band tint times vertex colour), the alpha test (reference 110/255; a reference below 0 is no test: the water), today's linear fog (premultiplied by alpha), the position as four dot products with the matrix's columns (the depth-equality rule of the spike), and a `uFlipY` uniform for render targets. Every pass is this program: the glow shares the opaque faces' program and transform, so its depth equals theirs to the last bit. |
+| The passes | `GlChunkPass` (was `GlOpaquePass`), `GlPassKind` | `Use(kind)` sets the state of a kind of draw: **Opaque** (depth test and write, less or equal, back faces culled), **Cutout** (the plants and the grass: both sides), **Glow** (colour added, `ONE ONE`, alpha left; depth read only; the fog colour black), **Water** (`SRC_ALPHA, ONE_MINUS_SRC_ALPHA`, depth read only, no alpha test, one of 16 frames of the animated art on the pass's unit). The grass layer's quadrants are `glDrawElementsBaseVertex` ranges. One shared quad index buffer, one vertex array, one program, 4 state sets a frame (3 without water). |
+| Buffers | `VoxelRenderer.ChunkGpu`: `GlOpaque`, `GlAlpha`, `GlPlants`, `GlLit`, `GlGlow`, `GlGrass` | Every part of a chunk uploads on the game thread in `IChunkMeshSink.Install` (B21's path, kept) into buffers of the pass's own; MonoGame gets none. Switching the setting in play lets every mesh go and builds the view again (nearest first, on the workers). |
+| Textures | `GlChunkPass.TryCreate` | The atlas (nearest within a level, linear between, every level) and the 16 water frames (trilinear, clamped, last level 5: `TEXTURE_MAX_LEVEL`, which is how MonoGame applies `SamplerState.MaxMipLevel`; the first version took it for the base level and the water came out smooth where the effects' has its glints) are copies in textures of the pass's own, made once. |
+| The scope | `GlStateSaver`, `GlChunkPass.Begin`/`End` | One `Capture` and one `Restore` a frame round all the chunk work. The saver now also holds the blend function and equation (the glow's and the water's), the pixel store's unpack alignment (the texture uploads), primitive restart (the quad indices run to 65,535, so the scope turns it off, and the fixed-index bit too on a 4.3 context) beside what it held. Not saved, because nothing touches it: the polygon offset's factors (only the enable bit), line and point sizes, clip distances, the framebuffer. **No MonoGame call stands inside the scope**: the figures, the plots' outlines and the block's frame (opaque, depth tested) are drawn before it in this path (after the glow in the effects' path); a test reads the renderer's source for it. The rain (after the water) finds the device's blend, depth and sampler state set as the water leaves them in the effects' path. |
+| Render targets | `GlChunkPass.OrientationFor`, `uFlipY` | A target bound (the scene under water) turns the clip y over and the front face to clockwise, and takes the viewport's y as it is: MonoGame's own convention. The fallback count is gone. |
+| The card's time | `GlCardTimer` | A `GL_TIME_ELAPSED` query round the chunk passes, a ring of 24, read a frame or more later without waiting; the pieces of a frame are added up (the effects' path is timed in two pieces round the figures). Works with either path (a query is no state MonoGame tracks); made when `--stream-stats` is given. |
+| The setting | `SettingId.Shaders`, `MenuRows` (a "Shaders and effects" sub-group at the end of the Graphics group), `SaveSettings.ShadersOff`, `LaunchSettings.Shaders`, `QualityPreset.Shaders`, `SceneDrawer.ApplyShaders` | A toggle, on by default, written to a save's settings only when off (a save of the default is byte for byte what it was; the fixture is untouched). `--gl-shaders on|off` (a bare `--gl-shaders` is on) wins for the run. A change of quality level sets the Shaders row from the preset (`QualityPreset.Shaders`, true at all three levels), and the row can be changed alone after that: the mechanism the B17c effects will use. **Changing it in play needs no restart**: the pass is made or dropped at once and the world fills in again for a moment. |
+
+## The default and the fallback (what was chosen)
+
+**The GL path is the default**: the comparison below holds (the same picture to the pixel where the effects' output is the same on both, a quarter to a tenth of the processor time to submit, and the card's time equal or lower). `--gl-shaders off`, or the Shaders row off, keeps the effects. The effects are
+used **automatically** (one log line, `gl: shaders not used, the effects draw as always: <reason>`, said once) when the loader fails, `GlInfo` reports a context below 3.3, or a stage does not compile or link (the driver's own log is in the line); nothing changes for the player. Unit tests check the
+rule for the version, the line, the options and the setting; the live tests (`VOCATERRA_GL_TESTS=1`) compile every embedded source, report a broken one with the driver's log, check that the scope restores everything it captured after every kind of draw, and draw a quad through the pass and
+through `BasicEffect` to the back buffer and to a render target and compare the pixels (equal).
+Live tests share **one** `GlProbeGame`: a third MonoGame window in the test host hangs (found while writing them), so they take turns on one and leave its state as they found it.
+
+## The comparison
+
+`scripts/gl-compare.sh OUT [view...]` (Release, High, seed 42, 1280x720, a fixed 60 Hz scripted clock, 240 frames after the steps; effects are `--gl-shaders off`, GLSL is `--gl-shaders on`; `GL_RUNS=N` interleaves the two N times). Pictures, differences and stdout:
+`/home/james/Dev/Vocaterra/artifacts/b-series/b17b/` (outside git). Tolerance as B17a's: at most 0.1 percent of the pixels differing by more than 8 of 255 (`scripts/gl-compare-images.py`); every view below is **exact or within one step**.
+
+| View | Where | Pixels differing at all | By more than 8 | Largest |
+|---|---|---|---|---|
+| meadow (midday) | 380,217 looking east, streamed world | 0 | 0 | 0 |
+| wood-dusk | the valley wood 196,206 at hour 21 (B22's dusk band) | 0 (first capture: 119, 2 above 8, largest 9: a patch of sky seen through holes in a crown; the next capture, the same binary, 0) | 0 | 0 |
+| cave | the landing 468,62,153 looking north-north-west, streamed world | 0 | 0 | 0 |
+| torches | the village street at hour 0: torch posts and lanterns with their glow, the NPCs | 0 | 0 | 0 |
+| shore | the pool above the waterfall 258,106 (water, translucent, sorted) | 3 (1 step) | 0 | 1 |
+| under | under the waterfall's pool 262,41,136 (the scene drawn to a render target, blurred, tinted) | 0 | 0 | 0 |
+| village | the street 266,223 | 0 | 0 | 0 |
+| grass | the meadow with B18's grass at 60 percent | 0 | 0 | 0 |
+
+The first run of the shore view differed on 1.23 percent of the pixels (up to 96 of 255, all on the water): the water frames had been copied with the sampler's `MaxMipLevel` as the base level instead of the last level; with that read as MonoGame reads it (`TEXTURE_MAX_LEVEL`) the water is
+the effects' water to a step. The cave view of B17a (two torches placed beside the camera) cannot be scripted any more: since B21 the scripted sequence (`--give`, `--place antorcha@...`, `--wait`) stalled a run at the wait for over 20 minutes in the effects' path (`--gl-shaders off`), so it is not the GLSL's; the cause was not looked for here, and the B21 report names a torch problem of the scripted `--place`), so the cave view is the landing without torches and the torches are the village street at midnight. The scripted runs' pictures on both paths: {{RUNS}}
+
+**Frame times and the card's time** (`--stream-stats`, 240 frames, medians; interleaved effect and GLSL runs, 2 or 3 each in the valley views, 1 in the streamed ones; the machine was shared with up to four other agents' builds, tests and game windows, load 8 to 16 on 16 cores, and the card with their windows: read
+the pairs, not the absolute numbers; the card's time is a `GL_TIME_ELAPSED` query round the chunk passes):
+
+| View | Chunk passes, processor time to submit (effects / GLSL) | Card's time, median (effects / GLSL) | Frame p50 (effects / GLSL) | Draw calls, quads (GLSL) |
+|---|---|---|---|---|
+| meadow | 1.17 / 0.36 ms | 0.34 / 0.21 ms | 4.6 / 3.2 ms | 1,258 and 455k |
+| wood-dusk | 2.67 / 0.93 ms | 1.46 / 0.91 ms | 6.7 / 4.6 ms | 1,041 and 362k |
+| cave | 1.83 / 0.51 ms | 0.55 / 0.38 ms | 6.2 / 4.0 ms | 1,903 and 741k |
+| torches | 2.26 / 0.32 ms | 1.07 / 0.16 ms | 4.8 / 2.3 ms | 567 and 198k |
+| shore | 2.49 / 1.42 ms | 2.04 / 1.99 ms | 6.5 / 6.3 ms | 1,675 and 613k |
+| under | 3.80 / 0.35 ms | 0.62 / 0.57 ms | 7.0 / 3.0 ms | 514 and 163k |
+| village | 1.56 / 0.52 ms | 1.14 / 1.04 ms | 5.7 / 4.5 ms | 567 and 198k |
+| grass | 2.11 / 0.68 ms | 4.62 / 0.36 ms (the effects run met another agent's load on the card; its frame p50 was 37 ms) | 37.4 / 5.0 ms | 1,453 and 463k |
+
+The processor's cost of submitting every chunk pass falls to between a quarter and a tenth (the draw calls are the same; the state is set 3 or 4 times a frame instead of once per band and per pass, and each chunk is a buffer bind, three attribute pointers and one `glDrawElementsBaseVertex`).
+The card's time is lower or equal in every pair: the card does the same work, with fewer state changes between draws. Nothing is slower; the frame is not the processor's submit time, so the frame p50 moves by 0.2 to 4 ms and in a loaded run by more.
+Start-up costs a little more (the compile, link and the copies of the atlas and 16 water frames: tens of milliseconds, once). No GL error was raised in any run (`gl: ... 0 GL error(s) cleared`).
+
+## What B17c inherits
+
+- One program, one vertex array, one index buffer and one state scope: B17c's light as data goes into the vertex (the 24-byte `MeshVertex` has its colour as the baked light today; a second packed field, or the colour's bytes read as sky, block and occlusion, is a change of the mesher and of `chunk.vert.glsl`'s
+  `vColour`, both in one place) and into uniforms the pass already sets; the fog and the far view can move to the same program, and the far view and the sky are the passes still on MonoGame, to move into the scope when B17c does the far view on the same light model.
+- Each effect is a toggle: `SettingId` plus a `QualityPreset` field plus a row under "Shaders and effects", and `SceneDrawer.Apply...` as for `ApplyShaders`. The pass can be given uniform switches without a remesh when the effect is a shading step (a uniform per effect).
+- The **fallback has to stay a picture the effects can draw**: a B17c effect that has no effects' version only exists on the GL path (the toggle and the log line say so), so B17c's default look must be the effects' look with every new effect off, or the fallback changes the game.
+- The scope forbids a MonoGame call inside it, and the figures, the plots' outlines and the highlight are drawn before it (opaque and depth tested, so only exact ties changed: none were seen). B17c's translucent effects that need those drawn after the water (name plates are MonoGame sprites, drawn by the overlay after the scope) keep the rule.
+- A switch in play remeshes the view (seconds of the world filling in): if an effect ever needs different vertex data, the same path applies; if it does not, a uniform is all it costs.
+- Live tests share one MonoGame window (a third window in the test host hangs): new live tests use `GlProbeGame.Shared` and put the state back.
+- Still not done: the atlas as an array texture, a compact vertex, indirect and multi-draw (B19), the context request (default 4.6 compatibility here, unknown elsewhere; `GlInfo` checks the version and the log says which), macOS (out of scope).
+

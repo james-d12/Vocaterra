@@ -989,6 +989,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
 
+        _card?.NextFrame(); // the results of the card's earlier frames are collected here
         var spent = _glPass is not null ? DrawChunksGl(camera, tick, highlight, avatar, plotOutlines) : DrawChunksEffects(camera, tick, highlight, avatar, plotOutlines);
         ChunkPassTimes.Record(spent);
 
