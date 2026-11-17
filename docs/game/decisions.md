@@ -932,6 +932,15 @@ the owner's answers of 2026-11-15 are in its section 5.
     OpenTK), (d) waiting for MonoGame's new back ends): "Let's go with c". The driver compiles the shaders at start; the world's drawing
     goes through the binding on MonoGame's own context with its state saved and restored; it opens OpenGL 4.x for B19's step 2. B17 starts
     with a spike proving one GLSL shader draws chunks inside MonoGame's frame.
+41. **B17 goes ahead** (2026-11-17, about 08:05 UTC, after B17a's spike recommended go and the orchestrator said B17 is mainly for the
+    look and for B19, not a big speed gain): "Okay, you can kick off B17, that's fine." Split into B17b (every chunk pass on the GLSL
+    program, the state scope, render targets, the fallback, a timer query) and B17c (light as data, fog, water, the far view on the same
+    light model), after B21; B23 (propagated light) follows B17c so its light goes straight into the shader's data.
+42. **Game worker threads: Auto by default, and a setting** (2026-11-17, about 08:10 UTC, the rendering review's D1; offered a "Worker
+    threads" setting with Auto, cores minus 4 capped at 8, as the default for play, or a fixed 4): "Yeah, auto is fine. I mean, perhaps
+    we should allow that to be configured in the game as well." The setting is on the settings page (Auto or 1 to 8) and a launch
+    option; scripted runs, tests and agents keep 2 (the machine rules for builds are unchanged). It lands with B07d; `JobPool.MaxWorkers`
+    (2) becomes the setting's bound. The world does not depend on the count.
 
 ## Already decided
 
