@@ -290,4 +290,69 @@ public sealed class HomographRerollTests
 
         Assert.True(realised > 5000, $"Only {realised} of 20000 draws were realised.");
     }
+
+    // (7) M98, O3 seed 7q7l8dSNG6n6 (found on feature/biomes, 2026-11-17): [ADV]? [NOUN:item]? [VERB:aclarar] [VERB] realised «alrededor aclara construir» with alrededor
+    // (a masculine noun, «los alrededores», and an adverb) as the item noun. The matcher gives the word to the optional [ADV] (clean either way) and yields no item slot.
+    // The lexicon's noun reading is right and the analyzer's binding is a valid one, so the fault is the realiser's expectation: a noun that is also an adverb is
+    // re-rolled in a pattern with an optional or grouped [ADV] (skip:noun-reads-as-adverb). The engine and the Spanish pack are unchanged.
+    private const string AdverbPattern = "[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]";
+
+    private static Dictionary<string, string> SlotsOf(string sentence, string pattern)
+    {
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence), [SlotGrammarType.Parse(pattern)]);
+        Assert.Empty(analysis.Errors);
+        return analysis.Slots.ToDictionary(static s => s.Name, static s => s.Value, StringComparer.Ordinal);
+    }
+
+    // Why: with an optional [ADV] the word is the adverb and no item is yielded; without one, or for a noun with no adverb reading, it is the item.
+    [Fact]
+    public void ANounThatIsAlsoAnAdverbIsTheAdverbWhenThePatternHasAnOptionalAdverb()
+    {
+        Assert.Empty(SlotsOf("alrededor aclara construir", AdverbPattern));
+        Assert.Equal("casa", SlotsOf("casa aclara construir", AdverbPattern)["item"]);
+        Assert.Equal("alrededor", SlotsOf("alrededor aclara construir", "[NOUN:item]? [VERB:aclarar] [VERB]")["item"]);
+        Assert.Equal("alrededor", SlotsOf("hoy alrededor aclara construir", AdverbPattern)["item"]);
+    }
+
+    [Fact]
+    public void TheAdverbPatternNoLongerRealisesANounThatIsAlsoAnAdverb_AndEachDrawYieldsItsSlots()
+    {
+        var pattern = GrammarPattern.Parse(AdverbPattern);
+        var grammar = SlotGrammarType.Parse(pattern.Render());
+        var realised = 0;
+        var withItem = 0;
+        for (var seed = 1UL; seed <= 5000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [grammar]);
+            Assert.True(analysis.Errors.Count == 0, $"seed {seed}: '{sentence.NormalizedText}' gave {string.Join(", ", analysis.Errors.Select(static e => e.Tag))}");
+            var slots = analysis.Slots.ToDictionary(static s => s.Name, static s => s.Value, StringComparer.Ordinal);
+            Assert.True(
+                slots.Count == sentence.ExpectedSlots.Count && sentence.ExpectedSlots.All(pair => slots.TryGetValue(pair.Key, out var value) && value == pair.Value),
+                $"seed {seed}: '{sentence.NormalizedText}' expected {{{string.Join(", ", sentence.ExpectedSlots.Select(p => $"{p.Key}={p.Value}"))}}} got {{{string.Join(", ", slots.Select(p => $"{p.Key}={p.Value}"))}}}");
+            withItem += slots.ContainsKey("item") ? 1 : 0;
+        }
+
+        Assert.True(realised > 4000 && withItem > 500, $"Only {realised} of 5000 draws were realised, {withItem} with an item.");
+    }
+
+    // The replay of the failing seed through the oracle's own path: its recipe is realised, or skipped, and never as alrededor with an item.
+    [Fact]
+    public void TheNeighbourPatternWithNoAdverbStillRealisesNounsThatAreAlsoAdverbs()
+    {
+        var pattern = GrammarPattern.Parse("[NOUN:item]? [VERB:aclarar] [VERB]");
+        var drawn = false;
+        for (var seed = 1UL; seed <= 20000 && !drawn; seed++)
+        {
+            drawn = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed)) is { } s && s.NormalizedText.StartsWith("alrededor ", StringComparison.Ordinal);
+        }
+
+        Assert.True(drawn, "A noun that is also an adverb is no longer drawn where the pattern has no [ADV]: the re-roll is too broad.");
+    }
 }

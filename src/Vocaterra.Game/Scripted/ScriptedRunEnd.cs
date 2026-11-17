@@ -160,7 +160,7 @@ public sealed class ScriptedRunEnd
     /// <param name="renderer">The renderer, for the summary.</param>
     /// <param name="preset">The quality preset, for the summary.</param>
     /// <param name="streaming">The streamed world's host, for its counts (B07), or <see langword="null"/> in the bounded valley.</param>
-    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset, StreamedWorldHost? streaming = null, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases = null)
+    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset, StreamedWorldHost? streaming = null, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases = null, (long Bytes, long Frames, double ProcessMegabytesPerSecond)? allocations = null)
     {
         var sim = _session.Simulation;
         var sized = !_options.IsScreenshotRun || ScreenshotGate.IsFinalSize(width, height, sizes.PreferredWidth, sizes.PreferredHeight, sizes.ClientWidth, sizes.ClientHeight);
@@ -193,7 +193,7 @@ public sealed class ScriptedRunEnd
         _console($"frame time (end of one draw to the next, no vsync): {timings.FrameSummary()}");
         if (streaming is not null && _options.StreamStats)
         {
-            _console(StreamLine(renderer, streaming, timings, phases));
+            _console(StreamLine(renderer, streaming, timings, phases, allocations));
         }
 
         if (_options.StreamStats)
@@ -216,13 +216,14 @@ public sealed class ScriptedRunEnd
         _exit();
     }
 
-    private static string StreamLine(VoxelRenderer renderer, StreamedWorldHost streaming, FrameTimings timings, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases)
+    private static string StreamLine(VoxelRenderer renderer, StreamedWorldHost streaming, FrameTimings timings, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases, (long Bytes, long Frames, double ProcessMegabytesPerSecond)? allocations)
     {
         var residency = streaming.Residency.Stats;
         var far = streaming.Far.Stats;
+        var allocation = allocations is { Frames: > 0 } a ? $"; allocation: streaming and meshing phases {a.Bytes / 1024.0 / a.Frames:0.0} KB a frame on the game thread ({a.Bytes / (1024.0 * 1024.0):0.0} MB in {a.Frames} frames), whole process {a.ProcessMegabytesPerSecond:0.00} MB/s, collections gen 0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}, {GC.GetTotalPauseDuration().TotalMilliseconds:0} ms paused" : string.Empty;
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms");
+            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms{allocation}; {renderer.MeshingSummary}; {renderer.ChunksGeneratedByReads} chunks generated by reads on the game thread");
     }
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
