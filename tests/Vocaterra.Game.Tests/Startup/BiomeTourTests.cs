@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.Streaming;
 
@@ -118,6 +119,12 @@ public sealed class BiomeTourTests
         }
 
         Assert.True(script.IsDone);
+        foreach (var torch in options.VoxelSteps.Where(static s => s.Kind == VoxelStepKind.Place))
+        {
+            Assert.Equal(BlockId.Air, sim.Grid.GetBlock(torch.X, torch.Y, torch.Z)); // a torch goes in an open cell with ground under it
+            Assert.True(sim.Grid.IsSolid(torch.X, torch.Y - 1, torch.Z), "with ground under it");
+        }
+
         Assert.Equal(steps.Count, log.Count);
         Assert.All(log, l => Assert.True(l.Contains("standing at", StringComparison.Ordinal), l)); // the taiga stop once named a column under a crown: "no ground to stand on there"
     }
