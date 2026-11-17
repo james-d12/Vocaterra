@@ -52,6 +52,8 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
 
     public List<VoxelChunkCoord> InstallOrder { get; } = [];
 
+    public Dictionary<VoxelChunkCoord, ChunkMeshResult> Grass { get; } = [];
+
     public MeshOptions OptionsFor(VoxelChunkCoord coord) => new(true, 100, Lights.Near(coord), Band);
 
     /// <summary>One frame, as the renderer does it: the view, the lights, the pipeline.</summary>
@@ -139,9 +141,7 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
         _meshes[result.Coord] = result;
     }
 
-    public void InstallGrass(ChunkMeshResult result)
-    {
-    }
+    public void InstallGrass(ChunkMeshResult result) => Grass[result.Coord] = result;
 
     public void GrassRefused(VoxelChunkCoord coord)
     {

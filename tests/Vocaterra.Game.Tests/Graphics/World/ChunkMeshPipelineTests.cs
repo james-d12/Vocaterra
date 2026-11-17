@@ -131,6 +131,51 @@ public sealed class ChunkMeshPipelineTests
         Assert.Null(rig.FirstMismatch());
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public void Given_ChunksWithGrassBlocks_When_TheirLayersAreBuiltThroughThePipeline_Then_EachIsTheLayerTheGrassMesherMakesOfTheGrid(int workers)
+    {
+        using var pool = new JobPool(workers);
+        using var rig = MeshingRig.Valley(workers == 0 ? null : pool, 96);
+        rig.Settle();
+        var biomes = GrassBiomes.Shipped;
+        var options = new GrassLayerOptions(1f, biomes, null, null, LightBand.Day, false);
+        var chunks = rig.Wanted.Where(c => rig.Grid.TryGetChunk(c, out var chunk) && (chunk.KindMask & biomes.TopMask) != UInt128.Zero).Take(40).ToList();
+        Assert.True(chunks.Count > 10, $"{chunks.Count} chunks with grass");
+
+        foreach (var coord in chunks)
+        {
+            Assert.True(rig.Pipeline.SubmitGrass(coord, options, rig));
+        }
+
+        var started = Environment.TickCount64;
+        while (rig.Grass.Count < chunks.Count)
+        {
+            _ = rig.Frame();
+            Thread.Sleep(1);
+            Assert.True(Environment.TickCount64 - started < 60_000, "the layers did not come");
+        }
+
+        foreach (var coord in chunks)
+        {
+            var direct = GrassMesher.Build(new GridBlockSource(rig.Grid, rig.Currents), coord.X, coord.Y, coord.Z, options);
+            if (direct is null)
+            {
+                Assert.False(rig.Grass.ContainsKey(coord) && rig.Grass[coord].GrassStart is not null);
+                continue;
+            }
+
+            var held = rig.Grass[coord];
+            Assert.Equal(direct.Mesh.FaceCount, held.GrassMesh.Quads);
+            Assert.True(held.GrassMesh.Vertices.AsSpan(0, direct.Mesh.VertexCount).SequenceEqual(direct.Mesh.Vertices), $"the grass of {coord} differs");
+            Assert.Equal(direct.QuadrantStart, held.GrassStart);
+            Assert.Equal(direct.Cumulative, held.GrassCumulative);
+        }
+
+        Assert.Null(rig.Pipeline.Failure);
+    }
+
     [Fact]
     public void Given_ASettledView_When_ABlockInTheMiddleOfAChunkChanges_Then_ThereIsNoSortOfTheViewAndNoPassOverIt()
     {

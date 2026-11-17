@@ -31,6 +31,7 @@ public sealed class ChunkViewSet : IChunkResidencyListener, IBlockChangeListener
     private long _calls;
     private long _builtAt = long.MinValue / 2;
     private readonly HashSet<VoxelChunkCoord> _ready = [];
+    private readonly List<(long Distance, VoxelChunkCoord Coord)> _ordered = []; // the sort's scratch, kept between rebuilds (a rebuild at the high preset sorts tens of thousands)
 
     /// <summary>Creates the view set of a grid for a view distance in blocks.</summary>
     /// <param name="grid">The grid.</param>
@@ -180,7 +181,8 @@ public sealed class ChunkViewSet : IChunkResidencyListener, IBlockChangeListener
         var limits = _grid.Limits;
         var reach = (ViewDistance / Size) + 1;
         var limit = (long)ViewDistance * ViewDistance;
-        var ordered = new List<(long Distance, VoxelChunkCoord Coord)>();
+        var ordered = _ordered;
+        ordered.Clear();
         var x0 = Math.Max(limits.MinChunkX, eyeChunk.Item1 - reach);
         var x1 = Math.Min(limits.EndChunkX - 1, eyeChunk.Item1 + reach);
         var y0 = Math.Max(limits.MinChunkY, eyeChunk.Item2 - reach);
@@ -252,6 +254,7 @@ public sealed class ChunkViewSet : IChunkResidencyListener, IBlockChangeListener
             _wanted.Add(coord);
         }
 
+        ordered.Clear();
         return _wanted;
     }
 

@@ -531,6 +531,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             {
                 due.Add(coord);
             }
+            else if (gpu.Grass is not null && distance > keepSquared)
+            {
+                gpu.ReleaseGrass(); // the old layer a remesh left on screen until its new one came, and the chunk is out of reach: let it go
+            }
         }
 
         _grassOrder.Eye = eye;
