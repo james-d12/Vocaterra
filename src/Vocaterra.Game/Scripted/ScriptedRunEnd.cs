@@ -192,6 +192,12 @@ public sealed class ScriptedRunEnd
             _console(StreamLine(renderer, streaming, timings, phases));
         }
 
+        if (_options.StreamStats)
+        {
+            var opaque = renderer.OpaquePassTimes;
+            _console(string.Create(CultureInfo.InvariantCulture, $"opaque pass ({(renderer.GlPass is null ? "effect" : "GLSL")}, processor time to submit): {opaque.Count} frames, median {opaque.Median:0.00} ms, p95 {opaque.Percentile(95):0.00} ms, p99 {opaque.Percentile(99):0.00} ms, longest {opaque.Longest:0.00} ms"));
+        }
+
         if (renderer.GlPass is { } glPass)
         {
             var (errors, first) = glPass.Errors;

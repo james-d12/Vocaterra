@@ -4,14 +4,13 @@
 #
 #   scripts/gl-compare.sh OUT_DIR [view...]      views: meadow, cave (default: both)
 #
-# Writes OUT_DIR/<view>-effect.png, <view>-gl.png, <view>-diff.png and the two stdout files, and prints per view the number of pixels that differ by more than
-# FUZZ percent of a channel (default 2) and the RMSE. The runs are scripted (a fixed clock), midday, High, seed 42, 1280x720.
+# Writes OUT_DIR/<view>-effect.png, <view>-gl.png, <view>-diff.png (red where the largest channel differs by more than 8 of 255) and the two stdout files, and prints per view the pixels that differ by more than
+# a tolerance (scripts/gl-compare-images.py). The runs are scripted (a fixed clock), midday, High, seed 42, 1280x720.
 set -uo pipefail
 OUT="$1"; shift
 VIEWS=("$@"); [ "${#VIEWS[@]}" -gt 0 ] || VIEWS=(meadow cave)
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="${GAME_BIN:-$REPO/src/Vocaterra.Game/bin/Release/net10.0/Vocaterra.Game}"
-FUZZ="${FUZZ:-2}"
 export DISPLAY="${DISPLAY:-:0}"
 export VOCATERRA_MODELS_DIR="${VOCATERRA_MODELS_DIR:-$HOME/.local/share/vocaterra/models}"
 mkdir -p "$OUT"
@@ -19,7 +18,7 @@ mkdir -p "$OUT"
 steps_for() {
   case "$1" in
     meadow) echo "--teleport 380,217 --look 90,-6 --wait 3" ;;
-    cave) echo "--teleport-to 468,62,153 --look 340,-4 --give antorcha --place antorcha@467,61,153 --look 340,-14 --wait 3" ;;
+    cave) echo "--teleport-to 468,62,153 --look 340,-4 --give antorcha --give antorcha --place antorcha@468,62,151 --place antorcha@469,62,152 --look 340,-14 --wait 3" ;;
     *) echo "unknown view $1" >&2; return 1 ;;
   esac
 }
@@ -34,8 +33,5 @@ for view in "${VIEWS[@]}"; do
     echo "$view $mode: exit $?"
     rm -rf "$work"
   done
-  fuzzy="$(compare -metric AE -fuzz "${FUZZ}%" "$OUT/$view-effect.png" "$OUT/$view-gl.png" "$OUT/$view-diff.png" 2>&1 >/dev/null)"
-  rmse="$(compare -metric RMSE "$OUT/$view-effect.png" "$OUT/$view-gl.png" null: 2>&1)"
-  total="$(identify -format '%[fx:w*h]' "$OUT/$view-effect.png")"
-  echo "$view: $fuzzy of $total pixels differ by more than ${FUZZ}% of a channel; RMSE $rmse"
+  python3 -I "$REPO/scripts/gl-compare-images.py" "$OUT/$view-effect.png" "$OUT/$view-gl.png" "$OUT/$view-diff.png" | sed "s/^/$view: /"
 done

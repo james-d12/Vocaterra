@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Startup;
 
@@ -68,6 +69,26 @@ public sealed class GlShaderTests
         Assert.True(LaunchOptions.TryParse(["--gl-shaders"], out var on, out error), error);
         Assert.True(on.GlShaders);
         Assert.Contains("--gl-shaders", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OnlyTheLaunchOptionMakesAGlPassSoTheBuiltInPathIsTheDefault()
+    {
+        // The pass is made in one place, behind the option; no other file under src/ makes or sets one, and the renderer draws through the effect whenever its pass is null.
+        var makers = Directory.EnumerateFiles(Repo.Path("src", "Vocaterra.Game"), "*.cs", SearchOption.AllDirectories)
+            .Where(static file => !file.Contains($"{Path.DirectorySeparatorChar}Gl{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(static file => File.ReadAllText(file).Contains("GlOpaquePass.TryCreate", StringComparison.Ordinal))
+            .Select(static file => Path.GetFileName(file))
+            .ToList();
+        Assert.Equal(["SceneDrawer.cs"], makers);
+        var drawer = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "Graphics", "SceneDrawer.cs"));
+        var guard = drawer.IndexOf("if (_options.GlShaders)", StringComparison.Ordinal);
+        Assert.True(guard >= 0);
+        Assert.True(drawer.IndexOf("GlOpaquePass.TryCreate", StringComparison.Ordinal) > guard);
+        Assert.Equal(1, drawer.Split("SetGlPass(").Length - 1);
+        var renderer = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "Graphics", "World", "VoxelRenderer.cs"));
+        Assert.Contains("var useGl = _glOpaque is not null && _glOpaque.CanDrawNow();", renderer, StringComparison.Ordinal);
+        Assert.Contains("(gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);", renderer, StringComparison.Ordinal); // the effect's upload, untouched
     }
 
     [Fact]

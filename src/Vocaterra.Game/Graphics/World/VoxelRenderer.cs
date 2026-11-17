@@ -418,6 +418,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _glOpaque = pass;
     }
 
+    /// <summary>The processor time each frame spent submitting the opaque chunk pass (the draw calls, through the effect or through the GLSL program; the card's own time is not in it), for the spike's comparison (B17a).</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats OpaquePassTimes { get; } = new();
+
     /// <summary>The game's own GLSL pass, or <see langword="null"/> when the chunks are drawn with MonoGame's effects alone (the default).</summary>
     public GlOpaquePass? GlPass => _glOpaque;
 
@@ -909,6 +912,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
 
+        var opaqueStarted = MonotonicClock.Milliseconds();
+
         // The opaque chunks through the game's own GLSL program (B17a, --gl-shaders), when the pass can draw (no render target is bound); otherwise, and by default, through AlphaTestEffect.
         var useGl = _glOpaque is not null && _glOpaque.CanDrawNow();
         if (useGl)
@@ -954,6 +959,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener
         {
             _glOpaque!.End(); // the context's state is back as MonoGame left it: the passes that follow are MonoGame's
         }
+
+        OpaquePassTimes.Record(MonotonicClock.Milliseconds() - opaqueStarted);
 
         // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
         _solid.DiffuseColor = Vector3.One;

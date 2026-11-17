@@ -84,5 +84,5 @@ public sealed record GlInfo(
     /// <summary>Whether the context can run the opaque program (<see cref="GlOpaquePass"/> asks for GLSL 3.30, so OpenGL 3.3).</summary>
     public bool CanRunOpaquePass => Major > 3 || (Major == 3 && Minor >= 3);
 
-    private static string Yn(bool value) => value ? "yes" : "no";
+    private static string Yn(bool value) => value ? "yes" : "missing";
 }

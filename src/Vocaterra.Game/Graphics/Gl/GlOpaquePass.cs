@@ -249,7 +249,7 @@ public sealed unsafe class GlOpaquePass : IDisposable
         var viewProjection = view * projection;
         Span<float> matrix = stackalloc float[16];
         Write(viewProjection, matrix);
-        _gl.UniformMatrix4(_uWorldViewProjection, false, matrix);
+        _gl.UniformMatrix4(_uWorldViewProjection, true, matrix); // transposed: the shader dots the position with the matrix's columns
         var scale = fogStart == fogEnd ? 0f : 1f / (fogStart - fogEnd);
         _gl.Uniform4(_uFogVector, view.M13 * scale, view.M23 * scale, view.M33 * scale, fogStart == fogEnd ? 1f : (view.M43 + fogStart) * scale);
     }
