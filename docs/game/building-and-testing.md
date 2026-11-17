@@ -84,6 +84,16 @@ The tests that wait for the worker's turns give up after 30 or 120 s, far above 
 1438 of 3000 ms, the world snapshot 0.50 of 1.5 s and the scene build and digest 708 of 3000 ms; the first is the likely CI failure, the second and the third
 the next. The timed tests were within four times of their budgets at V16 too (1676 ms, 1275 ms and 0.49 s then).
 
+## The licence scan
+
+The merge gate's licence step (`scripts/license-scan.sh --offline`, run through `scripts/limited.sh`) covers the core (`Vocaterra.Nlp.slnf`), the
+content schema test's project (`tests/Vocaterra.Game.Core.Tests`) and the game's shipped projects: `src/Vocaterra.Game`, `src/Vocaterra.Host` and
+`tools/Vocaterra.SpeechRender` (B26). Every package's licence must be permissive and compatible with Apache-2.0 (allowlist in
+`scripts/license-allowlist.txt`, which now includes Zlib for FontStashSharp and SDL). Packages whose metadata names no licence take a reviewed
+override in `scripts/license-overrides.txt` (MIT for Microsoft.DotNet.PlatformAbstractions and NVorbis, Zlib for MonoGame's SDL). The one LGPL
+package, MonoGame.Library.OpenAL 1.24.3.4 (native OpenAL Soft, a separate replaceable library), passes only through its exact-version entry in
+`scripts/license-exceptions.txt` (owner decision 2026-11-17, D-game-34 item 49); any other LGPL, GPL or unknown licence still fails the gate.
+
 ## The core's native libraries
 
 The core depends on third-party native libraries, and one of them carries GPL-3.0 code (core D2); the game does not distribute a build that
