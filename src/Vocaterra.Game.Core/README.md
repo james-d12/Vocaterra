@@ -588,8 +588,7 @@ generator's parameters and the named places:
 
 - `size` {x, y, z} (multiples of 16: 384 x 128 x 384 is 24 x 8 x 24 chunks), `waterLevel` (the lake's surface).
 - `terrain`: `relief`, a coarse grid with one base-32 digit per chunk corner (the height divided by 4; the macro shape: the mountains along the
-  north and the west, the foothills, the valley floor at 36), and `valley`, `rockLine` (bare stone above 85), `snowLine` (snow above 100 on
-  gentle ground), `terrace` (the step of the cliff faces) and `ceiling`.
+  north and the west, the foothills, the valley floor at 36), and `valley`, `rockLine` (bare stone above 85; the valley lays no snow, B20), `terrace` (the step of the cliff faces) and `ceiling`.
 - `sites`: named places at **fixed** positions (`camp.player`, `camp.guide`, `village`, `bridge.west`, `river`, `waterfall`, `lake`, `trail`...). A
   site with a `radius` levels the ground to `y` (or the height the land has there) and slopes it into the land over `blend`; every site is also a named
   point. `waterfall` {site = the lip, top, width, plateau, pool}, `lake` {site, rx, rz, depth} and `river` {halfWidth, depth, bank, path: waypoints from the

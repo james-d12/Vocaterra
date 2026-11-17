@@ -172,11 +172,6 @@ public static class SceneBuilder
                         top = BlockId.Path;
                         sub = BlockId.Dirt;
                     }
-                    else if (h >= spec.SnowLine + (noise.Column(1, x, z) % 7) - 3 && slope <= 5)
-                    {
-                        top = BlockId.Snow;
-                        sub = BlockId.Stone;
-                    }
                     else if (h >= spec.RockLine || slope >= 5)
                     {
                         // Low rock in the forest is mossy (S14); the high crags are bare.
