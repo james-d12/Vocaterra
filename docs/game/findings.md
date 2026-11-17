@@ -2907,3 +2907,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   assembly, with budgets twice the measured cost; they caught **B02c's cost**: chunk generation about 2.5 to 3 times dearer (a surface
   chunk 6.4 to 6.9 ms of CPU before, 17 to 21 after; the valley snapshot 2.7 to 5.9 s): the budgets were re-set to the new cost and the
   cost itself planned as B27. Gated clean.
+- **B25, the scripted-run stall (2026-11-17, no change).** B21, B17b and B14 each saw a scripted run hang after `--place antorcha`
+  (`--wait` never returned). The cause was B07c's `FarView.Stale`, which counted changed far tiles inside the near zone, where the chunks
+  draw the columns and the tiles are never rebuilt; a block placed near the eye kept it above 0, and every later frame's `Settle` waited out
+  its 300 s bound. B07f had already fixed it (`Stale` counts only needed tiles; a regression test), and the three agents worked on bases
+  cut before B07f merged. Reproduced on B21's tip (killed at 500 s) and gone on `0d72b26b` (93 s, torch and guide dialogue shown);
+  r01-route (445 s), r40-inn (246 s), r42-camp (268 s, torch and glow shown) and the torch cave re-run. Worth knowing: every streamed
+  scripted run spends about 160 to 170 s of its first frame building a cold 16 km far view on two workers; a `timeout` must go inside
+  `scripts/limited.sh` or the wait for a slot counts against it; a capture needs the build under the repository or `--content`.

@@ -17,10 +17,16 @@ builds and passes its tests, with the prefix `<id>: `. Do not push your branch: 
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror
 -m:4`; tests with `-m:2`). scripts/test.sh and scripts/content-loop.sh call it themselves: run them directly. Never start two heavy
-commands at once (no `&`, no background builds, no parallel test runs), and write no shell wait loop on `pgrep -f` (it matches its own
-command line and never ends). While iterating run `scripts/test.sh fast` or `scripts/test.sh project <test project>`; run
-`scripts/test.sh full` (the whole suite, as the gate) once before reporting. Exit 137 means the 6 GB cap killed it: lower the
-parallelism, do not work around the cap.
+commands at once (no `&`, no background builds, no parallel test runs). **Waiting** (the throughput study,
+docs/research/2026-11-17-ai-development-throughput.md): run a long command with the Bash tool's `run_in_background: true`, end your
+turn and wait for its notification; never poll with `sleep`, `until grep ...; do sleep` or `pgrep -f` loops, and never start a run
+with `nohup ... &` (the harness cannot see it end; agents left about 40 orphaned loops on 2026-11-17). While iterating run
+`scripts/test.sh fast` plus the test classes you touch (`scripts/test.sh project <test project>` with a `--filter`); **merge
+<feature branch> into your branch before your one full run**, then run `scripts/test.sh full` (the whole suite, as the gate) once and
+report only after it has finished. Exit 137 means the cap killed it: lower the parallelism, do not work around the cap.
+Game runs (pictures, scripted runs, measurements): a Release build; `scripts/limited.sh timeout 900 <command>` (the `timeout` inside, so
+a wait for a slot does not count); `--far-view off` unless the milestone is about the far view (a streamed run's first frame spends
+about 3 minutes building a cold 16 km far view on two workers); one batch script per milestone rather than many small runs.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
 reject a bare `export`, and it refuses a command line containing the shell builtin words `eval` or `hash`: for `scripts/content.sh hash`
 or a CLI `eval` run use a wrapper script outside the repository). Model-gated tests need VOCATERRA_MODELS_DIR=$HOME/.local/share/vocaterra/models.
