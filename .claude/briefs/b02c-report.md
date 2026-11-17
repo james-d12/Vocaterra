@@ -17,3 +17,22 @@ Left: hairpin heuristic; a continent's first read blocks its first chunk up to a
 `climate.river` kept but unused for water.
 Sent back (about 03:40) to merge feature/biomes at 9d2f2139 (seven conflicts), pass `RiverWeight` in the far sampler, check which threads
 can trigger a first read, check B11b's entrances against rivers, re-record pins once, far-view pictures.
+
+Merge round (about 06:45 UTC 2026-11-17), head `a0a8b4fb` (merge of feature/biomes at 9d2f2139 on d0fc1039): seven conflicts resolved,
+both sides kept; B11b had bumped `ProceduralGenerator.Version` to 3, so the merged version is 4 (the far store makes new `-g4-` folders).
+Pins re-recorded once: save-v9 bundle `b8af9a19b530`, state digest `ae5f5d0e1040`; atmosphere PinnedFresh `ed6b2ee1981d`, PinnedAfterWalking
+`d8b97a7997c6`; 9 of 18 goldens moved (each seed's river and lake columns re-chosen to hold water, 42 mountain, 7 and 2026 coast). The far
+sampler (three calls), `EntranceSites` and a WorldPreview test pass `shape.RiverWeight`. Threads: a landmass's first read (0.25 to 0.9 s)
+can come from the streaming workers, the far jobs, the entrance probe or the loading thread; `WorldQuery` (the game loop's only reader)
+answers dry until warm and queued `Warm` on the .NET pool (sent back: the two-worker rule). Start to first frame +0.4 s (7.5 s); a settled
+High far view about 20% slower (203 s against 151 to 168 s, load 8 to 20). B11b check: no entrance passage in a water or carved column (3
+seeds, new test). `RockVarietyTests`' face-rock share now skipped, with a note, when its sample holds 100 cliff columns or fewer: the new
+ground has almost no non-snow cliffs (the old rivers' valley walls were its cliffs). Suite 12,479 passed, 0 failed. Pictures in
+artifacts/b-series/b02c/ ("After the merge"): a lake in the far tiles (seed 2026), cave entrances beside a river from above and in section
+(seed 7); no in-game cave-mouth picture (holes between trees).
+
+Round 3 (about 08:35 UTC), head `f4a153b5`: `WorldQuery` no longer queues on the .NET pool; it keeps `IsWarm` and the dry answer until the
+streaming workers or the far jobs read the landmass (no case found they never warm: `IsWarm` checks nodes within 128 blocks, all the same
+landmass or sea). New test: a fresh seed-7 world's river column is dry, then warm with water after its chunk is generated through the
+source. `JobPool` and `StreamedWorldHost` untouched. Merged `ef932990` with no conflicts and no pin moved. Suite 12,508 passed, 1 failed
+(`PristineChunksTests...ASnapshotIsTaken`, 21.6 s at load 17, passing alone 3 of 3).

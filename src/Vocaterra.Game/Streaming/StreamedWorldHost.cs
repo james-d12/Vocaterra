@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Streaming;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Far;
 
 namespace Vocaterra.Game.Streaming;
@@ -27,14 +28,16 @@ public sealed class StreamedWorldHost : IDisposable
     private readonly StreamedWorld _world;
     private readonly VoxelGrid _grid;
     private readonly IPlaceInfo? _places;
+    private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
     private readonly JobPool _pool;
     private readonly FileLodPersistence? _persistence;
     private readonly LodEdits _edits;
     private readonly LodRing _ring;
-    private ChunkResidency _residency;
+    private readonly ChunkResidency _residency;
     private double _heldSince = double.NaN;
     private double _catchUpUntil = double.NegativeInfinity;
     private int _viewDistance;
+    private int _maxResident;
     private int _radius;
 
     private StreamedWorldHost(Scene scene, QualityPreset preset, int workers, string? lodWorld, string? lodFolder)
@@ -42,12 +45,14 @@ public sealed class StreamedWorldHost : IDisposable
         _world = scene.Streaming!;
         _grid = scene.Grid;
         _places = scene.Places;
+        _ground = scene.Places is { } places ? GroundClimate.Of(places) : null;
         _pool = new JobPool(workers);
         _viewDistance = preset.ViewDistance;
+        _maxResident = preset.MaxResidentChunks;
         Bands = new ColumnBandCache(_world.Bands);
         _residency = MakeResidency(preset);
         _persistence = lodWorld is null && lodFolder is null ? null : new FileLodPersistence(lodFolder ?? FileLodPersistence.FolderFor(lodWorld!), "lod-format-" + LodFormat + "; " + lodWorld);
-        Far = new FarView(_world.Far, preset.Far, _pool, new LodStore(_persistence));
+        Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence));
         _radius = RingRadius(preset);
         _ring = new LodRing(Far.World, _world, _pool);
 
@@ -93,6 +98,9 @@ public sealed class StreamedWorldHost : IDisposable
 
         return dropped;
     }
+
+    // The far view's shape for a preset, with the ground climate its grass and leaves are coloured by (B22): the same map and the same function as the chunks'.
+    private FarViewSettings FarSettings(QualityPreset preset) => preset.Far with { Ground = _ground };
 
     // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
@@ -201,13 +209,15 @@ public sealed class StreamedWorldHost : IDisposable
     /// <param name="dispose">Frees a far tile's buffer.</param>
     public void ApplyPreset(QualityPreset preset, Action<FarTile> dispose)
     {
-        if (preset.ViewDistance != _viewDistance)
+        if (preset.ViewDistance != _viewDistance || preset.MaxResidentChunks != _maxResident)
         {
+            // The same driver takes the new radii (B21, review C5): what its workers are making and have made stays valid, where a new driver forgot it and left its jobs to finish for nobody.
             _viewDistance = preset.ViewDistance;
-            _residency = MakeResidency(preset);
+            _maxResident = preset.MaxResidentChunks;
+            _residency.Reconfigure(PolicyFor(preset.ViewDistance), preset.MaxResidentChunks);
         }
 
-        Far.Reconfigure(preset.Far, dispose);
+        Far.Reconfigure(FarSettings(preset), dispose);
         _radius = RingRadius(preset);
     }
 
@@ -326,7 +336,13 @@ internal sealed class LodEdits : IChunkResidencyListener, IBlockChangeListener, 
     {
         for (var n = 0; n < PerFrame && _dirty.Count > 0; n++)
         {
-            var coord = _dirty.First();
+            var coord = default(VoxelChunkCoord);
+            foreach (var next in _dirty)
+            {
+                coord = next; // the struct enumerator allocates nothing, where First() allocates every frame while edits are pending
+                break;
+            }
+
             _ = _dirty.Remove(coord);
             if (!_grid.TryGetChunk(coord, out var chunk))
             {

@@ -20,6 +20,7 @@ public sealed class MoveProbe
     private double _startedAt;
     private double _readyAt = double.NaN;
     private double _longest;
+    private bool _viewOpen;
 
     /// <summary>Notes one frame; returns the line to print when the move being timed is complete, otherwise <see langword="null"/>.</summary>
     /// <param name="now">The clock in milliseconds at the end of the frame's world drawing.</param>
@@ -28,7 +29,8 @@ public sealed class MoveProbe
     /// <param name="eyeZ">The body's eye z.</param>
     /// <param name="nearReady">Whether the near zone is resident.</param>
     /// <param name="nearMeshed">Whether the near view is meshed.</param>
-    public string? Observe(double now, double frameStart, float eyeX, float eyeZ, bool nearReady, bool nearMeshed)
+    /// <param name="viewComplete">Whether the whole view is made (B21): everything the residency wants is resident and every chunk in view has its mesh; a second line says when.</param>
+    public string? Observe(double now, double frameStart, float eyeX, float eyeZ, bool nearReady, bool nearMeshed, bool viewComplete = false)
     {
         var jumped = !_seen || MathF.Sqrt(((eyeX - _lastX) * (eyeX - _lastX)) + ((eyeZ - _lastZ) * (eyeZ - _lastZ))) > JumpBlocks;
         var gap = _seen ? now - _lastFrameAt : 0;
@@ -39,6 +41,7 @@ public sealed class MoveProbe
             _startedAt = _seen ? _lastFrameAt : frameStart;
             _readyAt = double.NaN;
             _longest = 0;
+            _viewOpen = false;
         }
 
         _seen = true;
@@ -46,6 +49,12 @@ public sealed class MoveProbe
         _lastFrameAt = now;
         if (!_open)
         {
+            if (_viewOpen && viewComplete)
+            {
+                _viewOpen = false;
+                return string.Create(CultureInfo.InvariantCulture, $"move: {_label}: whole view resident and meshed after {now - _startedAt:0} ms");
+            }
+
             return null;
         }
 
@@ -61,6 +70,7 @@ public sealed class MoveProbe
         }
 
         _open = false;
+        _viewOpen = true;
         return string.Create(CultureInfo.InvariantCulture, $"move: {_label}: near zone resident after {_readyAt:0} ms, near view complete after {now - _startedAt:0} ms, longest frame {_longest:0} ms");
     }
 }

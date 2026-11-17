@@ -57,12 +57,25 @@ internal sealed class ValleyUnderground
     /// <summary>How far it reaches into the valley.</summary>
     public ValleySpec Spec => _spec;
 
+    /// <summary>The most threads the laying uses (the game's two-worker rule and the machine's limits; B24a).</summary>
+    internal const int MaxThreads = 2;
+
     /// <summary>Called with the reach of every column when the underground is laid (the tests read it; nothing else sets it).</summary>
     internal Action<int[]>? Observer { get; init; }
 
     /// <summary>
-    /// Lays the underground into the stone of the grid. The chunks are worked out in parallel (every one is a pure function of its coordinates, the seed and the reach, so the result is the same
-    /// on any number of threads) and then written back one by one.
+    /// The threads the laying uses, clamped to 1 to <see cref="MaxThreads"/>. Two is the game's worker rule (the owner's limit on the machine; it was eight before B24a); the result is
+    /// the same at any count (the tests check one and two).
+    /// </summary>
+    internal int Threads { get; init; } = MaxThreads;
+
+    /// <summary>The degree the laying runs at for a requested thread count: at least one and at most <see cref="MaxThreads"/>.</summary>
+    /// <param name="requested">The requested count.</param>
+    internal static int DegreeFor(int requested) => Math.Clamp(requested, 1, MaxThreads);
+
+    /// <summary>
+    /// Lays the underground into the stone of the grid. The chunks are worked out on at most <see cref="MaxThreads"/> threads (every one is a pure function of its coordinates, the seed and the
+    /// reach, so the result is the same on any number of threads) and then written back one by one.
     /// </summary>
     /// <param name="grid">The valley's grid as built (its chunk columns start at 0, like the world's).</param>
     /// <param name="ground">The surface.</param>
@@ -93,7 +106,7 @@ internal sealed class ValleyUnderground
         }
 
         var results = new BlockId[]?[chunks.Length];
-        var options = new ParallelOptions { MaxDegreeOfParallelism = Math.Clamp(Environment.ProcessorCount, 1, 8) };
+        var options = new ParallelOptions { MaxDegreeOfParallelism = DegreeFor(Threads) };
         _ = Parallel.For(0, chunksX * chunksZ, options, () => new Scratch(), (column, _, scratch) =>
         {
             var (cx, cz) = (column % chunksX, column / chunksX);

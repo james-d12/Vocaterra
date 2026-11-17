@@ -1481,3 +1481,25 @@ this file. What is still open is collected in [open-items](../open-items.md).
   yields no item slot (expected `{item=alrededor}`, got `{}`). It replays on the merged tree (`84e1e2cb`) with `CsCheck_Seed`, and B07e
   changed no core or content file, so it is the core's. To triage in M98: the lexicon's noun reading of `alrededor` (a plural noun,
   «los alrededores»), the realiser's choice of it as an item, or the analyser's adverb reading winning.
+- **M98, the fuzz suite's health: three items (2026-11-17; seed `7q7l8dSNG6n6`, the entries above).** Core only, no engine or pack change, goldens unchanged.
+  (1) *A realisation-rate gate (the codebase review's T3).* `RealisationRateTests` draws 2 000 recipes of O3's stream, one case per fixed seed (`M98R<i>`), counts the recipes
+  realised and the skips and rejected draws by reason for each pattern family (`catalog`, `skeleton`, `random`: the recipe's source), prints them, and pins two floors per
+  family and for all: the share of recipes that gave a sentence, and the share of the realiser's draws that were kept (the re-roll rules show in the second first, since a
+  later attempt usually makes a rejected draw good). Measured on `content/game-v1`: recipes realised catalog 99.57 %, skeleton 100 %, random 97.38 %, all 98.95 % (floors
+  0.95, 0.95, 0.92, 0.95); draws kept catalog 95.12 %, skeleton 98.62 %, random 86.48 %, all 92.87 % (floors 0.90, 0.93, 0.80, 0.88: about five points under). The only
+  skips are `numeral-next-to-article` and `adjacent-numerals`; the random family's largest rejected reason is `accent-variant-homograph`. `SkipBudgetTests` bounds each
+  reason; this bounds the sum and the recipes lost for good. (2) *The fixed-seed coverage test varied.* Cause: CsCheck seeds only the first case of a run (the
+  later ones draw from its own, freshly seeded state; the same fact `SkipBudgetTests` and `FuzzLanguageStreamTests` already work around), so `OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`
+  ("seed `0M97OpenFall3`", M97) fixed one case in 300; the other 299 were random, the counts moved from run to run, and one dipped under the floor in B18's full run. Not the
+  load, the environment, test order or shared state (`threads: 1`, no static state, nothing reads a clock). Fix: the fixed-seed run draws one case per seed
+  (`M98Open<i>`, 300 cases), so its counts are the same on every run and inside a full run: three full runs of the project gave identical counts (first-trusted 65,
+  forced-rejected 113, forced-replaced 9, forced-same-intent 13, loose-match 129, open-prompt 18, second-chosen 12, second-rejected 70, second-under-floor 115,
+  sparse-coverage 65) while the random-seed run's counts differed each time (second-chosen 9, 14, 8); the floor `min(5, iterations / 60)` is unchanged and the lowest count is 9.
+  (3) *`7q7l8dSNG6n6`, «alrededor».* Cause: `alrededor` is, in the lexicon, a masculine singular noun («los alrededores») and an adverb, both right. The pattern
+  `[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]` has an optional `[ADV]`; the realiser drew `alrededor` for `[NOUN:item]` and left the adverb out, and the matcher, which
+  takes the first of the parses that tie, gave the word to `[ADV]`, so no item slot (the sentence is clean either way). A generator fault, like M73's `alternative-homograph`,
+  not the engine's or the pack's: a noun that is also an adverb is now re-rolled in a pattern that has an optional or grouped `[ADV]` (`skip:noun-reads-as-adverb`); the
+  oracle's relaxation for competing optional tokens is not widened. The seed passes; the stream digests of `FuzzLanguageStreamTests` did not move. Regression:
+  `HomographRerollTests` section 7 (the analyzer's two readings, 5 000 draws of the pattern analyzed clean with their slots, the neighbour pattern with no `[ADV]` still draws
+  `alrededor`). The silent-h seed `a2RKk5N6Ibt4` is untouched. Plan row text proposed: "M98 done: a realisation-rate gate (floors per pattern family), the fixed-seed
+  coverage test truly fixed (one case per seed), and seed `7q7l8dSNG6n6` fixed in the realiser (a noun that is also an adverb is re-rolled beside an optional adverb)."

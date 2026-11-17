@@ -10,3 +10,12 @@ Branch `B22-fidelity-bundle`, head `fb88c4cc` (two commits on edd60cc6), worktre
 Tests: `BandSunTests`, `WaterDepthTintTests`, `LandColoursTests`, an `--msaa` parse test; changed for the intended look: `LightBandsTests`, `SkyLookTests`, `ChunkMesherLightBandTests`, `BlockAtlasTests`, `LookTests`, `SkyWeatherLookTests` (the clear-sky tint ceiling 1.43 to 1.50), `NoLiteralTextTests` (allow-list). Measurements at load 7 to 20: no change seen beyond noise; MSAA free.
 Pictures (artifacts/b-series/b22/, 11 pairs and a no-MSAA copy): meadow at midday, dawn, dusk; the valley wood at midday and dusk; the village; the river; a pool; the sky; two far views. Dusk crowns go olive (for the owner). No deep lake shore found. Outside the brief: `FarTileMesher.cs` (a context field and colour lines), `FarViewSettings`, small wiring in `SceneDrawer`, `StreamedWorldHost`, `VoxelRenderer`; docs (Game README, running.md `--msaa`).
 Orchestrator (about 01:05): sent back to merge B18 and tint its tufts with the same land colour, keep dusk leaves from going yellow, run the full suite.
+
+Follow-up 1 (about 02:55 UTC), head 179b906f: merged feature/biomes c0f0ac10 (B18): conflicts in QualityPreset, VoxelRenderer,
+SceneDrawer, LaunchOptions (--msaa and --grass), all kept. `GrassMesher` takes the column's `LandColours` grass tint (tufts match the
+tops). Dusk crowns: oak-leaf map reds cut 28% (land-colours.json), no longer yellow-olive; `DuskLight` unchanged. Pictures
+forest-dusk-after2, meadow-dusk-after2, meadow-midday-merged-grass60/-grass0. Full run: two timing tests failed at load 16 to 19
+(ValleyUnderground, StreamedWorldTimeTests), passing alone. Measurements not retaken after the merge.
+Follow-up 2 (about 04:15 UTC), head ea5f6053: merged B07e; conflict only in FarTileMesher's Context construction (B07e's neighbours and
+B22's Ground both kept); B07e's border and skirt faces go through FaceAt's land tint. Full run at load 11 to 18: two timing failures
+(ValleyUnderground, GeneratedLexicon), passing alone. Picture far-a-flower-meadow-merged-b07e.png: near and far the same green, no seam.

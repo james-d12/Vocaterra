@@ -420,7 +420,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
             HardwareModeSwitch = false, // full screen is borderless at the desktop's mode, never a display mode change
             IsFullScreen = options.StartsFullScreen,
+            PreferMultiSampling = (options.Msaa ?? QualityPreset.MultiSamplesOf(_settings.Quality)) > 0, // B22: antialiased edges; the count is set below
         };
+        var multiSamples = options.Msaa ?? QualityPreset.MultiSamplesOf(_settings.Quality);
+        _graphics.PreparingDeviceSettings += (_, e) => e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = multiSamples;
         IsFixedTimeStep = false; // the accumulator owns the tick rate
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
@@ -827,7 +830,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _drawer.Renderer,
             _drawer.Preset,
             _drawer.Streaming,
-            _drawer.PhaseTimes);
+            _drawer.PhaseTimes,
+            _drawer.PhaseAllocations);
     }
 
     /// <inheritdoc />

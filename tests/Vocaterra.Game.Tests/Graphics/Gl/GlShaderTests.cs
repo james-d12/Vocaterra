@@ -88,7 +88,7 @@ public sealed class GlShaderTests
         Assert.Equal(1, drawer.Split("SetGlPass(").Length - 1);
         var renderer = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "Graphics", "World", "VoxelRenderer.cs"));
         Assert.Contains("var useGl = _glOpaque is not null && _glOpaque.CanDrawNow();", renderer, StringComparison.Ordinal);
-        Assert.Contains("(gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);", renderer, StringComparison.Ordinal); // the effect's upload, untouched
+        Assert.Contains("(opaque, opaqueQuads) = Upload(result.Opaque);", renderer, StringComparison.Ordinal); // the effect's upload (B21: of the vertices a worker made), untouched
     }
 
     [Fact]

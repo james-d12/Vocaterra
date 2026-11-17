@@ -11,6 +11,7 @@ using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Colour;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.Gl;
 using Vocaterra.Game.Graphics.Sky;
@@ -59,6 +60,10 @@ public sealed class SceneDrawer : IDisposable
     private const int NearViewChunks = 4;
     private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _streamTimes = new();
     private readonly Vocaterra.Game.Core.Reporting.BusyFrameStats _remeshTimes = new();
+    private JobPool? _meshPool;
+    private readonly double _createdAt = MonotonicClock.Milliseconds();
+    private long _phaseAllocated;
+    private long _phaseFrames;
 
     /// <summary>Creates the drawer of a run (nothing is made until <see cref="Load"/>).</summary>
     /// <param name="options">The run's options: the quality, the greyscale and the nouns assumed known.</param>
@@ -118,6 +123,10 @@ public sealed class SceneDrawer : IDisposable
     /// <summary>The time each frame spent streaming the world (the residency and the far view) and meshing chunks, for the stream stats line.</summary>
     public (Vocaterra.Game.Core.Reporting.BusyFrameStats Streaming, Vocaterra.Game.Core.Reporting.BusyFrameStats Remesh) PhaseTimes => (_streamTimes, _remeshTimes);
 
+    /// <summary>The bytes the game thread allocated in the streaming and meshing phases of the frames so far, how many frames that is (B21, P5: the steady state should allocate next to nothing) and the whole process's allocation rate since the drawer was made, in megabytes a second.</summary>
+    public (long Bytes, long Frames, double ProcessMegabytesPerSecond) PhaseAllocations =>
+        (_phaseAllocated, _phaseFrames, GC.GetTotalAllocatedBytes(false) / (1024.0 * 1024.0) / Math.Max((MonotonicClock.Milliseconds() - _createdAt) / 1000.0, 0.001));
+
     /// <summary>The streamed world's host (the worker threads, the chunks' residency and the far view), or <see langword="null"/> in the bounded valley (B07).</summary>
     public StreamedWorldHost? Streaming => _streaming;
 
@@ -149,7 +158,7 @@ public sealed class SceneDrawer : IDisposable
         _blockAtlas = new BlockAtlas(device);
         var started = MonotonicClock.Milliseconds();
         _waterTextures = new WaterTextures(device);
-        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null);
+        _renderer = new VoxelRenderer(device, _blockAtlas, _waterTextures, _session.Simulation.Grid, Preset, SkyLook.At(SkyLookInput.At(_session.Simulation.Atmosphere)), _session.Scene.Currents, _console, _session.Scene.Places is { } places ? places.NaturalSurfaceAt : null, _session.Scene.Places is { } biomes ? (x, z) => biomes.BiomeAt(x, z).Id : null, _session.Scene.Places is { } ground ? GroundClimate.Of(ground) : null);
         _renderer.SetGrass(_grassPercent);
         if (_options.GlShaders)
         {
@@ -169,6 +178,8 @@ public sealed class SceneDrawer : IDisposable
         _renderer.SetFigures(_figures);
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, _options.Prefetch ?? JobPool.MaxWorkers, LodWorldName(_session.Simulation.StateHeader));
         _renderer.SetFarView(_streaming?.Far);
+        _meshPool = _streaming is null ? new JobPool(_options.Prefetch ?? JobPool.MaxWorkers) : null; // the bounded valley has no streaming host: its meshes get a pool of their own (the two workers are all there are, whichever world)
+        _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         var fogEnd = _renderer.FarRange > 0 ? VoxelRenderer.FarFogEnd(Preset.ViewDistance, _renderer.FarRange) : VoxelRenderer.FogEndFor(Preset.ViewDistance);
         var fogStart = fogEnd * (_renderer.FarRange > 0 ? VoxelRenderer.FarFogStartFraction : VoxelRenderer.FogStartFraction);
@@ -205,6 +216,7 @@ public sealed class SceneDrawer : IDisposable
         var renderer = Renderer;
         var nearZoneMade = false;
         var frameBegan = MonotonicClock.Milliseconds();
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
         renderer.SetAtmosphere(look); // before the meshing: a change of light band is noticed by this frame's Remesh
         var channels = _session.Simulation.Atmosphere.Channels;
         renderer.SetPrecipitation(new PrecipitationState(channels.PrecipitationKind, channels.PrecipitationIntensity, channels.Wind)); // the rain's pass reads the channels, never a kind's id (E06)
@@ -232,10 +244,12 @@ public sealed class SceneDrawer : IDisposable
         renderer.Remesh(camera.Eye, camera.Frustum, nearZoneMade ? NearZoneMeshMilliseconds : _streaming is { IsCatchingUp: true } ? StreamedWorldHost.CatchUpMeshBudgetMilliseconds : _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
         var remeshEnd = MonotonicClock.Milliseconds();
         _remeshTimes.Record(remeshEnd - remeshStart);
+        _phaseAllocated += GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+        _phaseFrames++;
         if (_streaming is { } probed && _options.StreamStats)
         {
             var at = streamEye ?? camera.Eye;
-            if (_moves.Observe(remeshEnd, frameBegan, at.X, at.Z, probed.IsNearReady(at.X, at.Y, at.Z), renderer.IsMeshedAround(at, NearViewChunks)) is { } line)
+            if (_moves.Observe(remeshEnd, frameBegan, at.X, at.Z, probed.IsNearReady(at.X, at.Y, at.Z), renderer.IsMeshedAround(at, NearViewChunks), probed.Residency.IsSettled && renderer.PendingChunks == 0) is { } line)
             {
                 _console(line); // --stream-stats: how long a start or a move took to show the world round the body (B07b)
             }
@@ -299,6 +313,7 @@ public sealed class SceneDrawer : IDisposable
     {
         _underwaterPass?.Dispose();
         _streaming?.Dispose();
+        _meshPool?.Dispose();
         _renderer?.Dispose();
         _waterTextures?.Dispose();
         _blockAtlas?.Dispose();
