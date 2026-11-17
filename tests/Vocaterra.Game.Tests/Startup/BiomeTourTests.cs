@@ -16,19 +16,19 @@ public sealed class BiomeTourTests
 {
     private const string Name = "r51-biome-tour";
 
-    private static string[] TourArguments()
+    internal static string[] TourArguments(string name = Name)
     {
-        var line = File.ReadAllLines(Repo.Path("scripts", "scripted-runs.sh")).Single(static l => l.StartsWith($"run {Name} ", StringComparison.Ordinal));
-        var tokens = Regex.Matches(line[$"run {Name} ".Length..], "\"([^\"]*)\"|(\\S+)").Select(static m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
+        var line = File.ReadAllLines(Repo.Path("scripts", "scripted-runs.sh")).Single(l => l.StartsWith($"run {name} ", StringComparison.Ordinal));
+        var tokens = Regex.Matches(line[$"run {name} ".Length..], "\"([^\"]*)\"|(\\S+)").Select(static m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
         return [.. tokens.Select(static t => t.Replace("$W", "/tmp/biome-tour", StringComparison.Ordinal))];
     }
 
     /// <summary>The stops: the last teleported column before each shot, with the name its picture carries (<c>07-river-channel.png</c> is <c>river-channel</c>).</summary>
-    private static List<(string Name, int X, int Z)> Stops()
+    internal static List<(string Name, int X, int Z)> Stops(string name = Name)
     {
         var stops = new List<(string, int, int)>();
         var (x, z) = (0, 0);
-        var arguments = TourArguments();
+        var arguments = TourArguments(name);
         for (var i = 0; i < arguments.Length - 1; i++)
         {
             if (arguments[i] is "--teleport" or "--teleport-to")
