@@ -27,4 +27,9 @@ public interface IClimateSampler
     /// <param name="depth">The columns along z.</param>
     /// <param name="into">The samples, at least width times depth of them.</param>
     void Fill(int x0, int z0, int width, int depth, Span<ClimateSample> into);
+
+    /// <summary>The climate of a lattice point: the same sample <see cref="At"/> gives, for a block whose x and z are multiples of the climate's lattice, at a quarter of the cost (the drainage network reads the land on such a grid).</summary>
+    /// <param name="x">The block's x (a multiple of the lattice).</param>
+    /// <param name="z">The block's z (a multiple of the lattice).</param>
+    ClimateSample AtLatticePoint(int x, int z);
 }

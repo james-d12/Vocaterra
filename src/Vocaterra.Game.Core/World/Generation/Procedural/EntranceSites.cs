@@ -397,7 +397,7 @@ internal sealed class EntranceSites
             var plain = true;
             if (world.HasSurfaceStrategies)
             {
-                var row = world.Table.Classify(climate, shape.Height, x, z, shape.Water).Row;
+                var row = world.Table.Classify(climate, shape.Height, x, z, shape.Water, shape.RiverWeight).Row;
                 plain = string.Equals(row.SurfaceStrategy, StrategyRegistry.PlainSurface, StringComparison.Ordinal);
             }
 

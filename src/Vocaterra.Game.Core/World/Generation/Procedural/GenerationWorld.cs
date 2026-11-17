@@ -34,8 +34,9 @@ internal sealed class GenerationWorld
         Biomes = biomes;
         Seed = seed;
         Climate = blend is null ? new ClimateSampler(data, seed) : new BlendedClimateSampler(new ClimateSampler(data, seed), blend);
-        Blended = blend is null ? null : new BlendedHeightModel(new HeightModel(data, seed), Climate, blend);
-        Height = Blended is null ? new HeightModel(data, seed) : Blended;
+        Ground = new HeightModel(data, seed, Climate, blend?.Excluder(data.Height.DrainageData?.RegionClearance ?? 0));
+        Blended = blend is null ? null : new BlendedHeightModel(Ground, Climate, blend);
+        Height = Blended is null ? Ground : Blended;
         Table = new BiomeTable(biomes, data, seed);
         Strategies = strategies.Resolve(new StrategyContext(seed, data, biomes));
         SeaLevel = data.Vertical.SeaLevel;
@@ -62,6 +63,9 @@ internal sealed class GenerationWorld
 
     /// <summary>The height model.</summary>
     public IHeightModel Height { get; }
+
+    /// <summary>The height model of the free world, under <see cref="Height"/> (its drainage network is read a landmass at a time: <see cref="HeightModel.IsWarm"/> and <see cref="HeightModel.Warm"/>).</summary>
+    public HeightModel Ground { get; }
 
     /// <summary>The height model with the regions' edges blended in, or <see langword="null"/> in a world with no region (it is <see cref="Height"/> when there is one).</summary>
     public BlendedHeightModel? Blended { get; }

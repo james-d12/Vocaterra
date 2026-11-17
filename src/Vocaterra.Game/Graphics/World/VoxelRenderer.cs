@@ -106,7 +106,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private readonly VoxelGrid _grid;
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _solid;
-    private GlOpaquePass? _glOpaque;
+    private GlChunkPass? _glPass;
+    private GlCardTimer? _card;
     private readonly SkyRenderer _sky;
     private MeshOptions _meshOptions;
     private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
@@ -442,27 +443,40 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     }
 
     /// <summary>
-    /// Draws the opaque chunks through the game's own GLSL program from now on (B17a, <c>--gl-shaders</c>), or through MonoGame's effect again with <see langword="null"/>. Set it before the first
-    /// <see cref="Remesh"/>: the meshes already built are in MonoGame's buffers (the renderer lets them all go and builds them again when the pass is set).
+    /// Draws every chunk pass through the game's own GLSL program from now on (B17a, B17b: the opaque faces, the lit pieces, the cut-outs, the grass, the glow and the water), or through MonoGame's effects again with
+    /// <see langword="null"/>. Every mesh already built is in the other kind of buffers, so the renderer lets them all go and builds the view again (nearest first, on the workers), which is why a switch while the game runs
+    /// shows the world filling in for a moment.
     /// </summary>
     /// <param name="pass">The pass, or <see langword="null"/>. The renderer disposes it with itself.</param>
-    public void SetGlPass(GlOpaquePass? pass)
+    public void SetGlPass(GlChunkPass? pass)
     {
-        if (ReferenceEquals(pass, _glOpaque))
+        if (ReferenceEquals(pass, _glPass))
         {
             return;
         }
 
         ReleaseAllMeshes();
-        _glOpaque?.Dispose();
-        _glOpaque = pass;
+        ReleaseAllGrass();
+        _glPass?.Dispose();
+        _glPass = pass;
     }
 
-    /// <summary>The processor time each frame spent submitting the opaque chunk pass (the draw calls, through the effect or through the GLSL program; the card's own time is not in it), for the spike's comparison (B17a).</summary>
-    public Vocaterra.Game.Core.Reporting.BusyFrameStats OpaquePassTimes { get; } = new();
+    /// <summary>Gives the renderer a timer for the card's time round the chunk passes (B17b, <c>--stream-stats</c>); <see langword="null"/> for none. The renderer disposes it with itself.</summary>
+    /// <param name="timer">The timer, or <see langword="null"/>.</param>
+    public void SetCardTimer(GlCardTimer? timer)
+    {
+        _card?.Dispose();
+        _card = timer;
+    }
 
-    /// <summary>The game's own GLSL pass, or <see langword="null"/> when the chunks are drawn with MonoGame's effects alone (the default).</summary>
-    public GlOpaquePass? GlPass => _glOpaque;
+    /// <summary>The processor time each frame spent submitting the chunk passes (the draw calls, through the effects or through the GLSL program, the figures not counted; the card's own time is <see cref="CardTimes"/>), for the comparison of the two paths (B17a, B17b).</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats ChunkPassTimes { get; } = new();
+
+    /// <summary>The card's time each frame spent on the chunk passes, from a GL timer query (B17b), or <see langword="null"/> when there is no timer.</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats? CardTimes => _card?.Times;
+
+    /// <summary>The game's own GLSL pass, or <see langword="null"/> when the chunks are drawn with MonoGame's effects.</summary>
+    public GlChunkPass? GlPass => _glPass;
 
     /// <summary>The decorative grass's density in percent (0 draws nothing extra).</summary>
     public int GrassPercent => _grassPercent;
@@ -603,7 +617,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private void DrawGrass(ChunkGpu chunk, Vector3 eye, float reach, float slider)
     {
         var buffer = chunk.Grass;
-        if (buffer is null || chunk.GrassStart is not { } start || chunk.GrassCumulative is not { } cumulative)
+        var glBuffer = chunk.GlGrass;
+        if ((buffer is null && glBuffer is null) || chunk.GrassStart is not { } start || chunk.GrassCumulative is not { } cumulative)
         {
             return;
         }
@@ -628,8 +643,16 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
                 continue;
             }
 
-            _device.SetVertexBuffer(buffer);
-            _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, start[q] * 4, 0, quads * 2);
+            if (glBuffer is not null)
+            {
+                _glPass!.Draw(glBuffer, start[q], quads); // the quadrant's quads, from its first one (a base vertex)
+            }
+            else
+            {
+                _device.SetVertexBuffer(buffer);
+                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, start[q] * 4, 0, quads * 2);
+            }
+
             _drawnGrassQuads += quads;
         }
     }
@@ -966,35 +989,61 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
 
-        var opaqueStarted = MonotonicClock.Milliseconds();
+        _card?.NextFrame(); // the results of the card's earlier frames are collected here
+        var spent = _glPass is not null ? DrawChunksGl(camera, tick, highlight, avatar, plotOutlines) : DrawChunksEffects(camera, tick, highlight, avatar, plotOutlines);
+        ChunkPassTimes.Record(spent);
 
-        // The opaque chunks through the game's own GLSL program (B17a, --gl-shaders), when the pass can draw (no render target is bound); otherwise, and by default, through AlphaTestEffect.
-        var useGl = _glOpaque is not null && _glOpaque.CanDrawNow();
-        if (useGl)
+        if (_glPass is not null)
         {
-            _glOpaque!.Begin(camera.View, camera.Projection, _solid.FogColor, _solid.FogStart, _solid.FogEnd);
+            // What the water leaves for the rain after it, in MonoGame's own state (the scope above never touched the device's): the water's blend and depth states, its sampler and its frame.
+            _device.BlendState = BlendState.NonPremultiplied;
+            _device.DepthStencilState = DepthStencilState.DepthRead;
+            _device.SamplerStates[0] = WaterTextures.Sampler;
+            _effect.Texture = _water.FrameAt(tick);
+            _device.Indices = _indices;
         }
 
+        // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
+        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, _underwaterAmount);
+        _device.RasterizerState = RasterizerState.CullClockwise;
+        _device.Indices = _indices;
+
+        _device.SamplerStates[0] = AtlasSampler;
+        _effect.Texture = _atlas.Texture;
+        _effect.DiffuseColor = Vector3.One;
+
+        if (beacon is { } target)
+        {
+            // The beacon is a signal: it is not lost in the haze, however far the place is.
+            _effect.FogEnabled = false;
+            _effect.CurrentTechnique.Passes[0].Apply();
+            DrawDynamic(OverlayMeshes.Beacon(target, tick));
+            _effect.FogEnabled = true;
+        }
+
+        overlay?.Invoke();
+
+        if (arm is { } held)
+        {
+            DrawArm(camera, held);
+        }
+
+        _device.DepthStencilState = DepthStencilState.None;
+        _device.BlendState = BlendState.Opaque;
+    }
+
+    // The chunk passes through MonoGame's effects, as they have always been drawn (the built-in path, and the fallback of the GLSL one): the opaque faces by band, the lit pieces, the undergrowth, the grass, the glow, then the figures and
+    // the highlight, then the translucent water chunk by chunk from the farthest to the nearest. Returns the processor time spent submitting the chunk draws (the figures not counted); the card's timer, when there is one, brackets the same.
+    private double DrawChunksEffects(FirstPersonCamera camera, long tick, BlockPos? highlight, PlayerAvatar? avatar, IReadOnlyList<MeshBuffer>? plotOutlines)
+    {
+        var started = MonotonicClock.Milliseconds();
+        _card?.Begin();
         // The chunks are drawn grouped by the light band their mesh was built in (E02), each group tinted so that its baked light shows as the look's light: normally one group,
         // two while a change of band is being built again.
         for (var band = 0; band < LightBands.Count; band++)
         {
             if (_bandChunks[band] == 0)
             {
-                continue;
-            }
-
-            if (useGl)
-            {
-                _glOpaque!.SetDiffuse(_tints[band]);
-                foreach (var chunk in _visible)
-                {
-                    if ((int)chunk.Band == band && chunk.GlOpaque is { } glBuffer)
-                    {
-                        _glOpaque.Draw(glBuffer);
-                    }
-                }
-
                 continue;
             }
 
@@ -1008,13 +1057,6 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
                 }
             }
         }
-
-        if (useGl)
-        {
-            _glOpaque!.End(); // the context's state is back as MonoGame left it: the passes that follow are MonoGame's
-        }
-
-        OpaquePassTimes.Record(MonotonicClock.Milliseconds() - opaqueStarted);
 
         // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
         _solid.DiffuseColor = Vector3.One;
@@ -1078,7 +1120,46 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _solid.DiffuseColor = Vector3.One;
         _device.RasterizerState = RasterizerState.CullClockwise;
         DrawGlow();
+        var spent = MonotonicClock.Milliseconds() - started;
+        _card?.End();
 
+        DrawFiguresAndOverlays(tick, highlight, avatar, plotOutlines);
+
+        var waterStarted = MonotonicClock.Milliseconds();
+        _card?.Begin();
+        // The translucent pass: the water chunks from the farthest to the nearest (a sort by chunk, as the files say), reading depth but not writing it.
+        // The water has its own animated textures (H09): the frame for this tick, bilinear, in place of the block atlas for this pass only.
+        _device.BlendState = BlendState.NonPremultiplied;
+        _device.DepthStencilState = DepthStencilState.DepthRead;
+        _device.SamplerStates[0] = WaterTextures.Sampler;
+        _effect.Texture = _water.FrameAt(tick);
+        _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
+        _device.Indices = _indices;
+        var waterBand = -1; // the water takes its band's tint like the rest of the chunk; the effect is applied again only where the band changes along the sorted chunks
+        foreach (var chunk in _visible)
+        {
+            if (chunk.AlphaQuads == 0)
+            {
+                continue;
+            }
+
+            if ((int)chunk.Band != waterBand)
+            {
+                waterBand = (int)chunk.Band;
+                _effect.DiffuseColor = _tints[waterBand];
+                _effect.CurrentTechnique.Passes[0].Apply();
+            }
+
+            DrawChunk(chunk.Alpha, chunk.AlphaQuads);
+        }
+        _card?.End();
+        return spent + (MonotonicClock.Milliseconds() - waterStarted);
+    }
+
+    // The figures and the player's avatar, the plots' outlines and the block's frame: MonoGame's, in the sun's light, after the chunks' opaque passes in the effect path and before the GLSL scope in the other (no MonoGame call may stand
+    // inside the scope; these are opaque and test depth, so where they are drawn only changes which of two surfaces at exactly the same depth wins).
+    private void DrawFiguresAndOverlays(long tick, BlockPos? highlight, PlayerAvatar? avatar, IReadOnlyList<MeshBuffer>? plotOutlines)
+    {
         // The figures and the player's avatar are lit by the look's sun light directly (their colours are not baked in a band) and, as before, warmed near a lantern.
         _effect.DiffuseColor = _sunLight;
         _effect.CurrentTechnique.Passes[0].Apply();
@@ -1118,19 +1199,132 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         {
             DrawDynamic(OverlayMeshes.Highlight(block));
         }
+    }
 
-        // The translucent pass: the water chunks from the farthest to the nearest (a sort by chunk, as the files say), reading depth but not writing it.
-        // The water has its own animated textures (H09): the frame for this tick, bilinear, in place of the block atlas for this pass only.
-        _device.BlendState = BlendState.NonPremultiplied;
-        _device.DepthStencilState = DepthStencilState.DepthRead;
-        _device.SamplerStates[0] = WaterTextures.Sampler;
-        _effect.Texture = _water.FrameAt(tick);
-        _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
-        _device.Indices = _indices;
-        var waterBand = -1; // the water takes its band's tint like the rest of the chunk; the effect is applied again only where the band changes along the sorted chunks
+    // The chunk passes through the game's own GLSL program (B17a, B17b), in one state scope of the frame: the opaque faces by band, the lit pieces, the undergrowth and the grass (both sides showing), the glow (added, depth tested and not written),
+    // then the water from the farthest chunk to the nearest (translucent, depth read only, its own frame of the animated art). The same look as the effects' path: the same order, the same tints, the same fog. The figures, the plots' outlines and
+    // the block's frame are drawn before it (MonoGame's, opaque, depth tested): no MonoGame call may stand inside the scope. Returns the processor time spent submitting.
+    private double DrawChunksGl(FirstPersonCamera camera, long tick, BlockPos? highlight, PlayerAvatar? avatar, IReadOnlyList<MeshBuffer>? plotOutlines)
+    {
+        DrawFiguresAndOverlays(tick, highlight, avatar, plotOutlines);
+        var pass = _glPass!;
+        var eye = camera.Eye;
+        var viewport = _device.Viewport;
+        var backBufferHeight = _device.PresentationParameters.BackBufferHeight;
+        var renderTarget = _device.RenderTargetCount > 0;
+        var started = MonotonicClock.Milliseconds();
+        _card?.Begin();
+        pass.Begin(camera.View, camera.Projection, _solid.FogColor, _solid.FogStart, _solid.FogEnd, viewport, backBufferHeight, renderTarget);
+
+        // The opaque faces, grouped by the light band their mesh was built in (E02), each group tinted so that its baked light shows as the look's light: normally one group, two while a change of band is being built again.
+        for (var band = 0; band < LightBands.Count; band++)
+        {
+            if (_bandChunks[band] == 0)
+            {
+                continue;
+            }
+
+            pass.SetDiffuse(_tints[band]);
+            foreach (var chunk in _visible)
+            {
+                if ((int)chunk.Band == band && chunk.GlOpaque is { } buffer)
+                {
+                    pass.Draw(buffer);
+                }
+            }
+        }
+
+        // The self-lit pieces (a lantern's glass, a torch's flame): in their own light, so no band's tint touches them.
+        pass.SetDiffuse(Vector3.One);
         foreach (var chunk in _visible)
         {
-            if (chunk.AlphaQuads == 0)
+            if (chunk.GlLit is { } buffer)
+            {
+                pass.Draw(buffer);
+            }
+        }
+
+        // The undergrowth: crossed quads with both sides showing, only in the chunks near the eye.
+        var plantReach = Preset.PlantDistance + VoxelChunk.Size;
+        var plantReachSquared = (float)plantReach * plantReach;
+        pass.Use(GlPassKind.Cutout);
+        _drawnPlantQuads = 0;
+        for (var band = 0; band < LightBands.Count; band++)
+        {
+            if (_bandChunks[band] == 0)
+            {
+                continue;
+            }
+
+            pass.SetDiffuse(_tints[band]);
+            foreach (var chunk in _visible)
+            {
+                if ((int)chunk.Band == band && chunk.PlantQuads > 0 && chunk.GlPlants is { } buffer && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
+                {
+                    pass.Draw(buffer);
+                    _drawnPlantQuads += chunk.PlantQuads;
+                }
+            }
+        }
+
+        // The decorative grass (B18): the tufts on the grass blocks' tops, in the same pass and tint as the undergrowth, thinning out towards the edge of their distance.
+        _drawnGrassQuads = 0;
+        if (_grassPercent > 0)
+        {
+            var grassReach = (float)Preset.GrassDistance;
+            var grassChunkReach = (grassReach + VoxelChunk.Size) * (grassReach + VoxelChunk.Size);
+            var slider = _grassPercent / 100f;
+            for (var band = 0; band < LightBands.Count; band++)
+            {
+                if (_bandChunks[band] == 0)
+                {
+                    continue;
+                }
+
+                pass.SetDiffuse(_tints[band]);
+                foreach (var chunk in _visible)
+                {
+                    if ((int)chunk.Band == band && chunk.GlGrass is not null && Vector3.DistanceSquared(chunk.Centre, eye) <= grassChunkReach)
+                    {
+                        DrawGrass(chunk, eye, grassReach, slider);
+                    }
+                }
+            }
+        }
+
+        // The lanterns' glow (E02a): the very quads of the opaque mesh, through the same program and so the same depth to the last bit, added to the picture.
+        var glow = false;
+        foreach (var chunk in _visible)
+        {
+            if (chunk.GlGlow is not null)
+            {
+                glow = true;
+                break;
+            }
+        }
+
+        if (glow)
+        {
+            pass.Use(GlPassKind.Glow);
+            var (r, g, b) = LanternGlow.PassColour(GlowStrength);
+            pass.SetDiffuse(new Vector3(r, g, b));
+            foreach (var chunk in _visible)
+            {
+                if (chunk.GlGlow is { } buffer)
+                {
+                    pass.Draw(buffer);
+                }
+            }
+        }
+
+        // The translucent pass: the water chunks from the farthest to the nearest (a sort by chunk, as the files say), reading depth but not writing it, in the water's own animated frame for this tick (H09).
+        pass.Use(GlPassKind.Water);
+        pass.SetWaterFrame(WaterFrames.IndexAt(tick));
+        _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
+        var waterBand = -1; // the water takes its band's tint like the rest of the chunk
+        foreach (var chunk in _visible)
+        {
+            if (chunk.GlAlpha is not { } buffer)
             {
                 continue;
             }
@@ -1138,40 +1332,15 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             if ((int)chunk.Band != waterBand)
             {
                 waterBand = (int)chunk.Band;
-                _effect.DiffuseColor = _tints[waterBand];
-                _effect.CurrentTechnique.Passes[0].Apply();
+                pass.SetDiffuse(_tints[waterBand]);
             }
 
-            DrawChunk(chunk.Alpha, chunk.AlphaQuads);
+            pass.Draw(buffer);
         }
 
-        // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
-        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, _underwaterAmount);
-        _device.RasterizerState = RasterizerState.CullClockwise;
-        _device.Indices = _indices;
-
-        _device.SamplerStates[0] = AtlasSampler;
-        _effect.Texture = _atlas.Texture;
-        _effect.DiffuseColor = Vector3.One;
-
-        if (beacon is { } target)
-        {
-            // The beacon is a signal: it is not lost in the haze, however far the place is.
-            _effect.FogEnabled = false;
-            _effect.CurrentTechnique.Passes[0].Apply();
-            DrawDynamic(OverlayMeshes.Beacon(target, tick));
-            _effect.FogEnabled = true;
-        }
-
-        overlay?.Invoke();
-
-        if (arm is { } held)
-        {
-            DrawArm(camera, held);
-        }
-
-        _device.DepthStencilState = DepthStencilState.None;
-        _device.BlendState = BlendState.Opaque;
+        pass.End(); // the context's state is back as MonoGame left it
+        _card?.End();
+        return MonotonicClock.Milliseconds() - started;
     }
 
     // The lanterns' glow (E02a): the quads of the faces a lantern reaches, drawn again over the opaque pass and added to it, with the depth tested and not written. They are the very
@@ -1275,16 +1444,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _lights.Detach();
         foreach (var chunk in _chunks.Values)
         {
-            chunk.GlOpaque?.Dispose();
-            chunk.Opaque?.Dispose();
-            chunk.Alpha?.Dispose();
-            chunk.Plants?.Dispose();
-            chunk.Lit?.Dispose();
-            chunk.Glow?.Dispose();
-            chunk.Grass?.Dispose();
+            chunk.Release();
         }
 
-        _glOpaque?.Dispose();
+        _card?.Dispose();
+        _glPass?.Dispose();
         _indices.Dispose();
         _effect.Dispose();
         _solid.Dispose();
@@ -1341,33 +1505,40 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
 
         // The new buffers go in place of the old in one step, so the chunk is never drawn without its mesh between two frames (an edit does not flicker).
-        VertexBuffer? opaque = null;
-        GlChunkBuffer? glOpaque = null;
-        var opaqueQuads = result.Opaque.Quads;
-        if (_glOpaque is { } glPass)
+        if (_glPass is { } glPass)
         {
-            // The opaque faces go to the game's own buffers, and MonoGame gets none of them (B17a).
-            glOpaque = opaqueQuads == 0 || result.Opaque.Vertices is null ? null : glPass.Upload(result.Opaque.Vertices, opaqueQuads);
+            // Every part goes to the game's own buffers, and MonoGame gets none of them (B17a, B17b): on the game thread, as the pipeline hands them over.
+            var glOpaque = UploadGl(glPass, result.Opaque);
+            var glAlpha = UploadGl(glPass, result.Alpha);
+            var glPlants = UploadGl(glPass, result.Plants);
+            var glLit = UploadGl(glPass, result.Lit);
+            var glGlow = UploadGl(glPass, result.Glow);
+            gpu.ReleaseMeshes();
+            (gpu.GlOpaque, gpu.OpaqueQuads) = (glOpaque, result.Opaque.Quads);
+            (gpu.GlAlpha, gpu.AlphaQuads) = (glAlpha, result.Alpha.Quads);
+            (gpu.GlPlants, gpu.PlantQuads) = (glPlants, result.Plants.Quads);
+            (gpu.GlLit, gpu.LitQuads) = (glLit, result.Lit.Quads);
+            (gpu.GlGlow, gpu.GlowQuads) = (glGlow, result.Glow.Quads);
         }
         else
         {
-            (opaque, opaqueQuads) = Upload(result.Opaque);
+            var (opaque, opaqueQuads) = Upload(result.Opaque);
+            var (alpha, alphaQuads) = Upload(result.Alpha);
+            var (plants, plantQuads) = Upload(result.Plants);
+            var (lit, litQuads) = Upload(result.Lit);
+            var (glow, glowQuads) = Upload(result.Glow);
+            gpu.ReleaseMeshes();
+            (gpu.Opaque, gpu.OpaqueQuads) = (opaque, opaqueQuads);
+            (gpu.Alpha, gpu.AlphaQuads) = (alpha, alphaQuads);
+            (gpu.Plants, gpu.PlantQuads) = (plants, plantQuads);
+            (gpu.Lit, gpu.LitQuads) = (lit, litQuads);
+            (gpu.Glow, gpu.GlowQuads) = (glow, glowQuads);
         }
 
-        var (alpha, alphaQuads) = Upload(result.Alpha);
-        var (plants, plantQuads) = Upload(result.Plants);
-        var (lit, litQuads) = Upload(result.Lit);
-        var (glow, glowQuads) = Upload(result.Glow);
-        gpu.ReleaseMeshes();
-        (gpu.Opaque, gpu.GlOpaque, gpu.OpaqueQuads) = (opaque, glOpaque, opaqueQuads);
-        (gpu.Alpha, gpu.AlphaQuads) = (alpha, alphaQuads);
-        (gpu.Plants, gpu.PlantQuads) = (plants, plantQuads);
-        (gpu.Lit, gpu.LitQuads) = (lit, litQuads);
-        (gpu.Glow, gpu.GlowQuads) = (glow, glowQuads);
         _tracker.MarkMeshed(coord, result.Kinds, result.Band);
         gpu.Band = result.Band;
         gpu.GrassBuilt = false; // the grass layer was made for the old blocks: built again, and the old one drawn until the new one comes
-        if (gpu.HasOpaque || gpu.Alpha is not null || gpu.Plants is not null || gpu.Lit is not null)
+        if (gpu.HasMesh)
         {
             _resident.Add(coord);
         }
@@ -1400,9 +1571,18 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         gpu.GrassBuilt = true;
         if (result.GrassStart is { } start && result.GrassCumulative is { } cumulative)
         {
-            var (buffer, quads) = Upload(result.GrassMesh);
-            gpu.Grass = buffer;
-            gpu.GrassQuads = quads;
+            if (_glPass is { } glPass)
+            {
+                gpu.GlGrass = UploadGl(glPass, result.GrassMesh);
+                gpu.GrassQuads = gpu.GlGrass is null ? 0 : result.GrassMesh.Quads;
+            }
+            else
+            {
+                var (buffer, quads) = Upload(result.GrassMesh);
+                gpu.Grass = buffer;
+                gpu.GrassQuads = quads;
+            }
+
             gpu.GrassStart = start;
             gpu.GrassCumulative = cumulative;
         }
@@ -1501,6 +1681,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         return (buffer, part.Quads);
     }
 
+    private static GlChunkBuffer? UploadGl(GlChunkPass pass, MeshPart part) => part.Quads == 0 || part.Vertices is null ? null : pass.Upload(part.Vertices, part.Quads);
+
     private void DrawChunk(VertexBuffer? buffer, int quads)
     {
         if (buffer is null)
@@ -1554,7 +1736,13 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     {
         public VertexBuffer? Opaque;
         public GlChunkBuffer? GlOpaque;
+        public GlChunkBuffer? GlAlpha;
+        public GlChunkBuffer? GlPlants;
+        public GlChunkBuffer? GlLit;
+        public GlChunkBuffer? GlGlow;
+        public GlChunkBuffer? GlGrass;
         public bool HasOpaque => Opaque is not null || GlOpaque is not null;
+        public bool HasMesh => HasOpaque || Alpha is not null || Plants is not null || Lit is not null || GlAlpha is not null || GlPlants is not null || GlLit is not null;
         public int OpaqueQuads;
         public VertexBuffer? Alpha;
         public int AlphaQuads;
@@ -1573,12 +1761,14 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
-        public bool Visible(BoundingFrustum frustum) => (HasOpaque || Alpha is not null || Plants is not null || Lit is not null) && frustum.Intersects(Box);
+        public bool Visible(BoundingFrustum frustum) => HasMesh && frustum.Intersects(Box);
 
         public void ReleaseGrass()
         {
             Grass?.Dispose();
             Grass = null;
+            GlGrass?.Dispose();
+            GlGrass = null;
             GrassQuads = 0;
             GrassStart = null;
             GrassCumulative = null;
@@ -1594,7 +1784,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         public void ReleaseMeshes()
         {
             GlOpaque?.Dispose();
-            GlOpaque = null;
+            GlAlpha?.Dispose();
+            GlPlants?.Dispose();
+            GlLit?.Dispose();
+            GlGlow?.Dispose();
+            GlOpaque = GlAlpha = GlPlants = GlLit = GlGlow = null;
             Opaque?.Dispose();
             Alpha?.Dispose();
             Plants?.Dispose();

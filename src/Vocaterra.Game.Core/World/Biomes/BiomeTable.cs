@@ -71,16 +71,19 @@ public sealed class BiomeTable : IBiomeSelector
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
     /// <param name="water">Whether water covers the column (the height model's say, since a river or a lake has a level of its own); not given, the ground is below the sea.</param>
-    public BiomeColumn Classify(in ClimateSample c, int height, int x, int z, bool? water = null)
+    /// <param name="riverWeight">How much a river carved the column (<see cref="Generation.Procedural.ColumnShape.RiverWeight"/>), 0 to <see cref="Mathematics.IntMath.One"/>: B02c's rivers are the drainage network's and not a field of the climate, so a row's <c>river</c> condition (the distance from the centre line, 0 on it) reads
+    /// <c>One - riverWeight</c>. Not given, the climate sample's own river field is read (<see cref="ClimateSample.River"/>).</param>
+    public BiomeColumn Classify(in ClimateSample c, int height, int x, int z, bool? water = null, int? riverWeight = null)
     {
         var temperature = c.Temperature + Jitter(_dither.Column(0, x, z), _ditherTemperature);
         var humidity = c.Humidity + Jitter(_dither.Column(1, x, z), _ditherHumidity);
         var surfaceTemperature = ClimateLapse.Apply(temperature, height, _seaLevel, _lapse);
         var wet = water ?? height < _seaLevel;
+        var river = riverWeight is { } carved ? Mathematics.IntMath.One - carved : Math.Abs(c.River);
         var row = _rows[^1].Row;
         foreach (var compiled in _rows)
         {
-            if (compiled.Matches(wet, c, temperature, humidity, height, surfaceTemperature))
+            if (compiled.Matches(wet, c, temperature, humidity, height, surfaceTemperature, river))
             {
                 row = compiled.Row;
                 break;
@@ -137,14 +140,14 @@ public sealed class BiomeTable : IBiomeSelector
 
         public BiomeRow Row { get; }
 
-        public bool Matches(bool water, in ClimateSample c, int temperature, int humidity, int height, int surfaceTemperature) =>
+        public bool Matches(bool water, in ClimateSample c, int temperature, int humidity, int height, int surfaceTemperature, int river) =>
             (_water is null || _water == water)
             && In(_continentalness, c.Continentalness)
             && In(_erosion, c.Erosion)
             && In(_ridges, c.Ridges)
             && In(_temperature, temperature)
             && In(_humidity, humidity)
-            && In(_river, Math.Abs(c.River))
+            && In(_river, river)
             && _height.Contains(height)
             && In(_surfaceTemperature, surfaceTemperature);
 

@@ -138,11 +138,11 @@ public sealed class RegionBlendTests(ITestOutputHelper output)
             Assert.InRange(Height(world, x, z) - region.EdgeHeight(x, z), -1, 1); // the weight just under one: the edge's height to within a block
         }
 
-        var free = margin + Blend.Headwater.Distance; // the rivers and lakes are the free world's only beyond the headwaters
+        var free = margin + Blend.Headwater.Distance; // beyond the headwaters the ground is the free world's (the water is the drainage network's, which runs round the region and so is its own)
         foreach (var (x, z, _, _) in Ring(b, free, 24).Concat(Ring(b, free + 20, 24)))
         {
             var c = world.Procedural.World.Climate.At(x, z);
-            Assert.Equal(inner.Shape(x, z, c), RegionTestWorld.Shape(world, x, z)); // the free land: the height model's own, on the climate with the land bias
+            Assert.Equal(inner.Shape(x, z, c).NaturalHeight, RegionTestWorld.Shape(world, x, z).NaturalHeight); // the free land: the height model's own, on the climate with the land bias
         }
     }
 

@@ -22,6 +22,7 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="MultiSamples">B22: the samples per pixel of the back buffer (multisample antialiasing, 0 for none): the stair-stepped silhouettes of blocks and the shimmer of far tiles. Chosen when the window opens (the menu's quality row takes effect for it at the next start; `--msaa` overrides).</param>
 /// <param name="MaxResidentChunks">B07: the most chunks a streamed world keeps resident: an admission cap (once the grid holds this many the residency asks for no more, nearest columns first, so a cap below what the view distance holds leaves the far land to the far view); the chunks behind the player are freed by the residency plan's own eviction, not by the cap.</param>
 /// <param name="GrassDistance">B18: how far from the eye the decorative grass layer is drawn, in blocks; it thins out over the outer half of it.</param>
+/// <param name="Shaders">B17b: whether the level turns the game's own GLSL shaders on (the settings page's Shaders row follows a change of level; every level has them on; the context may still refuse them).</param>
 /// <param name="GrassCapPercent">B18: the share of the Grass slider's density this level may reach, in percent: the slider's 100 is this share of a tuft on every grass column of the lushest biome.</param>
 public sealed record QualityPreset(
     QualityLevel Level,
@@ -39,7 +40,8 @@ public sealed record QualityPreset(
     int MaxResidentChunks = 48_000,
     int GrassDistance = 96,
     int GrassCapPercent = 100,
-    int MultiSamples = 4)
+    int MultiSamples = 4,
+    bool Shaders = true)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;

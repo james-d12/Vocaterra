@@ -108,8 +108,8 @@
           "required": ["width", "depth", "fadeFromHeight", "fadeToHeight", "seaFadeFrom", "seaFadeTo"],
           "additionalProperties": false,
           "properties": {
-            "width": { "type": "integer", "minimum": 1, "maximum": 1000, "description": "How far from zero, in thousandths, the river field still carves." },
-            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the river, in blocks: the bed is this far under the water's surface." },
+            "width": { "type": "integer", "minimum": 1, "maximum": 64, "description": "The width of the narrowest river, in blocks: the distance from the centre line over which the carve fades out, so the water itself is about half as wide. A river grows wider with the ground that drains into it, up to drainage.widthMax." },
+            "depth": { "type": "integer", "minimum": 1, "maximum": 32, "description": "How deep the water stands in the middle of the narrowest river, in blocks: the bed is this far under the water's surface. A river is deeper downstream, up to drainage.depthMax." },
             "fadeFromHeight": { "type": "integer" },
             "fadeToHeight": { "type": "integer" },
             "seaFadeFrom": { "type": "integer", "minimum": -1000, "maximum": 1000 },
@@ -119,11 +119,11 @@
             "valley": {
               "type": "object",
               "description": "How the valley of a river climbs the high ground (B02b redo): above from the river's water stands deeper under the ground the higher the ground is, and the valley widens with the height.",
-              "required": ["from", "widthPer10Blocks", "depthGrowth"],
+              "required": ["from", "widthPer100Blocks", "depthGrowth"],
               "additionalProperties": false,
               "properties": {
                 "from": { "type": "integer", "description": "The land height in blocks above which the valley widens and the floor rises." },
-                "widthPer10Blocks": { "type": "integer", "minimum": 0, "maximum": 200, "description": "The thousandths of the river field the valley widens by for every 10 blocks of ground above from." },
+                "widthPer100Blocks": { "type": "integer", "minimum": 0, "maximum": 200, "description": "The blocks the river's width grows by for every 100 blocks of ground above from." },
                 "depthGrowth": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "How much deeper the valley is, in thousandths of a block, for every block of ground above from." }
               }
             }
@@ -137,6 +137,26 @@
           "properties": {
             "step": { "type": "integer", "minimum": 1, "maximum": 16, "description": "The height of a step of the water's surface, in blocks." },
             "clearance": { "type": "integer", "minimum": 0, "maximum": 32, "description": "How many blocks under the smooth ground, besides the hills' amplitude, the surface stands." }
+          }
+        },
+        "drainage": {
+          "type": "object",
+          "description": "The drainage network the rivers and lakes are made of (B02c): a grid of nodes every spacing blocks, each with the level its water would stand at; a priority flood from the sea sends every node's water to a lower neighbour and fills each basin to its outlet (a lake); where more than sourceArea nodes drain through a node there is a river. Worked out a landmass at a time (the land nodes connected to the one asked for, up to the sea round them), so the water of a basin that mountains enclose runs out over its true pass and the network is a pure function of the seed. Optional (without it the world has no river and no lake).",
+          "required": ["spacing", "maxNodes", "sourceArea", "fullArea", "widthMax", "depthMax", "jitter", "bow", "lakeBasin", "relief", "reliefCell", "regionClearance"],
+          "additionalProperties": false,
+          "properties": {
+            "spacing": { "type": "integer", "minimum": 8, "maximum": 256, "description": "The distance in blocks between two nodes; a multiple of 4 (the climate's lattice)." },
+            "maxNodes": { "type": "integer", "minimum": 10000, "maximum": 4000000, "description": "The most land nodes one landmass may have; a world with no sea round its land is cut here and its water runs out at the cut." },
+            "sourceArea": { "type": "integer", "minimum": 1, "description": "How many nodes must drain through a node for a river to begin there." },
+            "fullArea": { "type": "integer", "minimum": 2, "maximum": 65000, "description": "How many nodes must drain through a node for its river to be full size." },
+            "widthMax": { "type": "integer", "minimum": 1, "maximum": 64, "description": "The width of the largest river, in blocks (rivers.width is the narrowest)." },
+            "depthMax": { "type": "integer", "minimum": 1, "maximum": 32, "description": "The depth of the largest river, in blocks (rivers.depth is the narrowest)." },
+            "jitter": { "type": "integer", "minimum": 0, "description": "How far in blocks a node is moved from its grid point; at most a quarter of the spacing." },
+            "bow": { "type": "integer", "minimum": 0, "maximum": 500, "description": "How far, in thousandths of a reach's length, a river bows aside between two nodes." },
+            "lakeBasin": { "type": "integer", "minimum": 0, "maximum": 64, "description": "How deep in blocks the lake field dents the land the drainage runs over; a dent the slope does not fill is a basin that fills to its outlet." },
+            "relief": { "type": "integer", "minimum": 0, "maximum": 16, "description": "How far in blocks a smooth noise moves the surface the water is routed over (not the water's level), so water on a plain gathers into rivers that join instead of running in parallel lines." },
+            "reliefCell": { "type": "integer", "minimum": 16, "maximum": 8192, "description": "The relief noise's cell in blocks." },
+            "regionClearance": { "type": "integer", "minimum": 0, "maximum": 4096, "description": "How far in blocks beyond a region's blend margin no river and no lake begins." }
           }
         },
         "lakes": {

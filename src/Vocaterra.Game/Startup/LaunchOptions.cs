@@ -84,7 +84,7 @@ public sealed record LaunchOptions
         + "                          Off by default, kept in a save's settings\n"
         + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
         + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
-        + "  --gl-shaders            draw the opaque chunks through the game's own GLSL program on MonoGame's OpenGL context instead of AlphaTestEffect (B17a, a spike; off by default; the log's gl: lines say what the context is)\n"
+        + "  --gl-shaders [on|off]   draw every chunk pass (the faces, the cut-outs, the grass, the glow, the water) through the game's own GLSL program on MonoGame's OpenGL context (B17b; on by default, the settings page's Shaders row; off draws with MonoGame's effects, as does a context below OpenGL 3.3 or a program that does not compile: the log's gl: lines say which). A bare --gl-shaders is on\n"
         + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
         + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
@@ -445,10 +445,10 @@ public sealed record LaunchOptions
     public bool NoSettle { get; init; }
 
     /// <summary>
-    /// Whether <c>--gl-shaders</c> was given (B17a, a spike): the opaque chunks are drawn through the game's own GLSL program on MonoGame's OpenGL context instead of through <c>AlphaTestEffect</c>. Off by default; the game
-    /// draws exactly as before without it, and with it when the context cannot run the program (the log says why).
+    /// What <c>--gl-shaders [on|off]</c> said (B17a, B17b): every chunk pass drawn through the game's own GLSL program on MonoGame's OpenGL context (on), or through MonoGame's effects (off); <see langword="null"/> leaves the saved
+    /// setting (on for a new game). Either way the effects draw when the context cannot run the program (the log says why).
     /// </summary>
-    public bool GlShaders { get; init; }
+    public bool? GlShaders { get; init; }
 
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
@@ -538,7 +538,7 @@ public sealed record LaunchOptions
         var dev = false;
         var streamStats = false;
         var noSettle = false;
-        var glShaders = false;
+        bool? glShaders = null;
         var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
@@ -649,6 +649,11 @@ public sealed record LaunchOptions
                         break;
                     case "--gl-shaders":
                         glShaders = true;
+                        if (i + 1 < args.Count && args[i + 1] is "on" or "off")
+                        {
+                            glShaders = args[++i] == "on"; // the value is optional: a bare flag is on
+                        }
+
                         break;
                     case "--playtest":
                         playtest = true;

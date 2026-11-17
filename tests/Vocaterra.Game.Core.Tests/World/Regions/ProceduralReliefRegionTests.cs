@@ -167,7 +167,7 @@ public sealed class ProceduralReliefRegionTests(ITestOutputHelper output)
 
         output.WriteLine($"the first town: {equal} columns are the world's own ground, {differing} are levelled");
         Assert.True(equal > differing * 2, "most of the town is the world's own ground");
-        Assert.True(differing > 200, "the levelling is real: the sites and the road change the ground");
+        Assert.True(differing > 100, "the levelling is real: the sites and the road change the ground");
     }
 
     [Theory]

@@ -41,6 +41,10 @@ public sealed class ClimateSampler : IClimateSampler
         new(_temperature.At(x, z), _humidity.At(x, z), _continentalness.At(x, z), _erosion.At(x, z), _ridges.At(x, z), _river.At(x, z));
 
     /// <inheritdoc />
+    public ClimateSample AtLatticePoint(int x, int z) =>
+        new(_temperature.AtPoint(x, z), _humidity.AtPoint(x, z), _continentalness.AtPoint(x, z), _erosion.AtPoint(x, z), _ridges.AtPoint(x, z), _river.AtPoint(x, z));
+
+    /// <inheritdoc />
     public int TemperatureAt(int x, int y, int z) => ClimateLapse.Apply(_temperature.At(x, z), y, _seaLevel, _data.LapsePer100Blocks);
 
     /// <inheritdoc />
