@@ -195,7 +195,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -246,6 +246,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _drawer.ApplyWorkers(_settings.Workers); // B07d: the worker threads the pool starts with
         _drawer.ApplyGrass(_settings.Get(SettingId.Grass)); // the decorative grass's density (B18)
         _drawer.ApplyShaders(_settings.Shaders); // the game's own GLSL shaders for the chunks (B17b)
+        if (options.Quality is not null)
+        {
+            ApplyPresetEffects(options); // a level on the command line sets the effects it turns on, as choosing it in the menu does, except what the command line itself fixed (B17c)
+        }
+
+        _drawer.ApplyEffects(GraphicsEffects.Of(_settings)); // the graphics effects of the Graphics group (B17c)
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -423,9 +429,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
             HardwareModeSwitch = false, // full screen is borderless at the desktop's mode, never a display mode change
             IsFullScreen = options.StartsFullScreen,
-            PreferMultiSampling = (options.Msaa ?? QualityPreset.MultiSamplesOf(_settings.Quality)) > 0, // B22: antialiased edges; the count is set below
+            PreferMultiSampling = _settings.Msaa > 0, // B22: antialiased edges; the count is set below (the Antialiasing row of the settings page, B17c; --msaa wins for a run)
         };
-        var multiSamples = options.Msaa ?? QualityPreset.MultiSamplesOf(_settings.Quality);
+        var multiSamples = _settings.Msaa;
         _graphics.PreparingDeviceSettings += (_, e) => e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = multiSamples;
         IsFixedTimeStep = false; // the accumulator owns the tick rate
         IsMouseVisible = true;
@@ -1021,6 +1027,36 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _devices.Commit(input);
     }
 
+    // The effects a quality level turns on, written to the settings for each one the command line did not fix itself (B17c: the same as choosing the level in the menu).
+    private void ApplyPresetEffects(LaunchOptions options)
+    {
+        var preset = GraphicsEffects.Of(_drawer.Preset);
+        if (options.SunFollowsHour is null)
+        {
+            _settings.Set(SettingId.SunFollowsHour, preset.SunFollowsHour ? 1 : 0);
+        }
+
+        if (options.ClimateColours is null)
+        {
+            _settings.Set(SettingId.ClimateColours, preset.ClimateColours ? 1 : 0);
+        }
+
+        if (options.WaterShader is null)
+        {
+            _settings.Set(SettingId.WaterShader, preset.WaterShader ? 1 : 0);
+        }
+
+        if (options.HeightFog is null)
+        {
+            _settings.Set(SettingId.HeightFog, preset.HeightFog ? 1 : 0);
+        }
+
+        if (options.FarLight is null)
+        {
+            _settings.Set(SettingId.FarLight, preset.FarLight ? 1 : 0);
+        }
+    }
+
     // F5: the behind-the-shoulder view and back (S15).
     private void ToggleView()
     {
@@ -1072,8 +1108,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 if (id == SettingId.Quality)
                 {
                     _settings.Set(SettingId.Shaders, _drawer.Preset.Shaders ? 1 : 0); // a quality level sets the graphics toggles (D-game-34 item 43); each can be changed on its own after it
+                    GraphicsEffects.Of(_drawer.Preset).WriteTo(_settings);
                 }
 
+                break;
+            case SettingId.SunFollowsHour or SettingId.ClimateColours or SettingId.WaterShader or SettingId.HeightFog or SettingId.FarLight:
+                _drawer.ApplyEffects(GraphicsEffects.Of(_settings));
+                Console.WriteLine($"graphics effect {id}: {(_settings.Get(id) == 1 ? "on" : "off")}");
+                break;
+            case SettingId.Msaa:
+                Console.WriteLine($"antialiasing: {_settings.Msaa} samples a pixel (read when the window opens: it takes effect at the next start)");
                 break;
             case SettingId.Shaders:
                 _drawer.ApplyShaders(_settings.Shaders);
