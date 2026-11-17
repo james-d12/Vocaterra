@@ -1475,3 +1475,9 @@ this file. What is still open is collected in [open-items](../open-items.md).
   with `pron.silent_h` injected at «ah» (heard [a h a m b ɾ j e n t o s] for [a a m b ɾ j e n t o s]); the scorer reports `pron.silent_h`
   twice, at «ah» and again on the h of «hambrientos». It replays on `feature/biomes` at `e9798005` (the orchestrator, about 17:10 UTC),
   so it is the core's. Proposed: a fix like M97 (the alignment of two silent h's in a row), with the owner's yes.
+- **A fuzz seed on «alrededor» as an item (found 2026-11-17 by B07e's second gate on `feature/biomes`; not changed, given to M98).** O3,
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, seed `7q7l8dSNG6n6`: the pattern
+  `[[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]]` realised «alrededor aclara construir» with `alrededor` as the item noun; the analyser
+  yields no item slot (expected `{item=alrededor}`, got `{}`). It replays on the merged tree (`84e1e2cb`) with `CsCheck_Seed`, and B07e
+  changed no core or content file, so it is the core's. To triage in M98: the lexicon's noun reading of `alrededor` (a plural noun,
+  «los alrededores»), the realiser's choice of it as an item, or the analyser's adverb reading winning.

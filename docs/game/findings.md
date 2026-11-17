@@ -2808,3 +2808,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   3.6 MB at High. One merge (B07c's presets). Its first gate's run on feature/biomes crashed a game-window test (exit 139, passing alone in
   20 min: the far view's settle in Debug, given to B07e); its merge's full run tripped M97's fixed-seed coverage test (passes alone; M98).
   Gated: 12,448 passed, 3 skipped.
+- **B07e, the far view's seams and gaps (2026-11-17, `84e1e2cb`).** None of the owner's four Debug bugs shows once settled in Release at
+  High; what he saw is the in-between state a Debug build stretches (a floating slab with sky under it at 2.5 s, far land missing or
+  half-built), caused partly by held-back tiles: built, waiting on the upload budget, neither drawn nor stood in for. Fixed the rendering
+  review's H1 to H4 and M1 and the far near plane (one seventh of the voxel view, 12 to 64). A bug no unit test could see:
+  `FarTerrainRenderer.Draw` returned before uploading when the draw list was empty, so with drawing decided by what is on the card nothing
+  ever uploaded; uploads now run first. The game-window test passes `--far-view off` (2.5 min, was about 20) and far buffers are disposed at
+  shutdown (the likely cause of the exit 139). Its first gate failed on the settle test (3 min alone) and the valley timing test: the
+  settle tests now use a small far range (22 s). Its second gate: 12,451 passed, two failures not B07e's: the valley underground timing
+  test (passes alone in 8 s; load 11 to 15) and a new core fuzz seed, `7q7l8dSNG6n6`, which replays without B07e (no core or content
+  file changed): the merge stands, the seed goes to M98. Left: a neighbour's changed edge column does not invalidate the tile beside it;
+  the horizon takes about 150 s of worker time at High (B07d).
