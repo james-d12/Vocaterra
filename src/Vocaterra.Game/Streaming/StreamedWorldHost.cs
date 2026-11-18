@@ -161,6 +161,9 @@ public sealed class StreamedWorldHost : IDisposable
     /// <summary>The band cache.</summary>
     public ColumnBandCache Bands { get; }
 
+    /// <summary>The voxel zone's stage counters (B43): the residency adds the chunks it generates and installs, the renderer those it meshes, uploads and draws; <c>--stream-stats</c> prints them.</summary>
+    public PipelineCounters Pipeline { get; } = new();
+
     /// <summary>The voxel chunks' residency.</summary>
     public ChunkResidency Residency => _residency;
 
@@ -408,7 +411,7 @@ public sealed class StreamedWorldHost : IDisposable
     }
 
     private ChunkResidency MakeResidency(QualityPreset preset) =>
-        new(_grid, _world, PolicyFor(preset.ViewDistance), _pool, _places, preset.MaxResidentChunks, Bands);
+        new(_grid, _world, PolicyFor(preset.ViewDistance), _pool, _places, preset.MaxResidentChunks, Bands) { Counters = Pipeline };
 }
 
 /// <summary>
