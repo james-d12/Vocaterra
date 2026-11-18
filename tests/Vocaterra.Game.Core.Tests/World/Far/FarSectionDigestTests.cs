@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Core.Tests.World.Far;
 /// <summary>
 /// The far model's output pinned byte for byte (B36): the packed sections of the model's stacks at levels 0 to 7 over land, a river, a coast, cliffs and open sea, for the seeds 42 and 2026 and for the valley's blended world, and the samples
 /// of the sampler's grids, are hashed. They were recorded from the code before the sampler shared its work between columns, so any change to what the sampler answers fails here. B37 split each place's digest in three, recorded from the
-/// B36 code: the levels 0 to 2 with the grids ("near"), level 3 and levels 4 to 7 ("far"), so that the far picture's change at the coarse levels (B37) re-records the last and the others still pin the exact levels.
+/// B36 code: the levels 0 to 2 with the grids ("near"), level 3 and levels 4 to 7 ("far"), so that the far picture's change at the coarse levels (B37: levels 4 to 7 take the lattice point's climate for the cliff test's neighbours and no longer pool rivers; their digests were re-recorded, in a commit of their own) re-records the last and the others still pin the exact levels.
 /// </summary>
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class FarSectionDigestTests
@@ -23,10 +23,10 @@ public sealed class FarSectionDigestTests
         ["free2026 coast far"] = "0E5A9CA121DB3766ECA6712B",
         ["free2026 coast l3"] = "1CC7953ADA7A960F53C2B28D",
         ["free2026 coast near"] = "33EDDC308544F81BAA381793",
-        ["free2026 forest far"] = "3217D60C880CD5CE8F66878C",
+        ["free2026 forest far"] = "A252A0CA510200398226F979",
         ["free2026 forest l3"] = "0CB51A7A064D7DE898BD149E",
         ["free2026 forest near"] = "8DC1632EEE56E0547D12F973",
-        ["free2026 mountain far"] = "29B3D52D38C35DAE753E2C72",
+        ["free2026 mountain far"] = "DE841B5886E926C477C040C7",
         ["free2026 mountain l3"] = "5D0A254DDA9AFD1C7BD6A130",
         ["free2026 mountain near"] = "3351A5FE0AFB1EFE38E635E1",
         ["free2026 river far"] = "4C5C76C5E56119294D9CED69",
@@ -35,22 +35,22 @@ public sealed class FarSectionDigestTests
         ["free2026 sea far"] = "0E5A9CA121DB3766ECA6712B",
         ["free2026 sea l3"] = "B9CFC5857D1C855A5D7AA080",
         ["free2026 sea near"] = "86DA70AE1F49C74E8160DA42",
-        ["free42 coast far"] = "D6447E73EB0F483051041E10",
+        ["free42 coast far"] = "231FC3069E5E9038BFAE9C13",
         ["free42 coast l3"] = "DB63E95DFCFED2C40B0CEF6B",
         ["free42 coast near"] = "A7FE3EE826B8D95C310A0D9D",
-        ["free42 forest far"] = "A42BEF18DC7593B065F1610D",
+        ["free42 forest far"] = "96F5F1525219D24B5C87F655",
         ["free42 forest l3"] = "C78F01A8E7ACEA19A1143030",
         ["free42 forest near"] = "E97876ABC201D70461DC237A",
-        ["free42 mountain far"] = "E730C2D213643B26F9780030",
+        ["free42 mountain far"] = "1D7A8025F254B22871DFD4AB",
         ["free42 mountain l3"] = "63A22D1519FB082AB5FD833F",
         ["free42 mountain near"] = "AA56A5432C48D2FE3A9A826A",
-        ["free42 river far"] = "EB19DCB14CEDC417542B977B",
+        ["free42 river far"] = "E4D70C6A1639856CD26E7874",
         ["free42 river l3"] = "4EE14D6F344E10916F5A00C1",
         ["free42 river near"] = "D9A7073CABE69A1985F1BB66",
-        ["free42 sea far"] = "9FF3004078942B0F10504FBE",
+        ["free42 sea far"] = "FCE09896828F5D19EBF3431D",
         ["free42 sea l3"] = "4388B245EA6EBDF83C868D4C",
         ["free42 sea near"] = "1E558A32788C946D28209DFC",
-        ["valley42 edge far"] = "3F7056153146094C74F23A5E",
+        ["valley42 edge far"] = "E8E412FB9FC50BE70B027F8C",
         ["valley42 edge l3"] = "244CBEF80B71401E03460E90",
         ["valley42 edge near"] = "AA0514AADD199A3EB75E8C74",
         ["valley42 ridge far"] = "6AE357D129D104EDCA3ED5FF",
