@@ -427,6 +427,20 @@ worn in the `back` slot (the plan's small bag adds 10 and the large one 20, so a
 first); swapping for one at least as large is always allowed. A save records the worn bag by name and the bag at its active size, so changing a bag's `capacity` in the data between a save and a load makes the save
 load only across bundles (the migration resizes the bag and reports what was dropped).
 
+## Clothes and materials (I08a)
+
+The first gear in the data: three materials (`cloth`, `leather`, `iron`: tag `material`, stack 99, ids 100 to 102) and seven pieces of clothing (`hat`, `cap`, `shirt`, `jacket`, `coat`, `trousers`, `shoes`: tag `clothing`, stack 1, ids 103 to 109, `wear` the slot, `stats.warmth` in
+tenths of a degree, a `look` colour per covered part and, for the body pieces, a `sleeve` colour). The prices, recipes and warmth are the inventory plan's section 3.13a. A new item of this kind is: a row in `items.json` (the next free id), an icon key with art
+(`BlockAtlasLayout.IconKeys`; the art of these ten is `BlockArtGear`, a table of sixteen strings a picture over a small palette, one cell each at the end of `BlockCell`), a noun in `nouns.json` with its English in `locale/en/nouns.json` and, when the lexicon lacks the word, entries in `lexicon/world.json`;
+a noun on neither CEFR list joins the world-words block of `cefr/a1.txt` with its reason; a recipe in `recipes.json` (the output and every ingredient are nouns, `"station": "mesa"` for the workbench); and a price in the seller's `sell` row.
+
+**A noun said in the plural for one thing** (`los pantalones`, `los zapatos`: a pair) has `"plural": true`: its lemma stays the singular the lexicon knows (`pantalón`, `zapato`, which is what a line's slot and a price list name), its articles and word card are the plural's, and its item's `labels` entry gives the plural for the slots and the tooltip.
+
+**What the shops sell.** Pablo's `stall.sell_goods` is one `sell` row with `prices` for the flour, the cloth, the leather and the seven clothes; the shopkeeper's `stall.give_water` sends each of those nouns to it through `instead`, so «Quiero una camisa» is the same path as «Quiero harina». Domingo's `smith.sell_iron` is a fixed
+`sell` of `iron` at three coins, reached from his `state_want` (a line that names anything else is answered by `smith.wont_sell`, which says the axe's offer as before). Misses are the NPC's own pools (`shop_cant_pay`, `shop_none_asked`, `shop_wont_sell`; `smith_cant_pay`, `smith_none_asked`).
+
+**What the player starts in.** `game/session.json`'s `wears` lists the items a new game puts on (`shirt`, `trousers`, `shoes`: +4 degrees), each in the first slot that takes it; `grants` still lists what the bag starts with. A loaded save puts its own worn items back, so a save with nothing worn loads with nothing worn.
+
 ## Stat keys and damage (I05a)
 
 An item's `stats` (items.json) are open keys; the ones the code reads, each with its unit, how items combine and the range one item may give (`StatRules`; `EquipmentValidator` refuses a value outside it):

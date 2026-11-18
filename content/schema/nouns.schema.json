@@ -22,6 +22,7 @@
         "blocks": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/block" }, "description": "The block kinds the noun names." },
         "labels": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "description": "The text that labels one of the noun's items when it is not the lemma (roast-apple: manzana asada)." },
         "mass": { "type": "boolean", "description": "A mass noun: the checklist shows the lemma, never the plural." },
+        "plural": { "type": "boolean", "description": "A noun said in the plural for one thing (los pantalones, los zapatos): its articles and its word card are the plural's (I08a); the lemma stays the singular." },
         "sources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "The catalogue nouns this one is gathered from (madera from árbol)." }
       }
     },

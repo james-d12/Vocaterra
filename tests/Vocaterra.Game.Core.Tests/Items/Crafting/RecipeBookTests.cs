@@ -14,7 +14,7 @@ public sealed class RecipeBookTests
     {
         Assert.True(TestGame.Bundle.TryReadHostFile(RecipeBook.RelativePath, out var bytes));
         Assert.True(bytes.Length > 0);
-        Assert.Equal(2, Book.Entries.Count); // the workbench torch, and (N07) the roast apple at the fire
+        Assert.Equal(9, Book.Entries.Count); // the workbench torch, (N07) the roast apple at the fire, and (I08a) the seven clothes at the workbench
         Assert.Equal("antorcha", Book.Entries[0].Output.Lemma);
         Assert.Equal(1, Book.Entries[0].OutputCount);
         Assert.Equal("mesa", Book.Entries[0].Station!.Lemma);

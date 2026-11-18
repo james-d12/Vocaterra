@@ -379,7 +379,7 @@ public sealed class NpcServiceTests
         // the fruit); V11 the baker's two (she sells bread, and pays for the wood); V12 the smith's one (he gives the axe for the order); V13 the farmer's two (he sells
         // apples at a coin each, and gives three for the water); V15 the three buyers' (the baker and the smith buy wood, the farmer fruit, a coin each).
         // W08 adds the baker's six as the teacher at a station: the repeat, the slow recording and the help, the missing ingredients, the recipe taught and the accepted offer to bake.
-        Assert.Equal(27, table.Mapped().Count); // Y11: villager.give_stake and villager.buy_plot; W10: stall.sell_flour and stall.buy_bread; Y06: innkeeper.room
+        Assert.Equal(28, table.Mapped().Count); // Y11: villager.give_stake and villager.buy_plot; W10: stall.sell_goods (the flour, then the cloth, leather and clothes, I08a) and stall.buy_bread; Y06: innkeeper.room; I08a: smith.sell_iron
         Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("baker", "baker.buy_wood"));
         Assert.Equal(NpcEffect.BuyAt(ItemId.Wood, 1), table.Of("smith", "smith.buy_wood"));
         Assert.Equal(NpcEffect.BuyAt(ItemId.Berry, 1), table.Of("farmer", "farmer.buy_fruit"));

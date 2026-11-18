@@ -66,7 +66,28 @@ internal static class GearItems
     public static VoxelSimulation Sim() => VoxelSimulation.Create(VoxelTestSupport.FlatScene(), Catalogue, equipment: Data);
 
     /// <summary>A session on the route with the test gear in its catalogue (the shipped slot groups), for the tests of death and saves with gear worn.</summary>
-    public static VoxelSession Session() => new(TestGame.Data.WithItems(Catalogue), TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
+    public static VoxelSession Session() => Undress(new VoxelSession(TestGame.Data.WithItems(Catalogue), TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons));
+
+    /// <summary>
+    /// Takes off what a new game starts in (the shirt, trousers and shoes of <c>game/session.json</c>, I08a) and leaves the bag as it was, so a test of what is worn starts from a bare player and an unchanged bag.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    public static VoxelSession Undress(VoxelSession session)
+    {
+        var sim = session.Simulation;
+        var bag = sim.Inventory.Slots.ToArray();
+        foreach (var (slot, _) in sim.Equipment.Worn().ToList())
+        {
+            _ = sim.Unequip(slot);
+        }
+
+        for (var i = 0; i < bag.Length; i++)
+        {
+            sim.Inventory.SetSlot(i, bag[i]);
+        }
+
+        return session;
+    }
 
     /// <summary>A slot by its group's id and its own name (<c>Slot("clothing", "head")</c>).</summary>
     public static EquipSlot Slot(string group, string name) => Slot(Data, group, name);

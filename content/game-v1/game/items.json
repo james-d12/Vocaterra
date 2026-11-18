@@ -16,6 +16,16 @@
     { "name": "roast-apple", "id": 33, "stack": 99, "icon": "roast-apple", "tags": ["food"] },
     { "name": "flour", "id": 34, "stack": 99, "icon": "flour", "tags": ["material"] },
     { "name": "stake", "id": 35, "stack": 1, "icon": "stake", "tags": ["tool"] },
-    { "name": "camp-kit", "id": 36, "stack": 1, "icon": "camp-kit", "tags": ["placeable"] }
+    { "name": "camp-kit", "id": 36, "stack": 1, "icon": "camp-kit", "tags": ["placeable"] },
+    { "name": "cloth", "id": 100, "stack": 99, "icon": "cloth", "tags": ["material"] },
+    { "name": "leather", "id": 101, "stack": 99, "icon": "leather", "tags": ["material"] },
+    { "name": "iron", "id": 102, "stack": 99, "icon": "iron", "tags": ["material"] },
+    { "name": "hat", "id": 103, "stack": 1, "icon": "hat", "tags": ["clothing"], "wear": "head", "stats": { "warmth": 10 }, "look": { "head": "#d7b56a" } },
+    { "name": "cap", "id": 104, "stack": 1, "icon": "cap", "tags": ["clothing"], "wear": "head", "stats": { "warmth": 20 }, "look": { "head": "#d9782d" } },
+    { "name": "shirt", "id": 105, "stack": 1, "icon": "shirt", "tags": ["clothing"], "wear": "body", "stats": { "warmth": 10 }, "look": { "body": "#ece6d0", "sleeve": "#ece6d0" } },
+    { "name": "jacket", "id": 106, "stack": 1, "icon": "jacket", "tags": ["clothing"], "wear": "body", "stats": { "warmth": 30 }, "look": { "body": "#5f7f3f", "sleeve": "#5f7f3f" } },
+    { "name": "coat", "id": 107, "stack": 1, "icon": "coat", "tags": ["clothing"], "wear": "body", "stats": { "warmth": 50 }, "look": { "body": "#8c2f3c", "sleeve": "#8c2f3c" } },
+    { "name": "trousers", "id": 108, "stack": 1, "icon": "trousers", "tags": ["clothing"], "wear": "legs", "stats": { "warmth": 20 }, "look": { "legs": "#3f5f95" } },
+    { "name": "shoes", "id": 109, "stack": 1, "icon": "shoes", "tags": ["clothing"], "wear": "feet", "stats": { "warmth": 10 }, "look": { "feet": "#5a3a22" } }
   ]
 }

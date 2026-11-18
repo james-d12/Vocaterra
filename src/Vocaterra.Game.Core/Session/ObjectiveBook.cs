@@ -110,11 +110,12 @@ public sealed class ObjectiveBook
     /// <summary>The id of an order's one step, the delivery (the save keys it <c>&lt;order&gt;.delivered</c>).</summary>
     public const string DeliveredStep = "delivered";
 
-    private ObjectiveBook(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart, string? innBeacon)
+    private ObjectiveBook(IReadOnlyList<ObjectiveSpec> objectives, string closingPool, IReadOnlyList<ItemId> grants, string beaconStart, string? innBeacon, IReadOnlyList<ItemId>? wears = null)
     {
         Objectives = objectives;
         ClosingPool = closingPool;
         Grants = grants;
+        Wears = wears ?? [];
         BeaconStart = beaconStart;
         InnBeacon = innBeacon;
     }
@@ -127,6 +128,9 @@ public sealed class ObjectiveBook
 
     /// <summary>The items the learner starts with, one of each (the book, S20).</summary>
     public IReadOnlyList<ItemId> Grants { get; }
+
+    /// <summary>The items the learner starts wearing, each put on in the first slot that takes it (the shirt, the trousers and the shoes, I08a); a loaded save puts its own worn items back.</summary>
+    public IReadOnlyList<ItemId> Wears { get; }
 
     /// <summary>The scene point the beacon stands on at the start of a new game (<c>camp.guide</c>, S13).</summary>
     public string BeaconStart { get; }
@@ -172,7 +176,10 @@ public sealed class ObjectiveBook
             var grants = root.TryGetProperty("grants", out var grantsElement)
                 ? grantsElement.EnumerateArray().Select(e => ItemNamed(nouns.Items, e.GetString() ?? string.Empty)).ToList()
                 : [];
-            return new ObjectiveBook(objectives, Text(root, "closingPool", SessionPath), grants, Text(root, "beaconStart", SessionPath), root.TryGetProperty("innBeacon", out var inn) ? inn.GetString() : null);
+            var wears = root.TryGetProperty("wears", out var wearsElement)
+                ? wearsElement.EnumerateArray().Select(e => ItemNamed(nouns.Items, e.GetString() ?? string.Empty)).ToList()
+                : [];
+            return new ObjectiveBook(objectives, Text(root, "closingPool", SessionPath), grants, Text(root, "beaconStart", SessionPath), root.TryGetProperty("innBeacon", out var inn) ? inn.GetString() : null, wears);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {

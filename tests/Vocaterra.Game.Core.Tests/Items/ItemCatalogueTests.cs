@@ -11,12 +11,12 @@ public sealed class ItemCatalogueTests
     private static readonly string Shipped = File.ReadAllText(Repo.Path("content", "game-v1", "game", "items.json"));
 
     [Fact]
-    public void Given_TheShippedBundle_When_TheCatalogueLoads_Then_ItHasTheFourteenRowsInTheFilesOrderAndEveryEnumMember()
+    public void Given_TheShippedBundle_When_TheCatalogueLoads_Then_ItHasTheTwentyFourRowsInTheFilesOrderAndEveryEnumMember()
     {
         var catalogue = ItemCatalogue.Load(TestGame.Bundle);
 
-        Assert.Equal(14, catalogue.All.Count);
-        Assert.Equal(["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour", "stake", "camp-kit"], catalogue.All.Select(static d => d.Name));
+        Assert.Equal(24, catalogue.All.Count); // I08a: the three materials and the seven clothes, ids 100 to 109
+        Assert.Equal(["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour", "stake", "camp-kit", "cloth", "leather", "iron", "hat", "cap", "shirt", "jacket", "coat", "trousers", "shoes"], catalogue.All.Select(static d => d.Name));
         foreach (var member in Enum.GetValues<ItemId>())
         {
             Assert.Equal(ItemCatalogue.KeyOf(member), catalogue.Get(member).Name);
@@ -117,12 +117,12 @@ public sealed class ItemCatalogueTests
     [Fact]
     public void Given_ARowThatNoEnumMemberNames_When_ItIsAdded_Then_TheCatalogueHasItByIdAndByName()
     {
-        var gem = new ItemDefinition((ItemId)100, "gem", 7, "gem", ItemHeld.Sprite, ["material"]);
+        var gem = new ItemDefinition((ItemId)900, "gem", 7, "gem", ItemHeld.Sprite, ["material"]);
 
         var catalogue = TestItems.With(gem);
 
-        Assert.Equal(15, catalogue.All.Count);
-        Assert.Same(gem, catalogue.Get((ItemId)100));
+        Assert.Equal(25, catalogue.All.Count);
+        Assert.Same(gem, catalogue.Get((ItemId)900));
         Assert.Same(gem, catalogue.Find("gem"));
         Assert.Equal("gem", catalogue.All[^1].Name);
     }

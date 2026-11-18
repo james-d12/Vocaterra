@@ -15,9 +15,9 @@ public sealed class ItemGearFieldsTests
     }
 
     [Fact]
-    public void Given_TheShippedItems_When_TheyAreRead_Then_NoneHasGearFieldsYet()
+    public void Given_TheShippedItems_When_TheyAreRead_Then_OnlyTheClothesHaveGearFieldsYet()
     {
-        Assert.All(TestItems.Catalogue.All, static d =>
+        Assert.All(TestItems.Catalogue.All.Where(static d => !d.Tags.Contains("clothing")), static d => // I08a: the seven clothes are the first gear; armour, accessories and bags come with I08b
         {
             Assert.Null(d.Wear);
             Assert.Null(d.Stats);

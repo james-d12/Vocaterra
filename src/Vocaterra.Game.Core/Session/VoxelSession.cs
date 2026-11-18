@@ -76,6 +76,11 @@ public sealed partial class VoxelSession : GuideSession
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
         }
 
+        foreach (var item in data.Objectives.Wears)
+        {
+            _ = Simulation.WearFromStart(item, out _); // the learner starts in a shirt, trousers and shoes (I08a; game/session.json "wears"); a loaded save puts its own worn items back
+        }
+
         Simulation.SetRecipes(Recipes.Rules);
         InitLand(scene); // Y09: the village, the roads and Luna's camp refuse blocks
         Objectives = data.Objectives.Objectives.Select(static spec => new Objective(spec)).ToList();

@@ -26,6 +26,12 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "iron",
+      "canonical": "quiero hierro",
+      "aliases": ["necesito hierro", "quiero el hierro"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "hello",
       "canonical": "hola",
       "aliases": ["buenos días", "buenas tardes", "buen día"],

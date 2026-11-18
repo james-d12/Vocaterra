@@ -176,7 +176,7 @@ public sealed class LookTests
     public void TheMipChainHasOneLevelPerHalvingAndEveryLevelIsItsOwnSize()
     {
         var levels = BlockArt.MipLevelCount;
-        Assert.Equal(9, levels); // 128 x 384 down to 1 x 1
+        Assert.Equal(10, levels); // 128 x 544 (I08a: 17 rows of colour cells and their 17 grey copies; it was 128 x 480, nine levels) down to 1 x 1
         var level0 = BlockArt.AtlasPixels();
         Assert.Same(level0, BlockArt.MipLevel(level0, 0));
         for (var level = 1; level < levels; level++)

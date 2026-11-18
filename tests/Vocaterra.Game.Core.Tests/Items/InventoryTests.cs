@@ -73,11 +73,12 @@ public sealed class InventoryTests
     [Fact]
     public void EveryItemHasItsStackLimitInTheDefinitionsAndNothingElse()
     {
-        Assert.Equal(new[] { ItemId.Wood, ItemId.Torch, ItemId.Berry, ItemId.Bottle, ItemId.WaterBottle, TestItems.Bread, ItemId.Book, ItemId.Coin, TestItems.Apple, TestItems.Axe, TestItems.RoastApple, TestItems.Flour, ItemId.Stake, ItemId.CampKit }, TestItems.Catalogue.All.Select(static d => d.Id).ToArray());
+        Assert.Equal(new[] { ItemId.Wood, ItemId.Torch, ItemId.Berry, ItemId.Bottle, ItemId.WaterBottle, TestItems.Bread, ItemId.Book, ItemId.Coin, TestItems.Apple, TestItems.Axe, TestItems.RoastApple, TestItems.Flour, ItemId.Stake, ItemId.CampKit, (ItemId)100, (ItemId)101, (ItemId)102, (ItemId)103, (ItemId)104, (ItemId)105, (ItemId)106, (ItemId)107, (ItemId)108, (ItemId)109 }, TestItems.Catalogue.All.Select(static d => d.Id).ToArray());
         Assert.Equal((30, 31, 32), ((int)ItemId.Coin, (int)TestItems.Apple, (int)TestItems.Axe)); // V03: after the book; a value is never reused
-        Assert.All(TestItems.Catalogue.All.Where(static d => d.Id is not (ItemId.Book or TestItems.Axe or ItemId.Stake or ItemId.CampKit)), static d => Assert.Equal(ItemDefinition.DefaultStackLimit, d.MaxStack));
+        Assert.All(TestItems.Catalogue.All.Where(static d => d.Id is not (ItemId.Book or TestItems.Axe or ItemId.Stake or ItemId.CampKit) && !d.Tags.Contains("clothing")), static d => Assert.Equal(ItemDefinition.DefaultStackLimit, d.MaxStack));
         Assert.Equal(1, TestItems.Catalogue.Get(TestItems.Axe).MaxStack); // a tool, like the book
         Assert.Equal(1, TestItems.Catalogue.Get(ItemId.Stake).MaxStack); // Y10: one stake marks the one plot
+        Assert.All(TestItems.Catalogue.All.Where(static d => d.Tags.Contains("clothing")), static d => Assert.Equal(1, d.MaxStack)); // I08a: a worn piece is one to a slot
         Assert.Equal(1, TestItems.Catalogue.Get(ItemId.CampKit).MaxStack); // Y11: one kit comes with the one plot
         Assert.Equal(1, TestItems.Catalogue.Get(ItemId.Book).MaxStack); // the learner has one book
     }
@@ -104,7 +105,7 @@ public sealed class InventoryTests
     [Fact]
     public void Given_AnItemOnlyTheDataKnows_When_ItIsAddedToTheBag_Then_ItStacksToItsOwnLimitLikeAnyOther()
     {
-        var gem = (ItemId)100;
+        var gem = (ItemId)900;
         var bag = new Inventory(TestItems.With(new ItemDefinition(gem, "gem", 7, "gem", ItemHeld.Sprite, ["material"])));
 
         Assert.Equal(0, bag.Add(gem, 15));

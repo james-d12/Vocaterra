@@ -38,6 +38,16 @@
     "noun.calor": "warmth",
     "noun.bolsa": "bag",
     "noun.ropa": "clothes",
-    "noun.apariencia": "appearance"
+    "noun.apariencia": "appearance",
+    "noun.tela": "cloth",
+    "noun.cuero": "leather",
+    "noun.hierro": "iron",
+    "noun.sombrero": "hat",
+    "noun.gorro": "woolly cap",
+    "noun.camisa": "shirt",
+    "noun.chaqueta": "jacket",
+    "noun.abrigo": "coat",
+    "noun.pantalón": "trousers",
+    "noun.zapato": "shoes"
   }
 }

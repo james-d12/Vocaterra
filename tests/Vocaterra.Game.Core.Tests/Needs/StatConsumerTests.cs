@@ -178,7 +178,7 @@ public sealed class StatConsumerTests
     public void Given_NothingWorn_When_TheDigestIsTaken_Then_GearAndItsConsumersChangeNothingInIt()
     {
         var plain = GearItems.Session();
-        var other = TestGame.NewSession();
+        var other = GearItems.Undress(TestGame.NewSession()); // the starting clothes (I08a) are worn gear too
 
         for (var i = 0; i < 120; i++)
         {

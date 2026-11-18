@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 /// <summary>Save version 9 (I01): a bag slot stores its item by the name of <c>game/items.json</c>, an empty slot is empty, and an item only the data knows is saved and loaded like any other.</summary>
 public sealed class ItemsSaveTests
 {
-    private static readonly ItemId Gem = (ItemId)100;
+    private static readonly ItemId Gem = (ItemId)900;
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
@@ -52,7 +52,7 @@ public sealed class ItemsSaveTests
 
         Assert.Equal(stacks, loaded.Simulation.Inventory.Slots);
         Assert.Equal(10, loaded.Simulation.Inventory.Count(Gem));
-        Assert.Equal(new ItemStack(Gem, 7), loaded.Simulation.Inventory.Slots.First(static s => s.Item == (ItemId)100));
+        Assert.Equal(new ItemStack(Gem, 7), loaded.Simulation.Inventory.Slots.First(static s => s.Item == (ItemId)900));
         Assert.Equal(digest, loaded.Simulation.ComputeStateDigest());
     }
 

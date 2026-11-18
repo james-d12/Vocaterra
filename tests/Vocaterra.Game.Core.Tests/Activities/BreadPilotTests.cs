@@ -118,7 +118,7 @@ public sealed class BreadPilotTests
         var turn = session.Say("quiero harina");
 
         Assert.Equal((1, 2, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin), Held(session, ItemId.Bottle)));
-        Assert.Contains("Aquí tienes la harina.", turn.Replies.Concat(turn.FollowUp ?? []));
+        Assert.Contains("Aquí tienes. ¡Gracias!", turn.Replies.Concat(turn.FollowUp ?? []));
         Assert.DoesNotContain(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No tengo", StringComparison.Ordinal));
         _ = session.Say("quiero dos harinas");
         Assert.Equal((3, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin))); // one coin each
@@ -133,8 +133,8 @@ public sealed class BreadPilotTests
 
         Assert.Equal(0, Held(session, TestItems.Flour));
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
-        Assert.Contains("La harina cuesta una moneda.", lines);
-        Assert.DoesNotContain("Aquí tienes la harina.", lines); // the success line is not said for a sale the world cannot make
+        Assert.Contains("Necesitas más monedas.", lines);
+        Assert.DoesNotContain("Aquí tienes. ¡Gracias!", lines); // the success line is not said for a sale the world cannot make
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class BreadPilotTests
         Assert.Equal((0, 3), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
         Assert.Contains("Tu bolsa está llena.", lines);
-        Assert.DoesNotContain("Aquí tienes la harina.", lines);
+        Assert.DoesNotContain("Aquí tienes. ¡Gracias!", lines);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class BreadPilotTests
         var turn = session.Say("quiero tres harinas");
 
         Assert.Equal((0, 2), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
-        Assert.Contains("La harina cuesta una moneda.", turn.Replies.Concat(turn.FollowUp ?? []));
+        Assert.Contains("Necesitas más monedas.", turn.Replies.Concat(turn.FollowUp ?? []));
         _ = session.Say("quiero dos harinas");
         Assert.Equal((2, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
     }
@@ -182,7 +182,7 @@ public sealed class BreadPilotTests
         var turn = session.Say(line);
 
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
-        Assert.Contains("No tengo eso. Tengo agua, pan y harina.", lines);
+        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa.", lines);
         Assert.Equal((3, 0, 0, 0), (Held(session, ItemId.Coin), Held(session, TestItems.Flour), Held(session, TestItems.Bread), Held(session, ItemId.Bottle)));
     }
 
@@ -225,7 +225,7 @@ public sealed class BreadPilotTests
         _ = session.Say("quiero agua, por favor");
         Assert.Equal(1, Held(session, ItemId.Bottle));
         var hay = At("shopkeeper").Say("¿hay pan?");
-        Assert.Contains("Hay agua, pan y harina.", hay.Replies.Concat(hay.FollowUp ?? []));
+        Assert.Contains("Hay agua, pan, harina, tela, cuero y ropa.", hay.Replies.Concat(hay.FollowUp ?? []));
     }
 
     // ---- Luz's offer and the class

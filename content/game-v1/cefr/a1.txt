@@ -426,3 +426,17 @@ terreno
 armadura
 # apariencia: appearance, the heading of the equipment panel's cosmetic column (I04b); in neither of the core's lists (it is in the lexicon, wiktionary-es.json).
 apariencia
+# tela: cloth, the material the clothes are made of, sold at the stall and used at the workbench (I08a, D-game-35 (a)).
+tela
+# cuero: leather, the material of the jacket, the coat and the shoes (I08a).
+cuero
+# hierro: iron, the smith's metal, the material of the armour to come (I08a); in the lexicon (seed.json) but in neither list.
+hierro
+# gorro: the woolly cap, a piece of clothing worn on the head (I08a); in neither of the core's lists.
+gorro
+# chaqueta: the jacket, a piece of clothing worn on the body (I08a); in neither of the core's lists.
+chaqueta
+# abrigo: the coat, the warmest piece of clothing for the body (I08a); in neither of the core's lists.
+abrigo
+# pantalón: the trousers, said «los pantalones», clothing for the legs (I08a); in neither of the core's lists.
+pantalón

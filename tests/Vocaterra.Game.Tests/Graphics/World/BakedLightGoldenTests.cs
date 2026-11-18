@@ -54,13 +54,14 @@ public sealed class BakedLightGoldenTests
         Assert.Equal(Expected, actual);
     }
 
+    // Re-recorded by I08a: the hash covers each vertex's V, which is the atlas row over the atlas height, and the gear icons grew the colour rows from 15 to 17 (the atlas from 480 to 544 texels high). V is the one input of the hash that depends on the atlas size; the positions, the colours and U do not.
     private static readonly string[] Expected =
     [
-        "Day: 617181AAF6A1BBD7",
-        "Dusk: 30FAF459C8B8764C",
-        "Night: 68B56AF37ABDECAD",
-        "Dawn: 7613B3C8AF61CBEA",
-        "Cave: F1FE898FEB75FDFA",
-        "NoAo: 30FAF459C8B8764C",
+        "Day: 508C231F6D1F1A89",
+        "Dusk: B281C39A13E24090",
+        "Night: 742E2F318BA03E93",
+        "Dawn: 4BECE701FA81C848",
+        "Cave: DEFD34D52C4366A9",
+        "NoAo: B281C39A13E24090",
     ];
 }
