@@ -161,7 +161,8 @@ public sealed class WorldInput
             jump,
             captured && input.LeftDown && !swallowClick ? LiveVoxelInput.GatherFor(_sim.InteractTarget, _sim.BuildRules) : null,
             captured && input.RightClicked ? LiveVoxelInput.PlacementFor(_sim.SelectedStack, target) : null,
-            slot);
+            slot,
+            captured && input.Down(InputKeys.Of("flyDown")));
         return captured;
     }
 }
