@@ -16,7 +16,7 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
     {
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         var cached = view.Stats.Cached;
 
         view.Reconfigure(Small.WithRange(1536), Release);
@@ -36,13 +36,13 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
         var gate = new GatedDisk();
         var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(gate));
         view.Update(192, 192, Voxel, Release, 0);
-        Assert.True(gate.Started.Wait(TimeSpan.FromMinutes(10)), "a tile job is running");
+        Assert.True(gate.Started.Wait(HangGuard.Scale(TimeSpan.FromMinutes(10))), HangGuard.Hung("a tile job did not start", TimeSpan.FromMinutes(10)));
 
         var reshaped = Small with { Levels = 6 };
         view.Reconfigure(reshaped, Release);
         gate.Release.Set();
-        var until = Environment.TickCount64 + HangGuardMilliseconds;
-        while (pool.Pending > 0 && Environment.TickCount64 < until)
+        var until = HangGuard.DeadlineAfter(HangGuardMilliseconds);
+        while (pool.Pending > 0 && !HangGuard.Passed(until))
         {
             Thread.Sleep(5); // the old job finishes and leaves its mesh in the view's queue
         }
@@ -64,7 +64,7 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
         using var pool = new JobPool(0);
         var view = Make(pool);
         Assert.False(view.UsePath(false, Release)); // the first path is taken, nothing is dropped
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         var cached = view.Stats.Cached;
         Assert.True(cached > 0);
 
@@ -75,7 +75,7 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
         Assert.Equal(0, view.Stats.Cached);
         Assert.Equal(cached, _released.Count);
         Assert.Empty(view.Draw);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000)); // built again from the data
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit)); // built again from the data
         Assert.Equal(cached, view.Stats.Cached);
 
         _released.Clear();

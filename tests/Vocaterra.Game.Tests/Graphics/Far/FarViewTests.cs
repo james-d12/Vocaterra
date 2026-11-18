@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Graphics;
@@ -20,7 +21,7 @@ public sealed class FarViewTests(ITestOutputHelper output) : FarViewTestsBase(ou
         using var pool = new JobPool(0);
         Func<int, int, int, (int Temperature, int Humidity)> ground = static (_, _, _) => (10, 20);
         var view = Make(pool, Small with { Ground = ground });
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         var cached = view.Stats.Cached;
         Assert.True(cached > 0);
 
@@ -31,7 +32,7 @@ public sealed class FarViewTests(ITestOutputHelper output) : FarViewTestsBase(ou
         view.Reconfigure(Small with { Ground = null }, Release);
         Assert.Equal(0, view.Stats.Cached);
         Assert.Equal(cached, _released.Count);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000)); // and built again with the colour map's middle
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit)); // and built again with the colour map's middle
         Assert.True(view.Stats.Cached > 0);
     }
 
@@ -124,7 +125,7 @@ public sealed class FarViewTests(ITestOutputHelper output) : FarViewTestsBase(ou
         using var pool = new JobPool(0);
         var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, new Vocaterra.Game.Core.World.Lod.LodStore(new BrokenDisk()));
 
-        Assert.True(view.Settle(192, 192, Voxel, Release, 60_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
 
         Assert.True(view.Failed > 0);
         Assert.Equal(0, view.Missing);

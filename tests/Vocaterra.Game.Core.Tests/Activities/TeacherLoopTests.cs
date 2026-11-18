@@ -30,7 +30,7 @@ public sealed class TeacherLoopTests
             Session = Station.Session;
             Talk = new TeacherTalk(Session, null, static () => null);
             Station.Panel.Talk = Talk;
-            Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000), "The worker did not load.");
+            Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
         }
 
         // The worker's thread holds the session (and its scene copy, about 110 MB) until it is stopped: a rig left running kept every test's world for the whole run (T10).
@@ -49,7 +49,7 @@ public sealed class TeacherLoopTests
         {
             Assert.True(Talk.Say(line));
             var turns = new List<GuideTurn>();
-            var deadline = Environment.TickCount64 + 30000;
+            var deadline = HangGuard.DeadlineAfter(30000);
             while (Talk.Thinking)
             {
                 foreach (var applied in Session.Collect())
@@ -59,7 +59,7 @@ public sealed class TeacherLoopTests
                     turns.Add(applied.Turn!);
                 }
 
-                Assert.True(Environment.TickCount64 < deadline, "The teacher did not answer.");
+                Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("The teacher did not answer", 30_000));
                 Thread.Sleep(2);
             }
 

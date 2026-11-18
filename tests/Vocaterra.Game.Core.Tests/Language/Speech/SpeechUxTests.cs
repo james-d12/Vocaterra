@@ -52,7 +52,7 @@ public sealed class SpeechUxTests
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -61,7 +61,7 @@ public sealed class SpeechUxTests
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} turns came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} turns came back", 30_000));
             Thread.Sleep(2);
         }
 
@@ -246,7 +246,7 @@ public sealed class SpeechUxTests
         using var session = TestGame.NewSession(credit: CreditRules.FullTyped);
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
-        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
+        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)));
 
         for (var i = 0; i < 2; i++)
         {
@@ -281,7 +281,7 @@ public sealed class SpeechUxTests
         using var session = TestGame.NewSession(credit: CreditRules.FullTyped);
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
-        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
+        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)));
 
         _ = session.SubmitHelp();
         var help = Drain(session, 1).Single().Turn!;
@@ -332,10 +332,10 @@ public sealed class SpeechUxTests
         Assert.Equal(1, worker.CancelPending());
         Assert.Equal(0, worker.CancelPending()); // already cancelled
         worker.Start();
-        Assert.True(worker.WaitUntilReady(30000));
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("the worker was not ready", 30000));
         TurnOutcome? outcome = null;
-        var deadline = Environment.TickCount64 + 30000;
-        while (outcome is null && Environment.TickCount64 < deadline)
+        var deadline = HangGuard.DeadlineAfter(30000);
+        while (outcome is null && !HangGuard.Passed(deadline))
         {
             _ = worker.TryTake(out outcome);
             Thread.Sleep(2);

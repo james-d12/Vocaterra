@@ -19,7 +19,7 @@ public sealed class PlaytestReportTests
         try
         {
             using var process = Process.Start(new ProcessStartInfo(tool, "--version") { RedirectStandardOutput = true, RedirectStandardError = true });
-            process?.WaitForExit(10000);
+            process?.WaitForExit((int)HangGuard.Scale(10000));
             return process is { ExitCode: 0 };
         }
         catch (System.ComponentModel.Win32Exception)

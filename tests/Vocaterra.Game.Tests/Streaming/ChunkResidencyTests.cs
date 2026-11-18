@@ -17,7 +17,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
 
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
 
         var plan = residency.Plan!;
         Assert.True(residency.IsSettled);
@@ -37,8 +37,8 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         using var two = new JobPool(2);
         var (x, y, z) = Eye(inline);
 
-        Assert.True(Make(inline, none).Settle(x, y, z));
-        Assert.True(Make(threaded, two).Settle(x, y, z));
+        HangGuard.Settled(limit => Make(inline, none).Settle(x, y, z, limit));
+        HangGuard.Settled(limit => Make(threaded, two).Settle(x, y, z, limit));
 
         Assert.Equal(Resident(inline).Order(Comparer<VoxelChunkCoord>.Create(Compare)).ToList(), Resident(threaded).Order(Comparer<VoxelChunkCoord>.Create(Compare)).ToList());
         Assert.Null(two.Failure);
@@ -51,7 +51,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         using var pool = new JobPool(2);
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         var before = residency.Stats;
 
         // Walk east out through the pass, a chunk at a time, one frame each: the frames never finish the plan, only the settle does.
@@ -62,7 +62,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
             frames++;
         }
 
-        Assert.True(residency.Settle(x + (23 * 16), y, z));
+        HangGuard.Settled(limit => residency.Settle(x + (23 * 16), y, z, limit));
         var plan = residency.Plan!;
         Assert.Equal(VoxelChunkCoord.FromBlock((int)MathF.Floor(x + (23 * 16)), (int)MathF.Floor(y), (int)MathF.Floor(z)), plan.Player);
         Assert.All(plan.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
@@ -80,12 +80,12 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         using var pool = new JobPool(0);
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         var cell = new BlockPos(scene.Spawn.Feet.X + 2, scene.Spawn.Feet.Y + 3, scene.Spawn.Feet.Z);
         Assert.True(scene.Grid.SetBlock(cell.X, cell.Y, cell.Z, BlockId.Planks));
         var changed = VoxelChunkCoord.FromBlock(cell.X, cell.Y, cell.Z);
 
-        Assert.True(residency.Settle(x + 900, y, z));
+        HangGuard.Settled(limit => residency.Settle(x + 900, y, z, limit));
 
         Assert.True(scene.Grid.IsResident(changed), "a changed chunk is state and is never dropped");
         Assert.Equal(BlockId.Planks, scene.Grid.PeekBlock(cell.X, cell.Y, cell.Z));
@@ -103,12 +103,12 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var (x, _, z) = Eye(scene);
         var floorLayer = scene.Grid.Limits.MinChunkY;
 
-        Assert.True(residency.Settle(x, 20f, z)); // twenty blocks down: under the valley's ground
+        HangGuard.Settled(limit => residency.Settle(x, 20f, z, limit)); // twenty blocks down: under the valley's ground
 
         Assert.True(residency.Plan!.Underground);
         Assert.True(scene.Grid.IsResident(new VoxelChunkCoord((int)MathF.Floor(x) >> 4, floorLayer, (int)MathF.Floor(z) >> 4)));
         var above = StreamedWorlds.Scene();
-        Assert.True(Make(above, pool).Settle(x, Eye(above).Y, z));
+        HangGuard.Settled(limit => Make(above, pool).Settle(x, Eye(above).Y, z, limit));
         Assert.True(scene.Grid.ResidentChunkCount > above.Grid.ResidentChunkCount);
     }
 
@@ -124,17 +124,17 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var floorLayer = scene.Grid.Limits.MinChunkY;
         var wide = new VoxelChunkCoord(cx + 4, floorLayer, cz); // four columns away, at the bottom of the world: held by the underground near zone (3 columns, and the column beside it each way), not by the surface one (2 and one)
 
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.False(residency.Plan!.Underground);
         Assert.False(scene.Grid.IsResident(wide));
         var narrow = scene.Grid.ResidentChunkCount;
 
-        Assert.True(residency.Settle(x, 20f, z));
+        HangGuard.Settled(limit => residency.Settle(x, 20f, z, limit));
         Assert.True(residency.Plan!.Underground);
         Assert.True(scene.Grid.IsResident(wide), "underground the near zone reaches four columns");
         Assert.True(scene.Grid.ResidentChunkCount > narrow);
 
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.False(residency.Plan!.Underground);
         Assert.False(residency.Plan.Holds(wide), "back at the surface the zone narrows again");
     }
@@ -147,7 +147,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var residency = Make(scene, pool, max: 300);
         var (x, y, z) = Eye(scene);
 
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
 
         Assert.InRange(scene.Grid.ResidentChunkCount, 200, 300 + 30);
     }
@@ -161,11 +161,11 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         using var pool = new JobPool(0);
         var residency = Make(scene, pool, max: 300);
         var (x, y, z) = Eye(scene);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         var here = new VoxelChunkCoord((int)MathF.Floor(x) >> 4, (int)MathF.Floor(y) >> 4, (int)MathF.Floor(z) >> 4);
         Assert.True(scene.Grid.IsResident(here), "the eye's own chunk comes first");
 
-        Assert.True(residency.Settle(x + 700, y, z));
+        HangGuard.Settled(limit => residency.Settle(x + 700, y, z, limit));
 
         Assert.InRange(scene.Grid.ResidentChunkCount, 100, 300 + 30);
         Assert.False(scene.Grid.IsResident(here), "the plan's eviction freed the chunks behind the player");
@@ -180,7 +180,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         using var pool = new JobPool(2);
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
-        Assert.True(residency.Settle(x + 700, y, z));
+        HangGuard.Settled(limit => residency.Settle(x + 700, y, z, limit));
 
         var compared = 0;
         foreach (var coord in Resident(scene).Where(static c => c.X % 5 == 0))
@@ -203,13 +203,13 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var (x, y, z) = Eye(scene);
 
         Assert.False(residency.IsNearReady(x, y, z), "nothing is planned yet: the simulation waits");
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.True(residency.IsNearReady(x, y, z));
         Assert.False(residency.IsNearReady(x + 700, y, z), "a jump: the plan is for the old place");
 
         residency.Update(x + 700, y, z, 0.0);
         Assert.False(residency.IsNearReady(x + 700, y, z), "the plan is made but its near columns are not all made yet");
-        Assert.True(residency.Settle(x + 700, y, z));
+        HangGuard.Settled(limit => residency.Settle(x + 700, y, z, limit));
         Assert.True(residency.IsNearReady(x + 700, y, z));
         Assert.True(scene.Grid.IsResident(VoxelChunkCoord.FromBlock((int)(x + 700), (int)y, (int)z)) || residency.Plan!.TryGetLayers(((int)(x + 700)) >> 4, ((int)z) >> 4, out _, out _));
     }
@@ -229,7 +229,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         residency.Update(x + 700, y, z, 1.5);
         Assert.Null(residency.Plan); // a jump: the old place's plan is let go, so it asks for nothing more at the old place
 
-        Assert.True(residency.SettleNear(x + 700, y, z, 20_000));
+        HangGuard.Settled(limit => residency.SettleNear(x + 700, y, z, limit));
 
         Assert.True(residency.IsNearReady(x + 700, y, z));
         Assert.False(residency.IsSettled, "only the near zone was made: the rest of the plan comes over the next frames");
@@ -244,7 +244,7 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
 
-        Assert.True(residency.SettleNear(x, y, z, 60_000));
+        HangGuard.Settled(limit => residency.SettleNear(x, y, z, limit));
 
         Assert.True(residency.IsNearReady(x, y, z));
     }
@@ -259,8 +259,8 @@ public sealed class ChunkResidencyTests : ChunkResidencyTestsBase
         var residency = Make(scene, pool);
         var (x, y, z) = Eye(scene);
 
-        Assert.True(residency.Settle(x, y, z));
-        Assert.True(residency.Settle(x + 500, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
+        HangGuard.Settled(limit => residency.Settle(x + 500, y, z, limit));
 
         Assert.True(recorder.Events > 500);
         Assert.Equal([Environment.CurrentManagedThreadId], recorder.Threads);

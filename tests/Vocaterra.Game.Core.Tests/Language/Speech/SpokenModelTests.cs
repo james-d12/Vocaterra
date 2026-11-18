@@ -135,9 +135,9 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         using var spoken = TestGame.NewSession(credit: CreditRules.Default);
         using var typed = TestGame.NewSession(credit: CreditRules.Default);
         var worker = spoken.StartWorker();
-        Assert.True(worker.WaitUntilReady(60000));
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
         var load = worker.Load!;
-        Assert.True(typed.StartWorker(loadSpeech: false).WaitUntilReady(30000));
+        Assert.True(typed.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)));
         var cursor = TestGame.NearestBlock(spoken, BlockId.Trunk);
 
         _ = spoken.SubmitSpeak("es un árbol", cursor);
@@ -166,7 +166,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         {
             File.WriteAllBytes(path, Wav16(clip.Samples, clip.SampleRate));
             using var session = TestGame.NewSession();
-            Assert.True(session.StartWorker().WaitUntilReady(60000));
+            Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
             _ = session.SubmitWav(path);
             var applied = Drain(session, 1).Single();
@@ -186,7 +186,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     public void AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt()
     {
         using var session = TestGame.NewSession();
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("dónde está la árbol");
         var applied = Drain(session, 1).Single();
@@ -213,7 +213,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     {
         using var session = TestGame.NewSession();
         var worker = session.StartWorker(() => Environment.TickCount64);
-        Assert.True(worker.WaitUntilReady(60000));
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak(TreeQuestion);
         var applied = Drain(session, 1).Single();
@@ -229,7 +229,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     public void ASpokenRequestAtTheStallThroughTheWorkerHandsOverTheBottleLikeATypedOne()
     {
         using var session = TestGame.NewSession();
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
         Stage.TeleportToNpc(session, "shopkeeper");
         var opening = session.OpenTalkForClass("shopkeeper");
         Assert.Equal(["¿Qué necesitas?"], opening.Lines);
@@ -251,7 +251,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 120000;
+        var deadline = HangGuard.DeadlineAfter(120000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -260,7 +260,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} turns came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} turns came back", 30_000));
             Thread.Sleep(5);
         }
 

@@ -71,7 +71,7 @@ public abstract class ChunkResidencyTestsBase
             var (x, y, z) = Walk[step];
             if (settle)
             {
-                Assert.True(residency.Settle(x, y, z));
+                HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
             }
             else
             {

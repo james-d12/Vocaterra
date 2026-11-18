@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Streaming;
@@ -60,7 +61,7 @@ public sealed class ChunkMeshPipelineTests
     {
         using var pool = new JobPool(1);
         using var gate = new ManualResetEventSlim();
-        pool.Submit(JobLane.Mesh, long.MinValue, static () => false, () => gate.Wait(TimeSpan.FromSeconds(60))); // holds the only worker, so the jobs the frame hands out wait
+        pool.Submit(JobLane.Mesh, long.MinValue, static () => false, () => gate.Wait(HangGuard.Scale(TimeSpan.FromSeconds(60)))); // holds the only worker, so the jobs the frame hands out wait
         using var rig = MeshingRig.Valley(pool);
         rig.Frame();
         Assert.True(rig.Pipeline.InFlight > 4, "jobs are waiting for the worker");
@@ -144,14 +145,14 @@ public sealed class ChunkMeshPipelineTests
         var chunks = rig.Wanted.Where(c => rig.Grid.TryGetChunk(c, out var chunk) && (chunk.KindMask & biomes.TopMask) != UInt128.Zero).Take(40).ToList();
         Assert.True(chunks.Count > 10, $"{chunks.Count} chunks with grass");
 
-        var started = Environment.TickCount64;
+        var deadline = HangGuard.DeadlineAfter(60_000);
         foreach (var coord in chunks)
         {
             while (!rig.Pipeline.SubmitGrass(coord, options, rig))
             {
                 _ = rig.Frame(); // the workers have all they can take: a frame takes back what they finished
                 Thread.Sleep(1);
-                Assert.True(Environment.TickCount64 - started < 60_000, "the workers did not take the jobs");
+                Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("the workers did not take the jobs", 60_000));
             }
         }
 
@@ -159,7 +160,7 @@ public sealed class ChunkMeshPipelineTests
         {
             _ = rig.Frame();
             Thread.Sleep(1);
-            Assert.True(Environment.TickCount64 - started < 60_000, "the layers did not come");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("the layers did not come", 60_000));
         }
 
         foreach (var coord in chunks)
@@ -269,7 +270,7 @@ public sealed class ChunkMeshPipelineTests
         using var pool = new JobPool(2);
         var residency = new ChunkResidency(scene.Grid, scene.Streaming!, new BandStreamPolicy(8, 10, 2, 3), pool, scene.Places);
         var eye = new Vector3(scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
-        Assert.True(residency.Settle(eye.X, eye.Y, eye.Z));
+        HangGuard.Settled(limit => residency.Settle(eye.X, eye.Y, eye.Z, limit));
         using var rig = new MeshingRig(scene.Grid, scene.Currents, pool, eye, 80);
         var generated = scene.Grid.ChunksGeneratedByReads;
 

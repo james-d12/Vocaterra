@@ -27,7 +27,7 @@ public sealed class ChunkResidencyWalkTests : ChunkResidencyTestsBase
         Assert.InRange(first, 20, 700);
         Assert.DoesNotContain(GridResidency.Resident(scene.Grid), c => c.X < 100); // nothing of the valley or anything else was dropped or made by a partial plan
 
-        Assert.True(residency.Settle(2000, 90, 2000));
+        HangGuard.Settled(limit => residency.Settle(2000, 90, 2000, limit));
         Assert.True(residency.Plan!.Columns.Count > first);
         Assert.All(residency.Plan.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
     }
