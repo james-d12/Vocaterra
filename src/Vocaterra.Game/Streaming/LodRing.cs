@@ -241,21 +241,28 @@ public sealed class LodRing
         return lowest == int.MaxValue ? floor : Math.Max(floor, lowest - Margin);
     }
 
-    // The shaped window a footprint is made from (B39), once for everything it reads: the 4 x 4 chunk columns round the footprint's own 2 x 2 when a band of the ring round it is not held yet (the footprint's bands and its four columns are all cut from it),
-    // or the own 2 x 2 alone when they all are (or the bands are not read). A window is about 0.5 MB for the 4 x 4 and 0.25 MB for the 2 x 2, and a job holds one while it runs.
+    // The shaped window a footprint is made from (B39), once for everything it reads: the 4 x 4 chunk columns round the footprint's own 2 x 2 when three or more bands of the ring round it are not held yet (the footprint's bands and its four columns
+    // are all cut from it), or the own 2 x 2 alone when at most two are (the one or two bands are made from their own windows, a quarter of the wide window each), or when the bands are not read. A window is about 0.5 MB for the 4 x 4 and 0.25 MB
+    // for the 2 x 2, and a job holds one while it runs.
     private ColumnGroup ShapeFor(int sx, int sz)
     {
         if (_bands is not null && SurfaceOnly)
         {
+            var missing = 0;
             for (var dz = -1; dz <= 2; dz++)
             {
                 for (var dx = -1; dx <= 2; dx++)
                 {
                     if ((dx is < 0 or > 1 || dz is < 0 or > 1) && !_bands.TryGet((2 * sx) + dx, (2 * sz) + dz, out _))
                     {
-                        return _streamed.Bands.ShapeGroup((2 * sx) - 1, (2 * sz) - 1, 4);
+                        missing++;
                     }
                 }
+            }
+
+            if (missing > 2)
+            {
+                return _streamed.Bands.ShapeGroup((2 * sx) - 1, (2 * sz) - 1, 4);
             }
         }
 
