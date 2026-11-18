@@ -604,52 +604,90 @@ internal sealed class DrainageNetwork
             lake[n] = kind[n] == 0 && seen[n] && filled[n] - level[n] >= LakeMin;
         }
 
+        // One level to a body (B02d): a body of lake nodes (eight neighbours) stands at the lowest flood level among its nodes, the pass it spills over; a node that level does not cover by LakeMin is a bank, not lake, and the body is
+        // looked at again without it (it may fall in two, or under LakeNodesMin nodes and go). The body's nodes are found in any order and the result is the same.
+        var lakeLevel = new int[count];
         var body = new List<int>();
         var taken = new bool[count];
-        for (var first = 0; first < count; first++)
+        bool changed;
+        do
         {
-            if (!lake[first] || taken[first])
+            changed = false;
+            Array.Clear(taken);
+            for (var first = 0; first < count; first++)
             {
-                continue;
-            }
-
-            body.Clear();
-            body.Add(first);
-            taken[first] = true;
-            for (var b = 0; b < body.Count; b++)
-            {
-                for (var d = 0; d < 8; d++)
+                if (!lake[first] || taken[first])
                 {
-                    var m = near[(body[b] * 8) + d];
-                    if (m >= 0 && lake[m] && !taken[m])
+                    continue;
+                }
+
+                body.Clear();
+                body.Add(first);
+                taken[first] = true;
+                var low = filled[first];
+                for (var b = 0; b < body.Count; b++)
+                {
+                    low = Math.Min(low, filled[body[b]]);
+                    for (var d = 0; d < 8; d++)
                     {
-                        taken[m] = true;
-                        body.Add(m);
+                        var m = near[(body[b] * 8) + d];
+                        if (m >= 0 && lake[m] && !taken[m])
+                        {
+                            taken[m] = true;
+                            body.Add(m);
+                        }
+                    }
+                }
+
+                foreach (var m in body)
+                {
+                    if (body.Count < LakeNodesMin || low - level[m] < LakeMin)
+                    {
+                        lake[m] = false;
+                        changed = true;
+                    }
+                    else
+                    {
+                        lakeLevel[m] = low;
                     }
                 }
             }
-
-            if (body.Count < LakeNodesMin)
-            {
-                foreach (var m in body)
-                {
-                    lake[m] = false;
-                }
-            }
         }
+        while (changed);
 
-        // The water's level: a lake's is its flood's, any other node's its own, and no node's is lower than the node it drains into (the nodes are taken parents first), so along a river the level only falls.
+        // The water's level: a lake body's is its own, any other node's its own, and no node's is lower than the node it drains into (the nodes are taken parents first), so along a river the level only falls. A lake spills into the
+        // node its outflow runs to, so the water downstream of a lake is never higher than the lake: the nodes below a lake are held to its level, however high the ground beside them stands.
         var final = new int[count];
         for (var o = 0; o < visited; o++)
         {
             var n = order[o];
-            var floor = kind[n] switch
+            final[n] = lake[n] ? lakeLevel[n] : parent[n] >= 0 ? Math.Max(water[n], final[near[(n * 8) + parent[n]]]) : water[n];
+        }
+
+        var limit = new int[count]; // the lowest level of a lake at or above a node, up the water's way
+        Array.Fill(limit, int.MaxValue);
+        for (var o = visited - 1; o >= 0; o--)
+        {
+            var n = order[o];
+            if (lake[n])
             {
-                SeaFlag => _sea16,
-                Cut => water[n],
-                _ => lake[n] ? filled[n] : water[n],
-            };
-            final[n] = parent[n] >= 0 ? Math.Max(floor, final[near[(n * 8) + parent[n]]]) : floor;
+                limit[n] = Math.Min(limit[n], lakeLevel[n]);
+            }
+
+            if (parent[n] >= 0)
+            {
+                var up = near[(n * 8) + parent[n]];
+                limit[up] = Math.Min(limit[up], limit[n]);
+            }
+        }
+
+        for (var o = 0; o < visited; o++)
+        {
+            var n = order[o];
+            if (!lake[n])
+            {
+                final[n] = Math.Min(final[n], limit[n]);
+            }
         }
 
         for (var o = visited - 1; o >= 0; o--)
