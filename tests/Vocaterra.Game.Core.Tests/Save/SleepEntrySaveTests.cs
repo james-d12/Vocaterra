@@ -282,7 +282,7 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":8}"));
 
         Assert.Contains("version 8", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 9", error.Message, StringComparison.Ordinal);
+        Assert.Contains("loads is 10", error.Message, StringComparison.Ordinal);
         Assert.Contains("not migrated", error.Message, StringComparison.Ordinal);
     }
 
