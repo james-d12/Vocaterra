@@ -207,14 +207,26 @@ internal static class Bench
 
         private void Add(string name, double ms, string unit, int count) => _rows.Add(new Row(name, ms, unit, count));
 
+        // The code under test is jitted at tier 0 and promoted after 30 calls and a 100 ms timer (tiered compilation), so a short run measures unoptimised code, up to 8 times slower (B40): every row's path is run for 2.5 s first, which promotes it.
         private void Warm(List<(int Cx, int Cz)> land)
         {
-            foreach (var (cx, cz) in land.Take(2))
-            {
-                _ = _source.GenerateColumn(cx, cz);
-            }
-
+            var some = land.Take(2).ToList();
+            var groups = some.Select(c => (c.Cx & ~3, c.Cz & ~3)).Distinct().ToList();
+            var footprints = some.Select(c => (c.Cx & ~1, c.Cz & ~1)).Distinct().ToList();
             _ = _far.At(land[0].Cx << 4, land[0].Cz << 4);
+            var t0 = Stopwatch.GetTimestamp();
+            do
+            {
+                foreach (var (cx, cz) in some)
+                {
+                    _ = _source.GenerateColumn(cx, cz);
+                    _ = Residency(cx, cz);
+                }
+
+                GroupPass(groups);
+                FootprintPass(footprints);
+            }
+            while (Stopwatch.GetElapsedTime(t0).TotalSeconds < 2.5);
         }
 
         // ---- the chunk rows
@@ -321,62 +333,70 @@ internal static class Bench
             for (var p = 0; p < _passes; p++)
             {
                 var t0 = Stopwatch.GetTimestamp();
-                foreach (var (gx, gz) in groups)
-                {
-                    var group = _source.ShapeGroup(gx, gz, 4);
-                    for (var dz = 0; dz < 4; dz++)
-                    {
-                        for (var dx = 0; dx < 4; dx++)
-                        {
-                            var band = _source.SurfaceBand(gx + dx, gz + dz, group);
-                            if (!band.IsEmpty)
-                            {
-                                _ = _source.GenerateLayers(gx + dx, gz + dz, band.MinLayer - 1, band.MaxLayer + 1, group);
-                            }
-                        }
-                    }
-                }
-
+                GroupPass(groups);
                 best = Math.Min(best, Ms(Stopwatch.GetTimestamp() - t0));
             }
 
             Add("residency column through a 4 x 4 group (window, band, layers)", best / (groups.Count * 16), "ms per column", groups.Count * 16);
 
-            var top = _source.MaxChunkY - 1;
             best = double.MaxValue;
             for (var p = 0; p < _passes; p++)
             {
                 var t0 = Stopwatch.GetTimestamp();
-                foreach (var (fx, fz) in footprints)
-                {
-                    var group = _source.ShapeGroup(fx - 1, fz - 1, 4);
-                    var lowest = int.MaxValue;
-                    for (var dz = -1; dz <= 2; dz++)
-                    {
-                        for (var dx = -1; dx <= 2; dx++)
-                        {
-                            var band = _source.SurfaceBand(fx + dx, fz + dz, group);
-                            if (!band.IsEmpty)
-                            {
-                                lowest = Math.Min(lowest, band.MinLayer);
-                            }
-                        }
-                    }
-
-                    var first = lowest == int.MaxValue ? _source.MinChunkY : Math.Max(_source.MinChunkY, lowest - 2);
-                    for (var dz = 0; dz < Footprint; dz++)
-                    {
-                        for (var dx = 0; dx < Footprint; dx++)
-                        {
-                            _ = _source.GenerateLayers(fx + dx, fz + dz, first, top, group);
-                        }
-                    }
-                }
-
+                FootprintPass(footprints);
                 best = Math.Min(best, Ms(Stopwatch.GetTimestamp() - t0));
             }
 
             Add("ring footprint 32 x 32 through one window (16 bands, 4 columns; no ingest)", best / footprints.Count, "ms per footprint", footprints.Count);
+        }
+
+        private void GroupPass(List<(int, int)> groups)
+        {
+            foreach (var (gx, gz) in groups)
+            {
+                var group = _source.ShapeGroup(gx, gz, 4);
+                for (var dz = 0; dz < 4; dz++)
+                {
+                    for (var dx = 0; dx < 4; dx++)
+                    {
+                        var band = _source.SurfaceBand(gx + dx, gz + dz, group);
+                        if (!band.IsEmpty)
+                        {
+                            _ = _source.GenerateLayers(gx + dx, gz + dz, band.MinLayer - 1, band.MaxLayer + 1, group);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void FootprintPass(List<(int, int)> footprints)
+        {
+            var top = _source.MaxChunkY - 1;
+            foreach (var (fx, fz) in footprints)
+            {
+                var group = _source.ShapeGroup(fx - 1, fz - 1, 4);
+                var lowest = int.MaxValue;
+                for (var dz = -1; dz <= 2; dz++)
+                {
+                    for (var dx = -1; dx <= 2; dx++)
+                    {
+                        var band = _source.SurfaceBand(fx + dx, fz + dz, group);
+                        if (!band.IsEmpty)
+                        {
+                            lowest = Math.Min(lowest, band.MinLayer);
+                        }
+                    }
+                }
+
+                var first = lowest == int.MaxValue ? _source.MinChunkY : Math.Max(_source.MinChunkY, lowest - 2);
+                for (var dz = 0; dz < Footprint; dz++)
+                {
+                    for (var dx = 0; dx < Footprint; dx++)
+                    {
+                        _ = _source.GenerateLayers(fx + dx, fz + dz, first, top, group);
+                    }
+                }
+            }
         }
 
         private (double Band, double Layers) Residency(int cx, int cz)
