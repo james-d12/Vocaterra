@@ -43,4 +43,50 @@ public sealed class NameReadAsNounTests
         var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize("un japón Dejo"), [SlotGrammarType.Parse(pattern)]);
         Assert.Equal(tags, string.Join(';', analysis.Errors.Select(static e => e.Tag)));
     }
+
+    // M101 (seed 3gcdMpDLcrQ4): a name that is a lexicon noun once its accents are ignored (Laná folds to lana, feminine), right before a loose adjective, is that noun's
+    // adjective to the analyzer, which agrees them; the realiser's loose adjective is masculine. The realiser now re-rolls such a name.
+    private const string LoosePattern = "[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ([PRON] [DET]|[DET]|[ART] [ART])?";
+
+    [Fact]
+    public void ANameThatIsAFeminineNounBeforeALooseAdjective_IsSlippedByTheAnalyzer()
+    {
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize("laná doloroso les"), [SlotGrammarType.Parse(LoosePattern)]);
+        Assert.Contains(analysis.Errors, static e => e.Tag == "gender.agree");
+    }
+
+    [Fact]
+    public void TheCaseOfSeed3gcdMpDLcrQ4_IsNoLongerASentenceTheAnalyzerFlags()
+    {
+        var recipe = new SentenceRecipe("random", GrammarPattern.Parse(LoosePattern), 3584194228UL);
+        var sentence = SentenceGen.Realize(Harness, recipe);
+        if (sentence is null)
+        {
+            return;
+        }
+
+        Assert.NotEqual("laná doloroso les", sentence.NormalizedText);
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [SlotGrammarType.Parse(LoosePattern)]);
+        Assert.Empty(analysis.Errors);
+    }
+
+    [Fact]
+    public void ManyDrawsOfThePattern_AreAnalyzedClean()
+    {
+        var checkedCount = 0;
+        for (ulong seed = 1; seed <= 3000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("random", GrammarPattern.Parse(LoosePattern), seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            checkedCount++;
+            var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [SlotGrammarType.Parse(LoosePattern)]);
+            Assert.True(analysis.Errors.Count == 0, $"{sentence.Text}: {string.Join(';', analysis.Errors.Select(static e => e.Tag))} (seed {seed})");
+        }
+
+        Assert.True(checkedCount > 1000);
+    }
 }
