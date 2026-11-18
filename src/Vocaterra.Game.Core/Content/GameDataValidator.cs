@@ -94,7 +94,7 @@ public static class GameDataValidator
         CheckSleepPlaces(data, problems);
         problems.AddRange(DayValidator.Validate(data.Day)); // E01: the cycle's length, the hours in order
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
-        problems.AddRange(TemperatureValidator.Validate(data.Temperature)); // I06: the terms' numbers, the bands in order, their walk factors
+        problems.AddRange(TemperatureValidator.Validate(data.Temperature, data.Biomes.Rows.Select(static r => r.Id))); // I06: the terms' numbers, the bands in order, their walk factors
         problems.AddRange(EquipmentValidator.Validate(data.Equipment, data.Items)); // I03a: the slot groups, and every worn item has a slot and a group that accepts it
         problems.AddRange(DamageValidator.Validate(data.Damage, DamageModifiers.Standard())); // I05a: the causes the code raises have rows, every modifier id is registered
         problems.AddRange(data.Light.Problems()); // I05b: the player light's reach, strength, colour and daylight thresholds

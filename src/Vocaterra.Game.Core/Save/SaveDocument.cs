@@ -551,6 +551,7 @@ public sealed record RepeatSave(string Tag, int Count);
 /// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> with none, which starts with none.</param>
 /// <param name="Sleep">The sleep places' state (Y02, version 8): the lodging given, the place last slept at and the places made in play; <see langword="null"/> for no lodging, no last place and no places made in play.</param>
 /// <param name="Land">The player's land (Y09, <c>systems.land</c>): <c>{"pending": {x, z, width, depth}, "owned": {x, z, width, depth}}</c>, each part only when the plot exists; <see langword="null"/> for no plot. The rules (the protected regions) are not saved: they come from the scene and the bundle. No version bump: a save without the entry has no plot.</param>
+/// <param name="Temperature">How far the felt temperature has got towards the place's (I06c, <c>systems.temperature</c>: <c>{"felt"}</c>); <see langword="null"/> starts at the place's value. No version bump.</param>
 /// <param name="Atmosphere">The day clock's offset and held hour (E01) and the weather's state (E04), <c>systems.atmosphere</c>: <c>{"offset", "frozenHour", "weather"}</c>, written only when it is not a new game's (the offset is 0, no hour is held and the weather is still in its first spell); <see langword="null"/> starts both as a new game has them.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
@@ -561,7 +562,8 @@ public sealed record SystemsSave(
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] SleepSave? Sleep = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Atmosphere.AtmosphereState? Atmosphere = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Land.LandSave? Land = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Land.LandSave? Land = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Temperature.TemperatureSave? Temperature = null);
 
 /// <summary>
 /// What the sleep places keep across a sleep and a load (Y02): whether the innkeeper has given the room, the place the player last slept at and the places made while the game runs.

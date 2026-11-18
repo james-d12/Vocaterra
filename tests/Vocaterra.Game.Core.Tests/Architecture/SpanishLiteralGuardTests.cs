@@ -32,6 +32,7 @@ public sealed class SpanishLiteralGuardTests
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "ayuda")] = "PhraseIds.Help: a phrase id (a key of phrases.json)",
         [("Vocaterra.Game.Core/Items/InventoryPanel.cs", "bolsa")] = "the catalogue lemma that names the inventory panel (D-game-35 (b), I04b): a lookup key into game/nouns.json, which holds the word, its article and its English; nothing is tested against it",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "no")] = "PhraseIds.No: a phrase id (a key of phrases.json)",
+        [("Vocaterra.Game.Core/Stats/StatDisplay.cs", "calor")] = "the catalogue lemma of the warmth stat (I03a): a lookup key into game/nouns.json, which holds the word, its article and its English; nothing is tested against it. The word is now also in the heat line of words.json (I06c, «Tengo calor.»)",
     };
 
     [Fact]

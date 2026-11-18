@@ -22,6 +22,8 @@ public sealed class SessionTemperatureTests
 
     [Theory]
     [InlineData(250, 1000)] // warm
+    [InlineData(300, 900)] // hot (I06c)
+    [InlineData(400, 750)] // very hot (I06c)
     [InlineData(60, 1000)] // cool
     [InlineData(-20, 850)] // cold
     [InlineData(-80, 650)] // very cold
@@ -32,7 +34,7 @@ public sealed class SessionTemperatureTests
     {
         var warm = Held(250);
         var plain = TestGame.NewSession();
-        plain.Temperature.HeldTenths = 250;
+        plain.Temperature.HeldTenths = 250 - plain.Temperature.Warmth.WarmthTenths(); // the starting clothes' four degrees (I08a) and the held value make 25.0 either way
         plain.Step([]);
 
         Assert.Equal(1000, Walk(warm));
@@ -197,13 +199,13 @@ public sealed class SessionTemperatureTests
         var middle = session.Fires.Middles.First(session.Fires.IsLit);
         session.Simulation.TeleportTo(new Vocaterra.Game.Core.Voxel.BlockPos(middle.X, middle.Y + 1, middle.Z));
         session.Step([]);
-        var atTheFire = session.Temperature.Current!.Value.PlaceTenths;
+        var atTheFire = session.Temperature.Current!.Value.TargetTenths!.Value;
 
         session.Simulation.TeleportTo(new Vocaterra.Game.Core.Voxel.BlockPos(middle.X, middle.Y + 10, middle.Z));
         session.Step([]);
-        var away = session.Temperature.Current!.Value.PlaceTenths;
+        var away = session.Temperature.Current!.Value.TargetTenths!.Value;
 
-        Assert.Equal(session.Data.Temperature.FireBonusTenths, atTheFire - away);
+        Assert.Equal(150, atTheFire - away);
     }
 
     [Fact]
@@ -215,7 +217,9 @@ public sealed class SessionTemperatureTests
         {
             one.Step([]);
             two.Step([]);
-            Assert.Equal(one.Temperature.Current, two.Temperature.Current);
+            var (a, b) = (one.Temperature.Current!.Value, two.Temperature.Current!.Value);
+            Assert.Equal((a.PlaceTenths, a.TargetTenths, a.WarmthTenths, a.Band), (b.PlaceTenths, b.TargetTenths, b.WarmthTenths, b.Band));
+            Assert.Equal(a.Terms, b.Terms);
         }
 
         Assert.Equal(one.Simulation.ComputeStateDigest(), two.Simulation.ComputeStateDigest());

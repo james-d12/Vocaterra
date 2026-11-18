@@ -3154,3 +3154,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   9 skipped. Item icons are painted in code (a table of strings per icon), so new gear needs no art files. Growing the atlas moved the baked
   light golden (V depends on the atlas height) and the mip count; the next atlas growth will do the same. A shop answering «¿Tienes X?» with
   a sale needs a core grammar change (`state_have` against `request_item`); purchases use «Quiero», «Necesito», «Me das».
+- **I06c, the climate model (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i06c-report.md`. Gated at `3e4f2fb9`: 13,517
+  passed, 9 skipped. A lag on a value that changes walking and thirst is simulation state: without saving it a loaded game diverged
+  (`ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession` caught it). Warmth adds in the heat too: with the warmest clothes a clear
+  valley noon reads hot; for the owner at stop 2.
