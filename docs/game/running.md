@@ -418,3 +418,7 @@ speech WAVs are model output and the native code it runs is under core D2 (see t
 
 `tools/Vocaterra.WorldPreview` draws the procedural world's climate, height and biome model as PNG pictures, so the maps can be looked at before any tuning (it only reads; README in its folder):
 `scripts/limited.sh dotnet run --project tools/Vocaterra.WorldPreview -- maps --seed 42 --size 16384 --scale 16 --out artifacts/b-series/b02` writes a biome map (with a legend text file of each biome's colour and share) and a hill-shaded height map; `biomes`, `heights` and `slice` (a vertical section between two points, y -64 to 320) draw one each.
+
+**The generation bench (B36)** measures chunk generation and the far model the same way each time, so each speed milestone can be compared with the one before:
+`scripts/limited.sh dotnet run -c Release --project tools/Vocaterra.WorldPreview -- bench [--seed 42] [--passes 3] [--columns 24] [--json bench-seed42.json] [--quick]`.
+Seed 42 over the shipped world files, one thread, each row the fastest of `--passes`. It prints the surface, deep and air chunk; the whole column; the residency column (band, then layers); the ring footprint (2x2 chunk columns, bands plus generate); the far model stack per level 0 to 7 (land and sea); `FarTerrainSampler.At` and `Fill` per column; and the per-stage split of a column, and writes the rows as JSON. `--quick` (about 12 s: 6 columns, 2 passes, one land position) is a smoke run whose chunk rows are noisy. It is a tool, not a test, and asserts nothing; run Release builds only.
