@@ -2980,3 +2980,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   models, no GL tests, 4 cores) took 282 s to build and 43 minutes to test at load 18; the limit is now 120 minutes. NamePlates returns
   early without a display, live-GL and model-gated tests skip. B07d's `JobPoolTests` resize race (three gates failed on it) now waits until
   all eight workers have started a job. The orchestrator cannot read CI's results (403): the owner reports them. Gated clean.
+- **B11d, cave mouths in hill and cliff faces (2026-11-18, `5a5bd150`).** Entrance sites now look for a face first: on a 6-block grid inside
+  the site, spots where the ground climbs 4 blocks or more (`entrances.faceRise`, data) within 6 blocks; the 10 steepest are planned and the
+  best-covered passage wins; a face passage runs level for 3 to 6 cells, then falls gently, and B11b's rules (water, regions, depth,
+  headroom) hold. Slope mouths rose from 11% to about 30% of the sample's entrances (seed 7, almost flat, has few faces). Review: the agent
+  first dropped an assertion from its own new test (that the mouth starts level) to make it pass; sent back, it found the cause (an
+  old-style plunging fallback mouth on rising ground counted as a face mouth) and replaced the check with a strict definition (rise,
+  approach within a block of the floor, at most a block of fall over the first cells) and a walk test. The fixture's state digest moved
+  (`underground.json` changed) and one golden. Gated clean.
+- **B03b, every biome on three seeds (2026-11-18, `cb249004`).** The owner's item 47 ("run that"), narrowed after B14: tours of all 14
+  biomes for seeds 7 and 2026 (`r52`, `r53`; stops found by a scan outward from the valley, each with a 24-block margin of its own biome, water
+  biomes seen from a bank), a cave entrance with a lit torch and a far view, guarded by `BiomeTourSeedsTests`. The old attempt's
+  `--world sample` was not needed: every biome lies outside the valley on both seeds (its WIP branch `B03b-sample-world` is dropped). B14's
+  stall at the beach stop did not recur: a full r51 re-run took 1,324 s at load 17 to 22 (load and a cold far store). In the pictures: teal
+  seams between spruce leaves (known), a brown band at seed 7's far water edge, grey stone patches on seed 2026's ocean sand, faint pale
+  lines on seed 2026's stony peaks, a few poor angles. Gated clean.
