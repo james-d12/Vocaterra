@@ -3042,3 +3042,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the timing files and its 10-entry allow-list (proved on a re-added Stopwatch assert). Left: `ChunkIndexTests`, `RegionTimeTests`,
   `ProceduralTimingTests` and `ProceduralChunkTimeTests` time with a wall Stopwatch inside the timing collection (they run alone in the gate's
   timing step).
+- **The throughput re-measure after B29a to B29c (2026-11-18, quiet machine, `ff4e05cb`).** Against the review's section 5 table
+  (docs/research/2026-11-18-throughput-review.md): the whole gate 9 min 47 s (B29b's gate, nothing else running; about 27 min after B28,
+  estimated 10); B29a's and B29c's gates 11 min 28 s and 10 min 0 s with agents beside them (up to 94 min with slot waits before);
+  `scripts/test.sh fast` 97 s of tests, 135 s with the build (187 s after B28; estimated under 60 s: Game.Core.Tests alone takes 97 s);
+  no flaky test in the three gates. CI on PR #70 (run 44325948521) passed in Release with everything, the fuzz suite (141 tests, 11 min)
+  and the timing tests included: `build-and-test` 20 min (38 min on the same PR in Debug that morning; `main`'s Debug run failed after
+  74 min). The longest CI assemblies are Game.Core.Tests 17.5 min and Game.Tests 16.3 min on the 4-core runner.

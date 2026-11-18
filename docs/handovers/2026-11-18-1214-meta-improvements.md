@@ -1,7 +1,7 @@
 # Handover: the throughput changes (feature/meta_improvements)
 
 Created: 2026-11-18T12:14Z (UTC)
-Updated: 2026-11-18T15:05Z (UTC)
+Updated: 2026-11-18T15:15Z (UTC)
 Workstream: making development with agents faster: the throughput study's remaining changes, re-ranked by the review the owner approved (D-game-34 items 57 to 59)
 Branch: `feature/meta_improvements`, cut from `main` at `bb89521b` (the merge of PR #69). HEAD: the commit that records B29a's launch. Pushed; **draft pull request #70** into `main` (item 59), so every push runs CI.
 Worktree: `/home/james/Dev/Vocaterra/.claude/worktrees/meta-improvements`
@@ -20,7 +20,9 @@ Previous handover: none. B29 was split out of [2026-11-18-0409-world-next](2026-
   - If a report is lost: same treatment as B29a's (inspect, WIP-commit, relaunch on the same brief).
   - Gate order: B29a first, then B29b and B29c in the order they report. B29a's dry-run times are skewed by the two agents beside it; the re-measure (order 3) is the quiet measurement.
 - **CI on `main` failed** for the PR #69 merge (run `44298795061`, `build-and-test`): `StreamedWorldHostRingTests.Given_ARingPlannedForOnePlaceAndNotFinished_…` ran 7 m 16 s and `host.Settle` hit its 120 s wall-clock timeout. Not a code bug (PR #70's run on the same code passed); folded into B29b, the owner told. CI on PR #70 (run `44303402255`) passed in 38 min.
-- **All three are on `feature/meta_improvements` and pushed.** Next: read CI on PR #70 for this push (the first CI run in Release with the fuzz suite and the timing tests), then the re-measure (order 3) on a quiet machine, then ask the owner about the deferred items.
+- **All three are on `feature/meta_improvements` and pushed; CI passed** on PR #70 (run 44325948521, `ff4e05cb`): Release, everything including the fuzz suite and the timing tests, `build-and-test` 20 min. PR #70 is marked ready for the owner to merge; merging it also fixes `main`'s CI failure.
+- **Re-measure done** (order 3; numbers in docs/game/findings.md): the whole gate 9 min 47 s on a quiet machine (about 27 before); `test.sh fast` 97 s (187 before; the estimate of under 60 s not met); no class over 5 minutes, so order 4 (long single tests) is not needed.
+- **Waiting on the owner:** the deferred items, B29's token policy (item 50 B) and stamp skip (item 50 C); the review now suggests neither pays (the gate holds one slot and takes 10 min). Proposals, not authorised: move the four timing classes still on a wall Stopwatch (`ChunkIndexTests`, `RegionTimeTests`, `ProceduralTimingTests`, `ProceduralChunkTimeTests`) to `CpuTime`; narrow the polling hook so a quoted `sleep 600` (a commit message) passes.
 
 ## Start here
 
