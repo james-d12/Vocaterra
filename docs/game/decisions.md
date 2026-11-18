@@ -1020,6 +1020,12 @@ the owner's answers of 2026-11-15 are in its section 5.
     the gate holds one slot and takes about 10 minutes, so neither pays. Two follow-ups run on `feature/meta_improvements`: B29d, the four
     timing classes still timed with a wall `Stopwatch` (`ChunkIndexTests`, `RegionTimeTests`, `ProceduralTimingTests`,
     `ProceduralChunkTimeTests`) move to `CpuTime`; B29e, the polling hook lets a command that only quotes `sleep` text pass.
+61. **The chunk-speed series goes ahead** (2026-11-18, about 18:10 UTC; after the speed review
+    `docs/research/2026-11-18-chunk-generation-speed.md` was explained in plain terms): "Yeah, let's go ahead with these changes. So we'll
+    make it on a new Git work tree off of main, push to a new feature branch, and clean up the docs." The review's milestones are B35 to
+    B40 (game plan 4.14) on `feature/world-next`, cut from `main` at `ae30d65b`, before B32 to B34. B37 (cheap coarse levels) still needs
+    the owner's sign-off on before/after pictures, and server GC in B40 his yes (it raises memory). B36 commits a generation bench so each
+    step is measured against the same baseline.
 
 ## Already decided
 
