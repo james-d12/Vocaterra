@@ -470,4 +470,108 @@ public sealed class PlayerSettingsTests
         Assert.False(PlayerSettings.Resolve(null, new LaunchSettings(Shaders: false)).Shaders);
         Assert.True(PlayerSettings.Resolve(null, new LaunchSettings()).Shaders);
     }
+
+    // B17c: the graphics effects of the settings page's Graphics group (D-game-34 item 43), each a toggle on by default, saved only when off, read back, and a launch option each.
+    private static readonly (SettingId Id, string Json, string Label, Func<PlayerSettings, bool> Read, Func<SaveSettings, bool> Saved, Func<bool, LaunchSettings> Launch)[] Effects =
+    [
+        (SettingId.SunFollowsHour, "SunFollowsHourOff", "Sun follows the hour", static s => s.SunFollowsHour, static s => s.SunFollowsHourOff, static on => new LaunchSettings(SunFollowsHour: on)),
+        (SettingId.ClimateColours, "ClimateColoursOff", "Climate colours", static s => s.ClimateColours, static s => s.ClimateColoursOff, static on => new LaunchSettings(ClimateColours: on)),
+        (SettingId.WaterShader, "WaterShaderOff", "Water shader", static s => s.WaterShader, static s => s.WaterShaderOff, static on => new LaunchSettings(WaterShader: on)),
+        (SettingId.HeightFog, "HeightFogOff", "Fog by height", static s => s.HeightFog, static s => s.HeightFogOff, static on => new LaunchSettings(HeightFog: on)),
+        (SettingId.FarLight, "FarLightOff", "Far view light", static s => s.FarLight, static s => s.FarLightOff, static on => new LaunchSettings(FarLight: on)),
+    ];
+
+    [Fact]
+    public void Given_TheGraphicsEffects_When_ANewGameStarts_Then_EachIsOnAndInTheGraphicsGroupWithTheShaders()
+    {
+        var settings = new PlayerSettings();
+        var rows = MenuRows.Settings(settings, null).ToList();
+        var graphics = rows.FindIndex(static row => row.Id == "heading.headingGraphics");
+        var interfaceGroup = rows.FindIndex(static row => row.Id == "heading.headingInterface");
+        var effects = rows.FindIndex(static row => row.LabelKey == "subEffects");
+        foreach (var (id, _, label, read, _, _) in Effects)
+        {
+            Assert.True(read(settings), $"{id} is on in a new game");
+            Assert.Equal(SettingKind.Toggle, PlayerSettings.Spec(id).Kind);
+            Assert.Equal(label, TestGame.Locale.Ui(PlayerSettings.Spec(id).LabelKey));
+            var row = rows.FindIndex(r => r.Id == id.ToString());
+            Assert.True(row > effects && effects > graphics && row < interfaceGroup, $"{id}'s row is under the effects' heading in the Graphics group");
+        }
+
+        // B18's grass slider and the window's antialiasing moved into the group, beside the shaders (B17c).
+        foreach (var moved in new[] { SettingId.Shaders, SettingId.Grass, SettingId.Msaa })
+        {
+            var row = rows.FindIndex(r => r.Id == moved.ToString());
+            Assert.True(row > effects && row < interfaceGroup, $"{moved} is in the effects' group");
+        }
+
+        Assert.Equal(4, settings.Msaa);
+        Assert.Equal(SettingKind.Choice, PlayerSettings.Spec(SettingId.Msaa).Kind);
+        Assert.Equal("Antialiasing", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Msaa).LabelKey));
+    }
+
+    [Fact]
+    public void Given_AnEffectIsSwitched_When_SetTwice_Then_ChangedFiresOnceAndTheOthersStayOn()
+    {
+        foreach (var (id, _, _, read, _, _) in Effects)
+        {
+            var settings = new PlayerSettings();
+            var changed = new List<SettingId>();
+            settings.Changed += changed.Add;
+            settings.Set(id, 0);
+            settings.Set(id, 0);
+            Assert.Equal([id], changed);
+            Assert.False(read(settings));
+            Assert.Equal(Effects.Length - 1, Effects.Count(e => e.Read(settings)));
+        }
+    }
+
+    [Fact]
+    public void Given_AnEffectOff_When_SavedAndLoaded_Then_ItComesBackAndAnEffectOnIsLeftOutOfTheFile()
+    {
+        var plain = System.Text.Json.JsonSerializer.Serialize(new PlayerSettings().ToSave());
+        foreach (var (id, json, _, read, saved, _) in Effects)
+        {
+            Assert.DoesNotContain(json, plain, StringComparison.Ordinal); // a save of the default is byte for byte what it was
+            var settings = new PlayerSettings();
+            settings.Set(id, 0);
+            var save = settings.ToSave();
+            Assert.True(saved(save));
+            var text = System.Text.Json.JsonSerializer.Serialize(save);
+            Assert.Contains(json, text, StringComparison.Ordinal);
+            var back = PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(text)!);
+            Assert.False(read(back));
+            Assert.Equal(Effects.Length - 1, Effects.Count(e => e.Read(back)));
+        }
+
+        Assert.DoesNotContain("Msaa", plain, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_ALaunchOptionForAnEffect_When_Resolved_Then_ItWinsOverTheSaveForTheRun()
+    {
+        foreach (var (_, _, _, read, _, launch) in Effects)
+        {
+            Assert.True(read(PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, SunFollowsHourOff: true, ClimateColoursOff: true, WaterShaderOff: true, HeightFogOff: true, FarLightOff: true), launch(true))));
+            Assert.False(read(PlayerSettings.Resolve(null, launch(false))));
+            Assert.True(read(PlayerSettings.Resolve(null, new LaunchSettings())));
+        }
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(2, 2)]
+    [InlineData(4, 4)]
+    [InlineData(8, 8)]
+    public void Given_TheAntialiasingRow_When_SavedAndLoaded_Then_TheSamplesComeBackAndTheDefaultIsLeftOut(int samples, int expected)
+    {
+        var settings = PlayerSettings.Resolve(null, new LaunchSettings(Msaa: samples));
+        Assert.Equal(expected, settings.Msaa);
+        var save = settings.ToSave();
+        Assert.Equal(samples == 4 ? null : samples, save.Msaa);
+        Assert.Equal(expected, PlayerSettings.Resolve(save).Msaa);
+        Assert.Equal(expected, PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(System.Text.Json.JsonSerializer.Serialize(save))!).Msaa);
+        Assert.Equal(4, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Msaa: 3)).Msaa); // not a count the window offers: the default
+        Assert.Equal(4, PlayerSettings.Resolve(null, new LaunchSettings(Msaa: 3)).Msaa);
+    }
 }

@@ -36,7 +36,7 @@ public sealed class GlShaderTests
     {
         var vertex = ShaderSources.Load(ShaderSources.ChunkVertex);
         var fragment = ShaderSources.Load(ShaderSources.ChunkFragment);
-        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUv;", "float vFog;" })
+        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUv;", "float vFog;", "vec3 vWorld;" })
         {
             Assert.Contains("out " + varying, vertex, StringComparison.Ordinal);
             Assert.Contains("in " + varying, fragment, StringComparison.Ordinal);
@@ -165,7 +165,7 @@ public sealed class GlShaderTests
     public void EveryChunkPassHasABufferInTheGlPath()
     {
         var source = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "Graphics", "World", "VoxelRenderer.cs"));
-        foreach (var part in new[] { "GlOpaque", "GlAlpha", "GlPlants", "GlLit", "GlGlow", "GlGrass" })
+        foreach (var part in new[] { "GlOpaque", "GlAlpha", "GlPlants", "GlLit", "GlGrass" })
         {
             Assert.Contains($"public GlChunkBuffer? {part};", source, StringComparison.Ordinal);
             Assert.Contains($"{part}?.Dispose();", source, StringComparison.Ordinal);
@@ -365,6 +365,57 @@ public sealed class GlShaderTests
             Assert.True(differing == 0, $"{(target ? "render target" : "back buffer")}: {differing} of {effects.Length} pixels differ from the effects' picture (viewport {viewport})");
             Assert.Equal(0, pass.Errors.Count);
         }
+    }
+
+    /// <summary>B17c: the light of a corner in the shader is the C# model's: a quad whose four corners carry one light word, drawn through the pass under a dusk sun and a glow, has the colour <see cref="LightModel"/> gives that word, to a byte or two.</summary>
+    [GlFact]
+    public void TheLightOfACornerInTheShaderIsTheCSharpModelsToTheByte()
+    {
+        var game = GlProbeGame.Shared;
+        var device = game.GraphicsDevice;
+        using var atlas = White(device, 8, 8, mips: true);
+        using var water = White(device, 64, 64, mips: true);
+        using var pass = GlChunkPass.TryCreate(device, atlas, [water], 16, static _ => { }, out var error);
+        Assert.True(pass is not null, error);
+        var direction = Vector3.Normalize(new Vector3(-1f, 0.2f, -0.1f));
+        var sun = new SunLightState((direction.X, direction.Y, direction.Z), (0.88f, 0.56f, 0.46f));
+        const float glowStrength = 0.5f;
+        var frame = new GlLightFrame(Vector3.Zero, direction, new Vector3(sun.Colour.R, sun.Colour.G, sun.Colour.B), new Vector3(ChunkMesher.SunDirection.X, ChunkMesher.SunDirection.Y, ChunkMesher.SunDirection.Z), new Vector3(LanternGlow.Amber.R * glowStrength, LanternGlow.Amber.G * glowStrength, LanternGlow.Amber.B * glowStrength));
+        var material = MeshVertex.Pack(230, 200, 170);
+        var words = new[]
+        {
+            LightData.Open(LightFace.Up),
+            LightData.Open(LightFace.West),
+            LightData.Open(LightFace.East),
+            LightData.Open(LightFace.Down),
+            LightData.Pack(180, 0, 1, LightFace.North),
+            LightData.Pack(255, LightData.FromLevel(9), 3, LightFace.Up),
+            LightData.Pack(LightData.FromLevel(4), LightData.FromLevel(15), 0, LightFace.South),
+            LightData.Open(LightFace.Flat, 140),
+            LightData.Open(LightFace.Fixed),
+        };
+        var projection = Matrix.CreatePerspectiveFieldOfView(1.2f, 1f, 0.1f, 100f);
+        foreach (var word in words)
+        {
+            var quad = Quad(-1f, -1f, 1f, 1f, -3f).Select(v => v with { Color = material }).ToArray();
+            using var buffer = pass.Upload(quad, [word, word, word, word], 1);
+            Assert.NotNull(buffer);
+            device.Clear(Color.Black);
+            device.DepthStencilState = DepthStencilState.Default;
+            device.RasterizerState = RasterizerState.CullClockwise;
+            device.BlendState = BlendState.Opaque;
+            pass.Begin(Matrix.Identity, projection, Vector3.One, 1000f, 2000f, device.Viewport, device.PresentationParameters.BackBufferHeight, renderTarget: false, frame);
+            pass.Draw(buffer);
+            pass.End();
+            var pixels = new Color[device.PresentationParameters.BackBufferWidth * device.PresentationParameters.BackBufferHeight];
+            device.GetBackBufferData(pixels);
+            var centre = pixels[(pixels.Length / 2) + (device.PresentationParameters.BackBufferWidth / 2)];
+            var (r, g, b) = LightModel.Corner(material, word, sun, glowStrength);
+            static int Byte(float v) => (int)Math.Clamp(MathF.Round(v * 255f), 0f, 255f);
+            Assert.True(Math.Abs(centre.R - Byte(r)) <= 2 && Math.Abs(centre.G - Byte(g)) <= 2 && Math.Abs(centre.B - Byte(b)) <= 2, $"word {word:X8}: the shader drew ({centre.R}, {centre.G}, {centre.B}), the model says ({Byte(r)}, {Byte(g)}, {Byte(b)})");
+        }
+
+        Assert.Equal(0, pass.Errors.Count);
     }
 
     private static Texture2D White(GraphicsDevice device, int width, int height, bool mips)

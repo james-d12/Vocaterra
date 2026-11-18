@@ -17,8 +17,9 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
     private readonly Dictionary<VoxelChunkCoord, ChunkMeshResult> _meshes = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
 
-    public MeshingRig(VoxelGrid grid, RiverCurrents? currents, JobPool? pool, Vector3 eye, int viewDistance = 96, LightBand band = LightBand.Day)
+    public MeshingRig(VoxelGrid grid, RiverCurrents? currents, JobPool? pool, Vector3 eye, int viewDistance = 96, LightBand band = LightBand.Day, bool data = false)
     {
+        Data = data;
         Grid = grid;
         Currents = currents;
         Band = band;
@@ -31,6 +32,9 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
     }
 
     public VoxelGrid Grid { get; }
+
+    /// <summary>Whether the meshes carry their light as data (B17c).</summary>
+    public bool Data { get; }
 
     public RiverCurrents? Currents { get; }
 
@@ -54,7 +58,7 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
 
     public Dictionary<VoxelChunkCoord, ChunkMeshResult> Grass { get; } = [];
 
-    public MeshOptions OptionsFor(VoxelChunkCoord coord) => new(true, 100, Lights.Near(coord), Band);
+    public MeshOptions OptionsFor(VoxelChunkCoord coord) => new(true, 100, Lights.Near(coord), Band, Data: Data);
 
     /// <summary>One frame, as the renderer does it: the view, the lights, the pipeline.</summary>
     public int Frame(double? budgetMilliseconds = null)
@@ -125,7 +129,7 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
     private static bool Same(MeshPart part, MeshBuffer buffer)
     {
         var quads = Math.Min(buffer.FaceCount, MeshPart.MaxQuads);
-        return part.Quads == quads && (quads == 0 || part.Vertices.AsSpan(0, quads * 4).SequenceEqual(buffer.Vertices[..(quads * 4)]));
+        return part.Quads == quads && (quads == 0 || (part.Vertices.AsSpan(0, quads * 4).SequenceEqual(buffer.Vertices[..(quads * 4)]) && (part.Lights is null ? !buffer.HasLights : buffer.HasLights && part.Lights.AsSpan(0, quads * 4).SequenceEqual(buffer.Lights[..(quads * 4)]))));
     }
 
     public void Install(ChunkMeshResult result)
@@ -162,10 +166,10 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
     }
 
     /// <summary>The valley as the renderer sees it, a rig at the spawn.</summary>
-    public static MeshingRig Valley(JobPool? pool, int viewDistance = 96, LightBand band = LightBand.Day)
+    public static MeshingRig Valley(JobPool? pool, int viewDistance = 96, LightBand band = LightBand.Day, bool data = false)
     {
         var scene = RouteScene.Build();
         var eye = new Vector3(scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
-        return new MeshingRig(scene.Grid, scene.Currents, pool, eye, viewDistance, band);
+        return new MeshingRig(scene.Grid, scene.Currents, pool, eye, viewDistance, band, data);
     }
 }

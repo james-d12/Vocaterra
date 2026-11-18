@@ -2960,3 +2960,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   The cover rule is sound. `CaveCoverTests` guards it over three seeds. Gated with B27's ratio bound (6 to 10: the base got cheaper);
   the gate's two failures were not theirs: B07d's `JobPoolTests` resize race (it counts threads before they start; passes alone, planned
   in B29) and a core fuzz seed (M101).
+- **B17c, light, fog and water in the shaders (2026-11-17, `9e8f202a`).** Each chunk vertex now carries a 4-byte light word (sky, block,
+  corner occlusion, the face's direction, a spare byte for a flat face's grey or the water's depth) beside its material colour; the shader
+  combines them with the sun's direction and colour for the hour, the sky's brightness, the glow, so a change of hour or weather rebuilds no
+  mesh (the base rebuilt 5,829 meshes for an hour change, 19 s of worker time and a 4.6 s frame; now none, longest frame 45 ms). B22's four
+  baked bands are gone from the shader path; the sun follows the hour smoothly. Fog by height (a closed form along the ray, the haze's
+  colour), a water shader (depth tint, movement, a brighter grazing edge) and the far view drawn through the same program, its baked Day
+  colours relit per face, so near and far meet in one colour at midday and dusk. A texture array was not needed (the atlas's mips are
+  cell-pure to level 4). Five toggles under "Shaders and effects" with Antialiasing and Grass, each on by default and set by the quality
+  level (item 43). With shaders off, the mesher bakes today's colours exactly (a golden from before the change). Against the base: midday,
+  cave, rain, dusk and night views within 0.1% of pixels; the lake shore, under water, the far views and a golden-hour view outside it by
+  design (the water shader, fog by height, the sun at its hour). Its merge with B07d's settings and far view took 13 conflicts. The torch
+  runs finish on both paths; with effects off they match within 8 pixels. B23 inherits the sky and block channels. Gated: 12,765 passed;
+  the one failure B07d's JobPool race (B30).
