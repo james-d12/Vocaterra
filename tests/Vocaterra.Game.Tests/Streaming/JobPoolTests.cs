@@ -34,13 +34,23 @@ public sealed class JobPoolTests
             pool.Submit(JobLane.Tiles, i, static () => false, () =>
             {
                 threads[Environment.CurrentManagedThreadId] = true;
-                _ = gate.Wait(2000);
+                _ = gate.Wait(60_000);
                 _ = Interlocked.Increment(ref ran);
             });
         }
 
         Assert.Equal(8, pool.Resize(8));
         Assert.Equal(8, pool.Workers);
+
+        // Every worker holds a job at the gate until all eight have started (a wait on the condition, bounded, not a sleep of a fixed length); a worker that has not started yet
+        // would otherwise find the queue already drained by the others, and the count below would be taken before the threads exist.
+        var started = Environment.TickCount64 + 30_000;
+        while (threads.Count < 8 && Environment.TickCount64 < started)
+        {
+            Thread.Sleep(5);
+        }
+
+        Assert.True(threads.Count >= 8, $"only {threads.Count} of the 8 workers started a job within 30 s");
         gate.Set();
         Assert.Equal(1, pool.Resize(1)); // down again, mid-queue
         Assert.Equal(1, pool.Workers);

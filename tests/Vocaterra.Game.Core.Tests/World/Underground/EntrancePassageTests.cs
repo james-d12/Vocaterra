@@ -114,6 +114,60 @@ public sealed class EntrancePassageTests
         }
     }
 
+    private static int GroundAt(ulong seed, int x, int z)
+    {
+        var world = ProceduralTestWorld.Source(seed).World;
+        return world.Height.Shape(x, z, world.Climate.At(x, z)).Height;
+    }
+
+    // B11d: the ground climbs four blocks or more within the passage's first six cells.
+    private static bool GroundRisesAhead(ulong seed, EntranceRamp r) => GroundAt(seed, r.Nodes[6].X, r.Nodes[6].Z) - r.MouthY >= 4;
+
+    // B11d: a mouth opens sideways into a slope when the ground rises ahead of it and the passage runs in without a plunge (its floor falls at most a block over the first three cells), from an approach outside the slope.
+    private static bool OpensIntoSlope(ulong seed, EntranceRamp r) =>
+        GroundRisesAhead(seed, r) && r.MouthY - r.Nodes[3].Floor <= 1 && GroundAt(seed, r.ApproachX, r.ApproachZ) <= r.MouthY + 1;
+
+    [Fact]
+    public void Given_ThePassagesOfThreeSeeds_When_TheGroundAroundTheirMouthsIsRead_Then_AtLeastAQuarterOpenIntoASlope()
+    {
+        int slopes = 0, all = 0, plunges = 0;
+        foreach (var seed in ProceduralTestWorld.Seeds)
+        {
+            var sample = Sample(seed);
+            all += sample.Count;
+            slopes += sample.Count(r => OpensIntoSlope(seed, r));
+            plunges += sample.Count(r => GroundRisesAhead(seed, r) && !OpensIntoSlope(seed, r));
+        }
+
+        Assert.True(slopes * 100 >= all * 25, $"{slopes} of {all} passages open into a slope ({plunges} more plunge on rising ground)");
+    }
+
+    [Theory]
+    [MemberData(nameof(Seeds))]
+    public void Given_TheMouthsInASlope_When_ABodyWalksInFromTheGroundBesideThem_Then_TheyFallGentlyAndReachACaveTwentyBlocksDown(ulong seed)
+    {
+        var source = ProceduralTestWorld.Source(seed);
+        var caves = source.World.Underground!.Caves;
+        var slopes = Sample(seed).Where(r => OpensIntoSlope(seed, r)).Take(4).ToList();
+        Assert.NotEmpty(slopes);
+        foreach (var ramp in slopes)
+        {
+            // The approach is outside the slope, at the mouth's height or within a block of it; the first cells fall at most a block each (in fact at most one over the first three).
+            Assert.InRange(GroundAt(seed, ramp.ApproachX, ramp.ApproachZ) - ramp.MouthY, -1, 1);
+            for (var i = 1; i <= 6; i++)
+            {
+                Assert.InRange(ramp.Nodes[i - 1].Floor - ramp.Nodes[i].Floor, 0, 1);
+            }
+
+            var blocks = new PassageBlocks(source, ramp);
+            var start = (X: ramp.ApproachX, Y: blocks.Top(ramp.ApproachX, ramp.ApproachZ) + 1, Z: ramp.ApproachZ);
+            Assert.True(blocks.Standable(start.X, start.Y, start.Z), $"the ground before the face mouth at {start} is not a place to stand");
+            var found = blocks.Walk(start, cell => ramp.MouthY + 1 - cell.Y >= 20 && caves.KindAt(cell.X, cell.Y, cell.Z) != CaveKind.None && blocks.Block(cell.X, cell.Y, cell.Z) == BlockId.Air, out _, out var longestStep, out var visited);
+            Assert.True(found, $"seed {seed}: no walk from the face mouth {start} reaches a cave; {Stuck(ramp, blocks, visited)}");
+            Assert.True(longestStep <= 1);
+        }
+    }
+
     [Fact]
     public void Given_ThePassagesOfThreeSeeds_When_TheirCrossSectionsAreRead_Then_EveryOneIsWalkableAndTheWidthAndHeightKeepChanging()
     {

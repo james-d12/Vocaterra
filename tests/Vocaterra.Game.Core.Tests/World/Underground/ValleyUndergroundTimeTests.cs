@@ -15,7 +15,7 @@ public sealed class ValleyUndergroundTimeTests(ITestOutputHelper output)
     private const ulong Seed = 42;
     private const int Attempts = 3;
     // Measured (B24a, machine at load 10 to 12): the underground adds 2 500 ms of CPU time (plain 837, with it 3 337). The budget is twice that.
-    private const double Budget = 5000;
+    private static readonly double Budget = CpuTime.Budget(5000);
 
     [Fact]
     public void Given_TheValleyBuiltWithAndWithoutTheUnderground_When_TheCpuTimeIsMeasured_Then_TheUndergroundCostsUnderItsBudget()

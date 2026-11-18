@@ -215,6 +215,7 @@ public sealed record CaveSpec(
 /// <param name="FunnelLength">The blocks the widening lasts.</param>
 /// <param name="BowlDepth">The deepest the ground may lie over the path's floor for the bowl to be cut, in blocks.</param>
 /// <param name="BowlSlope">How far out, in thousandths of a block, the bowl's side runs for each block it rises.</param>
+/// <param name="FaceRise">How many blocks the ground must climb within a few blocks ahead of a spot for a mouth to open sideways into it as a hill or cliff face (B11d); 0 for no face mouths.</param>
 /// <param name="FloorBlocks">The rocks that fill a gap in the floor, drawn by weight.</param>
 public sealed record EntranceSpec(
     int Cell,
@@ -246,6 +247,7 @@ public sealed record EntranceSpec(
     int FunnelLength,
     int BowlDepth,
     int BowlSlope,
+    int FaceRise,
     IReadOnlyList<BlockWeight> FloorBlocks);
 
 /// <summary>Lava: cave air at or below the level is lava.</summary>
@@ -403,6 +405,7 @@ public sealed record UndergroundData(
         Int(e, "funnelLength"),
         Int(e, "bowlDepth"),
         Int(e, "bowlSlope"),
+        Int(e, "faceRise"),
         ParseWeights(e.GetProperty("floorBlocks")));
 
     private static IReadOnlyList<BlockWeight> ParseWeights(JsonElement list) => [.. list.EnumerateArray().Select(static b => new BlockWeight(Text(b, "block"), Int(b, "weight")))];
