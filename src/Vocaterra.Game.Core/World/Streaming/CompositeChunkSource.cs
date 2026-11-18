@@ -111,7 +111,19 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
     /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
     /// <param name="group">The group's shaped window (<see cref="ShapeGroup"/>), or <see langword="null"/>.</param>
-    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group)
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group, null);
+
+    /// <summary>Arrays for the window of one chunk column (B40), for the overload that takes them.</summary>
+    public ColumnScratch CreateScratch() => _procedural.CreateScratch();
+
+    /// <summary>The same layers with the column's window arrays taken from the caller's scratch (B40) instead of allocated.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    /// <param name="scratch">The caller's arrays, or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group, ColumnScratch? scratch)
     {
         var first = Math.Max(minLayer, MinChunkY);
         var last = Math.Min(maxLayer, MaxChunkY - 1);
@@ -127,7 +139,7 @@ public sealed class CompositeChunkSource : IChunkSource
         var belowLast = owner is null ? last : Math.Min(last, owner.Bounds.MinChunkY - 1);
         if (belowLast >= first)
         {
-            below = _procedural.GenerateLayers(chunkX, chunkZ, first, belowLast, group);
+            below = _procedural.GenerateLayers(chunkX, chunkZ, first, belowLast, group, scratch);
         }
 
         for (var i = 0; i < chunks.Length; i++)

@@ -23,6 +23,7 @@ internal static class Bench
           --passes <n>    each row is the fastest of this many passes (default 3; 2 with --quick)
           --columns <n>   land chunk columns in the chunk rows (default 24; 6 with --quick)
           --json <file>   where the JSON goes (default bench-seed<seed>.json in the current folder)
+          --workers <n>   also run the residency path (4 x 4 groups, band and layers) on n threads for 4 s with and without caller-owned window arrays: columns a second, bytes a column, gen-0 collections a second (default 0: not run)
           --quick         a short run (one land and one sea position for the far stacks, 6 columns, 2 passes): under 30 s
         """;
 
@@ -34,6 +35,7 @@ internal static class Bench
         var passes = -1;
         var columns = -1;
         var quick = false;
+        var workers = 0;
         string? json = null;
         string? content = null;
         try
@@ -44,6 +46,9 @@ internal static class Bench
                 {
                     case "--quick":
                         quick = true;
+                        break;
+                    case "--workers" when i + 1 < args.Length:
+                        workers = int.Parse(args[++i], CultureInfo.InvariantCulture);
                         break;
                     case "--seed" when i + 1 < args.Length:
                         seed = ulong.Parse(args[++i], CultureInfo.InvariantCulture);
@@ -70,7 +75,7 @@ internal static class Bench
             passes = passes > 0 ? passes : quick ? 2 : 3;
             columns = columns > 0 ? columns : quick ? 6 : 24;
             var data = Cli.Load(content ?? Cli.FindBundle());
-            var bench = new Rows(data, seed, passes, columns, quick, output);
+            var bench = new Rows(data, seed, passes, columns, quick, output) { Workers = workers };
             bench.Execute();
             var path = json ?? $"bench-seed{seed}.json";
             File.WriteAllText(path, bench.ToJson(seed, passes, columns, quick));
@@ -108,6 +113,8 @@ internal static class Bench
             _out = output;
         }
 
+        public int Workers { get; init; }
+
         public void Execute()
         {
             var land = LandColumns(_columnCount);
@@ -117,6 +124,11 @@ internal static class Bench
             ChunkRows(land);
             StageRows(land);
             FarRows(land, sea);
+            if (Workers > 0)
+            {
+                WorkerRows(land);
+            }
+
             Print();
         }
 
@@ -350,7 +362,41 @@ internal static class Bench
             Add("ring footprint 32 x 32 through one window (16 bands, 4 columns; no ingest)", best / footprints.Count, "ms per footprint", footprints.Count);
         }
 
-        private void GroupPass(List<(int, int)> groups)
+        // B40: the residency's path on several threads at once, with the window arrays allocated for each column or owned by the thread: the allocation's cost shows as gen-0 collections and as columns a second.
+        private void WorkerRows(List<(int Cx, int Cz)> land)
+        {
+            var groups = land.Select(c => (c.Cx & ~3, c.Cz & ~3)).Distinct().ToList();
+            foreach (var owned in new[] { false, true })
+            {
+                var stop = false;
+                var counts = new long[Workers];
+                var gen0 = GC.CollectionCount(0);
+                var bytes0 = GC.GetTotalAllocatedBytes(precise: true);
+                var t0 = Stopwatch.GetTimestamp();
+                var threads = Enumerable.Range(0, Workers).Select(w => new Thread(() =>
+                {
+                    var scratch = owned ? _source.CreateScratch() : null;
+                    var mine = groups.Skip(w % groups.Count).Concat(groups.Take(w % groups.Count)).ToList();
+                    while (!Volatile.Read(ref stop))
+                    {
+                        GroupPass(mine, scratch);
+                        counts[w] += mine.Count * 16L;
+                    }
+                })).ToList();
+                threads.ForEach(t => t.Start());
+                Thread.Sleep(4000);
+                Volatile.Write(ref stop, true);
+                threads.ForEach(t => t.Join());
+                var seconds = Stopwatch.GetElapsedTime(t0).TotalSeconds;
+                var columns = counts.Sum();
+                var label = $"{Workers} workers, residency through groups, {(owned ? "owned window arrays" : "allocated window arrays")}";
+                Add($"{label}: columns a second", columns / seconds, "columns per s", (int)columns);
+                Add($"{label}: bytes a column", (GC.GetTotalAllocatedBytes(precise: true) - bytes0) / (double)columns, "bytes per column", (int)columns);
+                Add($"{label}: gen-0 collections a second", (GC.CollectionCount(0) - gen0) / seconds, "per s", (int)columns);
+            }
+        }
+
+        private void GroupPass(List<(int, int)> groups, ColumnScratch? scratch = null)
         {
             foreach (var (gx, gz) in groups)
             {
@@ -362,7 +408,7 @@ internal static class Bench
                         var band = _source.SurfaceBand(gx + dx, gz + dz, group);
                         if (!band.IsEmpty)
                         {
-                            _ = _source.GenerateLayers(gx + dx, gz + dz, band.MinLayer - 1, band.MaxLayer + 1, group);
+                            _ = _source.GenerateLayers(gx + dx, gz + dz, band.MinLayer - 1, band.MaxLayer + 1, group, scratch);
                         }
                     }
                 }
