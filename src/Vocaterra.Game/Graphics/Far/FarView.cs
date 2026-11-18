@@ -526,6 +526,7 @@ public sealed class FarView
                 _wanted = rest;
             }
 
+            NoteFineBuilt(mesh.Key);
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -811,6 +812,41 @@ public sealed class FarView
     public double? FilledAfterMilliseconds { get; private set; }
 
     private double? _firstLeaves;
+    private readonly Dictionary<FarTileKey, (double First, double Last, int Distance)> _fineBuilds = [];
+
+    // B38: when each fine leaf (level 0 to 2) was first built and last built, and how far from the eye it was when first built, for the run's report of how long a stand-in stays on screen.
+    private void NoteFineBuilt(FarTileKey key)
+    {
+        if (key.Level > 2 || _firstLeaves is not { } first)
+        {
+            return;
+        }
+
+        var now = MonotonicClock.Milliseconds() - first;
+        _fineBuilds[key] = _fineBuilds.TryGetValue(key, out var seen) ? (seen.First, now, seen.Distance) : (now, now, (int)key.NearestDistance(Settings, _eye.X, _eye.Z));
+    }
+
+    /// <summary>Per distance band (blocks from the eye when the leaf was first built) the fine leaves (levels 0 to 2) built: how many, and the median and 90th percentile of the milliseconds from the first leaves to the first build and to the last build (B38, for the run's report).</summary>
+    public IReadOnlyList<(int From, int To, int Count, double FirstMedian, double FirstP90, double LastMedian, double LastP90)> FineBuildBands()
+    {
+        var edges = new[] { 0, 400, 500, 600, 700, 800, 1000, 1500, int.MaxValue };
+        var rows = new List<(int, int, int, double, double, double, double)>();
+        for (var i = 0; i + 1 < edges.Length; i++)
+        {
+            var inBand = _fineBuilds.Values.Where(v => v.Distance >= edges[i] && v.Distance < edges[i + 1]).ToList();
+            if (inBand.Count == 0)
+            {
+                continue;
+            }
+
+            static double At(List<double> sorted, int percent) => sorted[Math.Min(sorted.Count - 1, sorted.Count * percent / 100)];
+            var first = inBand.Select(static v => v.First).Order().ToList();
+            var last = inBand.Select(static v => v.Last).Order().ToList();
+            rows.Add((edges[i], edges[i + 1], inBand.Count, At(first, 50), At(first, 90), At(last, 50), At(last, 90)));
+        }
+
+        return rows;
+    }
 
     private void NoteCoverage(int needed, int uncovered)
     {
