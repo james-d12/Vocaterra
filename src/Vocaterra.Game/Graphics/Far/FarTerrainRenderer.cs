@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Gl;
 
 namespace Vocaterra.Game.Graphics.Far;
 
@@ -10,6 +11,14 @@ namespace Vocaterra.Game.Graphics.Far;
 /// <param name="FogEnd">Where the land is wholly haze.</param>
 /// <param name="Tint">The light of the moment as a colour multiplier (the day band's tint of <c>LightBands</c>).</param>
 public readonly record struct FarDrawState(Vector3 FogColour, float FogStart, float FogEnd, Vector3 Tint);
+
+/// <summary>What the far view needs to be drawn through the game's own GLSL program (B17c) instead of MonoGame's effects: the pass, the frame's light, and where it is drawing to.</summary>
+/// <param name="Pass">The chunks' program and its state scope (the far view has a scope of its own: another projection and depth range).</param>
+/// <param name="Light">The frame's light: the sun, the fog by height; the same as the chunks'.</param>
+/// <param name="Viewport">The device's viewport.</param>
+/// <param name="BackBufferHeight">The back buffer's height in pixels.</param>
+/// <param name="RenderTarget">Whether a render target is bound (the scene under water).</param>
+public readonly record struct FarGlDraw(GlChunkPass Pass, GlLightFrame Light, Viewport Viewport, int BackBufferHeight, bool RenderTarget);
 
 /// <summary>
 /// Draws the far view's tiles (B07, B07c; D-game-34 items 21 and 25): after the sky and before the voxel chunks, in a pass of its own with its own depth range (a near plane of a few blocks and a far plane at the
@@ -81,6 +90,15 @@ public sealed class FarTerrainRenderer : IDisposable
         _matrices = [_effect, _solid];
     }
 
+    /// <summary>Makes the far view's textures for the game's own GLSL program (B17c): the block atlas sampled as the far sampler does and the noise, both with their mip levels. Call outside the pass's scope.</summary>
+    /// <param name="pass">The program's pass.</param>
+    /// <returns>Whether the textures are there (a failure leaves the far view to MonoGame's effects).</returns>
+    public bool PrepareGl(GlChunkPass pass)
+    {
+        ArgumentNullException.ThrowIfNull(pass);
+        return pass.TryAddFarTextures(_atlas, _noise, (int)Math.Log2(Blocks.BlockAtlasLayout.CellSize));
+    }
+
     /// <summary>The tiles the last <see cref="Draw"/> drew.</summary>
     public int DrawnTiles => _drawn;
 
@@ -105,7 +123,8 @@ public sealed class FarTerrainRenderer : IDisposable
     /// <summary>Draws the tiles in view from the camera, then clears the depth buffer for the voxel pass.</summary>
     /// <param name="camera">The camera of the frame.</param>
     /// <param name="state">The light and the haze.</param>
-    public void Draw(FirstPersonCamera camera, in FarDrawState state)
+    /// <param name="gl">B17c: the game's own GLSL program and the frame's light to draw through (the far view in the chunks' sun and fog), or <see langword="null"/> for MonoGame's effects with the day's baked light.</param>
+    public void Draw(FirstPersonCamera camera, in FarDrawState state, FarGlDraw? gl = null)
     {
         _drawn = 0;
         _visible.Clear();
@@ -115,7 +134,8 @@ public sealed class FarTerrainRenderer : IDisposable
             return;
         }
 
-        UploadPending(settings.TopLevel); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        var pass = gl?.Pass;
+        UploadPending(settings.TopLevel, pass); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
         if (_view.Draw.Count == 0)
         {
             return;
@@ -124,6 +144,34 @@ public sealed class FarTerrainRenderer : IDisposable
         var projection = ProjectionFor(camera, settings.Range, NearPlaneFor(_view.VoxelViewDistance));
         _view.ReachScale = ReachFor(camera);
         _frustum.Matrix = camera.View * projection;
+        _convertBudget = MaxUploadBytesPerFrame;
+        _converted = 0;
+        for (var i = 0; i < _view.Draw.Count; i++)
+        {
+            var tile = _view.Draw[i];
+            if (!tile.OnCard || !_frustum.Intersects(tile.Box))
+            {
+                continue;
+            }
+
+            if (!InForm(tile, pass))
+            {
+                Convert(tile, pass); // a tile uploaded for the other path (the setting or the shaders changed): carried over a few a frame, the rest wait their turn
+                if (!InForm(tile, pass))
+                {
+                    continue;
+                }
+            }
+
+            _visible.Add(tile);
+        }
+
+        if (gl is { } through)
+        {
+            DrawThrough(camera, state, through, projection);
+            return;
+        }
+
         foreach (var effect in _matrices)
         {
             effect.World = Matrix.Identity;
@@ -142,20 +190,8 @@ public sealed class FarTerrainRenderer : IDisposable
         _device.DepthStencilState = DepthStencilState.Default;
         _device.BlendState = BlendState.Opaque;
         _device.RasterizerState = RasterizerState.CullClockwise;
-        for (var i = 0; i < _view.Draw.Count; i++)
+        foreach (var tile in _visible)
         {
-            var tile = _view.Draw[i];
-            if (tile.Buffer is null)
-            {
-                continue;
-            }
-
-            if (!_frustum.Intersects(tile.Box))
-            {
-                continue;
-            }
-
-            _visible.Add(tile);
             if (tile.Runs.Opaque == 0)
             {
                 continue;
@@ -198,13 +234,117 @@ public sealed class FarTerrainRenderer : IDisposable
         _device.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1f, 0);
     }
 
+    // The same three passes through the game's own program (B17c), in a scope of their own: the land, the blocks that give light, the water from the far to the near, then the depth buffer cleared for the chunks. No MonoGame call stands in the scope.
+    private void DrawThrough(FirstPersonCamera camera, in FarDrawState state, in FarGlDraw gl, in Matrix projection)
+    {
+        var pass = gl.Pass;
+        pass.Begin(camera.View, projection, state.FogColour, state.FogStart, state.FogEnd, gl.Viewport, gl.BackBufferHeight, gl.RenderTarget, gl.Light);
+        pass.Use(GlPassKind.FarLand);
+        pass.SetDiffuse(state.Tint);
+        foreach (var tile in _visible)
+        {
+            if (tile.Runs.Opaque > 0)
+            {
+                pass.SetFarTexture(tile.Textured);
+                pass.DrawFar(tile.GlBuffers!, 0, tile.Runs.Opaque);
+                _drawn++;
+            }
+        }
+
+        pass.Use(GlPassKind.FarLit);
+        pass.SetDiffuse(Vector3.One);
+        foreach (var tile in _visible)
+        {
+            if (tile.Runs.Lit > 0)
+            {
+                pass.SetFarTexture(tile.Textured);
+                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque, tile.Runs.Lit);
+            }
+        }
+
+        pass.Use(GlPassKind.FarWater);
+        pass.SetDiffuse(state.Tint);
+        for (var i = _visible.Count - 1; i >= 0; i--)
+        {
+            var tile = _visible[i];
+            if (tile.Runs.Water > 0)
+            {
+                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water);
+            }
+        }
+
+        pass.ClearDepth();
+        pass.End();
+    }
+
+    // Whether the tile's buffers are in the form of the path drawing (the game's own program, or MonoGame's effects).
+    private static bool InForm(FarTile tile, GlChunkPass? pass) => pass is null ? tile.Buffer is not null : tile.GlBuffers is not null;
+
+    private long _convertBudget;
+
+    // Carries a tile's buffers from the form of the other path to this one, within the frame's byte budget (a tile is read back from the card and put up again): at least one a frame.
+    private void Convert(FarTile tile, GlChunkPass? pass)
+    {
+        if (_convertBudget <= 0 && _converted > 0)
+        {
+            return;
+        }
+
+        _converted++;
+        _convertBudget -= tile.Bytes;
+        if (pass is not null && tile.Buffer is not null && tile.Indices is not null)
+        {
+            var vertices = new VertexPositionColorTexture[tile.Vertices];
+            tile.Buffer.GetData(vertices);
+            ushort[]? narrow = null;
+            int[]? wide = null;
+            if (tile.Indices.IndexElementSize == IndexElementSize.SixteenBits)
+            {
+                narrow = new ushort[tile.Indices.IndexCount];
+                tile.Indices.GetData(narrow);
+            }
+            else
+            {
+                wide = new int[tile.Indices.IndexCount];
+                tile.Indices.GetData(wide);
+            }
+
+            tile.GlBuffers = pass.UploadFar(vertices, vertices.Length, narrow, wide, narrow?.Length ?? wide!.Length);
+            tile.Buffer.Dispose();
+            tile.Buffer = null;
+            tile.Indices.Dispose();
+            tile.Indices = null;
+        }
+        else if (pass is null && tile.GlBuffers is { } glBuffers)
+        {
+            var (vertices, narrow, wide) = glBuffers.Download(tile.Vertices, tile.Runs.Opaque + tile.Runs.Lit + tile.Runs.Water);
+            tile.Buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
+            tile.Buffer.SetData(vertices);
+            if (narrow is not null)
+            {
+                tile.Indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, narrow.Length, BufferUsage.WriteOnly);
+                tile.Indices.SetData(narrow);
+            }
+            else
+            {
+                tile.Indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, wide!.Length, BufferUsage.WriteOnly);
+                tile.Indices.SetData(wide);
+            }
+
+            glBuffers.Dispose();
+            tile.GlBuffers = null;
+        }
+    }
+
+    private int _converted;
+
     // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
-    private void UploadPending(int topLevel)
+    private void UploadPending(int topLevel, GlChunkPass? pass)
     {
         FarUploads.Choose(_view.PendingTiles, topLevel, MaxUploadBytesPerFrame, _uploads);
         foreach (var tile in _uploads)
         {
-            Upload(tile);
+            Upload(tile, pass);
         }
     }
 
@@ -235,17 +375,32 @@ public sealed class FarTerrainRenderer : IDisposable
         tile.Buffer = null;
         tile.Indices?.Dispose();
         tile.Indices = null;
+        tile.GlBuffers?.Dispose();
+        tile.GlBuffers = null;
         tile.Pending?.Release();
         tile.Pending = null;
         tile.OnCard = false;
     }
 
-    private void Upload(FarTile tile)
+    private void Upload(FarTile tile, GlChunkPass? pass)
     {
         var mesh = tile.Pending!;
         tile.Buffer?.Dispose(); // a tile made again replaces its old buffers
         tile.Indices?.Dispose();
+        tile.Buffer = null;
+        tile.Indices = null;
+        tile.GlBuffers?.Dispose();
+        tile.GlBuffers = null;
         tile.Adopt(mesh);
+        if (pass is not null)
+        {
+            tile.GlBuffers = pass.UploadFar(mesh.VertexArray, mesh.VertexCount, mesh.Index16Array, mesh.Index32Array, mesh.IndexCount);
+            mesh.Release(); // the card has the data: the arrays go back to the pools
+            tile.Pending = null;
+            tile.OnCard = true;
+            return;
+        }
+
         var buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, mesh.VertexCount, BufferUsage.WriteOnly);
         buffer.SetData(mesh.VertexArray, 0, mesh.VertexCount);
         tile.Buffer = buffer;

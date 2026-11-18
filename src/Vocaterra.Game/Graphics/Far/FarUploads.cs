@@ -32,7 +32,7 @@ public static class FarUploads
                 for (var i = 0; i < draw.Count; i++)
                 {
                     var tile = draw[i];
-                    if (tile.Pending is not { } mesh || tile.Key.Level != level || (tile.Buffer is not null) != (replacing == 1))
+                    if (tile.Pending is not { } mesh || tile.Key.Level != level || tile.HasBuffers != (replacing == 1))
                     {
                         continue;
                     }

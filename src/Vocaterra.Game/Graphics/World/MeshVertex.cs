@@ -32,12 +32,13 @@ public readonly record struct MeshVertex(float X, float Y, float Z, uint Color, 
 }
 
 /// <summary>
-/// A growing list of quads. Every quad is four vertices in counter-clockwise order seen from outside (bottom left, bottom right, top right,
-/// top left), which the renderer turns into two triangles with one shared index pattern; so a mesh's face count is its vertex count over four.
+/// A growing list of quads. Every quad is four vertices in counter-clockwise order seen from outside (bottom left, bottom right, top right, top left), which the renderer turns into two triangles with one shared index pattern; so a mesh's face count is its vertex count over four.
+/// A mesh whose light is data (B17c) also holds a light word for each vertex (<see cref="Lights"/>, <see cref="LightData"/>), in a stream beside the vertices; a baked mesh holds none.
 /// </summary>
 public sealed class MeshBuffer
 {
     private MeshVertex[] _vertices = new MeshVertex[256];
+    private uint[]? _lights;
 
     /// <summary>The number of vertices.</summary>
     public int VertexCount { get; private set; }
@@ -48,18 +49,57 @@ public sealed class MeshBuffer
     /// <summary>The vertices written so far.</summary>
     public ReadOnlySpan<MeshVertex> Vertices => new(_vertices, 0, VertexCount);
 
-    /// <summary>Appends one quad.</summary>
+    /// <summary>Whether the mesh has light words (B17c): its light is data, one word for every vertex.</summary>
+    public bool HasLights => _lights is not null;
+
+    /// <summary>The light word of each vertex (<see cref="LightData"/>), in the order of <see cref="Vertices"/>; empty for a mesh whose colours are baked.</summary>
+    public ReadOnlySpan<uint> Lights => _lights is null ? default : new(_lights, 0, VertexCount);
+
+    /// <summary>The light word every quad added without words takes (B17c: the self-lit pieces' fixed word); <see langword="null"/> for none.</summary>
+    public uint? FixedLight { get; set; }
+
+    /// <summary>Appends one quad (with the <see cref="FixedLight"/> word on each corner when the buffer has one).</summary>
     public void AddQuad(in MeshVertex bottomLeft, in MeshVertex bottomRight, in MeshVertex topRight, in MeshVertex topLeft)
+    {
+        if (FixedLight is { } word)
+        {
+            AddQuad(bottomLeft, bottomRight, topRight, topLeft, word, word, word, word);
+            return;
+        }
+
+        EnsureRoom();
+        _vertices[VertexCount++] = bottomLeft;
+        _vertices[VertexCount++] = bottomRight;
+        _vertices[VertexCount++] = topRight;
+        _vertices[VertexCount++] = topLeft;
+    }
+
+    /// <summary>Appends one quad with the light word of each corner (B17c).</summary>
+    public void AddQuad(in MeshVertex bottomLeft, in MeshVertex bottomRight, in MeshVertex topRight, in MeshVertex topLeft, uint lightBottomLeft, uint lightBottomRight, uint lightTopRight, uint lightTopLeft)
+    {
+        EnsureRoom();
+        _lights ??= new uint[_vertices.Length];
+        _lights[VertexCount] = lightBottomLeft;
+        _vertices[VertexCount++] = bottomLeft;
+        _lights[VertexCount] = lightBottomRight;
+        _vertices[VertexCount++] = bottomRight;
+        _lights[VertexCount] = lightTopRight;
+        _vertices[VertexCount++] = topRight;
+        _lights[VertexCount] = lightTopLeft;
+        _vertices[VertexCount++] = topLeft;
+    }
+
+    private void EnsureRoom()
     {
         if (VertexCount + 4 > _vertices.Length)
         {
             Array.Resize(ref _vertices, _vertices.Length * 2);
         }
 
-        _vertices[VertexCount++] = bottomLeft;
-        _vertices[VertexCount++] = bottomRight;
-        _vertices[VertexCount++] = topRight;
-        _vertices[VertexCount++] = topLeft;
+        if (_lights is not null && _lights.Length < _vertices.Length)
+        {
+            Array.Resize(ref _lights, _vertices.Length);
+        }
     }
 
     /// <summary>Removes every quad (the storage is kept).</summary>
