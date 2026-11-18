@@ -78,28 +78,36 @@ public sealed class FarTerrainSampler
     /// <summary>The column (x, z).</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public FarSample At(int x, int z)
+    public FarSample At(int x, int z) => At(x, z, null);
+
+    // The column, its climate and shape taken from the call's scope when there is one (B36): the same numbers either way.
+    internal FarSample At(int x, int z, FarScope? scope)
     {
         if (_regions.RegionAt(x, z) is { } region)
         {
             return InRegion(region, x, z);
         }
 
-        var climate = _world.Climate.At(x, z);
-        var shape = _world.Height.Shape(x, z, climate);
+        var shape = scope is null ? default : scope.Shape(x, z);
+        var climate = scope is null ? _world.Climate.At(x, z) : scope.Climate(x, z);
+        if (scope is null)
+        {
+            shape = _world.Height.Shape(x, z, climate);
+        }
+
         var column = _world.Table.Classify(climate, shape.Height, x, z, shape.Water, shape.RiverWeight);
         var blocks = _world.Table.Surface(column.Row);
         var top = shape.Water ? blocks.Underwater : column.Snow ? BlockId.Snow : blocks.Top;
         var surface = new ColumnSurface(shape.Height, top, blocks.Filler, blocks.FillerDepth, shape.Water);
         if (_world.SurfaceRock is { } rock)
         {
-            surface = rock.Adjust(new FarGround(_world), x, z, surface, foot: false); // the cliffs' bands and the steep scree show from afar (B11b); the foot's scree is too fine for it
+            surface = rock.Adjust(new FarGround(_world, scope), x, z, surface, foot: false); // the cliffs' bands and the steep scree show from afar (B11b); the foot's scree is too fine for it
         }
 
         var grows = !shape.Water && column.TreesGrow && !surface.Bare;
         var forest = grows ? column.Row.Trees.Density : 0;
         var (leaves, canopy) = grows ? _crowns[column.Row.Index] : (BlockId.Air, 0);
-        return new FarSample(shape.Height, shape.Water ? Even(x, z, shape.WaterLevel) : -1, surface.Top, column.Snow, forest, surface.Filler, surface.FillerDepth, forest > 0 ? leaves : BlockId.Air, forest > 0 ? canopy : 0);
+        return new FarSample(shape.Height, shape.Water ? Even(x, z, shape.WaterLevel, scope) : -1, surface.Top, column.Snow, forest, surface.Filler, surface.FillerDepth, forest > 0 ? leaves : BlockId.Air, forest > 0 ? canopy : 0);
     }
 
     /// <summary>
@@ -109,13 +117,20 @@ public sealed class FarTerrainSampler
     /// <param name="x">The block's x at the cell's centre.</param>
     /// <param name="z">The block's z.</param>
     /// <param name="cell">The cell's side in blocks.</param>
-    public FarSample AtCell(int x, int z, int cell) => TryRiver(x, z, cell, out var river) ? river : At(x, z);
+    public FarSample AtCell(int x, int z, int cell) => AtCell(x, z, cell, null);
+
+    internal FarSample AtCell(int x, int z, int cell, FarScope? scope) => TryRiver(x, z, cell, scope, out var river) ? river : At(x, z, scope);
+
+    internal FarScope NewScope(int samples) => new(_world, samples);
 
     // The river that runs through a cell too wide to catch it at its centre: the sample on the river field's zero line when that lies within half a cell of the centre and holds water there.
-    internal bool TryRiver(int x, int z, int cell, out FarSample river)
+    internal bool TryRiver(int x, int z, int cell, out FarSample river) => TryRiver(x, z, cell, null, out river);
+
+    internal bool TryRiver(int x, int z, int cell, FarScope? scope, out FarSample river)
     {
         river = default;
-        if (cell < RiverPoolFrom || _regions.RegionAt(x, z) is not null || At(x, z).IsWater)
+        // A dry column's sample has no water, a wet one's has (the levelling only raises it): the shape alone says which, so the sample itself is not made here.
+        if (cell < RiverPoolFrom || _regions.RegionAt(x, z) is not null || (scope is null ? At(x, z, null).IsWater : scope.Shape(x, z).Water))
         {
             return false;
         }
@@ -123,9 +138,9 @@ public sealed class FarTerrainSampler
         // The river field's zero line, found from its gradient (integers, differences over a few blocks): the line passes within half a cell of the centre when 8 |field| <= |gradient| x cell, and the nearest point of it is the centre
         // less field x gradient / |gradient| squared (the gradient in field units over RiverGradientStep blocks, so 4 x).
         var climate = _world.Climate;
-        long here = climate.At(x, z).River;
-        long gx = climate.At(x + RiverGradientStep, z).River - here;
-        long gz = climate.At(x, z + RiverGradientStep).River - here;
+        long here = (scope is null ? climate.At(x, z) : scope.Climate(x, z)).River;
+        long gx = (scope is null ? climate.At(x + RiverGradientStep, z) : scope.Climate(x + RiverGradientStep, z)).River - here;
+        long gz = (scope is null ? climate.At(x, z + RiverGradientStep) : scope.Climate(x, z + RiverGradientStep)).River - here;
         var g2 = (gx * gx) + (gz * gz);
         if (g2 == 0 || 4L * RiverGradientStep * RiverGradientStep * here * here > g2 * cell * cell)
         {
@@ -133,7 +148,7 @@ public sealed class FarTerrainSampler
         }
 
         var (px, pz) = (x - (int)(RiverGradientStep * here * gx / g2), z - (int)(RiverGradientStep * here * gz / g2));
-        var line = At(px, pz);
+        var line = At(px, pz, scope);
         if (!line.IsWater)
         {
             return false;
@@ -203,8 +218,13 @@ public sealed class FarTerrainSampler
         private readonly int[] _at = [int.MinValue, int.MinValue];
         private readonly ClimateSample[] _climate = new ClimateSample[1];
         private readonly ColumnShape[] _shape = new ColumnShape[1];
+        private readonly FarScope? _scope;
 
-        public FarGround(GenerationWorld world) => _world = world;
+        public FarGround(GenerationWorld world, FarScope? scope = null)
+        {
+            _world = world;
+            _scope = scope;
+        }
 
         public BiomeColumn BiomeAt(int x, int z)
         {
@@ -269,8 +289,17 @@ public sealed class FarTerrainSampler
                 return;
             }
 
-            _climate[0] = _world.Climate.At(x, z);
-            _shape[0] = _world.Height.Shape(x, z, _climate[0]);
+            if (_scope is null)
+            {
+                _climate[0] = _world.Climate.At(x, z);
+                _shape[0] = _world.Height.Shape(x, z, _climate[0]);
+            }
+            else
+            {
+                _shape[0] = _scope.Shape(x, z);
+                _climate[0] = _scope.Climate(x, z);
+            }
+
             _at[0] = x;
             _at[1] = z;
         }
@@ -279,7 +308,7 @@ public sealed class FarTerrainSampler
     // The water's top of a column as the generator leaves it (B02b round 3): the height model's own level (the sea's for the sea, a river's or a lake's own), and for water above the sea the highest level within
     // the generator's few columns (`WaterEdgePass.EvenLevels`), so a river steps down across itself and not along its length. At a far tile's spacing the columns round it are not samples, so the eight points at that
     // reach stand for them. The bank turned to water beside two levels and the falling cells are left out: they are a column wide.
-    private int Even(int x, int z, int own)
+    private int Even(int x, int z, int own, FarScope? scope)
     {
         if (own <= _world.SeaLevel)
         {
@@ -297,7 +326,7 @@ public sealed class FarTerrainSampler
                     continue;
                 }
 
-                var shape = _world.Height.Shape(x + dx, z + dz, _world.Climate.At(x + dx, z + dz));
+                var shape = scope is null ? _world.Height.Shape(x + dx, z + dz, _world.Climate.At(x + dx, z + dz)) : scope.Shape(x + dx, z + dz);
                 if (shape.Water)
                 {
                     best = Math.Max(best, shape.WaterLevel);
@@ -319,11 +348,12 @@ public sealed class FarTerrainSampler
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(step);
         ArgumentOutOfRangeException.ThrowIfLessThan(into.Length, countX * countZ);
+        var scope = NewScope(countX * countZ * 4);
         for (var j = 0; j < countZ; j++)
         {
             for (var i = 0; i < countX; i++)
             {
-                into[(j * countX) + i] = At(x0 + (i * step), z0 + (j * step));
+                into[(j * countX) + i] = At(x0 + (i * step), z0 + (j * step), scope);
             }
         }
     }
@@ -340,11 +370,12 @@ public sealed class FarTerrainSampler
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(cell);
         ArgumentOutOfRangeException.ThrowIfLessThan(into.Length, countX * countZ);
         var half = cell / 2;
+        var scope = NewScope(countX * countZ * 4);
         for (var j = 0; j < countZ; j++)
         {
             for (var i = 0; i < countX; i++)
             {
-                into[(j * countX) + i] = AtCell(x0 + (i * cell) + half, z0 + (j * cell) + half, cell);
+                into[(j * countX) + i] = AtCell(x0 + (i * cell) + half, z0 + (j * cell) + half, cell, scope);
             }
         }
     }

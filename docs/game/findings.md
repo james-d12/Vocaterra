@@ -3061,3 +3061,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Release run, from wall bounds of 100 to 3,000 ms; `ProceduralChunkTimeTests` already asserted on CPU time. No test now asserts on wall time
   except through `HangGuard`. The Haiku agent handed back once before its work was done (a timing run still in the background) and finished
   when told to.
+- **B36, the far sampler shares its work (2026-11-18, merge `c7970664`).** A per-call `FarScope` memoises lattice climate and each
+  column's climate and shape, read by the cliff test, `TryRiver` and `Even`; packed sections byte-identical (a digest test recorded on the
+  old code). Measured with the new `bench` command (seed 42, loaded machine): land stacks L0 52 to 8.5 ms, L1 150 to 25, L2 204 to 69, L3
+  517 to 277, L4 to L7 1.8 to 5.5 times. The review's prototype figure (8 to 14 times on L0 to L2) was not reached. By the review's tile
+  counts the far view's model work falls from about 231 to 87 worker-seconds, and levels 3 to 7 are now about 80% of it (L3 alone 47%),
+  so B37 is the next big win; the agent's lead for L3 is the tree raster (`PlantTrees` uses an unshared `FarGround`). The in-game fill time
+  was not measured (machine busy); fixed-size tables allocate 1 to 2 MB per stack on the large-object heap, a point for B40.

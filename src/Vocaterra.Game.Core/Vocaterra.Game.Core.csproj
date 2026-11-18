@@ -17,6 +17,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Vocaterra.Game.Tests" />
     <InternalsVisibleTo Include="Vocaterra.Game.Core.Tests" />
+    <InternalsVisibleTo Include="Vocaterra.WorldPreview" />
   </ItemGroup>
 
 </Project>

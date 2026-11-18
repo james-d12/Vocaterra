@@ -35,6 +35,7 @@ public sealed class LodModelSource : ILodColumnSource
     {
         ArgumentNullException.ThrowIfNull(grid);
         var cell = grid.Cell;
+        var scope = _sampler.NewScope(grid.Width * grid.Depth * (grid.Level == 0 || grid.Level > MergeLevels ? 1 : 4));
         var exact = grid.Level < TreeLevels;
         if (grid.Level == 0)
         {
@@ -44,7 +45,7 @@ public sealed class LodModelSource : ILodColumnSource
             {
                 for (var i = 0; i < grid.Width; i++)
                 {
-                    grid.Set(i, j, column[..Direct(grid.X0 + i, grid.Z0 + j, trees, column)]);
+                    grid.Set(i, j, column[..Direct(grid.X0 + i, grid.Z0 + j, trees, column, scope)]);
                 }
             }
 
@@ -60,8 +61,8 @@ public sealed class LodModelSource : ILodColumnSource
                 for (var i = 0; i < grid.Width; i++)
                 {
                     var (x, z) = (((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2));
-                    var count = Direct(x, z, single, one);
-                    if (cell >= 8 && _sampler.TryRiver(x, z, cell, out var line) && !HasWater(one[..count]))
+                    var count = Direct(x, z, single, one, scope);
+                    if (cell >= 8 && _sampler.TryRiver(x, z, cell, scope, out var line) && !HasWater(one[..count]))
                     {
                         count = FromSample(line, 0, 0, null, one);
                     }
@@ -85,7 +86,7 @@ public sealed class LodModelSource : ILodColumnSource
             {
                 var x = ((child.X0 + i) * half) + (half / 2);
                 var z = ((child.Z0 + j) * half) + (half / 2);
-                child.Set(i, j, scratch[..Direct(x, z, raster, scratch)]);
+                child.Set(i, j, scratch[..Direct(x, z, raster, scratch, scope)]);
             }
         }
 
@@ -95,7 +96,7 @@ public sealed class LodModelSource : ILodColumnSource
             for (var i = 0; i < grid.Width; i++)
             {
                 var count = LodMerge.Merge(child.Column(2 * i, 2 * j), child.Column((2 * i) + 1, 2 * j), child.Column(2 * i, (2 * j) + 1), child.Column((2 * i) + 1, (2 * j) + 1), merged);
-                if (cell >= 8 && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, out var river) && !HasWater(merged[..count]))
+                if (cell >= 8 && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, scope, out var river) && !HasWater(merged[..count]))
                 {
                     count = FromSample(river, 0, 0, null, merged);
                 }
@@ -120,14 +121,14 @@ public sealed class LodModelSource : ILodColumnSource
 
     // ---- one column of the model
 
-    private int Direct(int x, int z, TreeRaster? trees, Span<LodSegment> into)
+    private int Direct(int x, int z, TreeRaster? trees, Span<LodSegment> into, FarScope scope)
     {
         if (_sampler.Regions.RegionAt(x, z) is { } region)
         {
             return RegionColumn(region, x, z, into);
         }
 
-        return FromSample(_sampler.At(x, z), x, z, trees, into);
+        return FromSample(_sampler.At(x, z, scope), x, z, trees, into);
     }
 
     private int FromSample(FarSample s, int x, int z, TreeRaster? trees, Span<LodSegment> into)

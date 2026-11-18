@@ -123,6 +123,9 @@ internal sealed class BlendedClimateSampler : IClimateSampler
         _blend = blend;
     }
 
+    /// <summary>The free world's climate under the bias (the far sampler shares its lattice corners, B36).</summary>
+    public IClimateSampler Inner => _inner;
+
     /// <inheritdoc />
     public ClimateSample At(int x, int z)
     {
