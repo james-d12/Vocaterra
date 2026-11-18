@@ -3092,3 +3092,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   landmass may both read it; the first publishes) and `FarView` warms the far range's drainage on the ring lane. `HighestBlock` skips
   non-resident layers above the surface band (19.7 to 4.8 ms a new column). Spot check: the same teleport as B39 gives the same chunk and
   face counts, no errors. Not yet measured in a game: the nice values live, the drainage warm-up, the teleport hitch.
+- **B38, no double builds (2026-11-18, merge `78568b56`).** Fine far tiles inside the ring's radius wait under their B35 stand-in for the
+  ring's real data and are built once (far tiles built 2,761 to 2,809 down to 2,069 to 2,084, deterministic); ring and tile jobs share one
+  nearest-first scale (the ring keeps its one-in-five floor); the ring copies unchanged resident chunks instead of generating them and
+  treats layers above a column's band as air (both rest on tests, not a proof). Its full suite caught a settle that ended before the
+  ring's last results were taken (89 tiles against 85 in the workers-count test); fixed. Median time to the real tile: under 400 blocks
+  51 to 31 s, 400 to 800 blocks 103 to 113 s down to 36 to 49 s, 800 to 1,000 blocks 115 to 52 s. Whole-fill wall times on the loaded
+  machine disagreed between two back-to-back pairs: not claimed. The blue line in B35's picture is a one-cell grey pillar with a water
+  face in a coarse stand-in (the far sampler at levels 4 and up), not a crack: passed to B37. B40's `WorkerPriorityTests` failed twice in
+  its runs (a thread exiting during the /proc enumeration): B40b.
+- **The near view's mesh time rose across three identical teleport spot checks** (seed 42, (3000, -2000), High, far view off, the same
+  14,782 chunks and 2,865,395 faces each time): 5.2 s after B39, 6.6 s after B40, 10.2 s after B38, at loads of about 14, 13 and 9. A
+  likely cause is B40's worker nice +7: under limited.sh (nice 10) the workers run at 17, below every other agent's build. To measure on
+  a quiet machine, with and without the raise, before the series closes.
