@@ -34,6 +34,8 @@ public sealed class PlaceAmbienceTests
     {
         public ClimateSample ClimateAt(int x, int z) => default;
 
+        public int SnowBelowTemperature => int.MinValue;
+
         public int TemperatureAt(int x, int y, int z) => 0;
 
         public BiomeRow BiomeAt(int x, int z) => east is not null && x >= 0 ? east : west;

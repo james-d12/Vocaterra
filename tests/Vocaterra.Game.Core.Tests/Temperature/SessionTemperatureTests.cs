@@ -197,13 +197,13 @@ public sealed class SessionTemperatureTests
         var middle = session.Fires.Middles.First(session.Fires.IsLit);
         session.Simulation.TeleportTo(new Vocaterra.Game.Core.Voxel.BlockPos(middle.X, middle.Y + 1, middle.Z));
         session.Step([]);
-        var atTheFire = session.Temperature.Current!.Value.PlaceTenths;
+        var atTheFire = session.Temperature.Current!.Value.TargetTenths!.Value;
 
         session.Simulation.TeleportTo(new Vocaterra.Game.Core.Voxel.BlockPos(middle.X, middle.Y + 10, middle.Z));
         session.Step([]);
-        var away = session.Temperature.Current!.Value.PlaceTenths;
+        var away = session.Temperature.Current!.Value.TargetTenths!.Value;
 
-        Assert.Equal(session.Data.Temperature.FireBonusTenths, atTheFire - away);
+        Assert.Equal(150, atTheFire - away);
     }
 
     [Fact]
@@ -215,7 +215,9 @@ public sealed class SessionTemperatureTests
         {
             one.Step([]);
             two.Step([]);
-            Assert.Equal(one.Temperature.Current, two.Temperature.Current);
+            var (a, b) = (one.Temperature.Current!.Value, two.Temperature.Current!.Value);
+            Assert.Equal((a.PlaceTenths, a.TargetTenths, a.WarmthTenths, a.Band), (b.PlaceTenths, b.TargetTenths, b.WarmthTenths, b.Band));
+            Assert.Equal(a.Terms, b.Terms);
         }
 
         Assert.Equal(one.Simulation.ComputeStateDigest(), two.Simulation.ComputeStateDigest());

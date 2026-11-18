@@ -10266,6 +10266,12 @@
       "matches": []
     },
     {
+      "key": "e3fc12b96c07c10648f6c187e0fad499857cd47f75b78760f3b2a80d24151b48",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tengo calor.",
+      "matches": []
+    },
+    {
       "key": "e42a64d846201b02f7e8bfbce4b0543e32cce3fbaf95a850fc54ef56e4a518a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, bebí agua",

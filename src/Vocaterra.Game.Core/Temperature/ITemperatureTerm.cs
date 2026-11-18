@@ -1,16 +1,15 @@
 namespace Vocaterra.Game.Core.Temperature;
 
 /// <summary>
-/// One contribution to the temperature of a place at a moment (I06): the valley's base, the day's swing, the weather's cooling, a roof's shelter, a fire's warmth. A term reads
-/// the <see cref="TemperatureSituation"/> and answers in tenths of a degree Celsius (125 is 12.5 degrees), as an integer, with the same answer for the same situation on every
-/// machine. <see cref="PlaceTemperature"/> sums the terms it is given and knows none of them, so a new cause of warmth or cold is one new class and its registration.
+/// One term of the place's temperature (I06, I06c): tenths of a degree that add to the sum, positive warm and negative cold. A term reads what it needs from the context and holds no state.
+/// A new system is a new class, a line in <see cref="TemperatureTermRegistry"/> and a row in <c>game/temperature.json</c>'s <c>terms</c>.
 /// </summary>
 public interface ITemperatureTerm
 {
-    /// <summary>A short name for the term (<c>day</c>, <c>fire</c>): what a breakdown lists it as. Not a decision for any code.</summary>
+    /// <summary>The term's id, as the data names it and the debug overlay shows it.</summary>
     string Name { get; }
 
-    /// <summary>What the term adds (positive, warmer) or takes away (negative, colder) here and now, in tenths of a degree.</summary>
-    /// <param name="situation">The place and the moment.</param>
-    int TenthsAt(in TemperatureSituation situation);
+    /// <summary>The term's tenths of a degree here and now.</summary>
+    /// <param name="context">What the term reads.</param>
+    int TenthsAt(ITemperatureContext context);
 }

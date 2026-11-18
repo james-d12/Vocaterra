@@ -1,18 +1,136 @@
 {
   "$schema": "../../schema/temperature.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generated_by": "hand-authored",
-  "about": "The temperature where the player stands, and how it feels (I06, D-game-35). Every temperature is whole tenths of a degree Celsius (125 is 12.5). The place's temperature is the sum of its terms: the base, plus the day's swing (the daylight curve of day.json: plus the amplitude at noon, minus it in the dark), minus the weather's cooling (each channel of the sky times its coefficient, never a weather kind's id), minus the climate's cooling (I06b: the world's climate temperature at the column and height, the biomes' field lowered by the lapse over height, read against referenceThousandths: nothing at or above it, so the valley and the village feel as before; below it coolingTenthsPerRange tenths for each 1000 thousandths of fall, never more than maxCoolingTenths: the peaks and the snowfields are cool at noon and cold to very cold at night), plus a roof's shelter, plus a lit fire's warmth. The player's warmth (clothes, from I03a on) is added to give the feeling, and the feeling falls in a band. The bands run from the warmest to the coldest, each from its lower bound; a band's walkFactor multiplies the walking speed (1 leaves it alone); a band with a chill above 0 shows the cold icon (that many notches) and says its line once as the feeling first enters the cold. Cold slows and never harms. First numbers, for the owner's review: a fair noon is about 18 degrees (warm), a clear night about 6 (cool), a rainy night about minus 2 (cold), a fire adds 15.",
-  "base": { "tenths": 140 },
-  "day": { "amplitudeTenths": 60 },
-  "weather": { "cloudTenths": 20, "precipitationTenths": 60, "windTenths": 50 },
-  "climate": { "referenceThousandths": -40, "coolingTenthsPerRange": 170, "maxCoolingTenths": 200 },
-  "shelter": { "bonusTenths": 50, "onlyInPrecipitation": true },
-  "fire": { "radiusBlocks": 5, "bonusTenths": 150 },
+  "about": "The temperature where the player stands, and how it feels (I06, I06c, D-game-35). Every temperature is whole tenths of a degree Celsius (125 is 12.5). The place's temperature is the sum of the terms listed in terms; each row is a term's id and its own parameters, and the code has a registry of the ids it knows (a new system is one class, one line in the registry and a row here; an id the code does not know, or a parameter it does not read, is an error). climate is the baseline: the generator's climate temperature at the player's column and height (the biomes' field lowered by the lapse over height, the value that decides where snow lies; thousandths of the field's range, as world.json writes it) read through a curve of points (climate, tenths): straight between them, flat beyond them. The flat stretch around the valley's values keeps the valley at 14 degrees; below it the line falls 0.17 degrees per thousandth to minus 6 (the peaks), above it rises 0.1 per thousandth to 19.4 (the warmest lowlands); noWorldTenths is the baseline of a place with no generator. A biome's offset is added to it. day is the swing from the daylight curve of day.json (plus the amplitude at noon, minus it in the dark) times the biome's share. weather is each channel of the sky times its coefficient, taken off, times the biome's share; precipitation that falls as snow (the climate at the feet below the generator's snow line, world.json) cools by snowPrecipitationTenths more; never a weather kind's id. shelter is a roof's warmth in rain (the covered share of the nine columns round the feet) and fire a lit ring's warmth within its radius. ground is the underground: a place deeper than shallowBlocks below the natural surface eases over fadeBlocks to the steady ground temperature (tenths), and the day, the weather and the shelter fade out with the sky's exposure (a cave is the same hot or cold day, rain or shine). biomes holds the adjustments by biome id (a row of biomes.json; the validator checks each exists; a biome with no row has none): offsetTenths added to the baseline, daySwingPermille and weatherPermille the share, in thousandths, of the day's swing and of the weather's cooling that reach the player there (open plains swing more, a forest and the water less, a bare ridge takes the weather harder). They live here, not in biomes.json, so every number of the temperature is in the one file the owner reviews and a new biome needs no change here. lag.secondsToSettle is the time constant of what the player feels: it follows the place's value, closing a share of the gap each tick (0 turns it off; the first reading and --temperature take the value at once; not saved). The player's warmth (clothes) is added to give the feeling, and the feeling falls in a band. The bands run from the warmest to the coldest, each from its lower bound; walkFactor multiplies the walking speed (1 leaves it alone); a band with a chill above 0 shows the cold icon (that many notches), a band with a heat above 0 is hot; each says its line once as the feeling first enters that side; thirstFactor multiplies how fast the drink falls (1 leaves it). Cold and heat slow and never harm. First numbers, for the owner's review: a fair noon in the valley is about 18 degrees (warm), a clear night about 6 (cool), a rainy windy night about minus 2 (cold), a fire adds 15.",
+  "terms": [
+    {
+      "id": "climate",
+      "curve": [
+        {
+          "climate": -1216,
+          "tenths": -60
+        },
+        {
+          "climate": -40,
+          "tenths": 140
+        },
+        {
+          "climate": 60,
+          "tenths": 140
+        },
+        {
+          "climate": 600,
+          "tenths": 194
+        }
+      ],
+      "noWorldTenths": 140
+    },
+    {
+      "id": "day",
+      "amplitudeTenths": 60
+    },
+    {
+      "id": "weather",
+      "cloudTenths": 20,
+      "precipitationTenths": 60,
+      "windTenths": 50,
+      "snowPrecipitationTenths": 40
+    },
+    {
+      "id": "shelter",
+      "bonusTenths": 50,
+      "onlyInPrecipitation": true
+    },
+    {
+      "id": "fire",
+      "radiusBlocks": 5,
+      "bonusTenths": 150
+    }
+  ],
+  "ground": {
+    "tenths": 100,
+    "shallowBlocks": 4,
+    "fadeBlocks": 20
+  },
+  "biomes": {
+    "beach": {
+      "offsetTenths": 10,
+      "daySwingPermille": 1200
+    },
+    "dense-woodland": {
+      "daySwingPermille": 800,
+      "weatherPermille": 850
+    },
+    "jagged-peaks": {
+      "weatherPermille": 1400
+    },
+    "lake-basin": {
+      "daySwingPermille": 700
+    },
+    "ocean": {
+      "daySwingPermille": 600
+    },
+    "plains": {
+      "daySwingPermille": 1300
+    },
+    "river-channel": {
+      "daySwingPermille": 800
+    },
+    "snowy-slopes": {
+      "weatherPermille": 1250
+    },
+    "stony-peaks": {
+      "weatherPermille": 1400
+    }
+  },
+  "lag": {
+    "secondsToSettle": 15
+  },
   "bands": [
-    { "id": "warm", "from": 120, "walkFactor": 1.0, "chill": 0 },
-    { "id": "cool", "from": 30, "walkFactor": 1.0, "chill": 0 },
-    { "id": "cold", "from": -50, "walkFactor": 0.85, "chill": 1, "line": "temperature.cold" },
-    { "id": "very-cold", "from": -1000, "walkFactor": 0.65, "chill": 2, "line": "temperature.cold" }
+    {
+      "id": "very-hot",
+      "from": 350,
+      "walkFactor": 0.75,
+      "chill": 0,
+      "heat": 2,
+      "thirstFactor": 2.0,
+      "line": "temperature.hot"
+    },
+    {
+      "id": "hot",
+      "from": 280,
+      "walkFactor": 0.9,
+      "chill": 0,
+      "heat": 1,
+      "thirstFactor": 1.5,
+      "line": "temperature.hot"
+    },
+    {
+      "id": "warm",
+      "from": 120,
+      "walkFactor": 1.0,
+      "chill": 0
+    },
+    {
+      "id": "cool",
+      "from": 30,
+      "walkFactor": 1.0,
+      "chill": 0
+    },
+    {
+      "id": "cold",
+      "from": -50,
+      "walkFactor": 0.85,
+      "chill": 1,
+      "line": "temperature.cold"
+    },
+    {
+      "id": "very-cold",
+      "from": -1000,
+      "walkFactor": 0.65,
+      "chill": 2,
+      "line": "temperature.cold"
+    }
   ]
 }

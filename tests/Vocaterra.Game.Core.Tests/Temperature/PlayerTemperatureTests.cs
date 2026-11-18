@@ -5,7 +5,7 @@ namespace Vocaterra.Game.Core.Tests.Temperature;
 /// <summary>The feeling (the place plus the warmth), its band, the warmth seam and the line said once on entering the cold (I06).</summary>
 public sealed class PlayerTemperatureTests
 {
-    private static readonly TemperatureSituation Open = TemperatureRig.Open(TemperatureRig.Sky(13, "sunny"));
+    private static readonly TemperatureContext Open = TemperatureRig.Open(TemperatureRig.Sky(13, "sunny"));
 
     private static PlayerTemperature Fresh(IWarmthSource? warmth = null) => new(TemperatureRig.Data, TemperatureRig.Place, warmth ?? NoWarmth.Instance);
 

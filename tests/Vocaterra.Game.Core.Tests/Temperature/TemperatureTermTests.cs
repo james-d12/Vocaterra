@@ -10,15 +10,6 @@ public sealed class TemperatureTermTests
 
     private static readonly WeatherChannels Calm = WeatherChannels.Dry(0, 1, 0, 0);
 
-    [Fact]
-    public void TheBaseIsItsNumberWhateverTheSky()
-    {
-        var term = new BaseTemperatureTerm(140);
-
-        Assert.Equal(140, term.TenthsAt(TemperatureRig.Open(Channels(1, Calm))));
-        Assert.Equal(140, term.TenthsAt(TemperatureRig.Open(Channels(0, new WeatherChannels(1, 0, 1, 1, "x", 1)))));
-    }
-
     [Theory]
     [InlineData(1.0, 60)]
     [InlineData(0.5, 0)]
@@ -64,8 +55,8 @@ public sealed class TemperatureTermTests
         Assert.Equal(0, onlyWet.TenthsAt(TemperatureRig.Open(wet)));
         Assert.Equal(50, always.TenthsAt(TemperatureRig.Covered(dry)));
         Assert.Equal(0, always.TenthsAt(TemperatureRig.Open(dry)));
-        Assert.Equal(25, always.TenthsAt(TemperatureRig.Open(dry) with { CoveredShare = 5.0 / 10 }));
-        Assert.Equal(16, always.TenthsAt(TemperatureRig.Open(dry) with { CoveredShare = 3.0 / 9 }));
+        Assert.Equal(25, always.TenthsAt(TemperatureRig.Open(dry, 5.0 / 10)));
+        Assert.Equal(16, always.TenthsAt(TemperatureRig.Open(dry, 3.0 / 9)));
     }
 
     [Fact]
@@ -86,7 +77,7 @@ public sealed class TemperatureTermTests
     [Fact]
     public void ThePlaceIsTheSumOfItsTermsAndTheBreakdownNamesEach()
     {
-        var place = new PlaceTemperature([new BaseTemperatureTerm(140), new DayTemperatureTerm(60), new WeatherTemperatureTerm(20, 60, 50)]);
+        var place = new PlaceTemperature([new FixedTerm(140, "base"), new DayTemperatureTerm(60), new WeatherTemperatureTerm(20, 60, 50)]);
         var situation = TemperatureRig.Open(Channels(0.5, WeatherChannels.Dry(1, 1, 0, 0)));
 
         Assert.Equal(140 + 0 - 20, place.TenthsAt(situation));
@@ -121,7 +112,7 @@ public sealed class TemperatureTermTests
     [Fact]
     public void ARegisteredTermAlsoSumsWhenBuiltFromTheStandardListPlusOne()
     {
-        var place = new PlaceTemperature([.. TemperatureTerms.Standard(TemperatureRig.Data), new AltitudeLapseTerm()]);
+        var place = TemperatureRig.Place.With(new AltitudeLapseTerm());
         var situation = TemperatureRig.Open(TemperatureRig.Sky(13, "sunny"));
 
         Assert.Equal(TemperatureRig.Place.TenthsAt(situation) - 50, place.TenthsAt(situation));
@@ -132,13 +123,13 @@ public sealed class TemperatureTermTests
     {
         public string Name => "lapse";
 
-        public int TenthsAt(in TemperatureSituation situation) => -(situation.Feet.Y - 5) * 10;
+        public int TenthsAt(ITemperatureContext context) => -(context.Feet.Y - 5) * 10;
     }
 
-    private sealed class FixedTerm(int tenths) : ITemperatureTerm
+    private sealed class FixedTerm(int tenths, string name = "fixed") : ITemperatureTerm
     {
-        public string Name => "fixed";
+        public string Name => name;
 
-        public int TenthsAt(in TemperatureSituation situation) => tenths;
+        public int TenthsAt(ITemperatureContext context) => tenths;
     }
 }
