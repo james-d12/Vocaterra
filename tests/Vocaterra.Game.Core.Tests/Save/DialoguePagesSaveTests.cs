@@ -142,7 +142,7 @@ public sealed class DialoguePagesSaveTests : IDisposable
     [Fact]
     public void TheSaveFixtureHoldsTheShopkeepersPage()
     {
-        var document = SaveGame.Parse(File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json")));
+        var document = SaveGame.Parse(SaveFixture.Read("save-v9.json"));
 
         var page = Assert.Single(document.DialoguePages!);
         Assert.Equal("shopkeeper", page.Npc);

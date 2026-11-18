@@ -93,7 +93,7 @@ public sealed class LoadKeepsDayTests
     [Fact]
     public void ASaveFromBeforeTheSittingLoadsOnItsSavedDayAndContinuesTheSittingFromIt()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
+        var text = SaveFixture.Read("save-v9.json");
         var document = SaveGame.Parse(text) with { Sitting = null };
         Assert.Null(document.Sitting);
 
