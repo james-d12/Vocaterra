@@ -3031,3 +3031,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `scripts/tests/no-polling-test.py`, 20 cases) that blocks a Bash `sleep` over 30 s, an `until`/`while` loop that sleeps and `nohup … &`.
   Known false positive: a command that only quotes such text (a commit message with "sleep 600") is blocked too. The gate's time report
   worked on its second run (833 s against 899 s). Haiku took 541 tool calls for it, many more than a Sonnet agent on a milestone of its size.
+- **B29b, no wall-clock asserts (2026-11-18, merge `fa42ad71`).** Seven speed asserts outside the timing collections (ProceduralReliefRegion,
+  GuideTurn, WorldFacts twice, WorldEditsSave, DrainageNetwork, FarTerrainSampler) became CPU budgets in `SpeedChecksTimingTests`, and Lint's
+  "under five seconds" moved to `LintTimeTests`; three costs sit under the process CPU clock's 10 ms resolution and have small fixed budgets.
+  Every wait of an outcome test (58 `Settle`/`SettleNear` call sites, the deadline loops, the `Wait*` calls) is a hang guard through
+  `HangGuard`, scaled by 4 under CI and reported as "hung", never as a wrong result; `StreamedWorldHostRingTests`, which failed CI on `main`
+  (run 44298795061) when `Settle`'s 120 s default ran out on the runner, now passes 600 s × 4. `StreamedWorldHostDisposeTests` and
+  `FileLodPersistenceTests` lost their wall-clock bounds (15 s, 1.5 s) for hang guards; the shutdown test still asserts the call returns
+  without draining. `WallClockRulesTests` scans every test source and fails on a clock read, a clock assert or a literal wait limit outside
+  the timing files and its 10-entry allow-list (proved on a re-added Stopwatch assert). Left: `ChunkIndexTests`, `RegionTimeTests`,
+  `ProceduralTimingTests` and `ProceduralChunkTimeTests` time with a wall Stopwatch inside the timing collection (they run alone in the gate's
+  timing step).
