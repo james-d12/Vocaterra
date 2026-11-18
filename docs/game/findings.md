@@ -3056,3 +3056,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   that sleeps. **The shared notes** (the study's item 6, approved in item 57 but left out of B29c's brief): from now on agents do not edit
   `README.md`, `docs/game/running.md` or `docs/game/architecture.md` (changed by 37 and 26 commits since 2026-11-10); their reports give the
   text and the orchestrator applies it when it records the milestone (orchestrator.md, milestone loop step 6; the brief template).
+- **B29d, the last wall-clock timing (2026-11-18, merge `44ed6701`).** `ChunkIndexTests` (0.6 ms, mean of 200 edits), `RegionTimeTests` (70 and
+  100 ms) and `ProceduralTimingTests` (50 ms; one chunk column 0.4 ms over 1,000 repeats) measure with `CpuTime` at twice the highest measured
+  Release run, from wall bounds of 100 to 3,000 ms; `ProceduralChunkTimeTests` already asserted on CPU time. No test now asserts on wall time
+  except through `HangGuard`. The Haiku agent handed back once before its work was done (a timing run still in the background) and finished
+  when told to.
