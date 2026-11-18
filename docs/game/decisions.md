@@ -989,6 +989,16 @@ the owner's answers of 2026-11-15 are in its section 5.
 54. **The speed-ups on feature/biomes after all** (2026-11-18, about 09:00 UTC, replacing item 53's second part): "actually no the
     performance improvements can go on this branch too". The chunk generation speed-ups are milestones on `feature/biomes`, gated there
     like the rest, and reach `main` through PR #69 (or a later pull request from the same branch if the owner merges #69 first).
+55. **More and bigger rivers, kept logical** (2026-11-18, about 08:45 UTC; asked after "we seem to also have fewer rivers now? im testing
+    seed 42, and it used to have a large river", offered more rivers, bigger rivers, a major river near the start, or all three): "more
+    rivers and bigger rivers, but they need to be logical". B34: a lower source threshold so streams appear and join, widths and depths
+    that grow with the catchment (major rivers about 12 to 40 blocks wide), every river downhill to a lake or the sea, widening downstream,
+    in a valley of its own; no river forced near the start.
+56. **All the new work in a new pull request; only B31 on feature/biomes** (2026-11-18, about 08:47 UTC, replacing item 54): "lets do all
+    this in a new PR actually so queue all those up. only push b31 the fix for shader on and off to the feature/biomes branch", then "put
+    all these in the handover, for a new agent to pickup, so once b31 and the opus agent come back, record performance findings from opus,
+    push b31 and then we are done". B31 is the last change for PR #69. The speed-ups from the Opus review, B32 (grass-step sides), B33
+    (leaf aliasing) and B34 (rivers) are queued in the handover for a new agent on a new branch from `main` after the owner merges #69.
 
 ## Already decided
 
