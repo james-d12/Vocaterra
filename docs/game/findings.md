@@ -2995,3 +2995,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   stall at the beach stop did not recur: a full r51 re-run took 1,324 s at load 17 to 22 (load and a cold far store). In the pictures: teal
   seams between spruce leaves (known), a brown band at seed 7's far water edge, grey stone patches on seed 2026's ocean sand, faint pale
   lines on seed 2026's stony peaks, a few poor angles. Gated clean.
+- **B02d, one water level per lake (2026-11-18, `b32e7ec4`).** B02c's lakes were staircases (seed 2026: 47, 45, 43, 41 with walls of water
+  between) because a lake node took the higher level of the bank node it was found from. Now each lake body takes its flood level (its
+  spill pass); shallow rim nodes and spurs (no lake neighbour on a side) are dropped until stable, since they held lone pockets of water;
+  kept lake nodes are deepened to the full carve; nodes downstream are capped at the lake's level, so rivers still only fall. Generator
+  version 5 (a fresh far-store folder). B02c's attempts had raised seed 7's puddles past the limit; this one did not (seed 2026's even fell
+  from 4 to 0), with lake share unchanged (3.4%, 1.9%, 2.8%). Its first gate failed on B03b's new tours, whose lake-basin stops no longer
+  stood in a lake: re-picked about 10 blocks over. **Still open:** two thin lines cross the far lake in pictures at about 650 to 700 and
+  1,050 to 1,090 blocks from the eye, while the data under it is one level: probably the far view's level seams on water (at High,
+  levels 2 and 3 begin near 600 and 1,000 blocks); B14's "streaks on distant water" are likely the same. The final gate of feature/biomes
+  before the merge into main: 12,787 passed, no failures.

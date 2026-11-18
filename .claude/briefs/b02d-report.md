@@ -14,3 +14,6 @@ bundle hash unchanged. Full suite after the merge: 12,768 passed, 11 failed (the
 LakeLevelsTests 122 passed; build and format clean (not a second full run). Pictures in artifacts/b-series/b02d/ (seed 2026): two thin
 lines still cross the far lake at about 650 to 700 and 1,050 to 1,090 blocks from the eye; the data under it is one level (41); likely the
 far view's level seams on water (at High, levels 2 and 3 begin near 600 and 1,000 blocks); not confirmed.
+
+Round 2 (about 04:35 UTC), head 6bb0776a: merged b5d7304d (B03b); B03b's tours had lake-basin stops the lake change moved (BiomeTourSeedsTests failed B02d's first gate, merge reset): r52 15-lake-basin 1204,4462 to 1212,4470 (look 180,-4); r53 17-lake-basin 5268,942 (look 90,-4) to 5276,946 (look 180,-4); other stops unchanged. Full suite 12,787 passed, 0 failed.
+Gate (about 05:05 UTC): `b32e7ec4`, 12,787 passed, 0 failed: the final gate of feature/biomes before the merge into main.
