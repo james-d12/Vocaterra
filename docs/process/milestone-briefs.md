@@ -39,7 +39,8 @@ Rules: a game milestone edits only the game projects, their tests, content/game-
 edits only the Vocaterra.Nlp projects, their tests, tests/golden and docs/nlp/ (and content/game-v1 only where the core's tests need it,
 never the game's lessons), fixes bugs at the source with a regression test in the owning module and never weakens a fuzz oracle. A
 regression check is a C# test, never a script with text baselines. Never create or edit anything under .github/workflows/ unless this
-brief names the file; do not edit either implementation-plan.md or either decisions.md (the orchestrator does); engine code only in
+brief names the file; do not edit either implementation-plan.md or either decisions.md, or the shared notes README.md, docs/game/running.md and
+docs/game/architecture.md (the orchestrator does: give the text for them in your report); engine code only in
 src/Vocaterra.Game (D-game-1); assets CC0 only (D-game-5); no System.Random and no clock in the evaluation path.
 <For a content milestone: the block "What a content milestone adds" below.>
 <For a core milestone: before reporting, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings,
@@ -54,7 +55,7 @@ Co-Authored-By: Claude <model> <noreply@anthropic.com>
 Claude-Session: <session url>
 Report, one page: branch, commit SHA, worktree path; what was built; test counts; measurements; bugs found and fixed (where, symptom,
 fix, test); core gaps found by a game milestone (what call, why); known-not-fixed with reasoning; files touched outside the milestone's
-area; anything left undone and why. <Name what to leave out.>
+area; the text for README.md, docs/game/running.md or docs/game/architecture.md if they need it; anything left undone and why. <Name what to leave out.>
 ```
 
 ## What a content milestone adds

@@ -3049,3 +3049,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   no flaky test in the three gates. CI on PR #70 (run 44325948521) passed in Release with everything, the fuzz suite (141 tests, 11 min)
   and the timing tests included: `build-and-test` 20 min (38 min on the same PR in Debug that morning; `main`'s Debug run failed after
   74 min). The longest CI assemblies are Game.Core.Tests 17.5 min and Game.Tests 16.3 min on the 4-core runner.
+- **B29e, the polling hook and quoted text (2026-11-18, merge `609dea89`).** The hook masks quoted strings and comments before its checks and
+  checks the argument of `bash -c` (and `sh`, `zsh`, `dash`, behind `timeout`) as a command, so a commit message or an `echo` that only
+  quotes `sleep 600` passes while real sleeps and loops still block (33 cases). Before it, the live hook blocked the orchestrator's own
+  check of B29e because the case list was quoted on the command line. Still passing: `eval "sleep 600"` and `bash -s` with a heredoc body
+  that sleeps. **The shared notes** (the study's item 6, approved in item 57 but left out of B29c's brief): from now on agents do not edit
+  `README.md`, `docs/game/running.md` or `docs/game/architecture.md` (changed by 37 and 26 commits since 2026-11-10); their reports give the
+  text and the orchestrator applies it when it records the milestone (orchestrator.md, milestone loop step 6; the brief template).

@@ -1,7 +1,7 @@
 # Handover: the throughput changes (feature/meta_improvements)
 
 Created: 2026-11-18T12:14Z (UTC)
-Updated: 2026-11-18T15:30Z (UTC)
+Updated: 2026-11-18T16:00Z (UTC)
 Workstream: making development with agents faster: the throughput study's remaining changes, re-ranked by the review the owner approved (D-game-34 items 57 to 59)
 Branch: `feature/meta_improvements`, cut from `main` at `bb89521b` (the merge of PR #69). HEAD: the commit that records B29a's launch. Pushed; **draft pull request #70** into `main` (item 59), so every push runs CI.
 Worktree: `/home/james/Dev/Vocaterra/.claude/worktrees/meta-improvements`
@@ -23,8 +23,9 @@ Previous handover: none. B29 was split out of [2026-11-18-0409-world-next](2026-
 - **All three are on `feature/meta_improvements` and pushed; CI passed** on PR #70 (run 44325948521, `ff4e05cb`): Release, everything including the fuzz suite and the timing tests, `build-and-test` 20 min. PR #70 is marked ready for the owner to merge; merging it also fixes `main`'s CI failure.
 - **Re-measure done** (order 3; numbers in docs/game/findings.md): the whole gate 9 min 47 s on a quiet machine (about 27 before); `test.sh fast` 97 s (187 before; the estimate of under 60 s not met); no class over 5 minutes, so order 4 (long single tests) is not needed.
 - **The owner's item 60** (15:20): the token policy and stamp skip are **dropped**; two follow-ups run now, both Haiku 5.5, cut from `9f2f3a31`:
-  - **B29d** (the four timing classes on a wall Stopwatch move to `CpuTime`): worktree `/home/james/Dev/Vocaterra/.claude/worktrees/b29d`, branch `B29d-cpu-timing`, brief [.claude/briefs/b29d-cpu-timing.md](../../.claude/briefs/b29d-cpu-timing.md).
-  - **B29e** (the polling hook lets quoted text pass): worktree `/home/james/Dev/Vocaterra/.claude/worktrees/b29e`, branch `B29e-hook-quotes`, brief [.claude/briefs/b29e-hook-quotes.md](../../.claude/briefs/b29e-hook-quotes.md). No dotnet; gate it like any other milestone.
+  - B29d (the four timing classes on a wall Stopwatch move to `CpuTime`): worktree `/home/james/Dev/Vocaterra/.claude/worktrees/b29d`, branch `B29d-cpu-timing`, brief [.claude/briefs/b29d-cpu-timing.md](../../.claude/briefs/b29d-cpu-timing.md).
+  - **B29e** (the polling hook lets quoted text pass): **done and gated** (merge `609dea89`, 12,631 plus 23 timing; report [.claude/briefs/b29e-report.md](../../.claude/briefs/b29e-report.md); worktree removed).
+  - **B29d** handed back early once (15:40, uncommitted edits, a timing run in the background); the orchestrator told it to finish the brief, and it is working again.
   - If a report is lost: inspect the worktree, WIP-commit, relaunch on the same brief. After both are gated and pushed, read CI on PR #70, then move this handover to `done/` (the workstream is finished once the owner merges PR #70).
 
 ## Start here
@@ -68,3 +69,7 @@ Previous handover: none. B29 was split out of [2026-11-18-0409-world-next](2026-
 At B29a's launch the world-next branch had not been cut and nothing else ran. B29a's Debug-against-Release measurement wants a quiet machine; if that workstream starts agents meanwhile, the agent notes the load in its report.
 
 The world-next handover's chunk-speed series, B32, B33 and B34 run on their own branch from `main`. Both workstreams share the machine's limits: five agents and three `limited.sh` slots in all. B29a changes `limited.sh`, `merge-gate.sh` and `test.sh` only on this branch; other branches get them only after the owner merges this branch's pull request into `main`.
+
+## The study's items not in the review (asked 2026-11-18 about 15:35)
+
+The owner asked whether every suggestion of the original study is addressed. All are done or dropped except: the study's item 6a (the orchestrator writes the shared notes), approved in item 57 but missed by B29c's brief, **applied** at 16:00 in `.claude/agents/orchestrator.md` step 6 and the brief template; and two never approved, **asked of the owner, no answer yet**: item 5's pre-generated far store copied into each scripted run (B07d's `--pregen`; a small milestone, one cold run kept for far-view milestones) and item 6b, milestones touching `QualityPreset`, `LaunchOptions` or the settings page, `JobPool` or `VoxelRenderer` scheduled one after another (an orchestrator rule only).

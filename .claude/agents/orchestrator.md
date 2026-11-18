@@ -59,8 +59,9 @@ in `docs/nlp/api.md` updates that record.
 5. **Spot-check behaviour**, not just tests: the host demo commands (game plan section 6), the core's demo line and the milestone's own
    lines. For a core change, also a few natural, correct learner lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`): M59's
    first build flagged the correct `Luz quiero pan` because its brief asked for an error to be flagged.
-6. **Record:** the milestone's status in its plan and its findings in the findings log (`docs/game/findings.md`, `docs/nlp/findings.md`), any decision in its register, and `docs/open-items.md` when an item opens or closes; commit with the attribution trailers and
-   `git push origin <feature branch>`.
+6. **Record:** the milestone's status in its plan and its findings in the findings log (`docs/game/findings.md`, `docs/nlp/findings.md`), any decision in its register, and `docs/open-items.md` when an item opens or closes; the shared notes the milestone's report supplies
+   (`README.md`, `docs/game/running.md`, `docs/game/architecture.md`: agents no longer edit them, so they stop conflicting; the
+   throughput study's item 6, D-game-34 item 57); commit with the attribution trailers and `git push origin <feature branch>`.
 7. **Clean up:** `git worktree remove --force` and `git branch -D`. The owner deletes merged remote branches; the permission check
    refuses remote deletes.
 8. **Update the handover** of the workstream (see "Writing a handover"): what was gated, what runs now and where, what is next; commit
