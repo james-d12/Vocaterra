@@ -3005,3 +3005,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   1,050 to 1,090 blocks from the eye, while the data under it is one level: probably the far view's level seams on water (at High,
   levels 2 and 3 begin near 600 and 1,000 blocks); B14's "streaks on distant water" are likely the same. The final gate of feature/biomes
   before the merge into main: 12,787 passed, no failures.
+- **B31, the crash switching Shaders in play (2026-11-18, `277443de`).** The owner's game crashed when he turned Shaders on and off:
+  `FarTerrainRenderer.Convert` carried each far tile between MonoGame's effect path and the GL path by reading its vertex and index buffers
+  back from the card, and the effect path creates them write-only, so the read threw. B17b had made the switch live for the near chunks
+  (they re-mesh); the far tiles, moved onto the GL program by B17c and B07d, were converted instead. Now a change of path drops every far
+  tile and rebuilds it from its data, as a change of levels already did; the read-back code is gone. The test covers the decision (no
+  graphics device in a test). Gated: 12,787 passed; the one failure the sample town's wall-clock test, passing alone: it keeps failing
+  gates under load and should move to CPU time (the next branch).
