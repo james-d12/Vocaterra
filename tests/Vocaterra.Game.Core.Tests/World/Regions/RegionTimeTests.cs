@@ -6,6 +6,7 @@ namespace Vocaterra.Game.Core.Tests.World.Regions;
 
 /// <summary>What generating the land beside the valley costs (B06): a 3 x 3 patch of chunk columns, the way a streamed world's loader asks for them. The bounds are loose; the numbers go to the output for the report.</summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class RegionTimeTests(ITestOutputHelper output)
 {

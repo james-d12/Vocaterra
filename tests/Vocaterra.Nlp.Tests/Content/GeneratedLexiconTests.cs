@@ -169,10 +169,12 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
 /// The lexicon load's CPU-time budget (M100). It runs alone in the timing collection, so no other test of the assembly is loading the machine while it measures.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 public class GeneratedLexiconLoadTimeTests(ITestOutputHelper output)
 {
     // Measured (M100, the sample bundle, one run at load about 10): the load takes 541 ms of CPU time, the fastest of three (582, 711, 541). The budget is twice that.
-    private static readonly double LoadBudgetMilliseconds = Vocaterra.Nlp.Tests.TimingFactor.Scale(1082);
+    // B29a: re-set from Release, measured alone as the timing step runs it (the load is cold there; inside the full suite it took 253): 592 to 639 ms of CPU time, the fastest of three; the budget is twice the largest (was 1082).
+    private static readonly double LoadBudgetMilliseconds = Vocaterra.Nlp.Tests.TimingFactor.Scale(1280);
 
     [Fact]
     [Trait(TestSpeed.Trait, TestSpeed.Slow)]

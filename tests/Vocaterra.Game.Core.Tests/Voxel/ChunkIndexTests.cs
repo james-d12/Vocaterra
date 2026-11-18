@@ -8,6 +8,7 @@ namespace Vocaterra.Game.Core.Tests.Voxel;
 /// timing collection: the cached digest's test has a 100 ms budget.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 public sealed class ChunkIndexTests
 {
     [Fact]
