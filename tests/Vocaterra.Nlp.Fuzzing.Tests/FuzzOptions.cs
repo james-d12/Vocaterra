@@ -1,7 +1,8 @@
 using Vocaterra.Nlp.Core.Configuration;
 
-// The whole suite is slow: scripts/test.sh fast leaves it out, and the gate, CI and scripts/test.sh full run it at its full depth.
+// The whole suite is slow: scripts/test.sh fast leaves it out; the Fuzz category (below) also keeps it out of full, project and the merge gate: it runs in CI only (B29a, scripts/test.sh ci), at its full depth.
 [assembly: AssemblyTrait(TestSpeed.Trait, TestSpeed.Slow)]
+[assembly: AssemblyTrait(TestSpeed.Category, TestSpeed.Fuzz)]
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

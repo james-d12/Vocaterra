@@ -19,7 +19,7 @@ public sealed class StreamedWorldHostSettleTests : StreamedWorldHostTestBase
         var eye = (X: scene.Spawn.Feet.X + 0.5f, Y: scene.Spawn.Feet.Y + 1.6f, Z: scene.Spawn.Feet.Z + 0.5f);
         var released = 0;
 
-        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => released++));
+        HangGuard.Settled(limit => host.Settle(eye.X, eye.Y, eye.Z, _ => released++, limit));
 
         Assert.True(host.Residency.IsSettled);
         Assert.Equal(0, host.Far.Missing);

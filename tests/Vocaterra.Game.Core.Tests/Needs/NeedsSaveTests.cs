@@ -79,7 +79,7 @@ public sealed class NeedsSaveTests
     [Fact]
     public void TheFixtureLoadsWithItsNeeds()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
+        var text = SaveFixture.Read("save-v10.json");
         Assert.Equal(new PlayerNeeds(TestGame.Data.Needs).Capture(), SaveGame.Parse(text).Systems!.Needs); // recorded with the needs off: full
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, migrate: true);

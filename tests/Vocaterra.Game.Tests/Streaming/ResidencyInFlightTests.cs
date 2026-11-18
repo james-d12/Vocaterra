@@ -25,7 +25,7 @@ public sealed class ResidencyInFlightTests
     private static ManualResetEventSlim Hold(JobPool pool)
     {
         var gate = new ManualResetEventSlim();
-        pool.Submit(JobLane.Residency, long.MinValue, static () => false, () => gate.Wait(TimeSpan.FromSeconds(60)));
+        pool.Submit(JobLane.Residency, long.MinValue, static () => false, () => gate.Wait(HangGuard.Scale(TimeSpan.FromSeconds(60))));
         return gate;
     }
 
@@ -65,7 +65,7 @@ public sealed class ResidencyInFlightTests
         Assert.Equal(residency.Stats.InFlight, residency.Flying - flyingBefore);
         gate.Set();
 
-        Assert.True(residency.Settle(jumpedX, y, z));
+        HangGuard.Settled(limit => residency.Settle(jumpedX, y, z, limit));
 
         var plan = residency.Plan!;
         Assert.Equal(0, residency.Flying);
@@ -94,7 +94,7 @@ public sealed class ResidencyInFlightTests
 
         residency.Reconfigure(new BandStreamPolicy(9, 11, 3, 4), int.MaxValue);
         gate.Set();
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
 
         Assert.Equal(new BandStreamPolicy(9, 11, 3, 4), residency.Policy);
         var plan = residency.Plan!;
@@ -106,7 +106,7 @@ public sealed class ResidencyInFlightTests
 
         // Down again: what was made for the wider radii is let go by the narrower plan, and nothing in flight is lost.
         residency.Reconfigure(new BandStreamPolicy(5, 7, 2, 3), int.MaxValue);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.All(Resident(scene), chunk => Assert.True(residency.Plan!.Holds(chunk)));
         Assert.All(residency.Plan!.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
         Assert.Equal(residency.Stats.Installed - residency.Stats.Evicted, scene.Grid.ResidentChunkCount);
@@ -131,7 +131,7 @@ public sealed class ResidencyInFlightTests
         const int Cap = 200;
         residency.Reconfigure(new BandStreamPolicy(8, 10, 2, 3), Cap);
         gate.Set();
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
 
         var plan = residency.Plan!;
         var count = scene.Grid.ResidentChunkCount;
@@ -142,7 +142,7 @@ public sealed class ResidencyInFlightTests
         Assert.Contains(Resident(scene), c => c.X == cx && c.Z == cz); // the eye's own column is resident
 
         var made = residency.ColumnsGenerated;
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.Equal(made, residency.ColumnsGenerated); // over the cap, nothing more is asked for
         Assert.Equal(count, scene.Grid.ResidentChunkCount);
     }
@@ -162,7 +162,7 @@ public sealed class ResidencyInFlightTests
         host.ApplyPreset(wider, _ => { });
 
         Assert.Same(residency, host.Residency);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         Assert.Equal(StreamedWorldHost.PolicyFor(112), residency.Policy);
         Assert.All(residency.Plan!.Wanted, chunk => Assert.True(scene.Grid.IsResident(chunk)));
         Assert.All(Resident(scene), chunk => Assert.True(residency.Plan!.Holds(chunk)));
@@ -179,7 +179,7 @@ public sealed class ResidencyInFlightTests
         using var pool = new JobPool(workers);
         var residency = new ChunkResidency(scene.Grid, scene.Streaming!, new BandStreamPolicy(6, 8, 2, 3), pool, scene.Places);
         var (x, y, z) = Eye(scene);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         for (var i = 0; i < 60; i++)
         {
             residency.Update(x, y, z, 1.5); // warm
@@ -202,7 +202,7 @@ public sealed class ResidencyInFlightTests
         using var pool = new JobPool(0);
         var residency = new ChunkResidency(grid, scene.Streaming!, new BandStreamPolicy(5, 7, 2, 3), pool, scene.Places);
         var (ex, ey, ez) = Eye(scene);
-        Assert.True(residency.Settle(ex, ey, ez));
+        HangGuard.Settled(limit => residency.Settle(ex, ey, ez, limit));
         var (cx, cz) = ((int)MathF.Floor(ex), (int)MathF.Floor(ez));
         var count = grid.ResidentChunkCount;
         var version = grid.ResidencyVersion;

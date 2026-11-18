@@ -17,14 +17,14 @@ public sealed class TurnWorkerTests
     {
         var session = TestGame.NewSession(credit: credit ?? CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
-        Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
         return session;
     }
 
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -33,7 +33,7 @@ public sealed class TurnWorkerTests
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} turns came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} turns came back", 30_000));
             Thread.Sleep(2);
         }
 
@@ -202,11 +202,11 @@ public sealed class TurnWorkerTests
     {
         using var session = StartedSession();
         var worker = session.Worker!;
-        Assert.True(worker.WaitForOutcomes(30000)); // none pending: at once
+        Assert.True(worker.WaitForOutcomes((int)HangGuard.Scale(30000)), HangGuard.Hung("the worker did not finish", 30000)); // none pending: at once
 
         var cursor = TestGame.NearestBlock(session, BlockId.Trunk);
         _ = session.SubmitTyped("es un árbol", cursor);
-        Assert.True(worker.WaitForOutcomes(30000));
+        Assert.True(worker.WaitForOutcomes((int)HangGuard.Scale(30000)), HangGuard.Hung("the worker did not finish", 30000));
 
         // The worker finished inside the wait, so the collect takes the turn at once: no frame of a scripted run is spent waiting for it (T9).
         var applied = session.Collect();

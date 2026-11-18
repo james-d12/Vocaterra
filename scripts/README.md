@@ -43,6 +43,7 @@ Runs the language core's content tool on a game content bundle (default `content
 - `validate` checks every file's hash and the cross-references, and prints the bundle hash.
 - `hash` rewrites `manifest.json` from the files on disk, the step after any edit. Options after the bundle directory are passed on, so a
   new bundle id is set with `hash content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
+  `scripts/rehash-bundle.sh` runs `hash` and then `validate` through `limited.sh` and prints the new hash (B29c).
 - `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check content/game-v1 --level a2`). It only
   prints (it exits 0 whatever it lists); `refresh` and the merge gate fail on a lemma it lists at A2.
 - `lint`, `grammar`, `pack` and `verify-pack` are passed through as [docs/nlp/tools.md](../docs/nlp/tools.md) describes.
@@ -65,9 +66,8 @@ and the one lock `limited.sh` holds would make the loop wait for ever on its own
 
 In order, it runs: 1 `content.sh refresh`; 2 with `--grammar`, the LanguageTool steps (start the server, check the strings the cache lacks with
 `--prune`, check that a cache rebuilt from nothing equals it as CI's `languagetool` job does, print every new finding, stop the server, even on a
-failure); 3 the renderer's `--check` and, with `--speech`, the render of the new or changed lines and a second refresh; 4 the save fixtures: every
-file under `tests/` that holds the old `bundleHash` (the one at HEAD, before the run, or one an earlier run in this worktree saw) gets the
-new one; 5 the build with `-warnaserror -m:4`; 6 the end-to-end goldens and the
+failure); 3 the renderer's `--check` and, with `--speech`, the render of the new or changed lines and a second refresh; 4 nothing to write
+(B29c: no test pins the bundle hash); 5 the build with `-warnaserror -m:4`; 6 the end-to-end goldens and the
 identity baseline, checked, or with `--record` (off by default) recorded, with the `git diff --stat` and the changed entries per file printed;
 7 the fuzz suite's `FuzzLanguageStreamTests`, whose digests run on frozen inputs since the core's M57, so a content edit does not move them: the
 step checks that they did not move (a move means a generator or the fixture changed; it prints the new digests and the constants they differ

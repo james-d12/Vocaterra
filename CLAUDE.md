@@ -32,7 +32,8 @@ Facts every session needs:
   restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most three at
   once machine-wide, caps each at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, and all of them together at 16 GB (8 GB until 2026-11-16, raised by the owner) and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
-- **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
+- **Build, test, format (from the root):** `dotnet build Vocaterra.sln -c Release -warnaserror`, `scripts/test.sh full` (Release, no fuzz
+  suite or timing tests; `scripts/test.sh timing` for the timing tests, `scripts/test.sh ci` for everything; B29a),
   `dotnet format Vocaterra.sln --verify-no-changes`. `Vocaterra.Nlp.slnf` builds the core alone (its pack and licence scan use it).
   No pack step, no local feed: `nuget.config` lists nuget.org only.
 - **Models:** model-gated tests and the game's speech read `VOCATERRA_MODELS_DIR` (the shared folder `~/.local/share/vocaterra/models`,
@@ -41,16 +42,20 @@ Facts every session needs:
   `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then validate and test again. The tool is
   the core's ContentBuilder run from source. The sandbox refuses command lines that contain the words `eval` or `hash`; run such a
   command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
-  suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
-  (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
-  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` (since B05 its `stateDigest` depends on the world-generation files `world.json`, `biomes.json` and `underground.json` and the saved state, not on the bundle hash). No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
+  suite and a failing core test is wanted feedback. After `hash` (or `scripts/rehash-bundle.sh`, which runs `hash` and `validate`; a `manifest.json` conflict is resolved by taking either
+  side and running it, B29c), run the whole suite; re-record the end-to-end goldens if the edit moved them
+  (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`). The save fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` pins no bundle hash (a placeholder; the tests read it with the current hash through `SaveFixture.Read`); its `stateDigest` depends only on `world.json`, `biomes.json` and `underground.json`. A content edit touches the content and `manifest.json` only. No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
   `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.
 - **Merge gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"`, run from that feature branch's checkout (it
-  refuses `main`); logs land in `.claude/gate-logs/`. The fuzz suite is a
-  gate; never weaken an oracle to make it pass.
-- **CI is `.github/workflows/ci.yml`:** jobs `build-and-test` (build, test, offline grammar replay) and `languagetool` (live grammar check),
+  refuses `main`); logs land in `.claude/gate-logs/`. Since B29a it runs as one
+  limited.sh command (one slot): a Release build with warnings as errors, the suite without the fuzz suite and the timing tests, then the
+  timing tests alone, format, the content gate, the grammar replay and the licence scans; a failed test is re-run alone and labelled FLAKY
+  (the gate passes and lists it in `.claude/gate-logs/flaky-<stamp>.txt`) or FAILED; it prints each assembly's time against the last
+  gate's. The fuzz suite runs in CI (D-game-34 item 58); never weaken an oracle to make it pass.
+- **CI is `.github/workflows/ci.yml`:** jobs `build-and-test` (build and test in Release, everything including the fuzz suite and the timing
+  tests, with `CI=true` multiplying the CPU budgets by 4; offline grammar replay) and `languagetool` (live grammar check),
   run in parallel on pushes to `main`, pull requests and manual runs. The token has the workflow scope (2026-10-31), so workflow edits land
   on a feature branch like any other change.
 - **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.Game`, never in `Vocaterra.Host` or

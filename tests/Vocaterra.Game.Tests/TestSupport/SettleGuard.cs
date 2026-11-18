@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
+
 namespace Vocaterra.Game.Tests.TestSupport;
 
 /// <summary>
@@ -7,8 +9,8 @@ namespace Vocaterra.Game.Tests.TestSupport;
 /// </summary>
 internal static class SettleGuard
 {
-    /// <summary>How long one slice may run, in milliseconds.</summary>
-    public const double SliceMilliseconds = 120_000;
+    /// <summary>How long one slice may run, in milliseconds (two minutes, times 4 under CI=true like every hang guard, <see cref="HangGuard"/>).</summary>
+    public static double SliceMilliseconds { get; } = HangGuard.Scale(120_000);
 
     /// <summary>The most slices (30 slices, an hour) before a settle that keeps progressing is given up.</summary>
     public const int MaxSlices = 30;

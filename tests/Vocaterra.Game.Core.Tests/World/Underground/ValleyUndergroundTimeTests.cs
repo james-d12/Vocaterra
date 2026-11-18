@@ -9,13 +9,15 @@ namespace Vocaterra.Game.Core.Tests.World.Underground;
 /// failed four full runs in a row at a load of 11 to 19 (it compared wall clock with a busy machine), so this one only compares what a quiet run measures.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class ValleyUndergroundTimeTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
     private const int Attempts = 3;
     // Measured (B24a, machine at load 10 to 12): the underground adds 2 500 ms of CPU time (plain 837, with it 3 337). The budget is twice that.
-    private static readonly double Budget = CpuTime.Budget(5000);
+    // B29a: re-set from Release (the suite runs on the Release build): the underground adds 526 ms (plain 156, with it 682); the budget is twice that (was 5000 from Debug).
+    private static readonly double Budget = CpuTime.Budget(1060);
 
     [Fact]
     public void Given_TheValleyBuiltWithAndWithoutTheUnderground_When_TheCpuTimeIsMeasured_Then_TheUndergroundCostsUnderItsBudget()

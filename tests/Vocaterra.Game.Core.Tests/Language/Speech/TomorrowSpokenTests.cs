@@ -29,7 +29,7 @@ public sealed class TomorrowSpokenTests(ITestOutputHelper output)
         foreach (var (stepId, spoken, mustHear) in Said)
         {
             using var session = TomorrowLessonTests.AtStep(stepId);
-            Assert.True(session.StartWorker().WaitUntilReady(60000));
+            Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
             _ = session.SubmitSpeak(spoken);
             var turn = Drain(session).Turn!;
@@ -55,7 +55,7 @@ public sealed class TomorrowSpokenTests(ITestOutputHelper output)
         Stage.TeleportToNpc(session, "baker");
         _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         _ = session.OpenTalkForClass("baker");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("Luz, mañana compraré pan.");
         var turn = Drain(session).Turn!;
@@ -68,7 +68,7 @@ public sealed class TomorrowSpokenTests(ITestOutputHelper output)
 
     private static AppliedTurn Drain(VoxelSession session)
     {
-        var deadline = Environment.TickCount64 + 120000;
+        var deadline = HangGuard.DeadlineAfter(120000);
         while (true)
         {
             if (session.Collect().FirstOrDefault() is { } applied)
@@ -76,7 +76,7 @@ public sealed class TomorrowSpokenTests(ITestOutputHelper output)
                 return applied;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, "The turn did not come back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("The turn did not come back", 120_000));
             Thread.Sleep(5);
         }
     }
