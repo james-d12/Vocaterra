@@ -254,7 +254,7 @@ the mountains; the owner decides whether it joins this series.
 | Clothes | los pantalones (start worn) (trousers) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
 | Clothes | los zapatos (start worn) (shoes) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
 | Armour | el casco (helmet) | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
-| Armour | la coraza (cuirass (chest and back plate)) | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
+| Armour | la coraza (cuirass (chest and back plate)) | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add |
 | Armour | las grebas (greaves (shin plates)) | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
 | Armour | las botas (boots) | feet | armour 2 | 2 hierro | 6, Domingo | lexicon |
 | Accessory | el anillo (ring) | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
@@ -273,7 +273,7 @@ light numbers wait for I05b's stop. Every Spanish word joins `game/nouns.json`, 
 world-words block of `cefr/a1.txt` with its reason; words not in the lexicon get an entry in `lexicon/world.json` (the plan's rule).
 
 **The owner's answers (2026-11-18):** prices as in the table; keep the amulet's light; add the world's climate to what the player feels
-(a milestone, I06b). The boots (2026-11-18): the clothes' feet are the shoes («los zapatos») and the armour's feet are the boots («las botas»); the clothes have no boots. Still open: one armour tier or two, «la coraza» or «el peto» (the owner asked for them in English).
+(a milestone, I06b). The boots (2026-11-18): the clothes' feet are the shoes («los zapatos») and the armour's feet are the boots («las botas»); the clothes have no boots. Armour (2026-11-18): one tier, iron only, and the body piece is «la coraza». **Stop 3 is settled:** the table above, with these answers, is the list I08a and I08b build.
 
 **Choices for the owner:**
 1. **One armour tier (iron) instead of two.** The game's nouns are single words, so «el casco de cuero» and «el casco de hierro» would be
