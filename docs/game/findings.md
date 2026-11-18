@@ -3068,3 +3068,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   counts the far view's model work falls from about 231 to 87 worker-seconds, and levels 3 to 7 are now about 80% of it (L3 alone 47%),
   so B37 is the next big win; the agent's lead for L3 is the tree raster (`PlantTrees` uses an unshared `FarGround`). The in-game fill time
   was not measured (machine busy); fixed-size tables allocate 1 to 2 MB per stack on the large-object heap, a point for B40.
+- **B39, shared windows and the strata pass (2026-11-18, merge `3d354c90`).** `ColumnGroup` shapes one window for a 4x4 square of chunk
+  columns (residency) or one per ring footprint; each column cuts its own window from it, already shaped, and band and layers share it.
+  Residency column 1.92 to 0.62 ms, ring footprint 9.6 to 5.6 ms, `StrataPass` 114 to 61 µs a chunk (CPU time, seed 42, interleaved
+  base and branch runs); byte-identical: no golden, pin or save digest moved, and workers against inline give the same state digests. The
+  nearest column's group band job costs about 4 ms instead of 0.9, but no job waits on another. The ring is now bound by its 90x90-column
+  window (about 4 of 5.6 ms). The bench's new group rows read about 8 times high in one `--quick` run on a loaded machine, unexplained:
+  B40 should check them before relying on them. Spot check: a Release run at High after a teleport to (3000, -2000) settled with no
+  pending chunks and no errors.
