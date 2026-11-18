@@ -979,6 +979,13 @@ the owner's answers of 2026-11-15 are in its section 5.
     wait until after the merge, on a fresh branch from main. The orchestrator opens the pull request; the owner merges it. Also: "Make
     sure to include document any milestones that we haven't accomplished once this is done, because we'll obviously need to do that in
     a fresh agent on a fresh PR": a new handover lists them.
+52. **Chunk generation's speed is the top priority** (2026-11-18, about 08:45 UTC, after the far view of a fresh world, seed 5315, took
+    minutes to fill and showed a sky-coloured ring between the near zone and the distant hills): "Yeh lets kickoff an opus 5.5 agent high
+    to review how to speed up the chunk generation", then "this is the biggest issue right now and we need to get it right". An Opus 5.5
+    review at high effort (measuring, read only) was launched; its ranked plan goes to the owner before any milestone is built.
+53. **Where the speed-ups land** (2026-11-18, about 08:55 UTC): "speed upgs go in a new pr / branch. b31 once done is merged to main".
+    B31 (the Shaders switch crash) is the last change on `feature/biomes`; once it is gated and pushed, PR #69 is ready for the owner to
+    merge. The chunk generation speed-ups go on a new branch from `main`, as a new pull request.
 
 ## Already decided
 
