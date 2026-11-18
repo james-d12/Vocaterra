@@ -103,9 +103,9 @@ public sealed class InventoryLayer : IFrameLayer
             if (shape.ColumnHeadings[column] is { } lemma)
             {
                 var box = layout.HeadingBox(column);
-                var text = HeadingText.Pick(nouns.ForLemma(lemma)?.WithDefinite ?? lemma, lemma, box.Width, t => DrawHelpers.Width(font, t));
+                var text = HeadingText.Pick(lemma, box.Width, t => DrawHelpers.Width(font, t));
                 var colour = Color.Lerp(Unseen, Known, (float)view.Session.Words.SaturationOf(lemma));
-                DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + ((box.Width - DrawHelpers.Width(font, text)) / 2), box.Y + ((box.Height - 16) / 2)), colour);
+                DrawHelpers.Text(spriteBatch, font, text, new Vector2(layout.HeadingTextLeft(column, (int)Math.Ceiling(DrawHelpers.Width(font, text))), box.Y + ((box.Height - 16) / 2)), colour);
             }
         }
 

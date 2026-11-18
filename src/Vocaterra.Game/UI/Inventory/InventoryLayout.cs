@@ -48,6 +48,8 @@ public readonly record struct InventoryLayout
     private readonly int _dollTop;
     private readonly int _labelColumn;
     private readonly int _sectionGap;
+    private readonly int _columnGap;
+    private readonly bool _headingsOverhang;
 
     /// <summary>Computes the layout for a canvas and a number of slots.</summary>
     /// <param name="viewportWidth">The canvas's width.</param>
@@ -73,6 +75,8 @@ public readonly record struct InventoryLayout
         _countedWidth = m.CountedWidth;
         _headingHeight = _shape.HasHeadings ? m.Heading : 0;
         _sectionGap = m.SectionGap;
+        _columnGap = m.ColumnGap;
+        _headingsOverhang = level == 0;
         _labelColumn = _shape.HasLabels ? m.LabelColumn : 0;
         HeaderTop = m.HeaderTop;
         DividerY = m.DividerY;
@@ -233,7 +237,10 @@ public readonly record struct InventoryLayout
         cell.Row >= _shape.BodyRows ? _countedWidth : _dollCell,
         _dollCell);
 
-    /// <summary>The box a column's heading is written in, above its cells: centred on them, as wide as the column's pitch less a gap (empty when the data gives the column no heading).</summary>
+    /// <summary>
+    /// The box a column's heading is written in, above its cells (empty when the data gives the column no heading). The small sizes give it the column's pitch less a gap; the regular size lets the outer
+    /// columns' headings overhang into the free room beside the doll (the first column, over the labels' column, which stands lower) and into the gap before the bag (the last), I04c.
+    /// </summary>
     /// <param name="column">The doll column, from 0.</param>
     public PixelBox HeadingBox(int column)
     {
@@ -243,9 +250,35 @@ public readonly record struct InventoryLayout
         }
 
         var width = Math.Max(_dollCell, _dollPitch - 4);
-        var centre = DollLeft + _labelColumn + (column * _dollPitch) + (_dollCell / 2);
-        return new PixelBox(centre - (width / 2), GridTop, width, _headingHeight);
+        var centre = HeadingCentre(column);
+        var left = centre - (width / 2);
+        var right = left + width;
+        if (_headingsOverhang)
+        {
+            if (column == 0)
+            {
+                left = Math.Min(left, DollLeft);
+            }
+
+            if (column == _shape.ColumnHeadings.Count - 1)
+            {
+                right = Math.Max(right, DollLeft + _labelColumn + (column * _dollPitch) + _countedWidth + _columnGap - 4);
+            }
+        }
+
+        return new PixelBox(left, GridTop, right - left, _headingHeight);
     }
+
+    /// <summary>The left edge a heading's text of <paramref name="textWidth"/> is drawn at: centred over its column, moved only as far as keeps it inside <see cref="HeadingBox"/>.</summary>
+    /// <param name="column">The doll column, from 0.</param>
+    /// <param name="textWidth">The text's measured width.</param>
+    public int HeadingTextLeft(int column, int textWidth)
+    {
+        var box = HeadingBox(column);
+        return Math.Clamp(HeadingCentre(column) - (textWidth / 2), box.X, Math.Max(box.X, box.Right - textWidth));
+    }
+
+    private int HeadingCentre(int column) => DollLeft + _labelColumn + (column * _dollPitch) + (_dollCell / 2);
 
     /// <summary>The box a body row's noun is written in (the column beside the doll, regular size only), or an empty box.</summary>
     /// <param name="row">The body row, from 0.</param>
