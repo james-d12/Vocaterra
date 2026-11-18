@@ -70,7 +70,7 @@ public sealed class ItemsSaveTests
     [Fact]
     public void Given_TheVersion10Fixture_When_ItLoads_Then_TheBagHoldsTheItemsItNames()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
+        var text = SaveFixture.Read("save-v10.json");
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -83,7 +83,7 @@ public sealed class ItemsSaveTests
     [Fact]
     public void Given_ASaveOfVersion9_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json")).Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
+        var text = SaveFixture.Read("save-v10.json").Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
 
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 
