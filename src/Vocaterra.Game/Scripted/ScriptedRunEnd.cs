@@ -196,6 +196,11 @@ public sealed class ScriptedRunEnd
         {
             _console(StreamLine(renderer, streaming, timings, phases, allocations));
             _console(string.Create(CultureInfo.InvariantCulture, $"far coverage: no uncovered leaf after {streaming.Far.CoveredAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {streaming.Far.FilledAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms ({streaming.Far.Uncovered} uncovered now)"));
+            foreach (var band in streaming.Far.FineBuildBands())
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far fine tiles {band.From}-{(band.To == int.MaxValue ? "up" : band.To.ToString(CultureInfo.InvariantCulture))} blocks: {band.Count} built, first build median {band.FirstMedian / 1000:0.0} s p90 {band.FirstP90 / 1000:0.0} s, last build median {band.LastMedian / 1000:0.0} s p90 {band.LastP90 / 1000:0.0} s"));
+            }
+
         }
 
         if (_options.StreamStats)

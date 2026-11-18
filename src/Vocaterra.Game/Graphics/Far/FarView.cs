@@ -93,6 +93,10 @@ public sealed class FarView
     private const int CoarseFirstFrom = 4;
     private const double InnerGraceMilliseconds = 700;
 
+    // B38: a leaf of levels 0 to 2 over footprints the ring will still make real waits for them (its stand-in is drawn meanwhile) and is built once from the real data; a footprint that never comes (a failed job) is given up on after this long.
+    private const int RingWaitMaxLevel = 2;
+    private const double RingWaitLimitMilliseconds = 240_000;
+
     private readonly FarTerrainSampler _sampler;
     private readonly LodStore _store;
     private readonly JobPool _pool;
@@ -102,6 +106,9 @@ public sealed class FarView
     private readonly HashSet<FarTileKey> _building = [];
     private readonly HashSet<FarTileKey> _bad = [];
     private readonly HashSet<FarTileKey> _standIns = [];
+    private readonly HashSet<FarTileKey> _waiting = [];
+    private readonly Dictionary<FarTileKey, double> _waitingSince = [];
+    private Func<int, int, bool>? _awaitsRing;
     private readonly HashSet<FarTileKey> _used = [];
     private readonly Dictionary<FarTileKey, double> _unready = [];
     private readonly List<FarTileKey> _idle = [];
@@ -189,7 +196,20 @@ public sealed class FarView
     /// <summary>The cached tiles by key, for the tests.</summary>
     public IReadOnlyDictionary<FarTileKey, FarTile> Cache => _tiles;
 
-    /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet.</summary>
+    /// <summary>
+    /// Tells the far view which level-0 footprints (x, z in sections) the ring will still make real (B38): a fine leaf (levels 0 to 2) over one waits for it, drawn from its stand-in meanwhile, and is built once from the real data instead of from the
+    /// model first. <see langword="null"/> (the default) builds every leaf at once, as before.
+    /// </summary>
+    /// <param name="awaits">Whether the ring has yet to make the footprint real.</param>
+    public void SetRingWait(Func<int, int, bool>? awaits) => _awaitsRing = awaits;
+
+    /// <summary>The priority bias of the fine tiles (and so of the ring's footprints they wait for): every coarse tile and stand-in goes before it (B35), and the ring's jobs sit on the same scale (B38).</summary>
+    public long FineBias => Settings.Range / 4;
+
+    /// <summary>The leaves that wait for the ring's data and are not asked for yet (B38).</summary>
+    public int Waiting => _waiting.Count;
+
+    /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet, not counting those that wait for the ring (<see cref="Waiting"/>).</summary>
     public int Missing
     {
         get
@@ -197,7 +217,7 @@ public sealed class FarView
             var missing = 0;
             foreach (var key in _leaves)
             {
-                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key) && !IsInner(key))
+                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key) && !IsInner(key) && !_waiting.Contains(key))
                 {
                     missing++;
                 }
@@ -556,6 +576,7 @@ public sealed class FarView
                 _wanted = rest;
             }
 
+            NoteFineBuilt(mesh.Key);
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -569,6 +590,7 @@ public sealed class FarView
         var grey = _grey;
         var source = World;
         var version = _version;
+        _waiting.Clear();
         foreach (var key in _leaves)
         {
             if (!IsNeeded(key))
@@ -593,10 +615,18 @@ public sealed class FarView
                 }
             }
 
-            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
+            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || _building.Contains(key))
             {
                 continue;
             }
+
+            if (!(tile?.IsBuilt ?? false) && !IsInner(key) && WaitsForRing(key))
+            {
+                _ = _waiting.Add(key); // the stand-in covers it (RequestStandIns); asked for when the ring's data is in
+                continue;
+            }
+
+            _ = _building.Add(key);
 
             if (_dirty.Remove(key))
             {
@@ -607,7 +637,7 @@ public sealed class FarView
             var distance = (long)key.NearestDistance(settings, eyeX, eyeZ) / (key.Level >= CoarseFirstFrom ? 16 : 1);
             if (key.Level < CoarseFirstFrom)
             {
-                distance += settings.Range / 4; // B35: every coarse tile and stand-in (a sixteenth of a distance of at most 1.6 ranges) goes before every fine one: the whole view is covered first, the detail comes in from the near out
+                distance += FineBias; // B35: every coarse tile and stand-in (a sixteenth of a distance of at most 1.6 ranges) goes before every fine one: the whole view is covered first, the detail comes in from the near out
             }
             var captured = key;
             _pool.Submit(
@@ -627,6 +657,18 @@ public sealed class FarView
                 });
         }
 
+        if (_waitingSince.Count > 0)
+        {
+            _idle.Clear();
+            _idle.AddRange(_waitingSince.Keys.Where(k => !_waiting.Contains(k)));
+            foreach (var done in _idle)
+            {
+                _ = _waitingSince.Remove(done);
+            }
+
+            _idle.Clear();
+        }
+
         RequestStandIns(eyeX, eyeZ);
 
         if (_unready.Count > 0 && _unready.Count > _leaves.Count)
@@ -639,6 +681,42 @@ public sealed class FarView
         {
             _ = _building.RemoveWhere(key => !_wanted.Contains(key) && !_tiles.ContainsKey(key));
         }
+    }
+
+    // B38: whether a leaf over footprints the ring will still make real is held back (a level 0 to 2 leaf, for at most RingWaitLimitMilliseconds).
+    private bool WaitsForRing(FarTileKey key)
+    {
+        if (_awaitsRing is not { } awaits || key.Level > RingWaitMaxLevel)
+        {
+            return false;
+        }
+
+        var (x0, z0) = (key.MinX(Settings), key.MinZ(Settings));
+        var size = Settings.SizeOf(key.Level);
+        var (fx0, fz0) = (x0 >> LodSection.Shift, z0 >> LodSection.Shift);
+        var (fx1, fz1) = ((x0 + size - 1) >> LodSection.Shift, (z0 + size - 1) >> LodSection.Shift);
+        var waits = false;
+        for (var fz = fz0; fz <= fz1 && !waits; fz++)
+        {
+            for (var fx = fx0; fx <= fx1 && !waits; fx++)
+            {
+                waits = awaits(fx, fz);
+            }
+        }
+
+        if (!waits)
+        {
+            return false;
+        }
+
+        var now = MonotonicClock.Milliseconds();
+        if (!_waitingSince.TryGetValue(key, out var since))
+        {
+            _waitingSince[key] = now;
+            return true;
+        }
+
+        return now - since < RingWaitLimitMilliseconds;
     }
 
     // B35: a fine leaf (below CoarseFirstFrom) whose ancestors within FallbackSteps are neither built nor asked for gets its level-4 ancestor (the coarsest level of the fine range; the top level when the view has fewer) asked
@@ -841,6 +919,41 @@ public sealed class FarView
     public double? FilledAfterMilliseconds { get; private set; }
 
     private double? _firstLeaves;
+    private readonly Dictionary<FarTileKey, (double First, double Last, int Distance)> _fineBuilds = [];
+
+    // B38: when each fine leaf (level 0 to 2) was first built and last built, and how far from the eye it was when first built, for the run's report of how long a stand-in stays on screen.
+    private void NoteFineBuilt(FarTileKey key)
+    {
+        if (key.Level > 2 || _firstLeaves is not { } first)
+        {
+            return;
+        }
+
+        var now = MonotonicClock.Milliseconds() - first;
+        _fineBuilds[key] = _fineBuilds.TryGetValue(key, out var seen) ? (seen.First, now, seen.Distance) : (now, now, (int)key.NearestDistance(Settings, _eye.X, _eye.Z));
+    }
+
+    /// <summary>Per distance band (blocks from the eye when the leaf was first built) the fine leaves (levels 0 to 2) built: how many, and the median and 90th percentile of the milliseconds from the first leaves to the first build and to the last build (B38, for the run's report).</summary>
+    public IReadOnlyList<(int From, int To, int Count, double FirstMedian, double FirstP90, double LastMedian, double LastP90)> FineBuildBands()
+    {
+        var edges = new[] { 0, 400, 500, 600, 700, 800, 1000, 1500, int.MaxValue };
+        var rows = new List<(int, int, int, double, double, double, double)>();
+        for (var i = 0; i + 1 < edges.Length; i++)
+        {
+            var inBand = _fineBuilds.Values.Where(v => v.Distance >= edges[i] && v.Distance < edges[i + 1]).ToList();
+            if (inBand.Count == 0)
+            {
+                continue;
+            }
+
+            static double At(List<double> sorted, int percent) => sorted[Math.Min(sorted.Count - 1, sorted.Count * percent / 100)];
+            var first = inBand.Select(static v => v.First).Order().ToList();
+            var last = inBand.Select(static v => v.Last).Order().ToList();
+            rows.Add((edges[i], edges[i + 1], inBand.Count, At(first, 50), At(first, 90), At(last, 50), At(last, 90)));
+        }
+
+        return rows;
+    }
 
     private void NoteCoverage(int needed, int uncovered)
     {
@@ -856,7 +969,7 @@ public sealed class FarView
             CoveredAfterMilliseconds = now - _firstLeaves.Value;
         }
 
-        if (FilledAfterMilliseconds is null && Missing == 0 && _unuploaded == 0 && _building.Count == 0)
+        if (FilledAfterMilliseconds is null && Missing == 0 && _waiting.Count == 0 && _unuploaded == 0 && _building.Count == 0)
         {
             FilledAfterMilliseconds = now - _firstLeaves.Value;
         }
