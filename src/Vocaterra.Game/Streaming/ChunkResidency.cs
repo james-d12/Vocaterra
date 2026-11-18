@@ -313,14 +313,16 @@ public sealed class ChunkResidency
 
             pending = true;
             nearPending |= (dx * dx) + (dz * dz) <= NearPlanRadiusSquared;
-            var key = ColumnBandCache.KeyOf(cx, cz);
+            // B39: one job a group of 4 x 4 columns, at the distance of its nearest column that is wanted (the loop goes nearest first): it shapes the group's window once and makes every band of the group from it, and keeps the window for
+            // the columns' layers. Each column's layers are still a job of their own, so the nearest column never waits for the others'.
+            var key = ColumnGroupCache.KeyOf(cx, cz);
             if (_bandJobs.TryAdd(key, 0))
             {
                 var distance = PriorityOf(((long)dx * dx) + ((long)dz * dz));
                 var epoch = _epoch;
                 _pool.Submit(JobLane.Residency, distance, () => StaleBand(epoch, key), () =>
                 {
-                    _ = _bands.Get(cx, cz);
+                    _ = _bands.GetThroughGroup(cx, cz);
                     _ = _bandJobs.TryRemove(key, out _);
                 });
             }
@@ -488,7 +490,8 @@ public sealed class ChunkResidency
     {
         var started = MonotonicClock.Milliseconds();
         _ = Interlocked.Increment(ref _columnsGenerated);
-        var layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer);
+        _ = _bands.Groups.TryGet(chunkX, chunkZ, out var group); // the window its band was made from (B39), when it is still held; else the column's own
+        var layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group);
         _ = Interlocked.Add(ref _generateMicroseconds, (long)((MonotonicClock.Milliseconds() - started) * 1000));
         return layers;
     }

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Streaming;
 
@@ -204,7 +205,13 @@ public sealed class LodRing
     /// <summary>The lowest chunk layer a footprint's columns are made from: two layers under the lowest layer that meets the ground in the 4 x 4 chunk columns round it (so a cliff face next to a lower column is made from its foot); a column a region owns, or no bands, makes the whole column.</summary>
     /// <param name="sx">The footprint's x.</param>
     /// <param name="sz">The footprint's z.</param>
-    public int LowestLayerOf(int sx, int sz)
+    public int LowestLayerOf(int sx, int sz) => LowestLayerOf(sx, sz, null);
+
+    /// <summary>The same layer, with the bands that are not held made from the shaped window of a group (B39) when one is given.</summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    public int LowestLayerOf(int sx, int sz, ColumnGroup? group)
     {
         var floor = _streamed.Source.MinChunkY;
         if (_bands is null || !SurfaceOnly)
@@ -223,7 +230,7 @@ public sealed class LodRing
                     return floor; // a region's chunks are its own; its columns and their neighbours are made whole
                 }
 
-                var band = _bands.Get(cx, cz);
+                var band = _bands.Get(cx, cz, group);
                 if (!band.IsEmpty)
                 {
                     lowest = Math.Min(lowest, band.MinLayer);
@@ -234,18 +241,57 @@ public sealed class LodRing
         return lowest == int.MaxValue ? floor : Math.Max(floor, lowest - Margin);
     }
 
+    // The shaped window a footprint is made from (B39), once for everything it reads: the 4 x 4 chunk columns round the footprint's own 2 x 2 when three or more bands of the ring round it are not held yet (the footprint's bands and its four columns
+    // are all cut from it), or the own 2 x 2 alone when at most two are (the one or two bands are made from their own windows, a quarter of the wide window each), or when the bands are not read. A window is about 0.5 MB for the 4 x 4 and 0.25 MB
+    // for the 2 x 2, and a job holds one while it runs.
+    private ColumnGroup ShapeFor(int sx, int sz)
+    {
+        if (_bands is not null && SurfaceOnly)
+        {
+            var missing = 0;
+            for (var dz = -1; dz <= 2; dz++)
+            {
+                for (var dx = -1; dx <= 2; dx++)
+                {
+                    if ((dx is < 0 or > 1 || dz is < 0 or > 1) && !_bands.TryGet((2 * sx) + dx, (2 * sz) + dz, out _))
+                    {
+                        missing++;
+                    }
+                }
+            }
+
+            if (missing > 2)
+            {
+                return _streamed.Bands.ShapeGroup((2 * sx) - 1, (2 * sz) - 1, 4);
+            }
+        }
+
+        return _streamed.Bands.ShapeGroup(2 * sx, 2 * sz, 2);
+    }
+
+    /// <summary>The four chunk columns of a footprint, the layers the far view draws, and the lowest layer made (what <see cref="Ingest"/> takes in): the footprint's bands and columns all come from one shaped window.</summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public (IReadOnlyList<ChunkData>[] Columns, int First) MakeColumns(int sx, int sz)
+    {
+        var max = _streamed.Source.MaxChunkY - 1;
+        var group = ShapeFor(sx, sz);
+        var first = LowestLayerOf(sx, sz, group);
+        var columns = new IReadOnlyList<ChunkData>[4];
+        for (var k = 0; k < 4; k++)
+        {
+            columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max, group);
+        }
+
+        return (columns, first);
+    }
+
     // On a worker: the four chunk columns of a footprint, the layers the far view draws, into real level-0 sections.
     private void Ingest(int sx, int sz)
     {
         var source = _streamed.Source;
         var (min, max) = (source.MinChunkY, source.MaxChunkY - 1);
-        var first = LowestLayerOf(sx, sz);
-        var columns = new IReadOnlyList<ChunkData>[4];
-        for (var k = 0; k < 4; k++)
-        {
-            columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max);
-        }
-
+        var (columns, first) = MakeColumns(sx, sz);
         _ = Interlocked.Add(ref _madeLayers, 4L * (max - first + 1));
         _ = Interlocked.Add(ref _skippedLayers, 4L * (first - min));
         _world.IngestStack(sx, sz, (cx, cy, cz) =>

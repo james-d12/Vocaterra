@@ -154,7 +154,7 @@ public sealed class StrataTableTests
         var table = Table(seed);
         var rocks = new BlockId[VoxelChunk.Volume];
 
-        table.Fill(cx << 4, cy << 4, cz << 4, rocks);
+        _ = table.Fill(cx << 4, cy << 4, cz << 4, rocks);
 
         var index = 0;
         for (var ly = 0; ly < 16; ly++)

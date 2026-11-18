@@ -309,6 +309,74 @@ internal static class Bench
             Add("ring footprint 32 x 32: bands", bands / f, "ms per footprint", f);
             Add("ring footprint 32 x 32: generate", generate / f, "ms per footprint", f);
             Add("ring footprint 32 x 32, total (no ingest)", (bands + generate) / f, "ms per footprint", f);
+            GroupRows(land, footprints);
+        }
+
+        // B39: the same two rows through shared windows. The residency: every column of the 4 x 4 groups the land columns lie in (a group's window is shaped once, then each column's band and its layers are cut from it); the ring: each footprint's
+        // 4 x 4 columns' bands and its own four columns from one window (the footprint's bands are not held, as for a footprint of a fresh ring).
+        private void GroupRows(List<(int Cx, int Cz)> land, List<(int, int)> footprints)
+        {
+            var groups = land.Select(c => (c.Cx & ~3, c.Cz & ~3)).Distinct().ToList();
+            var best = double.MaxValue;
+            for (var p = 0; p < _passes; p++)
+            {
+                var t0 = Stopwatch.GetTimestamp();
+                foreach (var (gx, gz) in groups)
+                {
+                    var group = _source.ShapeGroup(gx, gz, 4);
+                    for (var dz = 0; dz < 4; dz++)
+                    {
+                        for (var dx = 0; dx < 4; dx++)
+                        {
+                            var band = _source.SurfaceBand(gx + dx, gz + dz, group);
+                            if (!band.IsEmpty)
+                            {
+                                _ = _source.GenerateLayers(gx + dx, gz + dz, band.MinLayer - 1, band.MaxLayer + 1, group);
+                            }
+                        }
+                    }
+                }
+
+                best = Math.Min(best, Ms(Stopwatch.GetTimestamp() - t0));
+            }
+
+            Add("residency column through a 4 x 4 group (window, band, layers)", best / (groups.Count * 16), "ms per column", groups.Count * 16);
+
+            var top = _source.MaxChunkY - 1;
+            best = double.MaxValue;
+            for (var p = 0; p < _passes; p++)
+            {
+                var t0 = Stopwatch.GetTimestamp();
+                foreach (var (fx, fz) in footprints)
+                {
+                    var group = _source.ShapeGroup(fx - 1, fz - 1, 4);
+                    var lowest = int.MaxValue;
+                    for (var dz = -1; dz <= 2; dz++)
+                    {
+                        for (var dx = -1; dx <= 2; dx++)
+                        {
+                            var band = _source.SurfaceBand(fx + dx, fz + dz, group);
+                            if (!band.IsEmpty)
+                            {
+                                lowest = Math.Min(lowest, band.MinLayer);
+                            }
+                        }
+                    }
+
+                    var first = lowest == int.MaxValue ? _source.MinChunkY : Math.Max(_source.MinChunkY, lowest - 2);
+                    for (var dz = 0; dz < Footprint; dz++)
+                    {
+                        for (var dx = 0; dx < Footprint; dx++)
+                        {
+                            _ = _source.GenerateLayers(fx + dx, fz + dz, first, top, group);
+                        }
+                    }
+                }
+
+                best = Math.Min(best, Ms(Stopwatch.GetTimestamp() - t0));
+            }
+
+            Add("ring footprint 32 x 32 through one window (16 bands, 4 columns; no ingest)", best / footprints.Count, "ms per footprint", footprints.Count);
         }
 
         private (double Band, double Layers) Residency(int cx, int cz)

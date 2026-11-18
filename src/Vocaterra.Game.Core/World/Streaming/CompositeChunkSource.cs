@@ -45,6 +45,12 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <summary>One above the highest chunk layer of the world.</summary>
     public int MaxChunkY => _procedural.MaxChunkY;
 
+    /// <summary>The shaped window of a square of chunk columns, made once for all of them (B39; see <see cref="ProceduralChunkSource.ShapeGroup"/>).</summary>
+    /// <param name="minChunkX">The first chunk column's x.</param>
+    /// <param name="minChunkZ">The first chunk column's z.</param>
+    /// <param name="span">How many chunk columns the square spans on a side.</param>
+    public ColumnGroup ShapeGroup(int minChunkX, int minChunkZ, int span) => _procedural.ShapeGroup(minChunkX, minChunkZ, span);
+
     /// <inheritdoc />
     public ChunkData Generate(VoxelChunkCoord coord)
     {
@@ -94,7 +100,18 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <param name="chunkZ">The chunk column's z.</param>
     /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
     /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
-    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer) => GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, null);
+
+    /// <summary>
+    /// The same layers, with the procedural part cut from the shaped window of a group that holds the column when one is given (B39), so a window made once serves every column of the group. Each chunk equals what
+    /// <see cref="Generate"/> gives for its coordinates, with or without the group.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    /// <param name="group">The group's shaped window (<see cref="ShapeGroup"/>), or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group)
     {
         var first = Math.Max(minLayer, MinChunkY);
         var last = Math.Min(maxLayer, MaxChunkY - 1);
@@ -110,7 +127,7 @@ public sealed class CompositeChunkSource : IChunkSource
         var belowLast = owner is null ? last : Math.Min(last, owner.Bounds.MinChunkY - 1);
         if (belowLast >= first)
         {
-            below = _procedural.GenerateLayers(chunkX, chunkZ, first, belowLast);
+            below = _procedural.GenerateLayers(chunkX, chunkZ, first, belowLast, group);
         }
 
         for (var i = 0; i < chunks.Length; i++)

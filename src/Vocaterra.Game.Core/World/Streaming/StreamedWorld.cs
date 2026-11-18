@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Far;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Regions;
 
 namespace Vocaterra.Game.Core.World.Streaming;
@@ -40,6 +41,17 @@ public sealed class StreamedWorld
     /// <param name="minLayer">The lowest layer wanted (inclusive).</param>
     /// <param name="maxLayer">The highest layer wanted (inclusive).</param>
     public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer);
+
+    /// <summary>
+    /// The same layers, with the column's window cut from the shaped window of a group that holds it (B39: <see cref="SurfaceBands.ShapeGroup"/>) instead of made again; the chunks are the same bytes. A column the group does not hold
+    /// (or <see langword="null"/>) is made from its own window.
+    /// </summary>
+    /// <param name="chunkX">The chunk column.</param>
+    /// <param name="chunkZ">The chunk row.</param>
+    /// <param name="minLayer">The lowest layer wanted (inclusive).</param>
+    /// <param name="maxLayer">The highest layer wanted (inclusive).</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group);
 }
 
 /// <summary>

@@ -67,7 +67,7 @@ public sealed class ProceduralChunkSource : IChunkSource
             return ChunkData.Empty(coord);
         }
 
-        return Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shaped: false);
+        return Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y);
     }
 
     /// <summary>
@@ -124,16 +124,46 @@ public sealed class ProceduralChunkSource : IChunkSource
     internal ColumnBand SurfaceBand(int chunkX, int chunkZ)
     {
         var ctx = ShapedColumn(chunkX, chunkZ);
-        var top = Math.Max(ctx.HighestInWindow(), _world.SeaLevel) + _world.Strategies.MaxTreeHeight;
-        var bottom = ctx.LowestOwn() - _world.MaxFillerDepth - 1;
+        return BandOf(ctx.HighestInWindow(), ctx.LowestOwn());
+    }
+
+    /// <summary>The same band, from the shaped window of a group that holds the column (B39): no window of its own is made.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="group">The group's shaped window; the column must belong to it.</param>
+    internal ColumnBand SurfaceBand(int chunkX, int chunkZ, ColumnGroup group)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+        return group.Contains(chunkX, chunkZ) ? BandOf(group.HighestInWindowOf(chunkX, chunkZ), group.LowestOwnOf(chunkX, chunkZ)) : SurfaceBand(chunkX, chunkZ);
+    }
+
+    private ColumnBand BandOf(int highestInWindow, int lowestOwn)
+    {
+        var top = Math.Max(highestInWindow, _world.SeaLevel) + _world.Strategies.MaxTreeHeight;
+        var bottom = lowestOwn - _world.MaxFillerDepth - 1;
         var min = Math.Max(bottom >> VoxelChunk.Shift, MinChunkY);
         var max = Math.Min(top >> VoxelChunk.Shift, MaxChunkY - 1);
         return min > max ? ColumnBand.Empty : new ColumnBand(min, max);
     }
 
+    /// <summary>
+    /// The shaped window of a square of chunk columns, made once for all of them (B39): the climate, the height model and the shapers run over the square and the margin round it, and each column of the square
+    /// then cuts its own window out of it, for its band (<see cref="SurfaceBand(int, int, ColumnGroup)"/>) and its layers (<see cref="GenerateLayers(int, int, int, int, ColumnGroup?)"/>).
+    /// </summary>
+    /// <param name="minChunkX">The first chunk column's x.</param>
+    /// <param name="minChunkZ">The first chunk column's z.</param>
+    /// <param name="span">How many chunk columns the square spans on a side (1 for a column alone).</param>
+    public ColumnGroup ShapeGroup(int minChunkX, int minChunkZ, int span)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(span, 1);
+        var ctx = new ColumnContext(_world, minChunkX, minChunkZ, span);
+        _pipeline.Shape(ctx);
+        return new ColumnGroup(ctx, minChunkX, minChunkZ, span);
+    }
+
     /// <summary>The chunk made by running every pass, with no shortcut for the chunks that are all air or all stone: the tests compare it with <see cref="Generate"/>.</summary>
     /// <param name="coord">The chunk's position.</param>
-    internal ChunkData GenerateWithoutShortcuts(VoxelChunkCoord coord) => Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shaped: false, shortcuts: false);
+    internal ChunkData GenerateWithoutShortcuts(VoxelChunkCoord coord) => Layer(new ColumnContext(_world, coord.X, coord.Z), coord.Y, shortcuts: false);
 
     /// <summary>
     /// Every chunk of a chunk column, from the bottom layer up, sharing one window: the cheap way to make many layers of one column, since the climate, the height model and the biomes are
@@ -147,7 +177,7 @@ public sealed class ProceduralChunkSource : IChunkSource
         var chunks = new ChunkData[MaxChunkY - MinChunkY];
         for (var i = 0; i < chunks.Length; i++)
         {
-            chunks[i] = Layer(ctx, MinChunkY + i, shaped: i > 0);
+            chunks[i] = Layer(ctx, MinChunkY + i);
         }
 
         return chunks;
@@ -161,7 +191,17 @@ public sealed class ProceduralChunkSource : IChunkSource
     /// <param name="chunkZ">The chunk column's z.</param>
     /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
     /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
-    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer) => GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, null);
+
+    /// <summary>
+    /// The same layers, from the shaped window of a group that holds the column when one is given (B39): the column's window is cut from it and not made again. A column the group does not hold is made from its own window.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group)
     {
         var first = Math.Max(minLayer, MinChunkY);
         var last = Math.Min(maxLayer, MaxChunkY - 1);
@@ -170,20 +210,20 @@ public sealed class ProceduralChunkSource : IChunkSource
             return [];
         }
 
-        var ctx = new ColumnContext(_world, chunkX, chunkZ);
+        var ctx = group is not null && group.Contains(chunkX, chunkZ) ? new ColumnContext(_world, chunkX, chunkZ, group) : new ColumnContext(_world, chunkX, chunkZ);
         var chunks = new ChunkData[last - first + 1];
         for (var i = 0; i < chunks.Length; i++)
         {
-            chunks[i] = Layer(ctx, first + i, shaped: i > 0);
+            chunks[i] = Layer(ctx, first + i);
         }
 
         return chunks;
     }
 
-    private ChunkData Layer(ColumnContext ctx, int chunkY, bool shaped, bool shortcuts = true)
+    private ChunkData Layer(ColumnContext ctx, int chunkY, bool shortcuts = true)
     {
         var coord = new VoxelChunkCoord(ctx.ChunkX, chunkY, ctx.ChunkZ);
-        if (!shaped)
+        if (!ctx.Shaped)
         {
             _pipeline.Shape(ctx);
         }
