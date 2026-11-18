@@ -261,7 +261,7 @@ the mountains; the owner decides whether it joins this series.
 | Accessory | la pulsera (bracelet) | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
 | Accessory | el cinturón (belt) | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
 | Accessory | el collar (necklace) | accessory | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
-| Accessory | el amuleto (amulet) | accessory | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
+| Accessory | el amuleto (amulet) | accessory | light 5 (stop 5: brighter than I05b's test 3) | 1 hierro | 8, Pablo | not in lexicon: add |
 | Off-hand | el escudo (shield) | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
 | Off-hand | la antorcha (today's torch) (torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
 | Off-hand | el farol (lantern) | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |

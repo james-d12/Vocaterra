@@ -21,7 +21,7 @@ What to add (numbers from 3.13a):
 1. **Armour** (tag the armour group accepts, stack 1, `stats.armour`, a `look`): `casco` (head, 2), `coraza` (body, 5), `grebas` (legs,
    3), `botas` (feet, 2); recipes in `hierro`; Domingo sells them.
 2. **Accessories** (`wear` kind `accessory`): `anillo` (maxStamina +20), `pulsera` (walkSpeed x1.10), `cinturón` (hungerDrain x0.75),
-   `collar` (thirstDrain x0.75), `amuleto` (light 3); Pablo sells them. Check `StatRules`' units (factor in permille or a fraction) and
+   `collar` (thirstDrain x0.75), `amuleto` (light 5, raised from 3 by the owner after stop 5); Pablo sells them. Check `StatRules`' units (factor in permille or a fraction) and
    write the rows to match.
 3. **Off-hand** (`wear` kind `offhand`): `escudo` (armour 3), `farol` (light 12), and today's `antorcha` gains `wear: offhand` and light
    9 while staying placeable (check that wearing and placing do not clash: placing takes from the hand slot, not the off-hand). Domingo
@@ -38,7 +38,7 @@ What to add (numbers from 3.13a):
 
 Tests (Given_When_Then, mirrored folders): every new item loads with its wear, stats and look; recipes craft; each purchase by voice; the
 armour's damage reduction with the full set (12 points: 48%) and with the shield (60%) through `ArmourDamageModifier`; each accessory's
-effect on the sheet; the lantern's and amulet's light through `PlayerLight`; the saco and mochila slot counts and the bag rule; the torch
+effect on the sheet; the lantern's (12) and amulet's (5) light through `PlayerLight`; the saco and mochila slot counts and the bag rule; the torch
 still places from the hand.
 
 Content loop: `scripts/content-loop.sh --grammar --speech`, the strict A2 lint, `--validate-content`, `scripts/rehash-bundle.sh`. If
