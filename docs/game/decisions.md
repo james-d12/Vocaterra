@@ -999,6 +999,22 @@ the owner's answers of 2026-11-15 are in its section 5.
     all these in the handover, for a new agent to pickup, so once b31 and the opus agent come back, record performance findings from opus,
     push b31 and then we are done". B31 is the last change for PR #69. The speed-ups from the Opus review, B32 (grass-step sides), B33
     (leaf aliasing) and B34 (rivers) are queued in the handover for a new agent on a new branch from `main` after the owner merges #69.
+57. **The throughput review's changes, on their own branch** (2026-11-18, about 11:45 UTC; the review
+    docs/research/2026-11-18-throughput-review.md checked the study of item 50 and re-ranked its changes): "I approve of all cahnges,
+    except we should not run the chunk speed milestones in this branch", then "Commit to new branch called feature/meta_improvements,
+    based off of the latest main branch". B29 becomes B29a (Release tests, the gate in one slot, failed tests re-run alone, a test-time
+    report, item 58) and B29b (no wall-clock asserts outside the timing collections, the conflict hot spots), plus a hook against polling;
+    B29's token policy (item 50 B) and stamp skip (item 50 C) are deferred until a re-measurement. All on `feature/meta_improvements`;
+    the chunk-speed series (0a to 0f) does not run there. A failed test that passes alone is listed as FLAKY and recorded as a finding;
+    one that flakes twice moves to a CPU-time budget.
+58. **Timing tests in the gate and CI only; the fuzz suite in CI only** (2026-11-18, about 12:00 UTC): "I think timing tests should be
+    reserved for gate runs, and ci. Fuzz testing is reserved only for CI." `scripts/test.sh` leaves out the timing tests (a `timing`
+    mode runs them on purpose) and the fuzz suite; the gate runs the timing tests as their own step after the suite and no fuzz suite;
+    CI's `build-and-test` runs everything. The fuzz suite's oracles are never weakened. Part of B29a.
+59. **The orchestrator reads CI** (2026-11-18, about 12:10 UTC; asked how fuzz failures would be seen with the fuzz suite only in CI):
+    "It does run on pull requests, i have checked. Yes allow orchestrator to run gh run list." A branch whose work needs CI has a pull
+    request open (a draft until it is ready), so every push runs CI; the orchestrator checks it with `gh run list --branch <branch>` and
+    `gh run view` (the token's scopes now allow it) after each push, and a failure becomes a milestone.
 
 ## Already decided
 

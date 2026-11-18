@@ -67,8 +67,8 @@ The throughput changes run on their own branch, `feature/meta_improvements`, cut
 
 **What item 7a needs besides the scripts:**
 
-- **CI must run where the work is.** CI runs today on pushes to `main`, on pull requests and by hand (`.github/workflows/ci.yml`). With the fuzz suite only in CI, a fuzz failure on a feature branch shows up only while its pull request is open. B29a adds pushes to `feature/**` (or a nightly run) to CI's triggers; this needs the owner's yes.
-- **Someone must read CI.** The orchestrator cannot read CI today (the owner reports it). Either the orchestrator gets read access through `gh run list --branch <feature branch>`, or the owner keeps reporting failures. Each fuzz failure becomes a core milestone, as now.
+- **CI must run where the work is.** CI runs on pushes to `main`, on pull requests and by hand (`.github/workflows/ci.yml`), so a branch whose work needs CI keeps a pull request open (a draft until it is ready) and every push runs it (the owner, 2026-11-18, D-game-34 item 59). No new trigger is needed.
+- **The orchestrator reads CI.** The token's scopes now allow `gh run list --branch <branch>` and `gh run view`; the orchestrator checks CI after each push (item 59). Each fuzz failure becomes a core milestone, as now.
 - **The documents.** When B29a lands, CLAUDE.md's "The fuzz suite is a gate; never weaken an oracle to make it pass" becomes "The fuzz suite runs in CI; never weaken an oracle to make it pass", `scripts/test.sh full` stops saying it runs the suite "as the gate and CI run it", and `.claude/agents/orchestrator.md` says which tests the gate runs.
 
 | | After B28 (2026-11-18) | After B29a and B29b (est.) |

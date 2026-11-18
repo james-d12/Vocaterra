@@ -115,8 +115,10 @@ swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's with
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes to `main`, pull requests and by hand: `build-and-test` (build `-warnaserror`, the full suite
-without models, the offline grammar replay) and `languagetool` (the live check, which rebuilds `content/grammar/`). This token cannot read
-CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub runner is about four times slower
+without models, the offline grammar replay) and `languagetool` (the live check, which rebuilds `content/grammar/`). Read CI yourself
+(the owner, 2026-11-18, D-game-34 item 59): keep a pull request open for a branch whose work needs CI (a draft until it is ready), so
+every push runs CI, and after each push check it with `gh run list --branch <branch>` and `gh run view <id> --log-failed`; a failure
+becomes a milestone, and you tell the owner. The GitHub runner is about four times slower
 than this machine, so a timing test needs a wide margin (M60). The owner's CI requests not yet planned are in
 `docs/game/implementation-plan.md` section 4.6.
 
