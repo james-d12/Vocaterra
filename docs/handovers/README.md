@@ -32,7 +32,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-18-0409-world-next](2026-11-18-0409-world-next.md) | What the B series left for later (B29, B23, B16, B19, caching, open findings), on a new branch from `main` | The owner's merge of `feature/biomes` into `main` |
-| [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | The owner's word to go on. I-merge (main with the biomes series into this branch) stopped part-way: its unverified merge is on `feature/inventory` (unbuilt, ungated); I04b's WIP (`90e614e7`, untested) waits behind it, also kept as a patch in `.claude/briefs/`; I01, I06, I03a, I03b, I02, I05a, I09, I04 gated; stops 2, 3 wait for the owner; stop 2 (the cold's feel) waits for the owner |
+| [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | The owner's word to go on (on hold, 2026-11-18). I-merge (main with the biomes series) is merged and checked (build, format, validate) but the full suite and gate are still to run; I04b's WIP (`90e614e7`, untested) waits behind it, also kept as a patch in `.claude/briefs/`; I01, I06, I03a, I03b, I02, I05a, I09, I04 gated; stops 2, 3 wait for the owner; stop 2 (the cold's feel) waits for the owner |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.
