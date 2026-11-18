@@ -16,7 +16,8 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
         var view = Make(pool);
 
         HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
-        Assert.Equal(view.Unuploaded, view.PendingTiles.Count);
+        var standIns = view.Cache.Keys.Count(k => !FarTileSelector.Select(Small, 192, 192, Voxel).Contains(k)); // B35: the level-4 stand-ins are built and waiting for the card too
+        Assert.Equal(view.Unuploaded + standIns, view.PendingTiles.Count);
         Assert.Empty(view.Draw); // built, none on the card: nothing is drawn yet
         Land(view, 192, 192);
 
@@ -27,8 +28,8 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
         Assert.Equal(leaves, view.Draw.Select(static t => t.Key).ToList());
         Assert.All(view.Draw, t => Assert.True(t.IsBuilt));
         var stats = view.Stats;
-        Assert.Equal(leaves.Count, stats.Cached);
-        Assert.Equal(leaves.Count, stats.Built);
+        Assert.Equal(leaves.Count + standIns, stats.Cached);
+        Assert.Equal(leaves.Count + view.Cache.Keys.Count(k => !leaves.Contains(k)), stats.Built); // each leaf once, and the B35 stand-ins (their level-4 ancestors) once
         Assert.Equal(view.Draw.Sum(static t => (long)t.Triangles), stats.Triangles);
         Assert.True(stats.BuildMilliseconds > 0 && stats.Bytes > 0);
         Output.WriteLine($"320 blocks: {leaves.Count} tiles, {stats.Triangles} triangles, {stats.Bytes / 1048576.0:0.0} MB, built in {stats.BuildMilliseconds:0} ms (longest {stats.LongestBuildMilliseconds:0.0} ms), Debug, one thread");
@@ -58,12 +59,13 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
         Land(view, 192, 192);
         var before = view.Draw.Select(static t => t.Key).ToHashSet();
         var built = view.Stats.Built;
+        var cachedBefore = view.Cache.Keys.ToHashSet();
 
         HangGuard.Settled(limit => view.Settle(192 + 30, 192, Voxel, Release, limit));
         Land(view, 192 + 30, 192);
 
         var after = view.Draw.Select(static t => t.Key).ToHashSet();
-        var fresh = after.Except(before).Count();
+        var fresh = after.Except(before).Count(k => !cachedBefore.Contains(k)); // a stand-in kept from before may become a leaf: not built again
         Assert.Equal(built + fresh, view.Stats.Built);
         Assert.True(fresh < after.Count, "the tiles away from the edge are the same tiles");
         Assert.True(after.Intersect(before).Count() > after.Count / 2);
