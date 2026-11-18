@@ -121,7 +121,7 @@ public sealed class FarTerrainSampler
 
     internal FarSample AtCell(int x, int z, int cell, FarScope? scope) => TryRiver(x, z, cell, scope, out var river) ? river : At(x, z, scope);
 
-    internal FarScope NewScope(int samples) => new(_world, samples);
+    internal FarScope NewScope(int samples, bool coarse = false) => new(_world, samples, coarse);
 
     // The river that runs through a cell too wide to catch it at its centre: the sample on the river field's zero line when that lies within half a cell of the centre and holds water there.
     internal bool TryRiver(int x, int z, int cell, out FarSample river) => TryRiver(x, z, cell, null, out river);

@@ -15,6 +15,9 @@ public sealed class LodModelSource : ILodColumnSource
     // A forest this thick (the biome's tree density, percent) is drawn as a layer of leaves where single trees are not.
     private const int CanopyFrom = 25;
 
+    // From this level on a column's samples lie on the climate's lattice points (the cell is 8 blocks or more and the samples a quarter and half of it from its edge, the lattice 4), so the climate is the lattice point's own and the neighbours the cliff test reads take the nearest point's (B37).
+    private const int CoarseFrom = 99;
+
     // The columns the tree pass reads for each chunk's 16 candidates (a candidate that survives the spacing and its biome's density reads about a dozen columns, most of them shared with the next candidate's).
     private const int TreeColumnsPerChunk = 96;
 
@@ -48,7 +51,7 @@ public sealed class LodModelSource : ILodColumnSource
             samples += chunks * (((grid.Depth * cell) + (2 * reach)) / VoxelChunk.Size + 2) * TreeColumnsPerChunk / 6;
         }
 
-        var scope = _sampler.NewScope(samples);
+        var scope = _sampler.NewScope(samples, grid.Level >= CoarseFrom);
         if (grid.Level == 0)
         {
             var trees = exact ? Trees(grid.X0, grid.Z0, grid.Width, grid.Depth, scope) : null;
