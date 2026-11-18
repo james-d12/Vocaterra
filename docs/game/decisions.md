@@ -986,6 +986,9 @@ the owner's answers of 2026-11-15 are in its section 5.
 53. **Where the speed-ups land** (2026-11-18, about 08:55 UTC): "speed upgs go in a new pr / branch. b31 once done is merged to main".
     B31 (the Shaders switch crash) is the last change on `feature/biomes`; once it is gated and pushed, PR #69 is ready for the owner to
     merge. The chunk generation speed-ups go on a new branch from `main`, as a new pull request.
+54. **The speed-ups on feature/biomes after all** (2026-11-18, about 09:00 UTC, replacing item 53's second part): "actually no the
+    performance improvements can go on this branch too". The chunk generation speed-ups are milestones on `feature/biomes`, gated there
+    like the rest, and reach `main` through PR #69 (or a later pull request from the same branch if the owner merges #69 first).
 
 ## Already decided
 
