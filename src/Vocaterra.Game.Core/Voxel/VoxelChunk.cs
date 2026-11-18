@@ -19,12 +19,21 @@ public sealed class VoxelChunk
     /// <summary>The number of blocks in a chunk.</summary>
     public const int Volume = Size * Size * Size;
 
-    private readonly BlockId[] _blocks = new BlockId[Volume];
+    // All-air chunks never allocate their blocks: the array appears with the first block that is not air, and a read of a chunk without one is air.
+    internal static readonly BlockId[] EmptyBlocks = new BlockId[Volume];
+    private static readonly Lazy<byte[]> AirDigest = new(() => SHA256.HashData(new byte[Volume * sizeof(ushort)]));
+
+    /// <summary>The digest of a chunk of air (what a chunk that is not stored hashes as).</summary>
+    internal static byte[] AirChunkDigest => AirDigest.Value;
+
+    private BlockId[]? _blocks;
     private byte[]? _digest;
+    private byte[]? _pristine;
+    private bool _pristineRecorded;
     private int _nonAir;
     private byte[]? _water;
     private int _flowing;
-    private ulong _kinds;
+    private UInt128 _kinds;
     private bool _kindsValid;
 
     internal VoxelChunk(VoxelChunkCoord coord) => Coord = coord;
@@ -33,7 +42,10 @@ public sealed class VoxelChunk
     public VoxelChunkCoord Coord { get; }
 
     /// <summary>The blocks, layer by layer, row by row (index = (localY * 16 + localZ) * 16 + localX).</summary>
-    public ReadOnlySpan<BlockId> Blocks => _blocks;
+    public ReadOnlySpan<BlockId> Blocks => _blocks ?? EmptyBlocks;
+
+    /// <summary>The block array itself, or the shared array of air for a chunk that holds nothing: never written through (the grid's read cache holds it).</summary>
+    internal BlockId[] BlockArray => _blocks ?? EmptyBlocks;
 
     /// <summary>
     /// How many block edits this chunk has had since the grid was created. It changes whenever the content changes, so a renderer compares
@@ -48,22 +60,22 @@ public sealed class VoxelChunk
     public bool IsEmpty => _nonAir == 0;
 
     /// <summary>
-    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 64). Computed on first use after an edit and cached,
+    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 128, see BlockKinds.Capacity). Computed on first use after an edit and cached,
     /// so a search for one kind skips every chunk without it.
     /// </summary>
-    public ulong KindMask
+    public UInt128 KindMask
     {
         get
         {
             if (!_kindsValid)
             {
-                var mask = 0UL;
-                foreach (var block in _blocks)
+                var mask = default(BlockKinds.Accumulator);
+                foreach (var block in Blocks)
                 {
-                    mask |= 1UL << (int)block;
+                    mask.Add(block);
                 }
 
-                _kinds = mask;
+                _kinds = mask.Mask;
                 _kindsValid = true;
             }
 
@@ -81,7 +93,20 @@ public sealed class VoxelChunk
     public ReadOnlySpan<byte> WaterLevels => _flowing > 0 && _water is not null ? _water : default;
 
     /// <summary>The block at the chunk-local position.</summary>
-    public BlockId this[int localX, int localY, int localZ] => _blocks[Index(localX, localY, localZ)];
+    public BlockId this[int localX, int localY, int localZ] => _blocks is null ? BlockId.Air : _blocks[Index(localX, localY, localZ)];
+
+    /// <summary>
+    /// Whether the chunk's content differs from what it held just before its first write: a chunk nobody wrote, or whose edits were all undone, is not changed.
+    /// An unchanged chunk can be evicted and regenerated; a changed one is state (B05 saves and digests the changed chunks). A chunk the scene builder filled by
+    /// writing counts as changed until <see cref="VoxelGrid.SealPristine"/>.
+    /// </summary>
+    public bool IsChanged => _pristine is not null && !_pristine.AsSpan().SequenceEqual(ComputeDigest());
+
+    /// <summary>
+    /// The digest the chunk had just before its first write (recorded lazily, so reading and installing cost nothing), or the current digest while it has never
+    /// been written. <see cref="IsChanged"/> is whether it differs from <see cref="ComputeDigest"/>.
+    /// </summary>
+    public byte[] PristineDigest => _pristine ?? ComputeDigest();
 
     /// <summary>
     /// The SHA-256 of the chunk: its 4 096 block ids, each a 16-bit little-endian integer, in storage order. When the chunk holds a water
@@ -95,6 +120,11 @@ public sealed class VoxelChunk
             return cached;
         }
 
+        if (_nonAir == 0 && _flowing == 0)
+        {
+            return _digest = AirDigest.Value;
+        }
+
         var blockBytes = Volume * sizeof(ushort);
         var buffer = new byte[HasWaterLevels ? blockBytes + Volume : blockBytes];
         if (_flowing > 0 && _water is { } levels)
@@ -104,7 +134,7 @@ public sealed class VoxelChunk
 
         for (var i = 0; i < Volume; i++)
         {
-            BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(i * sizeof(ushort)), (ushort)_blocks[i]);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(i * sizeof(ushort)), (ushort)_blocks![i]);
         }
 
         _digest = SHA256.HashData(buffer);
@@ -124,8 +154,10 @@ public sealed class VoxelChunk
     internal VoxelChunk Clone()
     {
         var copy = new VoxelChunk(Coord);
-        _blocks.CopyTo(copy._blocks, 0);
+        copy._blocks = (BlockId[]?)_blocks?.Clone();
         copy._digest = _digest;
+        copy._pristine = _pristine;
+        copy._pristineRecorded = _pristineRecorded;
         copy._nonAir = _nonAir;
         copy._water = (byte[]?)_water?.Clone();
         copy._flowing = _flowing;
@@ -135,15 +167,69 @@ public sealed class VoxelChunk
         return copy;
     }
 
+    /// <summary>
+    /// Installs generated content into a chunk that holds nothing yet. Not an edit: the version stays 0 and no pristine digest is recorded, so the content is the
+    /// chunk's pristine state.
+    /// </summary>
+    internal void Install(ChunkContent content)
+    {
+        _blocks = content.Blocks;
+        _water = content.WaterLevels;
+        _nonAir = 0;
+        foreach (var block in _blocks)
+        {
+            if (block != BlockId.Air)
+            {
+                _nonAir++;
+            }
+        }
+
+        _flowing = 0;
+        if (_water is not null)
+        {
+            foreach (var level in _water)
+            {
+                if (level != 0)
+                {
+                    _flowing++;
+                }
+            }
+
+            if (_flowing == 0)
+            {
+                _water = null;
+            }
+        }
+
+        if (_nonAir == 0)
+        {
+            _blocks = null; // a chunk of air keeps no array
+        }
+
+        _digest = null;
+        _kindsValid = false;
+    }
+
+    /// <summary>Forgets the pristine digest: what the chunk holds now becomes its pristine state.</summary>
+    internal void SealPristine()
+    {
+        _pristine = null;
+        _pristineRecorded = false;
+    }
+
+    /// <summary>Writes a block at the chunk-local position; returns whether it changed. A bedrock cell is never changed (<see cref="BlockDefinition.Indestructible"/>).</summary>
     internal bool Set(int localX, int localY, int localZ, BlockId block)
     {
         var index = Index(localX, localY, localZ);
-        if (_blocks[index] == block)
+        var old = _blocks is null ? BlockId.Air : _blocks[index];
+        if (old == block || old == BlockId.Bedrock)
         {
-            return false;
+            return false; // bedrock is never removed or replaced, by any edit (B10); only a chunk's install (generation) writes it
         }
 
-        if (_blocks[index] == BlockId.Air)
+        RecordPristine();
+        _blocks ??= new BlockId[Volume];
+        if (old == BlockId.Air)
         {
             _nonAir++;
         }
@@ -174,6 +260,7 @@ public sealed class VoxelChunk
             return false;
         }
 
+        RecordPristine();
         _water ??= new byte[Volume];
         _water[index] = level.Encoded;
         _flowing += (level.Encoded != 0 ? 1 : 0) - (old != 0 ? 1 : 0);
@@ -185,16 +272,34 @@ public sealed class VoxelChunk
     /// <summary>Fills the chunk-local column (localX, localZ) from <paramref name="localY0"/> to <paramref name="localY1"/> inclusive with a block; returns how many blocks changed.</summary>
     internal int FillColumn(int localX, int localZ, int localY0, int localY1, BlockId block)
     {
+        var blocks = _blocks;
+        if (blocks is null)
+        {
+            if (block == BlockId.Air)
+            {
+                return 0;
+            }
+
+            RecordPristine();
+            blocks = _blocks = new BlockId[Volume];
+        }
+
         var changed = 0;
         for (var y = localY0; y <= localY1; y++)
         {
             var index = Index(localX, y, localZ);
-            var old = _blocks[index];
+            var old = blocks[index];
+            if (old == BlockId.Bedrock && block != BlockId.Bedrock)
+            {
+                continue; // never removed or replaced (B10)
+            }
+
             if (old == block)
             {
                 // Filling water over water writes source: a non-source level there is reset.
                 if (block == BlockId.Water && _water is not null && _water[index] != 0)
                 {
+                    RecordPristine();
                     ClearLevel(index);
                     changed++;
                 }
@@ -202,6 +307,7 @@ public sealed class VoxelChunk
                 continue;
             }
 
+            RecordPristine();
             if (old == BlockId.Air)
             {
                 _nonAir++;
@@ -211,7 +317,7 @@ public sealed class VoxelChunk
                 _nonAir--;
             }
 
-            _blocks[index] = block;
+            blocks[index] = block;
             ClearLevel(index);
             changed++;
         }
@@ -224,6 +330,23 @@ public sealed class VoxelChunk
         }
 
         return changed;
+    }
+
+    // Just before the first write (lazily, so a chunk nobody writes never pays for it): the digest the chunk has now is its pristine one. A write that changes nothing
+    // never gets here.
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private void RecordPristine()
+    {
+        if (!_pristineRecorded)
+        {
+            RecordPristineNow();
+        }
+    }
+
+    private void RecordPristineNow()
+    {
+        _pristine = ComputeDigest();
+        _pristineRecorded = true;
     }
 
     private void ClearLevel(int index)

@@ -187,12 +187,12 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheBlockIdsOfTheNewKindsAreAppendedAfterTheOldOnesAndStayBelowSixtyFour()
+    public void TheBlockIdsOfTheNewKindsAreAppendedAfterTheOldOnesAndStayBelowTheKindMaskWidth()
     {
         Assert.Equal(22, (int)BlockId.Snow); // the last kind before S14
         var ids = Enum.GetValues<BlockId>().Select(static b => (int)b).ToArray();
         Assert.Equal(Enumerable.Range(0, ids.Length), ids.Order());
-        Assert.True(ids.Max() < 64, "the mesher's kind masks hold one bit per kind");
+        Assert.True(ids.Max() < BlockKinds.Capacity, "the kind masks hold one bit per kind (128 since B09)");
         Assert.Equal(BlockId.SpruceTrunk, (BlockId)23);
         Assert.Equal(BlockId.Cobble, (BlockId)33);
         foreach (var definition in BlockDefinition.All)

@@ -24,7 +24,7 @@ public sealed class WaterSaveTests
     {
         var (edited, fresh) = Flooded();
 
-        var edit = Assert.Single(VoxelGridDiff.Capture(edited, fresh));
+        var edit = Assert.Single(VoxelGridDiff.Capture(edited));
 
         Assert.Equal(VoxelChunk.Volume, edit.Runs.Sum(static r => r.Length));
         var run = Assert.Single(edit.Water!);
@@ -46,7 +46,7 @@ public sealed class WaterSaveTests
         edited.SetBlock(24, Ground, 20, BlockId.Water);
         edited.SetWater(24, Ground, 20, WaterLevel.Flowing(3));
 
-        var edit = Assert.Single(VoxelGridDiff.Capture(edited, fresh));
+        var edit = Assert.Single(VoxelGridDiff.Capture(edited));
 
         Assert.Equal([3, 1], edit.Water!.Select(static r => r.Length));
         Assert.Equal([2, 3], edit.Water!.Select(static r => r.Level));
@@ -61,7 +61,7 @@ public sealed class WaterSaveTests
         edited.SetBlock(21, Ground + 1, 20, BlockId.Planks);
         var rebuilt = fresh.Clone();
 
-        VoxelGridDiff.Apply(rebuilt, VoxelGridDiff.Capture(edited, fresh));
+        VoxelGridDiff.Apply(rebuilt, VoxelGridDiff.Capture(edited));
 
         Assert.Equal(edited.ComputeDigestHex(), rebuilt.ComputeDigestHex());
         Assert.Equal(WaterLevel.Flowing(3), rebuilt.GetWater(20, Ground, 20));
@@ -75,7 +75,7 @@ public sealed class WaterSaveTests
         var edited = fresh.Clone();
         edited.SetBlock(21, Ground, 20, BlockId.Planks);
 
-        var edit = Assert.Single(VoxelGridDiff.Capture(edited, fresh));
+        var edit = Assert.Single(VoxelGridDiff.Capture(edited));
 
         Assert.Null(edit.Water);
         Assert.DoesNotContain("water", CanonicalJson.Serialize(edit), StringComparison.Ordinal); // left out of the file, as saves were before
@@ -85,11 +85,11 @@ public sealed class WaterSaveTests
     public void Given_AChunkEditWithWaterRuns_When_WrittenAndRead_Then_ItComesBackEqual()
     {
         var (edited, fresh) = Flooded();
-        var edit = Assert.Single(VoxelGridDiff.Capture(edited, fresh));
+        var edit = Assert.Single(VoxelGridDiff.Capture(edited));
 
         var back = CanonicalJson.Deserialize<ChunkEdit>(CanonicalJson.Serialize(edit));
 
-        Assert.Equal(edit.Chunk, back.Chunk);
+        Assert.Equal((edit.X, edit.Y, edit.Z), (back.X, back.Y, back.Z));
         Assert.Equal(edit.Water, back.Water);
         Assert.Equal(edit.Runs, back.Runs);
     }
@@ -98,7 +98,7 @@ public sealed class WaterSaveTests
     public void Given_BadWaterRuns_When_Applied_Then_TheDiffIsRefused()
     {
         var (edited, fresh) = Flooded();
-        var good = Assert.Single(VoxelGridDiff.Capture(edited, fresh));
+        var good = Assert.Single(VoxelGridDiff.Capture(edited));
         var index = good.Water![0].Start;
 
         foreach (var bad in new[]
@@ -130,7 +130,7 @@ public sealed class WaterSaveTests
         }
 
         Assert.True(session.Simulation.Flow.Queue.Count > 0, "the flood is under way");
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var document = SaveGame.Parse(text);
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, bumpSession: false);
 
@@ -139,7 +139,7 @@ public sealed class WaterSaveTests
         Assert.Contains(document.Chunks, static c => c.Water is not null);
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
         Assert.Equal(session.Simulation.Flow.Queue.Snapshot(), loaded.Simulation.Flow.Queue.Snapshot());
-        var again = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
+        var again = SaveGame.Parse(SaveGame.Save(loaded));
         Assert.Equal(CanonicalJson.Serialize(document.Chunks), CanonicalJson.Serialize(again.Chunks));
         Assert.Equal(document.Flow, again.Flow);
 
@@ -157,7 +157,7 @@ public sealed class WaterSaveTests
     public void Given_ADrySession_When_Saved_Then_TheFileHasNoFlowOrAirAndLoadsBack()
     {
         var session = TestGame.NewSession();
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
 
         var document = SaveGame.Parse(text);
 
@@ -173,7 +173,7 @@ public sealed class WaterSaveTests
         var session = TestGame.NewSession();
         session.Simulation.Breath.Restore(400);
 
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, bumpSession: false);
 
         Assert.Equal(400, SaveGame.Parse(text).Air);

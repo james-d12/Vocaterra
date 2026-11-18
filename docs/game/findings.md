@@ -2549,3 +2549,466 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   chest stays). The kit's room is checked with the coins and the stake out, so `no_room` needs a bag without the stake. The checklist's
   `stake` step counts the bag plus one once the plot is owned, so it stays done after the purchase and a load (and reads 1/1 with
   `--own-plot`). No stake is given once land is owned. Gated: 11,469 passed, 3 skipped.
+- **B00, the B series registered (2026-11-15, on `feature/biomes`; D-game-34).** Brief `.claude/briefs/b00-register.md`. Section 4.14
+  of this plan, the open-items and index rows. The gate (`162dec4f`, 11,498 passed, 3 skipped) failed one test,
+  `MarkdownLinkTests`: the brief the orchestrator had committed beside it held two relative Markdown links, and the test scans
+  `.claude/briefs/` too. The agent's own run of the test passed because its branch predated the brief. Fixed by writing the links as
+  code; the test re-run passed. A brief names files as code, never as Markdown links.
+- **B01, noise, climate, the height model and the biome table (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b01-noise-climate-biomes.md`, report `.claude/briefs/b01-report.md`. Integer gradient noise (2D, 3D), fBm, ridged and
+  warp, data splines (Catmull-Rom clamped), lattice samplers; the climate with its lapse; `HeightModel` and `ColumnShape` (lakes live in
+  the height model); `BiomeTable` with 14 rows. Findings: the plan's biome ids `forest`, `river` and `lake` clash with string literals in
+  `src/` (a valley pass name and scene-layout words), so the shipped ids are `woodland`, `river-channel` and `lake-basin`; a single
+  `ClimateSampler.At` costs about 12 µs, so area work must use `Fill` (256 x 256 columns of climate, height and biome in 60 ms in
+  Release); the first tuning made 14-block cliffs between neighbouring columns (fine ridged octaves and deep river canyons on uplands),
+  now held to 9 by a test over 3 seeds. Not fixed: peaks are not faded over the sea, so rugged coasts can raise islands; terrace and crag
+  risers reach 8 to 9 blocks. Gated: 11,597 passed, 3 skipped.
+- **B04a, the sparse VoxelGrid (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b04a-sparse-grid.md`, report
+  `.claude/briefs/b04a-report.md`. Chunks keyed by `VoxelChunkCoord`, none for air; a bounded and a streamed mode (`WorldLimits`, y down
+  to -64, `IChunkGenerator` for generate-on-read); installs are not edits (`ResidencyVersion`, `IChunkResidencyListener`);
+  `PristineDigest` and `IsChanged`; `IVoxelReader`; the dense members bounded-only, every use allow-listed with the milestone that
+  removes it. Byte-identical: every golden held and 33 of 35 scripted runs matched. Findings: `WalkPlanner` keyed its search by a dense
+  int index that breaks below y 0 and overflows an int on a 60,000-block world (now keyed by `BlockPos`, same order); r01-route's
+  `sounds.log` voice-end tick moved between captures of the same code (2174, 2131, 1950) while another agent built, so the speech timing
+  of that run depends on load (not yet proven with a second baseline). The valley build is 10 to 12% slower (612 to 690 ms), its grid
+  28.5 MB instead of 36.8 MB, neighbour reads 40% faster. The valley's chunks count as changed until `SealPristine()` is called (B05).
+  Gated after a merge of `feature/biomes` into the branch (an architecture.md conflict with B01): 11,650 passed, 3 skipped.
+- **B03, the generation pipeline and the procedural chunk source (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b03-generation-pipeline.md`, report `.claude/briefs/b03-report.md`. Column shapers and chunk decorators in one fixed
+  order; the strategy registry (D-game-34 item 13: `surfaceStrategy` and `decorStrategy` on a biome row, faded by distance to another
+  biome); trees on a jittered 4 x 4 grid per chunk with hash priority across chunk borders; every water block a source at 32. Chunk-local
+  (a chunk alone equals the chunk among shuffled neighbours, also from many threads). Findings: trunks stood in the bank column beside
+  water and the exitable-edge scan read their crowns as the floor (31 of 144 sites failed): no trunk within one column of water now, the
+  bank cut reaches 12 (the valley's cut only 4), and a bank beside swimmable water is at most 1 above the surface; the shared scan
+  `UnexitableEdges` now treats a floor of leaves like a bridge, a crown over the water and not a bank (the valley's result unchanged).
+  Times: a surface chunk 1.3 ms median, a whole 24-layer column 1.6 ms (`GenerateColumn`, which B06 should use); a column holds about
+  8 non-empty chunks in lowland and 19 in a range. Not fixed: no slope rule for trees, no reeds by water, the shipped rows name no
+  strategy yet. Gated: 11,732 passed, 3 skipped.
+- **B05, saves version 9 and the changed-chunk state digest (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b05-saves-v9.md`,
+  report `.claude/briefs/b05-report.md`. The state digest is a header (seed, region template digest, `ProceduralGenerator.Version`, a
+  hash of world.json, biomes.json and underground.json) and the changed chunks sorted, each with its coordinates and digest; the valley's
+  build seals its chunks as pristine. Saves are version 9: `ChunkEdit(X, Y, Z, Runs, Water)`, no `WorldDims`, no pristine world copy
+  (restore builds a new world, then overwrites the edited chunks). The first save went from about 0.7 s and 38 MB to 1.2 ms and under
+  8 MB; a load is about 56 ms. Findings: `compare-runs.py` does not mask the digest lines, so a digest change reports most runs as
+  different (the bodies matched as JSON with hex masked); r17-speak's voice-queue order is another load-dependent speech timing like
+  r01's. The agent also renamed the fixture in docs/nlp/changing-the-core.md (a literal path, accepted). Open for B06: pass the region
+  template's digest to `WorldStateHeader.For`. Gated: 11,748 passed, 3 skipped.
+- **B02, the world preview tool (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b02-world-preview.md`, report
+  `.claude/briefs/b02-report.md`. `tools/Vocaterra.WorldPreview` draws biome and height maps (with legends and height statistics)
+  and vertical slices from the pure model, about 1 s for a 4,096-block map; it reads only and writes PNGs by hand (no package).
+  The maps showed needle ranges, inland "ocean" basins, steep coasts with flat sea floors, snow on cold lowland and short or looping
+  rivers; the owner ruled on them (D-game-34 item 16) and B02b tunes them. Its first gate was stopped before its tests when the owner
+  stopped the work (the unverified merge was reset away); re-run at one heavy slot: 11,769 passed, 3 skipped.
+- **B04b, the game's consumers keyed by chunk coordinate (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b04b-game-consumers.md`, report `.claude/briefs/b04b-report.md`. The renderer, `ChunkVersionTracker`, `ChunkViewSet`,
+  the rain cover and a new `ChunkLightIndex` read only through `TryGetChunk`, `PeekBlock` and `Limits` and forget a chunk on eviction;
+  meshes, glow and the view list equal the dense versions (tested), and 31 of 32 scripted runs were identical (r17-speak's voice
+  timing). Findings: the player's placed torch (`antorcha`, `BlockId.Torch`) is not a light kind, so a torch lighting a cave (B12)
+  needs it made one; the light index misses `FillColumn` writes made after it is built (only the scene build uses them). It conflicted
+  with B05 in the dense-member allow-list; a Haiku agent merged B05 in, leaving only the three B06 entries (its reason pattern now
+  also admits a `B05:` tag, harmless with no such entry and moot when B06 empties the list). Gated: 11,779 passed, 3 skipped.
+- **B08a, the pass in the bounded valley (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b08a-the-pass.md`, reports
+  `.claude/briefs/b08a-report.md` and `b08a-merge-report.md`. The relief rows could not be lowered: the terrain samples the relief at a
+  point moved by noise (up to 86 blocks), so lowering them opened a second trench to the east edge; the pass is a graded cutting
+  instead (path `pass`, 7 wide, from the village to `paso.edge` at 383, 208, y 58), with the sites `paso.gate`, `paso.rise`,
+  `paso.foot`, `paso` and `paso.edge`, closed by a stone `rockfall` stamp (a new optional prop key `floorY`). `SceneTests.GoldenDigest`
+  moved to b189ee0a6783 (trees 1,906 to 1,851). Finding: the ring is walkable almost everywhere (a step-up-1 walk reached the east edge
+  away from the pass), which led to the edge wall and the owner's "leave anywhere" (D-game-34 items 6 and 15). B05's merge exposed a
+  stale `VoxelGridDiff.Capture` call (the pristine argument B05 removed); the atmosphere digests went back to B05's values, since a
+  fresh route has no changed chunks. Gated: 11,785 passed, 3 skipped. Not yet looked at in the game (windows wait for the owner).
+- **B06, regions, the blend, the composite chunk source and the streamed mode (2026-11-15, on `feature/biomes`).** Brief
+  `.claude/briefs/b06-regions-streaming.md`, report `.claude/briefs/b06-report.md`. The valley is a region built by the unchanged
+  `SceneBuilder` and frozen, its bounds from its layout; outside it the procedural world eases to the region's edge over a 64-block
+  margin (data in `regionBlend`), with the edge blurred over 16 columns (the agent's addition: without it ridges combed straight out
+  from the border), trees thinned, a land bias that leaves no sea within 512 blocks on seeds 42, 7 and 2026, and an exit corridor from
+  the pass. The streamed valley equals the bounded one chunk by chunk (4,608 chunks), and three streaming policies give the same
+  state digest and save. Largest step across the border 6 to 8 (bound 9). Bugs fixed: `FireRings` lost camp stones restored from a
+  save (the save applies its edits before the session exists); `LandRules` sized its mask by the grid (an overflow on a streamed
+  grid). Seen in its pictures: rivers stop at the margin in a rounded end and seed 7 has a lake cut straight by it (the owner: rivers
+  start in the hills, D-game-34 item 18, in B02b); seed 7 has a steep ridge on the valley's east side that blocks about 6% of the ring
+  walk at margin 64 (96 gives 97%, 128 gives 99.5%; data, re-measured after B02b). On a streamed grid a guide snapshot outside the
+  valley generates its window's missing chunks on the game thread (B07's residency). Scripted runs not run (no game windows while the
+  owner plays). Gated: 11,879 passed, 3 skipped.
+- **B09, the 128-bit kind mask (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b09-kind-masks.md`, report
+  `.claude/briefs/b09-report.md`. `UInt128` everywhere a set of block kinds is held (`BlockKinds.Capacity = 128`), with a guard test at
+  id 128. Finding: `UInt128` operators cost about 20% of Debug meshing time in the two 4,096-block loops (the mesher and
+  `VoxelChunk.KindMask`); a two-`ulong` `BlockKinds.Accumulator` there brought it back to the baseline (about 4.3 s for the valley's
+  3,536 chunks). `VoxelChunk` grew from 88 to 96 bytes (alignment). The mesher's tables throw for ids with no block, so mesher coverage
+  above 63 waits for B10's real blocks. Gated: 11,885 passed, 3 skipped.
+- **This machine renders on an NVIDIA RTX 3070 (seen 2026-11-15).** The biomes plan's "software-GL VM" (llvmpipe, findings of S2 and
+  later) is out of date; B07's and B12's frame-rate measurements run on this GPU (B07's target: 60 fps at High with the far view at
+  16 km, D-game-34 item 21).
+- **B08b, the pass's lock (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b08b-pass-lock.md`, report
+  `.claude/briefs/b08b-report.md`. A `pass` section in world.json lists all 12 lessons; `PassState` opens once (lessons done or the
+  cheat setting "Open the pass (cheat)" under a new "Cheats" heading) and stays open through saves; the rockfall's cells become air
+  as changed chunks; `--pass open` for runs; B07 reads `session.Pass.IsOpen`. `LessonRunner.Classes.cs` still names two lesson ids
+  for the old-save split (the new no-lesson-id test skips it and says so). Its first gate failed on the core's known «porque» fuzz
+  bug at a random seed (`RecastLoopFuzzTests`, seed `7PcP-w7xauk1`, replayed; B08b touched no core input; recorded in the core
+  findings and open items); the re-run passed: 11,901 passed, 3 skipped. Not yet seen in the game (pictures wait for windows).
+- **B10, the underground blocks (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b10-underground-blocks.md`, report
+  `.claude/briefs/b10-report.md`. Slate 57, granite 58, limestone 59, gravel 60, lava 61, bedrock 62, iron 63, tin 64 and copper ore
+  65, with new `BlockDefinition` flags `StopsBody`, `Glows` and `Indestructible`; bedrock is refused in `VoxelChunk.Set` and
+  `FillColumn`, where every edit path ends; the light index takes its light kinds from `Glows`. Findings: `Footsteps.SurfaceOf` threw
+  for an unknown block, and four tests had a 57-block or 64-id limit written in; the mesher's `KindFlags` was sized 64. Open for the
+  owner: lava collides like a solid block, so a body can stand on a lava surface (never enter it); a two-high collider would make a
+  body hover over a lava lake. Gated: 11,961 passed, 3 skipped.
+- **B15, towns on procedural ground (2026-11-15, on `feature/biomes`).** Brief `.claude/briefs/b15-towns.md`, report
+  `.claude/briefs/b15-report.md`. `IGroundShape` chooses the hand-drawn relief (the valley, unchanged) or the procedural height; a
+  `ProceduralReliefRegion` builds a layout on procedural ground at a `RegionPlacement`, levels only its sites and paths, and freezes
+  through the valley's code, so the catalog, blend and composite source take it unchanged; border columns equal the world's ground
+  (384 of 384 at three places, steps 1 to 6). A 96-cube town builds in 41 ms. Findings: a town on mountains is refused when its ground
+  passes the layout's ceiling; a river bed under a town is copied (only ground under the sea is refused). For B16: towns from
+  world.json, each town's digest listed separately, water in a layout, the surface block from the biome. It needed one merge for a
+  README conflict. Gated: 11,980 passed, 3 skipped.
+- **B10b, the body sinks into lava; the ores easier to see (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b10b-lava-sink.md`,
+  report `.claude/briefs/b10b-report.md`. Lava no longer collides with a moving body (`VoxelCollider.Collides`); `Physics/LavaMotion.cs`
+  holds its numbers beside water's `SwimMotion` (sink 0.5 against 1.5 blocks a second, swimming 0.25 against 0.6 of walking); the
+  planners still avoid it (`BlocksBody` unchanged); an orange view in lava (not yet seen in a window). The ores are five clusters each
+  with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with patina). Three B10 tests that encoded standing on
+  lava were replaced by `LavaBodyTests`. The liquids' numbers are constants, not data, for water as for lava. Gated: 11,993 passed.
+- **B11, the underground generation (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11-underground-generation.md`, report
+  `.claude/briefs/b11-report.md`. `underground.json` drives five passes after the surface (strata, floor, caves, lava, ores); caves on a
+  4 x 8 x 4 lattice that skips impossible cells and fills certain ones; ore veins inside their chunk. The water rule keeps caves 3
+  blocks from water and 16 under a water bed (`bedClearance`, data: the brief's literal "under a bed" would forbid caves at any depth
+  under water); 0 violations over rivers, lakes and coasts for three seeds. Under the valley the procedural underground starts below
+  y -9; under a town below its lowest layer (fixed on the merge with B15). Findings: a column of 24 chunks went from 1.8 to 6.4 ms in
+  Debug (worst 16 ms), for B07 and B12 to re-measure; the generator version went to 2, which moved the atmosphere pins. Needed one merge
+  (README, the preview CLI). Gated: 12,087 passed, 3 skipped.
+- **B13, the valley's underground (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b13-valley-underground.md`, report
+  `.claude/briefs/b13-report.md`. B11's passes laid into the valley's buried stone after the scene is built (`ValleyUnderground`,
+  `VoxelGrid.ReplaceBlocks`, not an edit), only where a per-column reach allows: 8 from air, 16 from water, 12 columns from the edge,
+  and margins round sites, paths, props, the village and the pass (a `valley` section in underground.json, validated against the
+  scene). An exact 3D distance test shows the nearest change 9 blocks from air and 17 from water; 1.5 million blocks changed; the caves
+  meet the procedural ones at y 0 with no seam (`underRegionCeiling` -9 to -1). Checked in the game: screenshots of the village and the
+  peaks are byte-identical before and after. Findings: the valley's build costs 76 ms more in Release (151 to 227 ms) and buried caves
+  add mesh faces (about 400 more buried chunks are meshed), for B07's measurements; `ChunkMesherTests`' skippable-chunk floor went from
+  2,000 to 1,500 for that reason. `SceneTests.GoldenDigest` moved once, to 83af36d3. Gated: 12,100 passed, 3 skipped.
+- **The night's in-game verification (2026-11-16, `bb145f22` against `4fc0a00f`; no repository changes).** Report
+  `.claude/briefs/v-night-verification-report.md`, pictures in `artifacts/b-series/verify/`. All 32 scripted runs pass on both builds;
+  every difference has its milestone (B08a's notch and trees, the digest lines of B05, B06 and B11, the bundle hash); nothing from B04b,
+  B09, B10, B10b, M96 or B15 shows in the valley's pictures; the pass opens, saves and reloads as B08b designed. Findings: the road from
+  the village meets a 2 to 3 block dirt riser at (318, 217) and a walk to the gate takes a 41-turn detour, and the cutting reads as a dirt
+  staircase (B08c fixes it); `scripts/compare-runs.py` hangs on long single-line saves (a quadratic mask; B08c bounds it); the tree count
+  is 1,848 after B08a (its report said 1,851; the valley's digest did not move after B08a's gate).
+- **B08c, the pass road from the village (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b08c-pass-road.md`, report
+  `.claude/briefs/b08c-report.md`. Cause: `ApplySites` blended the village's levelled ground over every cell of its 8-block ring, road
+  surfaces included, pulling the graded road down a level and leaving 2-block steps. A path that neither starts nor ends at a site now
+  keeps its own height across the site's blend; the gate moved to (318, 217) (a 5-wide road from 316 put road under the village's trees);
+  the climb is a block every second column. The walk from the village to the gate went from 41 turns and about 3,000 ticks to 6 turns
+  and 293. The cutting still climbs in 1-block steps with dirt risers (voxel stairs), for the owner to judge. compare-runs.py's mask
+  bounded: two captures compare in 4 s. `GoldenDigest` to efcfbe02. Gated: 12,103 passed, 3 skipped.
+- **B02b, terrain tuning, three rounds (2026-11-16, on `feature/biomes`).** Briefs `.claude/briefs/b02b-terrain-tuning.md`,
+  `b02b-redo.md`, `b02b-round3.md`; reports `b02b-report.md`, `b02b-round2-report.md`, `b02b-round3-report.md`; maps in
+  `artifacts/b-series/b02b/` (`round1/`, `round2/`). Round 3 gives generated water a level per column (`ColumnShape.WaterLevel`: the
+  smooth ground less the hills' amplitude, a clearance of 2 and the valley's depth, in steps of 3 above the sea); a step is built as
+  falling water topped by one thin cell, every other water block a source, and a test wakes every water cell of three seeds' rivers,
+  lakes and coasts without a change. Rivers hold water on 99.6 to 99.9% of their line (round 2: 7 to 8%), lakes 1.5 to 3.2%
+  (0.03 to 0.6%); chains are a distance to a noise's zero line (`chainBlocks` 1500), spines 233 to 246 blocks thick; coasts warped twice
+  more with a distance noise, straight runs of 300 blocks or more from about 51% to 36%; ring walk 192 of 192 on seeds 42, 7 and 2026.
+  Findings: rivers are noise lines with no direction, so the per-column water rises and falls with the land along a line: 6.5 to 9.8%
+  of river water stands in humps (a reach higher than both neighbours), median rise one step, largest 48 to 84 blocks (seed 7's walk
+  climbs to y 98 over hills; seed 2026 joins two seas over a rise); a drainage network would fix it and goes to the owner. Test bounds
+  loosened for the thinner chains (land above 150/200/250 4/2/0.8%, river reach 85% from 93, puddles up to 8 per 8k square from 0,
+  shores 12% from 10, level tiles above 220 3% from 0). Its full run met a core fuzz seed (`2LxdNIrNHnQ6`, the recast drops a plural)
+  that replays on `feature/biomes` without B02b (core findings). B07's far sampler must read the per-column water (B07 part 2b).
+  Merges: two (B08b to B15 and M96; then B13 and B08c, where B02b's `ValleySpec` became `RiverValleySpec` beside B13's). Gated:
+  12,167 passed, 3 skipped.
+- **B07, the streamed world and the far view (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07-streamed-world.md`,
+  reports `b07-phase-a-report.md`, `b07-phase-b1-report.md`, `b07-phase-b2a-report.md`, `b07-phase-b2b-report.md`; pictures in
+  `artifacts/b-series/b07/`. The game streams the tall world by default: bands of chunks round the player (4 chunks deep, 6 underground),
+  a job pool, eviction of unedited chunks, the valley's wall kept as a barrier while the pass is locked (for walking, the collider and
+  lava), and the simulation held at a start or jump until the columns round the body are resident. The far view draws level-of-detail
+  tiles to 4, 8 and 16 km (D-game-34 item 21), lit with the chunks' sun tint and grey set, with haze from 6% of the range to the sky's
+  colour at its end; its sampler reads B02b's per-column water (58 of 60 river and lake columns equal to the generator, widest gap 3).
+  Measured on the RTX 3070 in Release at High with 16 km (a 250-block walk, load about 1.3): p50 2.5 ms, p95 7.8, p99 9.6, 3 frames
+  over 16.7 ms; 14,466 resident chunks, 549 far tiles (1.14 M triangles, 4.6 s of building). A far ring of 32 km cost 10 s of building
+  and 22 MB for no gain, so 16 km stays. Findings: the "2.6 to 5 s start hitch" of part 1 was scripted `--walk-to` route planning over
+  ungenerated land (still up to 3 s, scripted runs only); a start costs one frame of about 630 ms; rivers narrower than a far tile do
+  not show beyond the near ring; one residency test's save count is now a range (terrain-dependent). `--world valley` scripted runs
+  identical; streamed runs re-baselined (the far land and haze in every picture with sky). Gated: 12,267 passed, 3 skipped.
+- **QA, the streamed world (2026-11-16, `898a95e0`; report `docs/qa-reports/2026-11-16-world.md`).** 24 game runs: no crash, no hole,
+  no fall-through; edits far out survive a save and load; prefetch does not change results (byte-identical saves); the closed pass
+  holds at the rockfall and the wall; a cave entrance leads down into a cave; the far view and haze look right at dusk in rain on low.
+  Two minor bugs, both for B07b: QA-2026-11-16-world-1, a `--shot` straight after a `--teleport` shows the view from before it (the
+  scripted steps run on while B07's hold keeps the body until the world round the new place is resident), and on the live path a far
+  teleport shows sky for at least 3.5 s and the whole world only after about 20 s (a respawn at the camp from far away would too);
+  QA-2026-11-16-world-2, `--teleport` onto a pool stands the body on the bed, under water. Observations: the first settled shot after a
+  far move waits 32 to 54 s (far tiles in a Debug build); a `--walk-to` that cannot arrive gives up only after 14,400 ticks. Not covered:
+  lava (no route found), river currents, the humps in the game.
+- **B12, the underground in play (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b12-underground-in-play.md`, report
+  `.claude/briefs/b12-report.md`, pictures in `artifacts/b-series/b12/`. Faces below a column's natural surface (the pure height model,
+  so forest floors and houses are untouched) darken per corner over 6 blocks to a cave minimum of 0.28 of the sun (0.12 and 0.18 were
+  near-black); a face open to the sky is unchanged and the valley above its ground is identical (a test meshes the village both ways).
+  The placed torch is a glowing kind with a stronger, gentler profile than the lantern (about 8 blocks of warm light); lava lights a
+  cavern orange; a surface edit re-meshes the chunks beneath (`SkyExposure` listens to block changes). The near zone underground is
+  B07's (6 columns), enough across a cavern. The cave tour `r50-cave-tour` and `--teleport-to x,y,z`, signed teleport, place and pour
+  steps (part of B14). Release p95 about 10 ms underground at every preset. Findings: B11's entrances are pits about 10 deep with no
+  walkable way to the cave below (B11b); the vertical bands on a pit's cut walls are the stair-step faces' own shading, as in the
+  valley's cliffs, not the darkening; the first gate's test run was oom-killed in the shared 8 GB pool while four agents built, which
+  led the owner to raise it (D-game-34 item 28). Gated on the second run: 12,293 passed, 3 skipped.
+- **B07b, the streamed world's fixes from the QA pass (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07b-streamed-fixes.md`,
+  report `.claude/briefs/b07b-report.md`, pictures in `artifacts/b-series/b07b/`. QA-2026-11-16-world-1: the teleport and the next step
+  ran in one script tick, so a shot was drawn before the world round the new place was made; a step after a teleport now ends the tick
+  until the world is ready (`ScenarioHooks.WorldReady`). The far teleport's seconds of sky came from the old place's queue (thousands of
+  band jobs, stale in-flight requests holding every slot, the old plan still requesting): a jump of more than 8 columns now puts the old
+  jobs behind (an epoch), clears the stale ones and makes the near zone at once within a bound, then spends larger budgets for 2 s; one
+  frame of 0.8 to 1 s replaces about 3 s of sky, for a teleport, the menu's teleport, a respawn and a load; the start's first frame is
+  now 1.0 to 1.6 s. QA-2026-11-16-world-2: the ground finder skipped water; a teleport onto water now stands at the surface. Gates: the
+  first failed on a docs conflict with B12 and a fuzz test's OutOfMemoryException in the 6 GB command cap (seed `1jXdUcl8JBe8` passes
+  alone at 1.7 GB; the owner raised the cap to 10 GB, D-game-34 item 28); one `SaveServiceTests` case failed once under load in the
+  agent's run and passed alone and in the gate. Gated: 12,305 passed, 3 skipped.
+- **B07c, the far view like Voxy (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b07c-far-detail.md` (re-scoped twice: Distant
+  Horizons, then Voxy, D-game-34 items 26 and 29), report `.claude/briefs/b07c-report.md`, review `.claude/briefs/b07c-review.md` (Opus 5.5
+  at high effort, item 32), pictures in `artifacts/b-series/b07c/`. The far land is 32^3 voxel sections at 8 levels (1 to 128 blocks a
+  voxel) mipped 8 to 1, filled from the generator's model (height, water, snow, strata, the tree pass's placement as a shared pure query,
+  211 of 211 trees equal, the regions' blocks) and from real chunks (a ring of 560 / 760 / 1,000 blocks at Low / Medium / High, edits kept
+  over generator data), stored in region files per world (real sections only, validated, synced), drawn as greedy block faces (textured
+  at levels 0 and 1, averaged atlas colours beyond), with stored light and translucent water. The owner's look at the first pictures and
+  the review found the same faults: the horizon past 3.4 km built but never uploaded (8 tiles a frame nearest first), water lost under
+  half a voxel (lakes as brown beds, a hole in the sea at L7), the top block lost (grey snow caps), peaks eroded by majority rules, the
+  ring forgetting its plan on a move, store races, the ring overwriting edits, mips never real above level 1, corrupt data freezing a
+  tile, unbounded memory; all fixed but region compaction (B07d). Measured at load 7 to 11: p95 about 3 to 4 ms and p99 6 to 9 ms above
+  B07 at each preset, a tile about 33 ms of worker time at High, far memory 177 to 292 MB. Open: the thin sea strip on one horizon reads
+  as haze; the right-hand peaks a little greyer than B07's; a quiet re-measure; B07d (settings, pre-generation, compaction, performance).
+  Gated: 12,370 passed, 3 skipped.
+- **The owner's visual bugs in play (2026-11-16 about 18:00 UTC, `feature/biomes` with B07c, seed 42; his document
+  `~/Downloads/bugs.odt`, screenshots copied to `artifacts/owner-bugs/2026-11-16/`).** (1) Random holes: three small pits in a diagonal
+  row in a meadow at (857, 71, 227), dirt walls, stone and gravel at the bottom: caves breaking the surface on their 4-block lattice
+  (B11c, after B11b). (2) The far view visible before what is in front of it: from the pass at (382.8, 59, 209.9) looking west, trees and
+  dark shapes float above the valley: far geometry shows where near chunks are not yet made (the far pass drawn first, the near chunks
+  missing in front). (3) Gaps in the distant levels while chunks draw at full resolution: from (812, 100, 762) looking east, a grey band
+  across the middle distance and mountains like arches with sky under them: a ring between the voxel zone and the far view that neither
+  draws, and missing vertical sections in far mountains. (4) Distant edges crammed and merged: from (881.9, 85, 674.7) looking east, far
+  hills squashed into jagged steps at the horizon where levels meet. (2) to (4) are B07c's far view: B07e. The owner, a few minutes
+  later: "running with --configuration Release fixed most of the issues ... take note that it was in Debug mode which could explain the
+  slow rendering": (2) to (4) are mostly the far view not yet built in a slow Debug build; B07e reproduces each in Release, fixes what
+  persists once settled, and makes the in-between state while the far view builds tidy. (1) is generation and stays (B11c).
+- **B11b, natural cave entrances and rock variety (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b11b-entrances-and-rock.md`,
+  report `.claude/briefs/b11b-report.md`, pictures in `artifacts/b-series/b11b/` (and `tour/`). B11's entrances were pits with no walkable
+  way down (B12's finding); the first rework built straight 3-wide stairs with slab rims, which the owner held as man-made (D-game-34 item
+  31); the second makes each entrance a winding passage (width 2 to 6, headroom 3 to 7, noise-carved walls, an uneven floor, a ragged
+  mouth with no rim), walkable to a cave 20 or more blocks down (tested from every sampled mouth). Rock variety (item 27): plain stone on
+  cave faces from 88 to 96% to 48 to 57% (gravel, sand, dirt, granite, limestone, the new basalt; linings near passages and water),
+  cliff bands and scree at the surface, all as data; generator version 3. Merges: four (B12's cave tour moved onto a natural entrance;
+  B07c's `TreePlacement` kept as the one source with the mouths cleared in the shared query; the far view shows cliff bands and scree).
+  Gates: one stopped by the owner's hold, one failed on B12's tour, one conflicted with B07c, one refused for the owner's save in the
+  worktree, one stopped by the pause; the sixth passed. Open: hillside mouths are small notches, not openings under an overhang; flat
+  mouths read as modest sinkholes. Gated: 12,399 passed, 3 skipped.
+- **The owner's picture tour (2026-11-16, no repository change; `artifacts/b-series/tour/`, index.md).** Seeds 42, 1, 7, 2026 and 99999 from
+  high ground, a mountain range, ocean views, and the cave on seed 42 through B11b's natural entrance (a torch-lit landing, the lava lake),
+  High, midday, Release. Findings: a teleport to a new area took 40 to 135 s for the far view on an empty cache (B07d's fill speed); the
+  cave mouth is hard to find from outside (a 2 to 3 block pit in meadow); `--teleport-to x,y,z` over a passage stood the camera on the
+  surface above it, not in the passage (B24); snow-covered summits read flat white; seed 99999 is 79% water with no real range.
+- **B18, grass density (2026-11-16, on `feature/biomes`).** Brief `.claude/briefs/b18-grass-density.md`, report `.claude/briefs/b18-report.md`,
+  pictures in `artifacts/b-series/b18/`. A render-only layer (`GrassMesher`): crossed tall-grass tufts on grass tops where the cell above
+  is air, from a pinned cell hash (stable; more density only adds tufts), weighted by biome through `IPlaceInfo` (plains and meadow 1.0,
+  woods 0.85 to 0.9, grove 0.5, taiga 0.4, others 0.3; data in an embedded `GrassBiomes.json`, outside the world-generation files so the
+  save digest does not move); a Grass slider (0 to 100, default 60, saved, `--grass`), presets 48 / 72 / 96 blocks with caps 40 / 70 / 100%;
+  0 is the old look byte for byte. No measurable frame cost (scene draw median within noise at 0, 60, 100); a layer 0.2 ms a chunk; about
+  3.6 MB at High. One merge (B07c's presets). Its first gate's run on feature/biomes crashed a game-window test (exit 139, passing alone in
+  20 min: the far view's settle in Debug, given to B07e); its merge's full run tripped M97's fixed-seed coverage test (passes alone; M98).
+  Gated: 12,448 passed, 3 skipped.
+- **B07e, the far view's seams and gaps (2026-11-17, `84e1e2cb`).** None of the owner's four Debug bugs shows once settled in Release at
+  High; what he saw is the in-between state a Debug build stretches (a floating slab with sky under it at 2.5 s, far land missing or
+  half-built), caused partly by held-back tiles: built, waiting on the upload budget, neither drawn nor stood in for. Fixed the rendering
+  review's H1 to H4 and M1 and the far near plane (one seventh of the voxel view, 12 to 64). A bug no unit test could see:
+  `FarTerrainRenderer.Draw` returned before uploading when the draw list was empty, so with drawing decided by what is on the card nothing
+  ever uploaded; uploads now run first. The game-window test passes `--far-view off` (2.5 min, was about 20) and far buffers are disposed at
+  shutdown (the likely cause of the exit 139). Its first gate failed on the settle test (3 min alone) and the valley timing test: the
+  settle tests now use a small far range (22 s). Its second gate: 12,451 passed, two failures not B07e's: the valley underground timing
+  test (passes alone in 8 s; load 11 to 15) and a new core fuzz seed, `7q7l8dSNG6n6`, which replays without B07e (no core or content
+  file changed): the merge stands, the seed goes to M98. Left: a neighbour's changed edge column does not invalidate the tile beside it;
+  the horizon takes about 150 s of worker time at High (B07d).
+- **B20, no snow in the valley (2026-11-17, `9d2f2139`).** The valley's snow rule (`SceneBuilder`, snow above `snowLine` 100 on gentle
+  tops) and the `snowLine` field (data, schema, parser, the sample-town fixture) are gone; the tops take the existing rule (stone above
+  `rockLine` or on steep ground, mossy stone low, grass otherwise). `SceneTests.GoldenDigest` 6f6570562b9e to 6ff0d1c82d70, the bundle
+  hash e15607e887a9 to 32c4c1b56638; the fixture's state digest did not move (the valley's blocks are not in it). The pictures from the ring
+  tops show the change best (a snow plateau before, bare stone after); from the valley floor it was only small white caps. The outside view
+  from the streamed world was not found (both tries in forest): for the owner to choose a viewpoint if wanted. Six scripted runs checked:
+  only the skyline rows changed. Gated: 12,453 passed; the one failure was `ValleyUndergroundTests`' under-one-second test (1,650 ms at
+  load), which has now failed four full runs in a row at load 11 to 19 and passes alone in 8 s: given to B24a (with C9, the eight-thread
+  `Parallel.For`).
+- **B17a, a GLSL spike (2026-11-17, `1fe71da5`).** Raw GLSL compiled at run time works inside MonoGame's frame on its own context:
+  Silk.NET.OpenGL 2.22.0 (MIT, with Silk.NET.Core and Maths and Microsoft.Extensions.DependencyModel, MIT; Microsoft.DotNet.PlatformAbstractions
+  reads UNKNOWN offline but its licence file is MIT) loads its functions through `SDL_GL_GetProcAddress`. The RTX 3070 gives OpenGL 4.6
+  in a compatibility profile with compute, multi-draw indirect, buffer storage and clip control. Behind `--gl-shaders` (off by default)
+  the opaque chunk pass draws through one GLSL 330 program: 0 of 921,600 pixels differ from `AlphaTestEffect` in a meadow and in a cave lit
+  by two torches; the pass's submit time fell from 1.06 to 0.81 ms (meadow) and 1.31 to 0.73 ms (cave). Two traps found: MonoGame's
+  `Texture2D.GetData` binds its texture on the active unit (the atlas copy drew black), and passes that meet the GL pass by depth equality
+  need bit-identical positions (four dot products, not `matrix * position`). The gate's licence scan covers the core and Game.Core.Tests
+  only; a scan of `Vocaterra.Game` already FAILs or UNKNOWNs on FontStashSharp (Zlib), MonoGame's native libraries and NVorbis (proposed to
+  the owner in open items). Gated: 12,461 passed; the one failure the valley timing test (B24a).
+- **B22, a fidelity bundle (2026-11-17, `19d21747`).** Five of the rendering review's fixes on MonoGame's built-in effects. MSAA at 4x on
+  every preset (`--msaa`): the tree line's distinct colours rose from 9,153 to 17,054, with no cost measurable at 1280 x 720. A fourth
+  light band, Dawn, and each band baked with its own sun (dusk from the west at 20.2 h, dawn from the east at 5.8 h, night the moon); dusk
+  ground luma 0.62 of midday (was 0.70). The far land keeps the Day band's directions, since it is baked once. Grass tops, grass tufts and
+  oak leaves take their colour from a 5 x 5 temperature-by-humidity map (embedded `land-colours.json`, no biome ids; the far palette
+  reads the same map, so near and far meet without a seam); the art was made the pale end of the green, because a vertex colour can
+  only darken. Midday ground saturation fell from about 0.66 to 0.56. Dusk crowns went olive at first; cutting the oak map's reds by 28%
+  fixed it. Clouds have darker bottoms and smaller boxes; water is tinted per vertex by the mean depth of the four corner cells. Gated
+  clean: 12,483 passed, no failures.
+- **B24a, the valley underground's threads (2026-11-17, `ef932990`).** `ValleyUnderground.Lay` ran `Parallel.For` on up to eight threads
+  (the codebase review's C9), against the game's two-worker rule; it now runs on at most two, with the same blocks at one and two. The
+  underground adds about 2,500 ms of CPU time to the valley build (837 ms without, 3,337 ms with). Its timing test compared wall-clock
+  times and failed four full runs in a row at load 11 to 19 while passing alone; it now measures the laying's CPU time, takes the fastest
+  of three and allows 5,000 ms, and runs alone in the timing collection. The budget is generous because spin-waits under contention can
+  inflate CPU time, so it catches a doubling, not a 20% slowdown. Gated clean: 12,485 passed, no failures, the first full run in a day
+  without the valley flake.
+- **B21, meshing off the game thread (2026-11-17, `28d0478c`).** The game thread meshed 3 to 5 chunks a frame inline (the codebase review's
+  P1); now it copies what the mesher reads into a `ChunkSnapshot` (the chunk, its 18-block layer, two layers under, the blocks near lights,
+  the river currents) and the job pool's two workers mesh it on a new mesh lane; the game thread uploads within the frame budget. Each
+  chunk has a stamp (its edits, a neighbour's border edits, the chunk above, a light, the sky's reach): a job built from an older stamp is
+  refused and requeued. An edit within 40 blocks of the eye meshes on the game thread in its own frame, so it shows at once. Block changes
+  mark dirty chunks; nothing re-sorts per edit; steady frames allocate nothing in residency and remesh. Jumps and preset changes no longer
+  lose or double-install chunks (an epoch per jump; the residency reconfigured in place), and `HighestBlock` reads without installing. The
+  gains: the near view complete after a jump in about 3 s at High (was 7), frames while the 16 km far view fills 4 to 5 ms (were 12 to 14,
+  the base's game thread at 98% of a core); the whole view only 20 to 40% faster, because the same two workers now also mesh (the
+  review's 3 to 5x needs more workers: D-game-34 item 42). A High teleport with the far view on first looked slower (28 to 31 ms against
+  12 to 14); interleaved runs showed it was other agents' load, B21 equal or better every run. Reads by the simulation outside the resident
+  set do generate chunks (about 50 at a start, about 100 over three teleports; none while walking): counted in `--stream-stats`. Two base
+  bugs seen: a scripted `--place antorcha@467,61,153` shows no torch, and `--wait` never returns after a guide dialogue opens. Gated clean.
+- **B07f, the far store's edit layer (2026-11-17, `2f995552`).** Placed and broken blocks now reach the far view: an edit marks its
+  section and climbs the levels, and a save's edits load into the far store, so a 4x4 plank tower 50 high is a brown post from 1 km and
+  from a mountain 1.3 km away, and absent with an empty save. Six of the review's far-view races fixed with tests (C1 to C3, C6, C7, C10;
+  C6's disposal now spares the drawn, wanted and pending tiles B07e added). A "void" under the far land from a high stand was an early
+  shot, taken at tick 40 before the far tiles were on the card: `--shot` now waits for them, bounded at 120 s. Merging B07e exposed a
+  hang: a block placed in the near zone left the far tile over it dirty forever, so every scripted settle waited out its 300 s bound;
+  `Stale` now counts only needed tiles. Four of its tests failed under load (they waited on wall time); they now wait on their condition
+  or settle with no workers (hang guards of 30 and 60 minutes, which B24 shortens). Gated clean.
+- **B17b, every chunk pass on the game's GLSL (2026-11-17, `860a4a28`).** The faces, lit pieces, cut-outs, B18's grass, the glow and the
+  water draw through one GLSL program (`GlChunkPass`), on by default; the far view, the sky, the figures, rain and the UI stay on MonoGame.
+  One GL state scope a frame, with no MonoGame call inside it (the figures and outlines are drawn before it). The underwater render target
+  works through a flip uniform. A "Shaders" row in the settings' new Graphics group (saved only when off, so default saves are unchanged),
+  `--gl-shaders on|off`, and an automatic fallback to the effects below GL 3.3 or on a compile failure. Seven of eight comparison views are
+  pixel-identical to the effects; the shore differs on 3 pixels by 1/255 (a first run differed on 1.2% of the water: MonoGame's
+  `MaxMipLevel` is the last mip level, not the base). Interleaved timings: the processor's submit time falls to a quarter or a tenth
+  (meadow 1.17 to 0.36 ms, under water 3.80 to 0.35), the card's time is equal or lower in every pair (`GlCardTimer`), frame p50 lower.
+  Gated clean.
+- **B02c, rivers that only fall (2026-11-17, `4445e907`).** The rivers no longer climb: a drainage network (`World/Drainage`) floods each
+  landmass by priority over 32-block nodes, so every river runs downhill to a lake or the sea, and lakes fill basins. A landmass is read
+  whole on first touch (0.25 to 0.9 s). Generator version 4 (B11b had made it 3), so the far store builds new folders; 9 of the 18 goldens
+  moved (each seed's river and lake columns re-chosen to hold water, and a few coasts and a mountain), with the fixture's state digest and
+  the atmosphere pins. Three rounds of review found: a `ThreadPool` call in Game.Core's `WorldQuery` (against the two-worker rule; now a
+  dry answer, without rivers, until the streaming workers read the landmass); 160 bytes allocated on every frame by small arrays in the
+  look-up (B21's zero-allocation test caught it in the gate; fixed); and a lake that is a staircase of three levels (41, 44, 47) with
+  walls of water between, because a lake node takes the higher level of the bank node it was found from. Three fixes for the lake broke a
+  river or puddle check, so it was reverted and planned as B02d. The new ground has almost no cliffs outside the snowy peaks (the old
+  rivers' valley walls were its cliffs): `RockVarietyTests` skips its face-rock share, with a note, when its sample holds 100 cliff
+  columns or fewer. Start to first frame +0.4 s; a settled 16 km far view about 20% slower. Gated: 12,565 passed; the one failure the
+  scene build's wall-clock timing test (3,026 ms against 3,000 at load 15), passing alone, given to B24.
+- **B24, guards and cleanups (2026-11-17, `536e0e6d`).** The purity test now covers every folder that feeds the world's blocks (all of
+  `World/Generation`, `World/Layout`, `World/Pass` and B02c's `World/Drainage`, whose one `lock` for the first-touch landmass read is
+  allowed by name while floating point, clocks and randomness stay banned there), and a new test fails for any `World/` folder that is
+  neither pure nor named with a reason. Game.Core is banned from threads, tasks, timers, file IO and environment reads, with an allow-list
+  of nine files each with its reason. Dead code removed: `ChunkStreamer` (with `StreamPolicy`) and `VoxelGrid.ResidentCoordinates`, with
+  their 9 tests. **A real bug in the resident cap** (the review's C8): `Request` ran before `Evict` and at the cap set its cursor to the
+  plan's end, so after a walk or a jump the old place's chunks held the cap and the new place got nothing (0 resident chunks at the new
+  eye after `Settle` reported done); `Evict` now runs first. The timing tests now measure CPU time, the fastest of three, alone after the
+  assembly, with budgets twice the measured cost; they caught **B02c's cost**: chunk generation about 2.5 to 3 times dearer (a surface
+  chunk 6.4 to 6.9 ms of CPU before, 17 to 21 after; the valley snapshot 2.7 to 5.9 s): the budgets were re-set to the new cost and the
+  cost itself planned as B27. Gated clean.
+- **B25, the scripted-run stall (2026-11-17, no change).** B21, B17b and B14 each saw a scripted run hang after `--place antorcha`
+  (`--wait` never returned). The cause was B07c's `FarView.Stale`, which counted changed far tiles inside the near zone, where the chunks
+  draw the columns and the tiles are never rebuilt; a block placed near the eye kept it above 0, and every later frame's `Settle` waited out
+  its 300 s bound. B07f had already fixed it (`Stale` counts only needed tiles; a regression test), and the three agents worked on bases
+  cut before B07f merged. Reproduced on B21's tip (killed at 500 s) and gone on `0d72b26b` (93 s, torch and guide dialogue shown);
+  r01-route (445 s), r40-inn (246 s), r42-camp (268 s, torch and glow shown) and the torch cave re-run. Worth knowing: every streamed
+  scripted run spends about 160 to 170 s of its first frame building a cold 16 km far view on two workers; a `timeout` must go inside
+  `scripts/limited.sh` or the wait for a slot counts against it; a capture needs the build under the repository or `--content`.
+- **B07d, the far view's remainder and worker threads (2026-11-17, `93a74756`).** The owner's item 42 is in: a "Worker threads" setting
+  (Auto, the processor count less 4 within 1 to 8, so 8 here; a launch option `--workers`), with `JobPool.MaxWorkers` 8 and the pool
+  resized while the game runs; scripted runs, tests and `--prefetch` keep 2 or fewer, and the world is identical at 1, 2, 8 and inline.
+  The 16 km far view filled after a 1.9 km teleport in 272 s at 2 workers, 147 at 4 and 110 at 8 (after a start 307, 221, 180), on a
+  machine at load 15 to 25, one round. The far view's distance, detail, tree, texture and real-land settings join the Graphics group
+  (item 43). `--pregen <blocks>` fills the far store round a point on all workers and exits (1 km in 29 s, 4 km in 340 s and 1.05 GB;
+  16 km estimated at 48 minutes and 15 GB). The store's real sections are capped at 256 MB (least recently used dropped, edited ones
+  kept, reloaded from disk); the ring plans on a worker; fsync runs on a 2 s timer; regions are compacted at start. The review's
+  surface-only ring skips only about 23% of chunk layers, not 5 to 10 times. The fsync timer reads `Environment.TickCount64` after a
+  `Stopwatch` failed `OnlyTheRealFrameClockReadsATimer`: harmless (a disk timer, not game logic), but the file belongs on that test's
+  allow-list by name rather than passing it by a different clock. Gated clean, with the game's licence scans (B26) passing in the gate
+  for the first time.
+- **B14, integration (2026-11-17, `50d919a1`).** Ambient sound follows the place: each biome row names its beds (`ambient`, weights in
+  thousandths; wind, birds, river, insects, surf), `PlaceAmbience` samples five columns six blocks out (a border is a 12-block slope) and
+  the depth (surface beds fade 3 to 14 blocks down, a quiet synthesised `cave` bed takes over), with 1.5 s cross-fades; the state digest
+  hashes biomes.json without `ambient`, so it did not move. Water at rest and exitable edges hold over seeds 42, 7 and 2026 (21 windows:
+  the pass, rivers, lakes, coasts), also on B02c's rivers. Scripted coordinates are signed; the cloud layer's height is data
+  (`cloudAltitude`, 80 to 800). The `r51-biome-tour` visits every biome, a cave with a lit torch (after B07f's stall fix) and the far
+  land, in about 10 minutes. Seen in its pictures: thin seams between spruce leaf blocks, a one-block recess in the snow, birches and oaks
+  in the taiga, streaks on distant water (probably B02d's lake steps), and the entrance's open pit hearing the cave bed while open to the
+  sky. Open: a full re-run of the tour after B02c moved its river, lake and dense-woodland stops stalled at the beach stop past a
+  30-minute bound (not diagnosed); pictures 07, 12 and 14 are of the old stops. Gated: 12,714 passed; the one failure the core's
+  wall-clock lexicon test (M100), passing alone.
+- **B27, the drainage network's cost (2026-11-17, `accc36b1`).** B02c had made generation 2.5 to 3 times dearer. A profile found the cost
+  in `River()`: every column scanned the 9 x 9 drainage nodes round its own (about 47,000 look-ups a 24 x 24 window), almost none of them
+  holding a river. Each node now keeps the river reaches within its look window in its tile, computed once, and a column runs the same
+  arithmetic over those few: byte-identical (goldens, the scene digest, the fixture's digest and the atmosphere pins unchanged). A surface
+  chunk 13.9 to 6.7 ms of CPU (B02c's base was 6.4 to 6.9), all-stone 13.6 to 6.4, the valley snapshot 5.8 to 2.9 s; B24's budgets halved
+  to twice the new cost. One side effect: the underground cost ratio (a column with the underground against without) rose to about 8
+  under load, past its bound of 6, because the base got cheaper while the underground did not (passing alone): its bound is re-set from
+  a new measurement. Gated: 12,713 passed; the failures that ratio and the core's lexicon wall-clock test (M100), both passing alone.
+- **B28, test speed, and M100 (2026-11-17, `88521d07`, `12ae33c8`, gated together).** The throughput study found the full suite had grown
+  from 7 to 50 minutes in two days. B28 split the longest test classes so xUnit runs their tests in parallel (StreamedWorldHostTests's 13
+  tests ran one after another for 45 minutes), raised Game.Core.Tests from 3 to 6 threads (peak memory 5.5 GB), ran NamePlates' two game
+  processes side by side, and marked about 35 slow classes so the fast tier takes 3 minutes. No test was added, removed or weakened. With
+  B27's cheaper generation, the gate's test phase took 26 minutes (Game.Core.Tests 26, Game.Tests 18) against about 50 that morning.
+  Game.Core.Tests is now bound by a few single tests over 5 minutes in Debug builds: the next lever is optimised builds under test (item
+  50 A). M100 put the core's last wall-clock timing test (the lexicon load) on CPU time: 541 ms, budget 1,082. Gated clean.
+- **B11c, the owner's holes in a meadow (2026-11-17, `edb8516a`).** The three pits at (857, 71, 227), seed 42, were not caves breaking
+  through the cover: they were B11's one-block entrance shafts on its mask lattice (a slice of the code he played at 18:00 on 2026-11-16
+  shows a shaft from the grass to a cave; 35 entrance columns in 32 x 32 round the spot). B11b replaced the shafts with winding passages at
+  21:39 that night. On the current world the spot is an unbroken meadow, and scans find no pit in 320,000 columns a seed (42, 7, 2026).
+  The cover rule is sound. `CaveCoverTests` guards it over three seeds. Gated with B27's ratio bound (6 to 10: the base got cheaper);
+  the gate's two failures were not theirs: B07d's `JobPoolTests` resize race (it counts threads before they start; passes alone, planned
+  in B29) and a core fuzz seed (M101).
+- **B17c, light, fog and water in the shaders (2026-11-17, `9e8f202a`).** Each chunk vertex now carries a 4-byte light word (sky, block,
+  corner occlusion, the face's direction, a spare byte for a flat face's grey or the water's depth) beside its material colour; the shader
+  combines them with the sun's direction and colour for the hour, the sky's brightness, the glow, so a change of hour or weather rebuilds no
+  mesh (the base rebuilt 5,829 meshes for an hour change, 19 s of worker time and a 4.6 s frame; now none, longest frame 45 ms). B22's four
+  baked bands are gone from the shader path; the sun follows the hour smoothly. Fog by height (a closed form along the ray, the haze's
+  colour), a water shader (depth tint, movement, a brighter grazing edge) and the far view drawn through the same program, its baked Day
+  colours relit per face, so near and far meet in one colour at midday and dusk. A texture array was not needed (the atlas's mips are
+  cell-pure to level 4). Five toggles under "Shaders and effects" with Antialiasing and Grass, each on by default and set by the quality
+  level (item 43). With shaders off, the mesher bakes today's colours exactly (a golden from before the change). Against the base: midday,
+  cave, rain, dusk and night views within 0.1% of pixels; the lake shore, under water, the far views and a golden-hour view outside it by
+  design (the water shader, fog by height, the sun at its hour). Its merge with B07d's settings and far view took 13 conflicts. The torch
+  runs finish on both paths; with effects off they match within 8 pixels. B23 inherits the sky and block channels. Gated: 12,765 passed;
+  the one failure B07d's JobPool race (B30).
+- **B30, CI ready for the merge into main (2026-11-18, `946fd44e`).** CI's runner (4 cores) is about four times slower than this machine,
+  and the CPU timing tests' budgets were twice this machine's cost, so they would have failed there; `build-and-test` also had a 30-minute
+  limit for a suite that now takes 26 minutes here. Every CPU timing budget, and eight wall-clock bounds that would also trip, now take a
+  factor: 1 locally, 4 when `CI` or `GITHUB_ACTIONS` is set (`VOCATERRA_TIMING_FACTOR` overrides). A run here as CI does it (Debug, no
+  models, no GL tests, 4 cores) took 282 s to build and 43 minutes to test at load 18; the limit is now 120 minutes. NamePlates returns
+  early without a display, live-GL and model-gated tests skip. B07d's `JobPoolTests` resize race (three gates failed on it) now waits until
+  all eight workers have started a job. The orchestrator cannot read CI's results (403): the owner reports them. Gated clean.
+- **B11d, cave mouths in hill and cliff faces (2026-11-18, `5a5bd150`).** Entrance sites now look for a face first: on a 6-block grid inside
+  the site, spots where the ground climbs 4 blocks or more (`entrances.faceRise`, data) within 6 blocks; the 10 steepest are planned and the
+  best-covered passage wins; a face passage runs level for 3 to 6 cells, then falls gently, and B11b's rules (water, regions, depth,
+  headroom) hold. Slope mouths rose from 11% to about 30% of the sample's entrances (seed 7, almost flat, has few faces). Review: the agent
+  first dropped an assertion from its own new test (that the mouth starts level) to make it pass; sent back, it found the cause (an
+  old-style plunging fallback mouth on rising ground counted as a face mouth) and replaced the check with a strict definition (rise,
+  approach within a block of the floor, at most a block of fall over the first cells) and a walk test. The fixture's state digest moved
+  (`underground.json` changed) and one golden. Gated clean.
+- **B03b, every biome on three seeds (2026-11-18, `cb249004`).** The owner's item 47 ("run that"), narrowed after B14: tours of all 14
+  biomes for seeds 7 and 2026 (`r52`, `r53`; stops found by a scan outward from the valley, each with a 24-block margin of its own biome, water
+  biomes seen from a bank), a cave entrance with a lit torch and a far view, guarded by `BiomeTourSeedsTests`. The old attempt's
+  `--world sample` was not needed: every biome lies outside the valley on both seeds (its WIP branch `B03b-sample-world` is dropped). B14's
+  stall at the beach stop did not recur: a full r51 re-run took 1,324 s at load 17 to 22 (load and a cold far store). In the pictures: teal
+  seams between spruce leaves (known), a brown band at seed 7's far water edge, grey stone patches on seed 2026's ocean sand, faint pale
+  lines on seed 2026's stony peaks, a few poor angles. Gated clean.
+- **B02d, one water level per lake (2026-11-18, `b32e7ec4`).** B02c's lakes were staircases (seed 2026: 47, 45, 43, 41 with walls of water
+  between) because a lake node took the higher level of the bank node it was found from. Now each lake body takes its flood level (its
+  spill pass); shallow rim nodes and spurs (no lake neighbour on a side) are dropped until stable, since they held lone pockets of water;
+  kept lake nodes are deepened to the full carve; nodes downstream are capped at the lake's level, so rivers still only fall. Generator
+  version 5 (a fresh far-store folder). B02c's attempts had raised seed 7's puddles past the limit; this one did not (seed 2026's even fell
+  from 4 to 0), with lake share unchanged (3.4%, 1.9%, 2.8%). Its first gate failed on B03b's new tours, whose lake-basin stops no longer
+  stood in a lake: re-picked about 10 blocks over. **Still open:** two thin lines cross the far lake in pictures at about 650 to 700 and
+  1,050 to 1,090 blocks from the eye, while the data under it is one level: probably the far view's level seams on water (at High,
+  levels 2 and 3 begin near 600 and 1,000 blocks); B14's "streaks on distant water" are likely the same. The final gate of feature/biomes
+  before the merge into main: 12,787 passed, no failures.
+- **B31, the crash switching Shaders in play (2026-11-18, `277443de`).** The owner's game crashed when he turned Shaders on and off:
+  `FarTerrainRenderer.Convert` carried each far tile between MonoGame's effect path and the GL path by reading its vertex and index buffers
+  back from the card, and the effect path creates them write-only, so the read threw. B17b had made the switch live for the near chunks
+  (they re-mesh); the far tiles, moved onto the GL program by B17c and B07d, were converted instead. Now a change of path drops every far
+  tile and rebuilds it from its data, as a change of levels already did; the read-back code is gone. The test covers the decision (no
+  graphics device in a test). Gated: 12,787 passed; the one failure the sample town's wall-clock test, passing alone: it keeps failing
+  gates under load and should move to CPU time (the next branch).

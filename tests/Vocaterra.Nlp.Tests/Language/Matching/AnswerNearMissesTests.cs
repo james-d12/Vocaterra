@@ -43,6 +43,29 @@ public class AnswerNearMissesTests
         Assert.Null(Find(line, Bundle.AnswerSets[Bundle.Prompts[prompt].AnswerSetId]));
     }
 
+    // M97 (O3 seed 9kz6LGNo8tf2): qué tal is the greeting's canonical answer, and tal, a pronoun with no person, stands there where no personal pronoun does; que me
+    // (a correct fragment, graded at smith-receive, which takes none of its intents) was a near miss of it, with vocab.wrong on me, expected tal.
+    [Theory]
+    [InlineData("que me")]
+    [InlineData("¿que me?")]
+    [InlineData("qué te")]
+    [InlineData("qué nos")]
+    public void APersonalPronounInPlaceOfTalInQueTalIsNoSlip(string line)
+    {
+        Assert.Null(Find(line, Bundle.AnswerSets[Bundle.Prompts["smith-receive"].AnswerSetId]));
+    }
+
+    // The neighbours stay as they were: a personal pronoun for another personal pronoun is a slip, as before.
+    [Theory]
+    [InlineData("me llamo luz", "te llamo luz", "me", "te")]
+    [InlineData("te llamo luz", "me llamo luz", "te", "me")]
+    public void ASlipBetweenPersonalPronounsStillNamesItsWord(string line, string canonical, string actual, string expected)
+    {
+        var nearMiss = Find(line, Set(("a", canonical)));
+
+        Assert.Equal((actual, expected), (nearMiss?.Actual, nearMiss?.Expected));
+    }
+
     [Fact]
     public void ASetWithNoAnswersHasNoNearMiss()
     {

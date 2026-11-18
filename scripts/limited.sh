@@ -7,14 +7,14 @@
 #   scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4
 #
 # What it does:
-#   1. Slots: at most VOCATERRA_HEAVY_SLOTS (default 2; the owner, 2026-11-05) heavy commands at once on the whole machine (one flock
+#   1. Slots: at most VOCATERRA_HEAVY_SLOTS (default 3 since 2026-11-16, 2 from 2026-11-05; the owner) heavy commands at once on the whole machine (one flock
 #      per slot, shared by every worktree). A further command waits for a free slot. VOCATERRA_HEAVY_SLOTS=1 restores one at a time.
 #   2. Preflight: waits while available memory is under VOCATERRA_MIN_FREE_MB (default 3000) or the 1-minute load is above the core count.
 #   3. Caps, two levels:
-#      - every command in its own systemd user scope: MemoryMax (default 6G), no swap, CPUQuota (default 1000% = 10 of 16 cores), nice 10;
-#      - all the scopes together in one slice, vocaterra-heavy.slice (under vocaterra.slice): VOCATERRA_TOTAL_MEM_MAX (default 8G), no
-#        swap, VOCATERRA_TOTAL_CPU_QUOTA (default 1400% = 14 of 16 cores). One command alone still gets its full 6G; two together can never
-#        take more than 8G, leaving about 3 GiB for the desktop.
+#      - every command in its own systemd user scope: MemoryMax (VOCATERRA_MEM_MAX, default 10G; 6G until the owner raised it on 2026-11-16), no swap, CPUQuota (default 1000% = 10 of 16 cores), nice 10;
+#      - all the scopes together in one slice, vocaterra-heavy.slice (under vocaterra.slice): VOCATERRA_TOTAL_MEM_MAX (default 16G; 8G until the owner raised it on 2026-11-16), no
+#        swap, VOCATERRA_TOTAL_CPU_QUOTA (default 1400% = 14 of 16 cores). One command alone still gets its full 10G; two together can never
+#        take more than 16G (31 GiB in the machine).
 #      Over a cap the kernel kills the command inside its scope or the slice; the desktop is untouched. Exit code 137 (or 143) means "hit
 #      a memory cap": lower -m or test parallelism, or wait for the other slot's command and run again.
 #      The scope is named and its Result is read afterwards (H08a): an oom-kill of any process in it (a test host that dotnet test survives) gives exit 137
@@ -39,12 +39,12 @@ if [ "${VOCATERRA_LIMITED:-}" = 1 ]; then
   exec "$@"
 fi
 
-MEM_MAX="${VOCATERRA_MEM_MAX:-6G}"
+MEM_MAX="${VOCATERRA_MEM_MAX:-10G}"
 CPU_QUOTA="${VOCATERRA_CPU_QUOTA:-1000%}"
-TOTAL_MEM_MAX="${VOCATERRA_TOTAL_MEM_MAX:-8G}"
+TOTAL_MEM_MAX="${VOCATERRA_TOTAL_MEM_MAX:-16G}"
 TOTAL_CPU_QUOTA="${VOCATERRA_TOTAL_CPU_QUOTA:-1400%}"
 MIN_FREE_MB="${VOCATERRA_MIN_FREE_MB:-3000}"
-SLOTS="${VOCATERRA_HEAVY_SLOTS:-2}"
+SLOTS="${VOCATERRA_HEAVY_SLOTS:-3}"
 SLICE="vocaterra-heavy.slice"
 RUN_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 

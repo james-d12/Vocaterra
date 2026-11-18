@@ -187,22 +187,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="session">The started session.</param>
     /// <param name="scene">The built scene.</param>
     /// <param name="voice">The NPCs voices.</param>
-    /// <param name="pristine">Builds a fresh scene of the session seed.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
     /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
     /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
     {
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume));
+        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
         session.NeedsEnabled = !options.NeedsOff; // --needs off freezes the needs (N01, a test aid)
         session.RelaxedNeeds = _settings.RelaxedNeeds; // half the rates, a faint for a death (N05, design decision 17)
         session.NeedsRate = _settings.NeedsRate; // the drive rate (N09)
+        session.PassCheat = _settings.PassCheat; // the pass cheat (B08b): on, the pass through the east ring opens at once
         _needsHud = new NeedsHud(session) { EffectsOn = _settings.ViewEffects };
         foreach (var (meter, value) in options.SetNeeds)
         {
@@ -214,7 +214,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _sim = session.Simulation;
         HoldTheClock(options);
-        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout);
+        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout, scene.Places);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases, session.Data.Npcs).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
@@ -242,6 +242,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _arm = new ArmPresenter(_sim, _isSolid);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
+        ApplyFarSettings(); // B07d: the far view's detail settings, before the renderer is made
+        _drawer.ApplyWorkers(_settings.Workers); // B07d: the worker threads the pool starts with
+        _drawer.ApplyGrass(_settings.Get(SettingId.Grass)); // the decorative grass's density (B18)
+        _drawer.ApplyShaders(_settings.Shaders); // the game's own GLSL shaders for the chunks (B17b)
+        if (options.Quality is not null)
+        {
+            ApplyPresetEffects(options); // a level on the command line sets the effects it turns on, as choosing it in the menu does, except what the command line itself fixed (B17c)
+        }
+
+        _drawer.ApplyEffects(GraphicsEffects.Of(_settings)); // the graphics effects of the Graphics group (B17c)
         _reportScreen = new ReportScreen(
             _report,
             session,
@@ -373,7 +383,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var result = session.UseCampKit(ground, facing);
                         var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
-                    });
+                    },
+                    BodyWorldReady);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -418,13 +429,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
             HardwareModeSwitch = false, // full screen is borderless at the desktop's mode, never a display mode change
             IsFullScreen = options.StartsFullScreen,
+            PreferMultiSampling = _settings.Msaa > 0, // B22: antialiased edges; the count is set below (the Antialiasing row of the settings page, B17c; --msaa wins for a run)
         };
+        var multiSamples = _settings.Msaa;
+        _graphics.PreparingDeviceSettings += (_, e) => e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = multiSamples;
         IsFixedTimeStep = false; // the accumulator owns the tick rate
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, pristine, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
+        _saves = new SaveService(session, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -612,7 +626,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _drawer.Load(GraphicsDevice, MakeView, LayerStack.Build(_debug, _lesson, _playtest));
-        Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
+        Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {WorldStateDigest.ComputeHex(_scene.Grid, _session.Simulation.StateHeader)[..16]}");
         _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null || _options.SkipToSession is not null); // a skipped game starts where a load would (V12c)
     }
 
@@ -704,6 +718,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             steps = 0; // the world does not run while the check battery is on (its time is not the game's)
         }
 
+        if (_drawer.Streaming is { } streaming && !streaming.IsReadyAround(_camera.CurrentEye.X, _camera.CurrentEye.Y, _camera.CurrentEye.Z))
+        {
+            steps = 0; // a start or a jump: the world round the player is still being made, so the body waits for it (the frames go on and draw it filling in; B07)
+        }
+
         steps = _report.Gate(steps); // no tick passes while the report panel is open (S21)
         for (var i = 0; i < steps && !_report.Paused; i++)
         {
@@ -767,7 +786,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
-        var farPlane = VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance);
+        var farPlane = _scene.Grid.IsStreamed ? VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance, _scene.Grid.Limits.SizeY) : VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance); // a tall streamed world's peaks stand a view distance across and the world's height up (B07)
         var eye = _camera.Place(alpha, width, height, farPlane, canvasWidth, canvasHeight);
         var shoulder = _camera.Shoulder;
 
@@ -802,8 +821,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.PlotLine = DeathScreenLayer.HintWhileUp(view.DeathScreen, view.PlotLine);
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
-        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
-        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look);
+        var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere, _sim.Weather.Data.CloudAltitude)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 
@@ -818,7 +837,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             new WindowSizes(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
             _timings,
             _drawer.Renderer,
-            _drawer.Preset);
+            _drawer.Preset,
+            _drawer.Streaming,
+            _drawer.PhaseTimes,
+            _drawer.PhaseAllocations);
     }
 
     /// <inheritdoc />
@@ -1005,6 +1027,36 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _devices.Commit(input);
     }
 
+    // The effects a quality level turns on, written to the settings for each one the command line did not fix itself (B17c: the same as choosing the level in the menu).
+    private void ApplyPresetEffects(LaunchOptions options)
+    {
+        var preset = GraphicsEffects.Of(_drawer.Preset);
+        if (options.SunFollowsHour is null)
+        {
+            _settings.Set(SettingId.SunFollowsHour, preset.SunFollowsHour ? 1 : 0);
+        }
+
+        if (options.ClimateColours is null)
+        {
+            _settings.Set(SettingId.ClimateColours, preset.ClimateColours ? 1 : 0);
+        }
+
+        if (options.WaterShader is null)
+        {
+            _settings.Set(SettingId.WaterShader, preset.WaterShader ? 1 : 0);
+        }
+
+        if (options.HeightFog is null)
+        {
+            _settings.Set(SettingId.HeightFog, preset.HeightFog ? 1 : 0);
+        }
+
+        if (options.FarLight is null)
+        {
+            _settings.Set(SettingId.FarLight, preset.FarLight ? 1 : 0);
+        }
+    }
+
     // F5: the behind-the-shoulder view and back (S15).
     private void ToggleView()
     {
@@ -1038,6 +1090,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _settings.Set(SettingId.TextSize, _settings.Get(SettingId.TextSize) >= spec.Max ? spec.Min : _settings.Get(SettingId.TextSize) + 1);
     }
 
+    // The far view's settings (B07d) from the player's settings, over the quality's preset.
+    private void ApplyFarSettings() => _drawer.ApplyFar(_settings.Get(SettingId.FarDistance), _settings.Get(SettingId.FarDetail), _settings.Get(SettingId.FarTrees), _settings.Get(SettingId.FarTextures), _settings.Get(SettingId.FarExact));
+
     // What a changed setting does to the running game (the menu issue): each is applied at once, and the next save keeps it. The simulation hears only the needs' two.
     private void ApplySetting(SettingId id)
     {
@@ -1050,6 +1105,35 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.Quality or SettingId.ViewDistance:
                 _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance);
                 Console.WriteLine($"graphics quality: {_drawer.Preset.Name}, view distance {_drawer.Preset.ViewDistance} blocks");
+                if (id == SettingId.Quality)
+                {
+                    _settings.Set(SettingId.Shaders, _drawer.Preset.Shaders ? 1 : 0); // a quality level sets the graphics toggles (D-game-34 item 43); each can be changed on its own after it
+                    GraphicsEffects.Of(_drawer.Preset).WriteTo(_settings);
+                }
+
+                break;
+            case SettingId.SunFollowsHour or SettingId.ClimateColours or SettingId.WaterShader or SettingId.HeightFog or SettingId.FarLight:
+                _drawer.ApplyEffects(GraphicsEffects.Of(_settings));
+                Console.WriteLine($"graphics effect {id}: {(_settings.Get(id) == 1 ? "on" : "off")}");
+                break;
+            case SettingId.Msaa:
+                Console.WriteLine($"antialiasing: {_settings.Msaa} samples a pixel (read when the window opens: it takes effect at the next start)");
+                break;
+            case SettingId.Shaders:
+                _drawer.ApplyShaders(_settings.Shaders);
+                Console.WriteLine($"shaders: {(_settings.Shaders ? "on" : "off")}; the chunks are drawn {(_drawer.ShadersInUse ? "through the game's own GLSL program" : "with the effects")}");
+                break;
+            case SettingId.FarDistance or SettingId.FarDetail or SettingId.FarTrees or SettingId.FarTextures or SettingId.FarExact:
+                ApplyFarSettings();
+                Console.WriteLine($"far view: {(_drawer.Preset.FarRange > 0 ? $"to {_drawer.Preset.FarRange} blocks" : "off")}, detail {_settings.Get(SettingId.FarDetail)} percent, trees to level {_drawer.Preset.FarTreeLevels}, textured levels {_drawer.Preset.FarTexturedLevels}, real chunks to {_drawer.Preset.FarRealRadius} blocks");
+                break;
+            case SettingId.Workers:
+                _drawer.ApplyWorkers(_settings.Workers);
+                Console.WriteLine($"worker threads: {(_settings.Workers == 0 ? "auto" : _settings.Workers.ToString(System.Globalization.CultureInfo.InvariantCulture))}{(_drawer.Streaming is { } streaming ? $", {streaming.Pool.Workers} running" : string.Empty)}");
+                break;
+            case SettingId.Grass:
+                _drawer.ApplyGrass(_settings.Get(SettingId.Grass));
+                Console.WriteLine($"grass: {_settings.Get(SettingId.Grass)} percent");
                 break;
             case SettingId.TextSize:
                 _canvas.Set(_settings.TextPercent);
@@ -1069,6 +1153,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.RelaxedNeeds:
                 _session.RelaxedNeeds = _settings.RelaxedNeeds;
                 Console.WriteLine($"relaxed needs: {(_session.RelaxedNeeds ? "on" : "off")}");
+                break;
+            case SettingId.PassCheat:
+                _session.PassCheat = _settings.PassCheat;
+                Console.WriteLine($"pass cheat: {(_settings.PassCheat ? "on" : "off")}; pass {(_session.Pass.IsOpen ? "open" : "closed")}");
                 break;
             default:
                 Console.WriteLine($"setting {id}: {_settings.Get(id)}"); // the mouse and the field of view are read each frame
@@ -1205,6 +1293,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         },
         SaveNow = SaveNow,
     };
+
+    // Whether the world round the body's eye is made (B07b): the streamed world's near zone after a start or a jump; a bounded world is always ready. The scripted steps after a teleport wait for it.
+    private bool BodyWorldReady()
+    {
+        const double U = Vocaterra.Game.Core.Physics.VoxelPhysics.UnitsPerBlock;
+        var body = _sim.Player;
+        return _drawer.Streaming is not { } streaming || streaming.IsReadyAround((float)(body.EyeX / U), (float)(body.EyeY / U), (float)(body.EyeZ / U));
+    }
 
     // The teleport of the menu: the player's feet go to the ground of a named point's column, as --teleport puts them.
     private void TeleportToPoint(string place)

@@ -21,8 +21,9 @@ MASKS = [
     (re.compile(r'"(bundle|bundleHash|contentHash|locale_bundle|localeHash)":\s?"[0-9a-f]{12,64}"'), r'"\1": "<hash>"'),
     (re.compile(r"\b(bundle|locale) [0-9a-f]{12}\b"), r"\1 <hash>"),
     (re.compile(r"\b(hash) [0-9a-f]{64}\b"), r"\1 <hash>"),
-    (re.compile(r"(\S*/)?(content|src|tests|assets)/(game-v1|locale|Vocaterra\.)"), r"<repo>/\2/\3"),
+    (re.compile(r"(\S{0,150}/)?(content|src|tests|assets)/(game-v1|locale|Vocaterra\.)"), r"<repo>/\2/\3"),
     (re.compile(r"^limited\.sh: .*\n", re.M), ""),
+    (re.compile(r"^gl: .*\n", re.M), ""),  # the context facts and the path in force (B17b): an effects run and a GLSL run of the same steps compare equal
 ]
 TEXT = (".txt", ".log", ".jsonl", ".json", ".md", ".csv")
 

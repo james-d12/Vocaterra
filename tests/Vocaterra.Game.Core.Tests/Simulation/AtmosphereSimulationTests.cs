@@ -102,7 +102,7 @@ public sealed class AtmosphereSimulationTests
         var state = sim.CaptureState();
 
         var restored = VoxelSimulation.Create(Route(), Short);
-        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
+        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid));
         restored.Restore(state);
 
         Assert.NotNull(state.Atmosphere);
@@ -161,7 +161,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "8213aec474bfe69751dde476146d8e5029c89d6634387939519949bbdaffaedc"; // Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "d9053e7941e0affacf12b554bdc3cb97ed331ea7a88336e8315a1ec3d2fddcf0"; // B02d: re-pinned (the generator version is 5); B11b: re-pinned (the generator version is 3 and the header carries the new underground.json); B05: re-pinned, the state digest is the header and the changed chunks (the route as built has none); B08a: re-pinned on the merged tree (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly); B11: re-pinned (underground.json joins the header's generation hash and the generator version is 2)
 
-    private const string PinnedAfterWalking = "c0222a77ede53d99fa3ef73c0b4501917f41d57b30f741c8e922cb4c88b67fc0"; // Y08: re-pinned with the one above; Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "9b1308d1e7061916f5fc33117c2df873e804d8e904641bf6bb125497a01708e3"; // B02d: re-pinned with the one above; B11b: re-pinned with the one above; B05: re-pinned with the one above; B08a: re-pinned on the merged tree with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above; B11: re-pinned with the one above
 }

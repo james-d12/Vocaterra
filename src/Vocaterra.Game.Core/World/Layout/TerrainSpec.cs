@@ -6,8 +6,7 @@ namespace Vocaterra.Game.Core.World.Layout;
 /// <param name="ReliefRows">The rows of <paramref name="Relief"/> (the grid's depth in chunks).</param>
 /// <param name="Valley">The height of the valley floor; the seed's noise is strongest on the mountains and weakest at this height.</param>
 /// <param name="RockLine">The height above which the ground is bare stone.</param>
-/// <param name="SnowLine">The height above which gentle ground is snow.</param>
 /// <param name="Terrace">The height in blocks of one step of the stepped cliff faces (0: no terracing).</param>
 /// <param name="Ceiling">The highest the ground goes.</param>
-public sealed record TerrainSpec(int[] Relief, int ReliefColumns, int ReliefRows, int Valley, int RockLine, int SnowLine, int Terrace, int Ceiling);
+public sealed record TerrainSpec(int[] Relief, int ReliefColumns, int ReliefRows, int Valley, int RockLine, int Terrace, int Ceiling);
 

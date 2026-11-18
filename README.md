@@ -38,7 +38,7 @@ Directory.Packages.props   one version list for both halves
 nuget.config               nuget.org only
 src/                       Vocaterra.Nlp.* (the core's libraries) and Vocaterra.Game.Core, .Game, .Host (the game)
 tests/                     one test project per project; tests/golden is the core's golden learner-audio manifest; tests/Shared has the two source files (bundle locator, temp-copy helper) linked into the core's test projects
-tools/                     Vocaterra.Nlp.{Cli,Bench,ContentBuilder}, Vocaterra.SpeechRender, manifest.json (the pinned grammar-check tools)
+tools/                     Vocaterra.Nlp.{Cli,Bench,ContentBuilder}, Vocaterra.SpeechRender, Vocaterra.WorldPreview, manifest.json (the pinned grammar-check tools)
 content/                   game-v1 (the one content bundle; the core runs on it too), grammar/ (the grammar-check caches), PHRASES.md, speech-index.json
 assets/                    the game's CC0 art, fonts and sounds
 models/                    the pinned speech-model manifest (the model files are fetched and ignored)

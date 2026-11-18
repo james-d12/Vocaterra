@@ -10,13 +10,13 @@ public sealed class LightBandsTests
     [Theory]
     [InlineData(DayPhase.Day, 1.0, LightBand.Day)]
     [InlineData(DayPhase.Night, 0.0, LightBand.Night)]
-    [InlineData(DayPhase.Dawn, 0.5, LightBand.Dusk)]
+    [InlineData(DayPhase.Dawn, 0.5, LightBand.Dawn)]
     [InlineData(DayPhase.Dusk, 0.5, LightBand.Dusk)]
     [InlineData(DayPhase.Dawn, 0.0, LightBand.Night)]
     [InlineData(DayPhase.Dusk, 0.0, LightBand.Night)]
     [InlineData(DayPhase.Dawn, 1.0, LightBand.Day)]
     [InlineData(DayPhase.Dusk, 1.0, LightBand.Day)]
-    public void Given_APhaseAndDaylight_When_TheBandIsAsked_Then_DawnAndDuskUseTheDuskBandBetweenTheEnds(DayPhase phase, double daylight, LightBand expected)
+    public void Given_APhaseAndDaylight_When_TheBandIsAsked_Then_DawnAndDuskUseTheirOwnBandsBetweenTheEnds(DayPhase phase, double daylight, LightBand expected)
     {
         Assert.Equal(expected, LightBands.For(phase, daylight));
     }
@@ -26,7 +26,7 @@ public sealed class LightBandsTests
     {
         Assert.Equal(LightBand.Dusk, LightBands.For(DayPhase.Dusk, LightBands.DayFrom - 0.001));
         Assert.Equal(LightBand.Day, LightBands.For(DayPhase.Dusk, LightBands.DayFrom));
-        Assert.Equal(LightBand.Dusk, LightBands.For(DayPhase.Dawn, LightBands.NightUpTo + 0.001));
+        Assert.Equal(LightBand.Dawn, LightBands.For(DayPhase.Dawn, LightBands.NightUpTo + 0.001)); // B22: a dawn has its own band, the sun in the east
         Assert.Equal(LightBand.Night, LightBands.For(DayPhase.Dawn, LightBands.NightUpTo));
     }
 
@@ -128,7 +128,7 @@ public sealed class LightBandsTests
         }
 
         Assert.Equal(
-            [(LightBand.Day, LightBand.Dusk), (LightBand.Dusk, LightBand.Night), (LightBand.Night, LightBand.Dusk), (LightBand.Dusk, LightBand.Day)],
+            [(LightBand.Day, LightBand.Dusk), (LightBand.Dusk, LightBand.Night), (LightBand.Night, LightBand.Dawn), (LightBand.Dawn, LightBand.Day)],
             changes);
     }
 

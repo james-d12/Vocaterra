@@ -35,7 +35,7 @@ public static class FlowRules
     /// <param name="x">The cell's column.</param>
     /// <param name="y">The cell's layer.</param>
     /// <param name="z">The cell's row.</param>
-    public static FlowCell Next(VoxelGrid grid, int x, int y, int z)
+    public static FlowCell Next(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var current = FlowCell.Read(grid, x, y, z);
@@ -77,7 +77,7 @@ public static class FlowRules
     }
 
     /// <summary>Whether water at the cell would flow down: the cell under it can take water (air, undergrowth or flowing water).</summary>
-    public static bool CanGoDown(VoxelGrid grid, int x, int y, int z)
+    public static bool CanGoDown(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         return KindAt(grid, x, y - 1, z) is Kind.Open or Kind.Flowing;
@@ -87,7 +87,7 @@ public static class FlowRules
     /// The sideways directions the water at a cell spreads in, as a bit mask (bit 0 north, 1 east, 2 south, 3 west). Only directions into a cell that can take
     /// water count. The ones that reach a drop soonest win, looking <see cref="DropSearchDistance"/> cells out; with no drop in sight every open direction wins.
     /// </summary>
-    public static int PreferredDirections(VoxelGrid grid, int x, int y, int z)
+    public static int PreferredDirections(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         Span<int> scores = stackalloc int[4];
@@ -129,7 +129,7 @@ public static class FlowRules
     private static int SpreadDistance(WaterLevel level) => level.Falling ? 0 : level.Distance;
 
     // The fewest steps from here to a cell that has a drop under it, or NoDrop; never turns back the way it came. Called with depth 1 for the cell next to the water's own.
-    private static int SlopeDistance(VoxelGrid grid, int x, int y, int z, int depth, int from)
+    private static int SlopeDistance(IVoxelReader grid, int x, int y, int z, int depth, int from)
     {
         var best = NoDrop;
         for (var i = 0; i < 4; i++)
@@ -161,11 +161,11 @@ public static class FlowRules
     }
 
     // Whether water spreading sideways could enter the cell: air, undergrowth, or flowing water (a source is already full).
-    private static bool CanPass(VoxelGrid grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Open or Kind.Flowing;
+    private static bool CanPass(IVoxelReader grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Open or Kind.Flowing;
 
     private static int Opposite(int direction) => (direction + 2) & 3;
 
-    private static Kind KindAt(VoxelGrid grid, int x, int y, int z)
+    private static Kind KindAt(IVoxelReader grid, int x, int y, int z)
     {
         if (!grid.InBounds(x, y, z))
         {
@@ -182,13 +182,13 @@ public static class FlowRules
     }
 
     /// <summary>Whether the cell is air or undergrowth, or flowing water: somewhere water can run to.</summary>
-    internal static bool CanTakeWater(VoxelGrid grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Open or Kind.Flowing;
+    internal static bool CanTakeWater(IVoxelReader grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Open or Kind.Flowing;
 
     /// <summary>Whether the cell is a source or flowing water.</summary>
-    internal static bool IsWater(VoxelGrid grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Source or Kind.Flowing;
+    internal static bool IsWater(IVoxelReader grid, int x, int y, int z) => KindAt(grid, x, y, z) is Kind.Source or Kind.Flowing;
 
     /// <summary>Whether the cell is flowing (not source) water.</summary>
-    internal static bool IsFlowing(VoxelGrid grid, int x, int y, int z) => KindAt(grid, x, y, z) == Kind.Flowing;
+    internal static bool IsFlowing(IVoxelReader grid, int x, int y, int z) => KindAt(grid, x, y, z) == Kind.Flowing;
 
     private enum Kind
     {

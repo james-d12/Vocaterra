@@ -40,7 +40,7 @@ public readonly record struct FlowVector(int X, int Y, int Z)
     /// <param name="x">The cell's column.</param>
     /// <param name="y">The cell's layer.</param>
     /// <param name="z">The cell's row.</param>
-    public static FlowVector At(VoxelGrid grid, int x, int y, int z)
+    public static FlowVector At(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (grid.GetBlock(x, y, z) != BlockId.Water)
@@ -89,7 +89,7 @@ public readonly record struct FlowVector(int X, int Y, int Z)
     }
 
     /// <summary>The vector of the cell at a block position.</summary>
-    public static FlowVector At(VoxelGrid grid, BlockPos cell) => At(grid, cell.X, cell.Y, cell.Z);
+    public static FlowVector At(IVoxelReader grid, BlockPos cell) => At(grid, cell.X, cell.Y, cell.Z);
 
     // Eighths of a block: a source and falling water are full; flowing water thins by one eighth a cell (distance 1 is 7, 7 is 1).
     private static int HeightOf(WaterLevel level) => level.IsSource || level.Falling ? Full : Full - level.Distance;

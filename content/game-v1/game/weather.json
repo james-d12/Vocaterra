@@ -2,9 +2,10 @@
   "$schema": "../../schema/weather.schema.json",
   "schemaVersion": 1,
   "generated_by": "hand-authored",
-  "about": "The weather (E04, D-game-31). Each kind is a row of numeric channels (cloudCover, sunlight, fog, wind from 0 to 1; precipitation { kind, intensity }); the sky, the light, the fog, the rain and the sound read the blended channels and never a kind's id, so a new weather that reuses the channels is one more row here. minSeconds and maxSeconds bound a spell of the kind; next lists the kinds that may follow it with a whole-number weight; morningWeight is the kind's weight in the draw made when the player wakes (0 for never). start is the kind of a new game; transitionSeconds is how long a change takes to blend. The draws come from the world seed, so a seed has one weather.",
+  "about": "The weather (E04, D-game-31). Each kind is a row of numeric channels (cloudCover, sunlight, fog, wind from 0 to 1; precipitation { kind, intensity }); the sky, the light, the fog, the rain and the sound read the blended channels and never a kind's id, so a new weather that reuses the channels is one more row here. minSeconds and maxSeconds bound a spell of the kind; next lists the kinds that may follow it with a whole-number weight; morningWeight is the kind's weight in the draw made when the player wakes (0 for never). start is the kind of a new game; transitionSeconds is how long a change takes to blend. The draws come from the world seed, so a seed has one weather. cloudAltitude is the height in blocks of the clouds' undersides (80 to 800, 168 when absent).",
   "start": "sunny",
   "transitionSeconds": 45,
+  "cloudAltitude": 168,
   "kinds": [
     {
       "id": "sunny",

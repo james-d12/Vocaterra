@@ -2,6 +2,8 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Noise;
+using Vocaterra.Game.Core.World.Regions;
 
 namespace Vocaterra.Game.Core.World.Generation;
 
@@ -30,10 +32,25 @@ public static class SceneBuilder
 
     /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/>.</summary>
     /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
-    public static Scene Build(SceneLayout layout, ulong seed)
+    public static Scene Build(SceneLayout layout, ulong seed) => Build(layout, seed, null);
+
+    /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/> on the natural ground <paramref name="ground"/> chooses (B15).</summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="seed">The world seed.</param>
+    /// <param name="ground">The ground strategy, or <see langword="null"/> for the layout's hand-drawn relief (the valley).</param>
+    /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
+    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground) => Build(layout, seed, ground, null);
+
+    /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/> with the underground laid into the valley's buried stone (B13).</summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="seed">The world seed.</param>
+    /// <param name="ground">The ground strategy, or <see langword="null"/> for the layout's hand-drawn relief (the valley).</param>
+    /// <param name="underground">The valley's underground, or <see langword="null"/> for a valley of plain stone.</param>
+    /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
+    internal static Scene Build(SceneLayout layout, ulong seed, IGroundShape? ground, ValleyUnderground? underground)
     {
         ArgumentNullException.ThrowIfNull(layout);
-        var builder = new Builder(layout);
+        var builder = new Builder(layout, ground, underground);
         return builder.Run(seed);
     }
 
@@ -50,9 +67,21 @@ public static class SceneBuilder
         private TerrainNoise _forest = new(0, ForestPassName);
         private ulong _seed;
 
-        public Builder(SceneLayout layout)
+        private readonly IGroundShape? _ground;
+        private readonly ValleyUnderground? _underground;
+        private readonly int[] _propLow; // B13: the lowest y a prop wrote in each column (int.MaxValue where none did)
+        private readonly int[] _airLow; // B13: the lowest y a prop left non-solid in each column
+        private bool _recordProps;
+
+        public Builder(SceneLayout layout, IGroundShape? ground, ValleyUnderground? underground)
         {
             _layout = layout;
+            _ground = ground;
+            _underground = underground;
+            _propLow = new int[layout.SizeX * layout.SizeZ];
+            _airLow = new int[layout.SizeX * layout.SizeZ];
+            Array.Fill(_propLow, int.MaxValue);
+            Array.Fill(_airLow, int.MaxValue);
             _grid = new VoxelGrid(layout.SizeX, layout.SizeY, layout.SizeZ);
             _reserved = new bool[layout.SizeX * layout.SizeZ];
             _hard = new bool[layout.SizeX * layout.SizeZ];
@@ -61,13 +90,16 @@ public static class SceneBuilder
         public Scene Run(ulong seed)
         {
             _seed = seed;
-            _terrain = TerrainGenerator.Generate(_layout, seed);
+            _terrain = TerrainGenerator.Generate(_layout, seed, _ground);
             _forest = new TerrainNoise(seed, ForestPassName);
             FillTerrain();
+            _recordProps = true;
             foreach (var prop in _layout.Props)
             {
                 BuildProp(prop);
             }
+
+            _recordProps = false;
 
             foreach (var site in _layout.Sites)
             {
@@ -95,7 +127,10 @@ public static class SceneBuilder
 
             var trees = PlantForest(seed);
             var plants = PlantUndergrowth(seed);
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells, RiverCurrents.Build(_layout.River, _grid));
+            var index = TemplateBlockIndex.Scan(_grid); // before the underground: the index lists the rarer kinds of the surface (roads, fire rings), not every ore of the deep stone
+            _underground?.Lay(_grid, new ValleyGround(_layout, _terrain, _points, npcs, _propCells, _propLow, _airLow));
+            _grid.SealPristine(); // B05: what the build wrote is the world as generated; only a later write makes a chunk changed (state digest, saves)
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels, _propCells, RiverCurrents.Build(_layout.River, _grid), _terrain.Height, index);
         }
 
         // ---------------------------------------------------------------- the ground
@@ -136,11 +171,6 @@ public static class SceneBuilder
                     {
                         top = BlockId.Path;
                         sub = BlockId.Dirt;
-                    }
-                    else if (h >= spec.SnowLine + (noise.Column(1, x, z) % 7) - 3 && slope <= 5)
-                    {
-                        top = BlockId.Snow;
-                        sub = BlockId.Stone;
                     }
                     else if (h >= spec.RockLine || slope >= 5)
                     {
@@ -211,6 +241,15 @@ public static class SceneBuilder
             }
 
             _grid.SetBlock(x, y, z, block);
+            if (_recordProps)
+            {
+                var column = (z * _layout.SizeX) + x;
+                _propLow[column] = Math.Min(_propLow[column], y);
+                if (!BlockDefinition.IsSolid(block))
+                {
+                    _airLow[column] = Math.Min(_airLow[column], y);
+                }
+            }
         }
 
         private void CheckColumn(int x, int z, string where)
@@ -789,12 +828,30 @@ public static class SceneBuilder
             var facing = prop.Facing ?? Direction.North;
             var width = stamp.WidthFacing(facing);
             var depth = stamp.DepthFacing(facing);
-            var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            var h = prop.FloorY is null ? FlatHeight(prop.X, prop.Z, width, depth, where) : prop.FloorY.Value;
             var cells = new List<BlockPos>();
             foreach (var (dx, dz, layer, block) in stamp.Cells(facing))
             {
-                Put(prop.X + dx, h + 1 + layer, prop.Z + dz, block, where);
-                cells.Add(new BlockPos(prop.X + dx, h + 1 + layer, prop.Z + dz));
+                var x = prop.X + dx;
+                var z = prop.Z + dz;
+                var y = h + 1 + layer;
+                if (prop.FloorY is not null)
+                {
+                    CheckColumn(x, z, where);
+                    if (IsWater(x, z))
+                    {
+                        throw new SceneLayoutException($"{where}: the column ({x}, {z}) is in the water.");
+                    }
+
+                    Reserve(x, z);
+                    if (y <= HeightAt(x, z))
+                    {
+                        continue; // under the ground already
+                    }
+                }
+
+                Put(x, y, z, block, where);
+                cells.Add(new BlockPos(x, y, z));
             }
 
             if (prop.Name is not null)

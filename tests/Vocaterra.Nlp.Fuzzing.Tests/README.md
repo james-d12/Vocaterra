@@ -1004,6 +1004,38 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   from the help row's alias `ayuda por favor`, within the budget of 4 for its 16 characters. The leg admits that one tag where its model of the rule holds and
   counts it (about one graded sentence in 2 000); measuring a near miss against the step's own answers only, or the word that differs, is for the owner.
 
+### Found and fixed in M97 (2026-11-16; seeds of the game's B07c and B02b runs, and a coverage floor)
+
+- **O5 (and O4), the realiser drew a noun that reads as the determiner of the next one** (a generator fix; CsCheck seed `2LxdNIrNHnQ6`, `MutationCase { Kind =
+  VocabUnknown, Seed = 625984043339709867 }`). The pattern `[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]` gave `cuanto almuerzos veintiocho señoras
+  transportan` with `cuanto` (a noun, and the determiner `cuánto`) as `[NOUN:item]`. The grammar binds it as a noun, so the sentence is clean; the mutation put an
+  unknown word where the grammar needs a noun, nothing matched, and `cuanto` was `almuerzos`' determiner (`noun.number`, `almuerzo`), so the recast lost the plural.
+  A reader takes it that way too. A noun that is also a determiner or quantifier adjective, right before another noun, is re-rolled (`skip:noun-reads-as-determiner`).
+  Regression: `HomographRerollTests` (the case, why, and the neighbours).
+- **O3, a pronoun slip for `tal`** (an engine fix in `AnswerNearMisses`; CsCheck seed `9kz6LGNo8tf2`). `que me`, a correct fragment (`[[DET]? que [PRON]]`), graded at
+  `smith-receive`, got `vocab.wrong` on `me`, expected `tal`: the answer set has `qué tal`, and `tal` has a pronoun reading with no person, so `me` and `tal` were "both
+  pronouns", a slip pair (M75). A pronoun pair now needs a reading with a person on each side (a personal pronoun: `me` for `te`). O6's independent model of the rule
+  says the same. Regression: `AnswerNearMissesTests`.
+- **O14, `OpenFallback_...`'s coverage floor missed by chance** (a test fix, no oracle narrowed; failed in a gate with "the generator no longer reaches
+  fallback:forced-same-intent" on 2026-11-11, and "fallback:second-chosen" on 2026-11-16, 4 each). Cause: nothing depends on the load (the sampling has no time budget,
+  the iteration count is the environment's or 300); the run drew a fresh CsCheck seed and the count of a path, about 10 in 300 on average, fell under the floor of 5 now
+  and then. The test is now two: the same body, run at a fresh seed checks every case and asserts no floor; and run at a fixed seed
+  (`OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`) it asserts the same floor, `min(5, iterations / 60)` for each of the ten paths, which the fixed seed meets
+  the same way on every run.
+
+### Found and fixed in M98 (2026-11-17; the review's T3, a flaky coverage test, seed `7q7l8dSNG6n6`)
+
+- **The realisation rate (`RealisationRateTests`).** The skip budget bounds each reason's share of the draws; this test bounds what the re-rolls leave out in all. It draws
+  2 000 recipes of O3's stream (one case per fixed seed, as CsCheck seeds only a run's first case), prints per pattern family (`catalog`, `skeleton`, `random`) the recipes
+  realised, the skips and the rejected draws by reason, and fails when a family falls under its floor: the share of recipes that gave a sentence, or the share of draws kept.
+  Measured on `content/game-v1` at M98: recipes realised 99.57 % / 100 % / 97.38 % (all 98.95 %), draws kept 95.12 % / 98.62 % / 86.48 % (all 92.87 %); the floors are about
+  five points lower (0.95, 0.95, 0.92, 0.95 and 0.90, 0.93, 0.80, 0.88). A content edit moves the rates a little; never lower a floor to pass a change that makes the
+  generator avoid more.
+- **`OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed` was not on a fixed seed** (M97's claim above is corrected): CsCheck seeds only the first case, so 299 of 300 cases
+  were random. It now draws one case per seed (`M98Open<i>`); its counts are identical on every run (lowest 9, floor 5), inside a full run of the project too.
+- **O3, seed `7q7l8dSNG6n6`** (a generator fix, no engine change): `alrededor` (noun and adverb) drawn for `[NOUN:item]` in a pattern with an optional `[ADV]` is the adverb
+  to the matcher and yields no item. Re-rolled (`skip:noun-reads-as-adverb`); `HomographRerollTests` section 7.
+
 ## Adding to the suite
 
 `PipelineHarness` exposes what an oracle needs: `Bundle`, `NewServices` (scripted word recognizer, optional fake phoneme recognizer, fake embedder,

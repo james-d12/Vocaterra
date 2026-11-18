@@ -46,6 +46,7 @@ public sealed partial class VoxelSimulation
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
+        Fires = new FireRings(scene); // made with the simulation, so it hears of every stone set from the first tick (B06)
     }
 
     /// <summary>The scene (grid, spawn, NPCs, named points).</summary>
@@ -122,13 +123,17 @@ public sealed partial class VoxelSimulation
     /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
     /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
     /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
-    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0)
+    /// <param name="stateHeader">What the state digest starts with (B05: the seed, the region template, the generator version and the world-generation data), or <see langword="null"/> for the scene's seed with no data (a test's simulation).</param>
+    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0, WorldStateHeader? stateHeader = null)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        var simulation = new VoxelSimulation(scene);
+        var simulation = new VoxelSimulation(scene) { StateHeader = stateHeader ?? WorldStateHeader.Unkeyed(scene.Seed) };
         simulation.StartAtmosphere(day, weather, worldSeed);
         return simulation;
     }
+
+    /// <summary>What the world's state digest starts with (<see cref="WorldStateDigest"/>).</summary>
+    public WorldStateHeader StateHeader { get; private init; } = null!;
 
     /// <summary>Advances one tick with no input.</summary>
     public void Step() => Step([]);
@@ -280,7 +285,7 @@ public sealed partial class VoxelSimulation
     }
 
     /// <summary>The fire rings of the world, the one finder the session shares (N07, Y01): a fire-ring stone is a station (<c>fuego</c>) only while its ring burns.</summary>
-    public FireRings Fires => _fires ??= new FireRings(Grid);
+    public FireRings Fires { get; }
 
     /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
     public CraftResult CanCraft(int recipeIndex)
@@ -362,13 +367,13 @@ public sealed partial class VoxelSimulation
     }
 
     /// <summary>
-    /// A SHA-256 of the whole simulation state (the grid's digest, the tick, the body, the hotbar selection, the gathering progress and the
+    /// A SHA-256 of the whole simulation state (the world's state digest, see <see cref="WorldStateDigest"/>: the header and the changed chunks; the tick, the body, the hotbar selection, the gathering progress and the
     /// inventory) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
     /// </summary>
     public string ComputeStateDigest()
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        hash.AppendData(Grid.ComputeDigest());
+        hash.AppendData(WorldStateDigest.Compute(Grid, StateHeader));
         var body = Player;
         Span<byte> buffer = stackalloc byte[8 + (11 * 4)];
         BinaryPrimitives.WriteInt64LittleEndian(buffer, Tick);
@@ -409,8 +414,6 @@ public sealed partial class VoxelSimulation
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
-
-    private FireRings? _fires;
 
     private bool RecipeStationInReach(Recipe recipe) =>
         recipe.Station is { } station && StationInReach(station);

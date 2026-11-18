@@ -1,0 +1,17 @@
+B07b report (agent abeb7749b7a672787, 2026-11-16 about 12:00 UTC)
+
+Branch `B07b-streamed-fixes`, head 60b98eb7 (013c1361 bug 1, 19601d09 bug 3, 60b98eb7 bug 2, probe, docs) on 2ec710fd; worktree .claude/worktrees/b07b, clean.
+
+Tests: `scripts/test.sh full` never completed in one run (oom-killed in the shared 8 GB pool while B12 ran); each project alone passed: Game.Core.Tests 3,992 fast + 4,219 World.Generation slow + 109 other slow; Game.Tests 1,212 (7 new); Host 189; Nlp projects not re-run (untouched). Build 0 warnings; format clean per project; content valid. New tests: 4 TeleportHold, 3 ground finder (pool and deep lake, canopy, roofed water), 3 real seed-42 water, 2 residency (jump, near zone), 1 move probe; `MoveProbe.cs` added to `NoLiteralTextTests`' diagnostics allow-list.
+
+Bug 1 (a shot after a teleport): the teleport and the next step ran in the same script tick. `ScenarioHooks.WorldReady` (`VoxelGame.BodyWorldReady`); `VoxelScript.Fill` ends its tick after a teleport while the world is not ready (`EndedForWorld`). A bounded world and an already-ready teleport unchanged.
+
+Bug 2 (a far teleport): the hold waited for a plan at the new place behind the old place's queue (thousands of band jobs, 16 stale in-flight requests, the old plan requesting at top priority, 314 bands before the plan). `ChunkResidency`: `SettleNear`; on a jump over 8 columns an epoch puts old-place jobs behind, stale band jobs skipped, `_inFlight` cleared, the old plan dropped; near-plan radius 10 to 6. `StreamedWorldHost`/`SceneDrawer`: a frame that finds the near zone not ready makes it at once (within 1.5 s), meshes it (up to 400 ms), then spends larger install and mesh budgets (6 and 10 ms) for 2 s; covers a start, `--teleport`, the menu's teleport (same `_sim.TeleportTo`, not exercised directly), the respawn and a load. `--stream-stats` prints a `move:` line (`MoveProbe`, `VoxelRenderer.IsMeshedAround`).
+
+Timings (Release, High, `--no-settle`, seed 42, `--pass open`, load about 3): teleport 700,700: before near zone 2.7 s, near view 3.1 to 3.2 s, longest frame 71 to 74 ms (sky meanwhile); after 0.76 to 0.83 s, 1.7 to 2.4 s, longest 0.76 to 0.83 s (the synchronous frame). Teleport 1500,1500: before 2.9 to 3.2 / 2.9 to 3.3 s / 85 ms; after 0.96 to 0.98 s / 2.5 to 3.7 s / 0.96 to 0.98 s. Load at 700,700: before 0.8 / 3.5 s / 120 ms; after 0.6 / 0.6 s (first frame 1.14 s). Respawn at the camp, warm: 26 ms / 0.9 s / 20 ms before, 40 to 47 ms / 0.14 to 0.27 s / 47 ms after. Near view complete (every chunk within 64 blocks meshed) 0.9 to 1.1 s on a quiet run. Frame 0 longer: 0.72 s before, 1.0 to 1.6 s after.
+
+Bug 3 (onto water): `GroundFinder.StandingAt` skipped water; now the feet go in the cell over the column's top water block (the surface, since a lake's middle has no dry ground near); `--teleport 258,118` stands at y 43 (was 38); a roofed cave lake still returns null; `GroundFinder` is the only stand-at-column helper.
+
+Scripted runs: 33 `--world valley` runs on 2ec710fd and the build: identical or order-only but r01-route's sounds.log timing. Pictures in artifacts/b-series/b07b/ (before and after for the shot and the pool, an after for the far teleport). Docs: running.md, scripted-runs.md.
+
+Left: the synchronous near zone can stall a frame up to 1.5 s if generation is slow; `ChunkResidency` edits may conflict with B12's (B12 says it did not touch ChunkResidency); the near-plan radius change (10 to 6) affects walking and starts a little.

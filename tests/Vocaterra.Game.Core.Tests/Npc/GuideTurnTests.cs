@@ -379,7 +379,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         watch.Stop();
         output.WriteLine($"{turns} turns in {watch.Elapsed.TotalMilliseconds:0.0} ms, {watch.Elapsed.TotalMilliseconds / turns:0.00} ms per turn");
         Assert.Equal(ticks, session.Simulation.Tick);
-        Assert.True(watch.Elapsed.TotalMilliseconds / turns < 250, "A turn should be far below a quarter of a second.");
+        Assert.True(watch.Elapsed.TotalMilliseconds / turns < 250 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, "A turn should be far below a quarter of a second.");
     }
 
     private static (string Json, string ContextHash) RunConversation(IEnumerable<string> lines)

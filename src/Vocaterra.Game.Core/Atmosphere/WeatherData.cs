@@ -12,8 +12,18 @@ namespace Vocaterra.Game.Core.Atmosphere;
 /// <param name="Kinds">The kinds, in file order (a simulation event names a kind by its index here).</param>
 /// <param name="Start">The id of the kind a new game starts in.</param>
 /// <param name="TransitionSeconds">The seconds a change takes to blend the channels of the old kind into the new one's.</param>
-public sealed record WeatherData(IReadOnlyList<WeatherKind> Kinds, string Start, double TransitionSeconds)
+/// <param name="CloudAltitude">The height of the clouds' undersides in blocks (<c>cloudAltitude</c>, B14); <see cref="DefaultCloudAltitude"/> when the file names none.</param>
+public sealed record WeatherData(IReadOnlyList<WeatherKind> Kinds, string Start, double TransitionSeconds, double CloudAltitude = WeatherData.DefaultCloudAltitude)
 {
+    /// <summary>The height of the clouds when the file names none.</summary>
+    public const double DefaultCloudAltitude = 168;
+
+    /// <summary>The lowest cloud height the validator accepts (above the lowest hills).</summary>
+    public const double MinCloudAltitude = 80;
+
+    /// <summary>The highest cloud height the validator accepts.</summary>
+    public const double MaxCloudAltitude = 800;
+
     /// <summary>The file's path inside the bundle folder.</summary>
     public const string RelativePath = "game/weather.json";
 
@@ -69,7 +79,7 @@ public sealed record WeatherData(IReadOnlyList<WeatherKind> Kinds, string Start,
             }
 
             var kinds = root.GetProperty("kinds").EnumerateArray().Select(ParseKind).ToList();
-            return new WeatherData(kinds, root.GetProperty("start").GetString() ?? string.Empty, root.GetProperty("transitionSeconds").GetDouble());
+            return new WeatherData(kinds, root.GetProperty("start").GetString() ?? string.Empty, root.GetProperty("transitionSeconds").GetDouble(), root.TryGetProperty("cloudAltitude", out var altitude) ? altitude.GetDouble() : DefaultCloudAltitude);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         {

@@ -292,6 +292,36 @@ public enum BlockCell
     /// <summary>The top and sides of a bedroll's foot half (Y08): the same striped mat as <see cref="Bedroll"/>, without the pillow's patch.</summary>
     BedrollFoot,
 
+    /// <summary>Slate: dark blue-grey rock in horizontal bands (B10).</summary>
+    Slate,
+
+    /// <summary>Granite: pink-grey rock speckled with dark and light grains (B10).</summary>
+    Granite,
+
+    /// <summary>Limestone: pale cream rock with fine grain and faint seams (B10).</summary>
+    Limestone,
+
+    /// <summary>Gravel: loose grey pebbles (B10; the path's pebbles are brown).</summary>
+    Gravel,
+
+    /// <summary>Lava: bright orange with darker veins (B10); its glow comes from the light index.</summary>
+    Lava,
+
+    /// <summary>Bedrock: near-black, rough rock (B10).</summary>
+    Bedrock,
+
+    /// <summary>Iron ore: stone with tan flecks (B10).</summary>
+    IronOre,
+
+    /// <summary>Tin ore: stone with pale grey flecks (B10).</summary>
+    TinOre,
+
+    /// <summary>Copper ore: stone with orange and green flecks (B10).</summary>
+    CopperOre,
+
+    /// <summary>Basalt: dark charcoal rock in narrow columns (B11b).</summary>
+    Basalt,
+
     /// <summary>The icon of the bowl (a station fixture, W07): a round earthenware bowl with a pale rim.</summary>
     IconBowl,
 
@@ -331,7 +361,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 13; // Y03: 13 rows, so the bed and the bedroll fit (97 cells); 12 rows held 96
+    public const int ColourRows = 15; // B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -395,6 +425,16 @@ public static class BlockAtlasLayout
             BlockId.Lantern => BlockCell.Lantern,
             BlockId.Crate => up || down ? BlockCell.CrateTop : BlockCell.CrateSide,
             BlockId.Counter => up ? BlockCell.Planks : BlockCell.CrateSide,
+            BlockId.Slate => BlockCell.Slate,
+            BlockId.Granite => BlockCell.Granite,
+            BlockId.Limestone => BlockCell.Limestone,
+            BlockId.Gravel => BlockCell.Gravel,
+            BlockId.Lava => BlockCell.Lava,
+            BlockId.Bedrock => BlockCell.Bedrock,
+            BlockId.IronOre => BlockCell.IronOre,
+            BlockId.TinOre => BlockCell.TinOre,
+            BlockId.CopperOre => BlockCell.CopperOre,
+            BlockId.Basalt => BlockCell.Basalt,
             BlockId.AwningRed => BlockCell.AwningRed,
             BlockId.AwningWhite => BlockCell.AwningWhite,
             BlockId.Canvas => BlockCell.Canvas,

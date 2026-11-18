@@ -46,13 +46,12 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="LastRepairs">The repair each NPC's last answered turn ended with.</param>
 /// <param name="NextTurnId">The id the next submitted turn gets.</param>
 /// <param name="Npcs">Each NPC's conversation state, in the order of <c>game/npcs.json</c> (guide, shopkeeper, villager, fisher, baker, smith, farmer).</param>
-/// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
+/// <param name="Chunks">The world edits: the chunks that differ from the world as generated (<see cref="VoxelChunk.IsChanged"/>), sorted by chunk coordinate.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history). A version 2 save's rows counted the check answers (S19b); they are taken out on the load.</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 /// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
-/// <param name="World">The grid's chunk counts (X01), or <see langword="null"/> in a save from before X01 (a load across bundles then assumes this build's grid).</param>
 /// <param name="SkippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c): the sessions before it were counted as done, not played, so the save is
 /// no learner's. <see langword="null"/>, and left out of the file, for every other game.</param>
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
@@ -64,6 +63,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 /// <param name="DialoguePages">Each NPC's conversation lines (U08), so the panel scrolls back over earlier sessions: one page per NPC with lines, at most <see cref="Dialogue.DialogueModel.MaxLines"/> lines each. <see langword="null"/>, and left out of the file, while no NPC has a line; a save without it loads with empty pages. Optional, so it needs no save version.</param>
 /// <param name="GivenOrders">The orders the player has taken on (issue #54: a «sí» to the NPC's offer, or the step of the lesson that tells it), ordinal. <see langword="null"/>, and left out of the file, while none is; a save without it has none, and the NPCs offer them again. Optional, so it needs no save version.</param>
+/// <param name="PassOpen">True once the pass through the east ring has opened (B08b: every required lesson complete, or the cheat setting); it never closes again. Written only when true; the rockfall's removal is in the world's changed chunks. Optional, so it needs no save version.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -98,7 +98,6 @@ public sealed record SaveDocument(
     LearnerRecordSave? Learner = null,
     bool BookGranted = false,
     SaveSettings? Settings = null,
-    WorldDims? World = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
@@ -107,13 +106,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Air = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null);
-
-/// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
-/// <param name="ChunksX">Chunks along x.</param>
-/// <param name="ChunksY">Chunks along y.</param>
-/// <param name="ChunksZ">Chunks along z.</param>
-public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false);
 
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>
@@ -127,6 +121,21 @@ public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 /// <param name="InvertY">True when moving the mouse up looks down (the menu). Written only when true.</param>
 /// <param name="FieldOfView">The vertical field of view in degrees (the menu), 60 to 110; 0 (and so no field) is the default 70. Written only when not 70.</param>
 /// <param name="ViewDistance">How far the world is drawn in blocks (the menu), 48 to 576 in steps of 16; 0 (and so no field) is Auto, the distance of the graphics quality. Written only when not Auto.</param>
+/// <param name="PassCheat">True when the player turned the pass cheat on (B08b: the pass through the east ring opens at once). Written only when true.</param>
+/// <param name="Grass">The decorative grass's density in percent (B18, the menu), 0 to 100 in steps of 10; no field is the default (<see cref="Menu.PlayerSettings.DefaultGrass"/>), so 0 (none) is written. Written only when not the default.</param>
+/// <param name="Workers">The worker threads setting (B07d): 0 is Auto, else 1 to 8; no field is Auto. Written only when not Auto.</param>
+/// <param name="FarDistance">The far view's distance in km (B07d): 0 is Auto (the quality's), else 1 to 16; no field is Auto.</param>
+/// <param name="FarDetail">The far view's detail in percent (B07d), 50 to 200 in steps of 25; no field is 100.</param>
+/// <param name="FarTrees">The far view's single trees (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarTrees"/>); no field is Auto.</param>
+/// <param name="FarTextures">The far view's textured levels (B07d), 0 to 3; no field is 2.</param>
+/// <param name="FarExact">How far the far view is made from real chunks (B07d), as the setting counts it (see <see cref="Menu.SettingId.FarExact"/>); no field is Auto.</param>
+/// <param name="ShadersOff">True when the player turned the game's own GLSL shaders off (B17b, the menu's Shaders row: the chunks are drawn with MonoGame's effects). Written only when true, so a save of the default is byte for byte what it was.</param>
+/// <param name="SunFollowsHourOff">True when the player turned the sun following the hour off (B17c; B22's sun per band and deeper dusk). Written only when true.</param>
+/// <param name="ClimateColoursOff">True when the player turned the climate colours off (B17c; B22's land tint). Written only when true.</param>
+/// <param name="WaterShaderOff">True when the player turned the water shader off (B17c; with B22's depth tint). Written only when true.</param>
+/// <param name="HeightFogOff">True when the player turned the fog by height off (B17c). Written only when true.</param>
+/// <param name="FarLightOff">True when the player turned the far view's light off (B17c). Written only when true.</param>
+/// <param name="Msaa">The window's antialiasing in samples a pixel (0, 2, 4 or 8; B22, the menu's Graphics group since B17c); no field is the default (4). Written only when not 4, so 0 (none) is written.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -138,8 +147,33 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int MouseSensitivity = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool InvertY = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int FieldOfView = 0,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int ViewDistance = 0,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassCheat = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Grass = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Workers = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarDistance = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarDetail = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTrees = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarTextures = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FarExact = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ShadersOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool SunFollowsHourOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool ClimateColoursOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaterShaderOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool HeightFogOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FarLightOff = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Msaa = null)
 {
+    /// <summary>The window's samples a pixel in the save's settings of a new game (B22).</summary>
+    public const int DefaultMsaa = 4;
+
+    /// <summary>The samples a pixel the window may open with (0 for none).</summary>
+    public static IReadOnlyList<int> MsaaLevels { get; } = [0, 2, 4, 8];
+
+    /// <summary>The samples a pixel this setting stands for: the saved count when it is one the window offers, otherwise the default (4).</summary>
+    [JsonIgnore]
+    public int EffectiveMsaa => Msaa is { } samples && MsaaLevels.Contains(samples) ? samples : DefaultMsaa;
+
     /// <summary>The drive rate of the default (N09); a save without the field reads 0, which stands for it.</summary>
     public const double DefaultNeedsRate = 1.0;
 
@@ -197,6 +231,38 @@ public sealed record SaveSettings(
         }
     }
 
+    /// <summary>The grass density in percent this setting stands for (the default when the field is absent), within the menu's range and steps.</summary>
+    [JsonIgnore]
+    public int EffectiveGrass => Grass is { } value ? Menu.PlayerSettings.Spec(Menu.SettingId.Grass).Snap(value) : Menu.PlayerSettings.DefaultGrass;
+
+    /// <summary>What a saved value of a setting stands for: the setting's default when the field is absent, otherwise the value snapped to the setting's range and steps (B07d: the worker count and the far view's settings).</summary>
+    /// <param name="id">The setting.</param>
+    public int EffectiveOf(Menu.SettingId id)
+    {
+        var spec = Menu.PlayerSettings.Spec(id);
+        var saved = id switch
+        {
+            Menu.SettingId.Workers => Workers,
+            Menu.SettingId.FarDistance => FarDistance,
+            Menu.SettingId.FarDetail => FarDetail,
+            Menu.SettingId.FarTrees => FarTrees,
+            Menu.SettingId.FarTextures => FarTextures,
+            Menu.SettingId.FarExact => FarExact,
+            _ => null,
+        };
+        return saved is { } value ? spec.Snap(value) : spec.Default;
+    }
+
+    /// <summary>The field to write for a setting's value: <see langword="null"/> (no field) when it is the setting's default.</summary>
+    /// <param name="id">The setting.</param>
+    /// <param name="value">The value.</param>
+    public static int? OmitDefault(Menu.SettingId id, int value)
+    {
+        var spec = Menu.PlayerSettings.Spec(id);
+        var snapped = spec.Snap(value);
+        return snapped == spec.Default ? null : snapped;
+    }
+
     /// <summary>The text sizes the player can choose, in percent (X08): the normal size and two steps up.</summary>
     public static IReadOnlyList<int> TextScaleLevels { get; } = [100, 125, 150];
 
@@ -216,7 +282,22 @@ public sealed record SaveSettings(
         EffectiveMouseSensitivity == Menu.PlayerSettings.Spec(Menu.SettingId.MouseSensitivity).Default ? 0 : EffectiveMouseSensitivity,
         InvertY,
         EffectiveFieldOfView == Menu.PlayerSettings.Spec(Menu.SettingId.FieldOfView).Default ? 0 : EffectiveFieldOfView,
-        EffectiveViewDistance);
+        EffectiveViewDistance,
+        PassCheat,
+        EffectiveGrass == Menu.PlayerSettings.DefaultGrass ? null : EffectiveGrass,
+        OmitDefault(Menu.SettingId.Workers, EffectiveOf(Menu.SettingId.Workers)),
+        OmitDefault(Menu.SettingId.FarDistance, EffectiveOf(Menu.SettingId.FarDistance)),
+        OmitDefault(Menu.SettingId.FarDetail, EffectiveOf(Menu.SettingId.FarDetail)),
+        OmitDefault(Menu.SettingId.FarTrees, EffectiveOf(Menu.SettingId.FarTrees)),
+        OmitDefault(Menu.SettingId.FarTextures, EffectiveOf(Menu.SettingId.FarTextures)),
+        OmitDefault(Menu.SettingId.FarExact, EffectiveOf(Menu.SettingId.FarExact)),
+        ShadersOff,
+        SunFollowsHourOff,
+        ClimateColoursOff,
+        WaterShaderOff,
+        HeightFogOff,
+        FarLightOff,
+        EffectiveMsaa == DefaultMsaa ? null : EffectiveMsaa);
 }
 
 /// <summary>

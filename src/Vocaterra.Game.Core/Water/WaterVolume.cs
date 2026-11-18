@@ -20,7 +20,7 @@ public static class WaterVolume
     /// <param name="x">East, in units.</param>
     /// <param name="y">Up, in units.</param>
     /// <param name="z">South, in units.</param>
-    public static bool Contains(VoxelGrid grid, int x, int y, int z)
+    public static bool Contains(IVoxelReader grid, int x, int y, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var top = SurfaceTop(grid, VoxelCollider.FloorDiv(x, U), VoxelCollider.FloorDiv(y, U), VoxelCollider.FloorDiv(z, U));
@@ -28,7 +28,7 @@ public static class WaterVolume
     }
 
     /// <summary>The world height (in units) of the water's top in the cell, or null when the cell is not water (or lies outside the grid).</summary>
-    internal static int? SurfaceTop(VoxelGrid grid, int cellX, int cellY, int cellZ)
+    internal static int? SurfaceTop(IVoxelReader grid, int cellX, int cellY, int cellZ)
     {
         if (grid.GetBlock(cellX, cellY, cellZ) != BlockId.Water)
         {

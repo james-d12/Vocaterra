@@ -113,6 +113,6 @@ public sealed class ChunkIndexTests
         var watch = System.Diagnostics.Stopwatch.StartNew();
         grid.SetBlock(200, 60, 200, BlockId.Stone);
         _ = grid.ComputeDigest();
-        Assert.True(watch.Elapsed.TotalMilliseconds < 100, $"a digest after one edit took {watch.Elapsed.TotalMilliseconds:F1} ms");
+        Assert.True(watch.Elapsed.TotalMilliseconds < 100 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"a digest after one edit took {watch.Elapsed.TotalMilliseconds:F1} ms");
     }
 }

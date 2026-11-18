@@ -14,3 +14,4 @@ Unlicense
 PostgreSQL
 ISC
 CC0-1.0
+Zlib

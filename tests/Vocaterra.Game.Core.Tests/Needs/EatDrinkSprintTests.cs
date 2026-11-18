@@ -539,7 +539,7 @@ public sealed class EatDrinkSprintTests
                 }
             }
         });
-        var fires = new FireRings(scene.Grid);
+        var fires = new FireRings(scene);
         var middle = Assert.Single(fires.Middles);
         Assert.Equal(new BlockPos(20, GroundTop + 1, 20), middle);
         Assert.False(fires.IsLit(middle));
@@ -583,7 +583,7 @@ public sealed class EatDrinkSprintTests
         session.EatItem(ItemId.WaterBottle);
         Tick(session, 300);
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route);
 
         Assert.Equal(session.Needs.Capture(), loaded.Needs.Capture());
         Assert.Equal(1, loaded.Simulation.Inventory.Count(ItemId.Bottle));

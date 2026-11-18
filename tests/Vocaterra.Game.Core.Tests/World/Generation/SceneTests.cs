@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 
@@ -18,7 +17,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
-    internal const string GoldenDigest = "ab4035358a106d1dc191cfaef216646d2af002aef32a39dff0c09e886baeaa5c"; // Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
+    internal const string GoldenDigest = "6ff0d1c82d70f2398928031eef2b78cda2ecfac186549849764e04808a2d9856"; // B20: no snow on the valley's ring (the snow rule and the snowLine field are gone: the tops that were snow are bare stone, as the rock line lays it); B11b: the strata of underground.json have more pockets (gravel, sand, dirt, larger granite and limestone, basalt in the slate), laid into the valley's buried stone only (the valley's surface is as it was); B08c: the pass road is one road (the gate at 318, five wide, a block up every second column to the rise at 332, no riser, and the surface of a path keeps its own height across a site's blend); B13: the strata, ores and caves of underground.json laid into the valley's buried stone (at least 8 blocks from any air, 16 from any water, clear of the sites, paths, props, village, pass and rockfall; the surface is as it was; the build is ValleyBuild.Build, the plain-stone valley is ValleyBuild.Bare); B08a: the pass through the east ring (a road of path blocks from the village to the east edge, cut through the ring as a graded cutting, the sites paso.gate, paso.rise, paso.foot, paso and paso.edge, and the rockfall heap with its rubble that closes it); Y08: the mountain ledge bare (no tent, chest, crate or ring), the inn's two-cell beds and its counter block; Y04: the inn and its inside, house3 moved to the south-east corner, the two meadows cleared of trees;  village-plan V04: the village grows; V10: the well's rim one block high; H07a: the falls, the rapids and the river mouth built at rest; H12: the banks a step over the shallow bed
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -32,11 +31,34 @@ public sealed class SceneTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void TheValleysBuildLaysNoSnowBlockAnywhere()
+    {
+        // B20: the hand-made valley has no snow on its ring (the generated land round it has its own snow line).
+        var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
+        var snow = 0;
+        for (var x = 0; x < grid.SizeX; x++)
+        {
+            for (var z = 0; z < grid.SizeZ; z++)
+            {
+                for (var y = 0; y < grid.SizeY; y++)
+                {
+                    if (grid.PeekBlock(x, y, z) == BlockId.Snow)
+                    {
+                        snow++;
+                    }
+                }
+            }
+        }
+
+        Assert.Equal(0, snow);
+    }
+
+    [Fact]
     public void TheSceneBuildsIdenticallyTwice()
     {
         // Two builds, not the test process's copies of one (VoxelTestSupport.BuildRoute): this is the builder's own determinism.
-        var a = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
-        var b = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var a = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
+        var b = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         Assert.Equal(a.Grid.ComputeDigestHex(), b.Grid.ComputeDigestHex());
         Assert.Equal(a.Spawn, b.Spawn);
         Assert.Equal(a.Npcs, b.Npcs);
@@ -47,7 +69,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheTestsCopyOfTheRouteIsAFreshBuildAndItsEditsStayInIt()
     {
-        var fresh = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var fresh = ValleyBuild.Build(VoxelTestSupport.RouteDraft, Seed);
         var copy = VoxelTestSupport.BuildRoute(Seed);
         Assert.Equal(GoldenDigest, copy.Grid.ComputeDigestHex());
         Assert.Equal(fresh.Grid.ComputeDigestHex(), copy.Grid.ComputeDigestHex());
@@ -129,8 +151,6 @@ public sealed class SceneTests(ITestOutputHelper output)
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
         var highest = 0;
-        var snowAbove100 = 0;
-        var snowBelow95 = 0;
         var stoneTops = 0;
         for (var z = 0; z < grid.SizeZ; z++)
         {
@@ -144,31 +164,16 @@ public sealed class SceneTests(ITestOutputHelper output)
                 var y = Ground(grid, x, z);
                 highest = Math.Max(highest, y);
                 var top = grid.GetBlock(x, y, z);
-                if (top == BlockId.Snow)
-                {
-                    if (y >= 100)
-                    {
-                        snowAbove100++;
-                    }
-
-                    if (y < 95)
-                    {
-                        snowBelow95++;
-                    }
-                }
-
                 if (y >= 86)
                 {
                     stoneTops++;
-                    Assert.True(top is BlockId.Stone or BlockId.Snow, $"the ground at ({x}, {y}, {z}) is {top}, not bare stone or snow");
+                    Assert.True(top == BlockId.Stone, $"the ground at ({x}, {y}, {z}) is {top}, not bare stone");
                 }
             }
         }
 
-        output.WriteLine($"highest ground {highest}, snow columns above 100: {snowAbove100}, columns of rock or snow above 85: {stoneTops}");
+        output.WriteLine($"highest ground {highest}, columns of bare rock above 85: {stoneTops}");
         Assert.InRange(highest, 110, 125);
-        Assert.True(snowAbove100 > 2000, "the peaks carry snow");
-        Assert.Equal(0, snowBelow95);
         Assert.True(stoneTops > 5000, "there are high rock faces");
     }
 
@@ -390,7 +395,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var grid = scene.Grid;
         var layout = VoxelTestSupport.RouteDraft;
         var waypoints = new List<(int X, int Z)> { (scene.Spawn.Feet.X, scene.Spawn.Feet.Z) };
-        foreach (var path in layout.Paths)
+        foreach (var path in layout.Paths.Where(static p => p.Name is "trail" or "road")) // the walk ends at the village; the pass road (B08a) is walked in PassTests
         {
             waypoints.AddRange(path.Via);
             var to = layout.Site(path.To)!;
@@ -596,7 +601,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var json = File.ReadAllText(VoxelTestSupport.RouteDraftPath())
             .Replace("\"props\": [", "\"props\": [ {\"type\": \"house\", \"site\": \"village\", \"dx\": 24, \"dz\": -3, \"width\": 5, \"depth\": 5, \"facing\": \"west\"},", StringComparison.Ordinal);
         var layout = SceneLayout.Parse(json);
-        var error = Assert.Throws<SceneLayoutException>(() => SceneBuilder.Build(layout, Seed));
+        var error = Assert.Throws<SceneLayoutException>(() => ValleyBuild.Build(layout, Seed));
         Assert.Contains("flat", error.Message, StringComparison.Ordinal);
     }
 
