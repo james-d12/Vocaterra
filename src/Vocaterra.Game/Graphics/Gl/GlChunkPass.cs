@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Graphics.Far;
 using Silk.NET.OpenGL;
 using GlPrimitive = Silk.NET.OpenGL.PrimitiveType;
 
@@ -68,6 +69,9 @@ public sealed unsafe class GlChunkPass : IDisposable
     private readonly int _uLightMode;
     private readonly int _uWater;
     private readonly int _uRelight;
+    private readonly int _uClip;
+    private readonly int _uClipCount;
+    private int _clipSet;
     private bool _inPass;
     private int _modeWanted;
     private int _modeSet = -1;
@@ -97,13 +101,15 @@ public sealed unsafe class GlChunkPass : IDisposable
         _uLightMode = program.Uniform("uLightMode");
         _uWater = program.Uniform("uWater");
         _uRelight = program.Uniform("uRelight");
+        _uClip = program.Uniform("uClip");
+        _uClipCount = program.Uniform("uClipCount");
     }
 
     /// <summary>The uniforms of the program the pass sets (a name here that the sources do not declare would be set to nothing, silently: a test holds the two lists together).</summary>
     public static IReadOnlyList<string> UniformNames { get; } =
     [
         "uWorldViewProjection", "uFogVector", "uEye", "uDiffuse", "uFlipY", "uLightMode", "uWater", "uSunDirection", "uSunColour", "uShadeTint", "uSunTint", "uBottomTint", "uSunHeight", "uAoKeep",
-        "uGlowColour", "uHeightFog", "uWaterShader", "uTime", "uWaveAmount", "uAtlas", "uFogColour", "uAlphaReference", "uRelight", "uDayDirection",
+        "uGlowColour", "uHeightFog", "uWaterShader", "uTime", "uWaveAmount", "uAtlas", "uFogColour", "uAlphaReference", "uRelight", "uDayDirection", "uClip", "uClipCount",
     ];
 
     /// <summary>The vertex attributes of the program, by location: the position, the colour and the atlas coordinate from the 24-byte <see cref="World.MeshVertex"/> stream, and the light word of <see cref="World.LightData"/> from the 4-byte stream beside it.</summary>
@@ -343,6 +349,37 @@ public sealed unsafe class GlChunkPass : IDisposable
         _drawnQuads += indexCount / 6;
     }
 
+    /// <summary>B42: clips the far draws that follow to a set of rectangles of ground (a stand-in is drawn only inside the footprints of the leaves that wait under it): a fragment outside every one is discarded. <see langword="null"/> or none: no clip. The rectangles are a half block wider on every side, so no hairline is left between a stand-in and the tile beside it.</summary>
+    /// <param name="windows">The rectangles, at most <see cref="FarWindow.Most"/>.</param>
+    public void SetFarClip(IReadOnlyList<FarWindow>? windows)
+    {
+        var count = windows is null ? 0 : Math.Min(windows.Count, FarWindow.Most);
+        if (count == 0)
+        {
+            if (_clipSet != 0)
+            {
+                _gl.Uniform1(_uClipCount, 0);
+                _clipSet = 0;
+            }
+
+            return;
+        }
+
+        Span<float> rects = stackalloc float[FarWindow.Most * 4];
+        for (var i = 0; i < count; i++)
+        {
+            var w = windows![i];
+            rects[(i * 4) + 0] = w.MinX - 0.5f;
+            rects[(i * 4) + 1] = w.MinZ - 0.5f;
+            rects[(i * 4) + 2] = w.MaxX + 0.5f;
+            rects[(i * 4) + 3] = w.MaxZ + 0.5f;
+        }
+
+        _gl.Uniform4(_uClip, rects[..(count * 4)]);
+        _gl.Uniform1(_uClipCount, count);
+        _clipSet = count;
+    }
+
     /// <summary>Clears the depth buffer (the far view's pass ends with it, so the chunks drawn after it with their own depth range always stand in front of the far land under them): depth writes on, the scissor test is already off in the scope.</summary>
     public void ClearDepth()
     {
@@ -407,6 +444,8 @@ public sealed unsafe class GlChunkPass : IDisposable
         _gl.BindSampler(TextureUnit, 0);
         _gl.Uniform1(_uAtlas, TextureUnit);
         _gl.Uniform1(_uFlipY, flipY);
+        _gl.Uniform1(_uClipCount, 0);
+        _clipSet = 0;
         SetFrameUniforms();
         var viewProjection = view * projection;
         Span<float> matrix = stackalloc float[16];

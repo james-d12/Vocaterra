@@ -20,6 +20,8 @@ uniform vec3 uShadeTint;
 uniform vec3 uSunTint;
 uniform vec3 uBottomTint;
 uniform float uSunHeight;
+uniform vec4 uClip[128];        // B42: rectangles of ground (min x, min z, max x, max z) a stand-in is drawn inside; with uClipCount above 0 a fragment outside all of them is discarded
+uniform int uClipCount;
 
 out vec4 oColour;
 
@@ -37,6 +39,21 @@ vec3 facetNormal()
 
 void main()
 {
+    if (uClipCount > 0)
+    {
+        bool inside = false;
+        for (int i = 0; i < uClipCount && !inside; i++)
+        {
+            vec4 r = uClip[i];
+            inside = vWorld.x >= r.x && vWorld.z >= r.y && vWorld.x < r.z && vWorld.z < r.w;
+        }
+
+        if (!inside)
+        {
+            discard;
+        }
+    }
+
     vec4 colour = texture(uAtlas, vUv) * vColour;
     if (colour.a <= uAlphaReference + 0.5 / 255.0)
     {
