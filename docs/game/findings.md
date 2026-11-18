@@ -2973,3 +2973,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   design (the water shader, fog by height, the sun at its hour). Its merge with B07d's settings and far view took 13 conflicts. The torch
   runs finish on both paths; with effects off they match within 8 pixels. B23 inherits the sky and block channels. Gated: 12,765 passed;
   the one failure B07d's JobPool race (B30).
+- **B30, CI ready for the merge into main (2026-11-18, `946fd44e`).** CI's runner (4 cores) is about four times slower than this machine,
+  and the CPU timing tests' budgets were twice this machine's cost, so they would have failed there; `build-and-test` also had a 30-minute
+  limit for a suite that now takes 26 minutes here. Every CPU timing budget, and eight wall-clock bounds that would also trip, now take a
+  factor: 1 locally, 4 when `CI` or `GITHUB_ACTIONS` is set (`VOCATERRA_TIMING_FACTOR` overrides). A run here as CI does it (Debug, no
+  models, no GL tests, 4 cores) took 282 s to build and 43 minutes to test at load 18; the limit is now 120 minutes. NamePlates returns
+  early without a display, live-GL and model-gated tests skip. B07d's `JobPoolTests` resize race (three gates failed on it) now waits until
+  all eight workers have started a job. The orchestrator cannot read CI's results (403): the owner reports them. Gated clean.
