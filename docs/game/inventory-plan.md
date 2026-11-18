@@ -243,35 +243,38 @@ the mountains; the owner decides whether it joins this series.
 
 | Group | Item | Wear | Stats | Recipe (mesa) | Price, seller | Word |
 | --- | --- | --- | --- | --- | --- | --- |
-| Material | la tela | | | | 1, Pablo | not in lexicon: add |
-| Material | el cuero | | | | 2, Pablo | not in lexicon: add |
-| Material | el hierro | | | | 3, Domingo | lexicon |
-| Clothes | el sombrero | head | warmth +1 | 1 tela | 2, Pablo | lexicon, A1 |
-| Clothes | el gorro | head | warmth +2 | 2 tela | 3, Pablo | not in lexicon: add |
-| Clothes | la camisa (starts worn) | body | warmth +1 | 2 tela | 3, Pablo | lexicon, A1 |
-| Clothes | la chaqueta | body | warmth +3 | 3 tela, 1 cuero | 6, Pablo | lexicon |
-| Clothes | el abrigo | body | warmth +5 | 4 tela, 2 cuero | 10, Pablo | lexicon |
-| Clothes | los pantalones (start worn) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
-| Clothes | los zapatos (start worn) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
-| Clothes | las botas | feet | warmth +2 | 2 cuero | 5, Pablo | lexicon |
-| Armour | el casco | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
-| Armour | la coraza | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
-| Armour | las grebas | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
-| Armour | (armoured boots) | feet | armour 2 | 2 hierro | 6, Domingo | open: no plain word that is not «botas» |
-| Accessory | el anillo | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
-| Accessory | la pulsera | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
-| Accessory | el cinturón | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
-| Accessory | el collar | accessory | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
-| Accessory | el amuleto | accessory | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
-| Off-hand | el escudo | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
-| Off-hand | la antorcha (today's torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
-| Off-hand | el farol | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |
-| Bag | el saco | back | capacity 10 | 2 tela | 4, Pablo | lexicon |
-| Bag | la mochila | back | capacity 20 | 3 tela, 2 cuero | 10, Pablo | not in lexicon: add |
+| Material | la tela (cloth) | | | | 1, Pablo | not in lexicon: add |
+| Material | el cuero (leather) | | | | 2, Pablo | not in lexicon: add |
+| Material | el hierro (iron) | | | | 3, Domingo | lexicon |
+| Clothes | el sombrero (hat) | head | warmth +1 | 1 tela | 2, Pablo | lexicon, A1 |
+| Clothes | el gorro (woolly cap) | head | warmth +2 | 2 tela | 3, Pablo | not in lexicon: add |
+| Clothes | la camisa (starts worn) (shirt) | body | warmth +1 | 2 tela | 3, Pablo | lexicon, A1 |
+| Clothes | la chaqueta (jacket) | body | warmth +3 | 3 tela, 1 cuero | 6, Pablo | lexicon |
+| Clothes | el abrigo (coat) | body | warmth +5 | 4 tela, 2 cuero | 10, Pablo | lexicon |
+| Clothes | los pantalones (start worn) (trousers) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
+| Clothes | los zapatos (start worn) (shoes) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
+| Clothes | las botas (boots) | feet | warmth +2 | 2 cuero | 5, Pablo | lexicon |
+| Armour | el casco (helmet) | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
+| Armour | la coraza (cuirass (chest and back plate)) | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
+| Armour | las grebas (greaves (shin plates)) | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
+| Armour | (armoured boots) (sabatons (steel foot armour)) | feet | armour 2 | 2 hierro | 6, Domingo | open: no plain word that is not «botas» |
+| Accessory | el anillo (ring) | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
+| Accessory | la pulsera (bracelet) | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
+| Accessory | el cinturón (belt) | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
+| Accessory | el collar (necklace) | accessory | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
+| Accessory | el amuleto (amulet) | accessory | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
+| Off-hand | el escudo (shield) | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
+| Off-hand | la antorcha (today's torch) (torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
+| Off-hand | el farol (lantern) | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |
+| Bag | el saco (sack) | back | capacity 10 | 2 tela | 4, Pablo | lexicon |
+| Bag | la mochila (backpack) | back | capacity 20 | 3 tela, 2 cuero | 10, Pablo | not in lexicon: add |
 
 Totals: the warmest clothes give +11 (gorro, abrigo, pantalones, botas); the full armour 12 points (48%), 15 with the shield (60%). The
 light numbers wait for I05b's stop. Every Spanish word joins `game/nouns.json`, the English locale and, if outside the A1 and A2 lists, the
 world-words block of `cefr/a1.txt` with its reason; words not in the lexicon get an entry in `lexicon/world.json` (the plan's rule).
+
+**The owner's answers (2026-11-18):** prices as in the table; keep the amulet's light; add the world's climate to what the player feels
+(a milestone, I06b). Still open: one armour tier or two, the armoured boots, «la coraza» or «el peto» (the owner asked for them in English).
 
 **Choices for the owner:**
 1. **One armour tier (iron) instead of two.** The game's nouns are single words, so «el casco de cuero» and «el casco de hierro» would be
