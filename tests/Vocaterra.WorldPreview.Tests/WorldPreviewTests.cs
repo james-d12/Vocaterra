@@ -38,6 +38,20 @@ public sealed class WorldPreviewTests : IClassFixture<BundleFixture>, IDisposabl
     }
 
     [Fact]
+    public void The_generation_bench_runs_in_quick_mode_and_writes_its_json()
+    {
+        // B36: a smoke test only; the bench is a tool and its times are not asserted.
+        var json = Path.Combine(_folder, "bench.json");
+        Directory.CreateDirectory(_folder);
+        var output = new StringWriter();
+        var code = Cli.Run(["bench", "--quick", "--passes", "1", "--columns", "2", "--json", json], output, new StringWriter());
+
+        Assert.Equal(0, code);
+        Assert.Contains("far model stack L7, land", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("\"rows\"", File.ReadAllText(json), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void The_same_arguments_write_byte_identical_files()
     {
         var a = Path.Combine(_folder, "a");
