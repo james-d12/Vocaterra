@@ -575,6 +575,10 @@ public sealed class FarView
 
             // The coarse levels are cheap and cover the horizon: they are made early (their distance counts a sixteenth), so a view that has just begun shows the far land at once and the detail comes in from the near out.
             var distance = (long)key.NearestDistance(settings, eyeX, eyeZ) / (key.Level >= CoarseFirstFrom ? 16 : 1);
+            if (key.Level < CoarseFirstFrom)
+            {
+                distance += settings.Range / 4; // B35: every coarse tile and stand-in (a sixteenth of a distance of at most 1.6 ranges) goes before every fine one: the whole view is covered first, the detail comes in from the near out
+            }
             var captured = key;
             _pool.Submit(
                 JobLane.Tiles,
@@ -764,9 +768,25 @@ public sealed class FarView
             triangles += stand.Triangles;
         }
 
+        var uncovered = 0;
+        var needed = 0;
         foreach (var key in _leaves)
         {
-            if (!_tiles.TryGetValue(key, out var tile) || !tile.OnCard || !IsNeeded(key) || CoveredByStandIn(key, top))
+            if (!IsNeeded(key))
+            {
+                continue;
+            }
+
+            needed++;
+            _tiles.TryGetValue(key, out var tile);
+            var onCard = tile is { OnCard: true };
+            var covered = CoveredByStandIn(key, top);
+            if (!onCard && !covered)
+            {
+                uncovered++;
+            }
+
+            if (tile is null || !onCard || covered)
             {
                 continue;
             }
@@ -776,7 +796,40 @@ public sealed class FarView
         }
 
         _draw.InsertRange(0, _fallbacks);
+        Uncovered = uncovered;
+        NoteCoverage(needed, uncovered);
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
+    }
+
+    /// <summary>How many needed leaves of the last <see cref="Update"/> have neither their own tile on the card nor a stand-in drawn: the sky-coloured gaps (B35).</summary>
+    public int Uncovered { get; private set; }
+
+    /// <summary>The wall-clock milliseconds from the first update with leaves until no needed leaf was uncovered, or <see langword="null"/> while some are (B35, for the run's report).</summary>
+    public double? CoveredAfterMilliseconds { get; private set; }
+
+    /// <summary>The wall-clock milliseconds from the first update with leaves until every needed leaf was on the card, or <see langword="null"/> while some are not (B35, for the run's report).</summary>
+    public double? FilledAfterMilliseconds { get; private set; }
+
+    private double? _firstLeaves;
+
+    private void NoteCoverage(int needed, int uncovered)
+    {
+        if (needed == 0)
+        {
+            return;
+        }
+
+        var now = MonotonicClock.Milliseconds();
+        _firstLeaves ??= now;
+        if (CoveredAfterMilliseconds is null && uncovered == 0)
+        {
+            CoveredAfterMilliseconds = now - _firstLeaves.Value;
+        }
+
+        if (FilledAfterMilliseconds is null && Missing == 0 && _unuploaded == 0 && _building.Count == 0)
+        {
+            FilledAfterMilliseconds = now - _firstLeaves.Value;
+        }
     }
 
     private bool HasStandInAbove(FarTileKey key, int top)
