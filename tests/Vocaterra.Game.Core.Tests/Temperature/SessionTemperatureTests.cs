@@ -22,6 +22,8 @@ public sealed class SessionTemperatureTests
 
     [Theory]
     [InlineData(250, 1000)] // warm
+    [InlineData(300, 900)] // hot (I06c)
+    [InlineData(400, 750)] // very hot (I06c)
     [InlineData(60, 1000)] // cool
     [InlineData(-20, 850)] // cold
     [InlineData(-80, 650)] // very cold
@@ -32,7 +34,7 @@ public sealed class SessionTemperatureTests
     {
         var warm = Held(250);
         var plain = TestGame.NewSession();
-        plain.Temperature.HeldTenths = 250;
+        plain.Temperature.HeldTenths = 250 - plain.Temperature.Warmth.WarmthTenths(); // the starting clothes' four degrees (I08a) and the held value make 25.0 either way
         plain.Step([]);
 
         Assert.Equal(1000, Walk(warm));
