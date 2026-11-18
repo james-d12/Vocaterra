@@ -375,6 +375,45 @@ public enum BlockCell
 
     /// <summary>The icon of a brown shoe (the item, I08a). Placed last, so no other cell moves.</summary>
     IconShoes,
+
+    /// <summary>The icon of a steel helmet (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconHelmet,
+
+    /// <summary>The icon of a steel cuirass (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconCuirass,
+
+    /// <summary>The icon of a pair of steel greaves (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconGreaves,
+
+    /// <summary>The icon of a steel-capped boot (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBoots,
+
+    /// <summary>The icon of a gold ring with a red gem (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconRing,
+
+    /// <summary>The icon of a turquoise bracelet (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBracelet,
+
+    /// <summary>The icon of a brown belt with a gold buckle (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBelt,
+
+    /// <summary>The icon of a silver chain with a blue pendant (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconNecklace,
+
+    /// <summary>The icon of a gold medallion on a cord (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconAmulet,
+
+    /// <summary>The icon of a wine-red shield (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconShield,
+
+    /// <summary>The icon of an iron lantern (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconLantern,
+
+    /// <summary>The icon of a green backpack (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBackpack,
+
+    /// <summary>The icon of a tan sack (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconSack,
 }
 
 /// <summary>
@@ -391,7 +430,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 17; // I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b; B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
+    public const int ColourRows = 17; // I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b (which fit); B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -529,6 +568,19 @@ public static class BlockAtlasLayout
         ["coat"] = BlockCell.IconCoat,
         ["trousers"] = BlockCell.IconTrousers,
         ["shoes"] = BlockCell.IconShoes,
+        ["helmet"] = BlockCell.IconHelmet,
+        ["cuirass"] = BlockCell.IconCuirass,
+        ["greaves"] = BlockCell.IconGreaves,
+        ["boots"] = BlockCell.IconBoots,
+        ["ring"] = BlockCell.IconRing,
+        ["bracelet"] = BlockCell.IconBracelet,
+        ["belt"] = BlockCell.IconBelt,
+        ["necklace"] = BlockCell.IconNecklace,
+        ["amulet"] = BlockCell.IconAmulet,
+        ["shield"] = BlockCell.IconShield,
+        ["lantern"] = BlockCell.IconLantern,
+        ["backpack"] = BlockCell.IconBackpack,
+        ["sack"] = BlockCell.IconSack,
         ["bowl"] = BlockCell.IconBowl,
         ["spoon"] = BlockCell.IconSpoon,
         ["oven"] = BlockCell.IconOven,

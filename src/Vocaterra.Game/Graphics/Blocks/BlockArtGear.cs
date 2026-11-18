@@ -224,6 +224,14 @@ public static class BlockArtGear
     public static byte[] Pixels(BlockCell cell)
     {
         var (palette, rows) = Icons[cell];
+        return Render(palette, rows);
+    }
+
+    /// <summary>The RGBA bytes of a table of sixteen strings over a palette (a character the palette lacks is clear); the gear classes share it.</summary>
+    /// <param name="palette">A character and its colour.</param>
+    /// <param name="rows">The sixteen rows of sixteen characters.</param>
+    internal static byte[] Render(IReadOnlyDictionary<char, (byte R, byte G, byte B)> palette, string[] rows)
+    {
         var data = new byte[Size * Size * 4];
         for (var y = 0; y < Size; y++)
         {

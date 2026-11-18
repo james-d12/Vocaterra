@@ -75,11 +75,11 @@ public sealed class EquipmentValidatorTests
     }
 
     [Fact]
-    public void Given_AWornItemThatStacks_When_ItIsChecked_Then_TheStackLimitIsReported()
+    public void Given_AWornItemThatStacks_When_ItIsChecked_Then_NoProblemIsReportedAsTheEquipRulesTakeOneAtATime()
     {
         var items = TestItems.With(new ItemDefinition((ItemId)242, "test-sock", 20, "test-sock", ItemHeld.Sprite, ["clothing"], Wear: "feet"));
 
-        Assert.Contains("game/items.json: 'test-sock' can be worn, so its stack limit must be 1 (it is 20).", Problems(TestGame.Data.Equipment, items));
+        Assert.Empty(Problems(TestGame.Data.Equipment, items)); // I08b: the torch is worn in the off-hand and still stacks to 99 for placing
     }
 
     [Fact]

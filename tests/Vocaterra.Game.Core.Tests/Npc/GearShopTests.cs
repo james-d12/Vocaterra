@@ -7,8 +7,8 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>
-/// Pablo's clothes and materials and Domingo's iron, bought by naming them (I08a, inventory plan 3.13a): the price of each, the count said, the plural «los pantalones», and the refusals in a
-/// line each, through the same <c>sell</c> path as the stall's flour.
+/// Pablo's clothes, materials, accessories and bags and Domingo's iron, armour, shield, lantern and torch, bought by naming them (I08a and I08b, inventory plan 3.13a): the price of each, the count said, the plural «los pantalones»
+/// and «las botas», and the refusals in a line each, through the same <c>sell</c> path as the stall's flour.
 /// </summary>
 public sealed class GearShopTests
 {
@@ -46,6 +46,14 @@ public sealed class GearShopTests
     [InlineData("quiero unos pantalones", "trousers", 3)]
     [InlineData("necesito zapatos", "shoes", 3)]
     [InlineData("me das unos zapatos", "shoes", 3)]
+    [InlineData("quiero un anillo", "ring", 6)]
+    [InlineData("quiero una pulsera", "bracelet", 6)]
+    [InlineData("quiero un cinturón", "belt", 5)]
+    [InlineData("quiero un collar", "necklace", 5)]
+    [InlineData("quiero un amuleto", "amulet", 8)]
+    [InlineData("quiero un saco", "sack", 4)]
+    [InlineData("quiero una mochila", "backpack", 10)]
+    [InlineData("necesito una mochila", "backpack", 10)]
     public void Given_PabloAndEnoughCoins_When_TheLearnerNamesAnItem_Then_ItIsSoldAtItsPrice(string line, string item, int price)
     {
         var session = At("shopkeeper", 20);
@@ -86,7 +94,7 @@ public sealed class GearShopTests
 
         var lines = Lines(session.Say("quiero madera"));
 
-        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa.", lines);
+        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", lines);
         Assert.Equal(20, session.Simulation.Inventory.Count(ItemId.Coin));
     }
 
@@ -102,16 +110,18 @@ public sealed class GearShopTests
     }
 
     [Fact]
-    public void Given_TheShopkeepersSellRow_When_ItsPricesAreRead_Then_EveryClothingItemAndMaterialPablosHasAPrice()
+    public void Given_TheShopkeepersSellRow_When_ItsPricesAreRead_Then_EveryClothingItemMaterialAccessoryAndBagPablosHasAPrice()
     {
         var sell = TestGame.Data.HostEvents.Of("shopkeeper", "stall.sell_goods");
 
         var priced = sell.Prices!.Keys.Order(StringComparer.Ordinal).ToList();
 
-        Assert.Equal(["abrigo", "camisa", "chaqueta", "cuero", "gorro", "harina", "pantalón", "sombrero", "tela", "zapato"], priced);
+        Assert.Equal(["abrigo", "amuleto", "anillo", "camisa", "chaqueta", "cinturón", "collar", "cuero", "gorro", "harina", "mochila", "pantalón", "pulsera", "saco", "sombrero", "tela", "zapato"], priced);
         var clothes = TestItems.Catalogue.All.Where(static d => d.Tags.Contains("clothing")).Select(static d => d.Id).Order();
         string[] clothesNouns = ["sombrero", "gorro", "camisa", "chaqueta", "abrigo", "pantalón", "zapato"];
         Assert.Equal(clothesNouns.Select(static n => TestGame.Nouns.ForLemma(n)!.Items[0]).Order(), clothes); // every piece of clothing has its price
+        var pablos = TestItems.Catalogue.All.Where(static d => d.Tags.Contains("accessory") || d.Tags.Contains("bag")).Select(static d => d.Id).Order();
+        Assert.Equal(new[] { "anillo", "pulsera", "cinturón", "collar", "amuleto", "saco", "mochila" }.Select(static n => TestGame.Nouns.ForLemma(n)!.Items[0]).Order(), pablos); // every accessory and bag has its price
     }
 
     [Fact]
@@ -122,9 +132,84 @@ public sealed class GearShopTests
         var lines = Lines(session.Say("quiero hierro"));
 
         Assert.Equal((1, 7), (Held(session, "iron"), session.Simulation.Inventory.Count(ItemId.Coin)));
-        Assert.Contains("Aquí tienes el hierro. ¡Gracias!", lines);
+        Assert.Contains(Sold[0], lines);
         _ = session.Say("quiero dos hierros");
         Assert.Equal((3, 1), (Held(session, "iron"), session.Simulation.Inventory.Count(ItemId.Coin)));
+    }
+
+    [Theory]
+    [InlineData("quiero un casco", "helmet", 6)]
+    [InlineData("quiero una coraza", "cuirass", 12)]
+    [InlineData("quiero grebas", "greaves", 8)]
+    [InlineData("quiero unas grebas", "greaves", 8)]
+    [InlineData("quiero botas", "boots", 6)]
+    [InlineData("necesito unas botas", "boots", 6)]
+    [InlineData("quiero un escudo", "shield", 8)]
+    [InlineData("quiero un farol", "lantern", 6)]
+    [InlineData("quiero una antorcha", "torch", 1)]
+    [InlineData("quiero hierro", "iron", 3)]
+    public void Given_DomingoAndEnoughCoins_When_TheLearnerNamesAnItem_Then_ItIsSoldAtItsPrice(string line, string item, int price)
+    {
+        var session = At("smith", 20);
+
+        var lines = Lines(session.Say(line));
+
+        Assert.Equal((1, 20 - price), (Held(session, item), session.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.Contains(Sold[0], lines);
+    }
+
+    [Fact]
+    public void Given_DomingoAndCoins_When_TwoTorchesAreAskedFor_Then_TwoAreSoldForTwoCoins()
+    {
+        var session = At("smith", 5);
+
+        _ = session.Say("quiero dos antorchas");
+
+        Assert.Equal((2, 3), (Held(session, "torch"), session.Simulation.Inventory.Count(ItemId.Coin)));
+    }
+
+    [Fact]
+    public void Given_DomingoAndTooFewCoins_When_TheCuirassIsAskedFor_Then_NothingIsSoldAndHeSaysYouNeedMore()
+    {
+        var session = At("smith", 11);
+
+        var lines = Lines(session.Say("quiero una coraza"));
+
+        Assert.Equal((0, 11), (Held(session, "cuirass"), session.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.Contains("Necesitas más monedas.", lines);
+    }
+
+    [Fact]
+    public void Given_DomingoAndCoins_When_NoCountIsGiven_Then_HeAsksHowMuchAndListsWhatHeSells()
+    {
+        var session = At("smith", 20);
+
+        var lines = Lines(session.Say("quiero cero cascos"));
+
+        Assert.Contains("Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres?", lines);
+        Assert.Equal(20, session.Simulation.Inventory.Count(ItemId.Coin));
+    }
+
+    [Fact]
+    public void Given_Domingo_When_TheDomingoSellRowIsRead_Then_ItListsTheIronTheFourArmourPiecesTheShieldTheLanternAndTheTorch()
+    {
+        var sell = TestGame.Data.HostEvents.Of("smith", "smith.sell_goods");
+
+        var priced = sell.Prices!.Keys.Order(StringComparer.Ordinal).ToList();
+
+        Assert.Equal(["antorcha", "bota", "casco", "coraza", "escudo", "farol", "greba", "hierro"], priced);
+        Assert.Equal(new[] { "helmet", "cuirass", "greaves", "boots" }.Select(static n => TestItems.Catalogue.Find(n)!.Id).Order(), TestItems.Catalogue.All.Where(static d => d.Tags.Contains("armour")).Select(static d => d.Id).Order());
+    }
+
+    [Fact]
+    public void Given_Pablo_When_AnArmourPieceIsAskedFor_Then_HeDoesNotSellItAndListsWhatHeHas()
+    {
+        var session = At("shopkeeper", 20);
+
+        var lines = Lines(session.Say("quiero un casco"));
+
+        Assert.Equal(0, Held(session, "helmet"));
+        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", lines);
     }
 
     [Fact]
@@ -135,7 +220,7 @@ public sealed class GearShopTests
         var lines = Lines(session.Say("quiero hierro"));
 
         Assert.Equal(0, Held(session, "iron"));
-        Assert.Contains("El hierro cuesta tres monedas.", lines);
+        Assert.Contains("Necesitas más monedas.", lines);
     }
 
     [Fact]

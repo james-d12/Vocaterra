@@ -551,7 +551,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         var rows = CraftingScreen.Rows(session.Simulation, session.Recipes);
         Assert.Empty(RecipePanelModel.AtStation(rows, static _ => false));
         var shown = RecipePanelModel.AtStation(rows, static station => station == BlockId.Table);
-        Assert.Equal(8, shown.Count()); // the torch and (I08a) the seven clothes: the workbench's recipes, never the roast apple's (the fire)
+        Assert.Equal(21, shown.Count()); // the torch, (I08a) the seven clothes and (I08b) the thirteen armour, accessory, off-hand and bag recipes: the workbench's recipes, never the roast apple's (the fire)
         Assert.Equal(ItemId.Torch, shown.First().Output);
     }
 

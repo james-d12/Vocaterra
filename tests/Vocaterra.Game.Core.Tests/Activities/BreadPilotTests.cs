@@ -182,7 +182,7 @@ public sealed class BreadPilotTests
         var turn = session.Say(line);
 
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
-        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa.", lines);
+        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", lines);
         Assert.Equal((3, 0, 0, 0), (Held(session, ItemId.Coin), Held(session, TestItems.Flour), Held(session, TestItems.Bread), Held(session, ItemId.Bottle)));
     }
 
@@ -225,7 +225,7 @@ public sealed class BreadPilotTests
         _ = session.Say("quiero agua, por favor");
         Assert.Equal(1, Held(session, ItemId.Bottle));
         var hay = At("shopkeeper").Say("¿hay pan?");
-        Assert.Contains("Hay agua, pan, harina, tela, cuero y ropa.", hay.Replies.Concat(hay.FollowUp ?? []));
+        Assert.Contains("Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", hay.Replies.Concat(hay.FollowUp ?? []));
     }
 
     // ---- Luz's offer and the class
