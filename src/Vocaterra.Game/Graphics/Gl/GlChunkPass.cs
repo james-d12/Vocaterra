@@ -104,6 +104,7 @@ public sealed unsafe class GlChunkPass : IDisposable
     [
         "uWorldViewProjection", "uFogVector", "uEye", "uDiffuse", "uFlipY", "uLightMode", "uWater", "uSunDirection", "uSunColour", "uShadeTint", "uSunTint", "uBottomTint", "uSunHeight", "uAoKeep",
         "uGlowColour", "uHeightFog", "uWaterShader", "uTime", "uWaveAmount", "uAtlas", "uFogColour", "uAlphaReference", "uRelight", "uDayDirection",
+        "uPlayerLight", "uPlayerLightColour",
     ];
 
     /// <summary>The vertex attributes of the program, by location: the position, the colour and the atlas coordinate from the 24-byte <see cref="World.MeshVertex"/> stream, and the light word of <see cref="World.LightData"/> from the 4-byte stream beside it.</summary>
@@ -438,6 +439,8 @@ public sealed unsafe class GlChunkPass : IDisposable
         _gl.Uniform1(_program.Uniform("uWaterShader"), l.WaterShader ? 1 : 0);
         _gl.Uniform1(_program.Uniform("uTime"), l.Time);
         _gl.Uniform1(_program.Uniform("uWaveAmount"), l.WaveAmount);
+        _gl.Uniform4(_program.Uniform("uPlayerLight"), l.PlayerLightPosition.X, l.PlayerLightPosition.Y, l.PlayerLightPosition.Z, l.PlayerLightRadius);
+        _gl.Uniform3(_program.Uniform("uPlayerLightColour"), l.PlayerLightColour.X, l.PlayerLightColour.Y, l.PlayerLightColour.Z);
     }
 
     /// <summary>Sets the context's state for a kind of draw (a no-op when the kind is the one in force). The water's frame is chosen with <see cref="SetWaterFrame"/>, the far view's texture with <see cref="SetFarTexture"/>.</summary>

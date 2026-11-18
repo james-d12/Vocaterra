@@ -20,6 +20,8 @@ uniform vec3 uShadeTint;
 uniform vec3 uSunTint;
 uniform vec3 uBottomTint;
 uniform float uSunHeight;
+uniform vec4 uPlayerLight;       // the light round the player (I05b): xyz the position in blocks, w the reach in blocks; 0 for no light (nothing worn, or it is day)
+uniform vec3 uPlayerLightColour; // the light's colour times its strength
 
 out vec4 oColour;
 
@@ -37,7 +39,8 @@ vec3 facetNormal()
 
 void main()
 {
-    vec4 colour = texture(uAtlas, vUv) * vColour;
+    vec4 texel = texture(uAtlas, vUv);
+    vec4 colour = texel * vColour;
     if (colour.a <= uAlphaReference + 0.5 / 255.0)
     {
         discard;
@@ -47,6 +50,23 @@ void main()
     {
         vec3 n = facetNormal();
         colour.rgb *= shadeOf(n, uSunDirection) / shadeOf(n, uDayDirection);
+    }
+
+    if (uPlayerLight.w > 0.0)
+    {
+        // The light round the player (I05b): added to the face's own picture by the distance (a smoothstep, nothing at the reach) and by how squarely the face turns to it (a face turned away, such as the far side of a wall, gets none; one seen edge-on keeps 30 percent).
+        // The derivatives are taken under a uniform condition (the reach is a uniform), the distance test after them.
+        vec3 n = facetNormal();
+        vec3 toLight = uPlayerLight.xyz - vWorld;
+        float distanceToLight = length(toLight);
+        if (distanceToLight < uPlayerLight.w)
+        {
+            float fall = 1.0 - (distanceToLight / uPlayerLight.w);
+            fall = fall * fall * (3.0 - (2.0 * fall)); // a smoothstep: full next to the player, half at half the reach, nothing at the reach
+            float towards = dot(n, toLight / max(distanceToLight, 0.0001));
+            float facing = towards > 0.0 ? 0.3 + (0.7 * towards) : 0.0;
+            colour.rgb += texel.rgb * uPlayerLightColour * (fall * facing) * colour.a;
+        }
     }
 
     if (uWater == 1 && uWaterShader == 1)
