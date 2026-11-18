@@ -111,6 +111,6 @@ public sealed class WorldEditsSaveTests(ITestOutputHelper output)
         var loaded = watch.Elapsed;
 
         output.WriteLine($"save {saved.TotalMilliseconds:F1} ms, load (scene build + restore) {loaded.TotalMilliseconds:F1} ms, {text.Length:N0} characters");
-        Assert.True(saved < TimeSpan.FromSeconds(2), $"The save took {saved.TotalMilliseconds:F0} ms.");
+        Assert.True(saved < TimeSpan.FromSeconds(2 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor), $"The save took {saved.TotalMilliseconds:F0} ms.");
     }
 }

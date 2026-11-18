@@ -221,7 +221,7 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
         }
 
         output.WriteLine($"{count} samples, {watch.Elapsed.TotalMilliseconds / count * 1000:0.0} us each (Debug, one thread)");
-        Assert.True(watch.Elapsed.TotalSeconds < 20);
+        Assert.True(watch.Elapsed.TotalSeconds < 20 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor);
     }
 
     // The ground of a column as the generated chunks have it: from the top, past the air, plants and crowns, the water's top noted, down to the first solid block.
