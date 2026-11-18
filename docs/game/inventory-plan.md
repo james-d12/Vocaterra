@@ -253,11 +253,10 @@ the mountains; the owner decides whether it joins this series.
 | Clothes | el abrigo (coat) | body | warmth +5 | 4 tela, 2 cuero | 10, Pablo | lexicon |
 | Clothes | los pantalones (start worn) (trousers) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
 | Clothes | los zapatos (start worn) (shoes) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
-| Clothes | las botas (boots) | feet | warmth +2 | 2 cuero | 5, Pablo | lexicon |
 | Armour | el casco (helmet) | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
 | Armour | la coraza (cuirass (chest and back plate)) | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
 | Armour | las grebas (greaves (shin plates)) | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
-| Armour | (armoured boots) (sabatons (steel foot armour)) | feet | armour 2 | 2 hierro | 6, Domingo | open: no plain word that is not «botas» |
+| Armour | las botas (boots) | feet | armour 2 | 2 hierro | 6, Domingo | lexicon |
 | Accessory | el anillo (ring) | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
 | Accessory | la pulsera (bracelet) | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
 | Accessory | el cinturón (belt) | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
@@ -269,12 +268,12 @@ the mountains; the owner decides whether it joins this series.
 | Bag | el saco (sack) | back | capacity 10 | 2 tela | 4, Pablo | lexicon |
 | Bag | la mochila (backpack) | back | capacity 20 | 3 tela, 2 cuero | 10, Pablo | not in lexicon: add |
 
-Totals: the warmest clothes give +11 (gorro, abrigo, pantalones, botas); the full armour 12 points (48%), 15 with the shield (60%). The
+Totals: the warmest clothes give +10 (gorro, abrigo, pantalones, zapatos); the full armour 12 points (48%), 15 with the shield (60%). The
 light numbers wait for I05b's stop. Every Spanish word joins `game/nouns.json`, the English locale and, if outside the A1 and A2 lists, the
 world-words block of `cefr/a1.txt` with its reason; words not in the lexicon get an entry in `lexicon/world.json` (the plan's rule).
 
 **The owner's answers (2026-11-18):** prices as in the table; keep the amulet's light; add the world's climate to what the player feels
-(a milestone, I06b). Still open: one armour tier or two, the armoured boots, «la coraza» or «el peto» (the owner asked for them in English).
+(a milestone, I06b). The boots (2026-11-18): the clothes' feet are the shoes («los zapatos») and the armour's feet are the boots («las botas»); the clothes have no boots. Still open: one armour tier or two, «la coraza» or «el peto» (the owner asked for them in English).
 
 **Choices for the owner:**
 1. **One armour tier (iron) instead of two.** The game's nouns are single words, so «el casco de cuero» and «el casco de hierro» would be

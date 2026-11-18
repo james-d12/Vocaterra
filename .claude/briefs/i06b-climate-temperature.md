@@ -27,8 +27,8 @@ What to build:
 2. Its numbers are data in `game/temperature.json` (and its schema and validator): how many tenths per 100 blocks of height or per unit
    of the climate's temperature, a reference, a floor. Tune so that: the valley and the village feel as today (within half a degree; prove
    it on seed 42 at the village and Luna's camp); the highest peaks on seed 42 at a clear noon are cool, and at a clear night cold to very
-   cold; with the warmest clothes (+11, section 3.13a) a clear night on a peak is no worse than cold. Report the feel at five places on
-   seed 42 (the camp, the village, a mid slope, a snowy peak, a cave) at noon and at night, with and without +11 warmth.
+   cold; with the warmest clothes (+10, section 3.13a) a clear night on a peak is no worse than cold. Report the feel at five places on
+   seed 42 (the camp, the village, a mid slope, a snowy peak, a cave) at noon and at night, with and without +10 warmth.
 3. F3 and `--temperature` show the new term like the others.
 
 Tests (Given_When_Then, mirrored folders): the term from height and climate; the valley unchanged within its tolerance; the data's
