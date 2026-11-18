@@ -33,7 +33,7 @@ public sealed class NeedsHudLayer : IFrameLayer
     internal static NeedsHudBoxes PlaceFor(FrameView view, Core.Needs.NeedsHud hud, FontStashSharp.SpriteFontBase font)
     {
         var announcement = hud.Announcement;
-        return NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, hud.Icons.Count + (hud.ColdIcon is null ? 0 : 1), hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text));
+        return NeedsHudLayout.Place(view.ViewportWidth, view.ViewportHeight, hud.Icons.Count + (hud.ColdIcon is null ? 0 : 1), hud.StaminaVisible, announcement?.Spanish, announcement?.English, text => DrawHelpers.Width(font, text), !view.Voxel.Equipment.StackOfWear(Core.Items.Gear.AppearanceRoles.Default.OffHandWear).IsEmpty);
     }
 
     /// <inheritdoc />

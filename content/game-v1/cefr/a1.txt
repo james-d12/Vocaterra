@@ -424,3 +424,5 @@ alcalde
 terreno
 # armadura: armour, the stat the equipment panel names on its stats line (I04); in neither of the core's lists (it is in the lexicon, seed.json).
 armadura
+# apariencia: appearance, the heading of the equipment panel's cosmetic column (I04b); in neither of the core's lists (it is in the lexicon, wiktionary-es.json).
+apariencia

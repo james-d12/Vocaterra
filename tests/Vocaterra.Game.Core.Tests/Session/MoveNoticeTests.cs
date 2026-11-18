@@ -27,10 +27,10 @@ public sealed class MoveNoticeTests
 
         var notice = session.MoveNotice;
         Assert.NotNull(notice);
-        Assert.Equal("refuseTrashDifferent", notice.Value.Key);
+        Assert.Equal("refuse.trashDifferent", notice.Value.Key);
         Assert.True(notice.Value.IsShown(sim.Tick));
         Assert.False(notice.Value.IsShown(sim.Tick + MoveNotice.ShownTicks));
-        Assert.True(session.Locale.Has("ui." + notice.Value.Key));
+        Assert.True(session.Locale.Has(notice.Value.Key));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class MoveNoticeTests
 
         session.Step([VoxelCommand.SlotMove(MoveAction.LeftClick, ContainerIds.Equipment, legs)]);
 
-        Assert.Equal("refuseWrongSlot", session.MoveNotice!.Value.Key);
+        Assert.Equal("refuse.wrongSlot", session.MoveNotice!.Value.Key);
     }
 
     [Fact]

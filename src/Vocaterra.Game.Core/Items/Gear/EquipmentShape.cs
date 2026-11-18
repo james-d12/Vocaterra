@@ -11,8 +11,9 @@ public sealed class EquipmentShape
     /// <summary>The least number of columns the counted groups flow into, so a doll with one layer still has a row of room.</summary>
     public const int MinColumns = 3;
 
-    private EquipmentShape(IReadOnlyList<EquipmentCell> cells, IReadOnlyList<string?> rowLabels, int columns, int bodyRows, int rows)
+    private EquipmentShape(IReadOnlyList<EquipmentCell> cells, IReadOnlyList<string?> rowLabels, IReadOnlyList<string?> columnHeadings, int columns, int bodyRows, int rows)
     {
+        ColumnHeadings = columnHeadings;
         Cells = cells;
         RowLabels = rowLabels;
         Columns = columns;
@@ -21,13 +22,19 @@ public sealed class EquipmentShape
     }
 
     /// <summary>No groups: no doll.</summary>
-    public static EquipmentShape Empty { get; } = new([], [], 0, 0, 0);
+    public static EquipmentShape Empty { get; } = new([], [], [], 0, 0, 0);
 
     /// <summary>Every cell, one per slot, in the flat order of the data.</summary>
     public IReadOnlyList<EquipmentCell> Cells { get; }
 
     /// <summary>The Spanish noun of each body row (its slots' label), or <see langword="null"/> for a row whose slots have none.</summary>
     public IReadOnlyList<string?> RowLabels { get; }
+
+    /// <summary>The Spanish noun heading each column (the layered group's <c>heading</c>), or <see langword="null"/> for a column with none; one entry per layered column, so fewer than <see cref="Columns"/> when counted groups need more room (I04b).</summary>
+    public IReadOnlyList<string?> ColumnHeadings { get; }
+
+    /// <summary>Whether any column has a heading to be written above it.</summary>
+    public bool HasHeadings => ColumnHeadings.Any(static h => h is not null);
 
     /// <summary>The number of columns of the grid.</summary>
     public int Columns { get; }
@@ -113,6 +120,6 @@ public sealed class EquipmentShape
         }
 
         var rows = nextColumn > 0 ? nextRow + 1 : nextRow;
-        return new EquipmentShape([.. cells.OrderBy(static c => c.Flat)], labels, columns, names.Count, rows);
+        return new EquipmentShape([.. cells.OrderBy(static c => c.Flat)], labels, [.. layered.Select(g => data.Groups[g].Heading)], columns, names.Count, rows);
     }
 }

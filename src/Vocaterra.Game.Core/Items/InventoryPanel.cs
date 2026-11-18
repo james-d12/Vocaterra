@@ -39,6 +39,9 @@ public sealed class InventoryPanel : IScreen
     /// <inheritdoc />
     public string Name => "inventory";
 
+    /// <summary>The noun that names the panel (<c>la bolsa</c>, D-game-35 (b)); the layer writes it with its article as the title and English beside it.</summary>
+    public const string TitleLemma = "bolsa";
+
     /// <inheritdoc />
     public bool IsOpen => _inventory.IsOpen;
 
@@ -59,6 +62,8 @@ public sealed class InventoryPanel : IScreen
             .Where(static s => !s.IsEmpty)
             .Select(s => _session.Nouns.ForItem(s.Item)?.Lemma)
             .Concat(equipment.Data.AllSlots().Select(slot => equipment.Data.Spec(slot).Label)) // I04: the slots' label nouns on the doll are read too
+            .Concat(equipment.Data.Shape.ColumnHeadings) // I04b: the columns' headings
+            .Append(TitleLemma) // and the panel's title
             .Concat(StatDisplay.Chips(_session.Simulation.Stats, hasNoun: lemma => _session.Nouns.ForLemma(lemma) is not null).Select(static chip => chip.Lemma)) // and the stats line's nouns
             .OfType<string>()
             .ToList();

@@ -198,7 +198,7 @@ UI/
   Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
   Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
   Station/        StationLayer, StationLayout, InstructionStripLayer, InstructionStripLayout (the strip's boxes and text lines, for a box the caller gives)
-  Inventory/      InventoryLayer (the equipment panel's drawing), InventoryLayout (its geometry), StatIcons and StatLinePlacer (the stats line)
+  Inventory/      InventoryLayer (the equipment panel's drawing), InventoryLayout (its geometry), StatIcons and StatLinePlacer (the stats line), HeadingText (a column heading as the room shrinks), HeldPlacement (where the held stack is drawn)
   Lesson/         LessonLayer, LessonStripLayout
   Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)
 ```
@@ -392,6 +392,16 @@ from the reason to a locale key), else the hover (`InventoryHover.Of`: the slot'
 (`StatDisplay.Chips`) shows only stats not at their default, as a 7 x 7 icon (`StatIcons`, rectangles, a fallback for a key with no picture) and a number, with the Spanish noun before it in the regular size where the catalogue has one (`armadura`,
 `calor`); a new stat is a row of `StatDisplay.Defaults` and an icon. The panel marks the label nouns, the worn items' nouns and the stats' nouns read when it opens. **To add a group:** a row in `equipment.json`; nothing else for the cells; a `label` noun
 needs a catalogue noun (`game/nouns.json`, with its English in `locale/en/nouns.json`).
+
+**The panel's fixes and the off-hand cell (I04b).** *Headings:* a layered group of `equipment.json` may carry a `heading` (a noun key: `ropa`, `armadura`, `apariencia`; schema, `EquipmentGroup.Heading`, `EquipmentShape.ColumnHeadings`); the layout
+keeps a row of `HeadingHeight` above the doll and `HeadingBox(column)` centres a box on each column; the layer writes `la ropa` while it fits, else the noun, else a three-letter mark (`HeadingText`), and the hover (`InventoryHitKind.Heading`) has the
+full noun with its English. A fourth layer brings its heading from data. The regular doll's column pitch is 66 px (so the words fit); a counted group's cells are 56 px wide there so `espalda` is written in full; the compact and tight sizes write no counted noun
+(the hover line has it). *Stats line:* the layout reserves rows for every stat the panel can show (`StatChipsReserved`, so the panel does not change size when gear is put on), by a chip's widest width per size; the tight size puts the chips beside the sort and
+trash buttons under the bag (there is no height under its doll). *Title and lines:* the title is `la bolsa` (`InventoryPanel.TitleLemma`, D-game-35 (b)) with the English `ui.inventoryTitle` dimmer beside it; the refusal lines are `hudLines` of `game/words.json`
+(`refuse.*`, text only, no speech, like the needs' stage lines) with the English in the locale under the same id (`MoveRefusalText.AllKeys`, which `GameDataValidator.HudLineKeys` includes); the key hints are English only (`ui.inventoryHints`,
+`ui.inventoryHintsShort`). *The held stack* with no pointer is drawn beside its origin cell (`HeldPlacement`). *The off-hand cell:* while an item with the off-hand `wear` kind is worn (`Equipment.StackOfWear(AppearanceRoles.OffHandWear)`, never a group id)
+`HotbarLayer.OffHandBoxFor` is one slot left of the hotbar, `OffHandGap` from it, and the hotbar is drawn exactly as before; it is no hotbar slot (no key, no wheel, the bag's indexes do not move). `NeedsHudLayout.Place(..., offHand)` moves the block beside the
+hotbar left by `OffHandReserve` (or above the hotbar's left end where there is no room); the bubble meter is on the hotbar's right half and never meets it (`OffHandCellLayoutTests`).
 
 **Gear on the player (I09, inventory-plan 3.11).** `Items/Gear/AppearanceBuilder.Of(equipment)` turns the worn items into an `Appearance`: one `LookColour` per body part, the sleeve colour, the item on the back and the item in the off-hand. The
 **layer order is data**: the groups of `equipment.json` that carry a `layer` are asked from the highest number down (cosmetic 3, armour 2, clothing 1), and for each part key (`head`, `body`, `legs`, `feet`, `sleeve`, an open word) the first worn

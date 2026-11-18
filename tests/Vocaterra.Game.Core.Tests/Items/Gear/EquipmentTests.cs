@@ -163,6 +163,22 @@ public sealed class EquipmentTests
     }
 
     [Fact]
+    public void Given_AShieldWornInTheOffHand_When_TheStackOfThatWearKindIsAsked_Then_ItIsTheShieldFoundByKindAndNothingElseGivesOne()
+    {
+        var equipment = Fresh();
+        var bag = Bag((5, GearItems.Pack), (6, GearItems.Shield));
+        Assert.True(equipment.StackOfWear("offhand").IsEmpty);
+
+        _ = equipment.Equip(bag, 5, GearItems.Nth("backpack", 0));
+        Assert.True(equipment.StackOfWear("offhand").IsEmpty);
+        _ = equipment.Equip(bag, 6, GearItems.Nth("offhand", 0));
+
+        Assert.Equal(GearItems.Shield, equipment.StackOfWear("offhand").Item);
+        Assert.Equal(GearItems.Pack, equipment.StackOfWear("back").Item);
+        Assert.True(equipment.StackOfWear("accessory").IsEmpty);
+    }
+
+    [Fact]
     public void Given_AWornShirt_When_ItIsUnequippedToAChosenSlot_Then_ItIsThereAndTheSlotIsEmpty()
     {
         var equipment = Fresh();

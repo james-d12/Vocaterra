@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1680 of the 1680 files have no mark (guide 512, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1686 of the 1686 files have no mark (guide 518, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 130, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -183,6 +183,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.wav | shopkeeper | 1.0 | el agua |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
 | card.antorcha | speech/cards/card.antorcha.wav | guide | 1.0 | la antorcha |  |
+| card.apariencia | speech/cards/card.apariencia.slow.wav | guide | 0.8 | la apariencia |  |
+| card.apariencia | speech/cards/card.apariencia.wav | guide | 1.0 | la apariencia |  |
 | card.arbol | speech/cards/card.arbol.slow.wav | guide | 0.8 | el árbol |  |
 | card.arbol | speech/cards/card.arbol.wav | guide | 1.0 | el árbol |  |
 | card.arena | speech/cards/card.arena.slow.wav | guide | 0.8 | la arena |  |
@@ -191,6 +193,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.armadura | speech/cards/card.armadura.wav | guide | 1.0 | la armadura |  |
 | card.bol | speech/cards/card.bol.slow.wav | guide | 0.8 | el bol |  |
 | card.bol | speech/cards/card.bol.wav | guide | 1.0 | el bol |  |
+| card.bolsa | speech/cards/card.bolsa.slow.wav | guide | 0.8 | la bolsa |  |
+| card.bolsa | speech/cards/card.bolsa.wav | guide | 1.0 | la bolsa |  |
 | card.botella | speech/cards/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
 | card.cabeza | speech/cards/card.cabeza.slow.wav | guide | 0.8 | la cabeza |  |
@@ -255,6 +259,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.puerta | speech/cards/card.puerta.wav | guide | 1.0 | la puerta |  |
 | card.rio | speech/cards/card.rio.slow.wav | guide | 0.8 | el río |  |
 | card.rio | speech/cards/card.rio.wav | guide | 1.0 | el río |  |
+| card.ropa | speech/cards/card.ropa.slow.wav | guide | 0.8 | la ropa |  |
+| card.ropa | speech/cards/card.ropa.wav | guide | 1.0 | la ropa |  |
 | card.terreno | speech/cards/card.terreno.slow.wav | guide | 0.8 | el terreno |  |
 | card.terreno | speech/cards/card.terreno.wav | guide | 1.0 | el terreno |  |
 | card.tienda | speech/cards/card.tienda.slow.wav | guide | 0.8 | la tienda |  |

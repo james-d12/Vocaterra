@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Gear;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.UI.Inventory;
@@ -35,12 +36,16 @@ public readonly record struct InventoryLayout
     /// <summary>The height of one row of the needs' list (N05).</summary>
     public const int NeedsRowHeight = 18;
 
-    /// <summary>How many rows of stat chips the stats line reserves room for.</summary>
-    public const int StatRows = 2;
+    /// <summary>How many stat chips the stats line reserves room for: every stat the panel can show (<see cref="StatDisplay.Defaults"/>), so the panel keeps its size when gear is put on or taken off (I04b).</summary>
+    public static int StatChipsReserved => StatDisplay.Defaults.Count;
 
     private readonly EquipmentShape _shape;
     private readonly int _dollCell;
-    private readonly int _dollGap;
+    private readonly int _dollPitch;
+    private readonly int _rowPitch;
+    private readonly int _countedWidth;
+    private readonly int _headingHeight;
+    private readonly int _dollTop;
     private readonly int _labelColumn;
     private readonly int _sectionGap;
 
@@ -63,7 +68,10 @@ public readonly record struct InventoryLayout
         Gap = m.Gap;
         HotbarGap = rows > 1 ? m.HotbarGap : 0;
         _dollCell = m.DollCell;
-        _dollGap = m.DollGap;
+        _dollPitch = m.DollPitch;
+        _rowPitch = m.DollCell + m.DollGap;
+        _countedWidth = m.CountedWidth;
+        _headingHeight = _shape.HasHeadings ? m.Heading : 0;
         _sectionGap = m.SectionGap;
         _labelColumn = _shape.HasLabels ? m.LabelColumn : 0;
         HeaderTop = m.HeaderTop;
@@ -81,13 +89,18 @@ public readonly record struct InventoryLayout
         var innerLeft = Panel.X + ((Panel.Width - sizes.Inner) / 2);
         GridTop = Panel.Y + HeaderTop;
         DollLeft = innerLeft;
+        _dollTop = GridTop + _headingHeight;
         GridLeft = innerLeft + sizes.Doll + (sizes.Doll > 0 ? m.ColumnGap : 0);
         NeedsTop = GridTop + sizes.Column + (Tight ? 3 : 5);
         var bagBottom = GridTop + sizes.Bag;
         var trashRight = GridLeft + sizes.BagWidth;
         TrashCell = new PixelBox(trashRight - m.Button, bagBottom + m.ToolGap, m.Button, m.Button);
         SortButton = new PixelBox(TrashCell.X - m.ToolGap - m.Button, TrashCell.Y, m.Button, m.Button);
-        StatsArea = sizes.Doll > 0 ? new PixelBox(DollLeft, GridTop + sizes.DollHeight + _sectionGap, sizes.Doll, StatRows * m.ChipHeight) : new PixelBox(DollLeft, GridTop, 0, 0);
+        StatsArea = sizes.Doll == 0
+            ? new PixelBox(DollLeft, GridTop, 0, 0)
+            : m.StatsBeside
+                ? new PixelBox(GridLeft, SortButton.Y, SortButton.X - m.ToolGap - GridLeft, sizes.StatRows * m.ChipHeight) // the small canvas has no room under the doll: the chips stand beside the buttons, under the bag
+                : new PixelBox(DollLeft, _dollTop + sizes.DollHeight + _sectionGap, sizes.Doll, sizes.StatRows * m.ChipHeight);
     }
 
     /// <summary>Whether the slots are the small ones (the compact or the tight size).</summary>
@@ -119,6 +132,9 @@ public readonly record struct InventoryLayout
 
     /// <summary>The gap between slots.</summary>
     public int Gap { get; }
+
+    /// <summary>The height of the row of column headings above the doll (0 when no column has a heading).</summary>
+    public int HeadingHeight => _headingHeight;
 
     /// <summary>The extra gap under the hotbar row that sets it apart from the pack rows (0 when the bag is one row).</summary>
     public int HotbarGap { get; }
@@ -186,6 +202,14 @@ public readonly record struct InventoryLayout
             }
         }
 
+        for (var column = 0; column < Shape.ColumnHeadings.Count; column++)
+        {
+            if (Shape.ColumnHeadings[column] is not null && HeadingBox(column).Contains(x, y))
+            {
+                return new InventoryHit(InventoryHitKind.Heading, column);
+            }
+        }
+
         for (var slot = 0; slot < slotCount; slot++)
         {
             if (Cell(slot).Contains(x, y))
@@ -201,19 +225,33 @@ public readonly record struct InventoryLayout
     /// <param name="slot">The slot, from 0.</param>
     public PixelBox Cell(int slot) => new(GridLeft + ((slot % Columns) * (CellWidth + Gap)), GridTop + ((slot / Columns) * (CellHeight + Gap)) + (slot >= Columns ? HotbarGap : 0), CellWidth, CellHeight);
 
-    /// <summary>The box of a doll cell.</summary>
+    /// <summary>The box of a doll cell. A cell of a counted group is wider than a body cell in the regular size, so its noun is written in it in full (I04b).</summary>
     /// <param name="cell">The cell of <see cref="Shape"/>.</param>
     public PixelBox EquipmentCellBox(EquipmentCell cell) => new(
-        DollLeft + _labelColumn + (cell.Column * (_dollCell + _dollGap)),
-        GridTop + RowOffset(cell.Row),
-        _dollCell,
+        DollLeft + _labelColumn + (cell.Column * _dollPitch),
+        _dollTop + RowOffset(cell.Row),
+        cell.Row >= _shape.BodyRows ? _countedWidth : _dollCell,
         _dollCell);
+
+    /// <summary>The box a column's heading is written in, above its cells: centred on them, as wide as the column's pitch less a gap (empty when the data gives the column no heading).</summary>
+    /// <param name="column">The doll column, from 0.</param>
+    public PixelBox HeadingBox(int column)
+    {
+        if (_headingHeight == 0 || column < 0 || column >= _shape.ColumnHeadings.Count || _shape.ColumnHeadings[column] is null)
+        {
+            return new PixelBox(DollLeft, GridTop, 0, 0);
+        }
+
+        var width = Math.Max(_dollCell, _dollPitch - 4);
+        var centre = DollLeft + _labelColumn + (column * _dollPitch) + (_dollCell / 2);
+        return new PixelBox(centre - (width / 2), GridTop, width, _headingHeight);
+    }
 
     /// <summary>The box a body row's noun is written in (the column beside the doll, regular size only), or an empty box.</summary>
     /// <param name="row">The body row, from 0.</param>
-    public PixelBox RowLabelBox(int row) => _labelColumn > 0 ? new PixelBox(DollLeft, GridTop + RowOffset(row), _labelColumn - 6, _dollCell) : new PixelBox(DollLeft, GridTop, 0, 0);
+    public PixelBox RowLabelBox(int row) => _labelColumn > 0 ? new PixelBox(DollLeft, _dollTop + RowOffset(row), _labelColumn - 6, _dollCell) : new PixelBox(DollLeft, GridTop, 0, 0);
 
-    private int RowOffset(int row) => (row * (_dollCell + _dollGap)) + (row >= _shape.BodyRows && _shape.BodyRows > 0 ? _sectionGap : 0);
+    private int RowOffset(int row) => (row * _rowPitch) + (row >= _shape.BodyRows && _shape.BodyRows > 0 ? _sectionGap : 0);
 
     private static int Fit(int viewportWidth, int viewportHeight, int rows, int needsRows, EquipmentShape shape)
     {
@@ -232,31 +270,45 @@ public readonly record struct InventoryLayout
     private static Extent Sizes(Metrics m, int rows, int needsRows, EquipmentShape shape)
     {
         var hasDoll = !shape.IsEmpty;
-        var dollWidth = hasDoll ? (shape.HasLabels ? m.LabelColumn : 0) + (shape.Columns * m.DollCell) + ((shape.Columns - 1) * m.DollGap) : 0;
-        var dollHeight = hasDoll ? (shape.Rows * m.DollCell) + ((shape.Rows - 1) * m.DollGap) + (shape.Rows > shape.BodyRows && shape.BodyRows > 0 ? m.SectionGap : 0) : 0;
-        var left = hasDoll ? dollHeight + m.SectionGap + (StatRows * m.ChipHeight) : 0;
         var bagWidth = (Columns * m.CellWidth) + ((Columns - 1) * m.Gap);
+        var lastCellWidth = shape.Cells.Count > 0 && shape.Cells.Any(c => c.Column == shape.Columns - 1 && c.Row >= shape.BodyRows) ? m.CountedWidth : m.DollCell;
+        var dollWidth = hasDoll ? (shape.HasLabels ? m.LabelColumn : 0) + ((shape.Columns - 1) * m.DollPitch) + lastCellWidth : 0;
+        var dollHeight = hasDoll ? (shape.Rows * m.DollCell) + ((shape.Rows - 1) * m.DollGap) + (shape.Rows > shape.BodyRows && shape.BodyRows > 0 ? m.SectionGap : 0) : 0;
+        var heading = hasDoll && shape.HasHeadings ? m.Heading : 0;
+        var statRows = 0;
+        var left = 0;
+        var besideWidth = bagWidth - (2 * m.Button) - (2 * m.ToolGap);
+        if (hasDoll)
+        {
+            statRows = StatRowsFor(m.StatsBeside ? besideWidth : dollWidth, m);
+            left = heading + dollHeight + (m.StatsBeside ? 0 : m.SectionGap + (statRows * m.ChipHeight));
+        }
+
         var bag = (rows * m.CellHeight) + ((rows - 1) * m.Gap) + (rows > 1 ? m.HotbarGap : 0);
-        var right = bag + m.ToolGap + m.Button + m.ToolGap;
+        var tools = m.StatsBeside && hasDoll ? Math.Max(m.Button, statRows * m.ChipHeight) : m.Button;
+        var right = bag + m.ToolGap + tools + m.ToolGap;
         var column = Math.Max(left, right);
         var needs = needsRows > 0 ? (needsRows * m.NeedsRowHeight) + m.NeedsPad : 0;
         var inner = dollWidth + (hasDoll ? m.ColumnGap : 0) + bagWidth;
         var height = m.Pad + m.HeaderTop + column + needs + m.Footer + m.ExtraBottom;
-        return new Extent(inner + (2 * m.Pad), height, inner, dollWidth, dollHeight, bagWidth, bag, column);
+        return new Extent(inner + (2 * m.Pad), height, inner, dollWidth, dollHeight, bagWidth, bag, column, statRows);
     }
 
-    private readonly record struct Extent(int Width, int Height, int Inner, int Doll, int DollHeight, int BagWidth, int Bag, int Column);
+    // The rows the stats line needs for every stat the panel can show, from the width a chip takes at most (so the real widths never need more).
+    private static int StatRowsFor(int width, Metrics m) => (StatChipsReserved + Math.Max(1, width / m.ChipWidth) - 1) / Math.Max(1, width / m.ChipWidth);
+
+    private readonly record struct Extent(int Width, int Height, int Inner, int Doll, int DollHeight, int BagWidth, int Bag, int Column, int StatRows);
 
     // One column of numbers per size: 0 regular, 1 compact, 2 tight.
     private readonly record struct Metrics(
-        int CellWidth, int CellHeight, int Gap, int HotbarGap, int DollCell, int DollGap, int LabelColumn, int SectionGap, int ColumnGap, int Pad,
-        int HeaderTop, int DividerY, int Footer, int HintsOffset, int NeedsRowHeight, int NeedsPad, int ChipHeight, int Button, int ToolGap, int ExtraBottom)
+        int CellWidth, int CellHeight, int Gap, int HotbarGap, int DollCell, int DollGap, int DollPitch, int CountedWidth, int LabelColumn, int SectionGap, int ColumnGap, int Pad,
+        int HeaderTop, int DividerY, int Footer, int HintsOffset, int NeedsRowHeight, int NeedsPad, int ChipHeight, int ChipWidth, int Heading, bool StatsBeside, int Button, int ToolGap, int ExtraBottom)
     {
         public static Metrics For(int level) => level switch
         {
-            0 => new Metrics(64, 80, 6, 8, 44, 4, 64, 8, 16, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 18, 28, 6, 8),
-            1 => new Metrics(44, 56, 4, 6, 36, 3, 0, 6, 10, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 16, 24, 4, 8),
-            _ => new Metrics(36, 50, 2, 2, 30, 2, 0, 4, 8, 8, 30, 26, 26, 20, InventoryLayout.NeedsRowHeight - 2, 6, 14, 20, 2, 0),
+            0 => new Metrics(64, 80, 6, 8, 44, 4, 66, 56, 70, 8, 16, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 18, 110, 18, false, 28, 6, 8),
+            1 => new Metrics(44, 56, 4, 6, 36, 3, 39, 36, 0, 6, 10, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 16, 52, 16, false, 24, 4, 8),
+            _ => new Metrics(36, 50, 2, 2, 30, 2, 32, 30, 0, 4, 8, 8, 30, 26, 26, 20, InventoryLayout.NeedsRowHeight - 2, 6, 14, 52, 14, true, 20, 2, 0),
         };
     }
 }
