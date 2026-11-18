@@ -291,6 +291,15 @@ public sealed class HeightModel : IHeightModel, IHeadwaterHeightModel, IDrainage
     /// <param name="z">The block's z.</param>
     public void Warm(int x, int z) => _network?.Warm(x, z);
 
+    /// <summary>Reads the landmasses along a row into the drainage network (see <see cref="DrainageNetwork.WarmRow"/>); for a worker.</summary>
+    /// <param name="z">The row's z.</param>
+    /// <param name="x0">The first x.</param>
+    /// <param name="x1">The last x.</param>
+    public void WarmRow(int z, int x0, int x1) => _network?.WarmRow(z, x0, x1);
+
+    /// <summary>The distance between rows for <see cref="WarmRow"/> (0 without a network).</summary>
+    public int WarmStep => _network?.WarmStep ?? 0;
+
     /// <summary>Whether this model has a drainage network (the world's data has a <c>drainage</c> section): without one the world has no river and no lake.</summary>
     public bool HasDrainage => _network is not null;
 

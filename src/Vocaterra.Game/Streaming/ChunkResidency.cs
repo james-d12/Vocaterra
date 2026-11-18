@@ -40,6 +40,7 @@ public sealed class ChunkResidency
 
     private readonly VoxelGrid _grid;
     private readonly StreamedWorld _world;
+    private readonly ColumnScratchPool _scratch; // B40: the window arrays of the columns the workers make, reused
     private BandStreamer _streamer;
     private readonly ColumnBandCache _bands;
     private readonly JobPool _pool;
@@ -91,6 +92,7 @@ public sealed class ChunkResidency
 
         _grid = grid;
         _world = world;
+        _scratch = new ColumnScratchPool(world.CreateScratch);
         _streamer = new BandStreamer(policy, grid.Limits);
         _bands = bands ?? new ColumnBandCache(world.Bands);
         _pool = pool;
@@ -491,7 +493,17 @@ public sealed class ChunkResidency
         var started = MonotonicClock.Milliseconds();
         _ = Interlocked.Increment(ref _columnsGenerated);
         _ = _bands.Groups.TryGet(chunkX, chunkZ, out var group); // the window its band was made from (B39), when it is still held; else the column's own
-        var layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group);
+        var scratch = _scratch.Rent();
+        IReadOnlyList<ChunkData> layers;
+        try
+        {
+            layers = _world.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group, scratch);
+        }
+        finally
+        {
+            _scratch.Return(scratch);
+        }
+
         _ = Interlocked.Add(ref _generateMicroseconds, (long)((MonotonicClock.Milliseconds() - started) * 1000));
         return layers;
     }

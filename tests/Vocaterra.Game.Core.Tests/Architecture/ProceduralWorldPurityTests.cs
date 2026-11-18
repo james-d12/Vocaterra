@@ -35,7 +35,7 @@ public sealed partial class ProceduralWorldPurityTests
     ];
 
     /// <summary>
-    /// Files allowed one <c>lock</c> and nothing else banned: the drainage network reads a landmass on first touch and the workers share the result, so its build is guarded (B02c). Floating point, clocks, random
+    /// Files allowed <c>lock</c> and nothing else banned: the drainage network reads a landmass on first touch and the workers share the result, so its build is guarded (B02c); since B40 a landmass is read under a lock of its own start node (so landmasses are read at once) and its nodes are published under one short lock. Floating point, clocks, random
     /// classes, threads and tasks stay banned in these files, so the arithmetic check still covers them.
     /// </summary>
     private static readonly string[] LockAllowedFiles = ["World/Drainage/DrainageNetwork.cs"];

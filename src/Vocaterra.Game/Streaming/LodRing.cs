@@ -24,6 +24,7 @@ public sealed class LodRing
     private const int Margin = 2;
 
     private readonly LodWorld _world;
+    private readonly ColumnScratchPool _scratch; // B40: the window arrays of the columns the workers make, reused
     private readonly StreamedWorld _streamed;
     private readonly JobPool _pool;
     private readonly ColumnBandCache? _bands;
@@ -48,6 +49,7 @@ public sealed class LodRing
     {
         _world = world;
         _streamed = streamed;
+        _scratch = new ColumnScratchPool(streamed.CreateScratch);
         _pool = pool;
         _bands = bands;
     }
@@ -278,9 +280,17 @@ public sealed class LodRing
         var group = ShapeFor(sx, sz);
         var first = LowestLayerOf(sx, sz, group);
         var columns = new IReadOnlyList<ChunkData>[4];
-        for (var k = 0; k < 4; k++)
+        var scratch = _scratch.Rent();
+        try
         {
-            columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max, group);
+            for (var k = 0; k < 4; k++)
+            {
+                columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max, group, scratch);
+            }
+        }
+        finally
+        {
+            _scratch.Return(scratch);
         }
 
         return (columns, first);

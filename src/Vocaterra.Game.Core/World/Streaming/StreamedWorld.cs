@@ -52,6 +52,18 @@ public sealed class StreamedWorld
     /// <param name="maxLayer">The highest layer wanted (inclusive).</param>
     /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
     public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group);
+
+    /// <summary>Arrays for the window of one chunk column (B40), for the overload that takes them.</summary>
+    public ColumnScratch CreateScratch() => Source.CreateScratch();
+
+    /// <summary>The same layers with the column's window arrays taken from the caller's scratch (B40) instead of allocated; the chunks are the same bytes.</summary>
+    /// <param name="chunkX">The chunk column.</param>
+    /// <param name="chunkZ">The chunk row.</param>
+    /// <param name="minLayer">The lowest layer wanted (inclusive).</param>
+    /// <param name="maxLayer">The highest layer wanted (inclusive).</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    /// <param name="scratch">The caller's arrays, or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group, ColumnScratch? scratch) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group, scratch);
 }
 
 /// <summary>

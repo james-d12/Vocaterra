@@ -121,6 +121,7 @@ public sealed class FarView
     private (double X, double Z, int Voxel) _selectedFor = (double.NaN, 0, 0);
     private double _selectedReach = 1.0;
     private (double X, double Z) _eye;
+    private (double X, double Z) _warmedFor = (double.NaN, 0);
     private UInt128 _grey;
     private long _built;
     private double _buildTicks;
@@ -400,6 +401,7 @@ public sealed class FarView
             _wanted = [.. _leaves];
         }
 
+        WarmDrainage(eyeX, eyeZ);
         Invalidate(dispose);
         Collect();
         Request(eyeX, eyeZ);
@@ -411,6 +413,34 @@ public sealed class FarView
 
         Assemble();
         Trim(eyeX, eyeZ, dispose);
+    }
+
+    // B40: the drainage network's landmasses within the far range are read on the workers ahead of the tiles (a first read is 0.12 to 0.53 s, and a tile that needs an unread landmass would read it itself): at the first update and when the eye
+    // has moved a quarter of the range from where it was last done (a teleport; a walk is covered by the overlap). One job a row, nearest the eye first, behind every tile and chunk job; never with no worker (a run on one thread keeps its order).
+    private void WarmDrainage(double eyeX, double eyeZ)
+    {
+        var range = Settings.Range;
+        if (_pool.Workers == 0 || range <= 0 || (!double.IsNaN(_warmedFor.X) && Math.Abs(eyeX - _warmedFor.X) < range / 4 && Math.Abs(eyeZ - _warmedFor.Z) < range / 4))
+        {
+            return;
+        }
+
+        var step = _sampler.DrainageRowStep;
+        _warmedFor = (eyeX, eyeZ);
+        if (step <= 0)
+        {
+            return;
+        }
+
+        var (x0, x1) = ((int)Math.Floor(eyeX) - range, (int)Math.Floor(eyeX) + range);
+        var sampler = _sampler;
+        var stamp = (eyeX, eyeZ);
+        var first = (int)Math.Floor((eyeZ - range) / step) * step;
+        for (var z = first; z <= eyeZ + range; z += step)
+        {
+            var row = z;
+            _pool.Submit(JobLane.Ring, (long)Math.Abs(row - eyeZ), () => _warmedFor != stamp, () => sampler.WarmDrainageRow(row, x0, x1));
+        }
     }
 
     /// <summary>Runs until every leaf is built (a scripted run's settle step, and the tests).</summary>

@@ -201,7 +201,21 @@ public sealed class ProceduralChunkSource : IChunkSource
     /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
     /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
     /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
-    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group)
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group, null);
+
+    /// <summary>Arrays for the window of one chunk column, to hand back to <see cref="GenerateLayers(int, int, int, int, ColumnGroup?, ColumnScratch?)"/> (B40); one for each thread that generates at a time.</summary>
+    public ColumnScratch CreateScratch() => new(VoxelChunk.Size + (2 * _world.Margin));
+
+    /// <summary>
+    /// The same layers, with the column's window arrays taken from <paramref name="scratch"/> when it and a group are given (B40): no array of the window is allocated. The chunks are the same bytes. The scratch is the caller's, for this call alone.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="minLayer">The lowest layer asked for (inclusive).</param>
+    /// <param name="maxLayer">The highest layer asked for (inclusive).</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    /// <param name="scratch">The caller's arrays (<see cref="CreateScratch"/>), or <see langword="null"/>.</param>
+    public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group, ColumnScratch? scratch)
     {
         var first = Math.Max(minLayer, MinChunkY);
         var last = Math.Min(maxLayer, MaxChunkY - 1);
@@ -210,7 +224,7 @@ public sealed class ProceduralChunkSource : IChunkSource
             return [];
         }
 
-        var ctx = group is not null && group.Contains(chunkX, chunkZ) ? new ColumnContext(_world, chunkX, chunkZ, group) : new ColumnContext(_world, chunkX, chunkZ);
+        var ctx = group is not null && group.Contains(chunkX, chunkZ) ? new ColumnContext(_world, chunkX, chunkZ, group, scratch) : new ColumnContext(_world, chunkX, chunkZ);
         var chunks = new ChunkData[last - first + 1];
         for (var i = 0; i < chunks.Length; i++)
         {
