@@ -12,6 +12,7 @@ namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 /// once for the area, then the height and the biome of each column). The bounds are loose; the numbers go to the output for the report and for B03's budget.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class ProceduralTimingTests(ITestOutputHelper output)
 {
