@@ -127,7 +127,7 @@ public sealed class SpeechLinesTests
         Assert.Equal(
             TestGame.Nouns.Nouns.Select(static n => SpeechFiles.CardId(n.Lemma)).Order(StringComparer.Ordinal),
             cards.Keys.Order(StringComparer.Ordinal));
-        Assert.Equal(40, cards.Count); // I04 cabeza, cuerpo, pierna, pie, espalda, armadura and calor (the equipment panel's labels and stats); Y12 campamento; Y11 terreno and equipo; W10 harina, bol, cuchara, masa, horno, mano; V03 added moneda, manzana and hacha, N07 fuego, Y10 estaca
+        Assert.Equal(43, cards.Count); // I04b bolsa, ropa, apariencia; I04 cabeza, cuerpo, pierna, pie, espalda, armadura and calor (the equipment panel's labels and stats); Y12 campamento; Y11 terreno and equipo; W10 harina, bol, cuchara, masa, horno, mano; V03 added moneda, manzana and hacha, N07 fuego, Y10 estaca
         Assert.Equal("el hacha", cards["card.hacha"]); // a feminine noun with a stressed a takes el
         Assert.Equal("el río", cards["card.rio"]);
         Assert.Equal("el árbol", cards["card.arbol"]);

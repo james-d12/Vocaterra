@@ -36,13 +36,20 @@ public sealed class HotbarLayer : IFrameLayer
     /// <summary>The room the off-hand cell takes left of the hotbar: its width and its gap (the needs' HUD stands clear of it, I04b).</summary>
     public const int OffHandReserve = SlotSize + OffHandGap;
 
-    /// <summary>The off-hand cell's box: one slot to the left of the hotbar's first, <see cref="OffHandGap"/> from it, at its height. It is drawn only while something is worn in the off-hand.</summary>
+    /// <summary>Whether the canvas has no room left of the hotbar for the off-hand cell (a canvas barely wider than the strip, as 533x400): the cell then stands above the hotbar's left end.</summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="canvasHeight">The canvas's height.</param>
+    public static bool OffHandAbove(int canvasWidth, int canvasHeight) => BoxFor(canvasWidth, canvasHeight).X - OffHandReserve < HudLayout.Margin;
+
+    /// <summary>The off-hand cell's box: one slot to the left of the hotbar's first, <see cref="OffHandGap"/> from it, at its height; where the canvas has no room there (<see cref="OffHandAbove"/>) one slot above the hotbar's left end. It is drawn only while something is worn in the off-hand.</summary>
     /// <param name="canvasWidth">The canvas's width.</param>
     /// <param name="canvasHeight">The canvas's height.</param>
     public static PixelBox OffHandBoxFor(int canvasWidth, int canvasHeight)
     {
         var hotbar = BoxFor(canvasWidth, canvasHeight);
-        return new PixelBox(hotbar.X - OffHandGap - SlotSize, hotbar.Y, SlotSize, SlotSize);
+        return OffHandAbove(canvasWidth, canvasHeight)
+            ? new PixelBox(hotbar.X, hotbar.Y - OffHandGap - SlotSize, SlotSize, SlotSize)
+            : new PixelBox(hotbar.X - OffHandGap - SlotSize, hotbar.Y, SlotSize, SlotSize);
     }
 
     private static readonly Color Gold = new(255, 214, 64);

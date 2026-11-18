@@ -30,6 +30,7 @@ public sealed class SpanishLiteralGuardTests
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "hola")] = "PhraseIds.Hello: a phrase id (a key of phrases.json)",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "gracias")] = "PhraseIds.Thanks: a phrase id (a key of phrases.json)",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "ayuda")] = "PhraseIds.Help: a phrase id (a key of phrases.json)",
+        [("Vocaterra.Game.Core/Items/InventoryPanel.cs", "bolsa")] = "the catalogue lemma that names the inventory panel (D-game-35 (b), I04b): a lookup key into game/nouns.json, which holds the word, its article and its English; nothing is tested against it",
         [("Vocaterra.Game.Core/Npc/NpcHostEvents.cs", "no")] = "PhraseIds.No: a phrase id (a key of phrases.json)",
     };
 

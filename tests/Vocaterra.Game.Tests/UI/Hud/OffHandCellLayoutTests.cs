@@ -17,7 +17,7 @@ public sealed class OffHandCellLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void Given_AnyCanvas_When_TheOffHandCellIsPlaced_Then_ItIsOneSlotLeftOfTheHotbarWithAGapAtTheSameHeightAndOnTheCanvas(int windowWidth, int windowHeight, int scale)
+    public void Given_AnyCanvas_When_TheOffHandCellIsPlaced_Then_ItIsOneSlotLeftOfTheHotbarWithAGapOrAboveItsLeftEndWhereThereIsNoRoom(int windowWidth, int windowHeight, int scale)
     {
         var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
         var hotbar = HotbarLayer.BoxFor(width, height);
@@ -26,10 +26,20 @@ public sealed class OffHandCellLayoutTests(ITestOutputHelper output)
 
         Assert.Equal(HotbarLayer.SlotSize, cell.Width);
         Assert.Equal(HotbarLayer.SlotSize, cell.Height);
-        Assert.Equal(hotbar.Y, cell.Y);
-        Assert.Equal(HotbarLayer.OffHandGap, hotbar.X - cell.Right);
         Assert.True(HotbarLayer.OffHandGap > HotbarLayer.Gap, "the cell is set apart by more than the hotbar's own gap");
-        Assert.True(cell.X >= 0, $"the cell {cell} leaves the canvas {width}x{height}");
+        Assert.True(cell.X >= 0 && cell.Y >= 0 && cell.Right <= width, $"the cell {cell} leaves the canvas {width}x{height}");
+        Assert.True(Apart(cell, hotbar), $"the cell {cell} overlaps the hotbar {hotbar}");
+        if (HotbarLayer.OffHandAbove(width, height))
+        {
+            Assert.Equal(hotbar.X, cell.X);
+            Assert.Equal(HotbarLayer.OffHandGap, hotbar.Y - cell.Bottom);
+        }
+        else
+        {
+            Assert.Equal(hotbar.Y, cell.Y);
+            Assert.Equal(HotbarLayer.OffHandGap, hotbar.X - cell.Right);
+            Assert.True(cell.X >= HudLayout.Margin);
+        }
     }
 
     [Theory]
@@ -88,7 +98,10 @@ public sealed class OffHandCellLayoutTests(ITestOutputHelper output)
         var without = NeedsHudLayout.Place(width, height, 3, true, "Tengo sed.", "I'm thirsty.", Small);
         var explicitFalse = NeedsHudLayout.Place(width, height, 3, true, "Tengo sed.", "I'm thirsty.", Small, offHand: false);
 
-        Assert.Equal(without, explicitFalse);
+        Assert.Equal(without.Block, explicitFalse.Block);
+        Assert.Equal(without.Health, explicitFalse.Health);
+        Assert.Equal(without.Line, explicitFalse.Line);
+        Assert.Equal(without.Beside, explicitFalse.Beside);
         var hotbar = HotbarLayer.BoxFor(width, height);
         var besideBefore = hotbar.X - NeedsHudLayout.Spacing - NeedsHudLayout.BarWidth >= HudLayout.Margin; // the rule as it was before the cell
         Assert.Equal(besideBefore, without.Beside);

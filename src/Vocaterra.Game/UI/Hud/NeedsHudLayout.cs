@@ -78,7 +78,7 @@ public static class NeedsHudLayout
         var reserve = offHand ? HotbarLayer.OffHandReserve : 0;
         var beside = hotbar.X - reserve - Spacing - BarWidth >= HudLayout.Margin;
         var x = beside ? hotbar.X - reserve - Spacing - BarWidth : hotbar.X;
-        var bottom = beside ? hotbar.Bottom : hotbar.Y - Spacing;
+        var bottom = beside ? hotbar.Bottom : hotbar.Y - Spacing - (offHand && HotbarLayer.OffHandAbove(canvasWidth, canvasHeight) ? HotbarLayer.OffHandReserve : 0);
         var block = new PixelBox(x, bottom - height, BarWidth, height);
 
         var y = block.Y;
