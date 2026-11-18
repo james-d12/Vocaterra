@@ -42,7 +42,6 @@
     ],
     "valley": 36,
     "rockLine": 85,
-    "snowLine": 100,
     "terrace": 6,
     "ceiling": 124
   },
@@ -64,7 +63,14 @@
     "meadow.south": { "x": 264, "z": 258 },
     "river": { "x": 230, "z": 222, "label": "río" },
     "waterfall": { "x": 258, "z": 112, "label": "cascada" },
-    "lake": { "x": 212, "z": 294, "label": "lago" }
+    "lake": { "x": 212, "z": 294, "label": "lago" },
+    // The pass through the east ring (B08a, biomes-plan 3.6): "paso.gate" is where the road leaves the village's levelled ground (the road's first block, at 38), "paso.rise" where it has climbed the slope that blends the village into the land (at 45, the land's own height there); "paso.foot" is where it starts to climb through the ring (at 46); "paso" is the top of the pass, on the road, with no label (no
+    // word in content yet); "paso.edge" is where the road meets the valley's east edge, at 58. None levels anything (no radius).
+    "paso.gate": { "x": 318, "z": 217, "y": 38 },
+    "paso.rise": { "x": 332, "z": 217, "y": 45 },
+    "paso.foot": { "x": 340, "z": 212, "y": 46 },
+    "paso": { "x": 372, "z": 208 },
+    "paso.edge": { "x": 383, "z": 208, "y": 58 }
   },
 
   // The waterfall: a cliff whose lip is the row of the site; the plateau behind it is raised to "top" and a sheet of water falls into the pool.
@@ -90,10 +96,55 @@
     {
       "name": "road", "from": "camp.guide", "to": "village", "mode": "follow", "halfWidth": 1,
       "via": [[192, 204], [204, 222], [216, 214], [226, 205], [238, 205], [256, 210], [270, 226], [284, 222]]
+    },
+    // The pass road (B08a): from the village's east side to the valley's east edge, made of path blocks (the land rules protect it as a road). It climbs about twenty blocks, from the land at the village
+    // (38) to 58 at the edge, and never steps more than a block. The first leg climbs evenly from "paso.gate" to "paso.rise" across the slope that blends the village's levelled ground into the land (following the ground there would step), the second
+    // follows the ground to "paso.foot". The last, from "paso.foot", is a cutting: seven blocks wide and graded evenly, cut through the east ring. The ring's own relief is not edited: its ground lies
+    // high on both sides of the cutting, 10 to 25 blocks over the road, so the pass has steep banks and one way in. (Lowering relief rows 12 to 14 instead was tried: the noise bends the relief by
+    // up to 86 blocks away from a road, so the same notch opened a second time to the south, a trench to the east edge.)
+    {
+      "name": "pass.rise", "from": "paso.gate", "to": "paso.rise", "mode": "grade", "halfWidth": 2
+    },
+    {
+      "name": "pass.floor", "from": "paso.rise", "to": "paso.foot", "mode": "follow", "halfWidth": 2,
+      "via": [[336, 215]]
+    },
+    {
+      "name": "pass", "from": "paso.foot", "to": "paso.edge", "mode": "grade", "halfWidth": 3,
+      "via": [[352, 209], [372, 208]]
     }
   ],
 
   "stamps": {
+    // The rockfall (B08a, biomes-plan 3.6): a heap of stone, cobble and mossy stone across the pass's cutting, seventeen wide (x) and seventeen long (z, north row first), drawn at fixed heights (its
+    // first layer is the level y 51), so the prop's "floorY" (50) makes it fill the cutting from the road, whatever its slope (a cell at or under the ground is left out). Columns 5 to 11 are the heap
+    // itself: it fills the cutting from wall to wall, its top uneven between y 64 and 70 and highest in the middle, ten blocks and more over the road (54 to 58 there), so no body climbs onto it.
+    // Columns 0 to 4 and 12 to 16 are the rubble that spilled out of it on each side, one to three blocks high and falling away.
+    "rockfall": {
+      "legend": { "S": "stone", "C": "cobble", "M": "mossy-stone" },
+      "layers": [
+        [" CSSCCSSMMSMCSMC ", " SSSCCSSMMSSSSSC ", " CSCCCMMMCCMSSSM ", " CCSCCSCSCSMMSMC ", " SCMMSCMSSMSSSSS ", " SCMMSMMSSSSSSSM ", " SCSSMCCSMSSSSCS ", " CCSCSCCSMMSCCCM ", " SSCCSCCSSSSCSMS ", " MSSSSCCSSCSCCMS ", " MCMSSMCSSCCSCSM ", " SCMSSCCSSCSCCMC ", " MMSCSMSSCCCMCSC ", " CSSSSMMCSSMMSSM ", " CSSSCSSCSCSCMSC ", " CMSCCSSMMCSCMSC ", " SMMMSCMSCMSMSCS "],
+        [" SSCSCSCSCSSSSSM ", " CSMSMSCSMSMCSSS ", " SCSMMCCSSSMSSSC ", " SSCSSCMMSCSMSSC ", " SCSCSCSCSSMMSSC ", " SCCSSCCCSMMMSSC ", " CSMCSSCCSMMCCSM ", " SMSCCSCSCSSSSSS ", " MSMSSMMMSSCSSSC ", " SSMCSCSCSSSSMMC ", " SSMSSCSSCSSCMMC ", " MMSSSMCMCSCSSSM ", " CSMSSMCCCCSCSSM ", " MMMMSCCMCSCSSMC ", " SMMCSCMMCSMCSMC ", " SSCSSCCCCMSCSCC ", " SSSCSMSCCSSCSMC "],
+        [" SSCCCSSCCSSCMSM ", " CMMMMMCSSMMSSMS ", " SCSSMCCSSSCCSSC ", " SSCSSCMCSCSCSSC ", " SMSCSMSMSSCSSSC ", " CSCSCCCCCMSCCSC ", " SSMCSSSCSSMCCSM ", " SCSSMMMSCSSSSMS ", " CSMSMMMMMSCCSSS ", " SMMSSCSCSSSMMCC ", " SSCCSCSCCSSCMMC ", " MMSSSMCCMSCSSSM ", " CSCSSSCMCMMCSSC ", " SMSCCCCCCSCSCMC ", " MSMCMMMSCSMMSSS ", " CSCSSCCCCCSSCSM ", " MSSCMMSCSSSCSMC "],
+        [" SCMSSCCSCCSSMSS ", " CMCSSMSCSMCCCMM ", " SSSSSSSSSMCCCMS ", " SSMSSMSCSMSCMSM ", " MMCSMMSCMSSCMSM ", " CSSCCCSMCCCSCMS ", " CMCCCMSCCCCCMMC ", " MSSSCSMSSCSSMSS ", " CCSMMSSCMCMSSSC ", " SMCCCSMMCSMSSCS ", " CMCCCSSCMSSMSCS ", " CSSMMSMCCSMSSSS ", " CSSSMSMCSMSSSSS ", " SCCSCCSSMMSCCCS ", " SCCCSCCSMMCMCCS ", " SCCSMMCCSSSSSCM ", " MSCSMSCSSSCSSSM "],
+        ["  CMSSCCSSCSSCSS ", " MCCSSCCSSCCCCCM ", "  CSSSCSSSMCCCMS ", " SSMSSMSCSCSCMSM ", "  SCSMSSCMCMMMCC ", " CSSCCSSCCCMMCMS ", "  SCMSSSMSMCMMSC ", " SMCSCSSMCSCMSSC ", "  CSSCSSCCCMSMSC ", " SCCCCSMMCMMSSCC ", "  MCCCCSCCSSMSCS ", " CSSMMSMCCSMSSSS ", "  CMSMSCCSSSSSCM ", " SCMMCSSMMMSCCCS ", "  MCMSCCSMSCSSMS ", " SSMMSCMSCMCSSCS ", "  SSCCSSCSSCCMSM "],
+        ["  CSCSCSSSMCMSCS ", "   SCSSSMSCSMCCC ", "  SMCCSSCCCSCMMS ", "   SMCSSSMMSSCSS ", "  SMSCSMSCCSSMCS ", "   SMMSMSMSSSSSS ", "  CSMMCSSMCCSSMS ", "   CMSSSMMCMMCCC ", "  MSCSSSSCCSCMMS ", "   SMCSCSMCSCSCS ", "  CSCMMSSMMMSCSS ", "   SCCCSCSCSMCCS ", "  CSCMSSSMSCSMMC ", "   SSSSSSMCSMMCM ", "  CCSSSSSSCSSMSS ", "   SMCSMSSCCMSMS ", "  CMMCSMSMCMSCSS "],
+        ["    MSCMSSSCSSCS ", "   SCCSSCCCCMCCC ", "    CCSMCCCSMCMS ", "   SMCSSSSMCSCSS ", "    SCCCSCCSCCCM ", "   SMMSMSSSCSSMS ", "    SCCMSMCCSMMS ", "   CMCSSCSCMMCCC ", "    MSCSSCMSMCMM ", "   CMCSCMSCCCCCS ", "    MCSMSMSMSCCM ", "   CSCCSSSCSMCCS ", "    MCCMSMSCSCMS ", "   CSSSSSSCSMMCM ", "    SSCSSSCSSCMM ", "   SMCSMMSSCMSCS ", "    SCSCSMMCSCCM "],
+        ["    CMMSMMSMCSMC ", "     CSSSCCSSMS  ", "    CMMMCMSMMSCS ", "     SSCSCSCMSC  ", "    MSCSMCCSSCMS ", "     SSCCSSSSSS  ", "    SSSMSSSSSSCS ", "     SCCCCMSCSM  ", "    CSCCSCMCCCSS ", "     MMSSSCSMCS  ", "    MSCMSSCCSMSM ", "     SMCSMMSCSM  ", "    CCCSSCCMMCSC ", "     SMMCSCMSSS  ", "    SCSSCSSSSSSM ", "     SSSMMCMCMS  ", "    CSSSSCMSMSCS "],
+        ["     MMSMMSCMS   ", "     CSSMCSSSMS  ", "     CSCMMSMSM   ", "     CSCMMSCMCC  ", "     SCMMSMSSC   ", "     SSCSSMSSSS  ", "     MCCSSSSCS   ", "     SCCCMMSCCC  ", "     SCSSSSCCC   ", "     MMSSSSSMCS  ", "     MMCSSMCCC   ", "     CCCSSMCCCC  ", "     CCSSCCCSC   ", "     SMMSSSSSSS  ", "     CSMCSSSCM   ", "     CSSCSCMCMM  ", "     SCMSCSMSS   "],
+        ["     CSCCCSSCM   ", "     MMCSMSMS    ", "     SCCMSMCSS   ", "     SCCCSCMC    ", "     SMSCSSCMS   ", "     SMSCCMMC    ", "     SSCCSSSCC   ", "     MMMSCSSS    ", "     MMMCSSMSS   ", "     SCMCSSMS    ", "     SCCCCSCCS   ", "     SSCMCSCC    ", "     SMCMCMSCS   ", "     CCCCCSCC    ", "     MMMMCSMCS   ", "     SCSCCMSS    ", "     SCSCSSSCS   "],
+        ["     CSCCCCM     ", "     SMMSMSSS    ", "     MMSSSSC     ", "     SCMCCSSC    ", "     MMSCSSC     ", "     SCCCCCMC    ", "     SSCCSSM     ", "     MMMSCSSS    ", "     MSCMSSC     ", "     SCSCCSSS    ", "     SCSCSCS     ", "     SMMMCSMS    ", "     SMSMSMS     ", "     CCCCCSCS    ", "     MMCMCSC     ", "     SCCCMMSS    ", "     SMSMSSS     "],
+        ["     CSMSSCS     ", "     SCCCSMC     ", "     SCSSCCC     ", "     MMMCSCS     ", "     MSCSSSM     ", "     CCSMCCC     ", "     CMSMCMM     ", "     CSSSSSC     ", "     CSSCMSS     ", "     SCCMCMC     ", "     CSSCCSS     ", "     MSMCSCM     ", "     SSCCSSS     ", "     CSSMCSS     ", "     SCCSMMC     ", "     MMCSCSS     ", "     MMCCSSC     "],
+        ["     SCCSSCS     ", "     SCCCSMM     ", "     SCSSSMS     ", "     SCSSSCS     ", "     CSSCMSM     ", "     CCSMMCC     ", "     CMSMCMC     ", "     CSSSSSC     ", "     CSMCMCM     ", "     CSMCCMM     ", "     SSSMCSS     ", "     SSSCCSS     ", "     MSCCSSS     ", "     MSCMMMC     ", "     SCCSCMC     ", "     MMCSCSS     ", "     MSCCSCS     "],
+        ["     MCCCMSC     ", "     CMSMCCM     ", "     MSCMCMC     ", "     CCSSSMM     ", "     MCCCMSS     ", "     SMSCCCM     ", "     MSSSSMS     ", "     SSSSSMM     ", "     SCCCCSC     ", "     SMCMCSS     ", "     CSSSSCC     ", "     SSMSSMS     ", "     SCCCMSC     ", "     SMCMMSM     ", "     SSCMCCC     ", "     CCMSSSM     ", "     SCCCMSC     "],
+        ["     MCCCMSS     ", "     CCSMCSS     ", "     C SSS C     ", "     CSSSSCM     ", "     MMCCMSS     ", "     SCSCCCM     ", "     CSMSMMS     ", "     SSSSSMM     ", "     SCSCSSC     ", "     SMMCMSS     ", "     CSSSSCC     ", "     SSMSSMC     ", "     SCSCCCC     ", "     SMMCMSS     ", "      SSSSM      ", "     CSMSS S     ", "       CCM       "],
+        ["     C MSC C     ", "      CSSMS      ", "     S SSC S     ", "     SCSSMSS     ", "     C MSCCS     ", "     SCSMMS      ", "     SMMSSCM     ", "     MCCSSSS     ", "     SMCSSCM     ", "     SCCSMSS     ", "     MSMSCSC     ", "       SMM C     ", "     SMCSC       ", "      CCSCSC     ", "       SSCC      ", "     SCSS  S     ", "        S        "],
+        ["       C C       ", "        S        ", "       SSC       ", "      CC SM      ", "     C  C        ", "       S MS      ", "     M CSSCM     ", "      CCSSSS     ", "     SMCSSC      ", "       CMS S     ", "     MSMCCC      ", "        M  C     ", "       CSC       ", "      C MC       ", "       S C       ", "        M        ", "                 "],
+        ["                 ", "                 ", "                 ", "                 ", "        S        ", "         S       ", "     S  C  C     ", "       M MS      ", "      SC MC      ", "        S  M     ", "      MC MS      ", "                 ", "         S       ", "        S        ", "                 ", "                 ", "                 "],
+        ["                 ", "                 ", "                 ", "                 ", "                 ", "                 ", "        C        ", "       M M       ", "                 ", "                 ", "                 ", "                 ", "                 ", "                 ", "                 ", "                 ", "                 "]
+      ]
+    },
+
     // A plain A-frame tent (north row first): the roof blocks come down to the ground on both sides and the ends stay open.
     // A stone tower (S15): a cobble shaft with a door and four window slits, a timber band under a stepped roof and a flagpole. Five by five.
     "tower": {
@@ -261,6 +312,10 @@
     {"type": "tree", "site": "village", "dx": 19, "dz": -4},
     {"type": "tree", "site": "village", "dx": 19, "dz": 0},
     {"type": "tree", "site": "village", "dx": 19, "dz": 4},
+
+    // The rockfall: it closes the pass across the road where it meets the ring (B08a). The pass stays closed until the lessons are done; B08b removes this prop's blocks (the stamp's cells, found by the
+    // name "rockfall": Scene.PropCells) when the pass opens, so nothing else may be built into it and its name must not change.
+    {"type": "stamp", "stamp": "rockfall", "x": 355, "z": 200, "floorY": 50, "facing": "north", "name": "rockfall"},
 
     // The fisher's bank: on the bridge's east landing, south of the road, two crates and a lamp beside the place he will stand (npc.fisher).
     {"type": "block", "block": "crate", "site": "bridge.east", "dx": 3, "dz": 3},

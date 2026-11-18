@@ -41,6 +41,9 @@ public enum Material : byte
 /// <param name="BecomesWhenGathered">The block that is left in the cell after a gather: <see cref="BlockId.Air"/> for a trunk, a plain bush for a berry bush.</param>
 /// <param name="Decor">Whether the block is undergrowth (S14): not solid, never gathered, and invisible to the block ray, so the crosshair looks through it at whatever stands behind it; a block may be placed into its cell.</param>
 /// <param name="Material">What the block is made of (W02): the tools whose <see cref="ItemDefinition.Tool"/> names it gather it faster.</param>
+/// <param name="StopsBody">Whether a body collides with the block although it is not <see cref="Solid"/> (lava, B10): it cannot be walked into or fallen into, and sight and the block ray still see through it as through a fluid.</param>
+/// <param name="Glows">Whether the block is a light kind (lantern, torch, post torch, lava): the renderer lights the faces around it.</param>
+/// <param name="Indestructible">Whether no edit removes or replaces the block (bedrock, B10): the grid refuses every write that would.</param>
 /// <param name="Tall">Whether a body collides with the block as if it were two blocks high (a fence, issue #33): no step-up lifts a body onto it, a jump does not clear it, and nothing stands on it. The block ray and the renderer still see one block.</param>
 public sealed record BlockDefinition(
     BlockId Id,
@@ -54,7 +57,10 @@ public sealed record BlockDefinition(
     BlockId BecomesWhenGathered,
     bool Decor = false,
     Material Material = Material.None,
-    bool Tall = false)
+    bool Tall = false,
+    bool StopsBody = false,
+    bool Glows = false,
+    bool Indestructible = false)
 {
     /// <summary>The ticks a trunk takes to gather by hand (one second).</summary>
     public const int TrunkGatherTicks = 60;
@@ -78,7 +84,7 @@ public sealed record BlockDefinition(
         new(BlockId.Planks, "planks", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Door, "door", false, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Table, "table", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Torch, "torch", false, true, false, 0, null, 0, BlockId.Air, Glows: true),
         new(BlockId.Stall, "stall", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Roof, "roof", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.Fence, "fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood, Tall: true),
@@ -99,7 +105,7 @@ public sealed record BlockDefinition(
         new(BlockId.MossyStone, "mossy-stone", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.Cobble, "cobble", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.Timber, "timber", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.Lantern, "lantern", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Lantern, "lantern", false, true, false, 0, null, 0, BlockId.Air, Glows: true),
         new(BlockId.Crate, "crate", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.AwningRed, "awning-red", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.AwningWhite, "awning-white", true, false, false, 0, null, 0, BlockId.Air),
@@ -115,12 +121,22 @@ public sealed record BlockDefinition(
         new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
         new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
-        new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air, Glows: true),
         new(BlockId.Bed, "bed", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.Bedroll, "bedroll", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.BedFoot, "bed-foot", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.BedrollFoot, "bedroll-foot", false, true, false, 0, null, 0, BlockId.Air),
         new(BlockId.Counter, "counter", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood, Tall: true),
+        new(BlockId.Slate, "slate", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Granite, "granite", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Limestone, "limestone", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Gravel, "gravel", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Soil),
+        new(BlockId.Lava, "lava", false, false, true, 0, null, 0, BlockId.Air, StopsBody: true, Glows: true),
+        new(BlockId.Bedrock, "bedrock", true, false, false, 0, null, 0, BlockId.Air, Indestructible: true),
+        new(BlockId.IronOre, "iron-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.TinOre, "tin-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.CopperOre, "copper-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.Basalt, "basalt", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>
@@ -154,6 +170,27 @@ public sealed record BlockDefinition(
     {
         var index = (int)id;
         return (uint)index < (uint)Table.Length && Table[index].Tall;
+    }
+
+    /// <summary>Whether a body collides with blocks of kind <paramref name="id"/> although they are not solid (<see cref="StopsBody"/>: lava). An id without a definition is not.</summary>
+    public static bool StopsBodyOf(BlockId id)
+    {
+        var index = (int)id;
+        return (uint)index < (uint)Table.Length && Table[index].StopsBody;
+    }
+
+    /// <summary>Whether blocks of kind <paramref name="id"/> glow (<see cref="Glows"/>). An id without a definition does not.</summary>
+    public static bool IsLight(BlockId id)
+    {
+        var index = (int)id;
+        return (uint)index < (uint)Table.Length && Table[index].Glows;
+    }
+
+    /// <summary>Whether no edit removes or replaces blocks of kind <paramref name="id"/> (<see cref="Indestructible"/>: bedrock). An id without a definition is not.</summary>
+    public static bool IsIndestructible(BlockId id)
+    {
+        var index = (int)id;
+        return (uint)index < (uint)Table.Length && Table[index].Indestructible;
     }
 
     /// <summary>Whether the block is a trunk of any species (oak, spruce or birch): the wood a player gathers.</summary>

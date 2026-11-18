@@ -66,7 +66,7 @@ public sealed class DialoguePagesSaveTests : IDisposable
         before.Close();
 
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        var document = SaveGame.Capture(session, RouteScene.Build(), null, DialoguePageSave.Capture(before.Pages));
+        var document = SaveGame.Capture(session, null, DialoguePageSave.Capture(before.Pages));
         var parsed = SaveGame.Parse(SaveGame.Serialize(document));
         Assert.Equal(["baker", "shopkeeper"], parsed.DialoguePages!.Select(static p => p.Npc));
 
@@ -97,7 +97,7 @@ public sealed class DialoguePagesSaveTests : IDisposable
     public void ASaveWithoutTheFieldLoadsWithEmptyPagesAndWritesNoField()
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        var text = SaveGame.Serialize(SaveGame.Capture(session, RouteScene.Build(), null, DialoguePageSave.Capture(Model().Pages)));
+        var text = SaveGame.Serialize(SaveGame.Capture(session, null, DialoguePageSave.Capture(Model().Pages)));
         Assert.DoesNotContain("ialoguePages", text, StringComparison.OrdinalIgnoreCase);
         Assert.Null(SaveGame.Parse(text).DialoguePages);
 
@@ -124,7 +124,7 @@ public sealed class DialoguePagesSaveTests : IDisposable
         first.AddHint("una pista");
         first.AddNpcLine("Toma la botella.");
         first.Close();
-        var saves = new SaveService(session, static () => RouteScene.Build(), static () => new SaveSettings(new SoundVolumes()), static _ => { }, first);
+        var saves = new SaveService(session, static () => new SaveSettings(new SoundVolumes()), static _ => { }, first);
         Directory.CreateDirectory(_folder);
         var path = Path.Combine(_folder, "game.save");
         Assert.True(saves.Write(path, "test"));

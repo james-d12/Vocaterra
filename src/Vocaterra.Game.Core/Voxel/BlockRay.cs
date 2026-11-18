@@ -20,7 +20,7 @@ public static class BlockRay
     public const int DefaultReachInBlocks = VoxelPhysics.ReachInBlocks;
 
     /// <summary>Casts a ray from the player's eye along the player's facing, with the default reach.</summary>
-    public static BlockRayHit? Cast(VoxelGrid grid, PlayerBody body, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
+    public static BlockRayHit? Cast(IVoxelReader grid, PlayerBody body, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
     {
         ArgumentNullException.ThrowIfNull(body);
         return Cast(grid, body.EyeX, body.EyeY, body.EyeZ, body.Yaw, body.Pitch, reachInBlocks, throughWater);
@@ -31,7 +31,7 @@ public static class BlockRay
     /// (<paramref name="yaw"/>, <paramref name="pitch"/>, see <see cref="Angles"/>) for at most <paramref name="reachInBlocks"/> blocks.
     /// </summary>
     /// <returns>The first block that is not air, or <see langword="null"/> when there is none within the reach (or the ray leaves the grid first).</returns>
-    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int yaw, int pitch, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
+    public static BlockRayHit? Cast(IVoxelReader grid, int originX, int originY, int originZ, int yaw, int pitch, int reachInBlocks = DefaultReachInBlocks, bool throughWater = false)
     {
         var (dx, dy, dz) = Angles.Direction(yaw, pitch);
         return Cast(grid, originX, originY, originZ, dx, dy, dz, (long)reachInBlocks * U, throughWater);
@@ -41,7 +41,7 @@ public static class BlockRay
     /// Casts a ray along the fixed-point unit direction (<paramref name="dx"/>, <paramref name="dy"/>, <paramref name="dz"/>), where
     /// <see cref="Angles.One"/> is 1.0, for at most <paramref name="reachUnits"/> units.
     /// </summary>
-    public static BlockRayHit? Cast(VoxelGrid grid, int originX, int originY, int originZ, int dx, int dy, int dz, long reachUnits, bool throughWater = false)
+    public static BlockRayHit? Cast(IVoxelReader grid, int originX, int originY, int originZ, int dx, int dy, int dz, long reachUnits, bool throughWater = false)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (dx == 0 && dy == 0 && dz == 0)

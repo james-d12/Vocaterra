@@ -141,9 +141,12 @@ public sealed class BlockAtlasTests
         }
 
         var grass = Mean(BlockCell.GrassTop);
-        Assert.True(grass.G > grass.R * 1.4 && grass.G > grass.B * 2);
+        // B22: the grass and oak-leaf pictures are the light, nearly neutral end of the green (the biome map's colour is multiplied in); what is drawn is the picture times the map's colour.
+        Assert.True(grass.G > grass.R * 1.1 && grass.G > grass.B * 1.3);
         var leaves = Mean(BlockCell.Leaves);
-        Assert.True(leaves.G > leaves.R * 1.6 && leaves.G > leaves.B * 1.8);
+        Assert.True(leaves.G > leaves.R * 1.25 && leaves.G > leaves.B * 1.4);
+        var (tr, tg, tb) = Vocaterra.Game.Graphics.Colour.LandColours.Default.GrassColour(0, 0);
+        Assert.True(tg > tr * 1.3 && tg > tb * 1.8, "the meadow's own green is clearly green");
         var water = Mean(BlockCell.Water);
         Assert.True(water.B > water.G && water.B > water.R * 2.5);
         var planks = Mean(BlockCell.Planks);

@@ -27,7 +27,7 @@ public sealed class RenewalTests
         return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, Pristine(), lessons: lessons) { Day = 10 };
     }
 
-    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     private static int Count(VoxelSession session, ItemId item) => session.Simulation.Inventory.Count(item);
 
@@ -102,7 +102,7 @@ public sealed class RenewalTests
     {
         var session = NewSession();
         var cell = Pick(session);
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         var loaded = SaveGame.Restore(document, TestGame.Data, Pristine());
 
@@ -122,11 +122,11 @@ public sealed class RenewalTests
         Assert.NotEqual(first, second);
         var untouched = session.Scene.Grid.BlocksOfKind(BlockId.BerryBush).First(b => b != first && b != second);
 
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         Assert.Equal(2, document.Systems!.Bushes!.Length);
         var loaded = SaveGame.Restore(document, TestGame.Data, Pristine());
         Assert.Equal([first, second], loaded.PickedBushes);
-        Assert.Equal(document.Systems.Bushes!, SaveGame.Capture(loaded, Pristine()).Systems!.Bushes!); // round-trips
+        Assert.Equal(document.Systems.Bushes!, SaveGame.Capture(loaded).Systems!.Bushes!); // round-trips
 
         Night(loaded);
 
@@ -293,7 +293,7 @@ public sealed class RenewalTests
     {
         var session = At("villager");
         _ = session.Say("quiero pan, por favor");
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         Assert.Equal(["villager:bread"], document.Systems!.Gifts!);
 
         var loaded = SaveGame.Restore(document, TestGame.Data, Pristine());
@@ -305,13 +305,13 @@ public sealed class RenewalTests
 
         Night(loaded);
         Assert.Empty(loaded.GiftsGivenToday);
-        Assert.Null(SaveGame.Capture(loaded, Pristine()).Systems!.Gifts);
+        Assert.Null(SaveGame.Capture(loaded).Systems!.Gifts);
     }
 
     [Fact]
     public void ASaveWithoutTheRenewalEntriesLoadsAsANewGameHasThem()
     {
-        var document = SaveGame.Capture(NewSession(), Pristine());
+        var document = SaveGame.Capture(NewSession());
         var loaded = SaveGame.Restore(document with { Systems = new SystemsSave(document.Systems!.Needs) }, TestGame.Data, Pristine());
         Assert.Empty(loaded.PickedBushes);
         Assert.Empty(loaded.GiftsGivenToday);
@@ -362,7 +362,7 @@ public sealed class RenewalTests
             var cell = Pick(session);
             _ = session.Say("quiero pan, por favor");
             Night(session);
-            return (string.Join(';', session.GiftsGivenToday) + BlockAt(session, cell), session.Scene.Grid.ComputeDigestHex() + SaveGame.Capture(session, Pristine()).Systems!.Gifts?.Length);
+            return (string.Join(';', session.GiftsGivenToday) + BlockAt(session, cell), session.Scene.Grid.ComputeDigestHex() + SaveGame.Capture(session).Systems!.Gifts?.Length);
         }
 
         Assert.Equal(Play(), Play());

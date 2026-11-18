@@ -1,0 +1,30 @@
+{
+  // The sample town of B15 (biomes plan 3.6), for the tests and the preview tool only; the game never loads it. A town is a layout like the valley's, with no relief of its own: placed at a
+  // position in the world (RegionPlacement), it stands on the procedural ground there, 96 x 96 x 96 blocks, and levels the ground only under its sites and its path. Two houses on two plots,
+  // a paved square with two lamps, a fence and a road across it from one gate to the other. It has no words: no phrase, no name for a person, no NPC. Its heights are its own (y 0 is the
+  // floor of the placement's first layer), so its water level lies under all its ground, and no rock or snow line applies.
+  "schemaVersion": 2,
+  "name": "sample-town",
+  "size": { "x": 96, "y": 96, "z": 96 },
+  "waterLevel": 1,
+  "terrain": { "valley": 36, "rockLine": 200, "terrace": 0, "ceiling": 88 },
+  "sites": {
+    "square": { "x": 48, "z": 48, "radius": 7, "blend": 8 },
+    "plot.a": { "x": 24, "z": 40, "radius": 6, "blend": 6 },
+    "plot.b": { "x": 72, "z": 56, "radius": 6, "blend": 6 },
+    "gate.west": { "x": 3, "z": 48 },
+    "gate.east": { "x": 92, "z": 48 }
+  },
+  "paths": [
+    { "name": "road", "from": "gate.west", "to": "gate.east", "via": [[48, 48]], "halfWidth": 1, "mode": "follow" }
+  ],
+  "props": [
+    { "type": "paving", "x": 43, "z": 43, "width": 11, "depth": 11, "block": "cobble" },
+    { "type": "lamp", "x": 47, "z": 42, "name": "lamp.north" },
+    { "type": "lamp", "x": 49, "z": 54, "name": "lamp.south" },
+    { "type": "house", "x": 21, "z": 37, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house.a" },
+    { "type": "house", "x": 70, "z": 54, "width": 5, "depth": 5, "height": 3, "facing": "north", "name": "house.b" },
+    { "type": "fence_line", "x": 18, "z": 33, "length": 12, "axis": "x" }
+  ],
+  "spawn": { "x": 48, "z": 51, "facing": 180 }
+}

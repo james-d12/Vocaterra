@@ -29,6 +29,21 @@ public static class MenuRows
             MenuRow.Of(settings, SettingId.FieldOfView),
             MenuRow.Of(settings, SettingId.Blur),
             MenuRow.Of(settings, SettingId.ViewEffects),
+            MenuRow.Subheading("subEffects"), // the graphics effects of B17b and B17c: each its own toggle, on by default; B18's grass, B22's antialiasing and B07d's far view settings and worker threads joined them
+            MenuRow.Of(settings, SettingId.Shaders),
+            MenuRow.Of(settings, SettingId.Grass),
+            MenuRow.Of(settings, SettingId.Msaa),
+            MenuRow.Of(settings, SettingId.SunFollowsHour),
+            MenuRow.Of(settings, SettingId.ClimateColours),
+            MenuRow.Of(settings, SettingId.WaterShader),
+            MenuRow.Of(settings, SettingId.HeightFog),
+            MenuRow.Of(settings, SettingId.FarLight),
+            MenuRow.Of(settings, SettingId.FarDistance), // B07d: the far view's detail settings and the worker threads, in the Graphics group (D-game-34 item 43)
+            MenuRow.Of(settings, SettingId.FarDetail),
+            MenuRow.Of(settings, SettingId.FarTrees),
+            MenuRow.Of(settings, SettingId.FarTextures),
+            MenuRow.Of(settings, SettingId.FarExact),
+            MenuRow.Of(settings, SettingId.Workers),
             MenuRow.Heading("headingInterface"),
             MenuRow.Of(settings, SettingId.TextSize),
             MenuRow.Heading("headingMouse"),
@@ -37,6 +52,8 @@ public static class MenuRows
             MenuRow.Heading("headingNeeds"),
             MenuRow.Of(settings, SettingId.NeedsRate),
             MenuRow.Of(settings, SettingId.RelaxedNeeds),
+            MenuRow.Heading("headingCheats"),
+            MenuRow.Of(settings, SettingId.PassCheat),
         };
         if (testing is not null)
         {

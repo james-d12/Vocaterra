@@ -138,34 +138,42 @@ internal static class SceneLayoutParser
         var columns = sizeX / VoxelChunk.Size;
         var rows = sizeZ / VoxelChunk.Size;
         var relief = new int[columns * rows];
-        var lines = Require(element, "relief");
-        if (lines.ValueKind != JsonValueKind.Array || lines.GetArrayLength() != rows)
+        var valley = GetOptionalInt(element, "valley") ?? 36;
+        if (!element.TryGetProperty("relief", out var lines))
         {
-            throw new SceneLayoutException($"terrain.relief must be an array of {rows} strings (one per chunk row, north first).");
+            // A layout with no relief is flat at the valley's height: a region on procedural ground (B15) takes its height from the world and draws none.
+            Array.Fill(relief, valley);
         }
-
-        var z = 0;
-        foreach (var line in lines.EnumerateArray())
+        else
         {
-            var text = line.ValueKind == JsonValueKind.String ? line.GetString() : null;
-            if (text is null || text.Length != columns)
+            if (lines.ValueKind != JsonValueKind.Array || lines.GetArrayLength() != rows)
             {
-                throw new SceneLayoutException($"terrain.relief row {z} must be a string of {columns} characters.");
+                throw new SceneLayoutException($"terrain.relief must be an array of {rows} strings (one per chunk row, north first).");
             }
 
-            for (var x = 0; x < columns; x++)
+            var z = 0;
+            foreach (var line in lines.EnumerateArray())
             {
-                var c = text[x];
-                var digit = c is >= '0' and <= '9' ? c - '0' : c is >= 'a' and <= 'v' ? c - 'a' + 10 : -1;
-                if (digit < 0 || digit * 4 >= sizeY - 4)
+                var text = line.ValueKind == JsonValueKind.String ? line.GetString() : null;
+                if (text is null || text.Length != columns)
                 {
-                    throw new SceneLayoutException($"terrain.relief: '{c}' at column {x}, row {z} is not a base-32 digit (0 to 9, a to v) below the grid's height.");
+                    throw new SceneLayoutException($"terrain.relief row {z} must be a string of {columns} characters.");
                 }
 
-                relief[(z * columns) + x] = digit * 4;
-            }
+                for (var x = 0; x < columns; x++)
+                {
+                    var c = text[x];
+                    var digit = c is >= '0' and <= '9' ? c - '0' : c is >= 'a' and <= 'v' ? c - 'a' + 10 : -1;
+                    if (digit < 0 || digit * 4 >= sizeY - 4)
+                    {
+                        throw new SceneLayoutException($"terrain.relief: '{c}' at column {x}, row {z} is not a base-32 digit (0 to 9, a to v) below the grid's height.");
+                    }
 
-            z++;
+                    relief[(z * columns) + x] = digit * 4;
+                }
+
+                z++;
+            }
         }
 
         var ceiling = GetOptionalInt(element, "ceiling") ?? (sizeY - 8);
@@ -178,9 +186,8 @@ internal static class SceneLayoutParser
             relief,
             columns,
             rows,
-            GetOptionalInt(element, "valley") ?? 36,
+            valley,
             GetOptionalInt(element, "rockLine") ?? 85,
-            GetOptionalInt(element, "snowLine") ?? 100,
             GetOptionalInt(element, "terrace") ?? 6,
             ceiling);
     }
@@ -398,7 +405,8 @@ internal static class SceneLayoutParser
                 facing,
                 string.Equals(axis, "z", StringComparison.Ordinal),
                 GetString(prop, "stamp"),
-                blockName is null ? BlockId.Path : BlockNamed(blockName, $"prop '{type}'")));
+                blockName is null ? BlockId.Path : BlockNamed(blockName, $"prop '{type}'"),
+                GetOptionalInt(prop, "floorY")));
         }
 
         return props;
@@ -584,7 +592,7 @@ internal static class SceneLayoutParser
     private static SiteSpec RequireSite(Dictionary<string, SiteSpec> sites, string name, string where) =>
         sites.TryGetValue(name, out var site) ? site : throw new SceneLayoutException($"{where}: there is no site '{name}'.");
 
-    private static BlockId BlockNamed(string name, string where) =>
+    internal static BlockId BlockNamed(string name, string where) =>
         BlockDefinition.FromName(name)?.Id ?? throw new SceneLayoutException($"{where}: unknown block '{name}'.");
 
     private static Direction ParseDirection(JsonElement element, string where)

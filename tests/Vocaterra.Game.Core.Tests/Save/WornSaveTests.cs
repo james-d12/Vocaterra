@@ -33,7 +33,7 @@ public sealed class WornSaveTests
     [Fact]
     public void Given_NothingWorn_When_TheGameIsCaptured_Then_TheBagHasThirtySlotsAndNoWornEntryIsWritten()
     {
-        var document = SaveGame.Capture(GearItems.Session(), Pristine());
+        var document = SaveGame.Capture(GearItems.Session());
 
         Assert.Equal(10, document.Version);
         Assert.Equal(30, document.Inventory.Count);
@@ -44,7 +44,7 @@ public sealed class WornSaveTests
     [Fact]
     public void Given_AShirtAndALargeBagWorn_When_TheGameIsCaptured_Then_TheBagHasFiftySlotsAndTheWornItemsAreNamedByGroupSlotAndItem()
     {
-        var document = SaveGame.Capture(Dressed(), Pristine());
+        var document = SaveGame.Capture(Dressed());
 
         Assert.Equal(50, document.Inventory.Count);
         Assert.Equal(
@@ -59,7 +59,7 @@ public sealed class WornSaveTests
     {
         var session = Dressed();
         session.Step([]);
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         var loaded = Load(document, session);
 
@@ -68,14 +68,14 @@ public sealed class WornSaveTests
         Assert.Equal(50, loaded.Simulation.Inventory.SlotCount);
         Assert.Equal(new ItemStack(TestItems.Apple, 2), loaded.Simulation.Inventory.Slots[47]);
         Assert.Equal(session.Simulation.ComputeStateDigest(), loaded.Simulation.ComputeStateDigest());
-        Assert.Equal(SaveGame.Serialize(document), SaveGame.Serialize(SaveGame.Capture(loaded, Pristine()))); // byte for byte
+        Assert.Equal(SaveGame.Serialize(document), SaveGame.Serialize(SaveGame.Capture(loaded))); // byte for byte
     }
 
     [Fact]
     public void Given_ASaveNamingAnUnknownGroupSlotAndItem_When_ItLoads_Then_TheRestLoadsAndTheUnknownIsNothing()
     {
         var session = Dressed();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         document = document with
         {
             Worn =
@@ -123,7 +123,7 @@ public sealed class WornSaveTests
     public void Given_ASaveWhoseBagSlotsDoNotMatchItsWornBag_When_ItLoads_Then_ItIsRefused()
     {
         var session = Dressed();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         _ = Assert.Throws<SaveException>(() => Load(document with { Inventory = document.Inventory.Take(30).ToArray() }, session));
         _ = Assert.Throws<SaveException>(() => Load(document with { Worn = null }, session));
@@ -133,7 +133,7 @@ public sealed class WornSaveTests
     public void Given_ASaveOfAnotherBundleWhoseLargeBagIsGone_When_ItIsMigrated_Then_TheBagShrinksAndTheDroppedAreReported()
     {
         var session = Dressed();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         document = document with
         {
             BundleHash = OtherBundle,

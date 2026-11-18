@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Npc;
 
@@ -40,9 +41,8 @@ public sealed class WorldFacts : IGuideFacts
     /// <summary>Half a block in units: the centre of a block is this far from its corner.</summary>
     public const int HalfBlock = UnitsPerBlock / 2;
 
-    private readonly int _sizeX;
-    private readonly int _sizeY;
-    private readonly int _sizeZ;
+    private readonly WorldWindow _bounds;
+    private readonly Func<GuideViewpoint, WorldWindow> _searchWindow;
     private const int ChunkShift = VoxelChunk.Shift;
     private const int ChunkSize = VoxelChunk.Size;
 
@@ -54,7 +54,7 @@ public sealed class WorldFacts : IGuideFacts
     private static readonly (int X, int Y, int Z)[] JoinedSteps = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)];
 
     private readonly Func<int, int, int, BlockId> _blockAt;
-    private readonly Func<int, int, int, ulong>? _chunkKinds;
+    private readonly Func<int, int, int, UInt128>? _chunkKinds;
     private readonly NounCatalog _nouns;
     private readonly DirectionWords _directions;
 
@@ -70,76 +70,141 @@ public sealed class WorldFacts : IGuideFacts
     /// <param name="nouns">The noun catalogue.</param>
     /// <param name="directions">The direction phrases of the answers (<c>game/words.json</c>, C05).</param>
     /// <param name="chunkKinds">The block kinds each chunk holds, or <see langword="null"/> to read every block.</param>
-    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, ulong>? chunkKinds = null)
+    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, UInt128>? chunkKinds = null)
     {
         _directions = directions ?? throw new ArgumentNullException(nameof(directions));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeX);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeY);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeZ);
-        _sizeX = sizeX;
-        _sizeY = sizeY;
-        _sizeZ = sizeZ;
+        _bounds = new WorldWindow(0, 0, 0, sizeX, sizeY, sizeZ);
+        _searchWindow = _ => _bounds;
         _blockAt = blockAt ?? throw new ArgumentNullException(nameof(blockAt));
         _chunkKinds = chunkKinds;
         _nouns = nouns ?? throw new ArgumentNullException(nameof(nouns));
     }
 
-    /// <summary>The facts over the live grid: every call reads the grid as it is now (the simulation's own thread).</summary>
-    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
+    /// <summary>
+    /// Creates the facts over any grid, looking only at a window of it (B06): a block outside the <paramref name="bounds"/> is air, and a search reads only the chunks of the window
+    /// <paramref name="searchWindow"/> gives for the viewpoint it is asked from, so a live window can follow the player.
+    /// </summary>
+    /// <param name="bounds">The box a point read may reach, in whole chunks (a streamed grid's limits).</param>
+    /// <param name="searchWindow">The box a search from a viewpoint reads, in whole chunks (<see cref="WorldWindow.For"/>).</param>
+    /// <param name="blockAt">The block at a cell.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="directions">The direction phrases of the answers.</param>
+    /// <param name="chunkKinds">The block kinds each chunk holds, or <see langword="null"/> to read every block.</param>
+    public WorldFacts(WorldWindow bounds, Func<GuideViewpoint, WorldWindow> searchWindow, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, UInt128>? chunkKinds = null)
     {
-        ArgumentNullException.ThrowIfNull(grid);
-        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, directions, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
+        _bounds = bounds;
+        _searchWindow = searchWindow ?? throw new ArgumentNullException(nameof(searchWindow));
+        _directions = directions ?? throw new ArgumentNullException(nameof(directions));
+        _blockAt = blockAt ?? throw new ArgumentNullException(nameof(blockAt));
+        _chunkKinds = chunkKinds;
+        _nouns = nouns ?? throw new ArgumentNullException(nameof(nouns));
     }
 
     /// <summary>
-    /// A copy of the blocks, as facts that no later edit can reach (the turn worker reads these). Only the chunks that hold something are copied
-    /// (a chunk of air costs nothing), with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
-    /// hold the noun.
+    /// The facts over the live grid: every call reads the grid as it is now (the simulation's own thread). A bounded grid is searched whole; a streamed one needs a <paramref name="window"/>
+    /// (the box a search from a viewpoint reads), because the world is too large to search, and reads the chunks of the window as they are or as they would be generated.
     /// </summary>
-    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
+    /// <param name="pristine">For a streamed grid, a reader of the chunks as generated, so that asking about a chunk that is not resident does not generate and keep it (B07); without one such a chunk is generated and installed, as a read would.</param>
+    /// <exception cref="NotSupportedException">The grid is streamed and no window was given.</exception>
+    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, Func<GuideViewpoint, WorldWindow>? window = null, PristineChunks? pristine = null)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        var chunksX = grid.ChunksX;
-        var chunksY = grid.ChunksY;
-        var chunksZ = grid.ChunksZ;
-        var blocks = new BlockId[grid.Chunks.Count][];
-        var kinds = new ulong[grid.Chunks.Count];
-        for (var i = 0; i < blocks.Length; i++)
+        if (grid.IsStreamed && window is null)
         {
-            var chunk = grid.Chunks[i];
-            if (!chunk.IsEmpty)
+            throw new NotSupportedException("A streamed world is too large to search: the live facts need a window (B06).");
+        }
+
+        var whole = WorldWindow.Of(grid.Limits);
+        return new WorldFacts(
+            whole,
+            window ?? (_ => whole),
+            grid.GetBlock,
+            nouns,
+            directions,
+            (cx, cy, cz) =>
             {
-                blocks[i] = chunk.Blocks.ToArray();
-                kinds[i] = chunk.KindMask;
+                var coord = new VoxelChunkCoord(cx, cy, cz);
+                if (grid.TryGetChunk(coord, out var chunk))
+                {
+                    return pristine is not null && !pristine.Sees(chunk) ? UInt128.Zero : chunk.KindMask;
+                }
+
+                if (!grid.IsStreamed || !grid.Limits.Contains(coord))
+                {
+                    return UInt128.Zero;
+                }
+
+                return pristine is null ? grid.GetChunk(coord).KindMask : pristine.Read(coord)?.KindMask ?? UInt128.Zero;
+            });
+    }
+
+    /// <summary>
+    /// A copy of the blocks, as facts that no later edit can reach (the turn worker reads these). Only the chunks of the window that hold something are copied
+    /// (a chunk of air costs nothing), keyed by chunk coordinate, with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
+    /// hold the noun. Without a <paramref name="window"/> it copies the whole of a bounded grid (the valley); a streamed grid needs one (<see cref="WorldWindow.For"/>) and generates the chunks of it
+    /// that are not resident, as a read would.
+    /// </summary>
+    /// <param name="pristine">For a streamed grid, a reader of the chunks as generated: a chunk that is not resident is read from it and not installed, so a snapshot of thousands of chunks neither stalls on generating the ones that hold only air or stone nor fills the grid with them (B07).</param>
+    /// <exception cref="NotSupportedException">The grid is streamed and no window was given.</exception>
+    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions, WorldWindow? window = null, PristineChunks? pristine = null)
+    {
+        ArgumentNullException.ThrowIfNull(grid);
+        if (grid.IsStreamed && window is null)
+        {
+            throw new NotSupportedException("A streamed world is too large to copy: a snapshot needs a window around the player (B06).");
+        }
+
+        var box = window ?? WorldWindow.Of(grid.Limits);
+        var copied = new Dictionary<VoxelChunkCoord, (BlockId[] Blocks, UInt128 Kinds)>();
+        for (var cy = box.MinY >> ChunkShift; cy < (box.EndY + ChunkSize - 1) >> ChunkShift; cy++)
+        {
+            for (var cz = box.MinZ >> ChunkShift; cz < (box.EndZ + ChunkSize - 1) >> ChunkShift; cz++)
+            {
+                for (var cx = box.MinX >> ChunkShift; cx < (box.EndX + ChunkSize - 1) >> ChunkShift; cx++)
+                {
+                    var coord = new VoxelChunkCoord(cx, cy, cz);
+                    VoxelChunk? chunk;
+                    if (grid.IsStreamed)
+                    {
+                        chunk = !grid.Limits.Contains(coord) ? null : grid.TryGetChunk(coord, out var resident) ? (pristine is null || pristine.Sees(resident) ? resident : null) : pristine is null ? grid.GetChunk(coord) : pristine.Read(coord);
+                    }
+                    else
+                    {
+                        _ = grid.TryGetChunk(coord, out chunk);
+                    }
+
+                    if (chunk is not null && !chunk.IsEmpty)
+                    {
+                        copied[coord] = (chunk.Blocks.ToArray(), chunk.KindMask);
+                    }
+                }
             }
         }
 
-        var sizeX = grid.SizeX;
-        var sizeY = grid.SizeY;
-        var sizeZ = grid.SizeZ;
         return new WorldFacts(
-            sizeX,
-            sizeY,
-            sizeZ,
+            box,
+            _ => box,
             (x, y, z) =>
             {
-                if (x < 0 || y < 0 || z < 0 || x >= sizeX || y >= sizeY || z >= sizeZ)
+                if (!box.Contains(x, y, z))
                 {
                     return BlockId.Air;
                 }
 
-                var chunk = blocks[((((y >> ChunkShift) * chunksZ) + (z >> ChunkShift)) * chunksX) + (x >> ChunkShift)];
-                return chunk is null ? BlockId.Air : chunk[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))];
+                return copied.TryGetValue(VoxelChunkCoord.FromBlock(x, y, z), out var chunk)
+                    ? chunk.Blocks[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))]
+                    : BlockId.Air;
             },
             nouns,
             directions,
-            (cx, cy, cz) => kinds[(((cy * chunksZ) + cz) * chunksX) + cx]);
+            (cx, cy, cz) => copied.TryGetValue(new VoxelChunkCoord(cx, cy, cz), out var chunk) ? chunk.Kinds : 0UL);
     }
 
     /// <summary>The block at a cell; air outside the scene.</summary>
-    public BlockId BlockAt(GuideCell cell) => cell.X >= 0 && cell.Y >= 0 && cell.Z >= 0 && cell.X < _sizeX && cell.Y < _sizeY && cell.Z < _sizeZ
-        ? _blockAt(cell.X, cell.Y, cell.Z)
-        : BlockId.Air;
+    public BlockId BlockAt(GuideCell cell) => _bounds.Contains(cell.X, cell.Y, cell.Z) ? _blockAt(cell.X, cell.Y, cell.Z) : BlockId.Air;
 
     /// <inheritdoc />
     public GuideNearest? NearestOfNoun(GuideViewpoint from, string lemma)
@@ -158,31 +223,32 @@ public sealed class WorldFacts : IGuideFacts
             return null;
         }
 
-        var mask = 0UL;
+        UInt128 mask = 0;
         for (var kind = 0; kind < wanted.Length; kind++)
         {
             if (wanted[kind])
             {
-                mask |= 1UL << kind;
+                mask |= BlockKinds.Bit(kind);
             }
         }
 
         // The chunks that can hold the noun, nearest first: a chunk is read only while it could still beat the best block found.
-        var chunksX = (_sizeX + ChunkSize - 1) >> ChunkShift;
-        var chunksY = (_sizeY + ChunkSize - 1) >> ChunkShift;
-        var chunksZ = (_sizeZ + ChunkSize - 1) >> ChunkShift;
+        var window = _searchWindow(from);
+        var (firstX, endX) = (window.MinX >> ChunkShift, (window.EndX + ChunkSize - 1) >> ChunkShift);
+        var (firstY, endY) = (window.MinY >> ChunkShift, (window.EndY + ChunkSize - 1) >> ChunkShift);
+        var (firstZ, endZ) = (window.MinZ >> ChunkShift, (window.EndZ + ChunkSize - 1) >> ChunkShift);
         var candidates = new List<(long Nearest, int Cx, int Cz)>();
-        for (var cz = 0; cz < chunksZ; cz++)
+        for (var cz = firstZ; cz < endZ; cz++)
         {
-            var gapZ = GapToChunk(from.CentreZ, cz, _sizeZ);
-            for (var cx = 0; cx < chunksX; cx++)
+            var gapZ = GapToChunk(from.CentreZ, cz, window.MinZ, window.EndZ);
+            for (var cx = firstX; cx < endX; cx++)
             {
-                if (!ChunkColumnMayHold(cx, cz, chunksY, mask))
+                if (!ChunkColumnMayHold(cx, cz, firstY, endY, mask))
                 {
                     continue;
                 }
 
-                var gapX = GapToChunk(from.CentreX, cx, _sizeX);
+                var gapX = GapToChunk(from.CentreX, cx, window.MinX, window.EndX);
                 candidates.Add(((gapX * gapX) + (gapZ * gapZ), cx, cz));
             }
         }
@@ -202,17 +268,17 @@ public sealed class WorldFacts : IGuideFacts
                 break;
             }
 
-            for (var cy = 0; cy < chunksY; cy++)
+            for (var cy = firstY; cy < endY; cy++)
             {
-                if (_chunkKinds is { } kindsOf && (kindsOf(cx, cy, cz) & mask) == 0)
+                if (_chunkKinds is { } kindsOf && (kindsOf(cx, cy, cz) & mask) == UInt128.Zero)
                 {
                     continue;
                 }
 
-                for (var z = cz << ChunkShift; z < Math.Min(_sizeZ, (cz + 1) << ChunkShift); z++)
+                for (var z = Math.Max(window.MinZ, cz << ChunkShift); z < Math.Min(window.EndZ, (cz + 1) << ChunkShift); z++)
                 {
                     var dz = ((long)z * UnitsPerBlock) + HalfBlock - from.CentreZ;
-                    for (var x = cx << ChunkShift; x < Math.Min(_sizeX, (cx + 1) << ChunkShift); x++)
+                    for (var x = Math.Max(window.MinX, cx << ChunkShift); x < Math.Min(window.EndX, (cx + 1) << ChunkShift); x++)
                     {
                         var dx = ((long)x * UnitsPerBlock) + HalfBlock - from.CentreX;
                         var horizontal = (dx * dx) + (dz * dz);
@@ -221,7 +287,7 @@ public sealed class WorldFacts : IGuideFacts
                             continue;
                         }
 
-                        for (var y = cy << ChunkShift; y < Math.Min(_sizeY, (cy + 1) << ChunkShift); y++)
+                        for (var y = Math.Max(window.MinY, cy << ChunkShift); y < Math.Min(window.EndY, (cy + 1) << ChunkShift); y++)
                         {
                             var block = _blockAt(x, y, z);
                             if (block == BlockId.Air || !wanted[(int)block])
@@ -325,23 +391,23 @@ public sealed class WorldFacts : IGuideFacts
     }
 
     // The distance in units from a coordinate to the nearest block centre of the chunk row or column (0 when the coordinate is inside it).
-    private static long GapToChunk(long centre, int chunk, int size)
+    private static long GapToChunk(long centre, int chunk, int first, int end)
     {
-        long low = ((long)chunk << ChunkShift) * UnitsPerBlock + HalfBlock;
-        long high = ((long)Math.Min(size, (chunk + 1) << ChunkShift) - 1) * UnitsPerBlock + HalfBlock;
+        long low = ((long)Math.Max(first, chunk << ChunkShift) * UnitsPerBlock) + HalfBlock;
+        long high = (((long)Math.Min(end, (chunk + 1) << ChunkShift) - 1) * UnitsPerBlock) + HalfBlock;
         return centre < low ? low - centre : centre > high ? centre - high : 0;
     }
 
-    private bool ChunkColumnMayHold(int cx, int cz, int chunksY, ulong mask)
+    private bool ChunkColumnMayHold(int cx, int cz, int firstY, int endY, UInt128 mask)
     {
         if (_chunkKinds is not { } kindsOf)
         {
             return true;
         }
 
-        for (var cy = 0; cy < chunksY; cy++)
+        for (var cy = firstY; cy < endY; cy++)
         {
-            if ((kindsOf(cx, cy, cz) & mask) != 0)
+            if ((kindsOf(cx, cy, cz) & mask) != UInt128.Zero)
             {
                 return true;
             }

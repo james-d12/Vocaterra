@@ -137,7 +137,7 @@ public sealed class SessionLogTests
         before.End(game, game.Simulation.Tick);
         Assert.Equal(JsonValueKind.Number, Lines(beforeLines).Single(static l => l.GetProperty("type").GetString() == "session_end").GetProperty("objective_complete_tick").ValueKind);
 
-        SaveGame.Sleep(game, SaveGame.Capture(game, RouteScene.Build()));
+        SaveGame.Sleep(game, SaveGame.Capture(game));
         var (log, session, _) = Memory();
         log.End(game, game.Simulation.Tick);
 

@@ -26,8 +26,9 @@ internal static class PredictedErrorMatcher
     {
         var reference = evidence.Variant.Phones;
         var tags = new List<ErrorTag>();
+        var claimed = new bool[evidence.Insertions.Count];
 
-        foreach (var variant in predicted)
+        foreach (var variant in predicted.OrderBy(static v => v.GraphemeSpan.Start))
         {
             if (string.Equals(variant.ErrorTag, ErrorTags.PronStress, StringComparison.Ordinal))
             {
@@ -40,7 +41,7 @@ internal static class PredictedErrorMatcher
                 continue;
             }
 
-            var tag = TryTag(variant, alignment, evidence, difficulty, thresholds);
+            var tag = TryTag(variant, alignment, evidence, difficulty, thresholds, claimed);
             if (tag is not null)
             {
                 tags.Add(tag);
@@ -63,7 +64,8 @@ internal static class PredictedErrorMatcher
         PhoneAlignment alignment,
         VariantEvidence evidence,
         Difficulty difficulty,
-        PronunciationThresholds thresholds)
+        PronunciationThresholds thresholds,
+        bool[] claimed)
     {
         foreach (var step in alignment.Steps)
         {
@@ -86,11 +88,13 @@ internal static class PredictedErrorMatcher
                     {
                         var extra = variant.Phones[step.HypIndex];
                         var before = CountReferencePhonesBefore(alignment, step);
-                        if (!HasEquivalentInsertion(evidence, extra, before)
-                            || thresholds.Evaluate(extra, difficulty, 0.0) != MarginDecision.Reject)
+                        var insertion = FindEquivalentInsertion(evidence, extra, before, claimed);
+                        if (insertion < 0 || thresholds.Evaluate(extra, difficulty, 0.0) != MarginDecision.Reject)
                         {
                             return null;
                         }
+
+                        claimed[insertion] = true;
 
                         return new ErrorTag(variant.ErrorTag, variant.GraphemeSpan, string.Empty, extra);
                     }
@@ -125,14 +129,23 @@ internal static class PredictedErrorMatcher
     }
 
     /// <summary>
-    /// True when the learner inserted the same phone at the same site. Inserting a phone next to copies of itself yields the same
-    /// sequence at several positions, so every position within a run of that phone counts as the same site.
+    /// The index of a heard insertion of the same phone at the same site that no earlier variant has claimed, or -1. Inserting a phone
+    /// next to copies of itself yields the same sequence at several positions, so every position within a run of that phone counts as
+    /// the same site. One heard phone is one error: two variants can predict the very same phone sequence (a silent h at the end of a word and
+    /// another at the start of the next gives the same inserted [h] at the same place), and each heard insertion is claimed once, by the
+    /// first variant in text order (<see cref="PredictedErrorVariants.Generate"/> sorts by span), so one extra [h] is one tag.
     /// </summary>
-    private static bool HasEquivalentInsertion(VariantEvidence evidence, string phone, int predictedBefore)
+    private static int FindEquivalentInsertion(VariantEvidence evidence, string phone, int predictedBefore, bool[] claimed)
     {
         var reference = evidence.Variant.Phones;
-        foreach (var inserted in evidence.Insertions)
+        for (var n = 0; n < evidence.Insertions.Count; n++)
         {
+            var inserted = evidence.Insertions[n];
+            if (claimed[n])
+            {
+                continue;
+            }
+
             if (!string.Equals(inserted.Phone, phone, StringComparison.Ordinal))
             {
                 continue;
@@ -152,10 +165,10 @@ internal static class PredictedErrorMatcher
 
             if (equivalent)
             {
-                return true;
+                return n;
             }
         }
 
-        return false;
+        return -1;
     }
 }

@@ -19,7 +19,7 @@ public readonly record struct Immersion(bool Feet, bool Body, bool Eye)
     public static Immersion Dry => default;
 
     /// <summary>Reads the immersion of a body in a grid. Pure: the same grid and body always give the same answer.</summary>
-    public static Immersion Of(VoxelGrid grid, PlayerBody body)
+    public static Immersion Of(IVoxelReader grid, PlayerBody body)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(body);

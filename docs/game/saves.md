@@ -16,8 +16,8 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
   the step changed). A lesson that is gone is dropped, and so is an active mark or a replay that named it.
 - **Dropped and logged:** records whose phrase row, noun, lesson, step, tip or step key is not in this bundle. **New** content (a phrase row, a lesson, a
   noun) starts empty, as in a fresh game.
-- **World edits are applied by position.** The save holds whole chunks of the world it was made from (and, since X01, the grid's chunk counts, so a grid that
-  changed size still maps by position). A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
+- **World edits are applied by position.** The save holds whole chunks of the world it was made from, keyed by chunk coordinates (since version 9), so a grid that
+  changed size still maps by position. A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
   (the cell now holds what a gather leaves) or a placed block (planks or a torch) in air or undergrowth that touches a block. Anything else is the old world
   generation, not the player's work: it is skipped and counted in the report. The world's digest is then **reported, not required** (it still matches, and
   the log says so, when the generation did not change). A player who would stand inside a block of the new world starts where a new game starts. A save of
@@ -36,40 +36,62 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
-## Format version 10: the active bag and the worn items (I03b)
+## Format version 10: the active bag and the worn items (I03b), on the world edits by chunk coordinate (B05) and the items by name (I01)
 
 The current version is 10, and it is the only one read: a save of version 9 or older is refused with "The save is format version N; the oldest this game loads is 10 (it writes 10), and older saves are not
-migrated." Two things changed, both from the equipment series (D-game-35):
+migrated." Before the two series met, "version 9" meant two different formats: the biomes series' (B05, the world edits by chunk coordinate, described below) and the inventory series' (I01, the items by name, described below). Version 10 holds both, and the equipment series' two changes (D-game-35):
 
 - **`inventory` holds the active slots only.** It was always 40 entries; it is now as long as the bag's active count, the `bagSlots` of `game/equipment.json` (30) plus the `capacity` of the worn bag, so 30, 40 or
   50 entries with the small test bags of the plan. The simulation state (`VoxelSimulationState.Slots`) is the same list, so its length is the active count, and `SaveGame.Restore` refuses a save whose list does not match the count its
   worn items give. (The belongings chest, `systems.chest`, is unchanged: it holds stacks, not slots.)
 - **`worn`, optional, new.** The worn items, one entry per worn slot in the data's order: `{"group": "clothing", "slot": "body", "item": "shirt"}`, the group's `id` and the slot's `name` from `equipment.json` (a counted slot's
   name is its wear kind and number: `accessory2`) and the item's `name` from `items.json`. **Nothing is an index**, so reordering the groups or the items does not scramble a save. The entry is left out while nothing is
-  worn, so a save of a player in no gear differs from version 9's only in the version and the 30 slots. A group, slot or item the data lacks loads as nothing (`WornSave.ToStacks`), exactly as an unknown item in a bag slot loads as an empty slot; across bundles
+  worn, so a save of a player in no gear differs from one of the same world before I03b only in the version and the 30 slots. A group, slot or item the data lacks loads as nothing (`WornSave.ToStacks`), exactly as an unknown item in a bag slot loads as an empty slot; across bundles
   (`--load` of a save from another bundle) `SaveMigration` reports them among the dropped `worn items`, resizes the bag to what the kept worn items give (a bag the bundle lost shrinks it to the base) and
   reports the stacks in slots that no longer exist among the dropped `inventory slots`.
 
+- **`passOpen`, optional (B08b, from the biomes series).** Written as `true` only while the pass through the east ring is open and its lock is in force (`session.Pass.IsOpen && session.Pass.Locked`); left out otherwise, so a save before the pass opened has no field and loads with the pass closed. It needs no version of its own: `SaveGame.Restore` puts the pass back (`Pass.Restore`) and the edge wall follows (`SyncPassBarrier`); the rockfall's blocks are in the world edits.
+
 The state digest changed with the first: it hashes the active slots (30 with no bag), and it adds the active count when a bag has changed it, then the worn slots as before (nothing worn adds nothing). Every digest
-a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is the version 9 fixture with
-its version, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
+a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is the biomes series' version 9 fixture (its chunk edits, its bundle hash) with
+its version, its items by name, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
 
 **The held stack and the trash are not saved (I02, no version change).** Moving items by hand keeps the stack at the cursor (`VoxelSimulation.Held`) and the trash's stack in the simulation state and its digest, but `SaveGame.Capture` returns the held
 stack to its slot or the bag first (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go. The trash's item is not written: a loaded game starts
 with an empty trash, and `Restore` clears both. The save's shape and the format version are as before.
 
-## Format version 9: items by name (I01)
+## Items by name (I01, version 9 of the inventory series)
 
-Version 9 was the current version from I01 to I03b, and since I03b it is refused like every older one (the rule of version 8, below, holds: a save of an older version is refused and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
+On the inventory series this was version 9, the current version from I01 to I03b; it is part of version 10 now, and a save of version 9 is refused like every older one (the rule of version 8, below, holds: a save of an older version is refused and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
 of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), where version 8 wrote the code's enum name
 (`"Wood"`, `"WaterBottle"`). **An empty slot is `{"item": "", "count": 0}`**, where version 8 wrote `{"item": "Wood", "count": 0}`. `SlotSave.Of` and `SlotSave.ToStack` do the translation with the
 bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state
-digest still reads the item's numeric id, so no digest moved. The version 9 fixture was `save-v9.json` (the version 8 one, with its version and its slots translated); it is `save-v10.json` now (above).
+digest still reads the item's numeric id, so no digest moved. The fixture of that time was `save-v9.json` (the version 8 one, with its version and its slots translated); it is `save-v10.json` now (above).
+
+## The world edits by chunk coordinate (B05, version 9 of the biomes series)
+
+A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a save of version 9 or later (10 now):
+
+- **`chunks`: one `ChunkEdit` per changed chunk**, `{"x", "y", "z", "runs", "water"}`, sorted by layer (`y`), then row (`z`), then column (`x`). The coordinates are chunk
+  coordinates (block position divided by 16, rounded down), so `y` is negative below block 0. `runs` is the chunk's 4 096 blocks, run-length encoded in storage order
+  (x fastest, then z, then y); `water` holds the cells whose level is not source, as runs `{"start", "length", "level"}`, and is left out when there are none. The dense
+  chunk index and the `world` entry (the chunk counts, X01) are gone, and so is the second copy of the world the first save used to build (0.6 to 0.7 s and about 38 MB).
+- **A changed chunk** is one whose content differs from what it held just before its first write (`VoxelChunk.IsChanged`: each chunk records its own pristine digest lazily, and
+  `VoxelGrid.SealPristine()` at the end of the scene build makes the built world the pristine one). A block gathered and put back is not a change.
+- **The state digest** (`stateDigest`, `WorldStateDigest`) hashes, in order: the header (the world seed, the region template's digest, `ProceduralGenerator.Version`, and the
+  SHA-256 of the world-generation files, `game/world.json`, `game/biomes.json` and `game/underground.json` where the bundle has it, so editing a phrase does not move it), the number
+  of changed chunks, and for each changed chunk, in the same order, its three coordinates and its own digest; then the tick, the body, the hotbar and the inventory as before. Its cost
+  grows with the number of changed chunks, not with the size of the world, and it does not depend on which chunks are resident. `hostStateHash`, the save's check and the start-up line use it.
+- **Restoring** builds the world as a new game does (the scene builder for the bounded valley), then writes each saved chunk over it cell by cell (`VoxelGridDiff.Apply`); a grid that
+  generates on read (`IChunkGenerator`) regenerates a chunk the first time a write touches it, so a streamed world needs no code of its own here (B06 supplies the chunk source).
+  The restored world's state digest must equal the save's, or the save is refused. A save across bundles applies the edits by position as above.
+
+**B14 changes no save format.** The state digest's world-generation hash covers `game/biomes.json` without the `ambient` field of its rows (`WorldStateHeader.WithoutPresentation`, which cuts those properties out of the bytes before hashing), so the sound's data is editable without refusing a save: a file with no `ambient` is hashed as it stands, and a change to any other part of a row still moves the digest. The cloud layer's `cloudAltitude` is in `game/weather.json`, which the digest never read. A save records neither: they are the bundle's, not the player's.
 
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
 Version 8 added the rule that only the current version is read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`) and nothing migrates it: the code that read
-versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split). The version 8 save the tests read was `save-v8.json`, then `save-v9.json`, now `save-v10.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split, the dense chunk index (B05)). The version 8 save the tests read was `save-v8.json`, then `save-v9.json`, now `save-v10.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
@@ -181,7 +203,7 @@ The game saves itself at its safe points, and a crash leaves a report instead of
   Its path is printed at the start (`autosave: <path> (...)`), and each write is printed (`autosave: <path> written at <reason> (session, tick, stored time, digest, bytes)`).
 - **How.** The document goes to `<file>.tmp`, is flushed to the disk, and is renamed over the save (`SaveFile.Write`). A crash or a failed write before the rename
   leaves the last autosave intact; a stale `.tmp` is overwritten by the next write. The save is taken on the game loop (the state must not move during it):
-  the first one builds the fresh scene it is diffed against (about 0.7 s on the valley, once per run, then kept); later saves take about 20 ms.
+  every save lists the changed chunks (B05: no second copy of the world is built, so the first save has no 0.7 s hitch).
 - **The feedback.** A small "Saved" toast, four seconds, as the other toasts show. Nothing else on the screen changes, and no save changes the world, the digest or the replay:
   a save only reads the session.
 - **Off.** `--no-autosave` writes no autosave (a playtest still writes `playtest.save` at its end). Scripted and test runs write their autosave into their session folder

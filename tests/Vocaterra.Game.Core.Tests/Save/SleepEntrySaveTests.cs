@@ -35,7 +35,7 @@ public sealed class SleepEntrySaveTests
 
     private static VoxelSession Reload(VoxelSession session, bool migrate = false, string? bundle = null)
     {
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         if (bundle is not null)
         {
             document = document with { BundleHash = bundle };
@@ -44,14 +44,14 @@ public sealed class SleepEntrySaveTests
         return SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false, migrate: migrate);
     }
 
-    private static void Sleep(VoxelSession session, bool collapse = false) => SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()), collapse);
+    private static void Sleep(VoxelSession session, bool collapse = false) => SaveGame.Sleep(session, SaveGame.Capture(session), collapse);
 
     [Fact]
     public void GivenAGameWithNoLodgingNoLastPlaceAndNoPlaceMade_When_ItIsCaptured_Then_NoSleepEntryIsWritten()
     {
         var session = TestGame.NewSession();
 
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         Assert.Null(document.Systems!.Sleep);
         Assert.DoesNotContain("\"sleep\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
@@ -64,7 +64,7 @@ public sealed class SleepEntrySaveTests
         session.LodgingGiven = true;
         session.LastSleepPlace = new LastSleepSave("guide.fire");
         session.SleepPlaces.Add(Bed("camp.1", FarCell(session)));
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         var loaded = SaveGame.Load(SaveGame.Serialize(document with { Systems = document.Systems! with { Sleep = null } }), TestGame.Data, Pristine, bumpSession: false);
 
@@ -82,7 +82,7 @@ public sealed class SleepEntrySaveTests
 
         var loaded = Reload(session);
 
-        Assert.Equal(new SleepSave(LodgingGiven: true), SaveGame.Capture(session, Pristine()).Systems!.Sleep);
+        Assert.Equal(new SleepSave(LodgingGiven: true), SaveGame.Capture(session).Systems!.Sleep);
         Assert.True(loaded.LodgingGiven);
         Assert.Null(loaded.LastSleepPlace);
         Assert.Empty(loaded.SleepPlaces.MadeInPlay);
@@ -124,11 +124,11 @@ public sealed class SleepEntrySaveTests
         session.LodgingGiven = true;
         session.SleepPlaces.Add(Bed("camp.1", cell));
         session.LastSleepPlace = new LastSleepSave("camp.1", cell.X, cell.Y, cell.Z);
-        var first = System.Text.Json.JsonSerializer.Serialize(SaveGame.Capture(session, Pristine()).Systems!.Sleep);
+        var first = System.Text.Json.JsonSerializer.Serialize(SaveGame.Capture(session).Systems!.Sleep);
 
         var loaded = Reload(session);
 
-        Assert.Equal(first, System.Text.Json.JsonSerializer.Serialize(SaveGame.Capture(loaded, Pristine()).Systems!.Sleep));
+        Assert.Equal(first, System.Text.Json.JsonSerializer.Serialize(SaveGame.Capture(loaded).Systems!.Sleep));
         Assert.True(loaded.LodgingGiven);
         Assert.Equal(new LastSleepSave("camp.1", cell.X, cell.Y, cell.Z), loaded.LastSleepPlace);
         Assert.Equal("camp.1", Assert.Single(loaded.SleepPlaces.MadeInPlay).Id);
@@ -144,7 +144,7 @@ public sealed class SleepEntrySaveTests
         Sleep(session);
 
         Assert.Equal(new LastSleepSave("guide.fire"), session.LastSleepPlace);
-        Assert.Equal(new LastSleepSave("guide.fire"), SaveGame.Capture(session, Pristine()).Systems!.Sleep!.Last);
+        Assert.Equal(new LastSleepSave("guide.fire"), SaveGame.Capture(session).Systems!.Sleep!.Last);
     }
 
     [Fact]
@@ -277,9 +277,19 @@ public sealed class SleepEntrySaveTests
     }
 
     [Fact]
-    public void GivenASaveOfTheCurrentVersionMadeIntoAnOlderOne_When_ItLoads_Then_ItIsRefused()
+    public void GivenAVersion8Save_When_ItIsParsed_Then_ItIsRefusedWithItsVersionAndTheOldestThatLoads()
     {
-        var document = SaveGame.Capture(TestGame.NewSession(), Pristine()) with { Version = 7 };
+        var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":8}"));
+
+        Assert.Contains("version 8", error.Message, StringComparison.Ordinal);
+        Assert.Contains("loads is 9", error.Message, StringComparison.Ordinal);
+        Assert.Contains("not migrated", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenASaveOfTheCurrentVersionMadeIntoVersion8_When_ItLoads_Then_ItIsRefused()
+    {
+        var document = SaveGame.Capture(TestGame.NewSession()) with { Version = 8 };
 
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine));
     }

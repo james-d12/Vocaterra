@@ -9,8 +9,10 @@
 # offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
 #
-# The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in, and the content schema
-# test's project (tests/Vocaterra.Game.Core.Tests, with NJsonSchema); the game's own third-party packages (MonoGame, FontStashSharp) are not in it.
+# The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in; the content schema
+# test's project (tests/Vocaterra.Game.Core.Tests, with NJsonSchema); and the game's shipped projects, Vocaterra.Game (MonoGame, FontStashSharp,
+# the speech runtime), Vocaterra.Host and tools/Vocaterra.SpeechRender. The one LGPL package, MonoGame.Library.OpenAL, passes only through its
+# exact-version entry in scripts/license-exceptions.txt (owner, 2026-11-17, D-game-34 item 49).
 set -uo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -137,6 +139,11 @@ grep -v "^limited.sh:" "$LICENSELOG" | tail -1
 # The content schema test's project (content-plan C01) is scanned too: it is the one game test project with a package of its own (NJsonSchema).
 { echo "=== tests/Vocaterra.Game.Core.Tests"; "$L" bash scripts/license-scan.sh --offline --target tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj; } >> "$LICENSELOG" 2>&1 || license_rc=1
 echo "licence scan (Game.Core.Tests): $(grep -v "^limited.sh:" "$LICENSELOG" | tail -1)"
+# The game's shipped projects (B26): one scan each, into the same log.
+for game_target in src/Vocaterra.Game/Vocaterra.Game.csproj src/Vocaterra.Host/Vocaterra.Host.csproj tools/Vocaterra.SpeechRender/Vocaterra.SpeechRender.csproj; do
+  { echo "=== $game_target"; "$L" bash scripts/license-scan.sh --offline --target "$game_target"; } >> "$LICENSELOG" 2>&1 || license_rc=1
+  echo "licence scan ($game_target): $(grep -v "^limited.sh:" "$LICENSELOG" | tail -1)"
+done
 
 ok=1
 [ "$build_rc" -eq 0 ] || ok=0

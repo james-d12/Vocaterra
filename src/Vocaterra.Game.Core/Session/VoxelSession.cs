@@ -62,7 +62,7 @@ public sealed partial class VoxelSession : GuideSession
             data,
             worldSeed,
             startedAt,
-            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions, scene.Grid.IsStreamed ? from => WorldWindow.For(scene, from.Cell.X, from.Cell.Y, from.Cell.Z) : null, scene.Streaming is { } streaming ? new PristineChunks(streaming) : null),
             playSession: 1,
             credit,
             lessons,
@@ -70,7 +70,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed, data.Equipment);
+        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed, data.Equipment, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest));
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
@@ -83,6 +83,7 @@ public sealed partial class VoxelSession : GuideSession
         ScanFireRing(scene);
         SleepPlaces = new SleepPlaces(data.Needs.SleepPlaces, data.Needs.Death.WakeAt, scene, Simulation.Fires, () => LodgingGiven);
         Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
+        SyncPassBarrier(); // B07: a streamed world's edge wall stands while the pass is closed
     }
 
     /// <summary>The built scene (the world the facts read).</summary>
@@ -375,7 +376,11 @@ public sealed partial class VoxelSession : GuideSession
     protected override Inventory LiveInventory => Simulation.Inventory;
 
     /// <inheritdoc />
-    protected override IGuideFacts SnapshotFacts() => WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions);
+    protected override IGuideFacts SnapshotFacts()
+    {
+        var feet = Simulation.Player.FeetBlock;
+        return WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions, WorldWindow.For(Scene, feet.X, feet.Y, feet.Z), Scene.Streaming is { } streaming ? new PristineChunks(streaming) : null);
+    }
 
     /// <inheritdoc />
     protected override string StateDigest() => Simulation.ComputeStateDigest();
@@ -402,6 +407,7 @@ public sealed partial class VoxelSession : GuideSession
         StepNeeds(needsFromX, needsFromZ, sprinting); // N01: the needs move only in active play
         StepWaterEvents();
         ReturnOwedKit(); // Y12: a camp kit a load could not give back
+        StepPass(); // B08b: the last required lesson may have been completed
         AdvanceKeyWords();
         Tips.Step(Simulation.Tick);
         foreach (var e in Simulation.Events)
@@ -1033,7 +1039,7 @@ public sealed partial class VoxelSession : GuideSession
     private void ScanFireRing(Scene scene)
     {
         var hasCampRing = scene.Points.TryGetValue(CampFireRing, out var centre);
-        foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
+        foreach (var stone in scene.CurrentBlocksOfKind(BlockId.FireRing))
         {
             if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {

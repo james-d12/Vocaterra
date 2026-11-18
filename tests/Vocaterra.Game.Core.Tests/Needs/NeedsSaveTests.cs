@@ -30,7 +30,7 @@ public sealed class NeedsSaveTests
     {
         var session = Played();
 
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         Assert.Equal(10, SaveGame.CurrentVersion);
         Assert.Equal(10, document.Version);
@@ -42,7 +42,7 @@ public sealed class NeedsSaveTests
     public void ASaveRoundTripsTheNeedsExactly()
     {
         var session = Played();
-        var text = SaveGame.Save(session, Pristine());
+        var text = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 
@@ -54,7 +54,7 @@ public sealed class NeedsSaveTests
     public void ALoadRaisesNoNeedStageEventForWhatWasSaved()
     {
         var session = Played();
-        var loaded = SaveGame.Load(SaveGame.Save(session, Pristine()), TestGame.Data, Pristine);
+        var loaded = SaveGame.Load(SaveGame.Save(session), TestGame.Data, Pristine);
 
         for (var i = 0; i < 60; i++)
         {
@@ -68,12 +68,12 @@ public sealed class NeedsSaveTests
     public void ASaveWithoutSystemsLoadsWithFullNeeds()
     {
         var session = Played();
-        var document = SaveGame.Capture(session, Pristine()) with { Systems = null };
+        var document = SaveGame.Capture(session) with { Systems = null };
 
         var loaded = SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, Pristine);
 
         Assert.Equal(new PlayerNeeds(TestGame.Data.Needs).Capture(), loaded.Needs.Capture());
-        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(SaveGame.Save(loaded, Pristine())).Version);
+        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(SaveGame.Save(loaded)).Version);
     }
 
     [Fact]
@@ -97,14 +97,14 @@ public sealed class NeedsSaveTests
         session.Needs.Set(NeedMeter.Health, 12);
 
         Assert.Equal(before, session.Simulation.ComputeStateDigest());
-        Assert.Equal(before, SaveGame.Capture(session, Pristine()).StateDigest);
+        Assert.Equal(before, SaveGame.Capture(session).StateDigest);
     }
 
     [Fact]
     public void ALoadClampsAValueOutOfRangeAndRefusesANonNumber()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
 
         var clamped = SaveGame.Restore(document with { Systems = new SystemsSave(new NeedsSave(150, -5, 50, 1000, 70)) }, TestGame.Data, Pristine());
         Assert.Equal(100, clamped.Needs.Value(NeedMeter.Hunger));
@@ -122,7 +122,7 @@ public sealed class NeedsSaveTests
         session.SetNeed(NeedMeter.Stamina, 40);
         var before = session.Needs.Capture();
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
 
         var rule = new PlayerNeeds(TestGame.Data.Needs); // N03: the needs come back as a load's do, then the night's rule is applied
         rule.Restore(before);

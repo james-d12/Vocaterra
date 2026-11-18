@@ -43,12 +43,13 @@ public static class SaveGame
 
     /// <summary>
     /// The format version this code writes. Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
-    /// name and item name, and is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, I01, stored an inventory slot's item by its name in place of the code's enum
-    /// name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
+    /// name and item name, and is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, B05, keyed the world edits by chunk coordinates
+    /// (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the dense chunk index, dropped <c>world</c> (the chunk counts) and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only);
+    /// I01 stored an inventory slot's item by its name in place of the code's enum name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
     public const int CurrentVersion = 10;
 
-    /// <summary>The oldest format version this code reads: 10. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, I01, I03b).</summary>
+    /// <summary>The oldest format version this code reads: 10. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, B05, I01, I03b).</summary>
     public const int OldestReadableVersion = 10;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
@@ -115,27 +116,18 @@ public static class SaveGame
 
     /// <summary>
     /// Captures a session as a save. The session must be at rest (<see cref="GuideSession.CanSave"/>: no turn on the worker, no key words standing,
-    /// no opening waiting). <paramref name="pristine"/> is a freshly built scene of the same seed and layout, which the scene diff is taken against.
-    /// The session is not changed.
+    /// no opening waiting). The world part lists the chunks that differ from the world as generated (<see cref="VoxelGridDiff.Capture"/>). The session is not changed.
     /// </summary>
     /// <param name="session">The running game.</param>
-    /// <param name="pristine">The scene as it was built for the session's seed (a new build, never the session's own scene).</param>
     /// <param name="settings">The player's settings to keep in the save (S24: the sound volumes), or <see langword="null"/> for none.</param>
     /// <param name="dialoguePages">The NPCs' conversation pages (U08, <see cref="DialoguePageSave.Capture"/>), or <see langword="null"/> for none.</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
-    /// <exception cref="ArgumentException">The pristine scene is not this session's scene.</exception>
-    public static SaveDocument Capture(VoxelSession session, Scene pristine, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
+    public static SaveDocument Capture(VoxelSession session, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
     {
         ArgumentNullException.ThrowIfNull(session);
-        ArgumentNullException.ThrowIfNull(pristine);
         if (!session.CanSave)
         {
             throw new InvalidOperationException("The game is not at rest: the guide is still thinking, the key words are on show or an opening waits. Save in a moment.");
-        }
-
-        if (pristine.Seed != session.WorldSeed || !string.Equals(pristine.Name, session.Scene.Name, StringComparison.Ordinal))
-        {
-            throw new ArgumentException("The pristine scene is not built from this session's seed and layout.", nameof(pristine));
         }
 
         if (!session.Simulation.ReturnHeld())
@@ -172,13 +164,12 @@ public static class SaveGame
             session.LastRepairs().Select(static step => new LastRepairSave(step.Npc, step.Repair)).ToArray(),
             session.NextTurnId,
             session.Data.Npcs.Ids.Select(session.Conversation.CaptureAgent).ToArray(),
-            VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
+            VoxelGridDiff.Capture(session.Scene.Grid),
             session.Lessons.Capture(),
             session.Tips.Capture(),
             session.Learner.Capture(),
             BookGranted: true,
             Settings: settings is null ? null : settings.Clamped(),
-            World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ),
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
@@ -188,14 +179,14 @@ public static class SaveGame
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
             DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null,
             GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null,
-            Worn: WornSave.Of(session.Simulation.Equipment));
+            Worn: WornSave.Of(session.Simulation.Equipment),
+            PassOpen: session.Pass.IsOpen && session.Pass.Locked);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
     /// <param name="session">The running game (at rest).</param>
-    /// <param name="pristine">A freshly built scene of the same seed and layout.</param>
     /// <param name="settings">The player's settings to keep in the save (S24), or <see langword="null"/>.</param>
-    public static string Save(VoxelSession session, Scene pristine, SaveSettings? settings = null) => Serialize(Capture(session, pristine, settings));
+    public static string Save(VoxelSession session, SaveSettings? settings = null) => Serialize(Capture(session, settings));
 
     /// <summary>
     /// Reads a save's text, checks it against the bundle and the requested seed, builds its scene with <paramref name="buildPristine"/> and restores
@@ -272,7 +263,7 @@ public static class SaveGame
             }
             else
             {
-                SaveMigration.ApplyWorld(scene.Grid, document.Chunks, document.World, collector);
+                SaveMigration.ApplyWorld(scene.Grid, document.Chunks, collector);
             }
 
             session = new VoxelSession(data, document.WorldSeed, document.StartedAt, scene, credit);
@@ -302,7 +293,7 @@ public static class SaveGame
         var digestMatched = string.Equals(digest, document.StateDigest, StringComparison.Ordinal);
         if (!digestMatched && collector is null)
         {
-            throw new SaveException("The restored world does not match the save's digest: the save is damaged or was made by another build.");
+            throw new SaveException($"The restored world does not match the save's digest: the save is damaged or was made by another build (the restored digest is {digest}, the save says {document.StateDigest}).");
         }
 
         if (collector is not null)
@@ -431,6 +422,8 @@ public static class SaveGame
         session.RestoreProcedures(document.Systems?.Procedures); // W06: a save without an entry has none
         session.RestoreNeeds(document.Systems?.Needs); // N01: a save before version 7 has none, so full needs; the needs are not in the world's digest
         session.SkippedTo = document.SkippedTo; // a test run skipped to a later session stays marked (V12c)
+        session.Pass.Restore(document.PassOpen); // B08b: an open pass stays open; its rockfall's blocks are in the world's edits
+        session.SyncPassBarrier(); // B07: the edge wall follows the restored lock
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }
 

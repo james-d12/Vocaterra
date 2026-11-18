@@ -55,7 +55,7 @@ public sealed class PlaytestFlowTests
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new NoOutput(), muted: true, _ => { });
         var checks = new CheckBattery(session, static () => null, static () => 0, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], false, enabled,
             new CheckBatteryHooks(_ => { }, static () => false, static () => false, _ => { }, () => { }, _ => { }), _ => { });
-        var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), lines.Add);
+        var saves = new SaveService(session, () => new SaveSettings(new SoundVolumes()), lines.Add);
         var flow = new PlaytestFlow(enabled, recall, scriptedRun: false, scriptLength: 0, session, checks, saves, new PlaytestHooks(static () => 0, _ => { }, () => { }, () => { }), lines.Add);
         return (flow, lines);
     }

@@ -1,0 +1,7 @@
+# Owner exceptions for scripts/license-scan.sh, one package version per line:
+#   <package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on YYYY-MM-DD>|<reason>
+#
+# An exception lets a package pass when its licence is not accepted automatically (UNKNOWN, or a refused family such as LGPL). It applies
+# only to the exact id (case-insensitive) and version on the line; nothing is added to the allowlist, so other packages are unaffected.
+# Every line needs an https evidence URL and the owner's decision in <reason>. Lines starting with '#' and blank lines are ignored.
+MonoGame.Library.OpenAL|1.24.3.4|LGPL-2.0-or-later|https://github.com/kcat/openal-soft/blob/master/COPYING|2026-11-17|owner decision 2026-11-17, D-game-34 item 49; native OpenAL Soft (the libopenal and openal.dll binaries in the package), a separate replaceable library; a release carries the LGPL text and a source link

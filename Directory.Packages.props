@@ -31,6 +31,9 @@
     <!-- Game front-end -->
     <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6" />
     <PackageVersion Include="FontStashSharp.MonoGame" Version="1.6.2" />
+    <!-- B17a: the raw OpenGL binding the game's own shaders are drawn through, on MonoGame's own context (src/Vocaterra.Game/Graphics/Gl only). License: MIT
+         (Silk.NET.OpenGL and its dependencies Silk.NET.Core, Silk.NET.Maths and Microsoft.Extensions.DependencyModel are all MIT). -->
+    <PackageVersion Include="Silk.NET.OpenGL" Version="2.22.0" />
   </ItemGroup>
 
 </Project>

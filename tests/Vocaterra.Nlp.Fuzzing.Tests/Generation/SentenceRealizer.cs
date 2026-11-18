@@ -91,11 +91,15 @@ internal sealed class SentenceRealizer
         return reading.Pos == LexiconSchema.Adjective && LexiconCatalog.DeterminerAdjectiveLemmas.Contains(reading.Lemma);
     }
 
+    // M98: whether the pattern being realised has an optional or grouped [ADV] token (set by Attempt).
+    private bool _patternHasFlexibleAdverb;
+
     private GeneratedSentence? Attempt(GrammarPattern pattern, string source, out string skip)
     {
         _items.Clear();
         _groupSlots.Clear();
         _detail = string.Empty;
+        _patternHasFlexibleAdverb = pattern.HasFlexibleTag("ADV");
         _tense = _rng.NextDouble() < _options.PreteriteProbability ? LexiconSchema.Preterite : LexiconSchema.Present;
         ExpandSequence(pattern.Nodes);
         if (_items.Count == 0)
@@ -1799,6 +1803,19 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M101 (O3 seed 3gcdMpDLcrQ4): the same, the other way round. A drawn name that is a lexicon noun once its accents are ignored (Laná folds to lana, feminine),
+            // right before an adjective that belongs to no noun, is the adjective's noun to the analyzer, which agrees the two (gender.agree on «Laná doloroso»); the
+            // realiser gave the loose adjective its default masculine. Such a name is re-rolled.
+            if (item.Kind == Kind.Word
+                && i + 1 < _items.Count
+                && _items[i + 1] is { Kind: Kind.Adjective, Head: null }
+                && _words.Lexicon.Lookup(item.Norm!).Any(static r => r.Pos == LexiconSchema.Noun))
+            {
+                skip = "name-read-as-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M73 (M72's run at five times, O3 seed 92moRWz9NQ54): the matcher keeps the first of the parses that tie (SlotGrammarMatcher: "ties go to ... the first
             // found"), so a word drawn for one alternative of a group that a one-element alternative before it, of another class, also takes is that earlier element's
             // to the analyzer: ([PRON]|[VERB]|[ADJ:item]) with suyo drawn as the adjective is read as the pronoun, and the slot item is not yielded. Where the two
@@ -1831,6 +1848,36 @@ internal sealed class SentenceRealizer
                     || _items[predicate].Readings.Any(static r => r.Pos is LexiconSchema.Adjective or LexiconSchema.Preposition)))
             {
                 skip = "copula-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M97 (O5 seed 2LxdNIrNHnQ6): a noun that is also a determiner or a quantifier adjective (cuanto, the noun, and cuánto) right before another noun is, to the
+            // analyzer without the grammar that binds it as a noun, that noun's determiner: «cuanto almuerzos veintiocho señoras transportan» is clean through its grammar,
+            // but once a mutation leaves a word the grammar cannot bind («zeponefu») nothing matches and cuanto asks for almuerzo (noun.number), which is no fault of the
+            // mutation. The realiser does not model that reading, so such a noun in such a place is re-rolled.
+            if (item.Kind == Kind.Noun
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(static r => IsDeterminerAdjective(r) || (r.Pos == LexiconSchema.Adjective && r.Lemma is "cuanto" or "cuánto"))
+                && NextContent(i) is var nounAfter and >= 0
+                && (_items[nounAfter].Kind == Kind.Noun || _items[nounAfter].Readings.Any(static r => r.Pos == LexiconSchema.Noun)))
+            {
+                skip = "noun-reads-as-determiner";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // M98 (O3 seed 7q7l8dSNG6n6): a noun that is also an adverb (alrededor, a noun, «los alrededores», and an adverb) in a pattern with an optional or grouped [ADV]
+            // is that token's word to the matcher, whatever the realiser meant: [[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]] realised «alrededor aclara construir» with
+            // alrededor as the item, and the analyzer binds it as the adverb and yields no item slot. Both readings give a clean sentence and the two bindings differ in
+            // their slots, so the realiser's expected slots are not the sentence's; such a noun is re-rolled (the oracle's relaxation for competing optional tokens of
+            // one class does not cover it, and is not widened).
+            if (item.Kind == Kind.Noun
+                && _patternHasFlexibleAdverb
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Noun)
+                && item.Readings.Any(static r => r.Pos == LexiconSchema.Adverb))
+            {
+                skip = "noun-reads-as-adverb";
                 _detail = item.Surface!;
                 return false;
             }

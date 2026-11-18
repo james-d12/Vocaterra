@@ -221,6 +221,23 @@ public sealed class VoxelScriptTests
         Assert.True(VoxelStep.TryParseBlock("9,11,17", out var bx, out var by, out var bz));
         Assert.Equal((9, 11, 17), (bx, by, bz));
         Assert.False(VoxelStep.TryParseBlock("9,11", out _, out _, out _));
-        Assert.False(VoxelStep.TryParseBlock("9,-1,17", out _, out _, out _));
+        Assert.False(VoxelStep.TryParseBlock("9,x,17", out _, out _, out _));
+    }
+
+    [Theory]
+    [InlineData("-60,52", -60, 52)]
+    [InlineData("-230,-222", -230, -222)]
+    [InlineData("0,-1", 0, -1)]
+    public void Given_NegativeCoordinates_When_AColumnIsParsed_Then_TheStepsTakeThem(string text, int x, int z)
+    {
+        Assert.True(VoxelStep.TryParseColumn(text, out var px, out var pz));
+        Assert.Equal((x, z), (px, pz));
+    }
+
+    [Fact]
+    public void Given_NegativeCoordinates_When_ABlockIsParsed_Then_TheStepsTakeThem()
+    {
+        Assert.True(VoxelStep.TryParseBlock("-9,-1,-17", out var bx, out var by, out var bz));
+        Assert.Equal((-9, -1, -17), (bx, by, bz));
     }
 }

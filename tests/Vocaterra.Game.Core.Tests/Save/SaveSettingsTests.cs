@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 /// <summary>The save's settings (S24): the sound volumes are kept in the save, a save without settings still loads, and nothing about them reaches the world.</summary>
 public sealed class SaveSettingsTests
 {
-    private static string SaveOf(VoxelSession session, SaveSettings? settings) => SaveGame.Serialize(SaveGame.Capture(session, TestGame.Route(TestGame.Seed), settings));
+    private static string SaveOf(VoxelSession session, SaveSettings? settings) => SaveGame.Serialize(SaveGame.Capture(session, settings));
 
     [Fact]
     public void TheSoundVolumesSurviveASaveAndAParse()

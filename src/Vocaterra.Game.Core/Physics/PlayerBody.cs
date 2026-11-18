@@ -18,7 +18,7 @@ public sealed partial class PlayerBody
     private const int W = VoxelPhysics.PlayerWidth;
     private const int H = VoxelPhysics.PlayerHeight;
 
-    internal PlayerBody(VoxelGrid grid, int centerX, int feetY, int centerZ, int yaw)
+    internal PlayerBody(IVoxelReader grid, int centerX, int feetY, int centerZ, int yaw)
     {
         MinX = centerX - (W / 2);
         MinY = feetY;
@@ -112,7 +112,7 @@ public sealed partial class PlayerBody
     }
 
     /// <summary>Puts the body with the middle of its feet at the point (in units), at rest. A debug action; the caller makes sure the box is free.</summary>
-    internal void PlaceAt(VoxelGrid grid, int centerX, int feetY, int centerZ)
+    internal void PlaceAt(IVoxelReader grid, int centerX, int feetY, int centerZ)
     {
         MinX = centerX - (W / 2);
         MinY = feetY;
@@ -134,10 +134,13 @@ public sealed partial class PlayerBody
     /// <param name="jump">Whether the jump key is down.</param>
     /// <param name="currents">The scene's river current, which pushes a body in water; <see langword="null"/> for none.</param>
     /// <param name="speedPermille">The walking speed in thousandths of <see cref="VoxelPhysics.WalkSpeed"/> (1000 walks, 1600 sprints, N02); in water it scales the wading or swimming speed the same way.</param>
-    internal (bool Jumped, bool Landed) Step(VoxelGrid grid, int intentX, int intentZ, bool jump, RiverCurrents? currents = null, int speedPermille = 1000)
+    internal (bool Jumped, bool Landed) Step(IVoxelReader grid, int intentX, int intentZ, bool jump, RiverCurrents? currents = null, int speedPermille = 1000)
     {
         var wet = Immersion.Of(grid, this);
         if (wet.Feet) { return StepInWater(grid, intentX, intentZ, jump, wet, currents, speedPermille); }
+
+        var molten = LavaMotion.Immersion(grid, this); // lava is a thicker liquid than water (B10b): a body sinks into it
+        if (molten.Feet) { return StepInWater(grid, intentX, intentZ, jump, molten, null, speedPermille, lava: true); }
 
         var speed = Scaled(VoxelPhysics.WalkSpeed, speedPermille);
         var wasGrounded = Grounded;
@@ -162,7 +165,7 @@ public sealed partial class PlayerBody
     private static int Scaled(int speed, int speedPermille) => speedPermille == 1000 ? speed : (int)((long)speed * speedPermille / 1000);
 
     /// <summary>The move of one tick on X, Z and then Y with the one-block step-up (only for a body that was grounded and is not rising); sets the new position, the stopped velocities and <see cref="Grounded"/>.</summary>
-    private void MoveWithStepUp(VoxelGrid grid, bool wasGrounded)
+    private void MoveWithStepUp(IVoxelReader grid, bool wasGrounded)
     {
         var x = MinX;
         var y = MinY;

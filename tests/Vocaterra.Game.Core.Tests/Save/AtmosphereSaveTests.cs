@@ -12,7 +12,7 @@ public sealed class AtmosphereSaveTests
 {
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
 
@@ -43,7 +43,7 @@ public sealed class AtmosphereSaveTests
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Tick(session, 90);
         var text = SaveOf(session);
 
@@ -102,7 +102,7 @@ public sealed class AtmosphereSaveTests
     public void ASaveWhoseHeldHourIsOffTheDialDoesNotRestore()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, 40) } };
 
         Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(broken), TestGame.Data, Pristine, credit: session.Credit));

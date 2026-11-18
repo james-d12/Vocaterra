@@ -38,7 +38,7 @@ public sealed class IndoorSleepPlacesTests
         session.GrantLodging();
         var bed = session.SleepPlaces.Find("inn.bed")!;
         session.Simulation.TeleportTo(bed.Cell);
-        SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         session.SetNeed(NeedMeter.Thirst, 0);
         session.SetNeed(NeedMeter.Health, 0.25);
 

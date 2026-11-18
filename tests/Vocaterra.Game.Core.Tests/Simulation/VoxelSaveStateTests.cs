@@ -17,7 +17,7 @@ public sealed class VoxelSaveStateTests
     [Fact]
     public void AnUneditedWorldHasNoChunksInItsDiff()
     {
-        var edits = VoxelGridDiff.Capture(Route().Grid, Route().Grid);
+        var edits = VoxelGridDiff.Capture(Route().Grid);
 
         Assert.Empty(edits);
     }
@@ -26,17 +26,15 @@ public sealed class VoxelSaveStateTests
     public void TheDiffListsOnlyTheChunksThatWereEditedAndInChunkOrder()
     {
         var scene = Route();
-        var fresh = Route().Grid;
         scene.Grid.SetBlock(50, 5, 2, BlockId.Torch); // chunk (3, 0, 0)
         scene.Grid.SetBlock(19, 5, 19, BlockId.Torch); // chunk (1, 0, 1)
 
-        var edits = VoxelGridDiff.Capture(scene.Grid, fresh);
+        var edits = VoxelGridDiff.Capture(scene.Grid);
 
         Assert.Equal(2, edits.Count);
-        // The grid chunk order is x fastest, then z, then y: chunk (3, 0, 0) is index 3 and chunk (1, 0, 1) is index 25 on a 24 x 24 footprint.
-        Assert.Equal(new VoxelChunkCoord(3, 0, 0), scene.Grid.Chunks[edits[0].Chunk].Coord);
-        Assert.Equal(new VoxelChunkCoord(1, 0, 1), scene.Grid.Chunks[edits[1].Chunk].Coord);
-        Assert.True(edits[0].Chunk < edits[1].Chunk);
+        // Sorted by layer, then row, then column: chunk (3, 0, 0) comes before chunk (1, 0, 1).
+        Assert.Equal(new VoxelChunkCoord(3, 0, 0), new VoxelChunkCoord(edits[0].X, edits[0].Y, edits[0].Z));
+        Assert.Equal(new VoxelChunkCoord(1, 0, 1), new VoxelChunkCoord(edits[1].X, edits[1].Y, edits[1].Z));
     }
 
     [Fact]
@@ -45,7 +43,7 @@ public sealed class VoxelSaveStateTests
         var scene = Route();
         scene.Grid.SetBlock(50, 5, 2, BlockId.Torch);
 
-        var edit = Assert.Single(VoxelGridDiff.Capture(scene.Grid, Route().Grid));
+        var edit = Assert.Single(VoxelGridDiff.Capture(scene.Grid));
 
         Assert.True(edit.Runs.Count < VoxelChunk.Volume / 8, $"{edit.Runs.Count} runs");
         Assert.Equal(VoxelChunk.Volume, edit.Runs.Sum(static run => run.Length));
@@ -61,7 +59,7 @@ public sealed class VoxelSaveStateTests
         }
 
         var rebuilt = Route();
-        VoxelGridDiff.Apply(rebuilt.Grid, VoxelGridDiff.Capture(edited.Grid, Route().Grid));
+        VoxelGridDiff.Apply(rebuilt.Grid, VoxelGridDiff.Capture(edited.Grid));
 
         Assert.Equal(edited.Grid.ComputeDigestHex(), rebuilt.Grid.ComputeDigestHex());
     }
@@ -72,11 +70,12 @@ public sealed class VoxelSaveStateTests
         var grid = Route().Grid;
         var air = new BlockRun(BlockId.Air, VoxelChunk.Volume);
 
-        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(grid.Chunks.Count, [air])]));
-        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, [new BlockRun(BlockId.Air, 10)])]));
-        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, [new BlockRun(BlockId.Air, 0), air])]));
-        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, [air]), new ChunkEdit(0, [air])]));
-        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(1, [new BlockRun((BlockId)999, VoxelChunk.Volume)])]));
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(grid.ChunksX, 0, 0, [air])])); // east of the grid
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, -1, 0, [air])])); // below the grid
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, 0, 0, [new BlockRun(BlockId.Air, 10)])]));
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, 0, 0, [new BlockRun(BlockId.Air, 0), air])]));
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(0, 0, 0, [air]), new ChunkEdit(0, 0, 0, [air])]));
+        Assert.Throws<ArgumentException>(() => VoxelGridDiff.Apply(grid, [new ChunkEdit(1, 0, 0, [new BlockRun((BlockId)999, VoxelChunk.Volume)])]));
     }
 
     [Fact]
@@ -88,7 +87,7 @@ public sealed class VoxelSaveStateTests
         var state = sim.CaptureState();
 
         var restoredScene = Route();
-        VoxelGridDiff.Apply(restoredScene.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
+        VoxelGridDiff.Apply(restoredScene.Grid, VoxelGridDiff.Capture(sim.Grid));
         var restored = VoxelSimulation.Create(restoredScene, TestItems.Catalogue);
         restored.Restore(state);
 

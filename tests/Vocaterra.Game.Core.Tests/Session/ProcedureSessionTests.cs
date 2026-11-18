@@ -66,7 +66,7 @@ public sealed class ProcedureSessionTests
         _ = session.StartProcedure("pan", "horno", true);
         var order = session.Procedures.Order.ToList();
         _ = Act(session, order[0]);
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         Assert.NotNull(document.Systems!.Procedures);
         Assert.Contains("\"procedures\"", SaveGame.Serialize(document), StringComparison.Ordinal);
 
@@ -82,7 +82,7 @@ public sealed class ProcedureSessionTests
         Assert.Equal(3, loaded.Simulation.Inventory.Count(TestItems.Bread));
 
         // Saved after the completion and loaded: the Done run grants nothing more.
-        var again = Reload(SaveGame.Capture(loaded, Pristine()));
+        var again = Reload(SaveGame.Capture(loaded));
         Assert.Equal(ProcedureState.Done, again.Procedures.State);
         Assert.Equal(ActOutcome.NotRunning, Act(again, order[0]).Outcome);
         Assert.Equal(3, again.Simulation.Inventory.Count(TestItems.Bread));
@@ -93,7 +93,7 @@ public sealed class ProcedureSessionTests
     {
         var session = NewSession();
         session.Needs.Set(NeedMeter.Thirst, 55);
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         Assert.Null(document.Systems!.Procedures); // nothing to save: the entry is absent, as in a save made before W06
         Assert.DoesNotContain("procedures", SaveGame.Serialize(document), StringComparison.Ordinal);
 
@@ -108,7 +108,7 @@ public sealed class ProcedureSessionTests
     {
         var session = NewSession();
         _ = session.StartProcedure("pan", "horno", true);
-        var current = SaveGame.Capture(session, Pristine());
+        var current = SaveGame.Capture(session);
         var older = current with { Systems = current.Systems! with { Procedures = null } };
 
         var loaded = SaveGame.Load(SaveGame.Serialize(older), ProcedureRig.Data(), Pristine, credit: CreditRules.FullTyped, bumpSession: false);
@@ -116,7 +116,7 @@ public sealed class ProcedureSessionTests
         Assert.Equal(ProcedureState.NotStarted, loaded.Procedures.State);
         Assert.True(loaded.Procedures.Progress.IsEmpty);
         Assert.Equal(PlayerNeeds.Full, loaded.Needs.Value(NeedMeter.Hunger));
-        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Capture(loaded, Pristine()).Version);
+        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Capture(loaded).Version);
     }
 
     [Fact]
