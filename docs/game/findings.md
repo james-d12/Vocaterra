@@ -3141,3 +3141,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **I04c, bare headings (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i04c-report.md`. Gated at `b048d781`: 13,312
   passed, 9 skipped. The owner asked for the headings without their article; the boxes of the outer columns overhang into the free space
   beside the doll, so «apariencia» fits at 1280x720 in the normal font. The timing test I04b's gate failed under load passed here.
+- **I06b, the climate term (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i06b-report.md`. Gated at `a773a307`: 13,330
+  passed, 9 skipped. The player's temperature now reads the generator's climate (`IPlaceInfo.TemperatureAt`), so the biomes series' and the
+  inventory series' two temperatures finally meet (the plan's risk "Temperature against the biomes series"): the valley unchanged, the
+  highest peak 12 degrees colder. A cave reads slightly warmer than the slope above it (the lapse is by height); left for the owner's stop 2.
