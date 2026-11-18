@@ -1525,3 +1525,11 @@ this file. What is still open is collected in [open-items](../open-items.md).
   analyser reports `gender.agree@5+8`, expected «dolorosa». It replays (`CsCheck_Seed=3gcdMpDLcrQ4`, fails the same), and the gate's two
   branches touched no core code (a game test file, a game test constant), so it is the core's: either the realiser paired a feminine
   item noun with a masculine adjective it should have agreed, or the analyser misreads «Laná»'s gender. To triage in M101.
+- **M101, a fuzz seed on an adjective's gender (2026-11-17; seed `3gcdMpDLcrQ4`, the entry above).** Tests only (`tests/Vocaterra.Nlp.Fuzzing.Tests`), no core or pack change, goldens unchanged.
+  *Cause:* «Laná» is not an item noun: it is a drawn name (`[WORD:qty]`, an invented syllable string), and its accents folded it onto the lexicon noun «lana» (feminine). The pattern
+  `[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ...` left the noun out, so the adjective had no head and the realiser gave it its default masculine; the analyser reads «laná» as «lana» (the lexicon
+  folds accents, as the realiser's own `IsClosedClassOnly` knows) and agrees the adjective with it, hence `gender.agree` «dolorosa». Both readings of the analyser are right; the realiser's
+  M62b re-roll (`name-read-as-noun`) covered a name that is a noun only after a determiner or a loose adjective, not before one. *Fix* (the realiser, `SentenceRealizer`): a drawn name that is
+  a lexicon noun (accents ignored) right before an adjective that belongs to no noun is re-rolled (the same skip reason); the oracle is unchanged. Regression: `NameReadAsNounTests` (the analyser's
+  reading of «laná doloroso les», the failing recipe, 3 000 draws of the pattern analysed clean). Plan row text proposed: "M101 done: seed `3gcdMpDLcrQ4` fixed in the realiser (a name that is a noun
+  once its accents are ignored is re-rolled before a loose adjective)."

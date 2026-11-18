@@ -1803,6 +1803,19 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // M101 (O3 seed 3gcdMpDLcrQ4): the same, the other way round. A drawn name that is a lexicon noun once its accents are ignored (Laná folds to lana, feminine),
+            // right before an adjective that belongs to no noun, is the adjective's noun to the analyzer, which agrees the two (gender.agree on «Laná doloroso»); the
+            // realiser gave the loose adjective its default masculine. Such a name is re-rolled.
+            if (item.Kind == Kind.Word
+                && i + 1 < _items.Count
+                && _items[i + 1] is { Kind: Kind.Adjective, Head: null }
+                && _words.Lexicon.Lookup(item.Norm!).Any(static r => r.Pos == LexiconSchema.Noun))
+            {
+                skip = "name-read-as-noun";
+                _detail = item.Surface!;
+                return false;
+            }
+
             // M73 (M72's run at five times, O3 seed 92moRWz9NQ54): the matcher keeps the first of the parses that tie (SlotGrammarMatcher: "ties go to ... the first
             // found"), so a word drawn for one alternative of a group that a one-element alternative before it, of another class, also takes is that earlier element's
             // to the analyzer: ([PRON]|[VERB]|[ADJ:item]) with suyo drawn as the adjective is read as the pronoun, and the slot item is not yielded. Where the two
