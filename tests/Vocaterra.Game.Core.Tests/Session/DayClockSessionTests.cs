@@ -74,7 +74,7 @@ public sealed class DayClockSessionTests
         var day = session.Day;
         var sitting = session.Sitting;
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()), collapse);
+        SaveGame.Sleep(session, SaveGame.Capture(session), collapse);
 
         var simulation = session.Simulation;
         Assert.Equal(wake, simulation.Clock.HourAt(simulation.Tick), 6);
@@ -94,7 +94,7 @@ public sealed class DayClockSessionTests
         session.Simulation.FreezeClock(2);
         session.Simulation.UnfreezeClock();
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
 
         Assert.Equal(TestGame.Data.Day.WakeHour, session.Simulation.Clock.HourAt(session.Simulation.Tick), 6);
     }

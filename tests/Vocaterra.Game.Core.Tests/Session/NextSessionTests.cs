@@ -16,7 +16,7 @@ public sealed class NextSessionTests
 {
     private static string Hud(VoxelSession session) => string.Concat(session.ObjectiveHud().Select(static p => p.Text));
 
-    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+    private static void Sleep(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     // Stands the player at the inn's bed (the sleep place's cell; Y08: the mountain fire is gone and the player sleeps at the bed once the room is given).
     private static void TeleportToFire(VoxelSession session) => session.Simulation.TeleportTo(session.SleepPlaces.Find("inn.bed")!.Cell);

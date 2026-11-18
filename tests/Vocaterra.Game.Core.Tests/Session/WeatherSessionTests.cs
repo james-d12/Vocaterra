@@ -53,7 +53,7 @@ public sealed class WeatherSessionTests
         var session = SleepTests.EndedFirstSession();
         var before = session.Simulation.Weather.State.Mornings;
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()), collapse);
+        SaveGame.Sleep(session, SaveGame.Capture(session), collapse);
 
         Assert.Equal(before + 1, session.Simulation.Weather.State.Mornings);
         Assert.Equal(session.Simulation.Tick, session.Simulation.Weather.State.SpellStart);
@@ -66,7 +66,7 @@ public sealed class WeatherSessionTests
         var session = SleepTests.EndedFirstSession();
         session.NeedsEnabled = false;
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
 
         Assert.Equal(1, session.Simulation.Weather.State.Mornings);
     }

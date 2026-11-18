@@ -90,6 +90,7 @@ Without the models the game still runs, but nothing spoken is heard and the mode
 | [The book](book.md) | The learner's book, its pages, replay, the conjugation tables |
 | [Saves](saves.md) | Saves across content updates, autosave and the crash report |
 | [Inn, land and settlement plan](settlement-plan.md) | The proposal (inn accommodation, the first purchased campsite, usable interiors and village/map expansion), its review, and the first slice as the Y series (section 8, D-game-32) |
+| [Procedural world and biomes plan](biomes-plan.md) | The B series: an endless, streamed, tall world (y −64 to 320) generated round hand-crafted regions, with biomes, caves, lava and ores, and the valley opened by a pass (D-game-34) |
 | [Inventory and equipment plan](inventory-plan.md) | The I series: items as data, the bag and its backpack slot, clothing, armour, cosmetic, accessory and off-hand slots, temperature and warmth, gear on the player, durability (D-game-35, decided 2026-11-15; building held until the owner says) |
 | [Sound and display](sound-and-display.md) | The audio system and sounds, UI scale and readable text |
 | [playtest](playtest.md), [scripted-runs](scripted-runs.md) | The facilitator's script; the scripted runs, the front-end's regression set |

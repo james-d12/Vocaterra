@@ -253,8 +253,7 @@ public sealed class WaterFlowTests
                 BuildChannel(g);
             }
         });
-        var pristine = scene.Grid.Clone();
-        var diff = VoxelGridDiff.Capture(sim.Grid, pristine);
+        var diff = VoxelGridDiff.Capture(sim.Grid);
         VoxelGridDiff.Apply(scene.Grid, diff);
         var restored = VoxelSimulation.Create(scene, TestItems.Catalogue);
         restored.Restore(state);

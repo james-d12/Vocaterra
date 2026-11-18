@@ -32,6 +32,23 @@ public sealed class BusyFrameStats
         }
     }
 
+    /// <summary>The frame at a percentile (0 to 100), in milliseconds (zero before any): 99 is the frame 99 in 100 are shorter than.</summary>
+    /// <param name="percent">The percentile.</param>
+    public double Percentile(double percent)
+    {
+        if (_milliseconds.Count == 0)
+        {
+            return 0;
+        }
+
+        var sorted = _milliseconds.Order().ToList();
+        return sorted[Math.Clamp((int)(sorted.Count * percent / 100.0), 0, sorted.Count - 1)];
+    }
+
+    /// <summary>How many frames took longer than a limit, in milliseconds.</summary>
+    /// <param name="limitMilliseconds">The limit.</param>
+    public int CountOver(double limitMilliseconds) => _milliseconds.Count(ms => ms > limitMilliseconds);
+
     /// <summary>Records the length of one frame.</summary>
     public void Record(double frameMilliseconds)
     {

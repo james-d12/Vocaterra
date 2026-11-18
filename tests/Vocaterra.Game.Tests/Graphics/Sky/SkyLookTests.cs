@@ -60,7 +60,8 @@ public sealed class SkyLookTests
         Assert.Equal(dusk.DomeHorizon, dawn.DomeHorizon);
         Assert.Equal(dusk.DomeZenith, dawn.DomeZenith);
         Assert.Equal(dusk.SunLight, dawn.SunLight);
-        Assert.Equal(dusk.Band, dawn.Band);
+        Assert.Equal(LightBand.Dusk, dusk.Band);
+        Assert.Equal(LightBand.Dawn, dawn.Band); // B22: the same warm light, baked with the sun on the other side
     }
 
     [Fact]

@@ -42,7 +42,7 @@ public sealed class LandRules
 
     /// <summary>
     /// Builds the mask for a scene: the discs round the sites (the position is the scene's own point of that name, the radius and blend are the layout's; a site the scene has no point for
-    /// protects and admits nothing), then the squares round the named blocks as they stand in the grid now.
+    /// protects and admits nothing), then the squares round the named blocks as they stand in the world now, found from the template and the changed chunks (B06).
     /// </summary>
     /// <param name="data">The rules.</param>
     /// <param name="layout">The scene's layout (the sites' radius and blend).</param>
@@ -52,15 +52,15 @@ public sealed class LandRules
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(layout);
         ArgumentNullException.ThrowIfNull(scene);
-        var grid = scene.Grid;
-        var mask = new byte[grid.SizeX * grid.SizeZ];
+        var (sizeX, sizeZ) = (layout.SizeX, layout.SizeZ); // the valley: a streamed world is far larger, and the rules cover the valley only
+        var mask = new byte[sizeX * sizeZ];
         var sites = layout.Sites.ToDictionary(static s => s.Name, StringComparer.Ordinal);
         foreach (var protectedSite in data.ProtectedSites)
         {
             if (sites.TryGetValue(protectedSite.Site, out var site) && scene.Points.TryGetValue(protectedSite.Site, out var point))
             {
                 var radius = site.Radius + (protectedSite.IncludeBlend ? site.Blend : 0) + protectedSite.Margin;
-                ForDisc(grid.SizeX, grid.SizeZ, point.X, point.Z, radius, (index, _) => SetProtection(mask, index, protectedSite.Protection));
+                ForDisc(sizeX, sizeZ, point.X, point.Z, radius, (index, _) => SetProtection(mask, index, protectedSite.Protection));
             }
         }
 
@@ -73,14 +73,14 @@ public sealed class LandRules
                     continue;
                 }
 
-                foreach (var cell in grid.BlocksOfKind(definition.Id))
+                foreach (var cell in scene.CurrentBlocksOfKind(definition.Id))
                 {
                     var m = protectedBlocks.Margin;
-                    for (var z = Math.Max(0, cell.Z - m); z <= Math.Min(grid.SizeZ - 1, cell.Z + m); z++)
+                    for (var z = Math.Max(0, cell.Z - m); z <= Math.Min(sizeZ - 1, cell.Z + m); z++)
                     {
-                        for (var x = Math.Max(0, cell.X - m); x <= Math.Min(grid.SizeX - 1, cell.X + m); x++)
+                        for (var x = Math.Max(0, cell.X - m); x <= Math.Min(sizeX - 1, cell.X + m); x++)
                         {
-                            SetProtection(mask, (z * grid.SizeX) + x, protectedBlocks.Protection);
+                            SetProtection(mask, (z * sizeX) + x, protectedBlocks.Protection);
                         }
                     }
                 }
@@ -91,11 +91,11 @@ public sealed class LandRules
         {
             if (scene.Points.TryGetValue(meadow.Site, out var point))
             {
-                ForDisc(grid.SizeX, grid.SizeZ, point.X, point.Z, meadow.Radius, (index, _) => mask[index] |= EligibleBit);
+                ForDisc(sizeX, sizeZ, point.X, point.Z, meadow.Radius, (index, _) => mask[index] |= EligibleBit);
             }
         }
 
-        return new LandRules(data, mask, grid.SizeX, grid.SizeZ);
+        return new LandRules(data, mask, sizeX, sizeZ);
     }
 
     /// <summary>The protection of a column, or <see cref="Protection.None"/> (also for a column outside the world).</summary>
@@ -130,7 +130,7 @@ public sealed class LandRules
     /// </summary>
     /// <param name="grid">The world as it is now.</param>
     /// <param name="plot">The plot to check (the rules' size is not enforced here: the caller makes it with <see cref="PlotAt"/> or <see cref="PlotAround"/>).</param>
-    public PlotCheck CheckPlot(VoxelGrid grid, Plot plot)
+    public PlotCheck CheckPlot(IVoxelReader grid, Plot plot)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var outside = false;
@@ -193,11 +193,11 @@ public sealed class LandRules
     /// <param name="grid">The world.</param>
     /// <param name="x">The column's x.</param>
     /// <param name="z">The column's z.</param>
-    public static (int Y, BlockId Block, bool TreeAbove) GroundOf(VoxelGrid grid, int x, int z)
+    public static (int Y, BlockId Block, bool TreeAbove) GroundOf(IVoxelReader grid, int x, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var lowestTree = int.MaxValue;
-        for (var y = Math.Min(grid.HighestBlock(x, z), grid.SizeY - 1); y >= 0; y--)
+        for (var y = Math.Min(grid.HighestBlock(x, z), grid.Limits.EndY - 1); y >= grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
             if (block == BlockId.Air || BlockDefinition.IsDecor(block))
@@ -214,7 +214,7 @@ public sealed class LandRules
             return (y, block, lowestTree != int.MaxValue && lowestTree <= y + TreeProbeHeight);
         }
 
-        return (-1, BlockId.Air, false);
+        return (grid.Limits.MinY - 1, BlockId.Air, false);
     }
 
     private bool InWorld(int x, int z) => (uint)x < (uint)_sizeX && (uint)z < (uint)_sizeZ;

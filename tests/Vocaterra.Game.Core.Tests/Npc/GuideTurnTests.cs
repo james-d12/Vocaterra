@@ -369,17 +369,14 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         session.Say("hola"); // warm up the pipeline's first-call costs
         var ticks = session.Simulation.Tick;
 
-        var watch = System.Diagnostics.Stopwatch.StartNew();
         const int turns = 20;
         for (var i = 0; i < turns; i++)
         {
             session.Say(i % 2 == 0 ? "¿dónde está el árbol?" : "dónde hay piedra");
         }
 
-        watch.Stop();
-        output.WriteLine($"{turns} turns in {watch.Elapsed.TotalMilliseconds:0.0} ms, {watch.Elapsed.TotalMilliseconds / turns:0.00} ms per turn");
+        // How long a turn takes is held to a CPU-time budget in Timing.SpeedChecksTimingTests (B29b); this test checks that a turn never runs the simulation tick.
         Assert.Equal(ticks, session.Simulation.Tick);
-        Assert.True(watch.Elapsed.TotalMilliseconds / turns < 250, "A turn should be far below a quarter of a second.");
     }
 
     private static (string Json, string ContextHash) RunConversation(IEnumerable<string> lines)

@@ -15,7 +15,7 @@ public sealed class LandSaveTests
 
     private static Scene Pristine(ulong seed = LandTestScene.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text) => SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -76,7 +76,7 @@ public sealed class LandSaveTests
         _ = session.SetPendingPlot(Plot.X, Plot.Z);
         Assert.True(session.OwnPlot());
 
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
 
         Assert.Equal(new Plot(Plot.X, Plot.Z, 10, 10), session.OwnedPlot);
         Assert.Null(session.PendingPlot);
@@ -88,7 +88,7 @@ public sealed class LandSaveTests
         var session = TestGame.NewSession(LandTestScene.Seed);
         _ = session.SetPendingPlot(Plot.X, Plot.Z);
         _ = session.OwnPlot();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var broken = document with { Systems = document.Systems! with { Land = new LandSave(null, new PlotSave(-4, 10, 10, 10)) } };
 
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(broken), TestGame.Data, Pristine, credit: CreditRules.FullTyped));

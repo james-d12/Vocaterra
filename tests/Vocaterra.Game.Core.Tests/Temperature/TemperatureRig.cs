@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Temperature;
 
@@ -48,7 +49,7 @@ internal static class TemperatureRig
             grid.SetBlock(9, 11, 9, BlockId.Torch);
         }
 
-        return new FireRings(grid);
+        return new FireRings(new Scene("ring", 0, grid, new SpawnPoint(new BlockPos(8, 11, 8), 0), [], new SortedDictionary<string, BlockPos>(StringComparer.Ordinal), 0, 0));
     }
 
     /// <summary>A situation at a distance from the ring's middle (8, 10, 8) along x.</summary>

@@ -141,8 +141,20 @@ public static class AmbientBeds
     /// </summary>
     public const string Rain = "rain";
 
+    /// <summary>The sea's waves on a beach and over the open water (B14).</summary>
+    public const string Surf = "surf";
+
+    /// <summary>The cave's quiet: a slow drip and a hollow draught, heard below the ground (B14).</summary>
+    public const string Cave = "cave";
+
     /// <summary>Every bed, in a fixed order.</summary>
-    public static IReadOnlyList<string> All { get; } = [Wind, Birds, River, Waterfall, Village, Fire, Insects, Rain];
+    public static IReadOnlyList<string> All { get; } = [Wind, Birds, River, Waterfall, Village, Fire, Insects, Rain, Surf, Cave];
+
+    /// <summary>
+    /// The beds a biome's data may name (<c>ambient</c> of a row of <c>game/biomes.json</c>, B14): the ones that follow the place. The others have their own drivers: the waterfall, the village and the
+    /// fire sit at the scene's places, the rain follows the weather, and the cave follows the depth under the ground.
+    /// </summary>
+    public static IReadOnlyList<string> ByPlace { get; } = [Wind, Birds, River, Insects, Surf];
 
     /// <summary>
     /// The beds of the weather (E09): they follow the weather's own volume, not the ambient one. Rain is the only one now; a later precipitation bed (snow) is added here,
@@ -159,6 +171,8 @@ public static class AmbientBeds
         River => 0.45,
         Waterfall => 0.6,
         Village => 0.35,
+        Surf => 0.5, // the waves' swell is a broad low rush like the river's: the same sort of level
+        Cave => 0.3, // quieter than every other bed: a cave is still
         Insects => 0.46, // E10: the cricket loop is 3.8 dB quieter in RMS than the old two-tone whine (0.077 against 0.119), so the gain keeps the level at the bed
         Rain => 0.2, // E06: the loop is the loudest of the beds (its RMS is 0.22 of full scale, the others' about 0.15) and its hiss sits where speech's consonants are, so its gain is the lowest: see docs/game/sound-and-display.md
         _ => 1.0,
@@ -274,7 +288,11 @@ public static class AmbientBeds
     /// lower where the listener stands under cover. Only read when it rains, and never written.
     /// </param>
     /// <param name="campFire">The middle of the fire ring of the player's own camp while it burns (Y12), or <see langword="null"/>: the fire bed follows it as it follows the guide's ring.</param>
-    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null)
+    /// <param name="place">
+    /// What the world's model says of the listener's place (B14, <see cref="PlaceAmbience"/>), or <see langword="null"/> for none: with none, or in a hand-crafted region, the birds, insects and wind follow the height as
+    /// they always did; in the procedural land they follow the biome's data, and below the ground the cave bed takes over from every bed of the surface.
+    /// </param>
+    public static IReadOnlyList<BedInput> At(AmbientPlaces places, Listener listener, AtmosphereSnapshot atmosphere, bool fireLit, Func<int, int, int>? highestBlock = null, Point2? campFire = null, PlaceAmbience? place = null)
     {
         ArgumentNullException.ThrowIfNull(places);
         var here = new Point2(listener.X, listener.Z);
@@ -309,13 +327,22 @@ public static class AmbientBeds
         }
 
         var channels = atmosphere.Channels;
-        var windWeight = Math.Clamp(Ramp(listener.Y, WindLow, WindHigh) + (WindChannelReach * Ramp(channels.Wind, WindCalm, 1)), 0, 1);
+        var biome = place is { Procedural: true } ? place : null;
+        var windWeight = Math.Clamp((biome is null ? Ramp(listener.Y, WindLow, WindHigh) : biome.Share(Wind)) + (WindChannelReach * Ramp(channels.Wind, WindCalm, 1)), 0, 1);
         var intensity = string.IsNullOrEmpty(channels.PrecipitationKind) ? 0 : Math.Clamp(channels.PrecipitationIntensity, 0, 1);
         var rainWeight = intensity <= 0 ? 0 : intensity * (1 - (RainCoverCut * ListenerShelter.CoveredShare(highestBlock, listener)));
         var lowland = 1 - Ramp(listener.Y, 50, 64);
         var daylight = Math.Clamp(atmosphere.Daylight, 0, 1);
-        var birdsWeight = lowland * (1 - villageWeight) * daylight * (1 - intensity);
-        var insectsWeight = lowland * (1 - daylight);
+        var birdsWeight = (biome?.Share(Birds) ?? lowland) * (1 - villageWeight) * daylight * (1 - intensity);
+        var insectsWeight = (biome?.Share(Insects) ?? lowland) * (1 - daylight);
+        if (biome is not null)
+        {
+            riverWeight = Math.Max(riverWeight, biome.Share(River));
+        }
+
+        var surfWeight = biome?.Share(Surf) ?? 0;
+        var under = place?.Underground ?? 0;
+        var open = 1 - under; // the beds of the surface fade as the ground closes overhead (the fire is its own: a torch or a camp below is still heard)
 
         var fireWeight = 0.0;
         var firePan = 0.0;
@@ -347,22 +374,30 @@ public static class AmbientBeds
 
         return
         [
-            new BedInput(Wind, windWeight),
-            new BedInput(Birds, birdsWeight),
-            new BedInput(River, riverWeight, riverPan),
-            new BedInput(Waterfall, waterfallWeight, waterfallPan),
-            new BedInput(Village, villageWeight, places.Village is { } v ? Pan(listener, v) : 0),
+            new BedInput(Wind, windWeight * open),
+            new BedInput(Birds, birdsWeight * open),
+            new BedInput(River, riverWeight * open, riverPan),
+            new BedInput(Waterfall, waterfallWeight * open, waterfallPan),
+            new BedInput(Village, villageWeight * open, places.Village is { } v ? Pan(listener, v) : 0),
             new BedInput(Fire, fireWeight, firePan),
-            new BedInput(Insects, insectsWeight),
-            new BedInput(Rain, rainWeight),
+            new BedInput(Insects, insectsWeight * open),
+            new BedInput(Rain, rainWeight * open),
+            new BedInput(Surf, surfWeight * open),
+            new BedInput(Cave, under),
         ];
     }
 
     /// <summary>The name of the place a listener is in, for the sound log: a named site near it, the heights, or the valley.</summary>
     /// <param name="places">The scene's places.</param>
     /// <param name="listener">The listener.</param>
-    public static string PlaceOf(AmbientPlaces places, Listener listener)
+    /// <param name="place">The place's reading (B14), or <see langword="null"/>: below the ground it is <c>underground</c>, in the procedural land the biome's id.</param>
+    public static string PlaceOf(AmbientPlaces places, Listener listener, PlaceAmbience? place = null)
     {
+        if (place is { Name.Length: > 0 })
+        {
+            return place.Name;
+        }
+
         var here = new Point2(listener.X, listener.Z);
         NamedPlace? best = null;
         var bestRatio = double.PositiveInfinity;

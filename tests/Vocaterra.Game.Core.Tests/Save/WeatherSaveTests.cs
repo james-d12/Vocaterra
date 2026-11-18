@@ -15,7 +15,7 @@ public sealed class WeatherSaveTests
 
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
 
@@ -92,7 +92,7 @@ public sealed class WeatherSaveTests
     public void ASleepRollsTheMorningAndTheSavedWeatherRestoresIt()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Tick(session, 90);
 
         var text = SaveOf(session);
@@ -108,7 +108,7 @@ public sealed class WeatherSaveTests
     public void ASaveNamingAnUnknownKindDoesNotRestore()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var weather = session.Simulation.Weather.State with { Current = "hail" };
         var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, null, weather) } };
 
@@ -130,7 +130,7 @@ public sealed class WeatherSaveTests
     [InlineData("save-v10.json")]
     public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsNine(string fixture)
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
+        var text = SaveFixture.Read(fixture);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 

@@ -21,7 +21,11 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # B30: the whole suite (Debug, no models) took 43 min on 4 cores (taskset -c 0-3) on a development machine at load 18 shared with other builds, with the build 5 min (docs/game/building-and-testing.md);
+    # the timeout is well over 1.5 times that. The CPU-time budgets are multiplied by 4 when CI=true.
+    # B29a: the build and the tests are Release (about 3 times faster than Debug on the development machine, so the job is far inside the timeout); the
+    # CPU budgets are set from Release times. CI runs every test, the fuzz suite and the timing tests included: the merge gate leaves both out.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
 
@@ -39,12 +43,12 @@ jobs:
         run: dotnet restore Vocaterra.sln
 
       - name: Build
-        run: dotnet build Vocaterra.sln -warnaserror --no-restore
+        run: dotnet build Vocaterra.sln -c Release -warnaserror --no-restore
 
       # VOCATERRA_MODELS_DIR is unset, so the model-gated tests skip.
       - name: Test
         run: >
-          dotnet test Vocaterra.sln --no-build
+          dotnet test Vocaterra.sln -c Release --no-build
           --logger trx --results-directory TestResults
 
       - name: Grammar check (cached LanguageTool results)

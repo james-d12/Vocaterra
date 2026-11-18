@@ -30,7 +30,7 @@ public static class NpcStandOff
     /// <param name="npcFeet">The cell the NPC's feet are in.</param>
     /// <param name="from">The cell the player walks from.</param>
     /// <returns>The feet cell to stand in, or <see langword="null"/> when no cell around the NPC qualifies.</returns>
-    public static BlockPos? Choose(VoxelGrid grid, BlockPos npcFeet, BlockPos from)
+    public static BlockPos? Choose(IVoxelReader grid, BlockPos npcFeet, BlockPos from)
     {
         ArgumentNullException.ThrowIfNull(grid);
         for (var radius = Blocks; radius <= Blocks + 1; radius++)
@@ -82,7 +82,7 @@ public static class NpcStandOff
     }
 
     // The feet cell in the column within one level of the NPC's own: air with air above, solid dry ground below.
-    private static BlockPos? StandingCell(VoxelGrid grid, BlockPos column)
+    private static BlockPos? StandingCell(IVoxelReader grid, BlockPos column)
     {
         for (var dy = 0; dy >= -1; dy--)
         {
@@ -101,7 +101,7 @@ public static class NpcStandOff
     }
 
     // A straight line from the eye to the NPC's chest, sampled every sixteenth of a block, passes through no solid block.
-    private static bool SeesChest(VoxelGrid grid, BlockPos stand, BlockPos npcFeet)
+    private static bool SeesChest(IVoxelReader grid, BlockPos stand, BlockPos npcFeet)
     {
         var ax = (stand.X * 16) + 8;
         var ay = (stand.Y * 16) + EyeSixteenths;

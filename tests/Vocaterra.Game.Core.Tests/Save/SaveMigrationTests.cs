@@ -31,7 +31,7 @@ public sealed class SaveMigrationTests
         session.OpenTalk("shopkeeper");
         session.Say("quiero agua, por favor");
         session.EndTalk();
-        return SaveGame.Capture(session, Pristine());
+        return SaveGame.Capture(session);
     }
 
     private static VoxelSession Load(SaveDocument document, bool migrate, Func<ulong, Scene>? pristine = null, bool bump = false) =>
@@ -123,8 +123,8 @@ public sealed class SaveMigrationTests
 
         Assert.Null(strict.Migration);
         Assert.Null(migrating.Migration);
-        Assert.Equal(text, SaveGame.Save(strict, Pristine()));
-        Assert.Equal(text, SaveGame.Save(migrating, Pristine()));
+        Assert.Equal(text, SaveGame.Save(strict));
+        Assert.Equal(text, SaveGame.Save(migrating));
         Assert.Equal(document.StateDigest, migrating.Simulation.ComputeStateDigest());
     }
 
@@ -150,7 +150,7 @@ public sealed class SaveMigrationTests
         Assert.True(report.Find(SaveMigration.WorldArea)!.Kept > 0);
         Assert.Empty(report.Find(SaveMigration.WorldArea)!.Dropped);
         Assert.Equal(document.StateDigest, loaded.Simulation.ComputeStateDigest());
-        Assert.Empty(VoxelGridDiff.Capture(loaded.Scene.Grid, SaveGame.Restore(document, TestGame.Data, Pristine(), bumpSession: false).Scene.Grid));
+        Assert.Equal(SaveGame.Restore(document, TestGame.Data, Pristine(), bumpSession: false).Scene.Grid.ComputeDigestHex(), loaded.Scene.Grid.ComputeDigestHex());
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public sealed class SaveMigrationTests
         var strictPristine = Pristine();
         var edited = document.Chunks[0];
         var cell = FindAirCell(strictPristine.Grid, edited);
-        var untouched = strictPristine.Grid.Chunks.Select(static (c, i) => (c, i)).First(t => document.Chunks.All(e => e.Chunk != t.i)).c.Coord;
+        var untouched = strictPristine.Grid.Chunks.First(c => document.Chunks.All(e => (e.X, e.Y, e.Z) != (c.Coord.X, c.Coord.Y, c.Coord.Z))).Coord;
         var other = new BlockPos(untouched.X << VoxelChunk.Shift, untouched.Y << VoxelChunk.Shift, untouched.Z << VoxelChunk.Shift);
         var otherBlock = strictPristine.Grid.GetBlock(other.X, other.Y, other.Z) == BlockId.Stone ? BlockId.Dirt : BlockId.Stone;
         var changedWorld = (Func<ulong, Scene>)(seed =>
@@ -212,7 +212,7 @@ public sealed class SaveMigrationTests
     public void ALessonKeepsItsCompletedStateAndItsDoneStepsThatStillExist()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var book = session.Lessons.Book.Lessons;
         var inProgress = book[0];
         var completed = book[1];
@@ -267,7 +267,7 @@ public sealed class SaveMigrationTests
     public void AStepInsertedBeforeAFinishedOneIsDoneAndTheFinishedOneAfterItIsDoneAgain()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var lesson = session.Lessons.Book.Lessons[0];
         var ids = lesson.Steps.Select(static s => s.Id).ToArray();
         // The save finished steps 0 and 2 but not 1 (a step that did not exist then): the lesson goes on at step 1 and step 2 is done again.
@@ -291,7 +291,7 @@ public sealed class SaveMigrationTests
     public void ALessonReplayOrActiveMarkOfALessonThatIsGoneIsDropped()
     {
         var session = TestGame.NewSessionWithShippedLessons();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var older = FromOtherBundle(document) with { Lessons = new LessonsSave(document.Lessons!.Lessons, null, "a-lesson-since-removed") };
 
         var loaded = Load(older, migrate: true);
@@ -319,7 +319,7 @@ public sealed class SaveMigrationTests
     [Fact]
     public void TheFixtureLoadsStrictAndAcrossBundles()
     {
-        var text = File.ReadAllText(FixturePath("save-v10.json"));
+        var text = SaveFixture.Read("save-v10.json");
 
         var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);
@@ -337,7 +337,7 @@ public sealed class SaveMigrationTests
     {
         var loaded = Load(FromOtherBundle(CampDocument()), migrate: true);
 
-        var again = SaveGame.Parse(SaveGame.Save(loaded, Pristine()));
+        var again = SaveGame.Parse(SaveGame.Save(loaded));
 
         Assert.Equal(TestGame.Bundle.ContentHash, again.BundleHash);
         Assert.Equal(SaveGame.CurrentVersion, again.Version);
@@ -360,7 +360,7 @@ public sealed class SaveMigrationTests
     // A cell of air in an edited chunk that is air in the saved world as well (so the saved chunk differs from the new world there only if the new world changes it).
     private static BlockPos FindAirCell(VoxelGrid grid, ChunkEdit edit)
     {
-        var origin = grid.Chunks[edit.Chunk].Coord;
+        var origin = new VoxelChunkCoord(edit.X, edit.Y, edit.Z);
         for (var position = VoxelChunk.Volume - 1; position >= 0; position--)
         {
             var x = (origin.X << VoxelChunk.Shift) + (position & (VoxelChunk.Size - 1));
@@ -373,19 +373,5 @@ public sealed class SaveMigrationTests
         }
 
         throw new InvalidOperationException("no air in the chunk");
-    }
-
-    internal static string FixturePath(string name)
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "tests", "Vocaterra.Game.Core.Tests", "Fixtures", name);
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new FileNotFoundException($"The fixture {name} was not found above the test output folder.");
     }
 }

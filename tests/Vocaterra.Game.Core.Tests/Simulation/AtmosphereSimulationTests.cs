@@ -103,7 +103,7 @@ public sealed class AtmosphereSimulationTests
         var state = sim.CaptureState();
 
         var restored = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
-        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid, Route().Grid));
+        VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid));
         restored.Restore(state);
 
         Assert.NotNull(state.Atmosphere);
@@ -162,7 +162,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "82c9c42dc8e614458fbd69120256833c556fc4403fdf3884fa27b8cdf8ed03eb"; // I03b: re-pinned because the inventory is 30 slots now (the digest hashes the active slots): the old value is exactly what hashing 40 empty slots gives for the same route, checked by recomputing it; Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly)
+    private const string PinnedFresh = "525b6cd5e0874fa80130d32e53165a6871b331d1738adb8c9c2d455263a9b1ec"; // I-merge: re-pinned on the merged tree (the biomes series moved the world, the inventory series the active slots: 30, I03b); B02d: re-pinned (the generator version is 5); B11b: re-pinned (the generator version is 3 and the header carries the new underground.json); B05: re-pinned, the state digest is the header and the changed chunks (the route as built has none); B08a: re-pinned on the merged tree (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly); B11: re-pinned (underground.json joins the header's generation hash and the generator version is 2)
 
-    private const string PinnedAfterWalking = "b26b32c5ffef4eb872d4974e65932ab9a8a0662d889edec37f567b1d180644b7"; // I03b: re-pinned with the one above (30 slots); Y08: re-pinned with the one above; Y06m: re-pinned with the one above
+    private const string PinnedAfterWalking = "78b1bc0386293fa7f11ddb902d823d802825da1c3f60d7e1c095a055abec1144"; // I-merge: re-pinned with the one above; B02d: re-pinned with the one above; B11b: re-pinned with the one above; B05: re-pinned with the one above; B08a: re-pinned on the merged tree with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above; B11: re-pinned with the one above
 }

@@ -45,7 +45,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     private static VoxelSession AtTheGuide()
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         _ = session.OpenTalk("guide");
         return session;
@@ -53,8 +53,8 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
 
     private static AppliedTurn Drain(VoxelSession session)
     {
-        var deadline = Environment.TickCount64 + 120000;
-        while (Environment.TickCount64 < deadline)
+        var deadline = HangGuard.DeadlineAfter(120000);
+        while (!HangGuard.Passed(deadline))
         {
             var applied = session.Collect();
             if (applied.Count > 0)

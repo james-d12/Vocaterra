@@ -269,7 +269,7 @@ public sealed class ScenarioScript
                     _index++;
                 }
 
-                _walk = new VoxelScript(_session.Simulation, _look, run, _resolveItem, _log);
+                _walk = new VoxelScript(_session.Simulation, _look, run, _resolveItem, _log, _hooks.WorldReady);
                 _phase = Phase.Moving;
                 break;
             case ScriptStepKind.Talk:
@@ -656,7 +656,7 @@ public sealed class ScenarioScript
             }
         }
 
-        return _scratch.Count > 0 || !finished;
+        return _scratch.Count > 0 || !finished || walk.EndedForWorld;
     }
 
     // Turns the view to the NPC's chest, the point the crosshair aims at (NpcAim).

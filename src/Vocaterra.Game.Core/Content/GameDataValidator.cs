@@ -19,6 +19,9 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Biomes;
+using Vocaterra.Game.Core.World.Underground;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
@@ -95,6 +98,14 @@ public static class GameDataValidator
         problems.AddRange(EquipmentValidator.Validate(data.Equipment, data.Items)); // I03a: the slot groups, and every worn item has a slot and a group that accepts it
         problems.AddRange(DamageValidator.Validate(data.Damage, DamageModifiers.Standard())); // I05a: the causes the code raises have rows, every modifier id is registered
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
+        problems.AddRange(WorldGenValidator.Validate(data.WorldGen)); // B01: the vertical range, the climate noise, the height splines, the thresholds
+        problems.AddRange(BiomeValidator.Validate(data.Biomes, data.WorldGen)); // B01: the biome rows, their blocks and tree species, the catch-all
+        if (data.Underground is { } underground)
+        {
+            problems.AddRange(UndergroundValidator.Validate(underground, data.WorldGen, data.Scene)); // B11: the rock layers, ores, caves, entrances and lava
+        }
+
+        problems.AddRange(Vocaterra.Game.Core.World.Pass.PassValidator.Validate(data)); // B08b: the required lessons exist, the rockfall prop and the edge site are the scene's
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);
         CheckLessonLevels(data, problems);

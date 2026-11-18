@@ -50,14 +50,18 @@ in `docs/nlp/api.md` updates that record.
    register, nothing under `bin/`, `obj/` or `artifacts/`, and no game milestone edited the core (or a core milestone the game) unless its
    brief said so. `content/game-v1` is the one shared file set (R02): a milestone that edits it ran the whole suite.
 4. **Gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"` from that branch's checkout, in the background. It
-   merges `--no-ff`, builds with warnings as errors, runs the whole suite (with models when the shared folder exists), checks format,
-   validates the bundle and runs the licence scan, with logs in `.claude/gate-logs/`. An intermittent failure is investigated from the
-   saved log, never waved through.
+   merges `--no-ff` and runs as one limited.sh command (one slot): a Release build with warnings as errors, the suite without the fuzz
+   suite and the timing tests (with models when the shared folder exists), the timing tests as their own step, format, the bundle
+   validation, the grammar replay and the licence scans, with logs in `.claude/gate-logs/`. A failed test is re-run alone and labelled
+   FLAKY or FAILED: record each FLAKY test from `.claude/gate-logs/flaky-<stamp>.txt` as a finding; a FAILED one is investigated from
+   the saved log, never waved through. Read the printed test-time report for a warning. The gate runs the target's own copy of
+   `merge-gate.sh`: a milestone that changes the gate is merged first and then gated (the "already merged" case).
 5. **Spot-check behaviour**, not just tests: the host demo commands (game plan section 6), the core's demo line and the milestone's own
    lines. For a core change, also a few natural, correct learner lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`): M59's
    first build flagged the correct `Luz quiero pan` because its brief asked for an error to be flagged.
-6. **Record:** the milestone's status in its plan and its findings in the findings log (`docs/game/findings.md`, `docs/nlp/findings.md`), any decision in its register, and `docs/open-items.md` when an item opens or closes; commit with the attribution trailers and
-   `git push origin <feature branch>`.
+6. **Record:** the milestone's status in its plan and its findings in the findings log (`docs/game/findings.md`, `docs/nlp/findings.md`), any decision in its register, and `docs/open-items.md` when an item opens or closes; the shared notes the milestone's report supplies
+   (`README.md`, `docs/game/running.md`, `docs/game/architecture.md`: agents no longer edit them, so they stop conflicting; the
+   throughput study's item 6, D-game-34 item 57); commit with the attribution trailers and `git push origin <feature branch>`.
 7. **Clean up:** `git worktree remove --force` and `git branch -D`. The owner deletes merged remote branches; the permission check
    refuses remote deletes.
 8. **Update the handover** of the workstream (see "Writing a handover"): what was gated, what runs now and where, what is next; commit
@@ -83,27 +87,30 @@ size is its plan row's.
 | A series whose decision names its model (none since 2026-11-06: the V series follows the size rule, D-game-22) | as named | as named |
 
 Never set an effort level the owner or a decision has not asked for, and never raise a model or effort for length. One agent per
-milestone, at most two building agents at a time.
+milestone, at most five building agents at a time (D-game-34 item 38).
 
 ## Machine resources (owner, 2026-10-22: never max out the computer; 2026-11-05: up to two agents within the machine's limits)
 
 The desktop crashed twice on 2026-10-22 when two agents built and tested at once with no limits (16 cores, 11 GiB of RAM, 2 GiB of
 swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's within the maximum CPU and memory usage of the machine".
 
-- **At most two building agents at a time**, on milestones whose dependencies are met and whose code does not overlap (both may edit
+- **At most two building agents at a time** (up to four since 2026-11-15 about 21:45 UTC, the owner: "you can have up to 4 agents now", D-game-34 item 19; up to five since 2026-11-16 about 22:30 UTC, "5 agents and 3 gates looks ok", item 38, with three limited.sh slots; that day it was three, then one, item 17), on milestones whose dependencies are met and whose code does not overlap (both may edit
   `content/game-v1`: the second to merge re-runs the content loop on its merge). An agent that runs no build, test or `dotnet run` at all
   (pure reading or writing docs) may run beside them, at most three in total. Each agent's worktree takes about 3.5 GB once built: check
   the disk before launching the second.
 - **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
-  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has two machine-wide slots (a third command waits), waits until
-  at least 3 GB is free and the load is under the core count, then runs the command capped at 6 GB of RAM, no swap and 10 of 16 cores, in
-  one slice that caps all of them together at 8 GB and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
+  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It has three machine-wide slots since 2026-11-16 (two before; a fourth command waits), waits until
+  at least 3 GB is free and the load is under the core count, then runs the command capped at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, in
+  one slice that caps all of them together at 16 GB (the owner, 2026-11-16: "increase the shared pool to 12 is fine", then "i would increase to 16gb"; 8 GB before) and 14 cores, with MSBuild node reuse and the compiler servers off; it prints each
   command's peak memory. A command over a cap is killed inside its scope (exit 137 or 143); the fix is lower parallelism or a rerun when
   the other slot is free, never a higher cap without the owner. `VOCATERRA_HEAVY_SLOTS=1` restores one at a time. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
   re-entrant (M67).
 - **Test tiers** (`docs/process/test-performance-plan.md`): `scripts/test.sh fast` for every step, `scripts/test.sh full` at a milestone
-  and in the gate (the gate and CI always run the full suite). A test that takes more than a few seconds alone, needs a model or starts a
-  process is marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`.
+  (Release; it leaves out the fuzz suite and the timing tests), `scripts/test.sh timing` when a milestone changes performance or a timing
+  test. The gate runs the suite as `full` does and then the timing tests as their own step; the fuzz suite runs in CI only (D-game-34
+  item 58), and CI runs everything. A test that takes more than a few seconds alone, needs a model or starts a process is marked
+  `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`; a test that holds code to a CPU budget is in the `TimingCollection` and carries
+  `[Trait(TestSpeed.Category, TestSpeed.Timing)]`.
 - **Check before every launch and every gate**: `free -h` (at least 4 GB available, swap under half used), `uptime` (1-minute load under
   16), `df -h /home` (at least 10 GB free), `pgrep -fc 'MSBuild.dll|VBCSCompiler|testhost'` (0 when nothing runs). Stop orphaned build
   servers with `dotnet build-server shutdown`. If the machine is not clear, wait or tell the owner; do not launch.
@@ -115,8 +122,10 @@ swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's with
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes to `main`, pull requests and by hand: `build-and-test` (build `-warnaserror`, the full suite
-without models, the offline grammar replay) and `languagetool` (the live check, which rebuilds `content/grammar/`). This token cannot read
-CI results (`gh pr checks` and `gh run list` give 403), so the owner reports CI failures. The GitHub runner is about four times slower
+without models, the offline grammar replay) and `languagetool` (the live check, which rebuilds `content/grammar/`). Read CI yourself
+(the owner, 2026-11-18, D-game-34 item 59): keep a pull request open for a branch whose work needs CI (a draft until it is ready), so
+every push runs CI, and after each push check it with `gh run list --branch <branch>` and `gh run view <id> --log-failed`; a failure
+becomes a milestone, and you tell the owner. The GitHub runner is about four times slower
 than this machine, so a timing test needs a wide margin (M60). The owner's CI requests not yet planned are in
 `docs/game/implementation-plan.md` section 4.6.
 

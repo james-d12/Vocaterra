@@ -45,10 +45,14 @@ public sealed class ChunkMesherLightBandTests
     public void Given_ABandsBakedLight_When_AFaceInFullSunIsRead_Then_ItIsTheBandsMultiplierTimesTheFaceTint()
     {
         var floor = new MapBlocks().Fill(0, 4, 0, 15, 5, 15, BlockId.Stone);
-        double Red(LightBand band) => Build(floor, band).Opaque.Vertices.ToArray().Where(static v => v.Y == 6f).Average(static v => (double)(v.Color & 0xFF));
+        double Red(LightBand band) => Build(floor, band).Opaque.Vertices.ToArray().Where(static v => v.Y == 6f && v.X is > 0f and < 16f && v.Z is > 0f and < 16f).Average(static v => (double)(v.Color & 0xFF));
 
-        Assert.InRange(Math.Abs((Red(LightBand.Day) * ChunkMesher.DuskLight.R) - Red(LightBand.Dusk)), 0, 1); // within the byte's rounding
-        Assert.InRange(Math.Abs((Red(LightBand.Day) * ChunkMesher.NightLight.R) - Red(LightBand.Night)), 0, 1);
+        // B22: a band also has its own sun, so the floor's face shade is the band's: the multiplier times the shade of the top in that band over the shade in the Day's.
+        double Expected(LightBand band, float multiplier) => Red(LightBand.Day) * multiplier * ChunkMesher.FaceShade(BlockFace.Up, band) / ChunkMesher.FaceShade(BlockFace.Up, LightBand.Day);
+        foreach (var (band, multiplier) in new[] { (LightBand.Dusk, ChunkMesher.DuskLight.R), (LightBand.Dawn, ChunkMesher.DuskLight.R), (LightBand.Night, ChunkMesher.NightLight.R) })
+        {
+            Assert.True(Math.Abs(Expected(band, multiplier) - Red(band)) <= 1, $"{band}: {Expected(band, multiplier)} against {Red(band)}"); // within the byte's rounding
+        }
     }
 
     [Fact]

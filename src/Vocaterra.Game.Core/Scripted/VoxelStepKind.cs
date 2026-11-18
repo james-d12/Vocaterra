@@ -14,6 +14,9 @@ public enum VoxelStepKind
     /// <summary>Put the player at a column, standing on the ground (<c>--teleport x,z</c>, a debug step for screenshots, S13).</summary>
     Teleport,
 
+    /// <summary>Put the player at a column, standing on the highest ground at or below a height (<c>--teleport-to x,y,z</c>, a debug step for the cave tour, B12).</summary>
+    TeleportTo,
+
     /// <summary>Hold the gather command on a block (<c>--interact x,y,z</c>).</summary>
     Interact,
 

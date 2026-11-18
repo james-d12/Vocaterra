@@ -1,0 +1,15 @@
+{
+  "about": "The decorative grass layer's data (B18, D-game-34 item 34). tops are the block kinds the tufts stand on (a tuft stands on the top face of such a block and only where the cell above is air). weights are the share of those columns that can carry a tuft at the slider's 100 percent, by biome id (from game/biomes.json), 0 to 1: lush in plains and meadows, thick on the forest floors, thin in the taiga and the grove. other is the weight of a biome not listed; unplaced is the weight where the world has no place query (the bounded valley, whose ground is all meadow). This file is render data only: nothing here reaches the world's generation, its digest or a save.",
+  "tops": ["grass"],
+  "weights": {
+    "plains": 1.0,
+    "meadow": 1.0,
+    "woodland": 0.9,
+    "birchwood": 0.9,
+    "dense-woodland": 0.85,
+    "grove": 0.5,
+    "taiga": 0.4
+  },
+  "other": 0.3,
+  "unplaced": 1.0
+}

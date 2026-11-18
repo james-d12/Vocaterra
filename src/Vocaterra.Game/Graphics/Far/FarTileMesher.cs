@@ -1,0 +1,895 @@
+using System.Buffers;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Lod;
+using Vocaterra.Game.Diagnostics;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.World;
+
+namespace Vocaterra.Game.Graphics.Far;
+
+/// <summary>Which of a tile's three lists a face goes into: the opaque land, the self-lit blocks (lava, lanterns: drawn in no light tint, so they glow at night) and the translucent water.</summary>
+public enum FarBucket
+{
+    /// <summary>The land and the trees.</summary>
+    Opaque,
+
+    /// <summary>Blocks that give light.</summary>
+    Lit,
+
+    /// <summary>Water.</summary>
+    Water,
+}
+
+/// <summary>
+/// One built far-view tile: the vertices of its faces (absolute world positions, each face its own four vertices in the colour it is lit), their triangles in three runs (opaque, lit, water), its box for culling and what it cost to make. The arrays are rented from the shared pools (B07d,
+/// the review's M3: a tile's arrays are megabytes, and at eight workers a fresh set for every tile is a gigabyte a second of large-object garbage), so they may be longer than the counts say: <see cref="Vertices"/> and the indices are views of the first <see cref="VertexCount"/> and
+/// <see cref="IndexCount"/> entries, and <see cref="Release"/> gives the arrays back once the tile's data is on the card or dropped (nothing may read the mesh after that).
+/// </summary>
+/// <param name="Key">The tile.</param>
+/// <param name="VertexArray">The vertices' array, absolute world positions, with a coordinate into the block atlas (a textured tile) or the noise texture; the first <paramref name="VertexCount"/> are the tile's.</param>
+/// <param name="VertexCount">How many vertices the tile has.</param>
+/// <param name="Index16Array">The triangles' indices when the tile has few enough vertices for 16 bits, otherwise <see langword="null"/>.</param>
+/// <param name="Index32Array">The triangles' indices when it has not, otherwise <see langword="null"/>.</param>
+/// <param name="IndexCount">How many indices the tile has.</param>
+/// <param name="OpaqueIndices">How many of the first indices are the opaque faces'.</param>
+/// <param name="LitIndices">How many indices after them are the self-lit faces'; the water's are the rest.</param>
+/// <param name="Box">The box round every vertex.</param>
+/// <param name="BuildMilliseconds">The time the section fetch and the meshing took.</param>
+/// <param name="Textured">Whether the opaque faces carry the block atlas's own textures (the nearest levels) and not flat colours with the noise texture.</param>
+public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] VertexArray, int VertexCount, ushort[]? Index16Array, int[]? Index32Array, int IndexCount, int OpaqueIndices, int LitIndices, BoundingBox Box, double BuildMilliseconds, bool Textured = false)
+{
+    private int _released;
+
+    /// <summary>The tile's vertices.</summary>
+    public ArraySegment<VertexPositionColorTexture> Vertices => new(VertexArray, 0, VertexCount);
+
+    /// <summary>The triangles' indices when the tile has few enough vertices for 16 bits, otherwise <see langword="null"/>.</summary>
+    public ArraySegment<ushort>? Indices16 => Index16Array is null ? default(ArraySegment<ushort>?) : new ArraySegment<ushort>(Index16Array, 0, IndexCount);
+
+    /// <summary>The triangles' indices when it has not, otherwise <see langword="null"/>.</summary>
+    public ArraySegment<int>? Indices32 => Index32Array is null ? default(ArraySegment<int>?) : new ArraySegment<int>(Index32Array, 0, IndexCount);
+
+    /// <summary>How many triangles the tile has.</summary>
+    public int Triangles => IndexCount / 3;
+
+    /// <summary>How many indices the water has.</summary>
+    public int WaterIndices => IndexCount - OpaqueIndices - LitIndices;
+
+    /// <summary>The bytes the vertices and indices take.</summary>
+    public long Bytes => ((long)VertexCount * VertexPositionColorTexture.VertexDeclaration.VertexStride) + (Index16Array is not null ? IndexCount * sizeof(ushort) : IndexCount * sizeof(int));
+
+    /// <summary>The index at a position of the index list.</summary>
+    /// <param name="position">The position.</param>
+    public int IndexAt(int position) => Index16Array is not null ? Index16Array[position] : Index32Array![position];
+
+    /// <summary>Gives the arrays back to the pools (once; later calls do nothing). The mesh must not be read afterwards.</summary>
+    public void Release()
+    {
+        if (Interlocked.Exchange(ref _released, 1) != 0)
+        {
+            return;
+        }
+
+        ArrayPool<VertexPositionColorTexture>.Shared.Return(VertexArray);
+        if (Index16Array is not null)
+        {
+            ArrayPool<ushort>.Shared.Return(Index16Array);
+        }
+
+        if (Index32Array is not null)
+        {
+            ArrayPool<int>.Shared.Return(Index32Array);
+        }
+    }
+}
+
+/// <summary>The faces of a tile as they are made: quads (four vertices of one colour) with the winding the back-face culling keeps, so a face shows from the side its normal points to and never from behind.</summary>
+internal sealed class FarGeometry
+{
+    [ThreadStatic]
+    private static FarGeometry? _rented;
+
+    private readonly List<VertexPositionColorTexture>[] _vertices = [new(4096), new(256), new(256)];
+    private readonly List<int>[] _indices = [new(8192), new(512), new(512)];
+
+    /// <summary>This thread's geometry, emptied: a worker builds tile after tile and its lists keep their room (no new large arrays per tile). Only one use at a time per thread.</summary>
+    public static FarGeometry Rent()
+    {
+        var geometry = _rented ??= new FarGeometry();
+        foreach (var list in geometry._vertices)
+        {
+            list.Clear();
+        }
+
+        foreach (var list in geometry._indices)
+        {
+            list.Clear();
+        }
+
+        return geometry;
+    }
+
+    /// <summary>Adds a quad (four corners in order round it, with their texture coordinates) facing <paramref name="normal"/>.</summary>
+    public void Quad(FarBucket bucket, (Vector3 P, Vector2 T) a, (Vector3 P, Vector2 T) b, (Vector3 P, Vector2 T) c, (Vector3 P, Vector2 T) d, Color colour, Vector3 normal)
+    {
+        if (Vector3.Dot(Vector3.Cross(b.P - a.P, c.P - a.P), normal) < 0)
+        {
+            (b, d) = (d, b);
+        }
+
+        var vertices = _vertices[(int)bucket];
+        var indices = _indices[(int)bucket];
+        var first = vertices.Count;
+        vertices.Add(new VertexPositionColorTexture(a.P, colour, a.T));
+        vertices.Add(new VertexPositionColorTexture(b.P, colour, b.T));
+        vertices.Add(new VertexPositionColorTexture(c.P, colour, c.T));
+        vertices.Add(new VertexPositionColorTexture(d.P, colour, d.T));
+        indices.Add(first);
+        indices.Add(first + 1);
+        indices.Add(first + 2);
+        indices.Add(first);
+        indices.Add(first + 2);
+        indices.Add(first + 3);
+    }
+
+    /// <summary>The tile made of what was added: its arrays are rented from the shared pools (see <see cref="FarTileMesh"/>).</summary>
+    public FarTileMesh Finish(FarTileKey key, double milliseconds, bool textured)
+    {
+        var total = _vertices[0].Count + _vertices[1].Count + _vertices[2].Count;
+        var count = _indices[0].Count + _indices[1].Count + _indices[2].Count;
+        var vertices = ArrayPool<VertexPositionColorTexture>.Shared.Rent(Math.Max(total, 1));
+        var narrow = total <= ushort.MaxValue ? ArrayPool<ushort>.Shared.Rent(Math.Max(count, 1)) : null;
+        var wide = narrow is null ? ArrayPool<int>.Shared.Rent(Math.Max(count, 1)) : null;
+        var v = 0;
+        var ix = 0;
+        for (var b = 0; b < 3; b++)
+        {
+            _vertices[b].CopyTo(vertices, v);
+            foreach (var index in _indices[b])
+            {
+                if (narrow is not null)
+                {
+                    narrow[ix++] = (ushort)(index + v);
+                }
+                else
+                {
+                    wide![ix++] = index + v;
+                }
+            }
+
+            v += _vertices[b].Count;
+        }
+
+        var min = new Vector3(float.MaxValue);
+        var max = new Vector3(float.MinValue);
+        for (var i = 0; i < total; i++)
+        {
+            min = Vector3.Min(min, vertices[i].Position);
+            max = Vector3.Max(max, vertices[i].Position);
+        }
+
+        if (total == 0)
+        {
+            min = max = Vector3.Zero;
+        }
+
+        return new FarTileMesh(key, vertices, total, narrow, wide, count, _indices[0].Count, _indices[1].Count, new BoundingBox(min, max), milliseconds, textured);
+    }
+}
+
+/// <summary>
+/// Builds a far-view tile from the store's three-dimensional sections (B07c; D-game-34 item 25, the way the Voxy mod draws its far world): the stack of sections of a tile's footprint, from the world's floor to its ceiling, is one volume of voxels of the
+/// tile's level (a voxel is 2^level blocks a side), and its faces are the tile: a face of a solid voxel wherever the next voxel is air or water, so an overhang, an arch, a crown over a trunk or a cave mouth keep their shape at every level. The nearest levels
+/// (<see cref="FarViewSettings.TexturedLevels"/>) draw each face with its block's own atlas texture, mipmapped; further out, where a block is a few pixels, faces are the average colour of the block's art with a small noise texture, and runs of faces of one colour are
+/// merged into one quad. Each face is lit as the chunk mesher lights a face of that facing and by the light stored in the voxel in front of it, with a little darkening at the foot of a step; water is its own translucent list, darker and more opaque with depth;
+/// blocks that give light are another, drawn in no light tint. Along the tile's outer edge only the faces near the surface are drawn (a skirt), so two levels that meet leave no crack and no wall of buried stone is built. Only quads with whole-voxel edges are made.
+/// </summary>
+public static class FarTileMesher
+{
+    /// <summary>The side of the noise texture in texels; one texel is one voxel of the tile's level.</summary>
+    public const int NoiseSize = 64;
+
+    /// <summary>The factor that brings the noise texture's mean brightness (see <see cref="FarNoise"/>) back to 1.</summary>
+    public const float NoiseGain = 1.075f;
+
+    // Water this deep (in blocks) is opaque, and what lies under it is not drawn.
+    private const int DeepWater = 12;
+
+    // A cave is drawn only this far (in blocks) under the ground over it: further down nothing outside sees it.
+    private const int CaveDepth = 24;
+
+    /// <summary>Builds a tile.</summary>
+    /// <param name="source">The sections.</param>
+    /// <param name="settings">The far view's settings (the cells and the tile's size).</param>
+    /// <param name="key">The tile.</param>
+    /// <param name="greyKinds">The block kinds drawn grey (the greyscale view, <see cref="ChunkMesher.KindBit"/>): the land they make is drawn grey from afar too, so the seam with the chunks has one colour.</param>
+    public static FarTileMesh Build(ILodSectionSource source, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(settings);
+        var started = MonotonicClock.Milliseconds();
+        var stack = source.Stack(key.Level, key.Tx, key.Tz);
+        LodStack?[] neighbours = [source.Stack(key.Level, key.Tx + 1, key.Tz), source.Stack(key.Level, key.Tx - 1, key.Tz), source.Stack(key.Level, key.Tx, key.Tz + 1), source.Stack(key.Level, key.Tx, key.Tz - 1)];
+        return Mesh(stack, settings, key, greyKinds, started, neighbours);
+    }
+
+    /// <summary>The tile of a stack of sections.</summary>
+    /// <param name="stack">The stack of the tile's footprint.</param>
+    /// <param name="settings">The settings.</param>
+    /// <param name="key">The tile.</param>
+    /// <param name="greyKinds">The block kinds drawn grey.</param>
+    /// <param name="started">The clock when the work began.</param>
+    /// <param name="neighbours">The stacks of the four tiles at the same level beside it, +x, -x, +z, -z (a <see langword="null"/> entry or none: that side is open and gets a skirt from the tile's own ground): the tile's edge faces are culled against their voxels like faces inside, so no cliff on a border has a slot to look through.</param>
+    public static FarTileMesh Mesh(LodStack stack, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, double? started = null, LodStack?[]? neighbours = null)
+    {
+        ArgumentNullException.ThrowIfNull(stack);
+        ArgumentNullException.ThrowIfNull(settings);
+        var begin = started ?? MonotonicClock.Milliseconds();
+        var textured = key.Level < settings.TexturedLevels;
+        var cell = settings.CellOf(key.Level);
+        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make(), settings.Ground);
+        var geometry = FarGeometry.Rent();
+        for (var axis = 0; axis < 3; axis++)
+        {
+            Sweep(geometry, context, axis, true);
+            Sweep(geometry, context, axis, false);
+        }
+
+        return geometry.Finish(key, MonotonicClock.Milliseconds() - begin, textured);
+    }
+
+    /// <summary>The colour a block's top face has in a light, with the sky light of the data and no other shading: the average of its atlas tile times the light.</summary>
+    /// <param name="block">The block.</param>
+    /// <param name="light">The light on it, the multiplier of each channel (<see cref="ChunkMesher.SunTintFor"/>).</param>
+    /// <param name="sky">The sky light, 0 to 15.</param>
+    /// <param name="greyKinds">The block kinds drawn grey.</param>
+    public static Color TopColour(BlockId block, (float R, float G, float B) light, int sky = 15, UInt128 greyKinds = default) =>
+        Pack(Rgb(block, false, greyKinds), light, SkyShade(sky) * NoiseGain);
+
+    // ---- the volume: a stack of sections as one array of voxels
+
+    private sealed class Volume
+    {
+        // A worker's arrays, kept between tiles (a volume is megabytes: made new for every tile they would fill the large-object heap): a few bytes of the last tile's rows past the volume's own length are never read.
+        [ThreadStatic]
+        private static Buffers? _buffers;
+
+        private readonly int[] _surface = new int[LodSection.Size * LodSection.Size];
+        private readonly int[] _queue;
+        private readonly int _length;
+
+        public Volume(LodStack stack, int cell, int skirtCells, LodStack?[]? neighbours = null)
+        {
+            Height = stack.Sections.Length * LodSection.Size;
+            YBase = stack.SyMin * LodSection.Size;
+            _length = Height * LodSection.Size * LodSection.Size;
+            var buffers = _buffers ??= new Buffers();
+            buffers.Ensure(_length);
+            Blocks = buffers.Blocks;
+            Light = buffers.Light;
+            Open = buffers.Open;
+            _queue = buffers.Queue;
+            Top = int.MinValue;
+            Bottom = int.MaxValue;
+            Array.Fill(_surface, int.MaxValue);
+            for (var s = 0; s < stack.Sections.Length; s++)
+            {
+                var section = stack.Sections[s];
+                var offset = s * LodSection.Volume;
+                if (section.IsUniform)
+                {
+                    Array.Fill(Blocks, section.FillBlock, offset, LodSection.Volume);
+                    if (section.FillBlock != BlockId.Air)
+                    {
+                        Top = Math.Max(Top, ((s + 1) * LodSection.Size) - 1);
+                        Bottom = Math.Min(Bottom, s * LodSection.Size);
+                    }
+
+                    Array.Fill(Light, section.LightAt(0), offset, LodSection.Volume);
+                    continue;
+                }
+
+                for (var i = 0; i < LodSection.Volume; i++)
+                {
+                    var block = section.BlockAt(i);
+                    Blocks[offset + i] = block;
+                    Light[offset + i] = section.LightAt(i);
+                    if (block != BlockId.Air)
+                    {
+                        var y = (s * LodSection.Size) + (i >> 10);
+                        Top = Math.Max(Top, y);
+                        Bottom = Math.Min(Bottom, y);
+                    }
+                }
+            }
+
+            ReadBorders(stack, neighbours);
+            FindOpen((CaveDepth + cell - 1) / cell, skirtCells);
+        }
+
+        // The voxels just over each side of the tile (side 0 +x, 1 -x, 2 +z, 3 -z; the row of a side is z for the x sides and x for the z sides) read from the stack of the same level beside it, and the ground of each of those columns.
+        private readonly BlockId[]?[] _border = new BlockId[]?[4];
+        private readonly int[]?[] _borderGround = new int[]?[4];
+
+        private void ReadBorders(LodStack stack, LodStack?[]? neighbours)
+        {
+            if (neighbours is null)
+            {
+                return;
+            }
+
+            for (var side = 0; side < 4 && side < neighbours.Length; side++)
+            {
+                var other = neighbours[side];
+                if (other is null || other.SyMin != stack.SyMin || other.Sections.Length != stack.Sections.Length)
+                {
+                    continue;
+                }
+
+                var blocks = new BlockId[Height * LodSection.Size];
+                var ground = new int[LodSection.Size];
+                Array.Fill(ground, int.MinValue / 2);
+                for (var s = 0; s < other.Sections.Length; s++)
+                {
+                    var section = other.Sections[s];
+                    if (section.IsUniform && section.FillBlock == BlockId.Air)
+                    {
+                        continue;
+                    }
+
+                    for (var y = 0; y < LodSection.Size; y++)
+                    {
+                        var row = (s * LodSection.Size) + y;
+                        for (var k = 0; k < LodSection.Size; k++)
+                        {
+                            var (x, z) = side switch { 0 => (0, k), 1 => (LodSection.Size - 1, k), 2 => (k, 0), _ => (k, LodSection.Size - 1) };
+                            var block = section.BlockAt(LodSection.Index(x, y, z));
+                            blocks[(row * LodSection.Size) + k] = block;
+                            if (block != BlockId.Air && block != BlockId.Water && !BlockDefinition.IsLeaves(block) && !BlockDefinition.IsTrunk(block))
+                            {
+                                ground[k] = Math.Max(ground[k], row);
+                            }
+                        }
+                    }
+                }
+
+                _border[side] = blocks;
+                _borderGround[side] = ground;
+            }
+        }
+
+        /// <summary>Whether the stack beside a side was read.</summary>
+        public bool HasBorder(int side) => _border[side] is not null;
+
+        /// <summary>The block over the edge at a side, in the row k, at height y.</summary>
+        public BlockId BorderAt(int side, int y, int k) => _border[side]![(y * LodSection.Size) + k];
+
+        /// <summary>The y of the ground (the highest solid voxel that is not a crown or a trunk) of the column beside a side, in the row k.</summary>
+        public int BorderGround(int side, int k) => _borderGround[side]![k];
+
+        // The air that the outside can see: every air voxel the sky light reaches, and the air joined to it through the sides as well (an overhang's underside, a cave mouth), but only within `depth` voxels of the ground
+        // over it, so the faces of caves and shafts deep under the ground are never made; along the tile's edge the air within the skirt counts too.
+        private void FindOpen(int depth, int skirt)
+        {
+            // Rows more than one above the highest solid voxel or one under the lowest are open air and never searched: only the rows between are (the rows next to the solid ones start the search).
+            var empty = Top < Bottom;
+            var lo = empty ? 0 : Math.Max(0, Bottom - 1);
+            var hi = empty ? -1 : Math.Min(Height - 1, Top + 1);
+            Array.Clear(Open, 0, _length);
+            var queue = _queue;
+            var count = 0;
+            var floor = new int[LodSection.Size * LodSection.Size];
+            for (var column = 0; column < floor.Length; column++)
+            {
+                floor[column] = SurfaceOf(column & 31, column >> 5);
+            }
+
+            for (var i = lo << 10; i < (hi + 1) << 10; i++)
+            {
+                if (Blocks[i] != BlockId.Air)
+                {
+                    continue;
+                }
+
+                var y = i >> 10;
+                var edge = (i & 31) is 0 or 31 || ((i >> 5) & 31) is 0 or 31;
+                if ((Light[i] >> 4) > 0 || (edge && y >= floor[i & 1023] - skirt) || y == Top + 1 || y == Bottom - 1)
+                {
+                    Open[i] = true;
+                    queue[count++] = i;
+                }
+            }
+
+            for (var head = 0; head < count; head++)
+            {
+                var i = queue[head];
+                var (x, z, y) = (i & 31, (i >> 5) & 31, i >> 10);
+                for (var k = 0; k < 6; k++)
+                {
+                    var (nx, ny, nz) = k switch { 0 => (x + 1, y, z), 1 => (x - 1, y, z), 2 => (x, y + 1, z), 3 => (x, y - 1, z), 4 => (x, y, z + 1), _ => (x, y, z - 1) };
+                    if ((uint)nx >= LodSection.Size || (uint)nz >= LodSection.Size || ny < lo || ny > hi)
+                    {
+                        continue;
+                    }
+
+                    var n = At(nx, ny, nz);
+                    if (!Open[n] && Blocks[n] == BlockId.Air && ny >= floor[(nz << 5) | nx] - depth)
+                    {
+                        Open[n] = true;
+                        queue[count++] = n;
+                    }
+                }
+            }
+        }
+
+        // The y of the highest solid voxel of a column, once, for the search above.
+        private int SurfaceOf(int x, int z)
+        {
+            for (var y = Top; y >= Bottom; y--)
+            {
+                var block = Blocks[At(x, y, z)];
+                if (block != BlockId.Air && block != BlockId.Water)
+                {
+                    return y;
+                }
+            }
+
+            return int.MinValue / 2;
+        }
+
+        public bool[] Open { get; }
+
+        // Whether the air at a voxel is open to the outside: the rows beyond the search's range are.
+        public bool IsOpen(int x, int y, int z) => Top < Bottom || y < Bottom - 1 || y > Top + 1 || Open[At(x, y, z)];
+
+        public int Height { get; }
+
+        public int YBase { get; }
+
+        public BlockId[] Blocks { get; }
+
+        public byte[] Light { get; }
+
+        // The highest and lowest rows that hold anything but air.
+        public int Top { get; }
+
+        public int Bottom { get; }
+
+        public bool In(int x, int y, int z) => (uint)x < LodSection.Size && (uint)y < (uint)Height && (uint)z < LodSection.Size;
+
+        public int At(int x, int y, int z) => (((y << 5) | z) << 5) | x;
+
+        // A voxel's block, with air above the volume and stone under it (the world's floor).
+        public BlockId BlockAt(int x, int y, int z) => y >= Height ? BlockId.Air : y < 0 ? BlockId.Stone : In(x, y, z) ? Blocks[At(x, y, z)] : BlockId.Air;
+
+        // The block of the highest solid voxel of a column (air for none).
+        public BlockId SurfaceBlock(int x, int z)
+        {
+            var y = Surface(x, z);
+            return y >= 0 && y < Height ? Blocks[At(x, y, z)] : BlockId.Air;
+        }
+
+        // The y of the highest solid voxel of a column that is not a crown or a trunk: the ground, from which a skirt hangs.
+        public int Ground(int x, int z)
+        {
+            for (var y = Top; y >= Bottom; y--)
+            {
+                var block = Blocks[At(x, y, z)];
+                if (block != BlockId.Air && block != BlockId.Water && !BlockDefinition.IsLeaves(block) && !BlockDefinition.IsTrunk(block))
+                {
+                    return y;
+                }
+            }
+
+            return int.MinValue / 2;
+        }
+
+        // The y of the highest solid voxel of a column (found once).
+        public int Surface(int x, int z)
+        {
+            ref var found = ref _surface[(z << 5) | x];
+            if (found != int.MaxValue)
+            {
+                return found;
+            }
+
+            found = int.MinValue / 2;
+            for (var y = Top; y >= Bottom; y--)
+            {
+                var block = Blocks[At(x, y, z)];
+                if (block != BlockId.Air && block != BlockId.Water)
+                {
+                    found = y;
+                    break;
+                }
+            }
+
+            return found;
+        }
+    }
+
+    private sealed record Context(Volume Volume, int Cell, int X0, int Z0, int SkirtCells, bool Textured, UInt128 Grey, Lights Light, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null);
+
+    // ---- colours
+
+    private static (float R, float G, float B) Rgb(BlockId block, bool side, UInt128 greyKinds)
+    {
+        var (r, g, b) = side ? FarPalette.SideOf(block) : FarPalette.Of(block);
+        if (!ChunkMesher.IsGrey(block, greyKinds))
+        {
+            return (r, g, b);
+        }
+
+        var luma = Greyscale.Luma(r, g, b);
+        return (luma, luma, luma);
+    }
+
+    // Under a crown or water the air gets less sky light; the shade it gives the land is a little, never black.
+    private static float SkyShade(int sky) => 0.45f + (0.55f * Math.Clamp(sky, 0, 15) / 15f);
+
+    // Water is the art's colour, deeper and darker with depth (in blocks), more opaque with depth until it hides the bed.
+    private static Color WaterOf(int depth, (float R, float G, float B) light, UInt128 greyKinds)
+    {
+        var water = Rgb(BlockId.Water, false, greyKinds);
+        var t = Math.Clamp((depth - 1) / 14f, 0f, 1f);
+        var shade = 1f - (0.45f * t);
+        var alpha = Math.Clamp(0.55f + (0.45f * Math.Min(1f, (depth - 1) / (float)(DeepWater - 1))), 0f, 1f);
+        var colour = Pack(water, light, shade * NoiseGain);
+        return new Color(colour.R, colour.G, colour.B, (byte)(alpha * 255f));
+    }
+
+    private sealed class Buffers
+    {
+        public BlockId[] Blocks { get; private set; } = [];
+
+        public byte[] Light { get; private set; } = [];
+
+        public bool[] Open { get; private set; } = [];
+
+        public int[] Queue { get; private set; } = [];
+
+        public void Ensure(int length)
+        {
+            if (Blocks.Length >= length)
+            {
+                return;
+            }
+
+            var size = Math.Max(length, Blocks.Length * 5 / 4);
+            Blocks = new BlockId[size];
+            Light = new byte[size];
+            Open = new bool[size];
+            Queue = new int[size];
+        }
+    }
+
+    private readonly record struct Lights((float R, float G, float B) Up, (float R, float G, float B) Down, (float R, float G, float B) East, (float R, float G, float B) West, (float R, float G, float B) South, (float R, float G, float B) North)
+    {
+        // The tints the chunk mesher's faces take, by the same function.
+        public static Lights Make() => new(ChunkMesher.SunTintFor(0, 1, 0), ChunkMesher.SunTintFor(0, -1, 0), ChunkMesher.SunTintFor(1, 0, 0), ChunkMesher.SunTintFor(-1, 0, 0), ChunkMesher.SunTintFor(0, 0, 1), ChunkMesher.SunTintFor(0, 0, -1));
+
+        public (float R, float G, float B) Of(BlockFace face) => face switch
+        {
+            BlockFace.Up => Up,
+            BlockFace.Down => Down,
+            BlockFace.East => East,
+            BlockFace.West => West,
+            BlockFace.South => South,
+            _ => North,
+        };
+    }
+
+    private static Color Pack((float R, float G, float B) colour, (float R, float G, float B) light, float factor) =>
+        new((byte)Math.Clamp(colour.R * light.R * factor, 0f, 255f), (byte)Math.Clamp(colour.G * light.G * factor, 0f, 255f), (byte)Math.Clamp(colour.B * light.B * factor, 0f, 255f), (byte)255);
+
+    private static readonly (float R, float G, float B) NoTint = (1f, 1f, 1f);
+
+    // The colour a textured face is multiplied from: white, the atlas giving the rest.
+    private static readonly (float R, float G, float B) White = (255f, 255f, 255f);
+
+    // ---- the faces
+
+    // What a face is, for merging: its colour and list, and (textured) the block it shows, so that none is merged with another.
+    private readonly record struct Face(Color Colour, FarBucket Bucket, BlockId Block, bool Merge);
+
+    private static readonly (int X, int Y, int Z)[] Axes = [(1, 0, 0), (0, 1, 0), (0, 0, 1)];
+
+    private static BlockFace FaceOf(int axis, bool positive) => axis switch
+    {
+        0 => positive ? BlockFace.East : BlockFace.West,
+        1 => positive ? BlockFace.Up : BlockFace.Down,
+        _ => positive ? BlockFace.South : BlockFace.North,
+    };
+
+    // One direction: every voxel face of the volume that looks that way, merged where it may be, into quads.
+    private static void Sweep(FarGeometry geometry, Context c, int axis, bool positive)
+    {
+        var v = c.Volume;
+        if (v.Top == int.MinValue)
+        {
+            return;
+        }
+
+        // The axes of the plane the faces lie in: u and w.
+        var (ua, wa) = axis switch { 0 => (2, 1), 1 => (0, 2), _ => (0, 1) };
+        var face = FaceOf(axis, positive);
+        var tint = c.Light.Of(face);
+        int[] lo = [0, Math.Max(0, v.Bottom - 1), 0];
+        int[] hi = [LodSection.Size - 1, Math.Min(v.Height - 1, v.Top + 1), LodSection.Size - 1];
+        var pos = new int[3];
+        var nu = hi[ua] - lo[ua] + 1;
+        var nw = hi[wa] - lo[wa] + 1;
+        var mask = new Face?[nu * nw];
+        var step = positive ? 1 : -1;
+        for (var slice = lo[axis]; slice <= hi[axis]; slice++)
+        {
+            Array.Clear(mask);
+            var any = false;
+            for (var w = lo[wa]; w <= hi[wa]; w++)
+            {
+                for (var u = lo[ua]; u <= hi[ua]; u++)
+                {
+                    pos[axis] = slice;
+                    pos[ua] = u;
+                    pos[wa] = w;
+                    var block = v.BlockAt(pos[0], pos[1], pos[2]);
+                    if (block == BlockId.Air)
+                    {
+                        continue;
+                    }
+
+                    var made = FaceAt(c, block, (pos[0], pos[1], pos[2]), (pos[0] + (Axes[axis].X * step), pos[1] + (Axes[axis].Y * step), pos[2] + (Axes[axis].Z * step)), axis, positive, face, tint);
+                    if (made is not null)
+                    {
+                        mask[((w - lo[wa]) * nu) + (u - lo[ua])] = made;
+                        any = true;
+                    }
+                }
+            }
+
+            if (any)
+            {
+                Merge(geometry, c, mask, nu, nw, lo[ua], lo[wa], slice, axis, ua, wa, positive, face);
+            }
+        }
+    }
+
+    // The face of the voxel at `at` looking at the neighbour `to`, or null when it is not seen.
+    private static Face? FaceAt(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint)
+    {
+        var v = c.Volume;
+        var inside = v.In(to.X, to.Y, to.Z);
+        var other = v.BlockAt(to.X, to.Y, to.Z);
+        if (!inside && to.Y >= 0 && to.Y < v.Height)
+        {
+            if (block == BlockId.Water)
+            {
+                return null; // never a wall of water over a tile's edge
+            }
+
+            var border = axis == 0 ? (positive ? 0 : 1) : (positive ? 2 : 3);
+            if (v.HasBorder(border))
+            {
+                // Beside a tile of the same level: a face is culled by the voxel over the edge like one inside; below the neighbour's ground it is drawn down to a skirt's depth (hiding a step to a coarser neighbour), never deeper.
+                var k = axis == 0 ? at.Z : at.X;
+                other = v.BorderAt(border, at.Y, k);
+                var ground = v.BorderGround(border, k);
+                if (at.Y < ground - c.SkirtCells || (other is not (BlockId.Air or BlockId.Water) && at.Y > ground))
+                {
+                    return null;
+                }
+
+                if (other is not (BlockId.Air or BlockId.Water))
+                {
+                    other = BlockId.Air; // within the skirt under the neighbour's ground: drawn
+                }
+            }
+            else if (at.Y < v.Ground(at.X, at.Z) - c.SkirtCells)
+            {
+                return null; // no tile beside it: a skirt from its own ground
+            }
+        }
+
+        if (other == BlockId.Air && inside && !v.IsOpen(to.X, to.Y, to.Z))
+        {
+            return null; // air sealed under the ground: nothing outside sees it
+        }
+
+        var nearLight = inside ? v.Light[v.At(to.X, to.Y, to.Z)] : LodSection.SkyFull;
+        if (block == BlockId.Water)
+        {
+            if (other != BlockId.Air || (axis == 1 && !positive))
+            {
+                return null;
+            }
+
+            var depth = 1;
+            for (var k = 1; k <= DeepWater && v.BlockAt(at.X, at.Y - k, at.Z) == BlockId.Water; k++)
+            {
+                depth++;
+            }
+
+            return new Face(WaterOf(depth * c.Cell, tint, c.Grey), FarBucket.Water, BlockId.Water, true);
+        }
+
+        if ((other != BlockId.Air && other != BlockId.Water) || (other == BlockId.Water && DeepBed(c, to)))
+        {
+            return null;
+        }
+
+        var side = face != BlockFace.Up && face != BlockFace.Down;
+        if ((v.Light[v.At(at.X, at.Y, at.Z)] & 0xF) > 0)
+        {
+            return c.Textured
+                ? new Face(Pack(White, NoTint, 1f), FarBucket.Lit, block, false)
+                : new Face(Pack(Rgb(block, side, c.Grey), NoTint, 1f), FarBucket.Lit, BlockId.Air, true);
+        }
+
+        var shade = SkyShade(nearLight >> 4);
+        if (face == BlockFace.Up)
+        {
+            shade *= 1f - Occlusion(v, at.X, at.Y, at.Z);
+        }
+
+        // The biome's colour of grass and oak leaves (B22), the chunk mesher's map; 1 for every other block.
+        var land = FarPalette.LandTint(block, side, c.Ground, c.X0 + (at.X * c.Cell), (v.YBase + at.Y) * c.Cell, c.Z0 + (at.Z * c.Cell));
+        if (c.Textured)
+        {
+            return new Face(Pack((255f * land.R, 255f * land.G, 255f * land.B), tint, shade), FarBucket.Opaque, block, false);
+        }
+
+        var flat = side ? Covered(v, c, block, at) : Rgb(block, false, c.Grey);
+        return new Face(Pack((flat.R * land.R, flat.G * land.G, flat.B * land.B), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
+    }
+
+    // The colour of a flat level's side face: a cliff of a snow-topped column is mostly snow seen from afar (the cap would otherwise be a one-voxel line on a grey wall, and a far mountain grey), so its stone is mixed with the snow's white.
+    private static (float R, float G, float B) Covered(Volume v, Context c, BlockId block, (int X, int Y, int Z) at)
+    {
+        var own = Rgb(block, true, c.Grey);
+        if (block == BlockId.Snow || v.SurfaceBlock(at.X, at.Z) != BlockId.Snow)
+        {
+            return own;
+        }
+
+        var snow = Rgb(BlockId.Snow, false, c.Grey);
+        const float share = 0.85f;
+        return (own.R + ((snow.R - own.R) * share), own.G + ((snow.G - own.G) * share), own.B + ((snow.B - own.B) * share));
+    }
+
+    // Whether the water over a bed is deep enough (in blocks) to hide it: the water voxels standing over the neighbour voxel.
+    private static bool DeepBed(Context c, (int X, int Y, int Z) at)
+    {
+        var count = 0;
+        while (c.Volume.BlockAt(at.X, at.Y + count, at.Z) == BlockId.Water)
+        {
+            count++;
+            if (count * c.Cell >= DeepWater)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static readonly (int Dx, int Dz)[] Around = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+    // The foot of a step: a little darker for each solid voxel beside the one over a top face.
+    private static float Occlusion(Volume v, int x, int y, int z)
+    {
+        var n = 0;
+        foreach (var (dx, dz) in Around)
+        {
+            var b = v.BlockAt(x + dx, y + 1, z + dz);
+            n += b != BlockId.Air && b != BlockId.Water ? 1 : 0;
+        }
+
+        return Math.Min(0.24f, n * 0.06f);
+    }
+
+    // The quads of one slice's mask: merged runs of equal faces (flat colours), or one quad a face (textured).
+    private static void Merge(FarGeometry geometry, Context c, Face?[] mask, int nu, int nw, int u0, int w0, int slice, int axis, int ua, int wa, bool positive, BlockFace face)
+    {
+        var used = new bool[mask.Length];
+        for (var w = 0; w < nw; w++)
+        {
+            for (var u = 0; u < nu; u++)
+            {
+                var at = (w * nu) + u;
+                if (mask[at] is not { } first || used[at])
+                {
+                    continue;
+                }
+
+                var width = 1;
+                var height = 1;
+                if (first.Merge)
+                {
+                    while (u + width < nu && !used[at + width] && mask[at + width] is { } next && next == first)
+                    {
+                        width++;
+                    }
+
+                    while (w + height < nw && RowMatches(mask, used, nu, u, w + height, width, first))
+                    {
+                        height++;
+                    }
+                }
+
+                for (var dw = 0; dw < height; dw++)
+                {
+                    for (var du = 0; du < width; du++)
+                    {
+                        used[((w + dw) * nu) + u + du] = true;
+                    }
+                }
+
+                Emit(geometry, c, first, axis, ua, wa, positive, face, slice, u0 + u, w0 + w, width, height);
+            }
+        }
+    }
+
+    private static bool RowMatches(Face?[] mask, bool[] used, int nu, int u, int w, int width, Face first)
+    {
+        for (var k = 0; k < width; k++)
+        {
+            var at = (w * nu) + u + k;
+            if (used[at] || mask[at] is not { } other || other != first)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // One quad: the voxel faces from (u, w) over width x height, on the plane between slices.
+    private static void Emit(FarGeometry geometry, Context c, Face made, int axis, int ua, int wa, bool positive, BlockFace face, int slice, int u, int w, int width, int height)
+    {
+        // The plane's coordinate along the axis: the far side of the voxel when the face looks along +axis.
+        var plane = slice + (positive ? 1 : 0);
+        var cell = (float)c.Cell;
+        Vector3 P(int pu, int pw)
+        {
+            var p = new int[3];
+            p[axis] = plane;
+            p[ua] = pu;
+            p[wa] = pw;
+            return new Vector3(c.X0 + (p[0] * cell), (c.Volume.YBase + p[1]) * cell, c.Z0 + (p[2] * cell));
+        }
+
+        var a = P(u, w);
+        var b = P(u + width, w);
+        var d = P(u, w + height);
+        var e = P(u + width, w + height);
+        var normal = axis switch
+        {
+            0 => positive ? Vector3.UnitX : -Vector3.UnitX,
+            1 => positive ? Vector3.UnitY : -Vector3.UnitY,
+            _ => positive ? Vector3.UnitZ : -Vector3.UnitZ,
+        };
+        var textured = c.Textured && made.Bucket != FarBucket.Water;
+        if (textured)
+        {
+            // One voxel face with the atlas tile of its block and facing: the top's texture along x and z, a side's top edge up (the plane's w axis is y).
+            var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(BlockAtlasLayout.CellFor(made.Block, face), ChunkMesher.IsGrey(made.Block, c.Grey));
+            if (axis == 1)
+            {
+                geometry.Quad(made.Bucket, (a, new Vector2(u0, v0)), (b, new Vector2(u1, v0)), (e, new Vector2(u1, v1)), (d, new Vector2(u0, v1)), made.Colour, normal);
+            }
+            else
+            {
+                geometry.Quad(made.Bucket, (a, new Vector2(u0, v1)), (b, new Vector2(u1, v1)), (e, new Vector2(u1, v0)), (d, new Vector2(u0, v0)), made.Colour, normal);
+            }
+
+            return;
+        }
+
+        // The noise: one texel to a voxel, wrapped.
+        var span = 1f / (cell * NoiseSize);
+        Vector2 Uv(Vector3 p) => axis == 1 ? new Vector2(p.X * span, p.Z * span) : axis == 0 ? new Vector2(p.Z * span, p.Y * span) : new Vector2(p.X * span, p.Y * span);
+        geometry.Quad(made.Bucket, (a, Uv(a)), (b, Uv(b)), (e, Uv(e)), (d, Uv(d)), made.Colour, normal);
+    }
+}

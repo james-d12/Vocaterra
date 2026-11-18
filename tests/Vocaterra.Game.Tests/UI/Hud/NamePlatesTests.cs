@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.UI.Hud;
@@ -8,6 +9,7 @@ using Vocaterra.Game.UI.Hud;
 namespace Vocaterra.Game.Tests.UI.Hud;
 
 /// <summary>Which NPCs show their name plate (<see cref="NamePlates.Select"/>, V22): the one the player faces within talking range and the beacon's, no other.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class NamePlatesTests
 {
     private static readonly NpcFigure Guide = new("guide", "Luna", new BlockPos(179, 42, 187), 0);
@@ -43,7 +45,7 @@ public sealed class NamePlatesTests
     // north of the bakery, where the bakery is between the camera and her (the beacon is on her in both, the toast of the request gone after five seconds: the Lessons page's "Ask for a class" for El mercado sends it to her, so Select picks her in both). The test runs the game window, so it needs a
     // display (DISPLAY) and the built game; without one it does nothing, as the other tests of tools that are not there (PlaytestReportTests).
     [Fact]
-    public void TheBeaconsNpcBehindABuildingHasNoPlateDrawnAndInTheOpenShesGotOne()
+    public async Task TheBeaconsNpcBehindABuildingHasNoPlateDrawnAndInTheOpenShesGotOne()
     {
         var dll = Path.Combine(AppContext.BaseDirectory, "Vocaterra.Game.dll");
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")) || !File.Exists(dll))
@@ -55,10 +57,11 @@ public sealed class NamePlatesTests
         try
         {
             _ = Directory.CreateDirectory(folder);
-            var inTheOpen = Shot(dll, folder, "open", "281,222", "0,4");        // the square, looking north at the bakery's door: the baker stands in front of it
-            var behind = Shot(dll, folder, "behind", "281,196", "180,4");       // north of the bakery, looking south: the bakery is between
-            Assert.NotEmpty(PlateRows(inTheOpen));
-            Assert.Empty(PlateRows(behind));
+            // B28: the two game processes (each starts, builds the world and waits its seconds) run at the same time, not one after the other; the folders and the pictures are apart.
+            var inTheOpen = Task.Run(() => Shot(dll, folder, "open", "281,222", "0,4"));        // the square, looking north at the bakery's door: the baker stands in front of it
+            var behind = Task.Run(() => Shot(dll, folder, "behind", "281,196", "180,4"));       // north of the bakery, looking south: the bakery is between
+            Assert.NotEmpty(PlateRows(await inTheOpen));
+            Assert.Empty(PlateRows(await behind));
         }
         finally
         {
@@ -68,12 +71,12 @@ public sealed class NamePlatesTests
 
     private static byte[] Shot(string dll, string folder, string name, string teleport, string look)
     {
-        var png = Path.Combine(folder, name + ".png");
+        var png = Path.Combine(folder, name + ".png"); // the far view is off: these pictures are about name plates, and a settled run would wait for thousands of far tiles
         var start = new ProcessStartInfo("dotnet") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
         foreach (var argument in new[]
         {
             dll, "--seed", "42", "--mute", "--session-dir", Path.Combine(folder, "session-" + name), "--content", GameBundle.ResolveDirectory(),
-            "--skip-to-session", "10", "--book-practise", "el-mercado", "--wait", "5", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
+            "--far-view", "off", "--skip-to-session", "10", "--book-practise", "el-mercado", "--wait", "5", "--teleport", teleport, "--look", look, "--screenshot", png, "--frames", "20",
         })
         {
             start.ArgumentList.Add(argument);
@@ -82,7 +85,7 @@ public sealed class NamePlatesTests
         using var process = Process.Start(start)!;
         _ = process.StandardOutput.ReadToEnd();
         _ = process.StandardError.ReadToEnd();
-        Assert.True(process.WaitForExit(120_000));
+        Assert.True(process.WaitForExit((int)HangGuard.Scale(120_000)), HangGuard.Hung("the render process did not exit", 120_000));
         Assert.Equal(0, process.ExitCode);
         return File.ReadAllBytes(png);
     }

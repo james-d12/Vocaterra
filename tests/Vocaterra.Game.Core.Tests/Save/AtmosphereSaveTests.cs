@@ -12,7 +12,7 @@ public sealed class AtmosphereSaveTests
 {
     private static Scene Pristine(ulong seed = TestGame.Seed) => TestGame.Route(seed);
 
-    private static string SaveOf(VoxelSession session) => SaveGame.Save(session, Pristine());
+    private static string SaveOf(VoxelSession session) => SaveGame.Save(session);
 
     private static VoxelSession LoadOf(string text, VoxelSession like) => SaveGame.Load(text, TestGame.Data, Pristine, credit: like.Credit);
 
@@ -43,7 +43,7 @@ public sealed class AtmosphereSaveTests
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
     {
         var session = SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, Pristine()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         Tick(session, 90);
         var text = SaveOf(session);
 
@@ -102,7 +102,7 @@ public sealed class AtmosphereSaveTests
     public void ASaveWhoseHeldHourIsOffTheDialDoesNotRestore()
     {
         var session = TestGame.NewSession();
-        var document = SaveGame.Capture(session, Pristine());
+        var document = SaveGame.Capture(session);
         var broken = document with { Systems = document.Systems! with { Atmosphere = new AtmosphereState(0, 40) } };
 
         Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(broken), TestGame.Data, Pristine, credit: session.Credit));
@@ -112,11 +112,11 @@ public sealed class AtmosphereSaveTests
     [InlineData("save-v10.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
+        var text = SaveFixture.Read(fixture);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 
-        Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest (recorded again for the 30-slot bag, I03b) is checked and still the world's
+        Assert.Null(loaded.Migration); // the fixture is read with this bundle's hash (SaveFixture), so the load is strict: its digest (recorded again for the 30-slot bag, I03b) is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
         Assert.Equal(10, SaveGame.Parse(SaveOf(loaded)).Version);

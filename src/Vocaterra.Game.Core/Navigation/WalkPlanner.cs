@@ -26,7 +26,7 @@ public static class WalkPlanner
     /// the last of them in that column; each hop runs along one of the eight directions. <see langword="null"/> when there is no way (or the search
     /// gave up).
     /// </summary>
-    public static IReadOnlyList<(int X, int Z)>? Plan(VoxelGrid grid, BlockPos from, int targetX, int targetZ)
+    public static IReadOnlyList<(int X, int Z)>? Plan(IVoxelReader grid, BlockPos from, int targetX, int targetZ)
     {
         ArgumentNullException.ThrowIfNull(grid);
         if (from.X == targetX && from.Z == targetZ)
@@ -34,19 +34,18 @@ public static class WalkPlanner
             return [(targetX, targetZ)];
         }
 
-        var sizeX = grid.SizeX;
-        var sizeZ = grid.SizeZ;
-        var start = Key(grid, from.X, from.Y, from.Z);
-        var cost = new Dictionary<int, int> { [start] = 0 };
-        var previous = new Dictionary<int, int> { [start] = start };
-        var queue = new PriorityQueue<int, (int Priority, int Order)>();
+        var limits = grid.Limits;
+        var start = new BlockPos(from.X, from.Y, from.Z);
+        var cost = new Dictionary<BlockPos, int> { [start] = 0 };
+        var previous = new Dictionary<BlockPos, BlockPos> { [start] = start };
+        var queue = new PriorityQueue<BlockPos, (int Priority, int Order)>();
         var order = 0;
         queue.Enqueue(start, (Heuristic(from.X, from.Z, targetX, targetZ), order++));
         var expanded = 0;
-        var goal = -1;
+        BlockPos? goal = null;
         while (queue.TryDequeue(out var current, out _))
         {
-            var (cx, cy, cz) = Cell(grid, current);
+            var (cx, cy, cz) = (current.X, current.Y, current.Z);
             if (cx == targetX && cz == targetZ)
             {
                 goal = current;
@@ -63,19 +62,19 @@ public static class WalkPlanner
             {
                 var nx = cx + dx;
                 var nz = cz + dz;
-                if ((uint)nx >= (uint)sizeX || (uint)nz >= (uint)sizeZ)
+                if ((uint)(nx - limits.MinX) >= (uint)limits.SizeX || (uint)(nz - limits.MinZ) >= (uint)limits.SizeZ)
                 {
                     continue;
                 }
 
                 var ny = StepTo(grid, cx, cy, cz, nx, nz);
-                if (ny < 0)
+                if (ny < limits.MinY)
                 {
                     continue;
                 }
 
                 if (dx != 0 && dz != 0
-                    && (StepTo(grid, cx, cy, cz, cx + dx, cz) < 0 || StepTo(grid, cx, cy, cz, cx, cz + dz) < 0))
+                    && (StepTo(grid, cx, cy, cz, cx + dx, cz) < limits.MinY || StepTo(grid, cx, cy, cz, cx, cz + dz) < limits.MinY))
                 {
                     continue; // no cutting a corner through a block
                 }
@@ -85,7 +84,7 @@ public static class WalkPlanner
                     continue; // a one-block gap between trees: a body does not follow it
                 }
 
-                var next = Key(grid, nx, ny, nz);
+                var next = new BlockPos(nx, ny, nz);
                 var total = known + (dx != 0 && dz != 0 ? Diagonal : Straight) + (ny != cy ? VerticalPenalty : 0) + Tightness(grid, nx, ny, nz);
                 if (cost.TryGetValue(next, out var old) && old <= total)
                 {
@@ -98,16 +97,15 @@ public static class WalkPlanner
             }
         }
 
-        if (goal < 0)
+        if (goal is not { } end)
         {
             return null;
         }
 
         var cells = new List<(int X, int Z)>();
-        for (var at = goal; ; at = previous[at])
+        for (var at = end; ; at = previous[at])
         {
-            var (x, _, z) = Cell(grid, at);
-            cells.Add((x, z));
+            cells.Add((at.X, at.Z));
             if (previous[at] == at)
             {
                 break;
@@ -119,10 +117,10 @@ public static class WalkPlanner
     }
 
     /// <summary>
-    /// The feet cell a body can step to from (<c>fromX</c>, <c>fromY</c>, <c>fromZ</c>) at the neighbouring column (x, z): up one, level, or down by up to three, or -1 when none can be
+    /// The feet cell a body can step to from (<c>fromX</c>, <c>fromY</c>, <c>fromZ</c>) at the neighbouring column (x, z): up one, level, or down by up to three, or <c>Limits.MinY - 1</c> (-1 on a bounded grid) when none can be
     /// stood in. A cell can be stood in when the feet and the head are free (<see cref="VoxelGrid.BlocksBody"/>), the block under it can be stood on (not a fence), and neither it nor the block under is water.
     /// </summary>
-    public static int StepTo(VoxelGrid grid, int fromX, int fromY, int fromZ, int x, int z)
+    public static int StepTo(IVoxelReader grid, int fromX, int fromY, int fromZ, int x, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
         for (var dy = 1; dy >= -MaxDrop; dy--)
@@ -154,11 +152,11 @@ public static class WalkPlanner
             }
         }
 
-        return -1;
+        return grid.Limits.MinY - 1;
     }
 
     /// <summary>Whether a body can stand with its feet in the cell.</summary>
-    public static bool Standable(VoxelGrid grid, int x, int y, int z) =>
+    public static bool Standable(IVoxelReader grid, int x, int y, int z) =>
         grid.InBounds(x, y, z)
         && !grid.BlocksBody(x, y, z)
         && !grid.BlocksBody(x, y + 1, z)
@@ -169,7 +167,7 @@ public static class WalkPlanner
     private static bool IsTreeBlock(BlockId block) => BlockDefinition.IsTrunk(block) || BlockDefinition.IsLeaves(block);
 
     // A cell with a tree (trunk or leaves, of any species) on both sides of it, west and east or north and south, is a one-block gap in the forest: a walk avoids it.
-    private static bool Pinched(VoxelGrid grid, int x, int y, int z)
+    private static bool Pinched(IVoxelReader grid, int x, int y, int z)
     {
         bool Tree(int tx, int tz) => IsTreeBlock(grid.GetBlock(tx, y, tz)) || IsTreeBlock(grid.GetBlock(tx, y + 1, tz));
         return (Tree(x - 1, z) && Tree(x + 1, z)) || (Tree(x, z - 1) && Tree(x, z + 1));
@@ -177,7 +175,7 @@ public static class WalkPlanner
 
     // A cell between trunks or against a wall is dearer than one in the open, by 4 for each of the four sides that has a solid block at the feet or the head:
     // a walk keeps to the trail, the road and the clearings, and does not squeeze through a one-block gap in the forest that a body can hardly follow.
-    private static int Tightness(VoxelGrid grid, int x, int y, int z)
+    private static int Tightness(IVoxelReader grid, int x, int y, int z)
     {
         var sides = 0;
         foreach (var (dx, dz) in Moves.AsSpan(0, 4))
@@ -227,14 +225,6 @@ public static class WalkPlanner
         return (Straight * Math.Max(dx, dz)) + ((Diagonal - Straight) * Math.Min(dx, dz));
     }
 
-    private static int Key(VoxelGrid grid, int x, int y, int z) => (((y * grid.SizeZ) + z) * grid.SizeX) + x;
-
-    private static (int X, int Y, int Z) Cell(VoxelGrid grid, int key)
-    {
-        var x = key % grid.SizeX;
-        var rest = key / grid.SizeX;
-        return (x, rest / grid.SizeZ, rest % grid.SizeZ);
-    }
 }
 
 

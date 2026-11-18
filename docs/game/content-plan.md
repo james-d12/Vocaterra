@@ -93,7 +93,7 @@ Each milestone finds a file again by its symbol when a path here has gone stale.
     check;
   - the grammar check reads `content/grammar/game-v1-strings.jsonl` (written by the host's `--grammar-strings`) offline, with
     `--strict`. A cache miss fails it, so new Spanish text needs the local LanguageTool server to refresh the cache;
-  - the full suite, maybe re-recorded goldens, and the bundle hash updated in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json`.
+  - the full suite, maybe re-recorded goldens, and the bundle hash updated in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json`.
 
   The sandbox refuses the word `hash`, so that step needs a wrapper.
 
@@ -742,7 +742,7 @@ no-literal scan is easiest once every other milestone has moved its strings.
   suite (the core runs on `game-v1`, R02);
 - refreshes the grammar cache with the LanguageTool server when it adds Spanish text;
 - re-records the end-to-end goldens if they moved;
-- updates the bundle hash in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v8.json` when game-v1 changed (an edit of the locale alone
+- updates the bundle hash in `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` when game-v1 changed (an edit of the locale alone
   does not need it);
 - does one run with models.
 

@@ -5,7 +5,7 @@ not built, and the known gaps. It is an index, not a source: each row points to 
 wins if the two disagree. The orchestrator updates this page in the same change that opens or closes an item (a decision answered, a
 milestone gated, a pull request merged).
 
-Last checked against `main`: 2026-11-09 (after pull requests #46, #47, #48 and #50). Work on open pull requests is named but not described.
+Last checked against `main`: 2026-11-15 (after pull requests #64, #65 and #66). Work on open pull requests is named but not described.
 
 ## 1. Decisions for the owner
 
@@ -32,7 +32,7 @@ Last checked against `main`: 2026-11-09 (after pull requests #46, #47, #48 and #
 | German | Seven decisions: bundle shape, saves, register, voices, scope | T01 to T10 (part 1 is pull request #51) | [German in the game](research/2026-11-04-german-in-the-game.md) |
 | Mobile | Six questions, in no decision register | Nothing planned | [mobile feasibility](research/2026-10-30-mobile-feasibility.md) section 6 |
 | Core systems | Items as data, instructions as content, the learner signal; the cast's size; specialist words against the A2 gate | W12 onward | [core systems review](research/2026-11-01-core-systems-review.md) section 5 |
-| Settlement, after the first slice | The larger village with more interiors and the larger valley (the proposal's phases 6 and 7): register them or not, after a playtest of the first slice. The first slice's own choices were answered on 2026-11-10 (D-game-32) | Those phases' milestones | [settlement plan](game/settlement-plan.md) sections 7 and 8.6 |
+| Settlement, after the first slice | The larger village with more interiors (the proposal's phase 6): register it or not, after a playtest of the first slice. Phase 7, the larger valley, is taken over by the B series (D-game-34). The first slice's own choices were answered on 2026-11-10 (D-game-32) | Those phases' milestones | [settlement plan](game/settlement-plan.md) sections 7 and 8.6 |
 | Playtest | Sessions 7 to 10: a late-start profile, the battery's size, testers with A1 Spanish | "Not planned" | [playtest](game/playtest.md) section 14 |
 | Content | Should `content/PHRASES.md` be generated from data? | Nothing | [content plan](game/content-plan.md) |
 
@@ -54,6 +54,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 
 | Series | Items | State | Detail |
 | --- | --- | --- | --- |
+| After the B series | Deferred until `feature/biomes` is merged into `main` (D-game-34 item 51): B29 (the throughput changes, item 50), B23 (propagated light), B16 (regions), B19 (documented only; the owner's go), the caching ideas, and the open findings (cave mouths rare near the start, far-view seams on water, spruce leaf seams, the taiga's trees, and more) | a new branch from `main` | [handover](handovers/2026-11-18-0409-world-next.md) |
 | Core | M86, O9's double silent h (fuzz seed `8HYgz_I9Ysn1`; a silent-h failure of `PronunciationFuzzTests` on "oh hundan", seed `9MOxzRBVGLK4`, was seen once on 2026-11-10 and may be the same family; the same day `PipelineFuzzTests.OpenFallback...` once had `fallback:second-chosen` at 4 against its minimum of 5, a thin margin) | open: launched 2026-11-08, nothing landed | [core plan](nlp/implementation-plan.md) §5 |
 | Core | M27b, M27c: content layering, format de-duplication | todo | [core plan](nlp/implementation-plan.md) §10 |
 | Core | M27a2, M28b, M28c, M28d, M29a, M29b, M29d, M29i | proposed | [core plan](nlp/implementation-plan.md) §5 |
@@ -62,12 +63,11 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Core | M68, CI timing budgets | only if a timed test fails on CI | [core plan](nlp/implementation-plan.md) §5 |
 | Game W | W12 to W21: items as data, durability, the axe handle, dishes, the beacon, farming, the notice board, prices | planned | [activities plan](game/activities-plan.md) |
 | Game W | W22 to W29 | held until the pilot's data; the first bought plot and the stake moved to the Y series (D-game-32) | [activities plan](game/activities-plan.md) |
-| Game Y | Y00 to Y13: the inn and its bed, the first night there, land bought from the mayor, the campsite | registered 2026-11-10 (D-game-32); in progress on `feature/settlement` | [settlement plan](game/settlement-plan.md) section 8 |
+| Game B | B00 to B16: a tall procedural world round hand-crafted regions (biomes, ranges, rivers, lakes and sea; caves, lava, rock layers and ores; the pass out of the valley, opened by the lessons) | registered 2026-11-15 (D-game-34); in progress on `feature/biomes` | [biomes plan](game/biomes-plan.md) section 4 |
 | Game I | I00 to I10: items as data, the bag and its backpack slot, clothing, armour, cosmetic, accessory and off-hand slots, temperature and warmth, gear on the player, durability, sort and trash | accepted 2026-11-15 (D-game-35); I00 done 2026-11-15 (section 4.15 of the game plan); I01 and I06 wait for the owner's word; overlaps the biomes series on temperature (both describe `PlaceTemperature`) | [inventory plan](game/inventory-plan.md) |
 | Game C | C09 (assessed), C10 the authoring CLI (specified) | not to start unless the owner asks | [content plan](game/content-plan.md) |
 | Game X | X07 the owner's tools, X09 playtest tooling | planned | [game plan](game/implementation-plan.md) section 4.5 |
 | Game P | P10, the Godot spike | optional | [game plan](game/implementation-plan.md) section 4 |
-| Game E | The pull request to `main`, PR #64 (E00 to E08 and E02a built and gated: the day and night cycle, the weather as data, its sky, light, rain and sound, and the NPCs' weather answer). For the owner: the game in a window, the 42 new clips of E07 by ear, the rain bed's level, the merge | built 2026-11-11; on `feature/weather` (D-game-31) | [weather plan](game/weather-plan.md) section 7, [the handover](handovers/2026-11-10-1943-weather.md) |
 | Game U | U03, U04; any visual redesign | after the pilot; a redesign is not planned | [game plan](game/implementation-plan.md) section 4.9 |
 | Tests | T6's follow-ups (a) to (h) | open, judged on the numbers | [test performance](process/test-performance-plan.md) |
 | CI | SonarCloud, speech models in CI, the scripted runs as CI tests, the cross-platform matrix | not planned | [game plan](game/implementation-plan.md) section 4.6, [known gaps](nlp/known-gaps.md) |
@@ -87,7 +87,6 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 | Fuzz | The seed `0ybc3kyw33r3`: the correct «nosotras vemos» gets `vocab.wrong` (expected `nos`) at `farmer-open`; it replays every time and can fail a gate at random; a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
 | Fuzz | `PipelineFuzzTests.OpenFallback…` asks for each fallback path 5 times in 300 random samples; `forced-same-intent` comes about ten times and fell to 4 once (the gate of Y04, 2026-11-11) and failed the first gate run of Y12 (2026-11-12) and one of Y07's agent's runs; a gate that fails on that message alone is run again; a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
 | Fuzz | The seed `2zwDo8nRB_f7`: `ContentSchemaFuzzTests` (O15) calls removing the optional `supportLanguage` from the manifest undocumented; met once in three runs (Y06, 2026-11-11); a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
-| Fuzz | The seed `dTc3W4dw5Cg2`: «túneles unos porque», «porque» read as a plural noun, `MutationTagFuzzTests` (met by Y11, 2026-11-12, and on the branch without it); a core milestone is proposed, none is registered | [core findings](nlp/findings.md) (the last entry) |
 | Fuzz | The seed family `2tpLGUOSqj41`, kept recorded by the owner's choice; it can fail a gate | [village plan](game/village-plan.md) section 5 |
 | Game, "not fixed" | The session card on an early quit; saves on the game loop; no `crash.save` inside a dialogue; colour-only signals; the unread `controls.json` | [game findings](game/findings.md) (X04, X05, X08, Menu) |
 | Scripted runs | `r20-sleep` and `r30-no-classes` stop before the sleep (the camp checklist's wood step falls back when the torch is crafted, so no spare torch is given); captured again for the new opening in Y08 | [game findings](game/findings.md) (the Y series' first two milestones) |

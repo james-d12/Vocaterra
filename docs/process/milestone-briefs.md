@@ -17,10 +17,17 @@ builds and passes its tests, with the prefix `<id>: `. Do not push your branch: 
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror
 -m:4`; tests with `-m:2`). scripts/test.sh and scripts/content-loop.sh call it themselves: run them directly. Never start two heavy
-commands at once (no `&`, no background builds, no parallel test runs), and write no shell wait loop on `pgrep -f` (it matches its own
-command line and never ends). While iterating run `scripts/test.sh fast` or `scripts/test.sh project <test project>`; run
-`scripts/test.sh full` (the whole suite, as the gate) once before reporting. Exit 137 means the 6 GB cap killed it: lower the
-parallelism, do not work around the cap.
+commands at once (no `&`, no background builds, no parallel test runs). **Waiting** (the throughput study,
+docs/research/2026-11-17-ai-development-throughput.md): run a long command with the Bash tool's `run_in_background: true`, end your
+turn and wait for its notification; never poll with `sleep`, `until grep ...; do sleep` or `pgrep -f` loops, and never start a run
+with `nohup ... &` (the harness cannot see it end; agents left about 40 orphaned loops on 2026-11-17). While iterating run
+`scripts/test.sh fast` plus the test classes you touch (`scripts/test.sh project <test project>` with a `--filter`); **merge
+<feature branch> into your branch before your one full run**, then run `scripts/test.sh full` (the whole suite without the fuzz suite and
+the timing tests, in Release) once and report only after it has finished; run `scripts/test.sh timing` as well when the milestone
+changes performance or a timing test. Exit 137 means the cap killed it: lower the parallelism, do not work around the cap.
+Game runs (pictures, scripted runs, measurements): a Release build; `scripts/limited.sh timeout 900 <command>` (the `timeout` inside, so
+a wait for a slot does not count); `--far-view off` unless the milestone is about the far view (a streamed run's first frame spends
+about 3 minutes building a cold 16 km far view on two workers); one batch script per milestone rather than many small runs.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
 reject a bare `export`, and it refuses a command line containing the shell builtin words `eval` or `hash`: for `scripts/content.sh hash`
 or a CLI `eval` run use a wrapper script outside the repository). Model-gated tests need VOCATERRA_MODELS_DIR=$HOME/.local/share/vocaterra/models.
@@ -32,7 +39,8 @@ Rules: a game milestone edits only the game projects, their tests, content/game-
 edits only the Vocaterra.Nlp projects, their tests, tests/golden and docs/nlp/ (and content/game-v1 only where the core's tests need it,
 never the game's lessons), fixes bugs at the source with a regression test in the owning module and never weakens a fuzz oracle. A
 regression check is a C# test, never a script with text baselines. Never create or edit anything under .github/workflows/ unless this
-brief names the file; do not edit either implementation-plan.md or either decisions.md (the orchestrator does); engine code only in
+brief names the file; do not edit either implementation-plan.md or either decisions.md, or the shared notes README.md, docs/game/running.md and
+docs/game/architecture.md (the orchestrator does: give the text for them in your report); engine code only in
 src/Vocaterra.Game (D-game-1); assets CC0 only (D-game-5); no System.Random and no clock in the evaluation path.
 <For a content milestone: the block "What a content milestone adds" below.>
 <For a core milestone: before reporting, run the CLI on a few natural, correct lines at the NPCs' prompts (names, greetings,
@@ -47,7 +55,7 @@ Co-Authored-By: Claude <model> <noreply@anthropic.com>
 Claude-Session: <session url>
 Report, one page: branch, commit SHA, worktree path; what was built; test counts; measurements; bugs found and fixed (where, symptom,
 fix, test); core gaps found by a game milestone (what call, why); known-not-fixed with reasoning; files touched outside the milestone's
-area; anything left undone and why. <Name what to leave out.>
+area; the text for README.md, docs/game/running.md or docs/game/architecture.md if they need it; anything left undone and why. <Name what to leave out.>
 ```
 
 ## What a content milestone adds
@@ -62,7 +70,7 @@ The v12 and v13 briefs are the models.
 - `--skip-to-session n` for the lesson's timing run.
 - **The content loop in one line** (V18): `scripts/content-loop.sh --grammar --speech` after every content edit (run directly, never
   under `limited.sh`, which it refuses with exit 3), `--record` when the goldens move, and `--tier full` once before the report. It
-  replaces the hand steps (refresh, the LanguageTool cache and its rebuild check, the prerender, the fixtures' hash); since M57 the
+  replaces the hand steps (refresh, the LanguageTool cache and its rebuild check, the prerender); since M57 the
   stream digests run on frozen inputs and do not move with content. Read every grammar finding it prints. The steps are in
   `content/README.md`, "The edit loop". Keep the Wiktionary notice in `ATTRIBUTION.md`; one bundle since R02, so a content edit also
   runs the core suite, and a failing core test means the edit broke something the core relies on.
@@ -89,8 +97,8 @@ Every brief says to read `CLAUDE.md` first; these are the facts it does not hold
   tests, fuzz suite and demo CLI run on it (R02). Lexicon regeneration is in `docs/nlp/lexicon.md`.
 - Determinism tiers (core plan §3): no `System.Random`, no wall clock, ordinal comparisons, `CanonicalJson`, seeded RNG, margins for
   model thresholds; model adapters gated on `VOCATERRA_MODELS_DIR`.
-- The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/nlp/fuzzing-plan.md`) is a merge gate and has found every real
-  bug so far; its README lists bugs found, known limits and narrowed oracles.
+- The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/nlp/fuzzing-plan.md`) runs in CI, not in the gate or in agents'
+  runs (D-game-34 item 58), and has found every real bug so far; its README lists bugs found, known limits and narrowed oracles.
 - Licence scan: `scripts/license-scan.sh --offline`; the allowlist refuses copyleft code dependencies; CC BY-SA is accepted for derived
   data.
 - The core demo, `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open

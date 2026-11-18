@@ -133,7 +133,7 @@ public sealed class CampPlan
 
     /// <summary>Whether every block of the camp stands in the world as it was set: the camp is whole.</summary>
     /// <param name="grid">The world.</param>
-    public bool Stands(VoxelGrid grid)
+    public bool Stands(IVoxelReader grid)
     {
         ArgumentNullException.ThrowIfNull(grid);
         return _blocks.All(b => grid.InBounds(b.Cell.X, b.Cell.Y, b.Cell.Z) && grid.GetBlock(b.Cell.X, b.Cell.Y, b.Cell.Z) == b.Block);
@@ -145,7 +145,7 @@ public sealed class CampPlan
     /// </summary>
     /// <param name="grid">The world as it is now.</param>
     /// <param name="owned">Whether a column is the player's land.</param>
-    public CampFault Check(VoxelGrid grid, Func<int, int, bool> owned)
+    public CampFault Check(IVoxelReader grid, Func<int, int, bool> owned)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(owned);
@@ -160,7 +160,7 @@ public sealed class CampPlan
             }
         }
 
-        if (!grid.InBounds(CornerX, 0, CornerZ) || !grid.InBounds(CornerX + Width - 1, GroundY + Height, CornerZ + Depth - 1))
+        if (!grid.InBounds(CornerX, grid.Limits.MinY, CornerZ) || !grid.InBounds(CornerX + Width - 1, GroundY + Height, CornerZ + Depth - 1))
         {
             return CampFault.Blocked;
         }
@@ -206,10 +206,10 @@ public sealed class CampPlan
     /// <param name="x">The column's x.</param>
     /// <param name="z">The column's z.</param>
     /// <param name="from">The height to look from.</param>
-    public static int GroundBelow(VoxelGrid grid, int x, int z, int from)
+    public static int GroundBelow(IVoxelReader grid, int x, int z, int from)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        for (var y = Math.Min(from, grid.SizeY - 1); y >= 0; y--)
+        for (var y = Math.Min(from, grid.Limits.EndY - 1); y >= grid.Limits.MinY; y--)
         {
             var id = grid.GetBlock(x, y, z);
             if (BlockDefinition.IsSolid(id) || id == BlockId.Water)
@@ -227,10 +227,10 @@ public sealed class CampPlan
     /// <param name="grid">The world.</param>
     /// <param name="x">The column's x.</param>
     /// <param name="z">The column's z.</param>
-    public static int GroundOf(VoxelGrid grid, int x, int z)
+    public static int GroundOf(IVoxelReader grid, int x, int z)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        for (var y = Math.Min(grid.HighestBlock(x, z), grid.SizeY - 1); y >= 0; y--)
+        for (var y = Math.Min(grid.HighestBlock(x, z), grid.Limits.EndY - 1); y >= grid.Limits.MinY; y--)
         {
             var id = grid.GetBlock(x, y, z);
             if (BlockDefinition.IsSolid(id) || id == BlockId.Water)

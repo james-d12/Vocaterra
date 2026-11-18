@@ -46,6 +46,9 @@ public sealed class WaterTextures : IDisposable
         }
     }
 
+    /// <summary>The frame textures, in order (the game's own GL pass copies them, B17b).</summary>
+    public IReadOnlyList<Texture2D> Frames => _frames;
+
     /// <summary>The frame texture for a simulation tick.</summary>
     public Texture2D FrameAt(long tick) => _frames[WaterFrames.IndexAt(tick)];
 

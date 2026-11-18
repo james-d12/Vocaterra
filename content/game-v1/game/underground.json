@@ -1,0 +1,192 @@
+{
+  "$schema": "../../schema/underground.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The underground (B11, D-game-34). Lengths are blocks, noise values thousandths of their range (-1000 to 1000), heights are y (the world runs -64 to 320, the sea is at 32, the valley's own chunks start at 0). strata: stone from the surface layers down to ditherToY, the deep rock (slate) below ditherFromY and, between them, a change dithered cell by cell (the share of deep rock falls in a straight line), so the boundary is ragged; blobs are patches of other rock in the stone layer where a 3D noise passes its threshold (the first row that does wins; blobLattice is the spacing the noise is sampled at and interpolated from). floor: the unbreakable bottom, a ragged layer of minThickness to maxThickness blocks from bottomY up. caves: cheese caverns (large chambers where one noise is above a threshold that rises from deepThreshold at deepY and below to shallowThreshold at shallowY and above, so they lie deep) and spaghetti tunnels (long winding tunnels where two noises are both within thickness of zero), both sampled on a lattice of latticeXz x latticeY x latticeXz blocks and interpolated; no cave reaches above topY or within surfaceCover blocks of the ground, none above underRegionCeiling under an authored region (the valley), none within waterMargin blocks of any water cell, and none within bedClearance blocks under the bed of a water column (so water never pours in). entrances (B11b): natural passages a body walks down from the surface to a cave; see content/README.md. lava: cave air at or below level is lava. ores: each row is a block, the rocks its veins may replace (never air, water, lava, bedrock or another ore), the vein size in blocks and its bands; a band tries veins in every chunk column (16 x 16 blocks, every layer), the height of a vein's centre drawn from a triangular spread over minY to maxY that peaks at peakY; a vein is a blob kept inside its chunk and inside its band. valley (B13): the strata, ores and caves also fill the valley's own stone, but only where every changed block is buried: at least surfaceDistance blocks from any air cell and waterDistance from any water cell (a cube, not a ball), borderMargin columns in from the valley's edge, and siteMargin, pathMargin, propMargin, villageMargin (round the footprint of villageSite) and passMargin (round the passPaths and the passProps) blocks from the surface features they name, so nothing the player can see, walk on or edit changes. caves.underRegionCeiling is -1, so the caves under the valley run up to its floor and meet the valley's own. No block of an ore or a rock is named in the code.",
+  "strata": {
+    "stone": "stone",
+    "deep": "slate",
+    "ditherFromY": 0,
+    "ditherToY": 8,
+    "blobLattice": 8,
+    "blobs": [
+      { "block": "gravel", "cell": 14, "cellY": 10, "octaves": 2, "threshold": 170, "minY": -12, "maxY": 210 },
+      { "block": "sand", "cell": 16, "cellY": 10, "octaves": 2, "threshold": 180, "minY": -4, "maxY": 110 },
+      { "block": "dirt", "cell": 16, "cellY": 10, "octaves": 2, "threshold": 170, "minY": 8, "maxY": 170 },
+      { "block": "granite", "cell": 28, "cellY": 18, "octaves": 2, "threshold": 190 },
+      { "block": "limestone", "cell": 28, "cellY": 18, "octaves": 2, "threshold": 190 },
+      { "block": "granite", "cell": 40, "cellY": 26, "octaves": 2, "threshold": 200, "in": ["slate"] },
+      { "block": "basalt", "cell": 36, "cellY": 24, "octaves": 2, "threshold": 130, "in": ["slate"] }
+    ]
+  },
+  "floor": { "block": "bedrock", "bottomY": -64, "minThickness": 1, "maxThickness": 4 },
+  "caves": {
+    "latticeXz": 4,
+    "latticeY": 8,
+    "topY": 240,
+    "surfaceCover": 6,
+    "cheese": { "cell": 64, "cellY": 40, "octaves": 2, "deepThreshold": 400, "deepY": -16, "shallowThreshold": 800, "shallowY": 96 },
+    "spaghetti": { "cell": 56, "cellY": 32, "octaves": 1, "thickness": 95 },
+    "underRegionCeiling": -1,
+    "waterMargin": 3,
+    "bedClearance": 16
+  },
+  "entrances": {
+    "cell": 128,
+    "chance": 500,
+    "margin": 12,
+    "attempts": 3,
+    "minHeightAboveSea": 4,
+    "waterReach": 10,
+    "minDrop": 20,
+    "maxLength": 130,
+    "landing": 4,
+    "widthMin": 2,
+    "widthMax": 6,
+    "headroomMin": 3,
+    "headroomMax": 7,
+    "segmentMin": 4,
+    "segmentMax": 10,
+    "runMax": 4,
+    "levelShare": 180,
+    "bend": 8,
+    "bendSegmentMin": 6,
+    "bendSegmentMax": 14,
+    "maxTurn": 24,
+    "roughness": 1200,
+    "roughnessCell": 4,
+    "ledges": 220,
+    "funnel": 600,
+    "funnelLength": 8,
+    "floorBlocks": [
+      { "block": "gravel", "weight": 5 },
+      { "block": "stone", "weight": 3 },
+      { "block": "mossy-stone", "weight": 1 },
+      { "block": "dirt", "weight": 1 }
+    ],
+    "bowlDepth": 0,
+    "bowlSlope": 1000,
+    "faceRise": 4,
+    "plunge": 8
+  },
+  "lava": { "block": "lava", "level": -54 },
+  "linings": {
+    "wetReach": 6,
+    "dampReach": 8,
+    "rules": [
+      {
+        "block": "mossy-stone",
+        "in": ["stone", "granite", "limestone"],
+        "face": "any",
+        "zone": "damp",
+        "chance": 520,
+        "patch": { "cell": 8, "cellY": 6, "octaves": 1, "threshold": -120 },
+        "minY": -20,
+        "maxY": 260
+      },
+      { "block": "sand", "in": ["stone", "granite", "limestone"], "face": "floor", "zone": "wet", "chance": 700, "minY": -10, "maxY": 120 },
+      { "block": "gravel", "in": ["stone", "granite", "limestone"], "face": "any", "zone": "wet", "chance": 450, "minY": -10, "maxY": 120 },
+      {
+        "block": "mossy-stone",
+        "in": ["stone", "granite", "limestone"],
+        "face": "any",
+        "zone": "wet",
+        "chance": 320,
+        "patch": { "cell": 8, "cellY": 6, "octaves": 1, "threshold": -120 },
+        "minY": -10,
+        "maxY": 120
+      },
+      {
+        "block": "gravel",
+        "in": ["stone", "granite", "limestone", "slate", "basalt"],
+        "face": "floor",
+        "zone": "any",
+        "chance": 300,
+        "patch": { "cell": 14, "cellY": 8, "octaves": 1, "threshold": -50 },
+        "minY": -50,
+        "maxY": 220
+      },
+      { "block": "cobble", "in": ["stone", "granite", "limestone", "slate"], "face": "floor", "zone": "any", "chance": 90, "minY": -50, "maxY": 220 },
+      {
+        "block": "dirt",
+        "in": ["stone", "granite", "limestone"],
+        "face": "floor",
+        "zone": "any",
+        "chance": 160,
+        "patch": { "cell": 12, "cellY": 8, "octaves": 1, "threshold": 80 },
+        "minY": 6,
+        "maxY": 200
+      }
+    ]
+  },
+  "surfaceRock": {
+    "cliff": {
+      "drop": 3,
+      "bandThickness": 3,
+      "zoneCell": 48,
+      "tilt": 5,
+      "bands": [
+        { "block": "stone", "weight": 4 },
+        { "block": "granite", "weight": 2 },
+        { "block": "limestone", "weight": 2 },
+        { "block": "slate", "weight": 1 }
+      ]
+    },
+    "scree": {
+      "steepDrop": 2,
+      "footReach": 2,
+      "rules": [
+        { "block": "gravel", "chance": 650, "patch": { "cell": 10, "octaves": 2, "threshold": -150 } }
+      ]
+    },
+    "streambed": {
+      "minWeight": 120,
+      "rules": [
+        { "block": "gravel", "chance": 500, "patch": { "cell": 9, "octaves": 2, "threshold": -100 } }
+      ]
+    }
+  },
+  "valley": {
+    "surfaceDistance": 8,
+    "waterDistance": 16,
+    "borderMargin": 12,
+    "siteMargin": 12,
+    "pathMargin": 10,
+    "propMargin": 10,
+    "villageSite": "village",
+    "villageMargin": 16,
+    "passPaths": ["pass.rise", "pass.floor", "pass"],
+    "passProps": ["rockfall"],
+    "passMargin": 24
+  },
+  "ores": [
+    {
+      "id": "copper-veins",
+      "block": "copper-ore",
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
+      "size": { "min": 3, "max": 10 },
+      "bands": [
+        { "minY": -16, "maxY": 112, "peakY": 48, "veins": 20 }
+      ]
+    },
+    {
+      "id": "iron-veins",
+      "block": "iron-ore",
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
+      "size": { "min": 3, "max": 8 },
+      "bands": [
+        { "minY": -24, "maxY": 56, "peakY": 16, "veins": 14 },
+        { "minY": 80, "maxY": 320, "peakY": 160, "veins": 8 }
+      ]
+    },
+    {
+      "id": "tin-veins",
+      "block": "tin-ore",
+      "replaces": ["stone", "slate", "granite", "limestone", "basalt"],
+      "size": { "min": 3, "max": 8 },
+      "bands": [
+        { "minY": -32, "maxY": 48, "peakY": 8, "veins": 8 }
+      ]
+    }
+  ]
+}

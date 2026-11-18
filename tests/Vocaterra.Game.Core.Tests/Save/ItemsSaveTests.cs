@@ -27,7 +27,7 @@ public sealed class ItemsSaveTests
         _ = session.Simulation.GrantItems(ItemId.Wood, 3);
         _ = session.Simulation.GrantItems(TestItems.Axe, 1);
 
-        var inventory = SaveGame.Capture(session, Pristine()).Inventory;
+        var inventory = SaveGame.Capture(session).Inventory;
 
         Assert.Equal(session.Simulation.Inventory.SlotCount, inventory.Count);
         Assert.Equal(30, inventory.Count);
@@ -46,7 +46,7 @@ public sealed class ItemsSaveTests
         var stacks = session.Simulation.Inventory.Slots.ToArray();
         var digest = session.Simulation.ComputeStateDigest();
 
-        var text = SaveGame.Serialize(SaveGame.Capture(session, Pristine()));
+        var text = SaveGame.Serialize(SaveGame.Capture(session));
         Assert.Contains("\"item\":\"gem\"", text, StringComparison.Ordinal);
         var loaded = SaveGame.Load(text, session.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -70,7 +70,7 @@ public sealed class ItemsSaveTests
     [Fact]
     public void Given_TheVersion10Fixture_When_ItLoads_Then_TheBagHoldsTheItemsItNames()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json"));
+        var text = SaveFixture.Read("save-v10.json");
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -83,7 +83,7 @@ public sealed class ItemsSaveTests
     [Fact]
     public void Given_ASaveOfVersion9_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v10.json")).Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
+        var text = SaveFixture.Read("save-v10.json").Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
 
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 

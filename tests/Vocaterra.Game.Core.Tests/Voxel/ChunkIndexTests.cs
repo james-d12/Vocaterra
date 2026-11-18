@@ -1,15 +1,23 @@
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
+using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;
 
 /// <summary>
 /// What a chunk knows about itself so that a large world can skip it (S13): how many blocks it holds, which kinds, and whether it is empty. In the
-/// timing collection: the cached digest's test has a 100 ms budget.
+/// timing collection: the cached digest's test has a CPU-time budget (B29d; it was a 100 ms wall-clock bound).
 /// </summary>
 [Collection(TimingCollection.Name)]
-public sealed class ChunkIndexTests
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
+public sealed class ChunkIndexTests(ITestOutputHelper output)
 {
+    private const int Attempts = 3;
+
+    // B29d: the Release CPU cost of one edit and its digest (the mean of 200 edits, fastest of three) and the budget, twice the cost, in local milliseconds.
+    // Measured 0.283 ms (timing run 1) and 0.264 ms (run 2); budget 0.6 ms, twice the higher, rounded up. Was 100 ms wall.
+    private static readonly double DigestBudget = CpuTime.Budget(0.6);
+
     [Fact]
     public void AChunkCountsItsBlocksThroughEveryEditAndKnowsWhenItIsEmpty()
     {
@@ -110,9 +118,19 @@ public sealed class ChunkIndexTests
         Assert.Equal(first, grid.ComputeDigestHex());
 
         // After one edit the digest rehashes one chunk and the 32-byte digests of the rest: far from the cost of hashing the world again.
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        grid.SetBlock(200, 60, 200, BlockId.Stone);
-        _ = grid.ComputeDigest();
-        Assert.True(watch.Elapsed.TotalMilliseconds < 100, $"a digest after one edit took {watch.Elapsed.TotalMilliseconds:F1} ms");
+        // B29d: CPU time, not a wall clock. One edit and digest is below the process's CPU clock (ticks of about 10 ms), so the test times
+        // 200 edits, each one a change of kind (so each digest rehashes its chunk), and takes the mean; the fastest of three attempts.
+        const int Edits = 200;
+        var toggle = 0;
+        var perEdit = CpuTime.Fastest(Attempts, () =>
+        {
+            for (var edit = 0; edit < Edits; edit++)
+            {
+                grid.SetBlock(200, 60, 200, toggle++ % 2 == 0 ? BlockId.Stone : BlockId.Air);
+                _ = grid.ComputeDigest();
+            }
+        }) / Edits;
+        output.WriteLine($"an edit and its digest: {perEdit:F3} ms of CPU time, the mean of {Edits} edits, fastest of {Attempts} (budget {DigestBudget:F2} ms, was 100 ms wall)");
+        Assert.True(perEdit < DigestBudget, $"a digest after one edit takes {perEdit:F3} ms of CPU time (budget {DigestBudget:F2})");
     }
 }

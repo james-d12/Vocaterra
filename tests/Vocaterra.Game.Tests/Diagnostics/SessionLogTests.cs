@@ -35,7 +35,7 @@ public sealed class SessionLogTests
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -44,7 +44,7 @@ public sealed class SessionLogTests
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} turns came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} turns came back", 30_000));
             Thread.Sleep(2);
         }
 
@@ -137,7 +137,7 @@ public sealed class SessionLogTests
         before.End(game, game.Simulation.Tick);
         Assert.Equal(JsonValueKind.Number, Lines(beforeLines).Single(static l => l.GetProperty("type").GetString() == "session_end").GetProperty("objective_complete_tick").ValueKind);
 
-        SaveGame.Sleep(game, SaveGame.Capture(game, RouteScene.Build()));
+        SaveGame.Sleep(game, SaveGame.Capture(game));
         var (log, session, _) = Memory();
         log.End(game, game.Simulation.Tick);
 
@@ -206,7 +206,7 @@ public sealed class SessionLogTests
         using var game = NewSession();
         game.OpenTalk("shopkeeper");
         var worker = game.StartWorker(loadSpeech: false);
-        Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
         _ = game.SubmitTyped("quiero agua, por favor");
         var applied = Drain(game, 1).Single();
 

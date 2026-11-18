@@ -103,6 +103,8 @@ public sealed class Footsteps
         BlockId.WhiteFlower => Surface.Grass,
         BlockId.MossyStone => Surface.Stone,
         BlockId.Cobble => Surface.Stone,
+        BlockId.Slate or BlockId.Granite or BlockId.Limestone or BlockId.Bedrock or BlockId.IronOre or BlockId.TinOre or BlockId.CopperOre or BlockId.Basalt or BlockId.Lava => Surface.Stone, // B10 (lava is never stood on as ground), B11b (basalt)
+        BlockId.Gravel => Surface.Gravel,
         BlockId.Timber => Surface.Wood,
         BlockId.Lantern => Surface.Wood,
         BlockId.Crate or BlockId.Counter => Surface.Wood,

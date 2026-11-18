@@ -289,7 +289,8 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
         foreach (var (pos, pair) in new[] { ("art", SlipPair.Article), ("prep", SlipPair.Preposition), ("pron", SlipPair.Pronoun) })
         {
-            if (Harness.Lexicon.Lookup(word).Any(r => r.Pos == pos) && Harness.Lexicon.Lookup(answerWord).Any(r => r.Pos == pos))
+            // M97: a pronoun pair needs a reading with a person on each side (a personal pronoun); tal, with none, is no slip of me.
+            if (Harness.Lexicon.Lookup(word).Any(r => r.Pos == pos && (pos != "pron" || r.Person is not null)) && Harness.Lexicon.Lookup(answerWord).Any(r => r.Pos == pos && (pos != "pron" || r.Person is not null)))
             {
                 return pair;
             }
