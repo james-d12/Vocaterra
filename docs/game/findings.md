@@ -3105,3 +3105,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   14,782 chunks and 2,865,395 faces each time): 5.2 s after B39, 6.6 s after B40, 10.2 s after B38, at loads of about 14, 13 and 9. A
   likely cause is B40's worker nice +7: under limited.sh (nice 10) the workers run at 17, below every other agent's build. To measure on
   a quiet machine, with and without the raise, before the series closes.
+- **The owner's test of `feature/world-next` (2026-11-18, about 21:40 UTC).** "Performance improvement doesnt seem noticeable"; "heavy
+  flickering of the low LODs in chunks that are fully rendered"; with `--world streamed --seed 7200 --pass open` (a new seed, so a cold
+  world) "it still took about 10 - 15 seconds to render the beginning area". Two causes of a fair-looking test hiding the series' gains: the
+  far store (`~/.local/share/vocaterra/lod/<seed>-g<version>-<hash>/`, 5.3 GB) is shared by main and the branch, since the world version is
+  unchanged, so seeds played before load from disk on both; and the series targeted generation, while the start area may be bound by
+  meshing and uploads (about 5,962 meshes in 5 to 10 s in the spot checks) or by the new job order. B42 takes the flicker, B43 measures the
+  start. The owner also asked for a fly mode for testing and withdrew it a minute later; the agent was stopped before committing anything.
