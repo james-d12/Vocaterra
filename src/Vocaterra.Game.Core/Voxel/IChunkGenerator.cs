@@ -9,4 +9,12 @@ public interface IChunkGenerator
 {
     /// <summary>The blocks of the chunk, or <see langword="null"/> for a chunk of air.</summary>
     ChunkContent? Generate(VoxelChunkCoord coord);
+
+    /// <summary>
+    /// The highest layer of a chunk column that can hold anything but air (B40), or <see langword="null"/> when the generator cannot say cheaply: <see cref="Generate"/> gives <see langword="null"/> for every chunk of the column above it, so a reader of the
+    /// column's highest block need not ask for those layers (each ask costs a window of the world's noise).
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    int? HighestPossibleLayer(int chunkX, int chunkZ) => null;
 }

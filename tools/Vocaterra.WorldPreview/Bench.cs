@@ -3,10 +3,12 @@ using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Regions;
+using Vocaterra.Game.Core.World.Streaming;
 
 namespace Vocaterra.WorldPreview;
 
@@ -99,6 +101,8 @@ internal static class Bench
         private readonly int _passes;
         private readonly int _columnCount;
         private readonly bool _quick;
+        private readonly GameData _data;
+        private readonly ulong _seed;
         private readonly TextWriter _out;
         private readonly List<Row> _rows = [];
 
@@ -110,6 +114,8 @@ internal static class Bench
             _passes = passes;
             _columnCount = columns;
             _quick = quick;
+            _data = data;
+            _seed = seed;
             _out = output;
         }
 
@@ -124,6 +130,7 @@ internal static class Bench
             ChunkRows(land);
             StageRows(land);
             FarRows(land, sea);
+            HighestBlockRows(land);
             if (Workers > 0)
             {
                 WorkerRows(land);
@@ -360,6 +367,36 @@ internal static class Bench
             }
 
             Add("ring footprint 32 x 32 through one window (16 bands, 4 columns; no ingest)", best / footprints.Count, "ms per footprint", footprints.Count);
+        }
+
+        // B40: the highest block of a column no one has asked about, on a fresh streamed grid: from the column's band (one window), and layer by layer from the top (what it was before B40).
+        private sealed class EveryLayer(IChunkSource source) : IChunkGenerator
+        {
+            public ChunkContent? Generate(VoxelChunkCoord coord) => GridResidency.ContentOf(source.Generate(coord));
+        }
+
+        private void HighestBlockRows(List<(int Cx, int Cz)> land)
+        {
+            var world = WorldFactory.Compose(_data, _seed, RegionCatalog.Empty);
+            var vertical = _data.WorldGen.Vertical;
+            var limits = WorldLimits.Symmetric(WorldLimits.DefaultHalfExtent, vertical.MinY, vertical.MaxY);
+            foreach (var hinted in new[] { false, true })
+            {
+                var best = double.MaxValue;
+                for (var p = 0; p < _passes + 1; p++)
+                {
+                    var grid = hinted ? WorldFactory.StreamedGrid(_data, world.Source) : new VoxelGrid(limits, new EveryLayer(world.Source));
+                    var t0 = Stopwatch.GetTimestamp();
+                    foreach (var (cx, cz) in land)
+                    {
+                        _ = grid.HighestBlock((cx << 4) + 8, (cz << 4) + 8);
+                    }
+
+                    best = Math.Min(best, Ms(Stopwatch.GetTimestamp() - t0));
+                }
+
+                Add(hinted ? "HighestBlock of a new column, from the band" : "HighestBlock of a new column, layer by layer (before B40)", best / land.Count, "ms per column", land.Count);
+            }
         }
 
         // B40: the residency's path on several threads at once, with the window arrays allocated for each column or owned by the thread: the allocation's cost shows as gen-0 collections and as columns a second.

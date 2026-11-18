@@ -113,6 +113,23 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <param name="group">The group's shaped window (<see cref="ShapeGroup"/>), or <see langword="null"/>.</param>
     public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group, null);
 
+    /// <summary>
+    /// The highest layer of a chunk column that can hold anything but air (B40): the top of the procedural band (the ground, the sea and the tallest tree), or the world's top where a region owns the column or the band says nothing.
+    /// Every chunk of the column above it is air, as <see cref="Generate"/> says; it costs one window, where asking for each layer costs one each.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public int HighestPossibleLayer(int chunkX, int chunkZ)
+    {
+        if (_regions.ColumnOwner(chunkX, chunkZ) is not null)
+        {
+            return MaxChunkY - 1;
+        }
+
+        var band = _procedural.SurfaceBand(chunkX, chunkZ);
+        return band.IsEmpty ? MaxChunkY - 1 : band.MaxLayer;
+    }
+
     /// <summary>Arrays for the window of one chunk column (B40), for the overload that takes them.</summary>
     public ColumnScratch CreateScratch() => _procedural.CreateScratch();
 
