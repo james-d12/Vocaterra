@@ -27,11 +27,11 @@ internal readonly record struct RiverHit(int Core, int Level16, int Size);
 
 /// <summary>The lake at a column (B02c): how deep the water would stand there, and the lake's level.</summary>
 /// <param name="Depth16">How far under the lake's surface the dented land lies at the column, in sixteenths of a block (0 beyond the shore): the depth the four nodes round the column have, blended.</param>
-/// <param name="Level16">The surface of the lake, in sixteenths of a block: the level of its outlet.</param>
+/// <param name="Level16">The surface of the lake, in sixteenths of a block: the level of the pass it spills over, one for the whole body (B02d).</param>
 internal readonly record struct LakeHit(int Depth16, int Level16);
 
 /// <summary>What the network holds for one node (for the tests and the preview tool).</summary>
-/// <param name="Level16">The node's water level after the basins were filled, in sixteenths of a block.</param>
+/// <param name="Level16">The node's water level after the basins were filled, in sixteenths of a block: a lake body's one level, and no higher than the lake below the nodes that drain into one.</param>
 /// <param name="Area">The nodes that drain through it (itself included), at most 65 535.</param>
 /// <param name="Next">The direction (0 to 7, east first, clockwise) the water runs from the node, or -1 where it ends (the sea, or the edge of what was read).</param>
 /// <param name="River">Whether a river runs through the node.</param>
@@ -604,16 +604,19 @@ internal sealed class DrainageNetwork
             lake[n] = kind[n] == 0 && seen[n] && filled[n] - level[n] >= LakeMin;
         }
 
-        // One level to a body (B02d): a body of lake nodes (eight neighbours) stands at the lowest flood level among its nodes, the pass it spills over; a node that level does not cover by LakeMin is a bank, not lake, and the body is
-        // looked at again without it (it may fall in two, or under LakeNodesMin nodes and go). The body's nodes are found in any order and the result is the same.
+        // One level to a body (B02d): the flood gives all the nodes of a body (eight neighbours) one level, the pass it spills over (the lowest among them is taken all the same), and the water stands there, whatever the ground or the water
+        // level of the banks beside it. A node that level covers by less than LakeMin is a bank, and so is a spur: a node with no lake node at its side (north, east, south or west) holds, by the bilinear blend of its depth, a lone pocket
+        // of water the body's other nodes do not reach (a puddle); the body is looked at again without them (it may fall in two, or under LakeNodesMin nodes and go). The nodes are found in any order and the result is the same.
         var lakeLevel = new int[count];
         var body = new List<int>();
+        var drop = new List<int>();
         var taken = new bool[count];
         bool changed;
         do
         {
             changed = false;
             Array.Clear(taken);
+            drop.Clear();
             for (var first = 0; first < count; first++)
             {
                 if (!lake[first] || taken[first])
@@ -641,16 +644,28 @@ internal sealed class DrainageNetwork
 
                 foreach (var m in body)
                 {
-                    if (body.Count < LakeNodesMin || low - level[m] < LakeMin)
+                    var joined = false;
+                    for (var d = 0; d < 8; d += 2)
                     {
-                        lake[m] = false;
-                        changed = true;
+                        var side = near[(m * 8) + d];
+                        joined |= side >= 0 && lake[side];
+                    }
+
+                    if (body.Count < LakeNodesMin || low - level[m] < LakeMin || !joined)
+                    {
+                        drop.Add(m);
                     }
                     else
                     {
                         lakeLevel[m] = low;
                     }
                 }
+            }
+
+            foreach (var m in drop)
+            {
+                lake[m] = false;
+                changed = true;
             }
         }
         while (changed);
@@ -700,6 +715,7 @@ internal sealed class DrainageNetwork
         }
 
         // How deep each node is under a lake, and how far over its surface a node beside a lake stands.
+        var full = _spec.LakeBasin * 8; // the depth, in sixteenths of a block, where the lake's carve is full (the ramp of HeightModel's lake weight)
         short Depth(int n)
         {
             if (kind[n] == OutsideFlag || kind[n] == SeaFlag || !seen[n])
@@ -709,7 +725,7 @@ internal sealed class DrainageNetwork
 
             if (lake[n])
             {
-                return (short)Math.Min(final[n] - level[n], short.MaxValue);
+                return (short)Math.Min(Math.Max(final[n] - level[n], full), short.MaxValue); // a lake node is deep or it is not a lake node: the shallow rim of the flood is as deep as the carve's full weight (B02d)
             }
 
             var surface = int.MinValue;
@@ -800,7 +816,7 @@ internal sealed class DrainageCell
     /// <summary>The nodes that drain through each node.</summary>
     public int[] Area { get; }
 
-    /// <summary>How far under its lake's surface each node's dented land lies, in sixteenths of a block; for a node beside a lake that is not under it, how far over the surface it lies, negative (so the shore is where the blended depth passes zero, between the nodes, and not on the grid); 0 elsewhere.</summary>
+    /// <summary>How far under its lake's surface each node's dented land lies, in sixteenths of a block, at least the depth where the lake's carve is full (a lake node is deep or it is not one; B02d); for a node beside a lake that is not under it, how far over the surface it lies, negative (so the shore is where the blended depth passes zero, between the nodes, and not on the grid); 0 elsewhere.</summary>
     public short[] Depth { get; }
 
     /// <summary>The direction the water runs from each node, or -1.</summary>
