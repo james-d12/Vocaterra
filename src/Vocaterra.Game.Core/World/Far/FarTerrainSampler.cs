@@ -54,6 +54,15 @@ public sealed class FarTerrainSampler
 
     internal GenerationWorld World => _world;
 
+    /// <summary>Reads the drainage landmasses along a row of the world (B40), for a worker to do ahead of the tiles that would otherwise wait for them; nothing when the world has no drainage.</summary>
+    /// <param name="z">The row's z.</param>
+    /// <param name="x0">The first x.</param>
+    /// <param name="x1">The last x.</param>
+    public void WarmDrainageRow(int z, int x0, int x1) => _world.Ground.WarmRow(z, x0, x1);
+
+    /// <summary>The distance between two rows that <see cref="WarmDrainageRow"/> leaves no landmass between, in blocks (0 without drainage).</summary>
+    public int DrainageRowStep => _world.Ground.WarmStep;
+
     internal RegionCatalog Regions => _regions;
 
     /// <summary>The far view's columns made from this model (B07c): the ground, water, snow, trees and a region's own blocks, merged coarser by level.</summary>
