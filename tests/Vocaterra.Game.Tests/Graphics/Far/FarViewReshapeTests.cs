@@ -56,4 +56,31 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
         Assert.Equal(leaves, view.Stats.Built);
         Assert.Equal(0, view.Stale);
     }
+
+    [Fact]
+    public void Given_TheDrawingPathChanges_When_UsePathIsCalled_Then_EveryTileIsDroppedToBeBuiltAgainInBothDirectionsAndNeverReadBack()
+    {
+        // B31: a tile's buffers are write-only on MonoGame's path and cannot be read back, so a change of path (the Shaders switch) builds the tiles again from their data.
+        using var pool = new JobPool(0);
+        var view = Make(pool);
+        Assert.False(view.UsePath(false, Release)); // the first path is taken, nothing is dropped
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        var cached = view.Stats.Cached;
+        Assert.True(cached > 0);
+
+        Assert.False(view.UsePath(false, Release)); // the same path: the tiles stay
+        Assert.Empty(_released);
+
+        Assert.True(view.UsePath(true, Release)); // off to on
+        Assert.Equal(0, view.Stats.Cached);
+        Assert.Equal(cached, _released.Count);
+        Assert.Empty(view.Draw);
+        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000)); // built again from the data
+        Assert.Equal(cached, view.Stats.Cached);
+
+        _released.Clear();
+        Assert.True(view.UsePath(false, Release)); // on to off
+        Assert.Equal(cached, _released.Count);
+        Assert.Equal(0, view.Stats.Cached);
+    }
 }

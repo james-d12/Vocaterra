@@ -135,6 +135,11 @@ public sealed class FarTerrainRenderer : IDisposable
         }
 
         var pass = gl?.Pass;
+        if (_view.UsePath(pass is not null, Release))
+        {
+            return; // the path changed (the Shaders switch): the tiles are built again for it
+        }
+
         UploadPending(settings.TopLevel, pass); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
         if (_view.Draw.Count == 0)
         {
@@ -144,8 +149,6 @@ public sealed class FarTerrainRenderer : IDisposable
         var projection = ProjectionFor(camera, settings.Range, NearPlaneFor(_view.VoxelViewDistance));
         _view.ReachScale = ReachFor(camera);
         _frustum.Matrix = camera.View * projection;
-        _convertBudget = MaxUploadBytesPerFrame;
-        _converted = 0;
         for (var i = 0; i < _view.Draw.Count; i++)
         {
             var tile = _view.Draw[i];
@@ -156,11 +159,7 @@ public sealed class FarTerrainRenderer : IDisposable
 
             if (!InForm(tile, pass))
             {
-                Convert(tile, pass); // a tile uploaded for the other path (the setting or the shaders changed): carried over a few a frame, the rest wait their turn
-                if (!InForm(tile, pass))
-                {
-                    continue;
-                }
+                continue; // built for the other path: the view was told to build it again (UsePath)
             }
 
             _visible.Add(tile);
@@ -279,64 +278,6 @@ public sealed class FarTerrainRenderer : IDisposable
 
     // Whether the tile's buffers are in the form of the path drawing (the game's own program, or MonoGame's effects).
     private static bool InForm(FarTile tile, GlChunkPass? pass) => pass is null ? tile.Buffer is not null : tile.GlBuffers is not null;
-
-    private long _convertBudget;
-
-    // Carries a tile's buffers from the form of the other path to this one, within the frame's byte budget (a tile is read back from the card and put up again): at least one a frame.
-    private void Convert(FarTile tile, GlChunkPass? pass)
-    {
-        if (_convertBudget <= 0 && _converted > 0)
-        {
-            return;
-        }
-
-        _converted++;
-        _convertBudget -= tile.Bytes;
-        if (pass is not null && tile.Buffer is not null && tile.Indices is not null)
-        {
-            var vertices = new VertexPositionColorTexture[tile.Vertices];
-            tile.Buffer.GetData(vertices);
-            ushort[]? narrow = null;
-            int[]? wide = null;
-            if (tile.Indices.IndexElementSize == IndexElementSize.SixteenBits)
-            {
-                narrow = new ushort[tile.Indices.IndexCount];
-                tile.Indices.GetData(narrow);
-            }
-            else
-            {
-                wide = new int[tile.Indices.IndexCount];
-                tile.Indices.GetData(wide);
-            }
-
-            tile.GlBuffers = pass.UploadFar(vertices, vertices.Length, narrow, wide, narrow?.Length ?? wide!.Length);
-            tile.Buffer.Dispose();
-            tile.Buffer = null;
-            tile.Indices.Dispose();
-            tile.Indices = null;
-        }
-        else if (pass is null && tile.GlBuffers is { } glBuffers)
-        {
-            var (vertices, narrow, wide) = glBuffers.Download(tile.Vertices, tile.Runs.Opaque + tile.Runs.Lit + tile.Runs.Water);
-            tile.Buffer = new VertexBuffer(_device, VertexPositionColorTexture.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
-            tile.Buffer.SetData(vertices);
-            if (narrow is not null)
-            {
-                tile.Indices = new IndexBuffer(_device, IndexElementSize.SixteenBits, narrow.Length, BufferUsage.WriteOnly);
-                tile.Indices.SetData(narrow);
-            }
-            else
-            {
-                tile.Indices = new IndexBuffer(_device, IndexElementSize.ThirtyTwoBits, wide!.Length, BufferUsage.WriteOnly);
-                tile.Indices.SetData(wide);
-            }
-
-            glBuffers.Dispose();
-            tile.GlBuffers = null;
-        }
-    }
-
-    private int _converted;
 
     // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
     private void UploadPending(int topLevel, GlChunkPass? pass)
