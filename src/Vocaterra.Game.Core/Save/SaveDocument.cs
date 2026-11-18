@@ -136,6 +136,8 @@ public sealed record SaveDocument(
 /// <param name="HeightFogOff">True when the player turned the fog by height off (B17c). Written only when true.</param>
 /// <param name="FarLightOff">True when the player turned the far view's light off (B17c). Written only when true.</param>
 /// <param name="Msaa">The window's antialiasing in samples a pixel (0, 2, 4 or 8; B22, the menu's Graphics group since B17c); no field is the default (4). Written only when not 4, so 0 (none) is written.</param>
+/// <param name="FlyCheat">True when the player turned the fly cheat on (no gravity; jump rises, the descend key sinks). Written only when true.</param>
+/// <param name="FlySpeed">The flying speed in blocks per second (the fly cheat's slider); no field is the default (<see cref="Physics.VoxelPhysics.DefaultFlyBlocksPerSecond"/>). Written only when not the default.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -162,7 +164,9 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaterShaderOff = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool HeightFogOff = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FarLightOff = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Msaa = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Msaa = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FlyCheat = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FlySpeed = null)
 {
     /// <summary>The window's samples a pixel in the save's settings of a new game (B22).</summary>
     public const int DefaultMsaa = 4;
@@ -248,6 +252,7 @@ public sealed record SaveSettings(
             Menu.SettingId.FarTrees => FarTrees,
             Menu.SettingId.FarTextures => FarTextures,
             Menu.SettingId.FarExact => FarExact,
+            Menu.SettingId.FlySpeed => FlySpeed,
             _ => null,
         };
         return saved is { } value ? spec.Snap(value) : spec.Default;
@@ -297,7 +302,9 @@ public sealed record SaveSettings(
         WaterShaderOff,
         HeightFogOff,
         FarLightOff,
-        EffectiveMsaa == DefaultMsaa ? null : EffectiveMsaa);
+        EffectiveMsaa == DefaultMsaa ? null : EffectiveMsaa,
+        FlyCheat,
+        OmitDefault(Menu.SettingId.FlySpeed, EffectiveOf(Menu.SettingId.FlySpeed)));
 }
 
 /// <summary>
