@@ -36,6 +36,20 @@ CASES = [
     ("cat > notes.md <<'EOF'\nthe rule: never sleep 600 in a shell\nEOF", ALLOW, "a heredoc that only mentions sleep"),
     ("git commit -F - <<'EOF'\nwaited with sleep 600 before\nEOF\ngit status", ALLOW, "a commit message that mentions sleep"),
     ("cat <<'EOF' > x.txt\nsleep 600\nEOF\nsleep 600", BLOCK, "a heredoc followed by a real long sleep"),
+    ("git commit -m \"no sleep 600 here\"", ALLOW, "a double-quoted commit message that mentions sleep (B29e)"),
+    ("echo 'while true; do sleep 1; done'", ALLOW, "a single-quoted loop that only is text (B29e)"),
+    ("git commit -F - <<'EOF'\nSubject line\n\nWaited, then tried: sleep 600 and a loop.\nEOF\ngit log -1", ALLOW,
+     "a multi-line commit message in a heredoc that mentions sleep 600 (B29e)"),
+    ("bash -c \"sleep 600\"", BLOCK, "a real sleep as the string of bash -c (B29e)"),
+    ("timeout 900 bash -c 'until x; do sleep 5; done'", BLOCK, "a polling loop as the string of bash -c under timeout (B29e)"),
+    ("echo \"x\" && sleep 45", BLOCK, "a long sleep after a quoted word (B29e)"),
+    ("grep -n \"sleep\" file", ALLOW, "grep for the word sleep (B29e)"),
+    ("echo \"unbalanced; sleep 600", BLOCK, "unbalanced quotes fall back to the raw check, which finds sleep 600 (B29e)"),
+    ("sh -c 'sleep 600'", BLOCK, "a long sleep as the string of sh -c (B29e)"),
+    ("echo ok # sleep 600", ALLOW, "a long sleep inside a trailing comment (B29e)"),
+    ("echo $'sleep 600'", ALLOW, "a long sleep inside an ANSI-C string (B29e)"),
+    ("sleep \"600\"", BLOCK, "a quoted argument of sleep is still read (B29e)"),
+    ("echo \"$(sleep 600)\"", BLOCK, "a sleep inside command substitution in double quotes runs (B29e)"),
 ]
 
 NOT_A_BASH_CALL = [
