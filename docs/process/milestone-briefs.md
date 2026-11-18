@@ -22,8 +22,9 @@ docs/research/2026-11-17-ai-development-throughput.md): run a long command with 
 turn and wait for its notification; never poll with `sleep`, `until grep ...; do sleep` or `pgrep -f` loops, and never start a run
 with `nohup ... &` (the harness cannot see it end; agents left about 40 orphaned loops on 2026-11-17). While iterating run
 `scripts/test.sh fast` plus the test classes you touch (`scripts/test.sh project <test project>` with a `--filter`); **merge
-<feature branch> into your branch before your one full run**, then run `scripts/test.sh full` (the whole suite, as the gate) once and
-report only after it has finished. Exit 137 means the cap killed it: lower the parallelism, do not work around the cap.
+<feature branch> into your branch before your one full run**, then run `scripts/test.sh full` (the whole suite without the fuzz suite and
+the timing tests, in Release) once and report only after it has finished; run `scripts/test.sh timing` as well when the milestone
+changes performance or a timing test. Exit 137 means the cap killed it: lower the parallelism, do not work around the cap.
 Game runs (pictures, scripted runs, measurements): a Release build; `scripts/limited.sh timeout 900 <command>` (the `timeout` inside, so
 a wait for a slot does not count); `--far-view off` unless the milestone is about the far view (a streamed run's first frame spends
 about 3 minutes building a cold 16 km far view on two workers); one batch script per milestone rather than many small runs.
@@ -95,8 +96,8 @@ Every brief says to read `CLAUDE.md` first; these are the facts it does not hold
   tests, fuzz suite and demo CLI run on it (R02). Lexicon regeneration is in `docs/nlp/lexicon.md`.
 - Determinism tiers (core plan §3): no `System.Random`, no wall clock, ordinal comparisons, `CanonicalJson`, seeded RNG, margins for
   model thresholds; model adapters gated on `VOCATERRA_MODELS_DIR`.
-- The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/nlp/fuzzing-plan.md`) is a merge gate and has found every real
-  bug so far; its README lists bugs found, known limits and narrowed oracles.
+- The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/nlp/fuzzing-plan.md`) runs in CI, not in the gate or in agents'
+  runs (D-game-34 item 58), and has found every real bug so far; its README lists bugs found, known limits and narrowed oracles.
 - Licence scan: `scripts/license-scan.sh --offline`; the allowlist refuses copyleft code dependencies; CC BY-SA is accepted for derived
   data.
 - The core demo, `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open

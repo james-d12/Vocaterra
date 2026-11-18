@@ -50,9 +50,12 @@ in `docs/nlp/api.md` updates that record.
    register, nothing under `bin/`, `obj/` or `artifacts/`, and no game milestone edited the core (or a core milestone the game) unless its
    brief said so. `content/game-v1` is the one shared file set (R02): a milestone that edits it ran the whole suite.
 4. **Gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"` from that branch's checkout, in the background. It
-   merges `--no-ff`, builds with warnings as errors, runs the whole suite (with models when the shared folder exists), checks format,
-   validates the bundle and runs the licence scan, with logs in `.claude/gate-logs/`. An intermittent failure is investigated from the
-   saved log, never waved through.
+   merges `--no-ff` and runs as one limited.sh command (one slot): a Release build with warnings as errors, the suite without the fuzz
+   suite and the timing tests (with models when the shared folder exists), the timing tests as their own step, format, the bundle
+   validation, the grammar replay and the licence scans, with logs in `.claude/gate-logs/`. A failed test is re-run alone and labelled
+   FLAKY or FAILED: record each FLAKY test from `.claude/gate-logs/flaky-<stamp>.txt` as a finding; a FAILED one is investigated from
+   the saved log, never waved through. Read the printed test-time report for a warning. The gate runs the target's own copy of
+   `merge-gate.sh`: a milestone that changes the gate is merged first and then gated (the "already merged" case).
 5. **Spot-check behaviour**, not just tests: the host demo commands (game plan section 6), the core's demo line and the milestone's own
    lines. For a core change, also a few natural, correct learner lines at the NPCs' prompts (names, greetings, `usted`/`ustedes`): M59's
    first build flagged the correct `Luz quiero pan` because its brief asked for an error to be flagged.
@@ -102,8 +105,11 @@ swap). On 2026-11-05 the owner allowed two agents at once, "so long as it's with
   the other slot is free, never a higher cap without the owner. `VOCATERRA_HEAVY_SLOTS=1` restores one at a time. Builds use `-m:4`, tests `-m:2`. `scripts/test.sh` and `scripts/content-loop.sh` call it themselves; it is
   re-entrant (M67).
 - **Test tiers** (`docs/process/test-performance-plan.md`): `scripts/test.sh fast` for every step, `scripts/test.sh full` at a milestone
-  and in the gate (the gate and CI always run the full suite). A test that takes more than a few seconds alone, needs a model or starts a
-  process is marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`.
+  (Release; it leaves out the fuzz suite and the timing tests), `scripts/test.sh timing` when a milestone changes performance or a timing
+  test. The gate runs the suite as `full` does and then the timing tests as their own step; the fuzz suite runs in CI only (D-game-34
+  item 58), and CI runs everything. A test that takes more than a few seconds alone, needs a model or starts a process is marked
+  `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`; a test that holds code to a CPU budget is in the `TimingCollection` and carries
+  `[Trait(TestSpeed.Category, TestSpeed.Timing)]`.
 - **Check before every launch and every gate**: `free -h` (at least 4 GB available, swap under half used), `uptime` (1-minute load under
   16), `df -h /home` (at least 10 GB free), `pgrep -fc 'MSBuild.dll|VBCSCompiler|testhost'` (0 when nothing runs). Stop orphaned build
   servers with `dotnet build-server shutdown`. If the machine is not clear, wait or tell the owner; do not launch.

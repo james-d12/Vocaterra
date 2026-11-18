@@ -3012,3 +3012,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   tile and rebuilds it from its data, as a change of levels already did; the read-back code is gone. The test covers the decision (no
   graphics device in a test). Gated: 12,787 passed; the one failure the sample town's wall-clock test, passing alone: it keeps failing
   gates under load and should move to CPU time (the next branch).
+- **B29a, the throughput review's script changes (2026-11-18, merge `2fe21cd7`).** Tests now build and run in Release in `scripts/test.sh`,
+  the gate and CI: on a quiet machine the full suite with the fuzz suite took 26.4 minutes in Debug and 8.9 in Release (3.0 times), with
+  every golden, the end-to-end goldens and the save fixture unchanged and the CPU budgets re-set to twice their Release cost. Game.Core.Tests
+  fell from 26.4 minutes to 332 s and Game.Tests from 17.6 minutes to 202 s; Nlp.Tests barely moved (241 to 199 s), so its lane,
+  with `OpenFallbackMeasurementTests` (167 to 279 s), now sets the gate's floor beside Game.Core.Tests. No class is over 5 minutes, so the
+  review's item 9 does not apply. The gate holds one limited.sh slot for its whole run (peak 6.3 to 6.5 GB), re-runs failed tests alone
+  (FLAKY or FAILED) and prints a test-time report; the timing tests run as their own step and the fuzz suite only in CI (item 58). The
+  gate: 28.4 minutes with the old script against 13.0 with the new on the same tree (quiet), about 11 minutes on the real gate with one
+  agent building beside it. `scripts/test.sh fast` 187 s to 93 s. **Process finding:** the gate runs the target's own copy of
+  `merge-gate.sh`, so a milestone that changes the gate must be merged first and then gated; the first dry run, on the old script, failed
+  six timing tests that mixed a Debug build with Release budgets. The four budgets near 1 ms sit at twice their cost; a heavily loaded
+  machine may trip them (CI's factor 4 covers CI).
