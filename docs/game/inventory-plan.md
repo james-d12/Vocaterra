@@ -229,6 +229,60 @@ A draft list (the owner settles names, numbers and prices at stop 3, section 4):
 The words on neither list join the marked block of world words at the end of `cefr/a1.txt`, each with a one-line reason, the rule of
 `content/README.md` for a noun the player handles (as `harina`, `estaca` and `terreno` did); lessons and phrases stay at the A2 ceiling.
 
+### 3.13a Stop 3: the orchestrator's proposal (2026-11-18, for the owner)
+
+Written for owner-review stop 3 from the draft above, the shipped content and the lexicon. Nothing here is decided until the owner says so.
+Units: warmth in degrees (the data stores tenths); armour in points (4% less damage each, capped at 80%); walk speed and the drains as
+factors; stamina as points. The coin economy today is small (bread 2, an apple 1, flour 1, a plot 10), so prices sit between 1 and 12.
+
+**What the cold needs (from I06's numbers):** a fair noon feels about 18, a clear night 6 (cool, no effect), a rainy windy night about -2
+(cold: walk 85%), below -5 very cold (walk 65%). The starting clothes give +4, so a rainy night stays just cold; a jacket or a coat lifts it
+to cool. The world's own climate (the biomes' surface temperature, falling with height, snow caps) does not reach the player's temperature
+yet: high and snowy places feel like the valley. A term for it (a small follow-up in `PlaceTemperature`) would make warm clothes matter in
+the mountains; the owner decides whether it joins this series.
+
+| Group | Item | Wear | Stats | Recipe (mesa) | Price, seller | Word |
+| --- | --- | --- | --- | --- | --- | --- |
+| Material | la tela | | | | 1, Pablo | not in lexicon: add |
+| Material | el cuero | | | | 2, Pablo | not in lexicon: add |
+| Material | el hierro | | | | 3, Domingo | lexicon |
+| Clothes | el sombrero | head | warmth +1 | 1 tela | 2, Pablo | lexicon, A1 |
+| Clothes | el gorro | head | warmth +2 | 2 tela | 3, Pablo | not in lexicon: add |
+| Clothes | la camisa (starts worn) | body | warmth +1 | 2 tela | 3, Pablo | lexicon, A1 |
+| Clothes | la chaqueta | body | warmth +3 | 3 tela, 1 cuero | 6, Pablo | lexicon |
+| Clothes | el abrigo | body | warmth +5 | 4 tela, 2 cuero | 10, Pablo | lexicon |
+| Clothes | los pantalones (start worn) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
+| Clothes | los zapatos (start worn) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
+| Clothes | las botas | feet | warmth +2 | 2 cuero | 5, Pablo | lexicon |
+| Armour | el casco | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
+| Armour | la coraza | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
+| Armour | las grebas | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
+| Armour | (armoured boots) | feet | armour 2 | 2 hierro | 6, Domingo | open: no plain word that is not «botas» |
+| Accessory | el anillo | ring | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
+| Accessory | la pulsera | ring | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
+| Accessory | el cinturón | ring | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
+| Accessory | el collar | ring | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
+| Accessory | el amuleto | ring | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
+| Off-hand | el escudo | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
+| Off-hand | la antorcha (today's torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
+| Off-hand | el farol | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |
+| Bag | el saco | back | capacity 10 | 2 tela | 4, Pablo | lexicon |
+| Bag | la mochila | back | capacity 20 | 3 tela, 2 cuero | 10, Pablo | not in lexicon: add |
+
+Totals: the warmest clothes give +11 (gorro, abrigo, pantalones, botas); the full armour 12 points (48%), 15 with the shield (60%). The
+light numbers wait for I05b's stop. Every Spanish word joins `game/nouns.json`, the English locale and, if outside the A1 and A2 lists, the
+world-words block of `cefr/a1.txt` with its reason; words not in the lexicon get an entry in `lexicon/world.json` (the plan's rule).
+
+**Choices for the owner:**
+1. **One armour tier (iron) instead of two.** The game's nouns are single words, so «el casco de cuero» and «el casco de hierro» would be
+   one noun «casco» for two items: buying «un casco» would be ambiguous. One tier keeps every item a word of its own; a leather tier
+   needs multi-word nouns first (a core change).
+2. **The armoured boots:** leave the armour's feet slot empty for now, or pick a word («los escarpes» is right but rare for a learner).
+3. **«la coraza» or «el peto»** for the body armour (neither is in the lexicon; «la armadura» already names the column).
+4. **The amuleto's light:** keep (light without using the off-hand) or drop (the torch and the lantern are enough).
+5. **The climate term:** add the world's height and biome temperature to what the player feels (one small milestone), or not.
+6. **Prices and the starting clothes** as above, or other numbers.
+
 ### 3.14 Death, saves and determinism
 
 - **Death:** worn items, the worn bag and stacks of one stay with the player; the bag's stackables go to the belongings chest, as today.
