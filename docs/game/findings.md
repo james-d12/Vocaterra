@@ -3024,3 +3024,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `merge-gate.sh`, so a milestone that changes the gate must be merged first and then gated; the first dry run, on the old script, failed
   six timing tests that mixed a Debug build with Release budgets. The four budgets near 1 ms sit at twice their cost; a heavily loaded
   machine may trip them (CI's factor 4 covers CI).
+- **B29c, the hot spots and the polling hook (2026-11-18, merge `cb71d43d`).** The save fixture's `bundleHash` is a placeholder; nine test
+  files read the fixture through `SaveFixture.Read`, which puts in the current bundle's hash, so a content edit touches only the content and
+  `manifest.json` (three files before). `scripts/rehash-bundle.sh` runs the hash and validate through limited.sh; `content-loop.sh`'s
+  fixtures step now only reports. A project `.claude/settings.json` adds a PreToolUse hook (`scripts/hooks/no-polling.py`, test
+  `scripts/tests/no-polling-test.py`, 20 cases) that blocks a Bash `sleep` over 30 s, an `until`/`while` loop that sleeps and `nohup … &`.
+  Known false positive: a command that only quotes such text (a commit message with "sleep 600") is blocked too. The gate's time report
+  worked on its second run (833 s against 899 s). Haiku took 541 tool calls for it, many more than a Sonnet agent on a milestone of its size.

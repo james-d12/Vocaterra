@@ -42,9 +42,9 @@ Facts every session needs:
   `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then validate and test again. The tool is
   the core's ContentBuilder run from source. The sandbox refuses command lines that contain the words `eval` or `hash`; run such a
   command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
-  suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
-  (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
-  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json` (on `feature/biomes` since B05; its `stateDigest` depends only on the world-generation files `world.json`, `biomes.json` and `underground.json`, not on the bundle hash). No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
+  suite and a failing core test is wanted feedback. After `hash` (or `scripts/rehash-bundle.sh`, which runs `hash` and `validate`; a `manifest.json` conflict is resolved by taking either
+  side and running it, B29c), run the whole suite; re-record the end-to-end goldens if the edit moved them
+  (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`). The save fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json` pins no bundle hash (a placeholder; the tests read it with the current hash through `SaveFixture.Read`); its `stateDigest` depends only on `world.json`, `biomes.json` and `underground.json`. A content edit touches the content and `manifest.json` only. No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
   `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.
