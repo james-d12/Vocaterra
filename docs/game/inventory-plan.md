@@ -229,6 +229,62 @@ A draft list (the owner settles names, numbers and prices at stop 3, section 4):
 The words on neither list join the marked block of world words at the end of `cefr/a1.txt`, each with a one-line reason, the rule of
 `content/README.md` for a noun the player handles (as `harina`, `estaca` and `terreno` did); lessons and phrases stay at the A2 ceiling.
 
+### 3.13a Stop 3: the orchestrator's proposal (2026-11-18, for the owner)
+
+Written for owner-review stop 3 from the draft above, the shipped content and the lexicon. Nothing here is decided until the owner says so.
+Units: warmth in degrees (the data stores tenths); armour in points (4% less damage each, capped at 80%); walk speed and the drains as
+factors; stamina as points. The coin economy today is small (bread 2, an apple 1, flour 1, a plot 10), so prices sit between 1 and 12.
+
+**What the cold needs (from I06's numbers):** a fair noon feels about 18, a clear night 6 (cool, no effect), a rainy windy night about -2
+(cold: walk 85%), below -5 very cold (walk 65%). The starting clothes give +4, so a rainy night stays just cold; a jacket or a coat lifts it
+to cool. The world's own climate (the biomes' surface temperature, falling with height, snow caps) does not reach the player's temperature
+yet: high and snowy places feel like the valley. A term for it (a small follow-up in `PlaceTemperature`) would make warm clothes matter in
+the mountains; the owner decides whether it joins this series.
+
+| Group | Item | Wear | Stats | Recipe (mesa) | Price, seller | Word |
+| --- | --- | --- | --- | --- | --- | --- |
+| Material | la tela (cloth) | | | | 1, Pablo | not in lexicon: add |
+| Material | el cuero (leather) | | | | 2, Pablo | not in lexicon: add |
+| Material | el hierro (iron) | | | | 3, Domingo | lexicon |
+| Clothes | el sombrero (hat) | head | warmth +1 | 1 tela | 2, Pablo | lexicon, A1 |
+| Clothes | el gorro (woolly cap) | head | warmth +2 | 2 tela | 3, Pablo | not in lexicon: add |
+| Clothes | la camisa (starts worn) (shirt) | body | warmth +1 | 2 tela | 3, Pablo | lexicon, A1 |
+| Clothes | la chaqueta (jacket) | body | warmth +3 | 3 tela, 1 cuero | 6, Pablo | lexicon |
+| Clothes | el abrigo (coat) | body | warmth +5 | 4 tela, 2 cuero | 10, Pablo | lexicon |
+| Clothes | los pantalones (start worn) (trousers) | legs | warmth +2 | 2 tela | 3, Pablo | lexicon |
+| Clothes | los zapatos (start worn) (shoes) | feet | warmth +1 | 1 cuero | 3, Pablo | lexicon, A1 |
+| Armour | el casco (helmet) | head | armour 2 | 2 hierro | 6, Domingo | lexicon, A2 |
+| Armour | la coraza (cuirass (chest and back plate)) | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add |
+| Armour | las grebas (greaves (shin plates)) | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
+| Armour | las botas (boots) | feet | armour 2 | 2 hierro | 6, Domingo | lexicon |
+| Accessory | el anillo (ring) | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
+| Accessory | la pulsera (bracelet) | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
+| Accessory | el cinturón (belt) | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
+| Accessory | el collar (necklace) | accessory | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
+| Accessory | el amuleto (amulet) | accessory | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
+| Off-hand | el escudo (shield) | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
+| Off-hand | la antorcha (today's torch) (torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
+| Off-hand | el farol (lantern) | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |
+| Bag | el saco (sack) | back | capacity 10 | 2 tela | 4, Pablo | lexicon |
+| Bag | la mochila (backpack) | back | capacity 20 | 3 tela, 2 cuero | 10, Pablo | not in lexicon: add |
+
+Totals: the warmest clothes give +10 (gorro, abrigo, pantalones, zapatos); the full armour 12 points (48%), 15 with the shield (60%). The
+light numbers wait for I05b's stop. Every Spanish word joins `game/nouns.json`, the English locale and, if outside the A1 and A2 lists, the
+world-words block of `cefr/a1.txt` with its reason; words not in the lexicon get an entry in `lexicon/world.json` (the plan's rule).
+
+**The owner's answers (2026-11-18):** prices as in the table; keep the amulet's light; add the world's climate to what the player feels
+(a milestone, I06b). The boots (2026-11-18): the clothes' feet are the shoes («los zapatos») and the armour's feet are the boots («las botas»); the clothes have no boots. Armour (2026-11-18): one tier, iron only, and the body piece is «la coraza». **Stop 3 is settled:** the table above, with these answers, is the list I08a and I08b build.
+
+**Choices for the owner:**
+1. **One armour tier (iron) instead of two.** The game's nouns are single words, so «el casco de cuero» and «el casco de hierro» would be
+   one noun «casco» for two items: buying «un casco» would be ambiguous. One tier keeps every item a word of its own; a leather tier
+   needs multi-word nouns first (a core change).
+2. **The armoured boots:** leave the armour's feet slot empty for now, or pick a word («los escarpes» is right but rare for a learner).
+3. **«la coraza» or «el peto»** for the body armour (neither is in the lexicon; «la armadura» already names the column).
+4. **The amuleto's light:** keep (light without using the off-hand) or drop (the torch and the lantern are enough).
+5. **The climate term:** add the world's height and biome temperature to what the player feels (one small milestone), or not.
+6. **Prices and the starting clothes** as above, or other numbers.
+
 ### 3.14 Death, saves and determinism
 
 - **Death:** worn items, the worn bag and stacks of one stay with the player; the bag's stackables go to the belongings chest, as today.
@@ -369,5 +425,7 @@ Recorded as D-game-35 (decided 2026-11-15; building started the same day).
 | I04 | done, 2026-11-16 (screenshots wait) | `0cf31798`, 12,102 passed, 3 skipped | The equipment panel (taken before I05b, which needs a window): `EquipmentShape` (the doll's columns are the layered groups in layer order, a seventh group gets cells from data), clicks on equipment cells, refusal lines (English, `locale/en/ui.json`), hover, the stats line (`armadura`, `calor`, icons for the rest), regular, compact and tight layouts. Seven label and stat nouns added to `game/nouns.json`, `armadura` to `cefr/a1.txt` (D-game-35 (a)). I02's three behaviours kept; the quit path no longer throws with a held stack and a full bag. Report: `.claude/briefs/i04-report.md`. |
 | I04b | done, 2026-11-18 (screenshots next) | `3334359e`, 13,301 passed, 9 skipped; timing 22 of 23 (one CPU budget failed under another session's load, accepted; to re-run) | The owner saw the first screenshots (2026-11-16) and asked for every issue found to be fixed, plus an off-hand cell left of the hotbar "kind of like Minecraft": the held stack without a mouse, the tight stats line, the doll's column headings («la ropa», «la armadura», «la apariencia»), the title «la bolsa», Spanish refusal lines, the stale key hints, cut-off slot labels. Sonnet 5.5 at high; brief `.claude/briefs/i04b-panel-fixes-and-offhand-slot.md`. |
 | I-merge | done, 2026-11-18 (gated with I-merge2) | `c3bd3c2b`, 13,234 passed, 9 skipped; timing 23 | `main` with the biomes series (PR #69) merged into this branch; every conflict resolved by the agent, then stopped before any build or test. The unverified merge is on `feature/inventory` (`55d88fbd`); the steps to finish it are in the handover. Save stays at version 10 with main's `PassOpen`. Brief `.claude/briefs/i-merge-main.md`. |
+| I06b | done, 2026-11-18 | `a773a307`, 13,330 passed, 9 skipped; timing 23 | The owner's choice at stop 3: the world's climate (height and biome, through the generator's `TemperatureAt`) cools what the player feels, at most 12 degrees; the valley unchanged; the highest peak on seed 42 very cold (-5.8) on a clear night, cool with the warmest clothes. Data in `temperature.json`'s `climate`. Caves and weather on peaks not special. Report `.claude/briefs/i06b-report.md`. |
+| I04c | done, 2026-11-18 | `b048d781`, 13,312 passed, 9 skipped; timing 23 | The owner after I04b's shots: the doll's headings as the bare noun («ropa», «armadura», «apariencia»), in full at the regular size (the outer boxes overhang into free space); compact and tight keep a short mark. Report `.claude/briefs/i04c-report.md`. |
 | I-merge2 | done, 2026-11-18 | `c3bd3c2b`, 13,234 passed, 0 failed, 9 skipped (Release, no fuzz or timing); timing 23 passed | `main`'s throughput series (PR #70) merged in: 14 conflicts (docs, content-loop.sh, the save tests); `save-v10.json` pins no bundle hash (B29c); two I01 tests read it through `SaveFixture.Read`. The gate also covers I-merge and I-merge-fix. Report `.claude/briefs/i-merge2-report.md`. |
 | I05b, I08a to I10 | todo | | Build order in section 4. |

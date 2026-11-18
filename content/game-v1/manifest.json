@@ -132,7 +132,7 @@
 {"path":"game/scene.json","sha256":"cab606ebed2d64b5ae3d58be157c92e967ceb2843ebc49a528aba70f9e13b16c","bytes":33002},
 {"path":"game/session.json","sha256":"604766c7aebdbf910fc20b2b4d044cbb9905c00ce105fe25b788e9e46059eccf","bytes":831},
 {"path":"game/stations.json","sha256":"e30b4083f65e278ca24d40d597b3f827f3a36992dd59357317c772ab3a086b43","bytes":536},
-{"path":"game/temperature.json","sha256":"e43a8288e9efde2e4670a5a9ba646a5067034e1b5e0c1ab3ef7e7cef627f8a66","bytes":1767},
+{"path":"game/temperature.json","sha256":"18437d6f3c42d3b8f45fa6cdc7ce06caaed16cd72d7d5c393b4c8ef88c30f692","bytes":2304},
 {"path":"game/tips.json","sha256":"4af271e0f305d3fb3e4277b4245ebd643be985ebd5d2997ef33e1222225d7f69","bytes":1413},
 {"path":"game/underground.json","sha256":"701862d2f52c6bec7e73d979bb405a102ce628665e81e4f8e396214f702f0054","bytes":8487},
 {"path":"game/weather.json","sha256":"9697dee582e66869641a7b334f30e2597eb7ba46fe9246b14f1912b31b73246b","bytes":1886},
@@ -1833,4 +1833,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"f8f8a0bb525ca10eed26ff0b945f448a81b084b01f64f4f91f67dd8b2fa58080"}
+],"bundleHash":"6ac4bb22ad05319c4ee0df5c52fb6d192815f8129fe49d9fa09ba6848b2a267b"}

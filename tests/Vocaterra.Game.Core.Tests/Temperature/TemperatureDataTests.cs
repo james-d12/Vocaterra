@@ -9,6 +9,7 @@ public sealed class TemperatureDataTests
 {
     private const string Json = """
         { "schemaVersion": 1, "base": { "tenths": 100 }, "day": { "amplitudeTenths": 40 }, "weather": { "cloudTenths": 10, "precipitationTenths": 20, "windTenths": 30 },
+          "climate": { "referenceThousandths": -40, "coolingTenthsPerRange": 150, "maxCoolingTenths": 90 },
           "shelter": { "bonusTenths": 5, "onlyInPrecipitation": false }, "fire": { "radiusBlocks": 4, "bonusTenths": 90 },
           "bands": [ { "id": "mild", "from": 50, "walkFactor": 1.0, "chill": 0 }, { "id": "chilly", "from": -1000, "walkFactor": 0.5, "chill": 1, "line": "temperature.cold" } ] }
         """;
@@ -29,6 +30,7 @@ public sealed class TemperatureDataTests
         Assert.Equal(100, data.BaseTenths);
         Assert.Equal(40, data.DayAmplitudeTenths);
         Assert.Equal((10, 20, 30), (data.CloudCoolingTenths, data.PrecipitationCoolingTenths, data.WindCoolingTenths));
+        Assert.Equal(new ClimateCooling(-40, 150, 90), data.Climate);
         Assert.Equal((5, false), (data.ShelterBonusTenths, data.ShelterOnlyInPrecipitation));
         Assert.Equal((4, 90), (data.FireRadiusBlocks, data.FireBonusTenths));
         Assert.Equal([new TemperatureBand("mild", 50, 1.0, 0, null), new TemperatureBand("chilly", -1000, 0.5, 1, "temperature.cold")], data.Bands);
@@ -111,6 +113,9 @@ public sealed class TemperatureDataTests
         Assert.Contains(Own(Shipped with { CloudCoolingTenths = -5 }), static p => p.Contains("weather.cloudTenths", StringComparison.Ordinal));
         Assert.Contains(Own(Shipped with { PrecipitationCoolingTenths = -5 }), static p => p.Contains("weather.precipitationTenths", StringComparison.Ordinal));
         Assert.Contains(Own(Shipped with { WindCoolingTenths = -5 }), static p => p.Contains("weather.windTenths", StringComparison.Ordinal));
+        Assert.Contains(Own(Shipped with { Climate = Shipped.Climate with { CoolingTenthsPerRange = -1 } }), static p => p.Contains("climate.coolingTenthsPerRange", StringComparison.Ordinal));
+        Assert.Contains(Own(Shipped with { Climate = Shipped.Climate with { MaxCoolingTenths = -1 } }), static p => p.Contains("climate.maxCoolingTenths", StringComparison.Ordinal));
+        Assert.Contains(Own(Shipped with { Climate = Shipped.Climate with { ReferenceThousandths = 99999 } }), static p => p.Contains("climate.referenceThousandths", StringComparison.Ordinal));
         Assert.Contains(Own(Shipped with { ShelterBonusTenths = -5 }), static p => p.Contains("shelter.bonusTenths", StringComparison.Ordinal));
         Assert.Contains(Own(Shipped with { FireBonusTenths = -5 }), static p => p.Contains("fire.bonusTenths", StringComparison.Ordinal));
         Assert.Contains(Own(Shipped with { FireRadiusBlocks = 0 }), static p => p.Contains("fire.radiusBlocks", StringComparison.Ordinal));

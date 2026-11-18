@@ -3,7 +3,7 @@
   "title": "game/temperature.json",
   "description": "The temperature where the player stands and how it feels (I06): the numbers of the terms that make up the place's temperature, and the bands the feeling (the temperature plus the player's warmth) is read against. Every temperature is whole tenths of a degree Celsius. Loaded by TemperatureData (Vocaterra.Game.Core); GameDataValidator checks the values (the numbers within limits, bands from warmest to coldest with falling bounds, walk factors above 0 and at most 1, unique ids, chills that do not fall, a line only on a chilled band, and every line a row of words.json's hudLines and of the locale).",
   "type": "object",
-  "required": ["schemaVersion", "base", "day", "weather", "shelter", "fire", "bands"],
+  "required": ["schemaVersion", "base", "day", "weather", "climate", "shelter", "fire", "bands"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -33,6 +33,17 @@
         "cloudTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of full cloud cover." },
         "precipitationTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of precipitation at full intensity." },
         "windTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The cooling of the strongest wind." }
+      }
+    },
+    "climate": {
+      "type": "object",
+      "required": ["referenceThousandths", "coolingTenthsPerRange", "maxCoolingTenths"],
+      "additionalProperties": false,
+      "description": "The world's climate in what the player feels (I06b): the climate temperature at the player's column and height (the biomes' field lowered by the lapse over height; 1000 thousandths is the field's range, as world.json writes it) read against a reference.",
+      "properties": {
+        "referenceThousandths": { "type": "integer", "minimum": -2000, "maximum": 2000, "description": "The climate temperature at and above which the term is 0 (the valley floor and the village sit above it)." },
+        "coolingTenthsPerRange": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "Tenths of a degree taken off for each 1000 thousandths the climate temperature falls below the reference." },
+        "maxCoolingTenths": { "type": "integer", "minimum": 0, "maximum": 2000, "description": "The most the term takes off, in tenths of a degree." }
       }
     },
     "shelter": {
