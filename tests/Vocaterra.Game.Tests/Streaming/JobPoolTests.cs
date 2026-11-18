@@ -194,4 +194,23 @@ public sealed class JobPoolTests
         Assert.InRange(order.IndexOf("ring"), 0, 5);
         Assert.Equal(13, order.Count);
     }
+
+    [Fact]
+    public void Given_RingJobsNearerAndFartherThanTheTileJobs_When_TheyRun_Then_ThePriorityDecidesNearestFirstAcrossTheTwoLanes()
+    {
+        using var pool = new JobPool(0);
+        var order = new List<string>();
+        for (var i = 1; i <= 4; i++)
+        {
+            var n = i;
+            pool.Submit(JobLane.Tiles, n * 100, static () => false, () => order.Add("tile" + n));
+        }
+
+        pool.Submit(JobLane.Ring, 250, static () => false, () => order.Add("ring250"));
+        pool.Submit(JobLane.Ring, 50, static () => false, () => order.Add("ring50"));
+
+        _ = pool.RunInline(null);
+
+        Assert.Equal(["ring50", "tile1", "tile2", "ring250", "tile3", "tile4"], order);
+    }
 }

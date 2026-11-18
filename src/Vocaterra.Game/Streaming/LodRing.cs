@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Streaming;
@@ -27,6 +28,7 @@ public sealed class LodRing
     private readonly StreamedWorld _streamed;
     private readonly JobPool _pool;
     private readonly ColumnBandCache? _bands;
+    private readonly VoxelGrid? _zone;
     private readonly ConcurrentDictionary<long, byte> _finished = new();
     private readonly ConcurrentDictionary<long, byte> _flying = new();
     private readonly ConcurrentQueue<(long Key, bool Ok)> _results = new();
@@ -38,14 +40,20 @@ public sealed class LodRing
     private long _done;
     private long _skippedLayers;
     private long _madeLayers;
+    private long _takenLayers;
+    private long _airLayers;
+    private (double X, double Z) _eye = (double.NaN, 0);
+    private int _radius;
 
     /// <summary>Creates the ring of a far world.</summary>
     /// <param name="world">The far world the chunks are ingested into.</param>
     /// <param name="streamed">The world whose chunks they are.</param>
     /// <param name="pool">The workers.</param>
     /// <param name="bands">The surface bands of the chunk columns (the residency's cache), or <see langword="null"/> to make the whole column as the ring did before B07d.</param>
-    public LodRing(LodWorld world, StreamedWorld streamed, JobPool pool, ColumnBandCache? bands = null)
+    /// <param name="zone">The voxel grid whose resident chunks a footprint takes as they are instead of generating them again (B38), or <see langword="null"/> to generate every chunk.</param>
+    public LodRing(LodWorld world, StreamedWorld streamed, JobPool pool, ColumnBandCache? bands = null, VoxelGrid? zone = null)
     {
+        _zone = zone;
         _world = world;
         _streamed = streamed;
         _pool = pool;
@@ -57,6 +65,30 @@ public sealed class LodRing
 
     /// <summary>How many chunk layers the ring generated, and how many it did not need to (stone under the layers the far view draws).</summary>
     public (long Made, long Skipped) Layers => (Interlocked.Read(ref _madeLayers), Interlocked.Read(ref _skippedLayers));
+
+    /// <summary>How many chunk layers a footprint took from the voxel zone, and how many it knew to be air over a column's band, instead of generating them (B38).</summary>
+    public (long Resident, long Air) Reused => (Interlocked.Read(ref _takenLayers), Interlocked.Read(ref _airLayers));
+
+    /// <summary>Added to a footprint job's priority so it sits on the same scale as the fine far tiles' (B38: the ring's jobs and the tiles that wait for them are taken nearest first); the host sets it to the far view's <see cref="Graphics.Far.FarView.FineBias"/>.</summary>
+    public long PriorityOffset { get; set; }
+
+    /// <summary>
+    /// Whether the footprint is one the ring will still make real (B38): within the ring's radius of the eye and not made yet (or being made). A far tile over it waits for the ring's data instead of being built from the model and again
+    /// from the real chunks. Before the first plan every footprint in the radius counts, and a radius of 0 means no ring.
+    /// </summary>
+    /// <param name="sx">The footprint's x, in sections.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public bool Awaits(int sx, int sz)
+    {
+        var radius = _radius;
+        if (radius <= 0 || double.IsNaN(_eye.X))
+        {
+            return false;
+        }
+
+        var (ex, ez) = (((sx + 0.5) * LodSection.Size) - _eye.X, ((sz + 0.5) * LodSection.Size) - _eye.Z);
+        return Math.Sqrt((ex * ex) + (ez * ez)) <= radius && !_finished.ContainsKey(KeyOf(sx, sz));
+    }
 
     /// <summary>How many footprints are planned or being made, and a plan that is being made counts as one more (so the ring is not idle before it knows its work).</summary>
     public int Pending => _plan.Count + Volatile.Read(ref _inFlight) + Volatile.Read(ref _planning) + _planned.Count;
@@ -87,6 +119,8 @@ public sealed class LodRing
     /// <param name="radius">The radius in blocks (0 for no ring).</param>
     public void Update(double eyeX, double eyeZ, int radius)
     {
+        _eye = (eyeX, eyeZ);
+        _radius = radius;
         while (_results.TryDequeue(out var result))
         {
             _ = _flying.TryRemove(result.Key, out _);
@@ -150,12 +184,13 @@ public sealed class LodRing
             }
 
             _ = Interlocked.Increment(ref _inFlight);
-            _pool.Submit(JobLane.Ring, next.Distance, static () => false, () =>
+            var resident = TakeResident(sx, sz); // on the game thread: the grid is the game thread's, the workers get copies
+            _pool.Submit(JobLane.Ring, next.Distance + PriorityOffset, static () => false, () =>
             {
                 var ok = false;
                 try
                 {
-                    Ingest(sx, sz);
+                    Ingest(sx, sz, resident);
                     ok = true;
                 }
                 finally
@@ -272,7 +307,8 @@ public sealed class LodRing
     /// <summary>The four chunk columns of a footprint, the layers the far view draws, and the lowest layer made (what <see cref="Ingest"/> takes in): the footprint's bands and columns all come from one shaped window.</summary>
     /// <param name="sx">The footprint's x.</param>
     /// <param name="sz">The footprint's z.</param>
-    public (IReadOnlyList<ChunkData>[] Columns, int First) MakeColumns(int sx, int sz)
+    /// <param name="resident">The chunks of the footprint that the voxel zone holds (<see cref="TakeResident"/>), or <see langword="null"/> to generate them all (B38).</param>
+    public (IReadOnlyList<ChunkData>[] Columns, int First) MakeColumns(int sx, int sz, ChunkData?[]?[]? resident = null)
     {
         var max = _streamed.Source.MaxChunkY - 1;
         var group = ShapeFor(sx, sz);
@@ -280,18 +316,94 @@ public sealed class LodRing
         var columns = new IReadOnlyList<ChunkData>[4];
         for (var k = 0; k < 4; k++)
         {
-            columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max, group);
+            var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
+            columns[k] = resident?[k] is { } held ? FromResident(cx, cz, first, max, group, held) : _streamed.GenerateLayers(cx, cz, first, max, group);
         }
 
         return (columns, first);
     }
 
+    /// <summary>
+    /// Copies the footprint's unchanged chunks that the voxel zone holds, for <see cref="MakeColumns"/> (B38; the game thread's call: the grid is read there, and the workers get the copies). A changed chunk is left out (its edits reach the store
+    /// by their own way); a column with no chunk held is <see langword="null"/>. The chunks are indexed by layer less the source's lowest.
+    /// </summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public ChunkData?[]?[]? TakeResident(int sx, int sz)
+    {
+        if (_zone is null)
+        {
+            return null;
+        }
+
+        var (min, max) = (_streamed.Source.MinChunkY, _streamed.Source.MaxChunkY - 1);
+        ChunkData?[]?[]? held = null;
+        for (var k = 0; k < 4; k++)
+        {
+            var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
+            for (var cy = min; cy <= max; cy++)
+            {
+                var coord = new VoxelChunkCoord(cx, cy, cz);
+                if (_zone.TryGetChunk(coord, out var chunk) && !chunk.IsChanged)
+                {
+                    held ??= new ChunkData?[4][];
+                    (held[k] ??= new ChunkData?[max - min + 1])[cy - min] = ChunkData.From(coord, chunk.Blocks, default);
+                }
+            }
+        }
+
+        return held;
+    }
+
+    // One column's layers from the first: a chunk the zone held is taken as it is, a layer over the column's band is air (the band is the layers that can hold anything), and the runs between are generated from the shared window.
+    private ChunkData[] FromResident(int cx, int cz, int first, int max, ColumnGroup? group, ChunkData?[] held)
+    {
+        var min = _streamed.Source.MinChunkY;
+        var chunks = new ChunkData[max - first + 1];
+        var band = _bands is not null && _streamed.Regions.ColumnOwner(cx, cz) is null ? _bands.Get(cx, cz, group) : default;
+        var hasBand = _bands is not null && !band.IsEmpty;
+        var layer = first;
+        while (layer <= max)
+        {
+            if (held[layer - min] is { } chunk)
+            {
+                chunks[layer - first] = chunk;
+                _ = Interlocked.Increment(ref _takenLayers);
+                layer++;
+            }
+            else if (hasBand && layer > band.MaxLayer)
+            {
+                chunks[layer - first] = ChunkData.Empty(new VoxelChunkCoord(cx, layer, cz));
+                _ = Interlocked.Increment(ref _airLayers);
+                layer++;
+            }
+            else
+            {
+                var last = layer;
+                while (last < max && held[last + 1 - min] is null && !(hasBand && last + 1 > band.MaxLayer))
+                {
+                    last++;
+                }
+
+                var made = _streamed.GenerateLayers(cx, cz, layer, last, group);
+                for (var i = 0; i < made.Count; i++)
+                {
+                    chunks[layer - first + i] = made[i];
+                }
+
+                layer = last + 1;
+            }
+        }
+
+        return chunks;
+    }
+
     // On a worker: the four chunk columns of a footprint, the layers the far view draws, into real level-0 sections.
-    private void Ingest(int sx, int sz)
+    private void Ingest(int sx, int sz, ChunkData?[]?[]? resident)
     {
         var source = _streamed.Source;
         var (min, max) = (source.MinChunkY, source.MaxChunkY - 1);
-        var (columns, first) = MakeColumns(sx, sz);
+        var (columns, first) = MakeColumns(sx, sz, resident);
         _ = Interlocked.Add(ref _madeLayers, 4L * (max - first + 1));
         _ = Interlocked.Add(ref _skippedLayers, 4L * (first - min));
         _world.IngestStack(sx, sz, (cx, cy, cz) =>
