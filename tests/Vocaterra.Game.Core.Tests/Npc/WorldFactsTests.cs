@@ -289,23 +289,18 @@ public sealed class WorldFactsTests
     }
 
     [Fact]
-    public void ASnapshotOfTheLargeWorldIsQuickAndAnswersEveryNounOfTheRoute()
+    public void ASnapshotOfTheLargeWorldAnswersEveryNounOfTheRoute()
     {
         var scene = TestGame.Route();
-        var watch = System.Diagnostics.Stopwatch.StartNew();
         var snapshot = WorldFacts.Snapshot(scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions);
-        var copied = watch.Elapsed.TotalMilliseconds;
         var spawn = scene.Spawn.Feet;
         var viewpoint = new GuideViewpoint(spawn, (spawn.X * (long)Unit) + (Unit / 2), (spawn.Z * (long)Unit) + (Unit / 2), 0);
-        watch.Restart();
         foreach (var noun in new[] { "árbol", "río", "fruta", "mesa", "piedra", "camino" })
         {
             Assert.NotNull(snapshot.NearestOfNoun(viewpoint, noun));
         }
 
-        // Taking the copy for a turn, and six searches over it, are a small part of a second even on a slow machine.
-        Assert.True(copied < 1500 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"the snapshot took {copied:F0} ms");
-        Assert.True(watch.Elapsed.TotalMilliseconds < 3000 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"six searches took {watch.Elapsed.TotalMilliseconds:F0} ms");
+        // The cost of the copy and of six searches is held to CPU-time budgets in Timing.SpeedChecksTimingTests (B29b).
         Assert.Equal(BlockId.Air, snapshot.BlockAt(new GuideCell(5, 127, 5)));
         Assert.Equal(BlockId.Water, snapshot.BlockAt(new GuideCell(scene.Point("lake").X, scene.Point("lake").Y, scene.Point("lake").Z)));
     }
