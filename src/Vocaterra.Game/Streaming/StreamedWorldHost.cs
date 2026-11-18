@@ -298,7 +298,7 @@ public sealed class StreamedWorldHost : IDisposable
             _ring.Update(eyeX, eyeZ, _radius);
             _edits.Update();
             tiles = limitMilliseconds is { } far ? Far.Settle(eyeX, eyeZ, _viewDistance, dispose, far) : Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
-            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
+            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && Far.Waiting == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
             {
                 break;
             }

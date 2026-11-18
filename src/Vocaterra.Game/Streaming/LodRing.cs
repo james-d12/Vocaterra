@@ -107,7 +107,7 @@ public sealed class LodRing
     private static long KeyOf(int sx, int sz) => ((long)sx << 32) ^ (uint)sz;
 
     /// <summary>Whether the ring has nothing left to do within its radius.</summary>
-    public bool IsIdle => Pending == 0;
+    public bool IsIdle => Pending == 0 && _results.IsEmpty; // a result not yet taken is work: the footprint is not marked made (and the tiles that wait for it not released) until the next Update takes it (B38)
 
     /// <summary>Whether the plan is made on a worker (the default; a dev run may turn it off to measure what it costs the game thread).</summary>
     public bool PlanOnWorker { get; set; } = true;
