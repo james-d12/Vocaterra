@@ -3131,3 +3131,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   timing 23. Lesson: a gate run from the target's checkout uses the target's old `merge-gate.sh`; when the merge brings a new gate (here
   Release builds and timing tests in their own step), the first run fails on the new tests' budgets and the gate must be re-run on the merged
   tree. The first agent was stopped part-way by the owner; its unverified merge was committed as a WIP merge and finished by a second agent.
+- **I04b, the panel's fixes and the off-hand cell (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i04b-report.md`. Gated at
+  `3334359e`: 13,301 passed, 9 skipped. The held stack beside its cell without a pointer, every stat chip in every layout, headings from
+  `equipment.json`'s `heading` («la ropa», «la armadura», «la apariencia», short marks when tight), the title «la bolsa», eleven Spanish
+  refusal lines as `hudLines` with English in the locale, new key hints, full labels at regular size, and the off-hand cell left of the
+  hotbar (above its left end where a small window leaves no room). No swap key. One timing test, `StreamedWorldTimeTests`, failed the gate
+  at twice its CPU budget while another session's three agents held the load at 14 to 20; it passed an hour earlier on the same world code at
+  load 5. CPU-time budgets still move under heavy contention (shared cores, cache, clock): worth knowing when two sessions gate at once.
