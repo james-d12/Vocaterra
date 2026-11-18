@@ -153,7 +153,7 @@ public sealed class DrainageNetworkTests(ITestOutputHelper output) : DrainageNet
             dry = model.Shape(x, z, climate.At(x, z));
         }
 
-        Assert.True(watch.ElapsedMilliseconds < 100, $"a dry column took {watch.ElapsedMilliseconds} ms");
+        Assert.True(watch.ElapsedMilliseconds < 100 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"a dry column took {watch.ElapsedMilliseconds} ms");
         Assert.Equal(0, dry.RiverWeight + dry.LakeWeight);
         Assert.False(model.IsWarm(x, z), "a dry look-up read nothing");
         model.Warm(x, z);

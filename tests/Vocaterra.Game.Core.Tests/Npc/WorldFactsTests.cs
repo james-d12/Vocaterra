@@ -304,8 +304,8 @@ public sealed class WorldFactsTests
         }
 
         // Taking the copy for a turn, and six searches over it, are a small part of a second even on a slow machine.
-        Assert.True(copied < 1500, $"the snapshot took {copied:F0} ms");
-        Assert.True(watch.Elapsed.TotalMilliseconds < 3000, $"six searches took {watch.Elapsed.TotalMilliseconds:F0} ms");
+        Assert.True(copied < 1500 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"the snapshot took {copied:F0} ms");
+        Assert.True(watch.Elapsed.TotalMilliseconds < 3000 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"six searches took {watch.Elapsed.TotalMilliseconds:F0} ms");
         Assert.Equal(BlockId.Air, snapshot.BlockAt(new GuideCell(5, 127, 5)));
         Assert.Equal(BlockId.Water, snapshot.BlockAt(new GuideCell(scene.Point("lake").X, scene.Point("lake").Y, scene.Point("lake").Z)));
     }

@@ -187,7 +187,7 @@ public class LintTests
         var started = System.Diagnostics.Stopwatch.StartNew();
         ContentLinter.Lint(bundle, new LintOptions { Level = "a2" });
 
-        Assert.True(started.Elapsed < TimeSpan.FromSeconds(5), $"the lint took {started.Elapsed}");
+        Assert.True(started.Elapsed < TimeSpan.FromSeconds(5 * Vocaterra.Nlp.Tests.TimingFactor.Value), $"the lint took {started.Elapsed}");
     }
 
     // ---- 1. Coverage -----------------------------------------------------------------------------------------------------------------
