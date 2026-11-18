@@ -31,6 +31,12 @@
     {"form":"bol","lemma":"bol","pos":"noun","features":{"number":"sg","gender":"m"}},
     {"form":"boles","lemma":"bol","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"cuchara","lemma":"cuchara","pos":"noun","features":{"number":"sg","gender":"f"}},
-    {"form":"cucharas","lemma":"cuchara","pos":"noun","features":{"number":"pl","gender":"f"}}
+    {"form":"cucharas","lemma":"cuchara","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"tela","lemma":"tela","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"telas","lemma":"tela","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"cuero","lemma":"cuero","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"cueros","lemma":"cuero","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"gorro","lemma":"gorro","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"gorros","lemma":"gorro","pos":"noun","features":{"number":"pl","gender":"m"}}
   ]
 }

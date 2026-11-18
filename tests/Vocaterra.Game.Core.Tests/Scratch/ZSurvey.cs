@@ -1,5 +1,6 @@
 using System.Text;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Core.Tests.Temperature;
 using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Scratch;
@@ -12,41 +13,50 @@ public sealed class ZSurvey
         var sb = new StringBuilder();
         var scene = WorldFactory.Create(TestGame.Data, 42, WorldMode.Bounded);
         var p = scene.Places!;
-        foreach (var (x, z) in new[] { (176, 186), (292, 218), (200, 200), (-1784, 2952), (-632, -1144) })
+        int Feel(int x, int y, int z, string kind, int hour) => TemperatureRig.Place.TenthsAt(TemperatureRig.At(TemperatureRig.Sky(hour, kind), p, x, y, z));
+        void Row(string name, int x, int y, int z)
         {
-            var y = p.NaturalSurfaceAt(x, z);
-            sb.AppendLine($"at {x},{z} surf {y} biome {p.BiomeAt(x, z).Id} T {p.TemperatureAt(x, y, z) * 1000 / 4096} Tsea {p.TemperatureAt(x, 32, z) * 1000 / 4096}");
+            var cells = new List<string>();
+            foreach (var (kind, hour) in new[] { ("sunny", 13), ("sunny", 0), ("rain", 13), ("rain", 0) })
+            {
+                var f = Feel(x, y, z, kind, hour);
+                cells.Add($"{f / 10.0,6:0.0} {TemperatureRig.Data.BandFor(f).Id,-9}/{TemperatureRig.Data.BandFor(f + 100).Id,-9}");
+            }
+            sb.AppendLine($"{name,-28} {p.BiomeAt(x, z).Id,-14} y{y,4} | {string.Join(" | ", cells)}");
         }
-        var stats = new SortedDictionary<string, (int n, int min, int max, long sum, int minY, int maxY)>();
+        sb.AppendLine("place C (band at +0 / band at +10); columns: noon clear | night clear | noon rain | night rain");
+        foreach (var (n, x, z) in new[] { ("camp", 176, 186), ("village", 292, 218), ("mid slope", -1784, 2952), ("highest peak", -632, -1144) })
+        {
+            Row(n, x, p.NaturalSurfaceAt(x, z) + 1, z);
+        }
+        Row("cave deep (-47,190)", -47, 23, 190);
+        Row("cave shallow (274,-62) d62", 279, 33, -62);
+        (int x, int z, int f)? warm = null, cold = null;
+        var byBiome = new SortedDictionary<string, (int min, int max)>();
         for (var x = -8192; x <= 8192; x += 128)
         {
             for (var z = -8192; z <= 8192; z += 128)
             {
-                var y = p.NaturalSurfaceAt(x, z);
                 var id = p.BiomeAt(x, z).Id;
-                var t = p.TemperatureAt(x, y, z) * 1000 / 4096;
-                var (n, mn, mx, s, miy, may) = stats.GetValueOrDefault(id, (0, int.MaxValue, int.MinValue, 0L, int.MaxValue, int.MinValue));
-                stats[id] = (n + 1, Math.Min(mn, t), Math.Max(mx, t), s + t, Math.Min(miy, y), Math.Max(may, y));
-            }
-        }
-        foreach (var (id, v) in stats)
-        {
-            sb.AppendLine($"{id,-16} n {v.n,5} T min {v.min,6} max {v.max,6} mean {v.sum / v.n,6}  y {v.minY}..{v.maxY}");
-        }
-        var src = ProceduralTestWorld.Source(42);
-        var sites = src.World.Entrances!;
-        for (var sz = -4; sz < 4; sz++)
-        {
-            for (var sx = -4; sx < 4; sx++)
-            {
-                if (sites.Site(sx, sz) is { } r)
+                var y = p.NaturalSurfaceAt(x, z);
+                if (y <= 36 && (id is "ocean" or "lake-basin" or "river-channel"))
                 {
-                    var n = r.Nodes[r.Last];
-                    var surf = p.NaturalSurfaceAt(n.X, n.Z);
-                    sb.AppendLine($"cave anchor {r.AnchorX},{r.AnchorZ} mouthY {r.MouthY} last {n.X},{n.Z} floor {n.Floor} surf {surf} depth {surf - n.Floor} biome {p.BiomeAt(n.X, n.Z).Id} T {p.TemperatureAt(n.X, n.Floor + 1, n.Z) * 1000 / 4096}/{p.TemperatureAt(n.X, surf, n.Z) * 1000 / 4096}");
+                    continue;
                 }
+                var fn = Feel(x, y + 1, z, "sunny", 13);
+                var fm = Feel(x, y + 1, z, "sunny", 0);
+                if (warm is null || fn > warm.Value.f) warm = (x, z, fn);
+                if (cold is null || fm < cold.Value.f) cold = (x, z, fm);
+                var (mn, mx) = byBiome.GetValueOrDefault(id, (int.MaxValue, int.MinValue));
+                byBiome[id] = (Math.Min(mn, fm), Math.Max(mx, fn));
             }
         }
-        File.WriteAllText("/tmp/claude-1000/-home-james-Dev-Vocaterra/bc0e312e-d400-4d18-b834-c5dbe00e0e36/scratchpad/i06c-survey.txt", sb.ToString());
+        Row("warmest noon column", warm!.Value.x, p.NaturalSurfaceAt(warm.Value.x, warm.Value.z) + 1, warm.Value.z);
+        Row("coldest night column", cold!.Value.x, p.NaturalSurfaceAt(cold.Value.x, cold.Value.z) + 1, cold.Value.z);
+        foreach (var (id, v) in byBiome)
+        {
+            sb.AppendLine($"{id,-16} clear-night min {v.min / 10.0,6:0.0}  clear-noon max {v.max / 10.0,6:0.0}");
+        }
+        File.WriteAllText("/tmp/claude-1000/-home-james-Dev-Vocaterra/bc0e312e-d400-4d18-b834-c5dbe00e0e36/scratchpad/i06c-feel.txt", sb.ToString());
     }
 }

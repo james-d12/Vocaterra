@@ -116,11 +116,11 @@ public sealed class NounCatalogTests
     public void TheCatalogueHoldsOnlyTheNounsOfThe3DWorld()
     {
         // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4); the axe came back as the smith's (V03).
-        foreach (var lemma in new[] { "carbón", "hierro", "silla", "flor", "seta" })
+        foreach (var lemma in new[] { "carbón", "silla", "flor", "seta" }) // hierro came back as the smith's iron (I08a)
         {
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(43, TestGame.Nouns.Nouns.Count); // I04b bolsa (the panel's title), ropa and apariencia (the doll's column headings; no item); I04 cabeza, cuerpo, pierna, pie, espalda, armadura and calor (the equipment panel's slot labels and stats, no item); Y12 campamento (the camp, a step of «Mi terreno», no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
+        Assert.Equal(53, TestGame.Nouns.Nouns.Count); // I08a tela, cuero, hierro, sombrero, gorro, camisa, chaqueta, abrigo, pantalón and zapato (the materials and the clothes); I04b bolsa (the panel's title), ropa and apariencia (the doll's column headings; no item); I04 cabeza, cuerpo, pierna, pie, espalda, armadura and calor (the equipment panel's slot labels and stats, no item); Y12 campamento (the camp, a step of «Mi terreno», no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
     }
 }

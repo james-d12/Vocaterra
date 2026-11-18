@@ -122,7 +122,7 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
-Temperature/      the temperature where the player stands and how it feels (I06): PlaceTemperature and its ITemperatureTerm terms (base, day, weather, climate, shelter, fire), TemperatureSituation, IWarmthSource and NoWarmth, PlayerTemperature (the feeling, the band, the line once), TemperatureData (game/temperature.json) and TemperatureValidator
+Temperature/      the temperature where the player stands and how it feels (I06): PlaceTemperature and its ITemperatureTerm terms (climate, day, weather, shelter, fire) built by TemperatureTermRegistry from the data's rows, ITemperatureContext and TemperatureContext (what terms read), TemperatureEnvironment (the ground, the biomes' rows), IWarmthSource and NoWarmth, PlayerTemperature (the feeling, the lag, the band, the line once), TemperatureData (game/temperature.json) and TemperatureValidator
 Stats/            the player's stats (I03a): StatSheet (read-only sums and factors by open key), StatBuilder, IStatContributor, StatPipeline (the contributors in order, built each tick) and StatKeys (the keys code reads by name), StatDisplay and StatChip (the stats line's rows, I04)
   Gear/           what the player wears (I03a, under Items/; the folder is not called Equipment because the type is): EquipmentData (game/equipment.json), EquipmentGroup and EquipmentSlotSpec, EquipSlot (group and slot index), Equipment (the worn items), EquipRules and the IEquipRule classes, EquipResult (the reasons), EquipmentStats (the first IStatContributor), EquipmentValidator
   Containers/     moving items by hand (I02, under Items/): ISlotContainer (one address scheme, a container id and a slot index, with read, can-put and put), BagContainer, EquipmentContainer (its accept check is the equip rules) and TrashContainer, HeldStack (the cursor, also a container), SlotContainers (the registry the commands name by id), InventoryOps (the moves), MoveAction, MoveReason and MoveResult (the reasons), IQuickTarget
@@ -327,25 +327,35 @@ exactly two exceptions, the precipitation's row in `PrecipitationStyles.cs` and 
 a row of `game/weather.json` and no code (`content/README.md`, "Adding a weather kind"). The clock's and the weather's state is in the save's
 `systems.atmosphere` entry (`saves.md`).
 
-**Temperature and cold (I06, D-game-35).** Core's `Temperature/` makes one number for where the player stands, in whole tenths of a degree Celsius, and
-reads it against the player's warmth. `PlaceTemperature` sums the `ITemperatureTerm`s it is given (a term reads a `TemperatureSituation`: the
-`AtmosphereSnapshot`, the feet's block, the share of covered columns from the rain's own `OverheadCover` query, and the `FireRings`) and knows none of them. The first
-terms are `BaseTemperatureTerm`, `DayTemperatureTerm` (the daylight curve), `WeatherTemperatureTerm` (one coefficient per channel, never a kind's id), `ClimateTemperatureTerm` (I06b: the world's climate at the feet, see below),
-`ShelterTemperatureTerm` and `FireTemperatureTerm`, with their numbers in `game/temperature.json` (`TemperatureData`, checked by `TemperatureValidator`).
-`PlayerTemperature` adds the warmth (`IWarmthSource`; since I03a the session's source is `StatWarmth`, the stat sheet's `warmth`, in tenths of a degree; `NoWarmth` stays for tests), picks the band, and says «Tengo frío.» once per entry into the cold. The session reads it once a tick in `PrepareTick`
-(`VoxelSession.Temperature.cs`): the band's walk factor multiplies `WalkPermille` beside the needs' and the sprint's. Nothing is saved; it is derived from the stored
-time, the weather and the world. `NeedsHud` shows the snowflake and the line (by the path the needs' lines take), `VoxelDebugText` the F3 line.
-**The climate term (I06b).** `ClimateTemperatureTerm` asks `TemperatureSituation.Places` (the scene's `IPlaceInfo`; null in a situation with no world, then 0) for
-`TemperatureAt(feet)`: the biomes' temperature field at the column, lowered by the lapse over every block above the sea (the value that decides where snow lies; the
-generator's own call, no formula copied). Below a reference it takes `coolingTenthsPerRange` tenths per 1000 thousandths of fall, to a floor `maxCoolingTenths`; at and above
-it, 0 (it never warms). The numbers are `game/temperature.json` `climate` (`ClimateCooling`: reference -40 thousandths, 170 tenths per range, floor 20.0 degrees), so the valley
-floor and the village (reference above both) feel as before while seed 42's peaks take about 12 degrees off: a clear noon there is cool, a clear night very cold, and the warmest
-clothes (+10) bring the night back to cool. Pure of the seed, the column and the height: no state, no save, about 0.3 microseconds a call, once a tick. `TemperatureReading.ClimateTenths`
-carries the term for F3 (`climate -12.0` after the band when it is not 0).
+**Temperature and cold, heat and the climate (I06, I06b, I06c, D-game-35).** Core's `Temperature/` makes one number for where the player stands, in whole tenths of a degree
+Celsius, and reads it against the player's warmth. `PlaceTemperature` sums the `ITemperatureTerm`s it is given and knows none of them. A term reads an
+`ITemperatureContext`: the moment (`AtmosphereSnapshot`, the feet's block, the share of covered columns from the rain's own `OverheadCover` query, the `FireRings`) and what the
+place makes of it, worked out the first time a term asks (`TemperatureContext`): `Exposure` (how far the sky and the day reach: 1000 on the surface, falling to 0 below it), `Biome` (the
+biome's adjustment), `ClimateTemperature` (the generator's value at the column and height), `Snows` and `GroundTenths`. The surface and the biome of the column come from
+`IPlaceInfo` (`NaturalSurfaceAt`, `BiomeAt`, `TemperatureAt`, `SnowBelowTemperature`) through a one-column cache (`PlaceColumns`), so a tick in one column pays for them once.
+**The terms are data.** `game/temperature.json` `terms` lists a row per term (its `id` and its own parameters); `TemperatureTermRegistry.Standard` maps each id to a factory
+(`ClimateTemperatureTerm.From` and so on, which read their row through `TermParameters`: a missing, out-of-range or unknown parameter is an error), `PlaceTemperature.From(data)` builds the
+place, and `TemperatureValidator` reports an unknown id, a duplicate or a bad parameter by building each row. The terms: `climate`, `day`, `weather`, `shelter`, `fire`.
+**The climate is the baseline.** `climate` maps the generator's climate temperature at the player's column and height (the biomes' field lowered by the lapse over height, the value that decides
+where snow lies; the generator's own call, no formula copied) through a `ClimateCurve` (points of climate in thousandths against tenths of a degree, straight between them, flat beyond) and adds the biome's
+offset. The shipped curve is flat at 14.0 over the valley's values (so the valley, the village and Luna's camp feel as before), falls 0.17 degree per thousandth to -6.0 on the peaks and rises 0.1
+to 19.4 in the warm lowlands. **Underground** the climate is read at the natural surface's height when the feet are below it (the lapse alone cannot make a cave warmer), and the baseline eases from the surface
+value to the steady `ground.tenths` as `Exposure` falls: full to `ground.shallowBlocks` below the natural surface (a ditch is still the surface), then over `ground.fadeBlocks` to nothing; the day, the weather and the
+shelter multiply by the exposure, so a cave is the same at noon and at midnight, in rain and shine. **Biomes.** `biomes` (in temperature.json, keyed by a biome id of biomes.json; the validator checks the ids) gives
+a biome `offsetTenths` for the baseline and `daySwingPermille` and `weatherPermille` for the shares of the day's swing and of the weather's cooling that reach the player there; a biome with no row has none, and
+no source file names a biome (`NoBiomeIdsInSourceTests`). **Snow.** Precipitation where the climate at the feet is below the generator's snow line cools by `weather.snowPrecipitationTenths` more.
+**To tune a biome:** add or change its row in `biomes` (a plain swings more: `daySwingPermille` 1300; a ridge takes the weather harder: `weatherPermille` 1200), then `scripts/rehash-bundle.sh`.
+**The lag.** What the player feels follows the place's value: `PlayerTemperature` closes a share of the gap each tick (`lag.secondsToSettle`, whole-number arithmetic on millionths of a tenth, deterministic); the first
+reading, `--temperature` and a lag of 0 take the value at once. It is session state, not saved (a load starts at the place's value) and outside the simulation digest.
+`PlayerTemperature` adds the warmth (`IWarmthSource`; since I03a the session's source is `StatWarmth`, the stat sheet's `warmth`, in tenths of a degree; `NoWarmth` stays for tests) to the felt place value, picks the band, and says its
+line («Tengo frío.», «Tengo calor.») once per entry into the cold or the heat. **Bands** (warmest first) carry `walkFactor`, `chill` (the cold icon), `heat` and `thirstFactor`: the session reads the temperature once a tick in
+`PrepareTick` (`VoxelSession.Temperature.cs`), the band's walk factor multiplies `WalkPermille` beside the needs' and the sprint's, and its thirst factor is set on `PlayerNeeds.ThirstFactor`, which multiplies the thirst's fall
+beside the stat sheet's `thirstDrain`. Nothing is saved. `NeedsHud` shows the snowflake and the line (by the path the needs' lines take), `VoxelDebugText` the F3 line: the felt place value, `-> target` while the lag runs,
+the warmth, the feeling and band, and every term by name (`[climate 14.0 day 3.1 ...]`, a term at 0 left out).
 
-**To add a term** (a cave's pull, a biome's base): write one class implementing `ITemperatureTerm` (read what it needs from the
-`TemperatureSituation`; add a member there if it needs more of the world), and register it in `TemperatureTerms.Standard` (or `PlaceTemperature.With` where the
-world is wired). `PlaceTemperature` and the other terms are not edited; a test of `TemperatureTermTests` shows a term added from a test.
+**To add a term** (a cave's pull, a season): write one class implementing `ITemperatureTerm` with a static `From(TermParameters)` that reads its row (read what it needs from the `ITemperatureContext`; add a member to the
+interface and `TemperatureContext` if it needs more of the world), add one line to `TemperatureTermRegistry.Standard`, and add its row to `terms` in `game/temperature.json` and to the schema's alternatives. `PlaceTemperature`,
+`TemperatureData` and the other terms are not edited; `TemperatureTermRegistryTests` shows a fourth term added from data with a test class.
 
 **Equipment and stats (I03a, D-game-35).** `game/equipment.json` lists the slot groups (clothing, armour, cosmetic, accessories, off-hand, backpack); `Items/Gear/Equipment` holds one stack of one in each slot
 and `VoxelSimulation.Equipment` is simulation state: the commands `VoxelCommandKind.Equip` (bag slot, group, slot) and `Unequip` (group, slot, bag slot or -1 for the first free one) are applied in the tick beside

@@ -63,7 +63,7 @@
       "weatherPermille": 850
     },
     "jagged-peaks": {
-      "weatherPermille": 1400
+      "weatherPermille": 1200
     },
     "lake-basin": {
       "daySwingPermille": 700
@@ -78,10 +78,10 @@
       "daySwingPermille": 800
     },
     "snowy-slopes": {
-      "weatherPermille": 1250
+      "weatherPermille": 1150
     },
     "stony-peaks": {
-      "weatherPermille": 1400
+      "weatherPermille": 1200
     }
   },
   "lag": {

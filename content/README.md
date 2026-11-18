@@ -43,7 +43,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/needs.json` | `needs.schema.json` (the player's needs, N01: the three drives' rates, effort factors and four stages with their effects, health's recovery and warnings, stamina's costs and refill, rest at a fire, a night and a collapse, the foods, the sleep places (Y01: where the player sleeps; not `rest`) and the death rules (`wakeAt` names a sleep place); the stage lines' keys, not their text) | `NeedsData` |
   | `game/day.json` | `day.schema.json` (the day and night cycle, E01: its length in seconds, the hours dawn, day, dusk and night begin, the start hour and the wake hour) | `DayData` |
   | `game/weather.json` | `weather.schema.json` (the weather, E04: its kinds as rows of channels (cloud cover, sunlight, fog, wind, precipitation: a kind and an intensity from 0 to 1; since E06 the kind names a row of the game's style table, `PrecipitationStyles` in `src/Vocaterra.Game/Graphics/Weather/`, which says how it looks, so a new precipitation kind needs a row there as well as in this file, and a test fails until it has one; the kind of a style the table lacks draws nothing), the range of a spell, the weighted next kinds, a morning weight; the kind a new game starts in and the transition time) | `WeatherData` |
-  | `game/temperature.json` | `temperature.schema.json` (the temperature where the player stands, I06: the numbers of the base, the day's swing, the weather's cooling per channel, a roof's shelter and a fire's warmth, all in tenths of a degree Celsius, and the bands warm, cool, cold and very cold from the warmest, each with a lower bound, a walk factor above 0 and at most 1, a chill and the HUD line said on entering the cold) | `TemperatureData` |
+  | `game/temperature.json` | `temperature.schema.json` (the temperature where the player stands, I06, I06c: the terms as rows with an id and parameters, the ground below the surface, the biomes' adjustments, the lag, and the bands very hot to very cold from the warmest, each with a lower bound, a walk factor, a chill or a heat, a thirst factor and the HUD line said on entering the cold or the heat) | `TemperatureData` |
   | `game/equipment.json` | `equipment.schema.json` (the slot groups gear is worn in, I03a: per group its id, its drawn layer, its slots (named body slots, or a count with a wear kind), the item tags it accepts, `noDuplicates` and `statsApply`, and the Spanish noun of each slot; see "Equipment" below) | `EquipmentData` |
   | `game/damage.json` | `damage.schema.json` (the damage causes and the modifiers that apply to each, I05a: `drowning` with none; see "Stat keys and damage" below) | `DamageData` |
   | `game/light.json` | `light.schema.json` (how the `light` stat becomes the light round the player: reach, strength, colour and the daylight it fades between, I05b) | `PlayerLightData` |
@@ -394,18 +394,23 @@ focus there that names none of them (V12b). `--talk fisher` then walks up to it 
 cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
 offer and world lines (`docs/game/content-plan.md` section 3.6).
 
-## Temperature (I06)
+## Temperature (I06, I06c)
 
 `game-v1/game/temperature.json` holds the numbers of the temperature where the player stands (`temperature.schema.json`; `GameDataValidator` and `TemperatureValidator`
-check the values). Every temperature is a whole number of tenths of a degree Celsius (`125` is 12.5). The place's temperature is the sum of five terms: `base` (the
-valley's mean), `day` (plus the amplitude in full daylight, minus it in the dark, from `day.json`'s daylight curve), `weather` (the cooling at the strongest cloud
-cover, precipitation and wind: each channel of the sky times its coefficient, so a new weather kind needs no row here), `shelter` (the bonus under a roof, in proportion
-to the covered columns; `onlyInPrecipitation` limits it to when something falls) and `fire` (the bonus within `radiusBlocks` of a lit fire ring). The player's warmth is
-added to give the feeling, and the feeling falls in the first band, warmest first, whose lower bound it reaches (the coldest band takes everything below). A band has a
-`walkFactor` (above 0, at most 1: what it multiplies the walking speed by), a `chill` (0 for warm and cool; above 0 shows the cold icon with that many notches) and, on a chilled
-band, the `line` it says once on the feeling's first entry into the cold: a key of `words.json`'s `hudLines` (`temperature.cold`, «Tengo frío.») with its English in the
-locale under the same id. Bounds must fall, chills must not, ids are unique. The loop is the usual one (`scripts/content-loop.sh --grammar`). A new term (the biomes'
-climate) is code with its own data, not a row here.
+check the values). Every temperature is a whole number of tenths of a degree Celsius (`125` is 12.5). The place's temperature is the sum of the `terms`, one row each (its `id` and its
+own parameters; the code's `TemperatureTermRegistry` knows `climate`, `day`, `weather`, `shelter` and `fire`, and an unknown id or parameter is a validation error). `climate` is the baseline: a
+`curve` of points (the generator's climate temperature in thousandths of its range, against tenths of a degree; straight between the points, flat beyond) read at the player's column and height, so
+warm places are warm and cold or high ones cold; `noWorldTenths` is the baseline where there is no generator. `day` is plus the amplitude in full daylight, minus it in the dark (`day.json`'s
+daylight curve). `weather` is each channel of the sky times its coefficient (so a new weather kind needs no row here), plus `snowPrecipitationTenths` more for precipitation where it snows (below the
+generator's snow line). `shelter` is the bonus under a roof in proportion to the covered columns (`onlyInPrecipitation` limits it to when something falls) and `fire` the bonus within `radiusBlocks`
+of a lit fire ring. `ground` is the underground: deeper than `shallowBlocks` below the natural surface the place eases over `fadeBlocks` to the steady `tenths`, and the day, the weather and the
+shelter fade out. `biomes` adjusts by biome id (a row of `biomes.json`, checked): `offsetTenths` added to the baseline, `daySwingPermille` and `weatherPermille` the share, in thousandths, of the
+day's swing and the weather's cooling there (a biome with no row has none; `NoBiomeIdsInSourceTests` keeps the code from naming one). `lag.secondsToSettle` is how slowly the felt temperature follows
+the place's (0 for none). The player's warmth is added to give the feeling, and the feeling falls in the first band, warmest first, whose lower bound it reaches (the coldest band takes everything
+below). A band has a `walkFactor` (above 0, at most 1: what it multiplies the walking speed by), a `chill` (above 0: cold, the cold icon with that many notches) or a `heat` (above 0: hot), an
+optional `thirstFactor` (what it multiplies the thirst's fall by) and, on a chilled or heated band, the `line` it says once on the feeling's first entry: a key of `words.json`'s `hudLines`
+(`temperature.cold` «Tengo frío.», `temperature.hot` «Tengo calor.») with its English in the locale under the same id. Bounds must fall, chills must not fall and heats must not rise as the bands
+get colder, ids are unique. The loop is the usual one (`scripts/content-loop.sh --grammar`). A new term is a class and a registry line in code and a row here (`docs/game/architecture.md`).
 
 ## Equipment (I03a)
 
@@ -426,6 +431,20 @@ worn in the `back` slot (the plan's small bag adds 10 and the large one 20, so a
 `bagSlots` plus the largest capacity of `items.json`, so a new bag is one row and no code. A bag cannot come off, or be swapped for a smaller one, while a slot it would drop holds an item (the player empties those slots
 first); swapping for one at least as large is always allowed. A save records the worn bag by name and the bag at its active size, so changing a bag's `capacity` in the data between a save and a load makes the save
 load only across bundles (the migration resizes the bag and reports what was dropped).
+
+## Clothes and materials (I08a)
+
+The first gear in the data: three materials (`cloth`, `leather`, `iron`: tag `material`, stack 99, ids 100 to 102) and seven pieces of clothing (`hat`, `cap`, `shirt`, `jacket`, `coat`, `trousers`, `shoes`: tag `clothing`, stack 1, ids 103 to 109, `wear` the slot, `stats.warmth` in
+tenths of a degree, a `look` colour per covered part and, for the body pieces, a `sleeve` colour). The prices, recipes and warmth are the inventory plan's section 3.13a. A new item of this kind is: a row in `items.json` (the next free id), an icon key with art
+(`BlockAtlasLayout.IconKeys`; the art of these ten is `BlockArtGear`, a table of sixteen strings a picture over a small palette, one cell each at the end of `BlockCell`), a noun in `nouns.json` with its English in `locale/en/nouns.json` and, when the lexicon lacks the word, entries in `lexicon/world.json`;
+a noun on neither CEFR list joins the world-words block of `cefr/a1.txt` with its reason; a recipe in `recipes.json` (the output and every ingredient are nouns, `"station": "mesa"` for the workbench); and a price in the seller's `sell` row.
+
+**A noun said in the plural for one thing** (`los pantalones`, `los zapatos`: a pair) has `"plural": true`: its lemma stays the singular the lexicon knows (`pantalón`, `zapato`, which is what a line's slot and a price list name), its articles and word card are the plural's, and its item's `labels` entry gives the plural for the slots and the tooltip.
+
+**What the shops sell.** Pablo's `stall.sell_goods` is one `sell` row with `prices` for the flour, the cloth, the leather and the seven clothes; the shopkeeper's `stall.give_water` sends each of those nouns to it through `instead`, so «Quiero una camisa» is the same path as «Quiero harina». Domingo's `smith.sell_iron` is a fixed
+`sell` of `iron` at three coins, reached from his `state_want` (a line that names anything else is answered by `smith.wont_sell`, which says the axe's offer as before). Misses are the NPC's own pools (`shop_cant_pay`, `shop_none_asked`, `shop_wont_sell`; `smith_cant_pay`, `smith_none_asked`).
+
+**What the player starts in.** `game/session.json`'s `wears` lists the items a new game puts on (`shirt`, `trousers`, `shoes`: +4 degrees), each in the first slot that takes it; `grants` still lists what the bag starts with. A loaded save puts its own worn items back, so a save with nothing worn loads with nothing worn.
 
 ## Stat keys and damage (I05a)
 

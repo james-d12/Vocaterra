@@ -3150,3 +3150,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   chunk program with baked sky and block light, so the player light is two uniforms and one term in `chunk.frag.glsl`, at no measurable cost.
   The effects fallback (below OpenGL 3.3) draws no player light. A branch's content edit and another's both moving `manifest.json` conflict
   at the gate; the orchestrator merges the target into the branch and runs `scripts/rehash-bundle.sh` first.
+- **I08a, the clothes (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i08a-report.md`. Gated at `1ed01a66`: 13,451 passed,
+  9 skipped. Item icons are painted in code (a table of strings per icon), so new gear needs no art files. Growing the atlas moved the baked
+  light golden (V depends on the atlas height) and the mip count; the next atlas growth will do the same. A shop answering «¿Tienes X?» with
+  a sale needs a core grammar change (`state_have` against `request_item`); purchases use «Quiero», «Necesito», «Me das».

@@ -16,7 +16,7 @@ public sealed class GameDataTests
         var data = GameData.Load(TestGame.Bundle, TestGame.Locale);
 
         Assert.Empty(GameDataValidator.Validate(data));
-        Assert.Equal(43, data.Nouns.Nouns.Count); // I04b bolsa, ropa, apariencia (no item); I04 seven for the equipment panel (cabeza, cuerpo, pierna, pie, espalda, armadura, calor; no item); Y12 campamento (the camp, no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 six for the bread; V03 added moneda, manzana and hacha, N07 fuego, Y10 estaca
+        Assert.Equal(53, data.Nouns.Nouns.Count); // I08a tela, cuero, hierro, sombrero, gorro, camisa, chaqueta, abrigo, pantalón and zapato (the materials and the clothes); I04b bolsa, ropa, apariencia (no item); I04 seven for the equipment panel (cabeza, cuerpo, pierna, pie, espalda, armadura, calor; no item); Y12 campamento (the camp, no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 six for the bread; V03 added moneda, manzana and hacha, N07 fuego, Y10 estaca
         Assert.Equal(184, data.Phrases.Rows.Count); // Y11 the mayor's two (quiero-un-terreno, cuanto-cuesta-el-terreno); // D-game-27 the hand-over's five; V10 added El pueblo's fifteen, V11 Números y pan's sixteen, V12 Gente del pueblo's sixteen, V13 ¿Cómo es?'s sixteen, V14 Ayer en el pueblo's sixteen, V17 Mañana en el pueblo's ten, V15 El mercado's twenty, PR #48 the small talk's two
         Assert.Equal(95, data.Checks.Count);
         Assert.Equal(12, data.Lessons.Lessons.Count); // W10 added the bakery class; L01 split Luna's first class from the introduction

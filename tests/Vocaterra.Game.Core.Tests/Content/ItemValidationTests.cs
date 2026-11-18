@@ -59,7 +59,7 @@ public sealed class ItemValidationTests
     [Fact]
     public void Given_ADataOnlyItemWithAnIconWithoutArt_When_TheContentIsChecked_Then_OnlyThatItemIsReported()
     {
-        var items = TestItems.With(new ItemDefinition((ItemId)100, "gem", 7, "sparkle", ItemHeld.Sprite, ["material"]));
+        var items = TestItems.With(new ItemDefinition((ItemId)900, "gem", 7, "sparkle", ItemHeld.Sprite, ["material"]));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithItems(items), new HashSet<string>(Keys, StringComparer.Ordinal));
 

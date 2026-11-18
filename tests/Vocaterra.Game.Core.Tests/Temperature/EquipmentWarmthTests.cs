@@ -1,4 +1,3 @@
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Temperature;
@@ -11,7 +10,7 @@ public sealed class EquipmentWarmthTests
 {
     private static VoxelSession Held(int tenths)
     {
-        var session = new VoxelSession(TestGame.Data.WithItems(GearItems.Catalogue), TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.FullTyped, TestGame.NoLessons);
+        var session = GearItems.Session();
         session.Temperature.HeldTenths = tenths;
         return session;
     }

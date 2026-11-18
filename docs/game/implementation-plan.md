@@ -637,7 +637,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I04c | The doll's headings as bare nouns (owner, 2026-11-18) | I04b | S | Sonnet 5.5, medium | done (2026-11-18, `b048d781`, 13,312 passed, 9 skipped) |
 | I-merge2 | Merge `main`'s throughput series (PR #70) into `feature/inventory` (owner, 2026-11-18) | I-merge | S | Sonnet 5.5, medium | done (2026-11-18, `c3bd3c2b`, 13,234 passed, 9 skipped; timing 23) |
 | I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | done (2026-11-18, gated with I-merge2 at `c3bd3c2b`) |
-| I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | todo |
+| I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | done (2026-11-18, `1ed01a66`, 13,451 passed, 9 skipped) |
 | I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | todo |
 | I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | todo |
 | I10 | Close-out: the documents, the scripted runs, QA, the full gate, the screenshot tour, the pull request | all | S | Haiku 5.5 | todo |

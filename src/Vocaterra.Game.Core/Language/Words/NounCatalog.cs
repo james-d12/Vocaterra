@@ -22,6 +22,7 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
 /// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
 /// <param name="Blocks">The 3D block kinds it names (<c>agua</c> and <c>río</c> both name the water). Several nouns may name one block; the first one by lemma is its noun.</param>
+/// <param name="PluralOnly">Whether the word is said in the plural for one thing (I08a: <c>los pantalones</c>, <c>los zapatos</c>, a pair): the articles are the plural ones and <see cref="WithDefinite"/> and <see cref="WithIndefinite"/> carry the plural form. The lemma stays the singular the lexicon knows (<c>pantalón</c>), which is what a line's slot and the prices name.</param>
 public sealed record NounEntry(
     string Lemma,
     string Gender,
@@ -31,13 +32,14 @@ public sealed record NounEntry(
     string Plural,
     bool Mass,
     IReadOnlyList<string> Sources,
-    IReadOnlyList<BlockId> Blocks)
+    IReadOnlyList<BlockId> Blocks,
+    bool PluralOnly = false)
 {
-    /// <summary>The noun with its definite article: <c>el árbol</c>.</summary>
-    public string WithDefinite => $"{Definite} {Lemma}";
+    /// <summary>The noun with its definite article: <c>el árbol</c>, and <c>los pantalones</c> for a <see cref="PluralOnly"/> noun.</summary>
+    public string WithDefinite => $"{Definite} {(PluralOnly ? Plural : Lemma)}";
 
-    /// <summary>The noun with its indefinite article: <c>un árbol</c>.</summary>
-    public string WithIndefinite => $"{Indefinite} {Lemma}";
+    /// <summary>The noun with its indefinite article: <c>un árbol</c>, and <c>unos pantalones</c> for a <see cref="PluralOnly"/> noun.</summary>
+    public string WithIndefinite => $"{Indefinite} {(PluralOnly ? Plural : Lemma)}";
 }
 
 /// <summary>
@@ -176,7 +178,8 @@ public sealed class NounCatalog
                 }
             }
 
-            nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources));
+            var pluralOnly = item.TryGetProperty("plural", out var pluralValue) && pluralValue.GetBoolean();
+            nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources, pluralOnly));
         }
 
         var lemmas = nouns.Select(static n => n.Lemma).ToHashSet(StringComparer.Ordinal);
@@ -242,22 +245,25 @@ public sealed class NounCatalog
         IReadOnlyList<ItemId> items,
         IReadOnlyList<BlockId> blocks,
         bool mass,
-        IReadOnlyList<string> sources)
+        IReadOnlyList<string> sources,
+        bool pluralOnly)
     {
         var gender = bundle.Lexicon.EntriesForLemma(lemma)
             .Select(static e => e.ToFeatures())
             .FirstOrDefault(static f => f.Pos == "noun" && f.Gender is not null)?.Gender
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
         var morphology = bundle.LanguageMorphology;
+        var number = pluralOnly ? "pl" : "sg";
         return new NounEntry(
             lemma,
             gender,
             items,
-            morphology.Article(Definiteness.Definite, gender, "sg", lemma),
-            morphology.Article(Definiteness.Indefinite, gender, "sg", lemma),
+            morphology.Article(Definiteness.Definite, gender, number, lemma),
+            morphology.Article(Definiteness.Indefinite, gender, number, lemma),
             morphology.Pluralize(lemma),
             mass,
             sources,
-            blocks);
+            blocks,
+            pluralOnly);
     }
 }
