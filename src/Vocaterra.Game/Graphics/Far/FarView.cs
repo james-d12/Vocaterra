@@ -318,26 +318,53 @@ public sealed class FarView
         _selectedFor = (double.NaN, 0, 0);
         if (reshaped || recoloured)
         {
-            foreach (var tile in _tiles.Values)
-            {
-                dispose(tile);
-            }
+            DropAll(dispose);
+        }
+    }
 
-            _tiles.Clear();
-            _building.Clear();
-            _wanted = [];
-            _dirty.Clear();
-            _rebuilding.Clear();
-            _bad.Clear();
-            _version++;
-            _pool.Clear(JobLane.Tiles);
-            while (_done.TryDequeue(out _))
-            {
-            }
+    private bool? _glPath;
 
-            while (_failed.TryDequeue(out _))
-            {
-            }
+    /// <summary>B31: takes the path the tiles are drawn through (the game's own GL program, or MonoGame's effects). A tile's buffers are made for one path and cannot be read back from the card (MonoGame's are write-only), so when the path changes every tile is dropped and built again from its data, as for a change of levels.</summary>
+    /// <param name="gl">Whether the GL program draws.</param>
+    /// <param name="dispose">Frees a tile's buffer.</param>
+    /// <returns>Whether the tiles were dropped (the path changed after one was set).</returns>
+    public bool UsePath(bool gl, Action<FarTile> dispose)
+    {
+        ArgumentNullException.ThrowIfNull(dispose);
+        var changed = _glPath is { } before && before != gl;
+        _glPath = gl;
+        if (!changed)
+        {
+            return false;
+        }
+
+        _selectedFor = (double.NaN, 0, 0);
+        DropAll(dispose);
+        _draw.Clear();
+        return true;
+    }
+
+    private void DropAll(Action<FarTile> dispose)
+    {
+        foreach (var tile in _tiles.Values)
+        {
+            dispose(tile);
+        }
+
+        _tiles.Clear();
+        _building.Clear();
+        _wanted = [];
+        _dirty.Clear();
+        _rebuilding.Clear();
+        _bad.Clear();
+        _version++;
+        _pool.Clear(JobLane.Tiles);
+        while (_done.TryDequeue(out _))
+        {
+        }
+
+        while (_failed.TryDequeue(out _))
+        {
         }
     }
 

@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Graphics;
 using Silk.NET.OpenGL;
 
 namespace Vocaterra.Game.Graphics.Gl;
@@ -24,32 +23,6 @@ public sealed class GlFarBuffers : IDisposable
     internal uint Vertices => _vertices;
 
     internal uint Indices => _indices;
-
-    /// <summary>Reads the tile's vertices and indices back from the card (the far view goes back to MonoGame's effects: the setting or the shaders were turned off while the tile was on the card in this form).</summary>
-    /// <param name="vertexCount">How many vertices the tile has.</param>
-    /// <param name="indexCount">How many indices.</param>
-    public (VertexPositionColorTexture[] Vertices, ushort[]? Narrow, int[]? Wide) Download(int vertexCount, int indexCount)
-    {
-        var vertices = new VertexPositionColorTexture[vertexCount];
-        _gl.BindBuffer(BufferTargetARB.CopyReadBuffer, _vertices);
-        _gl.GetBufferSubData<VertexPositionColorTexture>(BufferTargetARB.CopyReadBuffer, 0, vertices);
-        ushort[]? narrow = null;
-        int[]? wide = null;
-        _gl.BindBuffer(BufferTargetARB.CopyReadBuffer, _indices);
-        if (Wide)
-        {
-            wide = new int[indexCount];
-            _gl.GetBufferSubData<int>(BufferTargetARB.CopyReadBuffer, 0, wide);
-        }
-        else
-        {
-            narrow = new ushort[indexCount];
-            _gl.GetBufferSubData<ushort>(BufferTargetARB.CopyReadBuffer, 0, narrow);
-        }
-
-        _gl.BindBuffer(BufferTargetARB.CopyReadBuffer, 0);
-        return (vertices, narrow, wide);
-    }
 
     /// <inheritdoc />
     public void Dispose()
