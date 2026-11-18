@@ -92,7 +92,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
     public void AGarbledSpokenLineAtTheStallIsAnUncertainRecognitionNeverALanguageFailureAndThreeOfThemOfferChoices()
     {
         using var session = TestGame.NewSession();
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
 
@@ -118,8 +118,8 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
 
     private static AppliedTurn Drain(VoxelSession session)
     {
-        var deadline = Environment.TickCount64 + 120000;
-        while (Environment.TickCount64 < deadline)
+        var deadline = HangGuard.DeadlineAfter(120000);
+        while (!HangGuard.Passed(deadline))
         {
             var applied = session.Collect();
             if (applied.Count > 0)
@@ -130,6 +130,6 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
             Thread.Sleep(5);
         }
 
-        throw new TimeoutException("The turn did not come back.");
+        throw new TimeoutException(HangGuard.Hung("The turn did not come back", 120_000));
     }
 }

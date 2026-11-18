@@ -39,7 +39,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         foreach (var (stepId, spoken, intent, mustHear) in Said)
         {
             using var session = MarketLessonTests.AtStep(stepId);
-            Assert.True(session.StartWorker().WaitUntilReady(60000));
+            Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
             _ = session.SubmitSpeak(spoken);
             var turn = Drain(session).Turn!;
@@ -66,7 +66,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalkForClass("villager");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         var missed = new List<string>();
         foreach (var number in Numbers)
@@ -94,7 +94,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("Hola Luz, quiero dos panes.");
         var turn = Drain(session).Turn!;
@@ -116,7 +116,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Coin, 4);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("Buenos días, Luz, quiero dos panes.");
         var turn = Drain(session).Turn!;
@@ -138,7 +138,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
         _ = session.Simulation.GrantItems(ItemId.Wood, 4); // four: five would deliver the oven order as the talk opens
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("Buenas tardes, ¿cuánto cuesta el pan?");
         var price = Drain(session).Turn!;
@@ -156,7 +156,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
 
     private static AppliedTurn Drain(VoxelSession session)
     {
-        var deadline = Environment.TickCount64 + 120000;
+        var deadline = HangGuard.DeadlineAfter(120000);
         while (true)
         {
             if (session.Collect().FirstOrDefault() is { } applied)
@@ -164,7 +164,7 @@ public sealed class MarketSpokenTests(ITestOutputHelper output)
                 return applied;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, "The turn did not come back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("The turn did not come back", 120_000));
             Thread.Sleep(5);
         }
     }

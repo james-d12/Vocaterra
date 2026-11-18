@@ -28,7 +28,7 @@ public sealed class ScenarioScriptTests
         public Harness(IReadOnlyList<ScriptStep> steps, Func<ScenarioHooks, ScenarioHooks>? extend = null)
         {
             Session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
-            Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
+            Session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000));
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
             Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data);
@@ -63,8 +63,8 @@ public sealed class ScenarioScriptTests
                 _commands.Insert(0, VoxelCommand.Look(Look.Yaw, Look.Pitch));
                 Session.Step(_commands);
                 _pump.Submit();
-                var deadline = Environment.TickCount64 + 30000;
-                while (Session.PendingTurns > 0 && Environment.TickCount64 < deadline)
+                var deadline = HangGuard.DeadlineAfter(30000);
+                while (Session.PendingTurns > 0 && !HangGuard.Passed(deadline))
                 {
                     _ = _pump.Apply();
                     Thread.Sleep(1);

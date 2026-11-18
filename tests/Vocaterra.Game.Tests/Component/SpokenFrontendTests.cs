@@ -154,7 +154,7 @@ public sealed class SpokenFrontendTests
     public void ThePanelShowsThinkingWhileATurnIsOutAndItsLinesArriveInOrderWhenTheyComeBack()
     {
         using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
+        session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000));
         var focus = new InputFocus();
         var dialogue = new DialogueModel(focus, session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
@@ -169,9 +169,9 @@ public sealed class SpokenFrontendTests
         Assert.Equal(DialogueSpeaker.Player, dialogue.Lines[^1].Speaker); // what the player typed is shown at once
         Assert.Equal(1, session.PendingTurns);
 
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         IReadOnlyList<AppliedTurn> applied = [];
-        while (applied.Count == 0 && Environment.TickCount64 < deadline)
+        while (applied.Count == 0 && !HangGuard.Passed(deadline))
         {
             applied = pump.Apply();
             Thread.Sleep(2);
@@ -188,7 +188,7 @@ public sealed class SpokenFrontendTests
     public void AFailedSpokenRequestShowsItsProblemAsAHintAndClearsThePendingState()
     {
         using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
+        session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000));
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
         dialogue.Open();
@@ -197,8 +197,8 @@ public sealed class SpokenFrontendTests
         pump.Submit();
         Assert.Equal(1, dialogue.Pending);
 
-        var deadline = Environment.TickCount64 + 30000;
-        while (dialogue.Pending > 0 && Environment.TickCount64 < deadline)
+        var deadline = HangGuard.DeadlineAfter(30000);
+        while (dialogue.Pending > 0 && !HangGuard.Passed(deadline))
         {
             pump.Apply();
             Thread.Sleep(2);

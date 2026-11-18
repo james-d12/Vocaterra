@@ -15,11 +15,11 @@ public sealed class FarViewCapTests(ITestOutputHelper output) : FarViewTestsBase
         using var pool = new JobPool(0);
         var capped = new FarViewSettings(320, MaxTiles: 14, TreeLevels: 1);
         var view = Make(pool, capped);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         Land(view, 192, 192);
         var first = view.Stats.Cached;
 
-        Assert.True(view.Settle(192 + 3000, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192 + 3000, 192, Voxel, Release, limit));
         Land(view, 192 + 3000, 192);
 
         Assert.True(first > 12);

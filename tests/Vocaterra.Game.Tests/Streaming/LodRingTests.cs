@@ -14,7 +14,7 @@ namespace Vocaterra.Game.Tests.Streaming;
 /// <summary>The ring of real chunks and the pre-generation built on it (B07d): the plan is made on a worker and never reads the disk on the game thread, a footprint made only from the layers the far view draws gives the same tiles as one made whole, the world does not depend on the worker count, and a run after a pre-generation has nothing left to make.</summary>
 public sealed class LodRingTests : IDisposable
 {
-    private const double HangGuardMilliseconds = 3_600_000;
+    private const long HangGuardMilliseconds = 3_600_000;
 
     private readonly List<string> _folders = [];
 
@@ -57,7 +57,7 @@ public sealed class LodRingTests : IDisposable
 
     private static void RunUntilIdle(LodRing ring, JobPool pool, double x, double z, int radius)
     {
-        var until = Environment.TickCount64 + HangGuardMilliseconds;
+        var until = HangGuard.DeadlineAfter(HangGuardMilliseconds);
         do
         {
             ring.Update(x, z, radius);
@@ -70,7 +70,7 @@ public sealed class LodRingTests : IDisposable
                 Thread.Sleep(1);
             }
         }
-        while ((!ring.HasPlan || !ring.IsIdle) && Environment.TickCount64 < until);
+        while ((!ring.HasPlan || !ring.IsIdle) && !HangGuard.Passed(until));
     }
 
     [Fact]
@@ -288,7 +288,7 @@ public sealed class LodRingTests : IDisposable
             var scene = StreamedWorlds.Scene();
             using var host = StreamedWorldHost.For(scene, preset, workers)!;
             var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
-            Assert.True(host.Settle(x, y, z, _ => { }, HangGuardMilliseconds));
+            HangGuard.Settled(limit => host.Settle(x, y, z, _ => { }, limit), baseMilliseconds: HangGuardMilliseconds);
             Assert.Equal(workers, host.Pool.Workers);
             fingerprints[workers] = (FingerprintOf(host, x, z), GridFingerprint(scene.Grid), host.Far.Draw.Count + host.Far.PendingTiles.Count);
         }
@@ -329,7 +329,7 @@ public sealed class LodRingTests : IDisposable
         // A run after it (the far view's own ring wants the same radius): the footprints are on disk, the ring has nothing to make.
         var next = StreamedWorlds.Scene();
         using var again = StreamedWorldHost.For(next, preset with { FarRealRadius = 96 }, 2, "w", folder)!;
-        Assert.True(again.Settle(x, y, z, _ => { }, HangGuardMilliseconds));
+        HangGuard.Settled(limit => again.Settle(x, y, z, _ => { }, limit), baseMilliseconds: HangGuardMilliseconds);
         Assert.Equal(0, again.Ring.Done);
         var (min, _) = again.Far.World.SyRange(0);
         Assert.True(again.Far.World.Store.Entry(new LodSectionKey(0, (int)Math.Floor(x / 32), min, (int)Math.Floor(z / 32))) is { IsWhollyReal: true });

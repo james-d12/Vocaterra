@@ -13,7 +13,7 @@ public sealed class FarViewLeafStandInTests(ITestOutputHelper output) : FarViewT
     {
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(5000, 5000, Voxel, Release, 120_000)); // far from the valley: coarse tiles near the eye
+        HangGuard.Settled(limit => view.Settle(5000, 5000, Voxel, Release, limit)); // far from the valley: coarse tiles near the eye
         Land(view, 5000, 5000);
         var parents = view.Draw.Select(static t => t.Key).Where(static k => k.Level > 0).ToList();
         Assert.NotEmpty(parents);
@@ -30,7 +30,7 @@ public sealed class FarViewLeafStandInTests(ITestOutputHelper output) : FarViewT
         Assert.All(view.Draw.Take(view.FallbackCount), t => Assert.True(t.OnCard));
         AssertNoOverlap(view);
 
-        Assert.True(view.Settle(eyeX, eyeZ, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(eyeX, eyeZ, Voxel, Release, limit));
         Assert.True(view.PendingTiles.Count > 0, "the leaves are built but not on the card: the stand-in still covers them");
         Assert.True(view.FallbackCount > 0);
         AssertNoOverlap(view);

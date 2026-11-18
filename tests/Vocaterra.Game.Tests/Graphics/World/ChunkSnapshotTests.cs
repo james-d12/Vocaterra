@@ -95,7 +95,7 @@ public sealed class ChunkSnapshotTests
             });
         }
 
-        Assert.True(done.Wait(TimeSpan.FromMinutes(2)));
+        Assert.True(done.Wait(HangGuard.Scale(TimeSpan.FromMinutes(2))), HangGuard.Hung("the snapshots did not finish", TimeSpan.FromMinutes(2)));
         Assert.Null(pool.Failure);
         for (var i = 0; i < snapshots.Count; i++)
         {
@@ -146,7 +146,7 @@ public sealed class ChunkSnapshotTests
         using var pool = new JobPool(0);
         var residency = new ChunkResidency(grid, scene.Streaming!, new BandStreamPolicy(5, 7, 2, 3), pool, scene.Places);
         var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         var source = new GridBlockSource(grid, scene.Currents);
         var resident = grid.ResidentChunks.ToList();
         var inside = resident.First(c => !grid.GetChunk(c).IsEmpty && Neighbours(c).All(n => !grid.Limits.Contains(n) || grid.IsResident(n)));

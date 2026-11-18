@@ -25,11 +25,11 @@ public sealed class StreamedWorldHostDisposeTests : StreamedWorldHostTestBase
             Thread.Sleep(5);
         }
 
-        var started = Environment.TickCount64;
-        host.Dispose();
-        var took = Environment.TickCount64 - started;
-
-        Assert.True(took < 15_000, $"dispose took {took} ms");
+        // Dispose must come back (a hang guard: ten times what it takes, scaled on CI); how long it takes is not what this test checks.
+        var closing = new Thread(host.Dispose) { IsBackground = true };
+        closing.Start();
+        var disposed = closing.Join(HangGuard.Scale(TimeSpan.FromSeconds(60)));
+        Assert.True(disposed, HangGuard.Hung("dispose did not return", 60_000));
         Assert.Null(host.Pool.Failure);
         Assert.True(File.Exists(Path.Combine(folder, "manifest.txt")));
     }

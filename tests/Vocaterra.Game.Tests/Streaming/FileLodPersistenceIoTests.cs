@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Streaming;
 
@@ -96,8 +97,8 @@ public sealed class FileLodPersistenceIoTests : IDisposable
         using var disk = new FileLodPersistence(_folder, "v1", syncIntervalMilliseconds: 150);
 
         disk.Save(KeyOf(1), Blob(1));
-        var until = Environment.TickCount64 + 30_000;
-        while (disk.Syncs < 1 && Environment.TickCount64 < until)
+        var until = HangGuard.DeadlineAfter(30_000);
+        while (disk.Syncs < 1 && !HangGuard.Passed(until))
         {
             Thread.Sleep(10);
         }
@@ -107,8 +108,8 @@ public sealed class FileLodPersistenceIoTests : IDisposable
         Assert.Equal(1, disk.Syncs); // idle: nothing is dirty, nothing is synced
 
         disk.Save(KeyOf(2), Blob(2));
-        until = Environment.TickCount64 + 30_000;
-        while (disk.Syncs < 2 && Environment.TickCount64 < until)
+        until = HangGuard.DeadlineAfter(30_000);
+        while (disk.Syncs < 2 && !HangGuard.Passed(until))
         {
             Thread.Sleep(10);
         }

@@ -16,7 +16,7 @@ public sealed class FarViewChangedSectionTests(ITestOutputHelper output) : FarVi
     {
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         Land(view, 192, 192);
         var nearest = view.Draw.First(static t => t.Key.Level == 0);
         var built = view.Stats.Built;
@@ -27,7 +27,7 @@ public sealed class FarViewChangedSectionTests(ITestOutputHelper output) : FarVi
         view.Update(192, 192, Voxel, Release, null);
 
         Assert.True(view.Stale > 0 || view.Stats.Built > built);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         Land(view, 192, 192);
         Assert.Equal(0, view.Stale);
         Assert.Equal(0, view.Failed);
@@ -47,7 +47,7 @@ public sealed class FarViewChangedSectionTests(ITestOutputHelper output) : FarVi
         Assert.True(view.Stats.Building > 0);
 
         store.Changed.Enqueue(new Vocaterra.Game.Core.World.Lod.LodSectionKey(key.Level, key.Tx, 0, key.Tz));
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
 
         Assert.Equal(0, view.Missing);
         Assert.True(view.Stats.Built > FarTileSelector.Select(Small, 192, 192, Voxel).Count - 1);
@@ -110,8 +110,8 @@ public sealed class FarViewChangedSectionTests(ITestOutputHelper output) : FarVi
         var view = new FarView(StreamedWorlds.Composition.World.Far, Small, pool, store);
         view.SetNearReady(static (_, _) => false);
         FarTile? inner = null;
-        var until = Environment.TickCount64 + HangGuardMilliseconds;
-        while (inner is null && Environment.TickCount64 < until)
+        var until = HangGuard.DeadlineAfter(HangGuardMilliseconds);
+        while (inner is null && !HangGuard.Passed(until))
         {
             view.Update(192, 192, Voxel, Release, null);
             inner = view.PendingTiles.FirstOrDefault(static t => t.Key.FarthestDistance(Small, 192, 192) < Small.InnerFraction * Voxel);
