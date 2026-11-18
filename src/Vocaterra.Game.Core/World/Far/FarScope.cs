@@ -17,12 +17,28 @@ internal sealed class FarScope
     private readonly ClimateSampler? _lattice; // the free world's climate, whose lattice corners are shared; null when the climate is some other kind (read column by column)
     private readonly RegionBlend? _blend;
     private readonly int _cell;
-    private readonly Grid<ColumnEntry> _columns = new(1024);
-    private readonly Grid<ClimateSample> _corners = new(512);
+    private readonly Keys _columnKeys;
+    private readonly byte[] _level; // per column slot: 0 nothing, 1 the climate, 2 the climate and the shape
+    private readonly ClimateSample[] _climate;
+    private readonly ColumnShape[] _shape;
+    private readonly Keys _cornerKeys;
+    private readonly bool[] _cornerDone;
+    private readonly ClimateSample[] _corner;
 
-    public FarScope(GenerationWorld world)
+    /// <summary>Creates the scope of one call.</summary>
+    /// <param name="world">The world.</param>
+    /// <param name="samples">How many columns the call samples (the tables are sized from it; a call that reads more than they hold computes the surplus unshared, with the same result).</param>
+    public FarScope(GenerationWorld world, int samples)
     {
         _world = world;
+        var capacity = Keys.CapacityFor(samples);
+        _columnKeys = new Keys(capacity);
+        _level = new byte[capacity];
+        _climate = new ClimateSample[capacity];
+        _shape = new ColumnShape[capacity];
+        _cornerKeys = new Keys(capacity);
+        _cornerDone = new bool[capacity];
+        _corner = new ClimateSample[capacity];
         _cell = world.Data.Climate.LatticeBlocks;
         switch (world.Climate)
         {
@@ -41,14 +57,19 @@ internal sealed class FarScope
     /// <param name="z">The block's z.</param>
     public ClimateSample Climate(int x, int z)
     {
-        ref var entry = ref _columns.Find(x, z).Value;
-        if (entry.Level == 0)
+        var i = _columnKeys.Find(x, z);
+        if (i < 0)
         {
-            entry.Climate = Compute(x, z);
-            entry.Level = 1;
+            return Compute(x, z);
         }
 
-        return entry.Climate;
+        if (_level[i] == 0)
+        {
+            _climate[i] = Compute(x, z);
+            _level[i] = 1;
+        }
+
+        return _climate[i];
     }
 
     /// <summary>The height model's shape of a column, from the column's climate.</summary>
@@ -56,19 +77,24 @@ internal sealed class FarScope
     /// <param name="z">The block's z.</param>
     public ColumnShape Shape(int x, int z)
     {
-        ref var entry = ref _columns.Find(x, z).Value;
-        if (entry.Level < 2)
+        var i = _columnKeys.Find(x, z);
+        if (i < 0)
         {
-            if (entry.Level == 0)
-            {
-                entry.Climate = Compute(x, z);
-            }
-
-            entry.Shape = _world.Height.Shape(x, z, entry.Climate);
-            entry.Level = 2;
+            return _world.Height.Shape(x, z, Compute(x, z));
         }
 
-        return entry.Shape;
+        if (_level[i] < 2)
+        {
+            if (_level[i] == 0)
+            {
+                _climate[i] = Compute(x, z);
+            }
+
+            _shape[i] = _world.Height.Shape(x, z, _climate[i]);
+            _level[i] = 2;
+        }
+
+        return _shape[i];
     }
 
     // The column's climate from the lattice corners round it: the same blend of the same four corners as the sampler's, and the regions' bias over it when there is a blend.
@@ -99,95 +125,66 @@ internal sealed class FarScope
 
     private ClimateSample Corner(int ix, int iz)
     {
-        ref var slot = ref _corners.Find(ix, iz);
-        if (!slot.Filled)
+        var i = _cornerKeys.Find(ix, iz);
+        if (i < 0)
         {
-            slot.Value = _lattice!.AtLatticePoint(ix * _cell, iz * _cell);
-            slot.Filled = true;
+            return _lattice!.AtLatticePoint(ix * _cell, iz * _cell);
         }
 
-        return slot.Value;
+        if (!_cornerDone[i])
+        {
+            _corner[i] = _lattice!.AtLatticePoint(ix * _cell, iz * _cell);
+            _cornerDone[i] = true;
+        }
+
+        return _corner[i];
     }
 
     private static int Blend(int a, int b, int c, int d, int fx, int fz) => IntMath.Lerp(IntMath.Lerp(a, b, fx), IntMath.Lerp(c, d, fx), fz);
 
-    private struct ColumnEntry
+    // The slots of a table of integer pairs, open addressing in fixed arrays (fields stay readonly: the world's folders hold no mutable state): Find gives a key's slot, adding the key when it is new, or -1 when the table is half full (the caller then goes without).
+    private sealed class Keys
     {
-        public int Level; // 0 nothing, 1 the climate, 2 the climate and the shape
-        public ClimateSample Climate;
-        public ColumnShape Shape;
-    }
+        private readonly int[] _x;
+        private readonly int[] _z;
+        private readonly bool[] _used;
+        private readonly int[] _count = new int[1];
 
-    private struct Slot<T>
-    {
-        public int X;
-        public int Z;
-        public bool Used;
-        public bool Filled;
-        public T Value;
-    }
-
-    // An open-addressing table from a pair of integers to a value, in one array: the references it hands out stay valid until the next Find that has to add a key (a caller finishes with one before it asks for another).
-    private sealed class Grid<T>(int capacity)
-        where T : struct
-    {
-        private Slot<T>[] _slots = new Slot<T>[capacity];
-        private int _count;
-
-        public ref Slot<T> Find(int x, int z)
+        public Keys(int capacity)
         {
-            while (true)
-            {
-                var mask = _slots.Length - 1;
-                var h = ((uint)x * 0x9E3779B1u) ^ ((uint)z * 0x85EBCA6Bu);
-                h ^= h >> 15;
-                var i = (int)(h & (uint)mask);
-                while (_slots[i].Used)
-                {
-                    if (_slots[i].X == x && _slots[i].Z == z)
-                    {
-                        return ref _slots[i];
-                    }
-
-                    i = (i + 1) & mask;
-                }
-
-                if ((_count + 1) * 2 > _slots.Length)
-                {
-                    Grow();
-                    continue;
-                }
-
-                _slots[i].X = x;
-                _slots[i].Z = z;
-                _slots[i].Used = true;
-                _count++;
-                return ref _slots[i];
-            }
+            _x = new int[capacity];
+            _z = new int[capacity];
+            _used = new bool[capacity];
         }
 
-        private void Grow()
+        public static int CapacityFor(int samples) => (int)Math.Clamp(System.Numerics.BitOperations.RoundUpToPowerOf2((uint)Math.Max(1, samples) * 6u), 1024u, 1u << 17);
+
+        public int Find(int x, int z)
         {
-            var old = _slots;
-            _slots = new Slot<T>[old.Length * 2];
-            var mask = _slots.Length - 1;
-            foreach (var slot in old)
+            var mask = _used.Length - 1;
+            var h = ((uint)x * 0x9E3779B1u) ^ ((uint)z * 0x85EBCA6Bu);
+            h ^= h >> 15;
+            var i = (int)(h & (uint)mask);
+            while (_used[i])
             {
-                if (!slot.Used)
+                if (_x[i] == x && _z[i] == z)
                 {
-                    continue;
+                    return i;
                 }
 
-                var h = ((uint)slot.X * 0x9E3779B1u) ^ ((uint)slot.Z * 0x85EBCA6Bu);
-                h ^= h >> 15;
-                var i = (int)(h & (uint)mask);
-                while (_slots[i].Used)
-                {
-                    i = (i + 1) & mask;
-                }
-
-                _slots[i] = slot;
+                i = (i + 1) & mask;
             }
+
+            if ((_count[0] + 1) * 2 > _used.Length)
+            {
+                return -1;
+            }
+
+            _x[i] = x;
+            _z[i] = z;
+            _used[i] = true;
+            _count[0]++;
+            return i;
         }
     }
 }
