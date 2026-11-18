@@ -2,6 +2,7 @@ using System.Text;
 using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Damage;
+using Vocaterra.Game.Core.Light;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -211,6 +212,11 @@ public sealed class GameData
 
     /// <summary>The underground: the rock layers, ores, caves, entrances and lava (<c>game/underground.json</c>, B11), or <see langword="null"/> for a bundle without the file (the ground is then plain stone).</summary>
     public UndergroundData? Underground { get; }
+
+    private PlayerLightData? _light;
+
+    /// <summary>The light round the player: how the <c>light</c> stat becomes a radius and a strength, and the daylight it fades between (<c>game/light.json</c>, I05b). Read on first use; a bundle without the file does not load it.</summary>
+    public PlayerLightData Light => _light ??= PlayerLightData.Load(Bundle);
 
     private Vocaterra.Game.Core.World.Pass.PassData? _pass;
 

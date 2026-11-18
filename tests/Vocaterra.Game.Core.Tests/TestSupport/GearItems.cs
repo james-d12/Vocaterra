@@ -28,6 +28,8 @@ internal static class GearItems
     public static readonly ItemId Anklet = (ItemId)212;
     public static readonly ItemId Flask = (ItemId)213;
     public static readonly ItemId Gourd = (ItemId)214;
+    public static readonly ItemId Lantern = (ItemId)215;
+    public static readonly ItemId Amulet = (ItemId)216;
 
     /// <summary>The slots the small test bag (<see cref="Sack"/>) adds.</summary>
     public const int SackCapacity = 10;
@@ -49,6 +51,8 @@ internal static class GearItems
         Gear(Anklet, "test-anklet", ["accessory"], "accessory", ("walkSpeed", 1.2)),
         Gear(Flask, "test-flask", ["accessory"], "accessory", ("hungerDrain", 0.5)),
         Gear(Gourd, "test-gourd", ["accessory"], "accessory", ("thirstDrain", 0.5)),
+        Gear(Lantern, "test-lantern", ["offhand"], "offhand", ("light", 12)),
+        Gear(Amulet, "test-amulet", ["accessory"], "accessory", ("light", 3)),
         Bag(Sack, "test-sack", SackCapacity),
         Bag(Rucksack, "test-rucksack", RucksackCapacity)));
 

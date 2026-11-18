@@ -29,6 +29,12 @@ public static partial class StatKeys
     /// <summary>An armour rating, a whole number (I05a). Items add (<see cref="StatCombine.Sum"/>); read only by the damage pipeline's armour modifier, for the causes <c>game/damage.json</c> names.</summary>
     public const string Armour = "armour";
 
+    /// <summary>
+    /// The light a worn item gives round the player (I05b), in the world's own block light levels (a placed torch is 16). Items add (<see cref="StatCombine.Sum"/>, each 0 to <see cref="Light.PlayerLight.MaxLight"/>); read only by the player light, which turns the sum into a radius
+    /// and a strength by <c>game/light.json</c> (<see cref="Light.PlayerLightData"/>) and draws it when the place is dark.
+    /// </summary>
+    public const string Light = "light";
+
     /// <summary>Whether <paramref name="key"/> is a well formed stat key: a lowercase letter, then letters and digits.</summary>
     /// <param name="key">The key.</param>
     public static bool IsWellFormed(string? key) => key is not null && Pattern().IsMatch(key);

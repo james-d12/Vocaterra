@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Light;
+
 namespace Vocaterra.Game.Core.Stats;
 
 /// <summary>
@@ -14,6 +16,7 @@ public static class StatRules
         new StatRule(StatKeys.ThirstDrain, StatCombine.Factor, 0.25, 2),
         new StatRule(StatKeys.MaxStamina, StatCombine.Sum, 0, 100),
         new StatRule(StatKeys.Armour, StatCombine.Sum, 0, 100, Whole: true),
+        new StatRule(StatKeys.Light, StatCombine.Sum, 0, PlayerLight.MaxLight),
     }.ToDictionary(static r => r.Key, StringComparer.Ordinal);
 
     /// <summary>The rule of a key, or <see langword="null"/> for an open key.</summary>
