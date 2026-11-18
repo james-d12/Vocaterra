@@ -235,6 +235,7 @@ public sealed class JobPool : IDisposable
 
     private void Work(int index)
     {
+        _ = WorkerPriority.LowerCurrentThread(); // B40: BelowNormal does nothing on Linux
         while (true)
         {
             Job? job;
