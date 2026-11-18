@@ -3076,3 +3076,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   window (about 4 of 5.6 ms). The bench's new group rows read about 8 times high in one `--quick` run on a loaded machine, unexplained:
   B40 should check them before relying on them. Spot check: a Release run at High after a teleport to (3000, -2000) settled with no
   pending chunks and no errors.
+- **B35, stand-ins for the inner ring (2026-11-18, merge `12204191`).** A fine leaf with no ancestor built or requested within
+  `FallbackSteps` asks for its level-4 ancestor, and (beyond the brief) fine tiles now queue after every coarse tile, since stand-ins alone
+  left the horizon interleaved with fine tiles and coverage moved only from 115 s to 116 s. On a fresh 16 km High world (seed 42, 8
+  workers, one run each on a loaded machine) the last uncovered leaf went from 115 s to 33 s, levels 0 to 3 covered by 8 to 16 s, and the
+  full fill from 117 s to 82 s, with 3% more tiles. The first 4 s (the start's near-zone wait) are unchanged; stand-ins are blocky until the
+  fine tiles land. **Seen in its after picture** (`artifacts/b-series/b35/after-b.png`): a thin blue vertical line at the top left, over a
+  stand-in's edge; not in the before picture. To check in B38, which changes the same tiles.

@@ -195,6 +195,7 @@ public sealed class ScriptedRunEnd
         if (streaming is not null && _options.StreamStats)
         {
             _console(StreamLine(renderer, streaming, timings, phases, allocations));
+            _console(string.Create(CultureInfo.InvariantCulture, $"far coverage: no uncovered leaf after {streaming.Far.CoveredAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {streaming.Far.FilledAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms ({streaming.Far.Uncovered} uncovered now)"));
         }
 
         if (_options.StreamStats)
