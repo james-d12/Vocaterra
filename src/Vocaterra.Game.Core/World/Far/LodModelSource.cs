@@ -16,7 +16,7 @@ public sealed class LodModelSource : ILodColumnSource
     private const int CanopyFrom = 25;
 
     // From this level on a column's samples lie on the climate's lattice points (the cell is 8 blocks or more and the samples a quarter and half of it from its edge, the lattice 4), so the climate is the lattice point's own and the neighbours the cliff test reads take the nearest point's (B37).
-    private const int CoarseFrom = 99;
+    private const int CoarseFrom = 4;
 
     // The columns the tree pass reads for each chunk's 16 candidates (a candidate that survives the spacing and its biome's density reads about a dozen columns, most of them shared with the next candidate's).
     private const int TreeColumnsPerChunk = 96;
@@ -77,7 +77,7 @@ public sealed class LodModelSource : ILodColumnSource
                 {
                     var (x, z) = (((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2));
                     var count = Direct(x, z, single, one, scope);
-                    if (cell >= 8 && _sampler.TryRiver(x, z, cell, scope, out var line) && !HasWater(one[..count]))
+                    if (PoolsRivers(grid.Level) && _sampler.TryRiver(x, z, cell, scope, out var line) && !HasWater(one[..count]))
                     {
                         count = FromSample(line, 0, 0, null, one);
                     }
@@ -111,7 +111,7 @@ public sealed class LodModelSource : ILodColumnSource
             for (var i = 0; i < grid.Width; i++)
             {
                 var count = LodMerge.Merge(child.Column(2 * i, 2 * j), child.Column((2 * i) + 1, 2 * j), child.Column(2 * i, (2 * j) + 1), child.Column((2 * i) + 1, (2 * j) + 1), merged);
-                if (cell >= 8 && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, scope, out var river) && !HasWater(merged[..count]))
+                if (PoolsRivers(grid.Level) && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, scope, out var river) && !HasWater(merged[..count]))
                 {
                     count = FromSample(river, 0, 0, null, merged);
                 }
@@ -120,6 +120,10 @@ public sealed class LodModelSource : ILodColumnSource
             }
         }
     }
+
+    // The pooling of a river into a cell wide enough to miss it reads the climate's river field's zero line, which the drainage network's rivers (B02c) no longer follow: measured over seeds 42 and 2026 (B37), from level 4 up it
+    // fired in 4 cells of 10,240 and found a river in none, while three more lattice corners a cell made it a third of a coarse stack's time. Levels 3 and below keep it (their corners are shared).
+    private static bool PoolsRivers(int level) => level is >= 3 and < CoarseFrom;
 
     private static bool HasWater(ReadOnlySpan<LodSegment> column)
     {
