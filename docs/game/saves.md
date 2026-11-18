@@ -77,8 +77,8 @@ dotnet run --project src/Vocaterra.Game -- --session-dir <scratch> --needs off -
   --talk shopkeeper --say "quiero agua, por favor" --leave --teleport 176,188 --wait 1 --screenshot <png> --frames 30 --save <file>
 ```
 
-The save has the player standing at Luna's lit fire (Y08: the mountain ring is gone; tick 4258), one conversation page, no lodging and no sleep recorded (so no `sleep` entry). `scripts/content-loop.sh` writes a new
-bundle hash into it as into any file under `tests/`.
+The save has the player standing at Luna's lit fire (Y08: the mountain ring is gone; tick 4258), one conversation page, no lodging and no sleep recorded (so no `sleep` entry). No test pins the fixture's bundle hash
+(B29c): the tests read it with the current bundle's hash, so a content edit leaves it alone.
 
 **The `sleep` entry (Y02).** `systems.sleep` keeps what a sleep (a save restored in the same run) and a load must not lose, all optional, the entry absent when nothing is set:
 `lodgingGiven` (the innkeeper has given the room; left out when false; set in play since Y05 by the host action `grant_lodging`, once and for good, and by the dev aid `--lodging`; a sleep, a load and a migration keep it), `last` (the place last slept at: `{"id"}` and, for a place made in play, its cell `x`, `y`, `z`) and

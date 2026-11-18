@@ -68,7 +68,7 @@ The v12 and v13 briefs are the models.
 - `--skip-to-session n` for the lesson's timing run.
 - **The content loop in one line** (V18): `scripts/content-loop.sh --grammar --speech` after every content edit (run directly, never
   under `limited.sh`, which it refuses with exit 3), `--record` when the goldens move, and `--tier full` once before the report. It
-  replaces the hand steps (refresh, the LanguageTool cache and its rebuild check, the prerender, the fixtures' hash); since M57 the
+  replaces the hand steps (refresh, the LanguageTool cache and its rebuild check, the prerender); since M57 the
   stream digests run on frozen inputs and do not move with content. Read every grammar finding it prints. The steps are in
   `content/README.md`, "The edit loop". Keep the Wiktionary notice in `ATTRIBUTION.md`; one bundle since R02, so a content edit also
   runs the core suite, and a failing core test means the edit broke something the core relies on.
