@@ -630,7 +630,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I02 | Interaction: `ISlotContainer`, `InventoryOps`, the held stack, swap, merge, split, shift-click, sort and trash as commands | I03b | M | Sonnet 5.5, medium | done: gated at `95aedf89` (11,905 passed) |
 | I09 | Gear on the player: the avatar's layers, the bag on the back, the off-hand item, the sleeve's colour | I03b | M | Sonnet 5.5, medium | done: gated at `50ae2330` (11,996 passed); screenshots wait for the owner |
 | I05a | Stat consumers: walk speed, a drain factor per need, the stamina bonus, the `IDamageModifier` pipeline and `damage.json` | I03b, I06 | M | Sonnet 5.5, medium | done: gated at `b9aac8c9` (11,977 passed) |
-| I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | todo |
+| I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | done (2026-11-18, `f0b6a882`, 13,359 passed, 9 skipped) |
 | I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | done: gated at `0cf31798` (12,102 passed); screenshots wait for the owner |
 | I04b | The panel's fixes from the first screenshots and the off-hand cell by the hotbar (owner, 2026-11-16) | I04 | S | Sonnet 5.5, high | done (2026-11-18, `3334359e`, 13,301 passed, 9 skipped) |
 | I06b | The world's climate in the player's temperature (owner, 2026-11-18, stop 3) | I06 | S | Sonnet 5.5, medium | done (2026-11-18, `a773a307`, 13,330 passed, 9 skipped) |
