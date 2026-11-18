@@ -136,6 +136,8 @@ public static class WorldFactory
     {
         public ChunkContent? Generate(VoxelChunkCoord coord) => ContentOf(source.Generate(coord));
 
+        public int? HighestPossibleLayer(int chunkX, int chunkZ) => source is CompositeChunkSource composite ? composite.HighestPossibleLayer(chunkX, chunkZ) : null;
+
         public static ChunkContent? ContentOf(ChunkData data) => GridResidency.ContentOf(data);
     }
 }

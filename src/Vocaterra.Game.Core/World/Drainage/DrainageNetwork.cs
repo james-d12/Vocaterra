@@ -82,7 +82,8 @@ internal sealed class DrainageNetwork
     private readonly int _sea16;
     private readonly int _spacing;
     private readonly ConcurrentDictionary<long, DrainageCell> _tiles = new();
-    private readonly object _build = new();
+    private readonly object _build = new(); // B40: only the publishing of a read landmass's nodes
+    private readonly ConcurrentDictionary<long, object> _reading = new(); // B40: one lock for each node a landmass is read from, so two landmasses are read at once
     private readonly int _jitter16;
     private readonly int _look;
     private readonly int _minRamp16;
@@ -169,6 +170,22 @@ internal sealed class DrainageNetwork
             {
                 _ = Locate(ni + di, nj + dj);
             }
+        }
+    }
+
+    /// <summary>The distance in blocks between the rows (and the columns of a row) that <see cref="WarmRow"/> needs to leave no landmass unread.</summary>
+    public int WarmStep => _look * _spacing;
+
+    /// <summary>Reads the landmasses along a row of the world (B40): from x0 to x1 at one z, a step apart that the nodes <see cref="Warm"/> reads round a column cover without a gap. A job for a worker (the far view warms the whole far range with rows of these ahead of the tiles).</summary>
+    /// <param name="z">The row's z, in blocks.</param>
+    /// <param name="x0">The first x.</param>
+    /// <param name="x1">The last x.</param>
+    public void WarmRow(int z, int x0, int x1)
+    {
+        var step = _look * _spacing;
+        for (var x = x0; x <= x1; x += step)
+        {
+            Warm(x, z);
         }
     }
 
@@ -479,11 +496,13 @@ internal sealed class DrainageNetwork
             return;
         }
 
-        lock (_build)
+        // B40: a landmass is read on the lock of the node it is read from, not on one lock for the whole network, so landmasses far apart are read at once by different threads. Two threads that start from different nodes of one landmass
+        // both read it (the reading is a pure function of the land); the first to publish wins and the other finds its own node built and drops its result.
+        lock (_reading.GetOrAdd(NodeKey(i, j), static _ => new object()))
         {
             if ((Volatile.Read(ref cell.Flags[k]) & BuiltFlag) == 0)
             {
-                ReadLandmass(i, j, node);
+                ReadLandmass(i, j, node, cell, k);
             }
         }
     }
@@ -492,7 +511,7 @@ internal sealed class DrainageNetwork
 
     // The landmass that holds a node, read whole: the land nodes connected to it (eight neighbours, the excluded places are walls) and the sea nodes and excluded places beside them, flooded from the sea, with the ground that drains through
     // every node counted. The order the nodes are found in does not reach the result: the flood takes its nodes by (level, place).
-    private void ReadLandmass(int startI, int startJ, DrainageNode start)
+    private void ReadLandmass(int startI, int startJ, DrainageNode start, DrainageCell startCell, int startIndex)
     {
         var index = new Dictionary<long, int>();
         var ni = new List<int>();
@@ -741,6 +760,19 @@ internal sealed class DrainageNetwork
             return surface == int.MinValue ? (short)0 : (short)Math.Max(Math.Min(surface - level[n], 0), short.MinValue);
         }
 
+        lock (_build)
+        {
+            if ((Volatile.Read(ref startCell.Flags[startIndex]) & BuiltFlag) != 0)
+            {
+                return; // another thread published this landmass from another of its nodes while this one was read
+            }
+
+            Publish(count, ni, nj, kind, seen, area, lake, final, parent, Depth);
+        }
+    }
+
+    private void Publish(int count, List<int> ni, List<int> nj, List<byte> kind, bool[] seen, int[] area, bool[] lake, int[] final, sbyte[] parent, Func<int, short> depth)
+    {
         for (var n = 0; n < count; n++)
         {
             var (i, j) = (ni[n], nj[n]);
@@ -773,7 +805,7 @@ internal sealed class DrainageNetwork
 
             cell.Level16[k] = final[n];
             cell.Area[k] = Math.Min(area[n], ushort.MaxValue);
-            cell.Depth[k] = Depth(n);
+            cell.Depth[k] = depth(n);
             cell.Next[k] = parent[n];
             Volatile.Write(ref cell.Flags[k], (byte)(flags | BuiltFlag));
         }

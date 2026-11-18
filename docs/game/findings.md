@@ -3083,3 +3083,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   full fill from 117 s to 82 s, with 3% more tiles. The first 4 s (the start's near-zone wait) are unchanged; stand-ins are blocky until the
   fine tiles land. **Seen in its after picture** (`artifacts/b-series/b35/after-b.png`): a thin blue vertical line at the top left, over a
   stand-in's edge; not in the before picture. To check in B38, which changes the same tiles.
+- **B40, the small ones (2026-11-18, merge `babb4edf`).** The bench's group rows read high because of tiered JIT (only `GenerateColumn` was
+  warmed); every row's path is now warmed for 2.5 s. Caller-owned window arrays (`ColumnScratch`, `ColumnScratchPool`): at 8 workers
+  bytes a column 353,400 to 187,400, gen-0 a second 105 to 58, columns a second +9%. `DOTNET_GCgen0size=0x6000000` (an environment
+  variable; the runtimeconfig keys had no clear effect) cut gen-0 to 23 a second for about +20% columns a second at 96 MB: not shipped, the
+  owner's choice. `ThreadPriority.BelowNormal` does nothing on Linux and a thread cannot lower its own nice value, so the workers now raise
+  theirs by 7 through `setpriority` (17 under limited.sh). Drainage reads a landmass under a lock per start node (two starts in one
+  landmass may both read it; the first publishes) and `FarView` warms the far range's drainage on the ring lane. `HighestBlock` skips
+  non-resident layers above the surface band (19.7 to 4.8 ms a new column). Spot check: the same teleport as B39 gives the same chunk and
+  face counts, no errors. Not yet measured in a game: the nice values live, the drainage warm-up, the teleport hitch.

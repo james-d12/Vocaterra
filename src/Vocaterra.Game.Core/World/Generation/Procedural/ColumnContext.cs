@@ -62,14 +62,15 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     /// <param name="chunkX">The chunk column's x.</param>
     /// <param name="chunkZ">The chunk column's z.</param>
     /// <param name="group">The shaped window of a group that holds the column.</param>
-    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, ColumnGroup group)
-        : this(world, chunkX, chunkZ, 1, allocate: true)
+    /// <param name="scratch">The caller's window arrays to use instead of new ones (B40), or <see langword="null"/>; they must be given back only when the context and everything made from it is done with.</param>
+    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, ColumnGroup group, ColumnScratch? scratch = null)
+        : this(world, chunkX, chunkZ, 1, allocate: true, scratch)
     {
         group.CopyWindowTo(OriginX, OriginZ, Size, _climate, _shapes, _heights, _wet);
         Shaped = true;
     }
 
-    private ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span, bool allocate)
+    private ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span, bool allocate, ColumnScratch? scratch = null)
     {
         _ = allocate;
         World = world;
@@ -79,14 +80,32 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
         OriginX = (chunkX << VoxelChunk.Shift) - world.Margin;
         OriginZ = (chunkZ << VoxelChunk.Shift) - world.Margin;
         var count = Size * Size;
-        _climate = new ClimateSample[count];
-        _shapes = new ColumnShape[count];
-        _heights = new int[count];
-        _wet = new int[count];
-        _biomes = new BiomeColumn[count];
-        _classified = new bool[count];
-        _surfaces = new ColumnSurface[count];
-        _surfaced = new bool[count];
+        if (scratch is not null && scratch.Count == count)
+        {
+            // B40: the caller's arrays (a window cut from a group overwrites climate, shapes, heights and wet whole; the flags are the only state that must start clear; biomes and surfaces are read only after their flag is set).
+            _climate = scratch.Climate;
+            _shapes = scratch.Shapes;
+            _heights = scratch.Heights;
+            _wet = scratch.Wet;
+            _biomes = scratch.Biomes;
+            _classified = scratch.Classified;
+            _surfaces = scratch.Surfaces;
+            _surfaced = scratch.Surfaced;
+            Array.Clear(_classified);
+            Array.Clear(_surfaced);
+        }
+        else
+        {
+            _climate = new ClimateSample[count];
+            _shapes = new ColumnShape[count];
+            _heights = new int[count];
+            _wet = new int[count];
+            _biomes = new BiomeColumn[count];
+            _classified = new bool[count];
+            _surfaces = new ColumnSurface[count];
+            _surfaced = new bool[count];
+        }
+
         _trees = new Lazy<List<PlantedTree>>(() => TreePass.Plan(this));
         _caves = new Lazy<CavePlan>(() => CavePlan.Build(this));
         _ramps = new Lazy<IReadOnlyList<EntranceRamp>>(() => world.Entrances is null ? [] : world.Entrances.Near(OriginX, OriginZ, OriginX + Size - 1, OriginZ + Size - 1));

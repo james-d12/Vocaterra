@@ -25,6 +25,7 @@ public sealed class LodRing
     private const int Margin = 2;
 
     private readonly LodWorld _world;
+    private readonly ColumnScratchPool _scratch; // B40: the window arrays of the columns the workers make, reused
     private readonly StreamedWorld _streamed;
     private readonly JobPool _pool;
     private readonly ColumnBandCache? _bands;
@@ -56,6 +57,7 @@ public sealed class LodRing
         _zone = zone;
         _world = world;
         _streamed = streamed;
+        _scratch = new ColumnScratchPool(streamed.CreateScratch);
         _pool = pool;
         _bands = bands;
     }
@@ -314,10 +316,18 @@ public sealed class LodRing
         var group = ShapeFor(sx, sz);
         var first = LowestLayerOf(sx, sz, group);
         var columns = new IReadOnlyList<ChunkData>[4];
-        for (var k = 0; k < 4; k++)
+        var scratch = _scratch.Rent();
+        try
         {
-            var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
-            columns[k] = resident?[k] is { } held ? FromResident(cx, cz, first, max, group, held) : _streamed.GenerateLayers(cx, cz, first, max, group);
+            for (var k = 0; k < 4; k++)
+            {
+                var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
+                columns[k] = resident?[k] is { } held ? FromResident(cx, cz, first, max, group, held, scratch) : _streamed.GenerateLayers(cx, cz, first, max, group, scratch);
+            }
+        }
+        finally
+        {
+            _scratch.Return(scratch);
         }
 
         return (columns, first);
@@ -356,7 +366,7 @@ public sealed class LodRing
     }
 
     // One column's layers from the first: a chunk the zone held is taken as it is, a layer over the column's band is air (the band is the layers that can hold anything), and the runs between are generated from the shared window.
-    private ChunkData[] FromResident(int cx, int cz, int first, int max, ColumnGroup? group, ChunkData?[] held)
+    private ChunkData[] FromResident(int cx, int cz, int first, int max, ColumnGroup? group, ChunkData?[] held, ColumnScratch scratch)
     {
         var min = _streamed.Source.MinChunkY;
         var chunks = new ChunkData[max - first + 1];
@@ -385,7 +395,7 @@ public sealed class LodRing
                     last++;
                 }
 
-                var made = _streamed.GenerateLayers(cx, cz, layer, last, group);
+                var made = _streamed.GenerateLayers(cx, cz, layer, last, group, scratch);
                 for (var i = 0; i < made.Count; i++)
                 {
                     chunks[layer - first + i] = made[i];
