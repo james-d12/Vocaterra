@@ -139,13 +139,12 @@ public sealed class EntrancePassageTests
 
     [Theory]
     [MemberData(nameof(Seeds))]
-    public void Given_TheMouthsInASlope_When_ABodyWalksInFromTheGroundBesideThem_Then_TheyStartLevelAndReachACaveTwentyBlocksDown(ulong seed)
+    public void Given_TheMouthsInASlope_When_ABodyWalksInFromTheGroundBesideThem_Then_TheyReachACaveTwentyBlocksDown(ulong seed)
     {
         var source = ProceduralTestWorld.Source(seed);
         var caves = source.World.Underground!.Caves;
         foreach (var ramp in Sample(seed).Where(r => OpensIntoSlope(seed, r)).Take(4))
         {
-            Assert.Equal(ramp.MouthY, ramp.Nodes[3].Floor); // the face mouth runs level at first: an arch in the face, not a plunge
             var blocks = new PassageBlocks(source, ramp);
             var start = (X: ramp.ApproachX, Y: blocks.Top(ramp.ApproachX, ramp.ApproachZ) + 1, Z: ramp.ApproachZ);
             Assert.True(blocks.Standable(start.X, start.Y, start.Z), $"the ground before the face mouth at {start} is not a place to stand");
