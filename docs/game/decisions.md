@@ -1015,6 +1015,11 @@ the owner's answers of 2026-11-15 are in its section 5.
     "It does run on pull requests, i have checked. Yes allow orchestrator to run gh run list." A branch whose work needs CI has a pull
     request open (a draft until it is ready), so every push runs CI; the orchestrator checks it with `gh run list --branch <branch>` and
     `gh run view` (the token's scopes now allow it) after each push, and a failure becomes a milestone.
+60. **The throughput follow-ups** (2026-11-18, about 15:20 UTC; after the re-measure: the gate about 10 minutes, `test.sh fast` 97 s):
+    "Go ahead with whatever you recommend." B29's deferred parts B (the five-token slot policy) and C (the stamp skip) are **dropped**:
+    the gate holds one slot and takes about 10 minutes, so neither pays. Two follow-ups run on `feature/meta_improvements`: B29d, the four
+    timing classes still timed with a wall `Stopwatch` (`ChunkIndexTests`, `RegionTimeTests`, `ProceduralTimingTests`,
+    `ProceduralChunkTimeTests`) move to `CpuTime`; B29e, the polling hook lets a command that only quotes `sleep` text pass.
 
 ## Already decided
 
