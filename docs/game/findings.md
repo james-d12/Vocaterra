@@ -3123,3 +3123,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   person. Issues found, all handed to I04b at the owner's word: the held stack is not drawn when there is no mouse position (scripted runs);
   the tight layout drops the stamina chip; the doll's columns have no headings; the title is English; the refusal lines are English; the key
   hints still describe mining and placing; «espalda» is cut to «esp…» in an empty cell. The owner added an off-hand cell beside the hotbar.
+- **I-merge, I-merge-fix and I-merge2: `main` into the inventory series (2026-11-18, on `feature/inventory`).** Reports
+  `.claude/briefs/i-merge-fix-report.md` and `i-merge2-report.md`. The biomes series (PR #69, 472 commits) conflicted in 37 files: the save
+  stays at version 10 (main stayed at 9) with main's optional `passOpen`, `save-v10.json` carries main's edits; the two clock-digest pins in
+  `AtmosphereSimulationTests` moved from both sides (the world and the 30-slot bag) and were re-pinned on the merged state. Then the
+  throughput series (PR #70) in 14 files: `save-v10.json` pins no bundle hash. Gated together at `c3bd3c2b`: 13,234 passed, 9 skipped,
+  timing 23. Lesson: a gate run from the target's checkout uses the target's old `merge-gate.sh`; when the merge brings a new gate (here
+  Release builds and timing tests in their own step), the first run fails on the new tests' budgets and the gate must be re-run on the merged
+  tree. The first agent was stopped part-way by the owner; its unverified merge was committed as a WIP merge and finished by a second agent.

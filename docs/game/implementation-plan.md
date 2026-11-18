@@ -633,7 +633,8 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | todo |
 | I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | done: gated at `0cf31798` (12,102 passed); screenshots wait for the owner |
 | I04b | The panel's fixes from the first screenshots and the off-hand cell by the hotbar (owner, 2026-11-16) | I04 | S | Sonnet 5.5, high | paused (2026-11-16, the owner; behind I-merge) |
-| I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | merged (2026-11-18, `510f4dcd`): build, format, validate clean; the full suite and gate still to run (work on hold) |
+| I-merge2 | Merge `main`'s throughput series (PR #70) into `feature/inventory` (owner, 2026-11-18) | I-merge | S | Sonnet 5.5, medium | done (2026-11-18, `c3bd3c2b`, 13,234 passed, 9 skipped; timing 23) |
+| I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | done (2026-11-18, gated with I-merge2 at `c3bd3c2b`) |
 | I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | todo |
 | I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | todo |
 | I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | todo |
