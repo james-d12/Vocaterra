@@ -86,6 +86,13 @@ public sealed class FlyingBodyTests
         Assert.True(flown > walked * 5, $"flying {flown} against walking {walked}");
         Assert.True(slow < flown);
         Assert.InRange(flown / (double)Units, 14, 16); // half a second at 30 blocks per second
+        var top = FlatSim();
+        top.Flying = true;
+        top.FlySpeed = VoxelPhysics.FlySpeedOf(500);
+        top.TeleportTo(new BlockPos(32, GroundTop + 5, 60));
+        var before = top.Player.MinZ;
+        top.Step([VoxelCommand.MoveRelative(0, 1)]);
+        Assert.Equal(VoxelPhysics.FlySpeedOf(500), before - top.Player.MinZ); // the top speed: over eight blocks in one tick, with no block skipped by the sweep
     }
 
     [Fact]
@@ -134,6 +141,8 @@ public sealed class FlyingBodyTests
         Assert.Contains(rows, static row => row.Id == nameof(SettingId.Fly));
         Assert.Contains(rows, static row => row.Id == nameof(SettingId.FlySpeed));
         Assert.Equal("Fly (cheat)", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Fly).LabelKey));
+        settings.Set(SettingId.FlySpeed, 9999);
+        Assert.Equal(500, settings.FlySpeed); // the slider's top
     }
 
     [Fact]

@@ -36,7 +36,7 @@ public sealed class PlayerSettings
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Fly, SettingKind.Toggle, 0, 1, 1, 0, "settingsFly", ChoiceKeys: OnOff),
-        new(SettingId.FlySpeed, SettingKind.Slider, 5, 100, 5, Physics.VoxelPhysics.DefaultFlyBlocksPerSecond, "settingsFlySpeed"),
+        new(SettingId.FlySpeed, SettingKind.Slider, 10, 500, 10, Physics.VoxelPhysics.DefaultFlyBlocksPerSecond, "settingsFlySpeed"),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
         new(SettingId.Workers, SettingKind.Slider, 0, 8, 1, 0, "settingsWorkers", MinKey: "settingsAuto"),
         new(SettingId.FarDistance, SettingKind.Slider, 0, 16, 1, 0, "settingsFarDistance", " km", MinKey: "settingsAuto"),

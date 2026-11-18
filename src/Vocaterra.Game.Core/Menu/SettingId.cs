@@ -95,6 +95,6 @@ public enum SettingId
     /// <summary>The fly cheat: 0 off, 1 on. On, the player flies: no gravity, the jump key rises and the descend key sinks, the sprint key flies faster.</summary>
     Fly,
 
-    /// <summary>The flying speed in blocks per second, 5 to 100 in steps of 5 (the default 30, about seven times the walk).</summary>
+    /// <summary>The flying speed in blocks per second, 10 to 500 in steps of 10 (the default 30, about seven times the walk). At the top speeds the world may not stream in fast enough to keep up.</summary>
     FlySpeed,
 }
