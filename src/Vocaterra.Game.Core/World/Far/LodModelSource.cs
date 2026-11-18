@@ -15,6 +15,9 @@ public sealed class LodModelSource : ILodColumnSource
     // A forest this thick (the biome's tree density, percent) is drawn as a layer of leaves where single trees are not.
     private const int CanopyFrom = 25;
 
+    // The columns the tree pass reads for each chunk's 16 candidates (a candidate that survives the spacing and its biome's density reads about a dozen columns, most of them shared with the next candidate's).
+    private const int TreeColumnsPerChunk = 96;
+
     private readonly FarTerrainSampler _sampler;
 
     internal LodModelSource(FarTerrainSampler sampler, int treeLevels, int mergeLevels)
@@ -35,11 +38,20 @@ public sealed class LodModelSource : ILodColumnSource
     {
         ArgumentNullException.ThrowIfNull(grid);
         var cell = grid.Cell;
-        var scope = _sampler.NewScope(grid.Width * grid.Depth * (grid.Level == 0 || grid.Level > MergeLevels ? 1 : 4));
         var exact = grid.Level < TreeLevels;
+        var samples = grid.Width * grid.Depth * (grid.Level == 0 || grid.Level > MergeLevels ? 1 : 4);
+        if (exact)
+        {
+            // The tree pass's candidates look at the ground round each trunk: some columns a tree, shared with its neighbours' (a tree row of the scope's tables stands for several columns).
+            var reach = _sampler.World.Strategies.MaxCrownReach;
+            var chunks = (((grid.Width * cell) + (2 * reach)) / VoxelChunk.Size) + 2;
+            samples += chunks * (((grid.Depth * cell) + (2 * reach)) / VoxelChunk.Size + 2) * TreeColumnsPerChunk / 6;
+        }
+
+        var scope = _sampler.NewScope(samples);
         if (grid.Level == 0)
         {
-            var trees = exact ? Trees(grid.X0, grid.Z0, grid.Width, grid.Depth) : null;
+            var trees = exact ? Trees(grid.X0, grid.Z0, grid.Width, grid.Depth, scope) : null;
             Span<LodSegment> column = stackalloc LodSegment[LodGrid.MaxSegments];
             for (var j = 0; j < grid.Depth; j++)
             {
@@ -54,7 +66,7 @@ public sealed class LodModelSource : ILodColumnSource
 
         if (grid.Level > MergeLevels)
         {
-            var single = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell) : null;
+            var single = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell, scope) : null;
             Span<LodSegment> one = stackalloc LodSegment[LodGrid.MaxSegments];
             for (var j = 0; j < grid.Depth; j++)
             {
@@ -78,7 +90,7 @@ public sealed class LodModelSource : ILodColumnSource
         var half = cell / 2;
         var childLevel = grid.Level - 1;
         var child = new LodGrid(childLevel, grid.X0 * 2, grid.Z0 * 2, grid.Width * 2, grid.Depth * 2);
-        var raster = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell) : null;
+        var raster = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell, scope) : null;
         Span<LodSegment> scratch = stackalloc LodSegment[LodGrid.MaxSegments];
         for (var j = 0; j < child.Depth; j++)
         {
@@ -253,11 +265,11 @@ public sealed class LodModelSource : ILodColumnSource
 
     // ---- the trees of a rectangle of columns, block by block, as the tree pass writes them
 
-    private TreeRaster Trees(int minX, int minZ, int width, int depth)
+    private TreeRaster Trees(int minX, int minZ, int width, int depth, FarScope scope)
     {
         var world = _sampler.World;
         var reach = world.Strategies.MaxCrownReach;
-        var planted = _sampler.PlantTrees(minX - reach, minZ - reach, width + (2 * reach), depth + (2 * reach));
+        var planted = _sampler.PlantTrees(minX - reach, minZ - reach, width + (2 * reach), depth + (2 * reach), scope);
         var raster = new TreeRaster(minX, minZ, width, depth);
         raster.Add(planted);
         return raster;

@@ -158,13 +158,13 @@ public sealed class FarTerrainSampler
         return true;
     }
 
-    internal List<PlantedTree> PlantTrees(int minX, int minZ, int sizeX, int sizeZ)
+    internal List<PlantedTree> PlantTrees(int minX, int minZ, int sizeX, int sizeZ, FarScope? scope = null)
     {
         var maxX = minX + sizeX;
         var maxZ = minZ + sizeZ;
         var cx0 = minX >> VoxelChunk.Shift;
         var cz0 = minZ >> VoxelChunk.Shift;
-        return TreePlacement.Plan(_world, new FarGround(_world), cx0, cz0, ((maxX - 1) >> VoxelChunk.Shift) - cx0 + 1, ((maxZ - 1) >> VoxelChunk.Shift) - cz0 + 1, minX, minZ, maxX, maxZ);
+        return TreePlacement.Plan(_world, new FarGround(_world, scope), cx0, cz0, ((maxX - 1) >> VoxelChunk.Shift) - cx0 + 1, ((maxZ - 1) >> VoxelChunk.Shift) - cz0 + 1, minX, minZ, maxX, maxZ);
     }
 
     /// <summary>
