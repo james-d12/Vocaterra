@@ -85,7 +85,8 @@ public sealed class StatRulesTests
     [InlineData("maxStamina", 0)]
     [InlineData("maxStamina", 100)]
     [InlineData("armour", 7)]
-    [InlineData("light", 7.5)] // an open key has no range here
+    [InlineData("light", 7.5)]
+    [InlineData("light", 16)]
     public void Given_AStatInsideItsRange_When_TheItemIsChecked_Then_NoProblemIsReported(string key, double amount) => Assert.Empty(Problems(key, amount));
 
     [Fact]
@@ -97,6 +98,6 @@ public sealed class StatRulesTests
         Assert.Equal(StatCombine.Sum, StatRules.Find(StatKeys.MaxStamina)!.Combine);
         Assert.Equal(StatCombine.Sum, StatRules.Find(StatKeys.Armour)!.Combine);
         Assert.Equal(StatCombine.Sum, StatRules.Find(StatKeys.Warmth)!.Combine);
-        Assert.Null(StatRules.Find("light"));
+        Assert.Equal(StatCombine.Sum, StatRules.Find(StatKeys.Light)!.Combine);
     }
 }

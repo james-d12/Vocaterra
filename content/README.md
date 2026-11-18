@@ -46,6 +46,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/temperature.json` | `temperature.schema.json` (the temperature where the player stands, I06: the numbers of the base, the day's swing, the weather's cooling per channel, a roof's shelter and a fire's warmth, all in tenths of a degree Celsius, and the bands warm, cool, cold and very cold from the warmest, each with a lower bound, a walk factor above 0 and at most 1, a chill and the HUD line said on entering the cold) | `TemperatureData` |
   | `game/equipment.json` | `equipment.schema.json` (the slot groups gear is worn in, I03a: per group its id, its drawn layer, its slots (named body slots, or a count with a wear kind), the item tags it accepts, `noDuplicates` and `statsApply`, and the Spanish noun of each slot; see "Equipment" below) | `EquipmentData` |
   | `game/damage.json` | `damage.schema.json` (the damage causes and the modifiers that apply to each, I05a: `drowning` with none; see "Stat keys and damage" below) | `DamageData` |
+  | `game/light.json` | `light.schema.json` (how the `light` stat becomes the light round the player: reach, strength, colour and the daylight it fades between, I05b) | `PlayerLightData` |
   | `game/underground.json` | `underground.schema.json` (the underground, B11 and B11b: the rock layers and their pockets, the bedrock floor, the caves, the entrances' passages, the lava, the ores, the cave linings and the surface rock; blocks by their names in `BlockDefinition`; every number a whole number, noise values in thousandths; see "Editing the underground" below) | `UndergroundData` |
   | `game/land.json` | `land.schema.json` (the land rules, Y09: the discs round scene sites and the squares round the road and bridge blocks where the player may not place blocks (a torch is always allowed), each with the protection that names its hint (village, camp, road) and a margin; the discs round `meadow.north` and `meadow.south` where a plot may lie; the plot's width, depth, price in coins and the slope it allows. Site names are scene sites: the validator refuses one the scene lacks) | `LandData` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
@@ -416,7 +417,7 @@ when the lexicon has no word yet, as for the accessories). The order of the grou
 say for a ring finger or a cape, is one more row (and an item tag it accepts); no code changes.
 
 An item becomes gear with three optional fields of `items.json`: `wear` (the kind of slot: `head`, `body`, `legs`, `feet`, `accessory`, `offhand` or `back`, a `wear` of some slot), `stats` (open
-camelCase keys to numbers, combined into the player's stat sheet while worn; the keys and their units are in "Stat keys and damage" below; `light` is read from I05b on) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
+camelCase keys to numbers, combined into the player's stat sheet while worn; the keys and their units are in "Stat keys and damage" below; `light` is read by the player light, I05b) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
 that some group with a slot of its `wear` accepts one of its tags (so give it `clothing`, `armour`, `accessory`, `offhand` or `bag`), that stat keys are well formed and look colours parse, and that an
 item with stats or a look can be worn. A `look` only dresses the avatar; the stats count only in a group whose `statsApply` is true. Run the usual loop after an edit.
 
@@ -451,6 +452,7 @@ An item's `stats` (items.json) are open keys; the ones the code reads, each with
 | `hungerDrain`, `thirstDrain` | factor on how fast that need falls, 1 changes nothing | multiply | 0.25 to 2 | `PlayerNeeds`, on top of the needs rate and relaxed mode |
 | `maxStamina` | stamina points (the meter is 0 to 100) | sum | 0 to 100 | `PlayerNeeds`: added to the ceiling where the drives' penalties are taken off it |
 | `armour` | a whole-number rating | sum | 0 to 100 | the damage pipeline's armour modifier |
+| `light` | the world's block light levels (a placed torch is 16) | sum | 0 to 16 | the player light (I05b): `game-v1/game/light.json` turns the sum into a reach and a strength, drawn at night and underground |
 
 A factor key multiplies so that two items never add up past what one could (two 1.1 boots are 1.21), and a sum key adds. Walk speed applies with `--needs off` too (it is gear, not a need; nothing worn leaves 1).
 

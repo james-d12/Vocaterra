@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Light;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Core.Water.Currents;
@@ -278,6 +279,27 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     public LightBand Band => _band;
 
     private float _underwaterAmount;
+
+    private PlayerLightData? _playerLightData;
+    private double _playerLightStat;
+    private Vector3 _playerLightAt;
+
+    /// <summary>
+    /// Sets the light round the player for the frames that follow (I05b): the light's numbers, the sheet's sum of <c>light</c> and where the light is (the player's eye). It is drawn through the program only (<see cref="LightFrame"/>), at night or
+    /// underground; nothing is rebuilt and the world's light is untouched. A stat of 0 (nothing worn gives light) turns it off.
+    /// </summary>
+    /// <param name="data">The light's numbers (<c>game/light.json</c>).</param>
+    /// <param name="lightStat">The stat sheet's sum of <c>light</c>.</param>
+    /// <param name="position">The light's position in blocks.</param>
+    public void SetPlayerLight(PlayerLightData data, double lightStat, Vector3 position)
+    {
+        _playerLightData = data;
+        _playerLightStat = lightStat;
+        _playerLightAt = position;
+    }
+
+    /// <summary>The light round the player as it is drawn this frame (I05b): the stat and the data turned into a reach and a strength by the daylight at the eye (<see cref="PlayerLightGlow.Daylight"/>); <see cref="PlayerLight.Off"/> when nothing is worn or it is day.</summary>
+    public PlayerLight ActivePlayerLight => _playerLightData is { } data ? PlayerLight.Of(data, _playerLightStat, PlayerLightGlow.Daylight(WaterLight, _eyeSky)) : PlayerLight.Off;
 
     /// <summary>The share of the sky's light at the eye, 0 to 1 (B12, <see cref="SkyDepthLight"/>): 1 in the open, the cave minimum deep under the ground. 1 when the renderer has no height model.</summary>
     public float EyeSky => _eyeSky;
@@ -1281,6 +1303,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var (glowR, glowG, glowB) = LanternGlow.PassColour(GlowStrength);
         var haze = _effects.HeightFog && _underwaterAmount <= 0f ? HeightFogDensity * (1f + (2f * _look.Fog)) : 0f; // thicker in fog and rain; none under water, where the water's own fog is
         var day = ChunkMesher.SunDirection;
+        var player = ActivePlayerLight;
+        var playerColour = PlayerLightGlow.Colour(player);
         return new GlLightFrame(
             eye,
             new Vector3(direction.X, direction.Y, direction.Z),
@@ -1292,7 +1316,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             1f / HeightFogScale,
             _effects.WaterShader,
             tick / (float)Vocaterra.Game.Core.Atmosphere.DayClock.TicksPerSecond,
-            WaterWave);
+            WaterWave,
+            _playerLightAt,
+            player.IsOn ? player.Radius : 0f,
+            new Vector3(playerColour.R, playerColour.G, playerColour.B));
     }
 
     /// <summary>The fog by height's density at its base height, per block (B17c): about 8 percent haze for a kilometre of the low land in the ray's way (half a percent at the near view's 60 blocks, 3 percent at its edge), more with distance: the far view lies in it.</summary>

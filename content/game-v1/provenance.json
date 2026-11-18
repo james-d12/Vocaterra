@@ -110,6 +110,7 @@
     { "path": "game/temperature.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/equipment.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/damage.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/light.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/land.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/world.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/biomes.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },

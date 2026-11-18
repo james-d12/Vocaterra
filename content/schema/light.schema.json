@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/light.json",
+  "description": "The light round the player (I05b, inventory-plan 3.8): how the light stat becomes a reach and a strength, the light's colour, and the daylight it fades between. Loaded by PlayerLightData (Vocaterra.Game.Core), which also checks the ranges and the order of the thresholds.",
+  "type": "object",
+  "required": ["schemaVersion", "radiusBase", "radiusPerPoint", "strengthPerPoint", "maxStrength", "colour", "darkAtDaylight", "offAtDaylight"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "radiusBase": { "type": "number", "minimum": 0, "maximum": 32, "description": "The reach, in blocks, of the faintest light." },
+    "radiusPerPoint": { "type": "number", "minimum": 0, "maximum": 4, "description": "The blocks of reach each point of the light stat adds." },
+    "strengthPerPoint": { "type": "number", "minimum": 0, "maximum": 1, "description": "The strength each point of the light stat adds, before maxStrength." },
+    "maxStrength": { "type": "number", "minimum": 0, "maximum": 1, "description": "The strongest the light gets (the share of a face's colour added next to the player)." },
+    "colour": {
+      "type": "object",
+      "required": ["r", "g", "b"],
+      "additionalProperties": false,
+      "properties": {
+        "r": { "type": "number", "minimum": 0, "maximum": 1 },
+        "g": { "type": "number", "minimum": 0, "maximum": 1 },
+        "b": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "description": "The light's colour."
+    },
+    "darkAtDaylight": { "type": "number", "minimum": 0, "maximum": 1, "description": "At or under this share of daylight at the player the light is at full strength." },
+    "offAtDaylight": { "type": "number", "minimum": 0, "maximum": 1, "description": "At or over this share of daylight the light is off; above darkAtDaylight." }
+  }
+}

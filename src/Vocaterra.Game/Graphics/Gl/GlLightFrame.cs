@@ -17,6 +17,9 @@ namespace Vocaterra.Game.Graphics.Gl;
 /// <param name="WaterShader">Whether the water takes the depth tint, the surface's movement and the edge at grazing angles.</param>
 /// <param name="Time">Game time in seconds (the surface's movement).</param>
 /// <param name="WaveAmount">How far the surface moves, in blocks.</param>
+/// <param name="PlayerLightPosition">Where the light round the player is, in blocks (I05b).</param>
+/// <param name="PlayerLightRadius">How far that light reaches, in blocks; 0 for no light, and then the shader skips it.</param>
+/// <param name="PlayerLightColour">That light's colour times its strength.</param>
 public readonly record struct GlLightFrame(
     Vector3 Eye,
     Vector3 SunDirection,
@@ -28,7 +31,10 @@ public readonly record struct GlLightFrame(
     float HeightFogScale = 1f / 64f,
     bool WaterShader = false,
     float Time = 0f,
-    float WaveAmount = 0f)
+    float WaveAmount = 0f,
+    Vector3 PlayerLightPosition = default,
+    float PlayerLightRadius = 0f,
+    Vector3 PlayerLightColour = default)
 {
     /// <summary>The light of the midday in clear weather with no extras: the Day's sun, white, no glow, no height fog, no water shader.</summary>
     /// <param name="eye">The camera's position.</param>

@@ -25,6 +25,7 @@ using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
@@ -840,6 +841,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere, _sim.Weather.Data.CloudAltitude)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        _drawer.Renderer.SetPlayerLight(_session.Data.Light, StatRules.Read(_sim.Stats, StatKeys.Light), eye); // I05b: the worn items' light, drawn at the player's eye at night and underground
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)

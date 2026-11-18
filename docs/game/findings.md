@@ -3145,3 +3145,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   passed, 9 skipped. The player's temperature now reads the generator's climate (`IPlaceInfo.TemperatureAt`), so the biomes series' and the
   inventory series' two temperatures finally meet (the plan's risk "Temperature against the biomes series"): the valley unchanged, the
   highest peak 12 degrees colder. A cave reads slightly warmer than the slope above it (the lapse is by height); left for the owner's stop 2.
+- **I05b, light round the player (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i05b-report.md`. Gated at `f0b6a882`:
+  13,359 passed, 9 skipped. The plan assumed BasicEffect and a `LightMap`; the tree has neither: the world is drawn by the game's own GLSL
+  chunk program with baked sky and block light, so the player light is two uniforms and one term in `chunk.frag.glsl`, at no measurable cost.
+  The effects fallback (below OpenGL 3.3) draws no player light. A branch's content edit and another's both moving `manifest.json` conflict
+  at the gate; the orchestrator merges the target into the branch and runs `scripts/rehash-bundle.sh` first.
