@@ -417,7 +417,7 @@ when the lexicon has no word yet, as for the accessories). The order of the grou
 say for a ring finger or a cape, is one more row (and an item tag it accepts); no code changes.
 
 An item becomes gear with three optional fields of `items.json`: `wear` (the kind of slot: `head`, `body`, `legs`, `feet`, `accessory`, `offhand` or `back`, a `wear` of some slot), `stats` (open
-camelCase keys to numbers, combined into the player's stat sheet while worn; the keys and their units are in "Stat keys and damage" below; `light` is read from I05b on) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
+camelCase keys to numbers, combined into the player's stat sheet while worn; the keys and their units are in "Stat keys and damage" below; `light` is read by the player light, I05b) and `look` (a `#rgb` or `#rrggbb` colour for each body part the item covers; I09 draws it, nothing reads it yet). The validator requires that a worn item has a stack limit of 1,
 that some group with a slot of its `wear` accepts one of its tags (so give it `clothing`, `armour`, `accessory`, `offhand` or `bag`), that stat keys are well formed and look colours parse, and that an
 item with stats or a look can be worn. A `look` only dresses the avatar; the stats count only in a group whose `statsApply` is true. Run the usual loop after an edit.
 
@@ -438,6 +438,7 @@ An item's `stats` (items.json) are open keys; the ones the code reads, each with
 | `hungerDrain`, `thirstDrain` | factor on how fast that need falls, 1 changes nothing | multiply | 0.25 to 2 | `PlayerNeeds`, on top of the needs rate and relaxed mode |
 | `maxStamina` | stamina points (the meter is 0 to 100) | sum | 0 to 100 | `PlayerNeeds`: added to the ceiling where the drives' penalties are taken off it |
 | `armour` | a whole-number rating | sum | 0 to 100 | the damage pipeline's armour modifier |
+| `light` | the world's block light levels (a placed torch is 16) | sum | 0 to 16 | the player light (I05b): `game-v1/game/light.json` turns the sum into a reach and a strength, drawn at night and underground |
 
 A factor key multiplies so that two items never add up past what one could (two 1.1 boots are 1.21), and a sum key adds. Walk speed applies with `--needs off` too (it is gear, not a need; nothing worn leaves 1).
 

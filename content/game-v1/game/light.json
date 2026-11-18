@@ -4,9 +4,9 @@
   "generated_by": "hand-authored",
   "about": "The light round the player (I05b, D-game-35, inventory plan 3.8). The player's `light` stat (the sum of the worn items' stats.light, 0 to 16 in the world's block light levels) becomes a light drawn round the player when the place is dark. Reach in blocks = radiusBase + radiusPerPoint x light; strength (the share of a face's own colour added next to the player, 0 to 1) = min(maxStrength, strengthPerPoint x light); the light fades in with the dark: full at or under darkAtDaylight, off at or over offAtDaylight, where daylight is the share of the day's light at the player (the day's sun light times the sky's share at the eye: about 1 at noon in the open, 0.7 at dusk, 0.36 on a night in the open, 0.28 deep in a cave). Nothing is baked: the light is drawn from these numbers each frame and changes no world light, save or digest. First numbers, for the owner's review.",
   "radiusBase": 2.0,
-  "radiusPerPoint": 0.5,
-  "strengthPerPoint": 0.06,
-  "maxStrength": 0.9,
+  "radiusPerPoint": 0.6,
+  "strengthPerPoint": 0.08,
+  "maxStrength": 1.0,
   "colour": { "r": 1.0, "g": 0.78, "b": 0.45 },
   "darkAtDaylight": 0.4,
   "offAtDaylight": 0.8
