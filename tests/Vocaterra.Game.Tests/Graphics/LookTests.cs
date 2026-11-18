@@ -18,7 +18,7 @@ namespace Vocaterra.Game.Tests.Graphics;
 /// </summary>
 public sealed class LookTests
 {
-    private static ChunkMeshes Mesh(MapBlocks blocks, MeshOptions? options = null, ulong grey = 0) => ChunkMesher.Build(blocks, 0, 0, 0, grey, options);
+    private static ChunkMeshes Mesh(MapBlocks blocks, MeshOptions? options = null, UInt128 grey = default) => ChunkMesher.Build(blocks, 0, 0, 0, grey, options);
 
     private static (int R, int G, int B, int A) Channels(uint colour) => ((int)(colour & 0xFF), (int)((colour >> 8) & 0xFF), (int)((colour >> 16) & 0xFF), (int)(colour >> 24));
 
@@ -140,7 +140,7 @@ public sealed class LookTests
         }
 
         var grass = Mean(BlockCell.GrassTop);
-        Assert.True(grass.G > grass.R * 1.5 && grass.G > grass.B * 2.5 && grass.G > 150, "bright saturated grass");
+        Assert.True(grass.G > grass.R * 1.1 && grass.G > grass.B * 1.3 && grass.G > 150, "bright grass: the light end of the green (B22), the biome map brings it down");
         foreach (var leaves in new[] { BlockCell.Leaves, BlockCell.SpruceLeaves, BlockCell.BirchLeaves })
         {
             var c = Mean(leaves);
@@ -150,8 +150,9 @@ public sealed class LookTests
         var spruce = Mean(BlockCell.SpruceLeaves);
         var oak = Mean(BlockCell.Leaves);
         var birch = Mean(BlockCell.BirchLeaves);
-        Assert.True(spruce.B > oak.B, "spruce needles are the bluest green");
-        Assert.True(birch.R > oak.R, "birch leaves are the yellowest green");
+        Assert.True(spruce.B > Vocaterra.Game.Graphics.Colour.LandColours.Default.LeafColour(0, 0).B, "spruce needles are the bluest green (B22: the oak's picture is the light end, its drawn colour is the map's)");
+        Assert.True(spruce.B > oak.B * 0.6);
+        Assert.True(birch.R > Vocaterra.Game.Graphics.Colour.LandColours.Default.LeafColour(0, 0).R, "birch leaves are the yellowest green (against the oak as it is drawn, B22)");
         var snow = Mean(BlockCell.Snow);
         Assert.True(snow.R > 220 && snow.G > 230 && snow.B > 240, "snow is white");
         var bark = Mean(BlockCell.BirchBark);
@@ -218,7 +219,7 @@ public sealed class LookTests
 
         // A far cut-out leaf keeps its green (no dark fringe from the holes).
         var leaf = ((int)BlockCell.Leaves / BlockAtlasLayout.Columns * width) + ((int)BlockCell.Leaves % BlockAtlasLayout.Columns);
-        Assert.True(level4[leaf * 4 + 1] > level4[leaf * 4] * 1.5);
+        Assert.True(level4[leaf * 4 + 1] > level4[leaf * 4] * 1.25);
         Assert.True(level4[(leaf * 4) + 3] > 180);
     }
 

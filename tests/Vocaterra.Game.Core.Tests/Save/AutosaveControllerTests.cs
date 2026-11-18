@@ -96,7 +96,7 @@ public sealed class AutosaveControllerTests : IDisposable
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var lines = new List<string>();
         var toasts = new List<string>();
-        var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), lines.Add);
+        var saves = new SaveService(session, () => new SaveSettings(new SoundVolumes()), lines.Add);
         return (new AutosaveController(new AutosavePolicy(0, 0), path, saves, lines.Add, toasts.Add, static () => 0), lines, toasts);
     }
 }

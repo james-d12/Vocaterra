@@ -111,9 +111,9 @@ public sealed class RiverCurrents
     }
 
     // The y of the highest water cell in the column (the layout's river surface), or -1 when there is none.
-    private static int SurfaceY(VoxelGrid grid, int x, int z)
+    private static int SurfaceY(IVoxelReader grid, int x, int z)
     {
-        for (var y = grid.SizeY - 1; y >= 0; y--)
+        for (var y = grid.Limits.EndY - 1; y >= grid.Limits.MinY; y--)
         {
             if (grid.GetBlock(x, y, z) == BlockId.Water)
             {
@@ -121,6 +121,6 @@ public sealed class RiverCurrents
             }
         }
 
-        return -1;
+        return grid.Limits.MinY - 1;
     }
 }

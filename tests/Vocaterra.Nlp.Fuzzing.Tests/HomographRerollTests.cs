@@ -230,4 +230,129 @@ public sealed class HomographRerollTests
 
         Assert.True(realised > 100, $"Only {realised} of 1000 draws were realised.");
     }
+
+    // (6) M97, O5 seed 2LxdNIrNHnQ6 (found on feature/biomes, 2026-11-16): cuanto almuerzos veintiocho señoras transportan, with cuanto (a noun, and the determiner cuánto)
+    // drawn for [NOUN:item] right before the noun almuerzos. Clean through its grammar; once a mutation puts an unknown word where the grammar needs a noun, nothing
+    // matches and cuanto is almuerzos' determiner (noun.number, almuerzo), and the recast loses the plural. A reader takes it that way too. The realiser no longer draws it.
+    private const string CuantoPattern = "[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]";
+
+    [Fact]
+    public void TheCaseOfSeed2LxdNIrNHnQ6_NoLongerDrawsANounThatReadsAsTheDeterminerOfTheNextNoun()
+    {
+        var mutation = MutationGen.Build(Harness, new MutationCase(MutationKind.VocabUnknown, 625984043339709867));
+        if (mutation is null)
+        {
+            return;
+        }
+
+        Assert.NotEqual("cuanto almuerzos veintiocho señoras transportan", mutation.Source.NormalizedText);
+    }
+
+    // Why: the grammar binds cuanto as a noun, so the sentence is clean; with an unknown word in a noun's place nothing binds it and cuanto asks for the singular.
+    // The neighbours stay as they are: the plural after a number, and cuántos before a plural noun, are clean.
+    [Theory]
+    [InlineData("cuanto almuerzos 28 señoras transportan", "")]
+    [InlineData("cuanto almuerzos 28 zeponefu transportan", "noun.number;vocab.unknown")]
+    [InlineData("tengo 28 almuerzos", "")]
+    [InlineData("tengo 28 zeponefu almuerzos", "vocab.unknown")]
+    [InlineData("cuantos almuerzos 28 señoras transportan", "")]
+    public void ANounThatIsAlsoADeterminerBeforeANounIsItsDeterminerWhenNothingBindsIt(string sentence, string tags)
+    {
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence), [SlotGrammarType.Parse(CuantoPattern), SlotGrammarType.Parse("tengo [NUM:qty] [NOUN:item]")]);
+        Assert.Equal(tags, string.Join(';', analysis.Errors.Select(static e => e.Tag)));
+    }
+
+    // Over many draws of the pattern, no realised sentence puts such a noun right before another noun, and each one analyzes clean under its grammar.
+    [Fact]
+    public void TheCuantoPatternNoLongerRealisesANounThatReadsAsADeterminer()
+    {
+        var pattern = GrammarPattern.Parse(CuantoPattern);
+        var grammar = SlotGrammarType.Parse(pattern.Render());
+        var realised = 0;
+        for (var seed = 1UL; seed <= 20000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var words = sentence.NormalizedText.Split(' ');
+            for (var i = 0; i + 1 < words.Length; i++)
+            {
+                Assert.False(words[i] == "cuanto" && !char.IsDigit(words[i + 1][0]), $"seed {seed}: '{sentence.NormalizedText}'");
+            }
+
+            var errors = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [grammar]).Errors;
+            Assert.True(errors.Count == 0, $"seed {seed}: '{sentence.NormalizedText}' gave {string.Join(", ", errors.Select(static e => e.Tag))}");
+        }
+
+        Assert.True(realised > 5000, $"Only {realised} of 20000 draws were realised.");
+    }
+
+    // (7) M98, O3 seed 7q7l8dSNG6n6 (found on feature/biomes, 2026-11-17): [ADV]? [NOUN:item]? [VERB:aclarar] [VERB] realised «alrededor aclara construir» with alrededor
+    // (a masculine noun, «los alrededores», and an adverb) as the item noun. The matcher gives the word to the optional [ADV] (clean either way) and yields no item slot.
+    // The lexicon's noun reading is right and the analyzer's binding is a valid one, so the fault is the realiser's expectation: a noun that is also an adverb is
+    // re-rolled in a pattern with an optional or grouped [ADV] (skip:noun-reads-as-adverb). The engine and the Spanish pack are unchanged.
+    private const string AdverbPattern = "[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]";
+
+    private static Dictionary<string, string> SlotsOf(string sentence, string pattern)
+    {
+        var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence), [SlotGrammarType.Parse(pattern)]);
+        Assert.Empty(analysis.Errors);
+        return analysis.Slots.ToDictionary(static s => s.Name, static s => s.Value, StringComparer.Ordinal);
+    }
+
+    // Why: with an optional [ADV] the word is the adverb and no item is yielded; without one, or for a noun with no adverb reading, it is the item.
+    [Fact]
+    public void ANounThatIsAlsoAnAdverbIsTheAdverbWhenThePatternHasAnOptionalAdverb()
+    {
+        Assert.Empty(SlotsOf("alrededor aclara construir", AdverbPattern));
+        Assert.Equal("casa", SlotsOf("casa aclara construir", AdverbPattern)["item"]);
+        Assert.Equal("alrededor", SlotsOf("alrededor aclara construir", "[NOUN:item]? [VERB:aclarar] [VERB]")["item"]);
+        Assert.Equal("alrededor", SlotsOf("hoy alrededor aclara construir", AdverbPattern)["item"]);
+    }
+
+    [Fact]
+    public void TheAdverbPatternNoLongerRealisesANounThatIsAlsoAnAdverb_AndEachDrawYieldsItsSlots()
+    {
+        var pattern = GrammarPattern.Parse(AdverbPattern);
+        var grammar = SlotGrammarType.Parse(pattern.Render());
+        var realised = 0;
+        var withItem = 0;
+        for (var seed = 1UL; seed <= 5000; seed++)
+        {
+            var sentence = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var analysis = Harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [grammar]);
+            Assert.True(analysis.Errors.Count == 0, $"seed {seed}: '{sentence.NormalizedText}' gave {string.Join(", ", analysis.Errors.Select(static e => e.Tag))}");
+            var slots = analysis.Slots.ToDictionary(static s => s.Name, static s => s.Value, StringComparer.Ordinal);
+            Assert.True(
+                slots.Count == sentence.ExpectedSlots.Count && sentence.ExpectedSlots.All(pair => slots.TryGetValue(pair.Key, out var value) && value == pair.Value),
+                $"seed {seed}: '{sentence.NormalizedText}' expected {{{string.Join(", ", sentence.ExpectedSlots.Select(p => $"{p.Key}={p.Value}"))}}} got {{{string.Join(", ", slots.Select(p => $"{p.Key}={p.Value}"))}}}");
+            withItem += slots.ContainsKey("item") ? 1 : 0;
+        }
+
+        Assert.True(realised > 4000 && withItem > 500, $"Only {realised} of 5000 draws were realised, {withItem} with an item.");
+    }
+
+    // The replay of the failing seed through the oracle's own path: its recipe is realised, or skipped, and never as alrededor with an item.
+    [Fact]
+    public void TheNeighbourPatternWithNoAdverbStillRealisesNounsThatAreAlsoAdverbs()
+    {
+        var pattern = GrammarPattern.Parse("[NOUN:item]? [VERB:aclarar] [VERB]");
+        var drawn = false;
+        for (var seed = 1UL; seed <= 20000 && !drawn; seed++)
+        {
+            drawn = SentenceGen.Realize(Harness, new SentenceRecipe("catalog", pattern, seed)) is { } s && s.NormalizedText.StartsWith("alrededor ", StringComparison.Ordinal);
+        }
+
+        Assert.True(drawn, "A noun that is also an adverb is no longer drawn where the pattern has no [ADV]: the re-roll is too broad.");
+    }
 }

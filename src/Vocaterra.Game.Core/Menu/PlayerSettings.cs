@@ -12,6 +12,9 @@ namespace Vocaterra.Game.Core.Menu;
 /// </summary>
 public sealed class PlayerSettings
 {
+    /// <summary>The grass density of a new game, in percent (B18): a plain of grass shows a tuft on six columns in ten, which reads as a lush meadow without hiding the ground or the paths.</summary>
+    public const int DefaultGrass = 60;
+
     private static readonly string[] OnOff = ["settingsOff", "settingsOn"];
 
     private static readonly IReadOnlyList<SettingSpec> Specs =
@@ -31,6 +34,21 @@ public sealed class PlayerSettings
         new(SettingId.FieldOfView, SettingKind.Slider, 60, 110, 5, 70, "settingsFov", "°"),
         new(SettingId.NeedsRate, SettingKind.Slider, 50, 400, 25, 100, "settingsRate", "%"),
         new(SettingId.RelaxedNeeds, SettingKind.Toggle, 0, 1, 1, 0, "settingsRelaxed", ChoiceKeys: OnOff),
+        new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
+        new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
+        new(SettingId.Workers, SettingKind.Slider, 0, 8, 1, 0, "settingsWorkers", MinKey: "settingsAuto"),
+        new(SettingId.FarDistance, SettingKind.Slider, 0, 16, 1, 0, "settingsFarDistance", " km", MinKey: "settingsAuto"),
+        new(SettingId.FarDetail, SettingKind.Slider, 50, 200, 25, 100, "settingsFarDetail", "%"),
+        new(SettingId.FarTrees, SettingKind.Choice, 0, 6, 1, 0, "settingsFarTrees", ChoiceKeys: ["settingsAuto", "settingsOff", "farTrees256", "farTrees512", "farTrees1k", "farTrees2k", "farTrees4k"]),
+        new(SettingId.FarTextures, SettingKind.Choice, 0, 3, 1, 2, "settingsFarTextures", ChoiceKeys: ["settingsOff", "farTexturesNear", "farTexturesNormal", "farTexturesWide"]),
+        new(SettingId.FarExact, SettingKind.Choice, 0, 5, 1, 0, "settingsFarExact", ChoiceKeys: ["settingsAuto", "settingsOff", "farExact500", "farExact1000", "farExact1500", "farExact2000"]),
+        new(SettingId.Shaders, SettingKind.Toggle, 0, 1, 1, 1, "settingsShaders", ChoiceKeys: OnOff),
+        new(SettingId.SunFollowsHour, SettingKind.Toggle, 0, 1, 1, 1, "settingsSun", ChoiceKeys: OnOff),
+        new(SettingId.ClimateColours, SettingKind.Toggle, 0, 1, 1, 1, "settingsClimate", ChoiceKeys: OnOff),
+        new(SettingId.WaterShader, SettingKind.Toggle, 0, 1, 1, 1, "settingsWater", ChoiceKeys: OnOff),
+        new(SettingId.HeightFog, SettingKind.Toggle, 0, 1, 1, 1, "settingsHeightFog", ChoiceKeys: OnOff),
+        new(SettingId.FarLight, SettingKind.Toggle, 0, 1, 1, 1, "settingsFarLight", ChoiceKeys: OnOff),
+        new(SettingId.Msaa, SettingKind.Choice, 0, 3, 1, 2, "settingsMsaa", ChoiceKeys: ["settingsOff", "msaa2", "msaa4", "msaa8"]),
     ];
 
     private readonly int[] _values;
@@ -98,6 +116,35 @@ public sealed class PlayerSettings
     /// <summary>Whether the needs are relaxed.</summary>
     public bool RelaxedNeeds => Get(SettingId.RelaxedNeeds) == 1;
 
+    /// <summary>Whether the pass cheat is on: the pass through the east ring is open at once (B08b).</summary>
+    public bool PassCheat => Get(SettingId.PassCheat) == 1;
+
+    /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
+    public double Grass => Get(SettingId.Grass) / 100.0;
+
+    /// <summary>The worker threads setting: 0 for Auto, else 1 to 8 (see <c>WorkerPlan</c> in the game for what Auto is on a machine).</summary>
+    public int Workers => Get(SettingId.Workers);
+    /// <summary>Whether the game's own GLSL shaders draw the chunks (B17b); the context may still refuse them, and the effects then draw.</summary>
+    public bool Shaders => Get(SettingId.Shaders) == 1;
+
+    /// <summary>Whether the faces are shaded by a sun that follows the hour, with the deeper dusk (B17c; B22's sun per band).</summary>
+    public bool SunFollowsHour => Get(SettingId.SunFollowsHour) == 1;
+
+    /// <summary>Whether the grass and the oak leaves take the colour of their climate (B17c; B22's land tint).</summary>
+    public bool ClimateColours => Get(SettingId.ClimateColours) == 1;
+
+    /// <summary>Whether the water takes the water shader: the depth tint, the surface's movement and the edge (B17c).</summary>
+    public bool WaterShader => Get(SettingId.WaterShader) == 1;
+
+    /// <summary>Whether the fog is thicker in the low land (B17c).</summary>
+    public bool HeightFog => Get(SettingId.HeightFog) == 1;
+
+    /// <summary>Whether the far view is drawn in the same light and fog as the chunks (B17c).</summary>
+    public bool FarLight => Get(SettingId.FarLight) == 1;
+
+    /// <summary>The window's antialiasing in samples a pixel: 0, 2, 4 or 8 (read when the window opens).</summary>
+    public int Msaa => SaveSettings.MsaaLevels[Get(SettingId.Msaa)];
+
     /// <summary>The value of a setting, as the menu counts it (see <see cref="SettingId"/>).</summary>
     /// <param name="id">The setting.</param>
     public int Get(SettingId id) => _values[(int)id];
@@ -147,6 +194,21 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.FieldOfView] = clean.EffectiveFieldOfView;
             settings._values[(int)SettingId.NeedsRate] = (int)Math.Round(clean.EffectiveNeedsRate * 100);
             settings._values[(int)SettingId.RelaxedNeeds] = clean.RelaxedNeeds ? 1 : 0;
+            settings._values[(int)SettingId.PassCheat] = clean.PassCheat ? 1 : 0;
+            settings._values[(int)SettingId.Grass] = clean.EffectiveGrass;
+            settings._values[(int)SettingId.Workers] = clean.EffectiveOf(SettingId.Workers);
+            settings._values[(int)SettingId.FarDistance] = clean.EffectiveOf(SettingId.FarDistance);
+            settings._values[(int)SettingId.FarDetail] = clean.EffectiveOf(SettingId.FarDetail);
+            settings._values[(int)SettingId.FarTrees] = clean.EffectiveOf(SettingId.FarTrees);
+            settings._values[(int)SettingId.FarTextures] = clean.EffectiveOf(SettingId.FarTextures);
+            settings._values[(int)SettingId.FarExact] = clean.EffectiveOf(SettingId.FarExact);
+            settings._values[(int)SettingId.Shaders] = clean.ShadersOff ? 0 : 1;
+            settings._values[(int)SettingId.SunFollowsHour] = clean.SunFollowsHourOff ? 0 : 1;
+            settings._values[(int)SettingId.ClimateColours] = clean.ClimateColoursOff ? 0 : 1;
+            settings._values[(int)SettingId.WaterShader] = clean.WaterShaderOff ? 0 : 1;
+            settings._values[(int)SettingId.HeightFog] = clean.HeightFogOff ? 0 : 1;
+            settings._values[(int)SettingId.FarLight] = clean.FarLightOff ? 0 : 1;
+            settings._values[(int)SettingId.Msaa] = SaveSettings.MsaaLevels.ToList().IndexOf(clean.EffectiveMsaa);
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -224,6 +286,67 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.RelaxedNeeds] = 1;
         }
 
+        if (launch.Grass is { } grass)
+        {
+            settings._values[(int)SettingId.Grass] = Spec(SettingId.Grass).Snap(grass);
+        }
+
+        foreach (var (id, value) in new[]
+        {
+            (SettingId.Workers, launch.Workers),
+            (SettingId.FarDistance, launch.FarDistance),
+            (SettingId.FarDetail, launch.FarDetail),
+            (SettingId.FarTrees, launch.FarTrees),
+            (SettingId.FarTextures, launch.FarTextures),
+            (SettingId.FarExact, launch.FarExact),
+        })
+        {
+            if (value is { } given)
+            {
+                settings._values[(int)id] = Spec(id).Snap(given);
+            }
+        }
+
+        if (launch.Shaders is { } shaders)
+        {
+            settings._values[(int)SettingId.Shaders] = shaders ? 1 : 0;
+        }
+
+        if (launch.SunFollowsHour is { } sun)
+        {
+            settings._values[(int)SettingId.SunFollowsHour] = sun ? 1 : 0;
+        }
+
+        if (launch.ClimateColours is { } climate)
+        {
+            settings._values[(int)SettingId.ClimateColours] = climate ? 1 : 0;
+        }
+
+        if (launch.WaterShader is { } water)
+        {
+            settings._values[(int)SettingId.WaterShader] = water ? 1 : 0;
+        }
+
+        if (launch.HeightFog is { } fog)
+        {
+            settings._values[(int)SettingId.HeightFog] = fog ? 1 : 0;
+        }
+
+        if (launch.FarLight is { } far)
+        {
+            settings._values[(int)SettingId.FarLight] = far ? 1 : 0;
+        }
+
+        if (launch.Msaa is { } msaa && SaveSettings.MsaaLevels.Contains(msaa))
+        {
+            settings._values[(int)SettingId.Msaa] = SaveSettings.MsaaLevels.ToList().IndexOf(msaa);
+        }
+
+        if (launch.PassOpen)
+        {
+            settings._values[(int)SettingId.PassCheat] = 1;
+        }
+
         return settings;
     }
 
@@ -239,7 +362,22 @@ public sealed class PlayerSettings
         MouseSensitivity: Get(SettingId.MouseSensitivity),
         InvertY: InvertY,
         FieldOfView: Get(SettingId.FieldOfView),
-        ViewDistance: ViewDistance ?? 0).Clamped();
+        ViewDistance: ViewDistance ?? 0,
+        PassCheat: PassCheat,
+        Grass: Get(SettingId.Grass),
+        Workers: SaveSettings.OmitDefault(SettingId.Workers, Get(SettingId.Workers)),
+        FarDistance: SaveSettings.OmitDefault(SettingId.FarDistance, Get(SettingId.FarDistance)),
+        FarDetail: SaveSettings.OmitDefault(SettingId.FarDetail, Get(SettingId.FarDetail)),
+        FarTrees: SaveSettings.OmitDefault(SettingId.FarTrees, Get(SettingId.FarTrees)),
+        FarTextures: SaveSettings.OmitDefault(SettingId.FarTextures, Get(SettingId.FarTextures)),
+        FarExact: SaveSettings.OmitDefault(SettingId.FarExact, Get(SettingId.FarExact)),
+        ShadersOff: !Shaders,
+        SunFollowsHourOff: !SunFollowsHour,
+        ClimateColoursOff: !ClimateColours,
+        WaterShaderOff: !WaterShader,
+        HeightFogOff: !HeightFog,
+        FarLightOff: !FarLight,
+        Msaa: Msaa).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>

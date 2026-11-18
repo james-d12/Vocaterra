@@ -21,10 +21,10 @@ public static class SkyPalette
     public static readonly (byte R, byte G, byte B) CloudTop = (255, 255, 255);
 
     /// <summary>The colour of a cloud's sides (in the shade of its own top).</summary>
-    public static readonly (byte R, byte G, byte B) CloudSide = (228, 236, 250);
+    public static readonly (byte R, byte G, byte B) CloudSide = (216, 226, 246);
 
-    /// <summary>The colour of a cloud's underside.</summary>
-    public static readonly (byte R, byte G, byte B) CloudBottom = (204, 216, 238);
+    /// <summary>The colour of a cloud's underside (B22: a darker, bluer grey, the cloud's own shadow lit by the sky, not a second white).</summary>
+    public static readonly (byte R, byte G, byte B) CloudBottom = (150, 168, 204);
 
     /// <summary>The colour at the horizon at dusk (S15, <c>--dusk</c>), and the colour of the dusk fog: a warm amber haze.</summary>
     public static readonly (byte R, byte G, byte B) DuskHorizon = (246, 170, 118);
@@ -101,7 +101,7 @@ public static class CloudField
     /// <summary>How many cells away from the camera's cell the field reaches in each direction.</summary>
     public const int Reach = 6;
 
-    /// <summary>The height of the clouds' undersides in blocks (above the peaks, which top out near 125).</summary>
+    /// <summary>The height of the clouds' undersides in blocks when the data names none (<c>cloudAltitude</c> of <c>game/weather.json</c>, B14: the value the game draws is the data's).</summary>
     public const float Altitude = 168f;
 
     /// <summary>How far a cloud drifts east in a tick, in blocks (about 0.7 blocks a second).</summary>
@@ -146,7 +146,16 @@ public static class CloudField
     /// <param name="tick">The simulation's tick (the drift).</param>
     /// <param name="boxes">The list to fill.</param>
     /// <param name="cover">The weather's cloud cover, 0 to 1.</param>
-    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes, double cover)
+    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes, double cover) => Generate(cameraX, cameraZ, tick, boxes, cover, Altitude);
+
+    /// <summary>The same under a cover at a height: the clouds' undersides float between <paramref name="altitude"/> and fourteen blocks above it (B14: the height is data).</summary>
+    /// <param name="cameraX">The camera's x.</param>
+    /// <param name="cameraZ">The camera's z.</param>
+    /// <param name="tick">The simulation's tick (the drift).</param>
+    /// <param name="boxes">The list to fill.</param>
+    /// <param name="cover">The weather's cloud cover, 0 to 1.</param>
+    /// <param name="altitude">The height of the clouds' undersides, in blocks (<c>cloudAltitude</c> of <c>game/weather.json</c>).</param>
+    public static void Generate(float cameraX, float cameraZ, long tick, List<CloudBox> boxes, double cover, float altitude)
     {
         ArgumentNullException.ThrowIfNull(boxes);
         boxes.Clear();
@@ -168,9 +177,9 @@ public static class CloudField
 
                 var originX = (cx * CellSize) + drift + (((h & 0xFF) / 255f) * 40f);
                 var originZ = (cz * CellSize) + ((((h >> 8) & 0xFF) / 255f) * 40f);
-                var y = Altitude + ((((h >> 16) & 0xF) / 15f) * 14f);
-                var width = 30f + ((((h >> 24) & 0xF) / 15f) * 34f);
-                var depth = 18f + ((((h >> 4) & 0xF) / 15f) * 22f);
+                var y = altitude + ((((h >> 16) & 0xF) / 15f) * 14f);
+                var width = 30f + ((((h >> 24) & 0xF) / 15f) * 20f); // B22: smaller boxes than the first slabs (30 to 64 by 18 to 40)
+                var depth = 18f + ((((h >> 4) & 0xF) / 15f) * 12f);
                 var thick = 5f + (((h >> 12) & 3) * 1f);
                 boxes.Add(new CloudBox(originX, y, originZ, width, depth, thick, alpha));
                 var extra = BlockArtNature.Mix((uint)cx, (uint)cz, 0xC10E);

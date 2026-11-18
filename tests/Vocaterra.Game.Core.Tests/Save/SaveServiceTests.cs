@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Save;
 
-/// <summary>The game's saves: the fresh scene is built once for them all, and the file written is the capture of the session.</summary>
+/// <summary>The game's saves: no second copy of the world is built or kept (B05), and the file written is the capture of the session.</summary>
 public sealed class SaveServiceTests : IDisposable
 {
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-saves-" + Path.GetRandomFileName());
@@ -18,21 +18,18 @@ public sealed class SaveServiceTests : IDisposable
     }
 
     [Fact]
-    public void TheFreshSceneIsBuiltOnceAndTheFileIsTheCaptureOfTheSession()
+    public void Given_ASession_When_ItIsSavedTwice_Then_TheFileIsTheCaptureOfTheSession()
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        var builds = 0;
         var lines = new List<string>();
         var settings = new SaveSettings(new SoundVolumes(), 125);
-        var saves = new SaveService(session, () => { builds++; return RouteScene.Build(); }, () => settings, lines.Add);
+        var saves = new SaveService(session, () => settings, lines.Add);
         Directory.CreateDirectory(_folder);
         var path = Path.Combine(_folder, "game.save");
 
         Assert.True(saves.Write(path, "on F6"));
         Assert.True(saves.Write(path, "at the end of the run"));
-        Assert.Equal(1, builds);
         Assert.Equal(SaveGame.Serialize(saves.Capture()), SaveFile.Read(path));
-        Assert.Equal(1, builds);
         Assert.Equal(2, lines.Count);
         Assert.StartsWith($"save: {path} written on F6 (session 1, tick 0,", lines[0]);
         Assert.Equal(125, saves.Capture().Settings!.TextScale);
@@ -53,7 +50,7 @@ public sealed class SaveServiceTests : IDisposable
         sim.Held.SetOrigin(0, 5);
         var lines = new List<string>();
         var settings = new SaveSettings(new SoundVolumes(), 125);
-        var saves = new SaveService(session, () => RouteScene.Build(), () => settings, lines.Add);
+        var saves = new SaveService(session, () => settings, lines.Add);
         Directory.CreateDirectory(_folder);
         var path = Path.Combine(_folder, "game.save");
 
@@ -64,5 +61,20 @@ public sealed class SaveServiceTests : IDisposable
         Assert.Single(lines);
         Assert.Contains("held", lines[0]);
         Assert.False(sim.Held.IsEmpty); // the stack stays held, never lost
+    }
+
+    [Fact]
+    public void Given_ASessionOnTheValley_When_TheFirstSaveIsTaken_Then_NoCopyOfTheWorldIsAllocated()
+    {
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        var saves = new SaveService(session, () => new SaveSettings(new SoundVolumes()), static _ => { });
+        _ = saves.Capture(); // warms the serializer-free paths, so the measure below is the save's own
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        _ = saves.Capture();
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        // The valley's blocks are 38 MB; the first save used to build a second copy (0.7 s) and keep it.
+        Assert.True(allocated < 8_000_000, $"A capture allocated {allocated:N0} bytes.");
     }
 }

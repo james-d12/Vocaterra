@@ -26,7 +26,9 @@ namespace Vocaterra.Nlp.Language.Matching;
 /// budget, <see cref="AnswerMatcher.MaxDistance"/> for its length, as the matcher takes a phrase's budget from the phrase;</description></item>
 /// <item><description><see cref="SlipPair.QuestionWord"/>: both question words (<see cref="IAnalysisRules.IsQuestionWord"/>);</description></item>
 /// <item><description><see cref="SlipPair.Article"/>, <see cref="SlipPair.Preposition"/> and <see cref="SlipPair.Pronoun"/>: both have a lexicon reading of that
-/// part of speech (<see cref="LexiconSchema.Article"/>, <see cref="LexiconSchema.Preposition"/>, <see cref="LexiconSchema.Pronoun"/>).</description></item>
+/// part of speech (<see cref="LexiconSchema.Article"/>, <see cref="LexiconSchema.Preposition"/>, <see cref="LexiconSchema.Pronoun"/>); a pronoun pair needs a
+/// reading with a person on each side (M97: a personal pronoun, <c>me</c> for <c>te</c>; <c>tal</c>, a pronoun with no person that stands in <c>qué tal</c> where
+/// no personal pronoun does, is no slip of <c>me</c>: <c>que me</c> is no near miss of <c>qué tal</c>).</description></item>
 /// </list>
 /// <para>
 /// So <c>quiero hacer un hacha</c> (an added word), <c>pasado mañana iré al río con Mar</c> and <c>rápido por favor</c> (content words far apart) are no near miss
@@ -160,7 +162,7 @@ public static class AnswerNearMisses
         var answerReadings = lexicon.Lookup(answerWord);
         foreach (var (pos, pair) in ClosedClasses)
         {
-            if (HasPartOfSpeech(readings, pos) && HasPartOfSpeech(answerReadings, pos))
+            if (HasPartOfSpeech(readings, pos, pair) && HasPartOfSpeech(answerReadings, pos, pair))
             {
                 return pair;
             }
@@ -169,11 +171,11 @@ public static class AnswerNearMisses
         return null;
     }
 
-    private static bool HasPartOfSpeech(LexiconLookupResult readings, string pos)
+    private static bool HasPartOfSpeech(LexiconLookupResult readings, string pos, SlipPair pair)
     {
         foreach (var reading in readings)
         {
-            if (string.Equals(reading.Pos, pos, StringComparison.Ordinal))
+            if (string.Equals(reading.Pos, pos, StringComparison.Ordinal) && (pair != SlipPair.Pronoun || reading.Person is not null))
             {
                 return true;
             }

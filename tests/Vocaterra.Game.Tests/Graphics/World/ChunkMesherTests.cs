@@ -366,7 +366,7 @@ public sealed class ChunkMesherTests
         Assert.InRange(faces, 400_000, 2_000_000); // the culling works: 384 x 128 x 384 blocks, about a million faces with the undergrowth's crossed quads
         var allBlocks = scene.Grid.SizeX * scene.Grid.SizeY * scene.Grid.SizeZ;
         Assert.True(faces < allBlocks / 8);
-        Assert.True(skippable > 2000, $"{skippable} chunks of air or buried in stone");
+        Assert.True(skippable > 1500, $"{skippable} chunks of air or buried in stone"); // B13: over 2 000 before the valley's caves (1 637 now: the caves open about 400 buried chunks)
     }
 
     [Fact]

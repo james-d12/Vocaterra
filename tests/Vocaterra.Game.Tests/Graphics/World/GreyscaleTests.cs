@@ -19,7 +19,7 @@ public sealed class GreyscaleTests
     // The grey copies sit in the rows below the colour cells: a vertex with a V at or above this is drawn grey.
     private const float GreyFrom = BlockAtlasLayout.ColourRows / (float)BlockAtlasLayout.Rows;
 
-    private static ChunkMeshes Mesh(MapBlocks blocks, ulong greyKinds = 0) => ChunkMesher.Build(blocks, 0, 0, 0, greyKinds);
+    private static ChunkMeshes Mesh(MapBlocks blocks, UInt128 greyKinds = default) => ChunkMesher.Build(blocks, 0, 0, 0, greyKinds);
 
     private static bool AllVertices(MeshBuffer buffer, Func<MeshVertex, bool> test)
     {
@@ -126,7 +126,7 @@ public sealed class GreyscaleTests
     [Fact]
     public void EveryBlockKindFitsTheKindsMask()
     {
-        Assert.All(Enum.GetValues<BlockId>(), id => Assert.True((int)id < 64, $"{id} does not fit a 64-bit mask"));
+        Assert.All(Enum.GetValues<BlockId>(), id => Assert.True((int)id < BlockKinds.Capacity, $"{id} does not fit the kind mask"));
     }
 
     [Fact]
@@ -186,7 +186,19 @@ public sealed class GreyscaleTests
     {
         var meshes = Mesh(new MapBlocks().Set(1, 1, 1, BlockId.Grass).Set(2, 1, 1, BlockId.Stone));
         Assert.Equal(ChunkMesher.KindBit(BlockId.Grass) | ChunkMesher.KindBit(BlockId.Stone), meshes.Kinds);
-        Assert.Equal(0UL, Mesh(new MapBlocks()).Kinds);
+        Assert.Equal(UInt128.Zero, Mesh(new MapBlocks()).Kinds);
+    }
+
+    [Fact]
+    public void AChunkReportsAndGreysAKindAboveSixtyThree()
+    {
+        // B09: the kind mask is 128 bits wide. Id 127 names no block (the mesher's tables would not know it), so only the mask helpers see it.
+        var high = (BlockId)127;
+        var meshes = Mesh(new MapBlocks().Set(2, 1, 1, BlockId.Stone), ChunkMesher.KindBit(high));
+        Assert.Equal(ChunkMesher.KindBit(BlockId.Stone), meshes.Kinds);
+        Assert.True(ChunkMesher.IsGrey(high, ChunkMesher.KindBit(high)));
+        Assert.False(ChunkMesher.IsGrey(BlockId.Stone, ChunkMesher.KindBit(high)));
+        Assert.False(ChunkMesher.IsGrey((BlockId)63, ChunkMesher.KindBit(high)));
     }
 
     [Fact]
@@ -234,7 +246,7 @@ public sealed class GreyscaleTests
     public void TheGreySetIsTheBlocksWhoseNounIsNotKnownAndBlocksNoNounNamesStayInColour()
     {
         var words = new WordProgress(TestGame.Nouns);
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(true, TestGame.Nouns, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
 
@@ -253,7 +265,7 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(true, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         Assert.Null(toasts.Current(0));
@@ -298,7 +310,7 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(false, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         words.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow)]);
@@ -306,7 +318,7 @@ public sealed class GreyscaleTests
 
         Assert.False(world.Enabled);
         Assert.Empty(calls);
-        Assert.Equal(0UL, world.GreyKinds);
+        Assert.Equal(UInt128.Zero, world.GreyKinds);
         Assert.Null(toasts.Current(0));
     }
 
@@ -315,7 +327,7 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(true, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale, ["agua"]);
         world.Refresh();
 
@@ -329,7 +341,7 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(TestGame.Nouns);
         var toasts = new ToastQueue();
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(false, TestGame.Nouns, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         Assert.Empty(calls);
@@ -338,15 +350,15 @@ public sealed class GreyscaleTests
         world.Enabled = true;
         world.Refresh();
         Assert.Single(calls);
-        Assert.NotEqual(0UL, calls[0]);
+        Assert.NotEqual(UInt128.Zero, calls[0]);
         Assert.False(ChunkMesher.IsGrey(BlockId.Water, calls[0])); // agua is known
         Assert.Null(toasts.Current(0)); // no toast for a word that was already known when the view came on
 
         world.Enabled = false;
         world.Refresh();
         Assert.Equal(2, calls.Count);
-        Assert.Equal(0UL, calls[1]); // the renderer is told that nothing is grey
-        Assert.Equal(0UL, world.GreyKinds);
+        Assert.Equal(UInt128.Zero, calls[1]); // the renderer is told that nothing is grey
+        Assert.Equal(UInt128.Zero, world.GreyKinds);
         world.Refresh();
         Assert.Equal(2, calls.Count); // and once only
     }
@@ -356,14 +368,14 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(TestGame.Nouns);
         var before = words.Records.Values.ToList();
-        var calls = new List<ulong>();
+        var calls = new List<UInt128>();
         var world = new GreyscaleWorld(true, TestGame.Nouns, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
-        Assert.NotEqual(0UL, calls[0]);
+        Assert.NotEqual(UInt128.Zero, calls[0]);
 
         world.AssumeAllKnown = true;
         world.Refresh();
-        Assert.Equal(0UL, calls[^1]); // nothing is grey
+        Assert.Equal(UInt128.Zero, calls[^1]); // nothing is grey
         Assert.Empty(words.KnownLemmas); // but nothing is known: the model, and so a save, are as they were
         Assert.Equal(before, words.Records.Values.ToList());
 

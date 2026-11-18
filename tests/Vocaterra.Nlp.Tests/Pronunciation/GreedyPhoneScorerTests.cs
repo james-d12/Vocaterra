@@ -136,6 +136,45 @@ public class GreedyPhoneScorerTests
     }
 
     [Fact]
+    public void OneExtraHBetweenTwoSilentHsIsOneTagAtTheFirstWord()
+    {
+        // "ah hambrientos": the h at the end of "ah" and the h at the start of "hambrientos" are the same site; the scorer cannot hear which.
+        var reference = TestSupport.Primary("ah hambrientos")[0].Phones;
+        Assert.Equal(["pron.silent_h@1+1"], TestSupport.Describe(RunHeard("ah hambrientos", reference, 1, ["h"]).Errors));
+    }
+
+    [Fact]
+    public void TwoExtraHsAtTheSameSiteAreTwoTagsOneAtEachWord()
+    {
+        var reference = TestSupport.Primary("ah hambrientos")[0].Phones;
+        Assert.Equal(["pron.silent_h@1+1", "pron.silent_h@3+1"], TestSupport.Describe(RunHeard("ah hambrientos", reference, 1, ["h", "h"]).Errors));
+    }
+
+    [Fact]
+    public void AnExtraHAwayFromTheSharedSiteIsTaggedAtItsOwnWord()
+    {
+        // The h of "hambrientos" alone, with a vowel-starting word before it that has no silent h: no ambiguity.
+        var reference = TestSupport.Primary("el hambre")[0].Phones;
+        Assert.Equal(["pron.silent_h@3+1"], TestSupport.Describe(RunHeard("el hambre", reference, 2, ["h"]).Errors));
+    }
+
+    [Fact]
+    public void ASilentHBeforeAVowelWordAndASingleSilentHWordEachGiveOneTag()
+    {
+        var ah = TestSupport.Primary("ah amigo")[0].Phones;
+        Assert.Equal(["pron.silent_h@1+1"], TestSupport.Describe(RunHeard("ah amigo", ah, 1, ["h"]).Errors));
+
+        var hola = TestSupport.Primary("hola")[0].Phones;
+        Assert.Equal(["pron.silent_h@0+1"], TestSupport.Describe(RunHeard("hola", hola, 0, ["h"]).Errors));
+    }
+
+    private static PronunciationResult RunHeard(string text, IReadOnlyList<string> reference, int at, string[] extra)
+    {
+        var heard = reference.Take(at).Concat(extra).Concat(reference.Skip(at)).ToArray();
+        return Run(text, heard);
+    }
+
+    [Fact]
     public void ADifferentSubstitutionLowersTheScoreButIsNotTagged()
     {
         var result = Run("perro", TestSupport.Ipa("pelo"));

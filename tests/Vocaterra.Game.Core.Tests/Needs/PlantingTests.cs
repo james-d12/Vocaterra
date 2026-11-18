@@ -28,7 +28,7 @@ public sealed class PlantingTests
         return new VoxelSession(data, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), lessons: lessons) { Day = 10 };
     }
 
-    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+    private static void Night(VoxelSession session) => SaveGame.Sleep(session, SaveGame.Capture(session));
 
     private static int Berries(VoxelSession session) => session.Simulation.Inventory.Count(ItemId.Berry);
 
@@ -217,7 +217,7 @@ public sealed class PlantingTests
         _ = session.Simulation.GrantItems(ItemId.Berry, 2);
         var ground = NearTop(session);
         _ = session.PlantOn(ground);
-        var document = SaveGame.Capture(session, TestGame.Route());
+        var document = SaveGame.Capture(session);
 
         var loaded = SaveGame.Restore(document, TestGame.Data, TestGame.Route());
 
@@ -233,7 +233,7 @@ public sealed class PlantingTests
         var session = NewSession();
         _ = session.Simulation.GrantItems(ItemId.Berry, 1);
         _ = session.PlantOn(NearTop(session));
-        var document = SaveGame.Capture(session, TestGame.Route());
+        var document = SaveGame.Capture(session);
         var without = document with { Systems = document.Systems! with { Planted = null } };
 
         var loaded = SaveGame.Restore(without, TestGame.Data, TestGame.Route());

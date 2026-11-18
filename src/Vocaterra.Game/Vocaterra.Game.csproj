@@ -7,11 +7,15 @@
     <OutputType>Exe</OutputType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Vocaterra.Game</PackageId>
+    <!-- B17a: the GL binding's draw calls take an index offset as a pointer. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" />
     <PackageReference Include="FontStashSharp.MonoGame" />
+    <!-- B17a: an MIT OpenGL binding for the game's own GLSL passes on MonoGame's context (Graphics/Gl); engine code, so here and nowhere else. -->
+    <PackageReference Include="Silk.NET.OpenGL" />
     <!-- Direct, so that Vosk.targets copies libvosk.so into the output (build/ assets of a package do not flow to the projects that reach it
          through another package). The recognizer itself is the core's, loaded by the game layer. -->
     <PackageReference Include="Vosk" />
@@ -50,11 +54,26 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- The colour of grass and leaves across the climate (B22): data read by the chunk mesher and the far view. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics/Colour/land-colours.json" LogicalName="Vocaterra.Game.Graphics.Colour.land-colours.json" />
+  </ItemGroup>
+
   <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
   <ItemGroup>
     <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />
     <!-- The sounds (S24): 16-bit PCM WAV files, all CC0, each listed in assets/audio/SOURCES.md. -->
     <None Include="../../assets/audio/*.wav" Link="assets/audio/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The decorative grass's weights by biome (B18): render data, kept out of the world's own files so that no setting or weight can move the generation digest. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics/World/GrassBiomes.json" LogicalName="Vocaterra.Game.GrassBiomes.json" />
+  </ItemGroup>
+
+  <!-- The game's own GLSL programs (B17a), compiled by the driver at run time (the gl-shaders launch option): embedded so that no file has to be found next to the executable. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics/Gl/Shaders/*.glsl" LogicalName="Vocaterra.Game.Shaders.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

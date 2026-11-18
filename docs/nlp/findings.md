@@ -1428,3 +1428,108 @@ this file. What is still open is collected in [open-items](../open-items.md).
   analyzer reads «porque» as a plural noun); the same seed fails on `feature/settlement` without Y11, so it is the core's or the bundle's
   as it stood. The full run passed. Proposed: a core milestone that finds why «porque» gets a noun reading, fixes it at the source with a
   regression test, and records the seed; the oracle is not narrowed.
+  Met again on 2026-11-15 by B08b's gate on `feature/biomes` (the game's B series, which touched no core input): O5,
+  `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `7PcP-w7xauk1` («túneles unos porque» mutated to
+  «vebegoz unos porque»: the recast writes «porqués»); it replays with the seed. Two oracles now trip on it at random seeds.
+  **Resolved by M96** (2026-11-16, gated at `fbe763f9`; the entry below).
+- **M96, «porque» read as a plural noun (fixed 2026-11-15; seeds `dTc3W4dw5Cg2` (O4) and `7PcP-w7xauk1` (O5), the entry above).** Cause: `AccentVariantChoice`
+  (not the lexicon, tagger or realiser). `porque` as typed is a conjunction, and a conjunction "needs a word after it"; in «túneles unos porque» it ends the
+  utterance, so the chooser fell back to the accented sibling, the noun `porqué`. The number check then asked for `porqués` after `unos`, and the recast wrote it.
+  Fix: a conjunction or preposition falling back to a singular noun sibling stays as typed when the word right before it is a plural determiner (and likewise a
+  plural noun after a singular one); every other fallback is as before. No API change. Tests: `PorqueNounReadingTests` (both seeds' inputs and the neighbours:
+  «quiero pan porque tengo hambre», «no sé el porqué», «no sé el porque», «no sé los porqués», «por qué porque sí», all clean as before).
+- **A fuzz seed on a plural the recast drops (found 2026-11-16 by B02b's full run on the game's `B02b-terrain-tuning`; resolved by M97, gated
+  at `63acefae`).** O5, `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`, seed `2LxdNIrNHnQ6`: «cuanto
+  almuerzos veintiocho señoras transportan» (pattern `[NOUN:item] [NOUN:qty] [NUM] [NOUN:spell] [VERB:transportar]`), mutated to
+  «cuanto almuerzos veintiocho zeponefu transportan»; the recast normalizes to «cuanto almuerzo 28 zeponefu transportan» instead of the
+  corrected «cuanto almuerzos 28 zeponefu transportan». The seed fails the same way on `feature/biomes` at `1f087456` without B02b (the
+  orchestrator's replay, 2026-11-16 05:40 UTC), so it is the core's or the bundle's as it stands; B02b touched no core input. The rest of
+  the suite passed. Proposed: a core milestone like M96 that finds why the plural is lost once the unknown word follows the number, fixes
+  it at the source with a regression test and records the seed; the oracle is not narrowed.
+- **A second fuzz seed: «que me» flagged as a wrong word at a prompt that takes no intent (found 2026-11-16 by B07c's full run on the
+  game's `B07c-far-detail`; resolved by M97, gated at
+  `63acefae`).** O3, `CorrectSentenceFuzzTests`, seed `9kz6LGNo8tf2`: a correct sentence
+  graded at `smith-receive` (which takes none of its intents) gets `vocab.wrong@4+2 expected 'tal' actual 'me'` (intent unknown, off the
+  prompt none). It fails the same way on `feature/biomes` at `388f6d5d` without B07c (the orchestrator's replay, 2026-11-16 about 14:30
+  UTC). Also seen that day: `PipelineFuzzTests.OpenFallback_LeavesATrustedFirstReadingAlone...` ("the generator no longer reaches
+  fallback:second-chosen", count 4) failed once in B11b's full run under load and passes alone (a coverage oracle that depends on how
+  many samples a loaded run draws: to check). Proposed with the `2LxdNIrNHnQ6` entry above: one core milestone for the fuzz findings.
+- **M97, three fuzz findings resolved (2026-11-16; seeds `2LxdNIrNHnQ6` (O5), `9kz6LGNo8tf2` (O3) and a coverage floor; the entries above).**
+  (1) `2LxdNIrNHnQ6`: a generator fix, no engine change. The realiser drew `cuanto` (a noun, and the determiner `cuánto`) for `[NOUN:item]` right before the noun
+  `almuerzos`; the grammar binds it as a noun, so the sentence is clean, but the mutation `zeponefu` left the grammar unmatched and the analyzer, rightly, read `cuanto`
+  as `almuerzos`' determiner (`noun.number`, `almuerzo`), so the recast lost the plural. Such a noun right before another noun is re-rolled
+  (`skip:noun-reads-as-determiner`). (2) `9kz6LGNo8tf2`: an engine fix. `AnswerNearMisses` took `me` and `tal` for a pronoun slip pair (`que me` a near miss of the answer
+  `qué tal`), because `tal` has a pronoun reading with no person; a pronoun pair now needs a reading with a person on each side. O6's model follows; documented in
+  `api.md` and `pipeline.md`. (3) The coverage floor of `OpenFallback_...` (`forced-same-intent`, `second-chosen`, 4 each in two gate runs): not load. Nothing in the
+  sampling reads a clock or the machine (CsCheck's `time` is off; the count is the environment's or 300); the run draws a fresh seed and a path's count (about 10 in 300)
+  falls under 5 now and then. The test is two now: the random-seed run checks every case with no floor, and `OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`
+  asserts the same floor `min(5, iterations / 60)` for the same ten paths on a fixed seed (the lowest count 9). All three oracles check what they checked. The goldens did not
+  move. Regression: `HomographRerollTests` (6), `AnswerNearMissesTests`. Plan row text proposed: "M97 done: two fuzz seeds fixed (a realiser re-roll for a noun that reads as
+  the next noun's determiner; a pronoun slip pair needs a person) and the open fallback's coverage floor asserted on a fixed seed."
+- **A fuzz seed on the content schema's supportLanguage (seen 2026-11-16 by M97's agent; not changed, no milestone yet).**
+  `ContentSchemaFuzzTests` failed once with seed `2zwDo8nRB_f7` (a supportLanguage mutation); outside M97's scope. To replay and triage
+  (an oracle fault or a loader fault) before any change; earlier the same test threw OutOfMemoryException in a gate's crowded run
+  (seed `1jXdUcl8JBe8`, passing alone), which the owner's 10 GB command cap addressed.
+- **A fuzz seed on a silent h (found 2026-11-16 by B11b's third gate on `feature/biomes`; not changed, no milestone yet).** O9,
+  `PronunciationFuzzTests.SpokenPhrases_ScorePerfectly_OrYieldExactlyTheInjectedPredictedError`, seed `a2RKk5N6Ibt4`: «ah hambrientos»
+  with `pron.silent_h` injected at «ah» (heard [a h a m b ɾ j e n t o s] for [a a m b ɾ j e n t o s]); the scorer reports `pron.silent_h`
+  twice, at «ah» and again on the h of «hambrientos». It replays on `feature/biomes` at `e9798005` (the orchestrator, about 17:10 UTC),
+  so it is the core's. Proposed: a fix like M97 (the alignment of two silent h's in a row), with the owner's yes.
+- **A fuzz seed on «alrededor» as an item (found 2026-11-17 by B07e's second gate on `feature/biomes`; not changed, given to M98).** O3,
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, seed `7q7l8dSNG6n6`: the pattern
+  `[[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]]` realised «alrededor aclara construir» with `alrededor` as the item noun; the analyser
+  yields no item slot (expected `{item=alrededor}`, got `{}`). It replays on the merged tree (`84e1e2cb`) with `CsCheck_Seed`, and B07e
+  changed no core or content file, so it is the core's. To triage in M98: the lexicon's noun reading of `alrededor` (a plural noun,
+  «los alrededores»), the realiser's choice of it as an item, or the analyser's adverb reading winning.
+- **M98, the fuzz suite's health: three items (2026-11-17; seed `7q7l8dSNG6n6`, the entries above).** Core only, no engine or pack change, goldens unchanged.
+  (1) *A realisation-rate gate (the codebase review's T3).* `RealisationRateTests` draws 2 000 recipes of O3's stream, one case per fixed seed (`M98R<i>`), counts the recipes
+  realised and the skips and rejected draws by reason for each pattern family (`catalog`, `skeleton`, `random`: the recipe's source), prints them, and pins two floors per
+  family and for all: the share of recipes that gave a sentence, and the share of the realiser's draws that were kept (the re-roll rules show in the second first, since a
+  later attempt usually makes a rejected draw good). Measured on `content/game-v1`: recipes realised catalog 99.57 %, skeleton 100 %, random 97.38 %, all 98.95 % (floors
+  0.95, 0.95, 0.92, 0.95); draws kept catalog 95.12 %, skeleton 98.62 %, random 86.48 %, all 92.87 % (floors 0.90, 0.93, 0.80, 0.88: about five points under). The only
+  skips are `numeral-next-to-article` and `adjacent-numerals`; the random family's largest rejected reason is `accent-variant-homograph`. `SkipBudgetTests` bounds each
+  reason; this bounds the sum and the recipes lost for good. (2) *The fixed-seed coverage test varied.* Cause: CsCheck seeds only the first case of a run (the
+  later ones draw from its own, freshly seeded state; the same fact `SkipBudgetTests` and `FuzzLanguageStreamTests` already work around), so `OpenFallback_TheGeneratorReachesEveryPath_OnAFixedSeed`
+  ("seed `0M97OpenFall3`", M97) fixed one case in 300; the other 299 were random, the counts moved from run to run, and one dipped under the floor in B18's full run. Not the
+  load, the environment, test order or shared state (`threads: 1`, no static state, nothing reads a clock). Fix: the fixed-seed run draws one case per seed
+  (`M98Open<i>`, 300 cases), so its counts are the same on every run and inside a full run: three full runs of the project gave identical counts (first-trusted 65,
+  forced-rejected 113, forced-replaced 9, forced-same-intent 13, loose-match 129, open-prompt 18, second-chosen 12, second-rejected 70, second-under-floor 115,
+  sparse-coverage 65) while the random-seed run's counts differed each time (second-chosen 9, 14, 8); the floor `min(5, iterations / 60)` is unchanged and the lowest count is 9.
+  (3) *`7q7l8dSNG6n6`, «alrededor».* Cause: `alrededor` is, in the lexicon, a masculine singular noun («los alrededores») and an adverb, both right. The pattern
+  `[ADV]? [NOUN:item]? [VERB:aclarar] [VERB]` has an optional `[ADV]`; the realiser drew `alrededor` for `[NOUN:item]` and left the adverb out, and the matcher, which
+  takes the first of the parses that tie, gave the word to `[ADV]`, so no item slot (the sentence is clean either way). A generator fault, like M73's `alternative-homograph`,
+  not the engine's or the pack's: a noun that is also an adverb is now re-rolled in a pattern that has an optional or grouped `[ADV]` (`skip:noun-reads-as-adverb`); the
+  oracle's relaxation for competing optional tokens is not widened. The seed passes; the stream digests of `FuzzLanguageStreamTests` did not move. Regression:
+  `HomographRerollTests` section 7 (the analyzer's two readings, 5 000 draws of the pattern analyzed clean with their slots, the neighbour pattern with no `[ADV]` still draws
+  `alrededor`). The silent-h seed `a2RKk5N6Ibt4` is untouched. Plan row text proposed: "M98 done: a realisation-rate gate (floors per pattern family), the fixed-seed
+  coverage test truly fixed (one case per seed), and seed `7q7l8dSNG6n6` fixed in the realiser (a noun that is also an adverb is re-rolled beside an optional adverb)."
+- **M99, two silent h's in a row (2026-11-17; seed `a2RKk5N6Ibt4`, the entry above).** Core only, goldens unchanged. *Cause:* «ah hambrientos» holds a silent h at the end of
+  «ah» and another at the start of «hambrientos», and both insert an [h] at the same phone index (1, between the two a's), so the predicted-error generator makes two variants
+  with identical phones and different spans. The learner's one extra [h] aligns at that index, and `PredictedErrorMatcher` tested each variant against the heard insertions
+  without using one up, so both matched and both tagged. *Fix* (`PredictedErrorMatcher`): each heard insertion is claimed once; variants are taken in text order, so one extra [h]
+  is one `pron.silent_h`, at the first word (the audio cannot say which of the two words the [h] belongs to; the rule is the first in the text, here «ah», the injected one). Two
+  extra [h]s at the site give two tags, one per word. *Fuzz oracle:* an [h] injected at «hambrientos» is the same heard phones, so the oracle now expects the first site among the
+  injectable variants with identical phones (still exactly one tag, with the tag, phones and span of that site); no check was relaxed otherwise. Regression: four facts in
+  `GreedyPhoneScorerTests` (one h, two h's, an h at a lone second word, a silent h before a vowel word and a lone silent-h word). Plan row text proposed: "M99 done: one heard
+  extra phone is one tag (a silent h ending a word and one starting the next no longer double-tag; the first word in the text gets it), seed `a2RKk5N6Ibt4` fixed."
+- **M100, the lexicon load test on CPU time (2026-11-17).** Tests only (`tests/Vocaterra.Nlp.Tests`), no core or pack change, goldens unchanged. *Cause:*
+  `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` took the median of three wall-clock loads against 3 000 ms, so a busy machine (other agents' builds) made the gate
+  fail (B24's report; the codebase review's T2). *Fix:* the test now measures the CPU time of this process (any thread) while `SpanishContent.Load` runs with hash
+  verification, the fastest of three attempts, the same method as the game's `CpuTime` helper (B24). It sits in its own class, `GeneratedLexiconLoadTimeTests`, in a
+  new non-parallel `Timing` collection (`tests/Vocaterra.Nlp.Tests/TimingCollection.cs`, the game's `TimingCollection` in the core's assembly), so it runs alone. *Measured*
+  (sample bundle, machine at load about 10): attempts 582, 711 and 541 ms of CPU time, fastest 541 ms. *Budget:* 1 082 ms, twice the measured cost, so a doubling of the
+  load's cost fails the test. The budget is strict (`<`), so a run at exactly a doubling fails too. Full suite: 12 643 passed, 0 failed, 8 skipped (unchanged from the base).
+- **A fuzz seed on an adjective's gender (found 2026-11-17 by the B11c gate on `feature/biomes`; not changed, given to M101).** O3,
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, seed `3gcdMpDLcrQ4`: the pattern
+  `[[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ([PRON] [DET]|[DET]|[ART] [ART])?]` realised «Laná doloroso les» as a correct sentence; the
+  analyser reports `gender.agree@5+8`, expected «dolorosa». It replays (`CsCheck_Seed=3gcdMpDLcrQ4`, fails the same), and the gate's two
+  branches touched no core code (a game test file, a game test constant), so it is the core's: either the realiser paired a feminine
+  item noun with a masculine adjective it should have agreed, or the analyser misreads «Laná»'s gender. To triage in M101.
+- **M101, a fuzz seed on an adjective's gender (2026-11-17; seed `3gcdMpDLcrQ4`, the entry above).** Tests only (`tests/Vocaterra.Nlp.Fuzzing.Tests`), no core or pack change, goldens unchanged.
+  *Cause:* «Laná» is not an item noun: it is a drawn name (`[WORD:qty]`, an invented syllable string), and its accents folded it onto the lexicon noun «lana» (feminine). The pattern
+  `[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ...` left the noun out, so the adjective had no head and the realiser gave it its default masculine; the analyser reads «laná» as «lana» (the lexicon
+  folds accents, as the realiser's own `IsClosedClassOnly` knows) and agrees the adjective with it, hence `gender.agree` «dolorosa». Both readings of the analyser are right; the realiser's
+  M62b re-roll (`name-read-as-noun`) covered a name that is a noun only after a determiner or a loose adjective, not before one. *Fix* (the realiser, `SentenceRealizer`): a drawn name that is
+  a lexicon noun (accents ignored) right before an adjective that belongs to no noun is re-rolled (the same skip reason); the oracle is unchanged. Regression: `NameReadAsNounTests` (the analyser's
+  reading of «laná doloroso les», the failing recipe, 3 000 draws of the pattern analysed clean). Plan row text proposed: "M101 done: seed `3gcdMpDLcrQ4` fixed in the realiser (a name that is a noun
+  once its accents are ignored is re-rolled before a loose adjective)."

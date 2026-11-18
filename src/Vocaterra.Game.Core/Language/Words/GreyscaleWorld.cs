@@ -16,7 +16,7 @@ public sealed class GreyscaleWorld
     private readonly NounCatalog _nouns;
     private readonly WordProgress _words;
     private readonly ToastQueue _toasts;
-    private readonly Action<ulong> _setGreyKinds;
+    private readonly Action<UInt128> _setGreyKinds;
     private HashSet<string> _known;
 
     /// <summary>
@@ -30,7 +30,7 @@ public sealed class GreyscaleWorld
     /// <param name="setGreyKinds">Receives the grey set when it changes (the renderer's <c>VoxelRenderer.SetGreyKinds</c>).</param>
     /// <param name="ui">The support language (the new-word toast, <c>ui.greyNewWord</c>, C04).</param>
     /// <param name="assumeKnown">Nouns counted as known from the start (<c>--assume-known</c>), or <see langword="null"/>.</param>
-    public GreyscaleWorld(bool enabled, NounCatalog nouns, WordProgress words, ToastQueue toasts, Action<ulong> setGreyKinds, LocaleText ui, IReadOnlyList<string>? assumeKnown = null)
+    public GreyscaleWorld(bool enabled, NounCatalog nouns, WordProgress words, ToastQueue toasts, Action<UInt128> setGreyKinds, LocaleText ui, IReadOnlyList<string>? assumeKnown = null)
     {
         ArgumentNullException.ThrowIfNull(nouns);
         ArgumentNullException.ThrowIfNull(words);
@@ -75,7 +75,7 @@ public sealed class GreyscaleWorld
     public bool AssumeAllKnown { get; set; }
 
     /// <summary>The grey set last handed to the renderer (one bit per block kind); 0 while the switch is off.</summary>
-    public ulong GreyKinds { get; private set; }
+    public UInt128 GreyKinds { get; private set; }
 
     /// <summary>
     /// Recomputes the grey set from the progress; when it changed, hands it to the renderer. In greyscale mode, queues a toast for each noun that is
@@ -85,16 +85,16 @@ public sealed class GreyscaleWorld
     {
         if (!_enabled)
         {
-            if (GreyKinds != 0)
+            if (GreyKinds != UInt128.Zero)
             {
-                GreyKinds = 0;
-                _setGreyKinds(0);
+                GreyKinds = UInt128.Zero;
+                _setGreyKinds(UInt128.Zero);
             }
 
             return;
         }
 
-        var grey = AssumeAllKnown ? 0UL : WordColours.GreyKinds(_nouns, _words);
+        var grey = AssumeAllKnown ? UInt128.Zero : WordColours.GreyKinds(_nouns, _words);
         if (grey != GreyKinds)
         {
             GreyKinds = grey;

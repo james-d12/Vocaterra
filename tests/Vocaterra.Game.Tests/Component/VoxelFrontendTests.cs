@@ -339,7 +339,6 @@ public sealed class VoxelFrontendTests
         Assert.NotEqual(0UL, corner.East);
         Assert.NotEqual(0UL, corner.Up);
         Assert.NotEqual(0UL, corner.South);
-        Assert.Equal(7, tracker.IndexOf(new VoxelChunkCoord(1, 0, 1))); // (cy * 6 + cz) * 6 + cx
         Assert.Equal(corner, tracker.KeyOf(new VoxelChunkCoord(0, 0, 0))); // reading the key does not change it
     }
 

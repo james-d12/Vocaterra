@@ -24,7 +24,7 @@ internal static class SleepWalk
             changed is not null && changed.TryGetValue(new BlockPos(x, y, z), out var id) && grid.InBounds(x, y, z) ? id : grid.GetBlock(x, y, z);
 
         // As VoxelGrid reads them (outside the grid is solid; a tall block collides in the cell above it too; nothing stands on a tall block).
-        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z));
+        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
 
         public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
 

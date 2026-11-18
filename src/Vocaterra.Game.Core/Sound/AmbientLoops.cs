@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Mathematics;
 namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
-/// The looping ambient beds of S25 (wind, the river, the waterfall, the village, the evening insects, the rain), made in code at load: no file, no licence, the same
+/// The looping ambient beds of S25 (wind, the river, the waterfall, the village, the evening insects, the rain, the sea's surf and the cave's drip), made in code at load: no file, no licence, the same
 /// samples every time. Each loop is <see cref="LoopSeconds"/> long and seamless: the sound is generated for <see cref="CrossfadeSeconds"/> more than the loop, and
 /// that tail is faded into the head with an equal-power curve, so the last sample of the loop is followed by the very next sample the process would make.
 /// </summary>
@@ -21,7 +21,7 @@ public static class AmbientLoops
     private const int Rate = SoundSynth.SampleRate;
 
     /// <summary>The beds that loop (the others are scheduled one-shots over a weight).</summary>
-    public static IReadOnlyList<string> Looping { get; } = [AmbientBeds.Wind, AmbientBeds.River, AmbientBeds.Waterfall, AmbientBeds.Village, AmbientBeds.Insects, AmbientBeds.Rain];
+    public static IReadOnlyList<string> Looping { get; } = [AmbientBeds.Wind, AmbientBeds.River, AmbientBeds.Waterfall, AmbientBeds.Village, AmbientBeds.Insects, AmbientBeds.Rain, AmbientBeds.Surf, AmbientBeds.Cave];
 
     /// <summary>Renders the loop of a bed as 16-bit mono samples of <see cref="LoopSeconds"/> at <see cref="SoundSynth.SampleRate"/>.</summary>
     /// <param name="bed">The bed's id.</param>
@@ -38,6 +38,8 @@ public static class AmbientLoops
             AmbientBeds.Village => Village(length + tail),
             AmbientBeds.Insects => Insects(length + tail),
             AmbientBeds.Rain => Rain(length + tail),
+            AmbientBeds.Surf => Surf(length + tail),
+            AmbientBeds.Cave => Cave(length + tail),
             _ => throw new ArgumentException($"The bed '{bed}' does not loop.", nameof(bed)),
         };
         return Seamless(raw, length, tail);
@@ -246,6 +248,75 @@ public static class AmbientLoops
             ringPrevious = ring;
             ring = next;
             body[i] = (float)(((high - low) * 1.6 * swell) + (ring * 0.55));
+        }
+
+        return body;
+    }
+
+    // The surf (B14): waves on a shore. A broad low-passed rush that swells and falls on a slow, uneven rhythm (a wave about every seven to nine seconds: a rising rush, a brighter crest and a long
+    // hiss as the water draws back), so it breathes where the river's rush is steady.
+    private static float[] Surf(int n)
+    {
+        var rng = new PresentationRng(SoundSynth.Seed ^ 0x5E_AF_0007UL);
+        var body = new float[n];
+        var low = 0.0;
+        var foam = 0.0;
+        var lowAlpha = 1 - Math.Exp(-2 * Math.PI * 520 / Rate);
+        var foamAlpha = 1 - Math.Exp(-2 * Math.PI * 2400 / Rate);
+        for (var i = 0; i < n; i++)
+        {
+            var t = i / (double)Rate;
+            var noise = (rng.NextDouble() * 2) - 1;
+            low += lowAlpha * (noise - low);
+            foam += foamAlpha * (noise - foam);
+            var swell = Math.Pow(0.5 + (0.5 * Math.Sin((2 * Math.PI * 0.125 * t) + 0.4)), 2) + (0.25 * Math.Pow(0.5 + (0.5 * Math.Sin((2 * Math.PI * 0.093 * t) + 2.0)), 2)); // two waves of unequal period
+            var crest = Math.Pow(Math.Max(0, Math.Sin((2 * Math.PI * 0.125 * t) + 0.9)), 3); // the brighter hiss as it breaks, a little after the swell's top
+            body[i] = (float)((low * 2.0 * (0.18 + swell)) + ((noise - foam) * 0.22 * crest));
+        }
+
+        return body;
+    }
+
+    // The cave (B14): a hollow, nearly still air and a slow drip. Under a very quiet band of low-passed noise (the draught in the rock, about 70 to 260 hertz, drifting a little) a drop falls every
+    // two to five seconds: a short falling blip (about 1.9 kilohertz down to 1.1) with two soft echoes, so the dripping has a room round it. It never repeats a rhythm.
+    private static float[] Cave(int n)
+    {
+        var rng = new PresentationRng(SoundSynth.Seed ^ 0xCA_7E_0008UL);
+        var body = new float[n];
+        var low = 0.0;
+        var slow = 0.0;
+        var lowAlpha = 1 - Math.Exp(-2 * Math.PI * 260 / Rate);
+        var slowAlpha = 1 - Math.Exp(-2 * Math.PI * 70 / Rate);
+        for (var i = 0; i < n; i++)
+        {
+            var t = i / (double)Rate;
+            var noise = (rng.NextDouble() * 2) - 1;
+            low += lowAlpha * (noise - low);
+            slow += slowAlpha * (noise - slow);
+            var drift = 0.6 + (0.4 * Math.Sin((2 * Math.PI * 0.07 * t) + 1.3));
+            body[i] = (float)((low - slow) * 0.9 * drift);
+        }
+
+        var at = (int)(Rate * (0.4 + (1.4 * rng.NextDouble())));
+        while (at < n)
+        {
+            var level = 0.5 + (0.5 * rng.NextDouble());
+            var start = 1900 + (rng.NextDouble() * 400);
+            foreach (var (delay, echo) in new[] { (0.0, 1.0), (0.17, 0.32), (0.41, 0.12) })
+            {
+                var begin = at + (int)(delay * Rate);
+                var length = (int)(Rate * 0.07);
+                var phase = 0.0;
+                for (var i = 0; i < length && begin + i < n; i++)
+                {
+                    var x = i / (double)length;
+                    var frequency = start - ((start - 1100) * Math.Min(1, x * 3)); // falls in the first third
+                    phase += 2 * Math.PI * frequency / Rate;
+                    body[begin + i] += (float)(Math.Sin(phase) * Math.Exp(-5 * x) * Math.Min(1, i / (Rate * 0.002)) * level * echo * 1.6);
+                }
+            }
+
+            at += (int)(Rate * (2.0 + (3.0 * rng.NextDouble())));
         }
 
         return body;

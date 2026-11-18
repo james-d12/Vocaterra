@@ -35,6 +35,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-30 | Orders are offered and taken on (issue #54) | proposed (2026-11-09, for the owner's review on the pull request): the NPC offers its order when the talk opens and «sí» gives it; «no» puts it off until the next day; a class that tells an order gives it at its step; amends D-game-25's "orders open once their NPC is met" | nothing |
 | D-game-31 | Day, night and weather (the E series, `docs/game/weather-plan.md`) | decided (owner, 2026-11-10): a free-running day and night cycle first, then weather in spells (sunny, cloudy, rain) with a new roll on waking; the first version is the atmosphere and truthful NPC answers, no gameplay effect; built in a new worktree from `main` | nothing |
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
+| D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | decided (owner, 2026-11-15): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); the pass opens once every lesson listed in `world.json` (all of today's) is complete, or at once with a cheat setting, and until then a rockfall closes it and the valley's edge stays a wall; no lesson uses the new land; nothing new can be gathered (no digging, no ore items or nouns); lava blocks the body and does no harm | nothing |
 | D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | decided (owner, 2026-11-15; building started the same day with I00; I01 waits for the owner's word): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag (`el saco` 10, `la mochila` 20) adds slots; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; gear nouns above A2 join the world words; saves break; amends D-game-23 (c) | I00 to I10 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
@@ -744,7 +745,7 @@ sleep back; the inn stands inside the village's present disc, in place of `house
    A1 lesson may use it too. The other three words follow the same rule unless the owner says otherwise.
 6. **(f) The innkeeper's voice:** "pf_dora, provisional". A woman's voice, the nearest to native Spanish of the three unused
    ones, and probably close to Luna's. Recorded with it now; the owner listens afterwards and may change it (the rule of
-   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree.
+   D-game-22 (d)). The trial's files are in `artifacts/voice-trial/innkeeper/` of the feature branch's worktree (moved to `artifacts/settlement/voice-trial/innkeeper/` of the main checkout on 2026-11-15, when that worktree was removed).
 7. **(g) A third building agent:** "Launch Y01 now". The weather session held both of the machine's two building agents, so
    Y01 was launched as a third: one agent of this series beside the weather session's two, with every heavy command still
    queued through `scripts/limited.sh`. The answer was given for Y01.
@@ -754,6 +755,254 @@ sleep back; the inn stands inside the village's present disc, in place of `house
 **Not decided here:** the larger village and the larger valley (the proposal's phases 6 and 7), which wait for a playtest of
 the first slice; a fee, meals or comfort at the inn; more than one plot.
 
+## D-game-34: a tall procedural world round hand-crafted regions (decided, 2026-11-15)
+
+*Numbered D-game-34 because `main` holds D-game-32 (the settlement series) and D-game-33 is reserved on `feature/talk-sets`.*
+
+The owner asked how to add procedural generation "like minecraft" while keeping "areas of custom crafted, like what exists now with the
+village, and mountains", with basic biomes, modular SOLID code ready for a temperature system, caves, lava, a few kinds of stone, iron, tin
+and copper ores, and a tall world like Minecraft 1.18's. The plan is [the biomes plan](biomes-plan.md) (the B series, on `feature/biomes`);
+the owner's answers of 2026-11-15 are in its section 5.
+
+**Decided** (the owner accepted the proposal as written, 2026-11-15):
+
+1. **The world:** endless and streamed, y −64 to 320, with the sea level kept at 32. It is generated procedurally outside authored
+   regions: biomes, great mountain ranges, rivers, lakes and sea above ground; rock layers, caves, lava, and iron, tin and copper ores
+   below. Biomes, rock layers and ores are rows of data; no id of one appears in `src`.
+2. **The valley:** the first authored region, byte-identical inside until B13 (which brings the underground into its stone), opened by a
+   pass through the east side of its ring with a road out. Later towns are authored regions placed the same way (B15).
+3. **Saves:** only changed chunks are saved; the format becomes version 9 and older saves stop loading (the rule of no save backward
+   compatibility).
+4. **What it amends:** the prototype brief's LEAVE FOR LATER line on procedural terrain, multiple biomes and a large open world; D-game-22's
+   inward-only growth; the adaptation design's decision 15 ("inside the valley for now").
+5. **What it takes over:** the settlement plan's phase 7 (the larger valley, a fixed 512×512 world).
+
+**The questions and the answers** (2026-11-15; the plan's section 5):
+
+6. **When the new land opens:** "Its unlocked after completeing currently all the lessons. However a cheat mode in the settings should
+   bypass this." The pass opens once every lesson in a list in `world.json` is complete; the list holds all of today's lessons, so a
+   lesson added later does not close the pass again unless the list is edited. A cheat setting in the settings menu opens it at once.
+   Until then (the owner chose the plan's recommendation): a rockfall blocks the pass and the valley's outer edge keeps today's
+   invisible wall, so the ring cannot be climbed over; the land outside is drawn but cannot be reached. The rockfall goes and the wall
+   lifts when the pass opens. Built in B08.
+7. **Lessons:** none in this series uses the new land or the underground.
+8. **Digging and gathering:** "Nothing can be gathered by hand yet, this is just the world generation for it." Rock, gravel and the
+   ores are not gatherable; the ores have no items and no nouns in this series, so the question of «estaño» at the A2 ceiling does not
+   arise yet. Bedrock stays unbreakable for when digging comes.
+9. **Lava:** blocks the body and glows; it does no harm and the needs model does not change.
+10. **Parallel work** (2026-11-15): "Let's try to do as much in parallel as we can". Asked how many building agents, the owner chose
+    "Up to three" for the B series (from four, three or two); `scripts/limited.sh` is unchanged, so at most two heavy commands still run
+    at once within its caps. The orchestrator split B08 into B08a (the pass, which needs nothing new) and B08b (its lock, after B01), and
+    moved the edge wall to B07.
+11. **Review stops** (2026-11-15): at B02, B07, B08b and B13 only the work that depends on the review waits for the owner ("Hold only
+    what depends on it"); independent milestones keep building.
+12. **Pictures** (2026-11-15): "Make sure to get the agents to provide screenshots at important parts so that I can review the biomes and
+    how they look and what's being generated." Every B milestone that changes what is generated or drawn leaves screenshots or maps for
+    the owner (the plan's section 4, "Pictures for the owner"); B03b adds a procedural sample to the game so the biomes can be seen in
+    3D before the streamed world.
+13. **Data and code** (2026-11-15): "The data should just be for basic stuff like, you know, the types of biomes, but the biome generation
+    code might be different. Like the deserts, we might have to have custom code ... I'm not expecting that stuff to be in the data."
+    Data holds biome types and parameters; biome-specific generation is code, named by a biome row as a strategy (the plan's section 3.2,
+    "Data, not code").
+14. **Regions that can change** (2026-11-15): "In the future, that custom area might expand in size, shrink in size, and there might be
+    more custom areas added ... if I want to make that starting area twice as big, I shouldn't have to change much." Of the four changes
+    proposed, the owner chose all four, as one milestone at the end: "add the 4 regions, but add them to the end of the milestones ...
+    It's not important at the moment." B16, after B14 and B15.
+15. **Leaving the valley after the unlock** (2026-11-15): B08a found the ring walkable almost everywhere (a walk from the village reaches
+    the east edge over the mountains), so before the unlock the edge wall is what keeps the player in and the rockfall closes the road.
+    Asked how the player may leave once the pass opens, the owner chose "Anywhere": the edge wall lifts all the way round; the pass and
+    its road are the easy way out (from "Only through the pass" and "Make the ring unclimbable").
+16. **The review of B02's maps** (2026-11-15): ranges were needles about 50 blocks wide, most "ocean" scattered inland basins with
+    steep coasts, and snow lay on cold lowland. The owner chose, each from two or three options: "Long ranges" (chains hundreds of
+    blocks wide with foothills, peaks 200 to 300, like Minecraft 1.18), "Big seas and continents" (connected oceans, coastal shelves,
+    wide beaches, inland basins as lakes) and "Only up high" (snow on the mountains only; cold lowland stays taiga). B02b tunes to it.
+17. **One agent, then stopped** (2026-11-15, about 17:27 UTC, while playing games): "I need you to scale down resources, im playing
+    gaems right now", then "only have 1 afgent max, you can let the agents finish but going forward", then "actually im going to stop
+    the work" and "pls make sure everything is writte ndown". Item 10's three agents become one building agent at a time from now on.
+    The running agents (B03b, B04b's merge, B06 just launched) and B02's gate were stopped; their state is in the handover.
+    Resumed at about 18:37 UTC ("continue"), still one building agent, every heavy command at one machine-wide slot while he plays;
+    and no game windows (screenshots, game runs, scripted runs) until he says he has finished ("After you finish", about 19:10 UTC).
+18. **Rivers near a region start in the hills** (2026-11-15, on B06's pictures, where rivers stop in a rounded end at the blend
+    margin): near a region a river narrows and shallows to a stream and starts at a spring or a small pond on the slopes outside the
+    margin, and flows away to a lake or the sea; no river or lake water inside the margin, and no lake cut straight by it. Chosen over
+    bending rivers round the valley and over rivers flowing through it (which would change the hand-made valley). B02b does it.
+19. **Up to four agents** (2026-11-15, about 21:45 UTC): "you can have up to 4 agents now". Item 17's one agent becomes up to four
+    building agents at once; heavy commands go back to `scripts/limited.sh`'s two machine-wide slots. No game windows still waits for
+    the owner's word that he has finished playing.
+20. **B02b held for a second round; sea about 35 to 45%** (2026-11-15, about 21:58 UTC, on B02b's maps: 60 to 65% sea in islands of
+    2,000 to 5,000 blocks, flat snow plateaus for mountains, the valley on a low coastal dome ringed by beach and puddles): "Hold B02b,
+    redo it" (over merging it with a follow-up, or keeping it) and "About 35 to 45%" sea (over 50% or keeping 60 to 65%). The redo
+    also asks for ranges of peaks, land rising inland round the valley, no puddled beach flats and rivers from the mountains
+    (`.claude/briefs/b02b-redo.md`).
+21. **The far view, folded into B07** (2026-11-15, about 22:02 UTC; the owner: "we need high render distance, performance is important",
+    "like say horizons mod in minecraft, without taking big performance hits"): beyond the voxel chunks (High 400 blocks today), level-
+    of-detail terrain tiles read straight from the pure height model and biome table, coarser with distance and built on worker
+    threads, show the land **to 16 km at 60 fps on the High preset** on his machine. "Fold it into B07" (over a separate milestone
+    after B07, or a later series); "16 km" (over 8 or 4 km). The plan's "does not do" loses distant-terrain detail levels.
+22. **The body sinks into lava** (2026-11-15, about 23:15 UTC, on B10's report that a body could stand on a lava surface): "You should
+    sink into it. Damage doesn't need to be done in this pr." Lava acts on the body as a thick liquid (slow sinking, moving and
+    swimming up); no harm in this series. B10b does it. Item 9's "lava only blocks the body" is replaced.
+23. **The ores easier to see** (2026-11-15, about 23:25 UTC, on B10's tile sheet): "I think the ores should be more obvious. In terms of
+    their colour." Larger clusters of strong colour with a rim and a highlight (iron peach-tan, tin silver-white, copper orange with
+    green patina) on the same stone. Added to B10b.
+24. **B02b gets a third round before it merges** (2026-11-16, about 01:30 UTC, on round 2's maps: 38 to 42% sea in one ocean,
+    continents of 8,000 to 12,000 blocks, ranges rising inland round the valley, clean beaches; but rivers mostly dry valleys since water
+    stands only at sea level, broad massifs, polygon coasts): "Another round first" (over merging round 2 with a follow-up B02c, or
+    merging it as it is). Round 3: rivers hold water all the way down (a water level per column, generated at rest), thinner chains,
+    smoother coasts; then the whole tuning is gated once (`.claude/briefs/b02b-round3.md`).
+25. **The far view gets detail like the Distant Horizons mod (B07c)** (2026-11-16, about 08:50 UTC, on B07's pictures: "that looks
+    pretty crap, just a big green swath"; he asked for better distant quality that keeps the performance). Chosen: "Blocks, trees,
+    colour" (over adding real-chunk level of detail for built things now, or a design note first): blocky far land (box columns with
+    tops and sides, flat runs merged), trees in the far view from the tree pass's own deterministic placement (single canopies out to
+    about 1 to 2 km, a raised canopy layer beyond), colour from each block's texture with per-cell variation, rock on steep slopes,
+    top and side shading, rivers at least a cell wide, finer cells near (2 blocks) and coarse beyond about 8 km; High held at about
+    12 ms a frame on the RTX 3070. Real-chunk level of detail (towns, the valley's buildings, edits seen far off) is a later step.
+26. **The far view works like Distant Horizons, "one-to-one parity ideally"; the world stays block-based** (2026-11-16, about 09:00
+    UTC): "the world is block-based, not kind of smooth voxel-based, right? So we need to make sure that is true ... it should operate
+    like the horizons mod ... if we can get one-to-one parity with that, ideally would be great, so that we can basically see in the
+    distance and it still has the high level of detail. Because currently having just the smooth, it looks terrible." Widens item 25:
+    B07c builds Distant Horizons' model (level-of-detail columns of vertical segments with block and light, built from the generator's
+    own columns, trees and regions; greedy box meshes, never a smooth face, tested; block-texture colour with noise; translucent water;
+    stored light for night and glow; 1-block columns past the voxel zone with detail halving by distance bands); B07d adds what remains
+    for parity: level of detail from loaded chunks as they unload (edits seen far off), the store saved to disk per world, the detail
+    settings on the settings page. The frame-time target relaxed (about 09:10 UTC): "the performance target can degrade slightly if
+    needed ... prefer quality over performance to some degree, so don't obsess over the 12 millisecond per frame ... What we want to focus
+    on at the moment is getting it to render distant chunks properly." B07c does not cut detail to reach 12 ms; it measures and names the
+    costs for later tuning.
+27. **More rock variety, in caves and on bare stone** (2026-11-16, about 09:25 UTC): "We probably need some more rock variation, like
+    gravel, sand stuff. So, for example, in a cave, rather than just all being stone, it should have different mixtures of stone to break
+    things up ... perhaps some segments of gravel in there or something to break it up." Added to B11b: pockets and bands of gravel,
+    sand, dirt and the stone kinds (granite, limestone, slate, mossy stone, new kinds if they read better) in cave walls and floors and on
+    exposed stone at the surface (cliffs, pits, mountainsides, scree), as data. The valley's own surface stays as authored unless he asks.
+28. **limited.sh's shared memory pool raised from 8 GB to 12 GB** (2026-11-16, about 11:35 UTC; four agents' test runs were killed in the
+    8 GB pool and B12's first gate with them): "Yeah, I think increase the shared pool to 12 is fine." `VOCATERRA_TOTAL_MEM_MAX` defaults
+    to 12G; each command keeps its 6 GB cap and the two machine-wide slots stay. Raised again about 11:55 UTC: "We have a decent amount
+    of memory on this machine so i would increase to 16gb": the default is 16G. The cap per command raised from 6 GB to 10 GB (about 12:40
+    UTC; the gate's single test command, two assemblies at once, peaked at the 6 GB cap and a fuzz test threw OutOfMemoryException in
+    B07b's first gate, passing alone at 1.7 GB): "Raise the cap to 10 GB" (over testing one project at a time, or rerunning on failure).
+29. **The far view built like the Voxy mod** (2026-11-16, about 11:45 UTC, with three screenshots of Voxy: individual tree crowns, lakes,
+    rivers and snowy ranges as blocks kilometres out): "For the LODS we want something like https://modrinth.com/mod/voxy. Of course ignore
+    shaders that is not part of this work." Replaces item 26's Distant Horizons columns: B07c builds a 3D voxel level of detail (cubic
+    sections, each level 2^L blocks a cell, mipped 8 to 1) from real chunks as they are generated or loaded (edits included) and, beyond a
+    ring of real chunks, from the generator's own model in the same format; kept on disk per world; greedy textured block faces with the
+    stored light; culled by a node tree on the CPU (MonoGame has no compute shaders). Voxy's code is All Rights Reserved: ideas only.
+    B07d: the detail settings, a world import or pre-generation command, performance tuning.
+30. **Custom shaders planned, not built** (2026-11-16, about 12:05 UTC, after hearing that the processor bakes all light into vertex
+    colours and the card only draws, because MonoGame's shader compiler needs Wine on Linux): "yes plan the custom shaders milestone.
+    Dont do any work but just document it." B17 in the biomes plan (section 3.9): light, fog and water in the game's own shaders; not to be
+    launched until he says.
+31. **B11b held: its cave entrances must look natural** (2026-11-16, about 13:45 UTC, on B11b's pictures of a straight 3-wide stair
+    with flat walls and a slab rim): "The second cave entrance is that a natural cave entrance? Because it looks man made." Chosen: "Hold
+    B11b and rework it" (over merging it and fixing the entrances in a B11c). Its gate was stopped and the merge undone; the rework makes
+    each passage wind, vary in width and height, with noise-carved walls, an uneven floor and a mouth that fits the ground (an overhang
+    in a hillside, a ragged hole on flat ground, no rim), still walkable to a cave 20 or more down. The rock variety stays.
+32. **B07c gets an Opus review before its gate** (2026-11-16, about 14:00 UTC): "once it's done, spawn an Opus 5.5 agent on high effort
+    to review the changes." When B07c reports, an Opus 5.5 agent at high effort reviews its branch (correctness, the Voxy design, the
+    store on disk, threading, performance, the tests) before the gate; its findings go back to B07c's agent or into a follow-up.
+33. **Caves stay at 28% of daylight; river drainage and the core fuzz fixes launched** (2026-11-16, about 15:30 UTC): "The caves can
+    remain at 28% daylight, that's fine. Kick off an agent for the river drainage issue and the core fuzz fixes as well." B12's cave
+    minimum 0.28 stands. B02c (rivers that only fall: a drainage network, closing B02b's river humps) and the core's M97 (the fuzz seeds
+    `2LxdNIrNHnQ6` and `9kz6LGNo8tf2`, and the load-sensitive OpenFallback coverage oracle) are launched.
+34. **More grass, with a slider** (2026-11-16, about 16:00 UTC): "there's not a lot of grass, I guess. Could we increase the volume of
+    grass? Perhaps make that a slider in the settings as well." B18: a decorative grass layer drawn on grass-block tops (crossed tufts
+    like the undergrowth's tall grass, at positions from a hash of the cell, no world block, no collision, not saved), its density a
+    slider on the settings page (saved with the other settings), its default denser than today's look; the generated world and the
+    valley unchanged (a setting must not change the world's blocks). Then: "at least, you know, grass in the plains and the forests and
+    stuff like that": lush in plains, meadows and forest floors, sparser in taiga and dry land, none on sand, snow or stone.
+35. **The far view at Voxy's distances: B19 documented, his screenshots the reference** (2026-11-16, about 16:10 UTC): after asking what it
+    takes to reach Voxy's and Distant Horizons' render distances ("that's what we want to achieve") and hearing the four limits (building
+    the data, draw calls, the card's memory, precision) and a two-step plan (within MonoGame first; card-driven rendering only if needed):
+    "Use those as reference" (his three Voxy screenshots of item 29, kept outside git in `artifacts/reference/voxy/`, third-party, never
+    committed). B19 in the biomes plan (section 3.10), planned only like B17.
+36. **No snow in the valley** (2026-11-16, about 18:15 UTC): "can you add a milestone to remove the snow from the valley, it now doesnt
+    make sense to have snow on the mountain when the valley with the procedural generated area". The hand-crafted valley lays snow on its
+    ring's tops above `snowLine` 100 (scene.json; `SceneBuilder`), while the generated land round it has snow only above y 120 on its
+    mountains. B20 removes the valley's snow (the tops become the stone or grass the slope would carry); snowfall as weather is unchanged.
+37. **All the codebase review's fixes, go** (2026-11-16, about 22:15 UTC, on `docs/research/2026-11-16-codebase-review.md`: "go ahead with all
+    the fixes recommended from review"). Planned in this order, at most four agents at once: B07f (the far store's edit layer: C1 to C3,
+    C6, C7, C10, race tests), B22 (a fidelity bundle with built-in effects: MSAA, a moving sun and deeper dusk, biome colour maps, clouds and
+    water), B21 (meshing off the game thread, dirty-only rechecks, per-frame allocations: P1, P2, P5, C4, C5, C11), B23 (sky and block light
+    propagation with smooth light: G1), B07d widened (the far store's memory and IO: P3, P4, real-section LRU, compaction, with the
+    rendering review's R1), B24 (guards and cleanups: A1, A2, C8, C9, T1, T2, the docs) and the core's M98 (a realisation-rate gate for the
+    fuzz generator: T3). The rendering review's decisions D1 to D6 stay open (B07d gets a worker-count setting whose default is the owner's).
+38. **Five agents, three slots** (2026-11-16, about 22:30 UTC): "we have a good amount of memory available so we can have more agents run in
+    paralel", then, offered 6 agents with 3 slots, 8 with 3, or 6 with 2: "what about 4 agents like now, but one extra slot", then "5
+    agents and 3 gates looks ok". Up to five building agents; limited.sh runs three heavy commands at once (`VOCATERRA_HEAVY_SLOTS`
+    default 3); 10 GB a command and 16 GB in all unchanged.
+39. **macOS is out of scope** (2026-11-16, about 22:45 UTC, the rendering review's D4): "macOS does not matter". Opens the raw OpenGL 4.x route
+    (OpenGL 4.6 is not available on macOS) for B17's shaders and B19's later steps.
+40. **B17's shaders as raw GLSL compiled at run time** (2026-11-16, about 22:50 UTC, the rendering review's D3, offered (a) mgfxc on a Windows
+    CI runner with committed binaries, (b) a pinned Wine, (c) raw GLSL on MonoGame's OpenGL context through an MIT binding (Silk.NET or
+    OpenTK), (d) waiting for MonoGame's new back ends): "Let's go with c". The driver compiles the shaders at start; the world's drawing
+    goes through the binding on MonoGame's own context with its state saved and restored; it opens OpenGL 4.x for B19's step 2. B17 starts
+    with a spike proving one GLSL shader draws chunks inside MonoGame's frame.
+41. **B17 goes ahead** (2026-11-17, about 08:05 UTC, after B17a's spike recommended go and the orchestrator said B17 is mainly for the
+    look and for B19, not a big speed gain): "Okay, you can kick off B17, that's fine." Split into B17b (every chunk pass on the GLSL
+    program, the state scope, render targets, the fallback, a timer query) and B17c (light as data, fog, water, the far view on the same
+    light model), after B21; B23 (propagated light) follows B17c so its light goes straight into the shader's data.
+42. **Game worker threads: Auto by default, and a setting** (2026-11-17, about 08:10 UTC, the rendering review's D1; offered a "Worker
+    threads" setting with Auto, cores minus 4 capped at 8, as the default for play, or a fixed 4): "Yeah, auto is fine. I mean, perhaps
+    we should allow that to be configured in the game as well." The setting is on the settings page (Auto or 1 to 8) and a launch
+    option; scripted runs, tests and agents keep 2 (the machine rules for builds are unchanged). It lands with B07d; `JobPool.MaxWorkers`
+    (2) becomes the setting's bound. The world does not depend on the count.
+43. **Every added graphics effect has a setting** (2026-11-17, about 08:45 UTC): "For the B17 work, all the additional graphics we're
+    adding probably should be toggleable via a setting"; asked about B22's (already merged): "Sure, add those as well. Probably group them
+    under the graphics setting." A Graphics group on the settings page: B17b's shaders on or off, then each B17c effect (light as data,
+    fog by height, the water shader, the far view's light) and B22's sun per band with the deeper dusk, climate colours and water depth
+    tint, with MSAA and the grass slider moved into the group; on by default, saved, a launch option each, and the quality presets may
+    set them.
+44. **The game's packages in the licence scan** (2026-11-17, about 13:10 UTC, proposed with B17a's spike): "Sure, add the game to the
+    license scan." B26: the gate scans `Vocaterra.Game`, `Vocaterra.Host` and `tools/Vocaterra.SpeechRender`; Zlib joins the allowlist
+    (FontStashSharp, SDL); overrides with evidence for NVorbis and PlatformAbstractions (MIT). MonoGame.Library.OpenAL ships OpenAL
+    Soft's native library under LGPL-2.0-or-later: asked of the owner separately.
+45. **The far view's targets** (2026-11-17, about 13:10 UTC, the rendering review's D2, D5, D6, each with the orchestrator's
+    recommendation): detail chosen by screen pixels, about 2 per block at High, rather than rings tied to the voxel view distance ("For
+    two, also go with the recommended"; in B19); the distance kept at 16 km, B19's effort spent on detail ("For free [three], go with the
+    recommended"); built things far off placed by the far view's model as trees are, option (b) ("B is okay for now. It's cheap, so we go
+    with it"); the player's own builds still reach the far view through B07f's edit layer.
+46. **The silent-h fuzz seed fixed in the core** (2026-11-17, about 13:10 UTC; seed `a2RKk5N6Ibt4`, «ah hambrientos» scored with two
+    silent h's): "Fix the silent HC, yeah, yep. Yeah, fix number five." Core milestone M99.
+47. **B03b runs** (2026-11-17, about 13:10 UTC; offered dropping it, since B14's tour photographs each biome): "For number six, yeah, run
+    that, it's fine." Read as finishing B03b after B14, for what the tour lacks; the owner was told he can say "drop".
+48. **Cave mouths in hill and cliff faces** (2026-11-17, about 13:10 UTC, B11b's follow-up): "Seven, also do that as well." B11d, after
+    B11c.
+49. **OpenAL accepted** (2026-11-17, about 14:30 UTC; B26 found MonoGame.Library.OpenAL ships OpenAL Soft's native library under
+    LGPL-2.0-or-later; offered a one-package exception or refusing it): "We don't really care about license, so just accept it, it
+    doesn't really matter. This is still only an internal game, so licensing is really not a problem at the moment." A one-package
+    exception in the licence scan (LGPL stays off the general allowlist); a release would carry the LGPL text and a source link.
+50. **The throughput study's changes, once the running work drains** (2026-11-17, about 20:20 UTC; the study
+    docs/research/2026-11-17-ai-development-throughput.md, offered (A) tests in Release builds, (B) a new slot policy in limited.sh, (C) a
+    gate that skips the test run when the agent's full run covered the exact tree, (D) a test-time report in the gate): "For the meta agent
+    analysis can we kickoff [it] once all current active work is done". Read as yes to A to D (A only after one measurement shows it
+    faster with the goldens unchanged; B keeps the slice's 14-core and memory caps), applied by one milestone with nothing else running;
+    no new milestone starts until the running ones have merged. The owner was told he can drop any of A to D.
+51. **feature/biomes into main by the morning of 2026-11-18** (2026-11-17, about 23:15 UTC): "Don't worry about the caching for now.
+    We'll come back to performance later on. We need to basically just finish up everything and get this feature biome merged to main by
+    tomorrow morning"; asked which milestones go in first: "Small ones only (Recommended)": M101, B11d and B02d join B17c and B03b,
+    with B30 (CI ready: the timing tests on CI's slower runner, CI's timeout); B29 (item 50's changes), B23, B16 and the caching ideas
+    wait until after the merge, on a fresh branch from main. The orchestrator opens the pull request; the owner merges it. Also: "Make
+    sure to include document any milestones that we haven't accomplished once this is done, because we'll obviously need to do that in
+    a fresh agent on a fresh PR": a new handover lists them.
+52. **Chunk generation's speed is the top priority** (2026-11-18, about 08:45 UTC, after the far view of a fresh world, seed 5315, took
+    minutes to fill and showed a sky-coloured ring between the near zone and the distant hills): "Yeh lets kickoff an opus 5.5 agent high
+    to review how to speed up the chunk generation", then "this is the biggest issue right now and we need to get it right". An Opus 5.5
+    review at high effort (measuring, read only) was launched; its ranked plan goes to the owner before any milestone is built.
+53. **Where the speed-ups land** (2026-11-18, about 08:55 UTC): "speed upgs go in a new pr / branch. b31 once done is merged to main".
+    B31 (the Shaders switch crash) is the last change on `feature/biomes`; once it is gated and pushed, PR #69 is ready for the owner to
+    merge. The chunk generation speed-ups go on a new branch from `main`, as a new pull request.
+54. **The speed-ups on feature/biomes after all** (2026-11-18, about 09:00 UTC, replacing item 53's second part): "actually no the
+    performance improvements can go on this branch too". The chunk generation speed-ups are milestones on `feature/biomes`, gated there
+    like the rest, and reach `main` through PR #69 (or a later pull request from the same branch if the owner merges #69 first).
+55. **More and bigger rivers, kept logical** (2026-11-18, about 08:45 UTC; asked after "we seem to also have fewer rivers now? im testing
+    seed 42, and it used to have a large river", offered more rivers, bigger rivers, a major river near the start, or all three): "more
+    rivers and bigger rivers, but they need to be logical". B34: a lower source threshold so streams appear and join, widths and depths
+    that grow with the catchment (major rivers about 12 to 40 blocks wide), every river downhill to a lake or the sea, widening downstream,
+    in a valley of its own; no river forced near the start.
+56. **All the new work in a new pull request; only B31 on feature/biomes** (2026-11-18, about 08:47 UTC, replacing item 54): "lets do all
+    this in a new PR actually so queue all those up. only push b31 the fix for shader on and off to the feature/biomes branch", then "put
+    all these in the handover, for a new agent to pickup, so once b31 and the opus agent come back, record performance findings from opus,
+    push b31 and then we are done". B31 is the last change for PR #69. The speed-ups from the Opus review, B32 (grass-step sides), B33
+    (leaf aliasing) and B34 (rivers) are queued in the handover for a new agent on a new branch from `main` after the owner merges #69.
 ## D-game-35: inventory and equipment (decided, 2026-11-15)
 
 *Numbered D-game-35 because `main` holds D-game-32 (the settlement series), D-game-33 is reserved on `feature/talk-sets` and

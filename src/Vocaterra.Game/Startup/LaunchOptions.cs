@@ -13,6 +13,7 @@ using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Far;
 
 namespace Vocaterra.Game.Startup;
 
@@ -85,6 +86,26 @@ public sealed record LaunchOptions
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
         + "                          Off by default, kept in a save's settings\n"
+        + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
+        + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
+        + "  --gl-shaders [on|off]   draw every chunk pass (the faces, the cut-outs, the grass, the glow, the water) through the game's own GLSL program on MonoGame's OpenGL context (B17b; on by default, the settings page's Shaders row; off draws with MonoGame's effects, as does a context below OpenGL 3.3 or a program that does not compile: the log's gl: lines say which). A bare --gl-shaders is on\n"
+        + "  --sun-follows-hour [on|off]  the faces are shaded by the sky's sun through the day, with the deeper dusk (B17c, B22's sun per band; on by default, the settings page's Graphics group; off keeps the afternoon sun at every hour and the older, lighter dusk)\n"
+        + "  --climate-colours [on|off]   the grass and the oak leaves take the colour of their climate (B17c, B22's land tint; on by default; off is the colour map's middle everywhere)\n"
+        + "  --water-shader [on|off]  the water's depth tint, the gentle movement of its surface and a brighter edge at grazing angles (B17c, with B22's depth tint; on by default; off is plain water; the movement and the edge need the shaders)\n"
+        + "  --height-fog [on|off]   the haze lies thicker in the low land, in the colours of the far view's (B17c; on by default; needs the shaders)\n"
+        + "  --far-light [on|off]    the far view is drawn through the same program as the chunks, in the same sun, fog and haze (B17c; on by default; needs the shaders; off draws it as before, in the day's baked light)\n"
+        + "  --no-settle             a scripted run streams the world as a live one does and takes its pictures with whatever is in place (a test aid for the live path of the streamed world)\n"
+        + "  --prefetch <0|1|2>      the worker threads that make chunks and far tiles beside the game loop (default 2, the most there ever are; 0 keeps everything on the game loop's thread; the world is the same either way)\n"
+        + "  --workers <auto|1-8>    the worker threads for this run (B07d; the settings page's Worker threads, saved): auto is the processor count less four, at least 1 and at most 8, the default for play; a scripted run keeps 2 unless this is given; --prefetch wins over it\n"
+        + "  --far-distance <auto|km> how far the far view is drawn, in km from 1 to 16 (B07d; the page's Far view distance, saved; auto is the quality's own)\n"
+        + "  --far-detail <50-200>   the far view's detail in percent, in steps of 25 (B07d; 100 is the usual; saved)\n"
+        + "  --far-trees <auto|off|256|512|1024|2048|4096> how far every tree is drawn as its own tree in the far view, in blocks (B07d; saved)\n"
+        + "  --far-textures <0-3>    how many of the far view's finest levels carry the block textures (B07d; default 2; saved)\n"
+        + "  --far-exact <auto|off|500|1000|1500|2000> how far from the eye the far view is made from the generator's real chunks, in blocks (B07d; off is the model alone; saved)\n"
+        + "  --pregen <blocks>       make the far view's real sections for the world round a point out to this radius, on all the workers (the Worker threads setting, or --workers), with progress, and exit; a run after it finds them on disk (B07d)\n"
+        + "  --pregen-at <x,z>       the point --pregen works round (default: where the run starts)\n"
+        + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
+        + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
         + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
@@ -145,13 +166,15 @@ public sealed record LaunchOptions
         + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the save's); the fog closes in at that distance\n"
         + "  --underwater-blur <off|low|medium|high>  how much the view softens under water (H05; default low)\n"
         + "  --view-distance <blocks>     draw this far instead of the quality's distance (48 to 576 in steps of 16, the menu's Draw distance; or the save's; default Auto)\n"
+        + "  --msaa <0|2|4|8>        the samples per pixel of the window's antialiasing, 0 for none (B22; default the quality's: 4 at medium and high; changing the quality in the menu takes effect for it at the next start)\n"
         + "  --fov <degrees>         the vertical field of view, 60 to 110 in steps of 5 (default 70, or the save's; the menu's Field of view)\n"
         + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
         + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
         + "  --set-time <hour|run>   a step: hold the clock at an hour from 0 to 24 from this step on, or 'run' to let it run on (E03)\n"
         + "  --set-weather <id|run>  a step: hold a weather kind by its id (the ids of game/weather.json) from this step on, or 'run' to let it run on (E03)\n"
-        + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
+        + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots; a minus sign is allowed); a step\n"
+        + "  --teleport-to <x,y,z>   a step: put the player at this column on the highest ground at or below the height y (a debug step to reach a cave, B12)\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
@@ -197,6 +220,45 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--relaxed-needs</c> was given: the drives fall at half their rates and zero health faints instead of dying (N05, design decision 17). A save's settings may ask for it too.</summary>
     public bool RelaxedNeeds { get; init; }
+
+    /// <summary>Which world the run plays in (<c>--world</c>, B07): the streamed tall world by default, or the bounded valley alone.</summary>
+    public WorldChoice World { get; init; } = WorldChoice.Streamed;
+
+    /// <summary>The worker threads of <c>--prefetch</c> (0 to 2), or <see langword="null"/> for the default of two.</summary>
+    public int? Prefetch { get; init; }
+
+    /// <summary>The worker threads of <c>--workers</c> (B07d): 0 for <c>auto</c>, or 1 to 8; <see langword="null"/> leaves the saved setting (Auto for a new game).</summary>
+    public int? Workers { get; init; }
+
+    /// <summary>The far view's distance in km from <c>--far-distance</c> (B07d; 0 for <c>auto</c>), or <see langword="null"/> for the saved setting.</summary>
+    public int? FarDistance { get; init; }
+
+    /// <summary>The far view's detail in percent from <c>--far-detail</c> (B07d), or <see langword="null"/> for the saved setting.</summary>
+    public int? FarDetail { get; init; }
+
+    /// <summary>The far view's single trees from <c>--far-trees</c>, as the setting counts it (B07d: 0 auto, 1 off, 2 to 6 for 256 to 4,096 blocks), or <see langword="null"/>.</summary>
+    public int? FarTrees { get; init; }
+
+    /// <summary>The far view's textured levels from <c>--far-textures</c> (B07d), or <see langword="null"/>.</summary>
+    public int? FarTextures { get; init; }
+
+    /// <summary>How far the far view is made from real chunks, from <c>--far-exact</c> as the setting counts it (B07d: 0 auto, 1 off, 2 to 5 for 500 to 2,000 blocks), or <see langword="null"/>.</summary>
+    public int? FarExact { get; init; }
+
+    /// <summary>The radius in blocks of <c>--pregen</c> (B07d): the far view's real sections are made out to it, round <see cref="PregenAt"/>, and the run exits; <see langword="null"/> for a normal run.</summary>
+    public int? Pregen { get; init; }
+
+    /// <summary>The column <c>--pregen</c> works round (<c>--pregen-at</c>), or <see langword="null"/> for where the run starts.</summary>
+    public (int X, int Z)? PregenAt { get; init; }
+
+    /// <summary>The far view's range in blocks from <c>--far-view</c> (0 for <c>off</c>), or <see langword="null"/> for the quality preset's.</summary>
+    public int? FarViewRange { get; init; }
+
+    /// <summary>The decorative grass's density in percent from <c>--grass</c> (B18: 0 to 100 in steps of 10; 0 is no grass, the look of before); <see langword="null"/> leaves the saved setting (the default for a new game).</summary>
+    public int? Grass { get; init; }
+
+    /// <summary>Whether <c>--pass open</c> was given: the pass cheat is on for the run (B08b), so the pass through the east ring is open from the start. The settings menu has the same switch.</summary>
+    public bool PassOpen { get; init; }
 
     /// <summary>The <c>--needs-rate</c> value (N09): the drive rate multiplier, 0.5 to 4 in steps of 0.25; <see langword="null"/> leaves the saved setting (1 for a new game).</summary>
     public double? NeedsRate { get; init; }
@@ -354,6 +416,9 @@ public sealed record LaunchOptions
     /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the save's (else the quality's own); the run's draw distance is the menu setting <see cref="SettingId.ViewDistance"/>.</summary>
     public int? ViewDistance { get; init; }
 
+    /// <summary>The samples per pixel given by <c>--msaa</c> (0, 2, 4 or 8), or <see langword="null"/> for the quality's own (B22).</summary>
+    public int? Msaa { get; init; }
+
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
 
@@ -417,6 +482,33 @@ public sealed record LaunchOptions
     /// both start off, in a playtest too; F3 toggles both (not in a playtest).
     /// </summary>
     public bool Dev { get; init; }
+
+    /// <summary>Whether <c>--stream-stats</c> was given: a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of their own (B07). They are left out otherwise, so the compared output of a run does not hold them.</summary>
+    public bool StreamStats { get; init; }
+
+    /// <summary>Whether <c>--no-settle</c> was given: a scripted run streams the world as a live one does (a few chunks and tiles a frame, the far land standing in), and does not wait for everything to be in place before a picture (B07, a test aid for the live path).</summary>
+    public bool NoSettle { get; init; }
+
+    /// <summary>
+    /// What <c>--gl-shaders [on|off]</c> said (B17a, B17b): every chunk pass drawn through the game's own GLSL program on MonoGame's OpenGL context (on), or through MonoGame's effects (off); <see langword="null"/> leaves the saved
+    /// setting (on for a new game). Either way the effects draw when the context cannot run the program (the log says why).
+    /// </summary>
+    public bool? GlShaders { get; init; }
+
+    /// <summary>What <c>--sun-follows-hour [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting (on for a new game).</summary>
+    public bool? SunFollowsHour { get; init; }
+
+    /// <summary>What <c>--climate-colours [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? ClimateColours { get; init; }
+
+    /// <summary>What <c>--water-shader [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? WaterShader { get; init; }
+
+    /// <summary>What <c>--height-fog [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? HeightFog { get; init; }
+
+    /// <summary>What <c>--far-light [on|off]</c> said (B17c), or <see langword="null"/> for the saved setting.</summary>
+    public bool? FarLight { get; init; }
 
     /// <summary>The west-north corner (x, z) of the plot <c>--own-plot</c> gives the player at the start (Y09, a dev aid, allowed only with <c>--dev</c>), or <see langword="null"/>.</summary>
     public (int X, int Z)? OwnPlot { get; init; }
@@ -504,6 +596,9 @@ public sealed record LaunchOptions
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
         var dev = false;
+        var streamStats = false;
+        var noSettle = false;
+        bool? glShaders = null;
         var lodging = false;
         var strictSave = false;
         for (var i = 0; i < args.Count; i++)
@@ -516,7 +611,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders" or "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light")
             {
                 switch (arg)
                 {
@@ -606,6 +701,39 @@ public sealed record LaunchOptions
                     case "--dev":
                         dev = true;
                         break;
+                    case "--stream-stats":
+                        streamStats = true;
+                        break;
+                    case "--no-settle":
+                        noSettle = true;
+                        break;
+                    case "--gl-shaders":
+                        glShaders = true;
+                        if (i + 1 < args.Count && args[i + 1] is "on" or "off")
+                        {
+                            glShaders = args[++i] == "on"; // the value is optional: a bare flag is on
+                        }
+
+                        break;
+                    case "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light":
+                        {
+                            var on = true;
+                            if (i + 1 < args.Count && args[i + 1] is "on" or "off")
+                            {
+                                on = args[++i] == "on"; // the value is optional: a bare flag is on
+                            }
+
+                            result = arg switch
+                            {
+                                "--sun-follows-hour" => result with { SunFollowsHour = on },
+                                "--climate-colours" => result with { ClimateColours = on },
+                                "--water-shader" => result with { WaterShader = on },
+                                "--height-fog" => result with { HeightFog = on },
+                                _ => result with { FarLight = on },
+                            };
+                            break;
+                        }
+
                     case "--playtest":
                         playtest = true;
                         break;
@@ -665,9 +793,9 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--teleport" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--mouse-sensitivity" or "--invert-y"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--needs-rate" or "--station" or "--station-say" or "--act"))
+                or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -834,6 +962,16 @@ public sealed record LaunchOptions
 
                     result = arg == "--fov" ? result with { FieldOfView = number } : result with { MouseSensitivity = number };
                     break;
+                case "--grass":
+                    var grassSpec = PlayerSettings.Spec(SettingId.Grass);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var grass) || grass > grassSpec.Max || grassSpec.Snap(grass) != grass)
+                    {
+                        error = $"--grass needs a whole number of percent from {grassSpec.Min} to {grassSpec.Max} in steps of {grassSpec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Grass = grass };
+                    break;
                 case "--invert-y":
                     if (value is not ("on" or "off"))
                     {
@@ -870,6 +1008,137 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { NeedsRate = needsRate };
+                    break;
+                case "--world":
+                    if (WorldChoices.Parse(value) is not { } world)
+                    {
+                        error = $"--world needs {WorldChoices.Names}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { World = world };
+                    break;
+                case "--prefetch":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var prefetch) || prefetch > 2)
+                    {
+                        error = $"--prefetch needs 0, 1 or 2, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Prefetch = prefetch };
+                    break;
+                case "--workers":
+                    if (value == "auto")
+                    {
+                        result = result with { Workers = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var workers) && workers is >= 1 and <= 8)
+                    {
+                        result = result with { Workers = workers };
+                    }
+                    else
+                    {
+                        error = $"--workers needs auto or a number from 1 to 8, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--far-distance":
+                    var distanceSpec = PlayerSettings.Spec(SettingId.FarDistance);
+                    if (value == "auto")
+                    {
+                        result = result with { FarDistance = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var kilometres) && kilometres >= 1 && kilometres <= distanceSpec.Max)
+                    {
+                        result = result with { FarDistance = kilometres };
+                    }
+                    else
+                    {
+                        error = $"--far-distance needs auto or a distance in km from 1 to {distanceSpec.Max}, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--far-detail":
+                    var detailSpec = PlayerSettings.Spec(SettingId.FarDetail);
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detail) || detail < detailSpec.Min || detail > detailSpec.Max || detailSpec.Snap(detail) != detail)
+                    {
+                        error = $"--far-detail needs a percent from {detailSpec.Min} to {detailSpec.Max} in steps of {detailSpec.Step}, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarDetail = detail };
+                    break;
+                case "--far-trees":
+                    if (FarChoices.TreesOf(value) is not { } trees)
+                    {
+                        error = $"--far-trees needs auto, off, 256, 512, 1024, 2048 or 4096, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarTrees = trees };
+                    break;
+                case "--far-textures":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var textured) || textured > PlayerSettings.Spec(SettingId.FarTextures).Max)
+                    {
+                        error = $"--far-textures needs 0, 1, 2 or 3, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarTextures = textured };
+                    break;
+                case "--far-exact":
+                    if (FarChoices.ExactOf(value) is not { } exact)
+                    {
+                        error = $"--far-exact needs auto, off, 500, 1000, 1500 or 2000, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { FarExact = exact };
+                    break;
+                case "--pregen":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var pregen) || pregen < 64 || pregen > 32768)
+                    {
+                        error = $"--pregen needs a radius in blocks from 64 to 32768, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Pregen = pregen };
+                    break;
+                case "--pregen-at":
+                    if (!VoxelStep.TryParseSignedColumn(value, out var pregenX, out var pregenZ))
+                    {
+                        error = $"--pregen-at needs a block column and row, like 230,222 (a minus sign is allowed); got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { PregenAt = (pregenX, pregenZ) };
+                    break;
+                case "--far-view":
+                    if (value == "off")
+                    {
+                        result = result with { FarViewRange = 0 };
+                    }
+                    else if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var farRange) && farRange is >= 256 and <= 65536)
+                    {
+                        result = result with { FarViewRange = farRange };
+                    }
+                    else
+                    {
+                        error = $"--far-view needs off or a range from 256 to 65536 blocks, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--pass":
+                    if (value != "open")
+                    {
+                        error = $"--pass needs open, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { PassOpen = true };
                     break;
                 case "--view-effects":
                     if (value is not ("on" or "off"))
@@ -1102,14 +1371,34 @@ public sealed record LaunchOptions
 
                     result = result with { ViewDistance = viewDistance };
                     break;
-                case "--teleport":
-                    if (!VoxelStep.TryParseColumn(value, out var teleportX, out var teleportZ))
+                case "--msaa":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var msaa) || msaa is not (0 or 2 or 4 or 8))
                     {
-                        error = $"--teleport needs a block column and row, like 230,222; got '{value}'.";
+                        error = $"--msaa needs 0, 2, 4 or 8 samples; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Msaa = msaa };
+                    break;
+                case "--teleport":
+                    if (!VoxelStep.TryParseSignedColumn(value, out var teleportX, out var teleportZ))
+                    {
+                        error = $"--teleport needs a block column and row, like 230,222 (a minus sign is allowed); got '{value}'.";
                         return false;
                     }
 
                     steps.Add(VoxelStep.Teleport(teleportX, teleportZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
+                case "--teleport-to":
+                    if (!VoxelStep.TryParseSignedBlock(value, out var toX, out var toY, out var toZ))
+                    {
+                        error = $"--teleport-to needs a block like 230,-40,222 (x,y,z; a minus sign is allowed); got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(VoxelStep.TeleportTo(toX, toY, toZ));
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
@@ -1215,7 +1504,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--walk-to":
-                    if (!VoxelStep.TryParseColumn(value, out var walkX, out var walkZ))
+                    if (!VoxelStep.TryParseSignedColumn(value, out var walkX, out var walkZ))
                     {
                         error = $"--walk-to needs a block column and row, like 60,52; got '{value}'.";
                         return false;
@@ -1226,7 +1515,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--interact":
-                    if (!VoxelStep.TryParseBlock(value, out var interactX, out var interactY, out var interactZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var interactX, out var interactY, out var interactZ))
                     {
                         error = $"--interact needs a block, like 9,11,17; got '{value}'.";
                         return false;
@@ -1238,7 +1527,7 @@ public sealed record LaunchOptions
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);
-                    if (at <= 0 || !VoxelStep.TryParseBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
+                    if (at <= 0 || !VoxelStep.TryParseSignedBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
                     {
                         error = $"--place needs an item and a block, like antorcha@22,12,21; got '{value}'.";
                         return false;
@@ -1249,7 +1538,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--pour":
-                    if (!VoxelStep.TryParseBlock(value, out var pourX, out var pourY, out var pourZ))
+                    if (!VoxelStep.TryParseSignedBlock(value, out var pourX, out var pourY, out var pourZ))
                     {
                         error = $"--pour needs a block, like 9,11,17; got '{value}'.";
                         return false;
@@ -1399,7 +1688,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --move, --station, --station-say, --act, --proc-help, --eat, --equip, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --move, --station, --station-say, --act, --proc-help, --eat, --equip, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -1454,6 +1743,9 @@ public sealed record LaunchOptions
         {
             Playtest = playtest,
             Dev = dev,
+            StreamStats = streamStats,
+            NoSettle = noSettle,
+            GlShaders = glShaders,
             Lodging = lodging,
             StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,

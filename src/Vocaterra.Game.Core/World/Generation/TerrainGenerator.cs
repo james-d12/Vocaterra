@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Noise;
 
 namespace Vocaterra.Game.Core.World.Generation;
 
@@ -8,22 +9,27 @@ namespace Vocaterra.Game.Core.World.Generation;
 /// along the north and the west, the foothills and the valley floor; the seed's noise adds hills and crags, and stepped faces make the cliffs. Then,
 /// in this order: the waterfall's plateau, the river (a curve whose water never runs uphill), the pool, the lake, the paths (a graded switchback trail
 /// and a road that follows the valley floor) and the sites' level ground. The noise is damped near the river, the paths and the sites, so the
-/// seed changes the land around them and never the places themselves.
+/// seed changes the land around them and never the places themselves. The natural ground is chosen by an <see cref="IGroundShape"/> (B15): the
+/// hand-drawn relief, or the procedural world's height at the layout's place.
 /// </summary>
 internal static class TerrainGenerator
 {
-    private const int CalmReach = 24;
+    private const int CalmReach = HandDrawnGround.CalmReach;
     private const int PathBlend = 3;
     private const string Pass = "terrain";
 
-    /// <summary>Generates the terrain of the layout for the seed.</summary>
-    public static Terrain Generate(SceneLayout layout, ulong seed) => new Generator(layout, seed).Run();
+    /// <summary>Generates the terrain of the layout for the seed on the natural ground a strategy chooses (B15): the hand-drawn relief, or the procedural world's height at the layout's place.</summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="seed">The world seed.</param>
+    /// <param name="ground">The strategy, or <see langword="null"/> for the layout's hand-drawn relief.</param>
+    public static Terrain Generate(SceneLayout layout, ulong seed, IGroundShape? ground = null) => new Generator(layout, seed, ground).Run();
 
     private sealed class Generator
     {
         private readonly SceneLayout _layout;
         private readonly TerrainSpec _spec;
         private readonly TerrainNoise _noise;
+        private readonly IGroundShape _ground;
         private readonly int _w;
         private readonly int _d;
         private readonly int[] _nat16;
@@ -38,13 +44,14 @@ internal static class TerrainGenerator
         private int[] _riverSurface = [];
         private readonly List<PathRaster> _paths = [];
 
-        public Generator(SceneLayout layout, ulong seed)
+        public Generator(SceneLayout layout, ulong seed, IGroundShape? ground)
         {
             _layout = layout;
             _spec = layout.Terrain;
             _noise = new TerrainNoise(seed, Pass);
             _w = layout.SizeX;
             _d = layout.SizeZ;
+            _ground = ground ?? new HandDrawnGround(_spec, _noise, _w, _d);
             _nat16 = new int[_w * _d];
             _h16 = new int[_w * _d];
             _terrain = new Terrain(_w, _d);
@@ -143,74 +150,16 @@ internal static class TerrainGenerator
 
         private void BuildNaturalGround()
         {
-            var valley16 = _spec.Valley * 16;
             var ceiling16 = _spec.Ceiling * 16;
             for (var z = 0; z < _d; z++)
             {
                 for (var x = 0; x < _w; x++)
                 {
                     var i = (z * _w) + x;
-                    var calm = Math.Max(300, IntMath.Ramp(_feature16[i] == int.MaxValue ? CalmReach * 16 : _feature16[i], 0, CalmReach * 16));
-
-                    // S14: the relief is looked up at a point moved by slow noise (a wide bend and a small wiggle), so the walls of the valley are not the straight
-                    // lines of the chunk grid. The move is damped near the sites, the paths and the river, like the other noise, so they keep their ground.
-                    var warpX = ((_noise.Value(20, x, z, 120) - 2048) * 64 / 2048) + ((_noise.Value(22, x, z, 44) - 2048) * 22 / 2048);
-                    var warpZ = ((_noise.Value(21, x, z, 120) - 2048) * 64 / 2048) + ((_noise.Value(23, x, z, 44) - 2048) * 22 / 2048);
-                    warpX = (int)((long)warpX * calm / IntMath.One);
-                    warpZ = (int)((long)warpZ * calm / IntMath.One);
-                    var basis = Relief16(Math.Clamp(x + warpX, 0, _w - 1), Math.Clamp(z + warpZ, 0, _d - 1));
-                    var above16 = Math.Max(0, basis - valley16);
-                    var amp16 = 24 + (int)(above16 * 16L / 100);
-                    var detail = (int)((long)_noise.Hills(x, z) * amp16 / IntMath.One * calm / IntMath.One);
-                    var crag = (int)((long)(_noise.Value(5, x, z, 5) - 2048) * 48 / 2048 * IntMath.Ramp(above16, 30 * 16, 60 * 16) / IntMath.One * calm / IntMath.One);
-                    var h = basis + detail + crag;
-                    h = Terrace(h);
-                    _nat16[i] = Math.Clamp(h, 4 * 16, ceiling16);
+                    _nat16[i] = Math.Clamp(_ground.Height16(x, z, _feature16[i]), 4 * 16, ceiling16);
                     _h16[i] = _nat16[i];
                 }
             }
-        }
-
-        // The macro relief at a column in 1/16 blocks: a smooth surface through the chunk-corner heights (Catmull-Rom both ways).
-        private int Relief16(int x, int z)
-        {
-            var cols = _spec.ReliefColumns;
-            var rows = _spec.ReliefRows;
-            var gx = x >> 4;
-            var gz = z >> 4;
-            var tx = (x & 15) << 8;
-            var tz = (z & 15) << 8;
-            Span<int> column = stackalloc int[4];
-            for (var j = 0; j < 4; j++)
-            {
-                var row = Math.Clamp(gz + j - 1, 0, rows - 1);
-                int P(int i) => _spec.Relief[(row * cols) + Math.Clamp(gx + i - 1, 0, cols - 1)] * 16;
-                column[j] = IntMath.CatmullRom(P(0), P(1), P(2), P(3), tx);
-            }
-
-            return IntMath.CatmullRom(column[0], column[1], column[2], column[3], tz);
-        }
-
-        // Stepped faces: above the foothills the ground climbs in flat shelves of Terrace blocks joined by short risers, so a steep slope becomes a stepped cliff.
-        private int Terrace(int h16)
-        {
-            if (_spec.Terrace <= 1)
-            {
-                return h16;
-            }
-
-            var step = _spec.Terrace * 16;
-            var strength = IntMath.Ramp(h16, 64 * 16, 90 * 16);
-            if (strength == 0)
-            {
-                return h16;
-            }
-
-            var baseLevel = h16 / step * step;
-            var f = (h16 - baseLevel) * IntMath.One / step;
-            var g = IntMath.Ramp(f, 1500, 2700);
-            var stepped = baseLevel + (int)((long)g * step / IntMath.One);
-            return IntMath.Lerp(h16, stepped, strength);
         }
 
         // ---------------------------------------------------------------- the waterfall
@@ -547,13 +496,33 @@ internal static class TerrainGenerator
                         }
                         else if (dist < r16 + b16)
                         {
+                            _terrain.Flags[i] |= Terrain.RouteFlag;
+                            if ((_terrain.Flags[i] & Terrain.PathFlag) != 0 && PassesThrough(site.Name, i))
+                            {
+                                continue; // the surface of a path that does not end at the site keeps its own height across the site's blend (B08c): the blend would put a riser in the road
+                            }
+
                             var weight = IntMath.One - IntMath.Smooth((dist - r16) * IntMath.One / b16);
                             _h16[i] = IntMath.Lerp(_h16[i], y16, weight);
-                            _terrain.Flags[i] |= Terrain.RouteFlag;
                         }
                     }
                 }
             }
+        }
+
+        // Whether the surface of a path that neither starts nor ends at the site lies on the column (a path that ends at a site is levelled into it).
+        private bool PassesThrough(string site, int column)
+        {
+            foreach (var raster in _paths)
+            {
+                var spec = raster.Spec;
+                if (!string.Equals(spec.From, site, StringComparison.Ordinal) && !string.Equals(spec.To, site, StringComparison.Ordinal) && raster.Dist[column] <= (spec.HalfWidth * 16) + 8)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // ---------------------------------------------------------------- the result

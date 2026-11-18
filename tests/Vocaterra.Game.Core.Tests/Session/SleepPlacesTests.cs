@@ -136,7 +136,7 @@ public sealed class SleepPlacesTests
             new SleepPlaceSpec("ghost.bed", "nowhere.at.all", SleepPlaceSpec.KindBed, 2, 2, SleepPlaceSpec.AccessAlways),
         };
 
-        var places = new SleepPlaces(specs, "ghost.bed", scene, new FireRings(scene.Grid), () => true);
+        var places = new SleepPlaces(specs, "ghost.bed", scene, new FireRings(scene), () => true);
 
         Assert.Equal(["guide.fire"], places.All.Select(static p => p.Id).ToArray());
         Assert.Null(places.WakeAt);

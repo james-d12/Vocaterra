@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The world preview of B02: draws the procedural world's climate, height and biome model as PNG maps and a vertical slice (biomes, heights, slice), so the owner can
+       see the world before any tuning. A read-only tool: it loads content/game-v1 through GameData and changes nothing. See README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Vocaterra.WorldPreview</RootNamespace>
+    <AssemblyName>Vocaterra.WorldPreview</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vocaterra.Game.Core\Vocaterra.Game.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vocaterra.WorldPreview.Tests" />
+  </ItemGroup>
+
+</Project>

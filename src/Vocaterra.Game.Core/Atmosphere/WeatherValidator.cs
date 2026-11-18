@@ -52,6 +52,11 @@ internal static partial class WeatherValidator
             problems.Add($"{File}: at least one kind needs a morningWeight above zero.");
         }
 
+        if (!double.IsFinite(weather.CloudAltitude) || weather.CloudAltitude < WeatherData.MinCloudAltitude || weather.CloudAltitude > WeatherData.MaxCloudAltitude)
+        {
+            problems.Add($"{File}: cloudAltitude must be from {WeatherData.MinCloudAltitude} to {WeatherData.MaxCloudAltitude} blocks (it is {weather.CloudAltitude}).");
+        }
+
         var shortest = weather.Kinds.Min(static k => k.MinSeconds);
         if (!double.IsFinite(weather.TransitionSeconds) || weather.TransitionSeconds < 0 || weather.TransitionSeconds > shortest)
         {

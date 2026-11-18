@@ -109,7 +109,7 @@ public sealed class UnderwaterPass : IDisposable
         }
 
         Dispose();
-        _scene = new RenderTarget2D(_device, width, height, false, SurfaceFormat.Color, DepthFormat.Depth24);
+        _scene = new RenderTarget2D(_device, width, height, false, SurfaceFormat.Color, DepthFormat.Depth24, _device.PresentationParameters.MultiSampleCount, RenderTargetUsage.DiscardContents); // B22: antialiased like the window
         var (hw, hh) = UnderwaterGeometry.CopySize(width, height, 2);
         _half = new RenderTarget2D(_device, hw, hh, false, SurfaceFormat.Color, DepthFormat.None);
         if (_settings.Downscale >= 4)
@@ -156,6 +156,19 @@ public sealed class UnderwaterPass : IDisposable
         _device.SetRenderTarget(to);
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
         _spriteBatch.Draw(from, new Rectangle(0, 0, to.Width, to.Height), Color.White);
+        _spriteBatch.End();
+    }
+
+    /// <summary>Lays a deep orange tint over the frame while the eye is in lava (B10b); call after <see cref="End"/>. Nothing when <paramref name="opacity"/> is 0.</summary>
+    public void DrawLavaTint(float opacity)
+    {
+        if (opacity <= 0f)
+        {
+            return;
+        }
+
+        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+        _spriteBatch.Draw(_pixel, new Rectangle(0, 0, _device.PresentationParameters.BackBufferWidth, _device.PresentationParameters.BackBufferHeight), new Color(0.85f, 0.25f, 0.03f, opacity));
         _spriteBatch.End();
     }
 

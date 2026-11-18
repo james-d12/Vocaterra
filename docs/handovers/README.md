@@ -31,9 +31,8 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-10-1943-weather](2026-11-10-1943-weather.md) | The E series (day, night and weather) on `feature/weather` | PR #64 merged into `main` (2026-11-11); the handover is its session's to close |
+| [2026-11-18-0409-world-next](2026-11-18-0409-world-next.md) | What the B series left for later (B29, B23, B16, B19, caching, open findings), on a new branch from `main` | The owner's merge of `feature/biomes` into `main` |
 | [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | I04b paused by the owner until the biomes work is done (WIP `90e614e7` in worktree `i04b`, untested); I01, I06, I03a, I03b, I02, I05a, I09, I04 gated; stops 2, 3 wait for the owner; stop 2 (the cold's feel) waits for the owner |
-| [2026-11-11-1850-settlement](2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | The owner's review and merge of PR #65 (the series is done; Y15, the owner's change, is in) |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.
@@ -42,6 +41,9 @@ The open pull request #51 (`feature/german`) carries its own state on its branch
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-15-1417-biomes](done/2026-11-15-1417-biomes.md) | The B series (a tall procedural world round hand-crafted regions, D-game-34) on `feature/biomes` | Finished 2026-11-18 (B00 to B30, M96 to M101); offered to `main` by pull request |
+| [2026-11-11-1850-settlement](done/2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | PR #65 merged into `main` (2026-11-15); worktree and local branch removed 2026-11-15 by the owner's word, its artifacts kept in `artifacts/settlement/` of the main checkout |
+| [2026-11-10-1943-weather](done/2026-11-10-1943-weather.md) | The E series (day, night and weather) on `feature/weather` | PR #64 merged into `main` (2026-11-11); worktree and local branch removed 2026-11-15 by the owner's word |
 | [2026-11-10-2004-settlement](done/2026-11-10-2004-settlement.md) | The Y series, Y00 to Y04, on `feature/settlement` | Picked up by a new session 2026-11-11 (the handover 2026-11-11-1850-settlement) |
 | [2026-11-08-2233-ui-issues](done/2026-11-08-2233-ui-issues.md) | The UI issues #5, #6 and #7 (U05 to U08, M91) on `feature/ui-issues` | PR #47 merged into `main` 2026-11-09 |
 | [2026-11-07-1345-bread-pilot](done/2026-11-07-1345-bread-pilot.md) | The bread pilot on `feature/bread-pilot`: W05 to W10, T8, W02 to W04, M80, V31, water merged in and the fixes M83, T9, M84, T10, W04b, H11, H12, M85 | PR #40 merged into `main` 2026-11-08; M86, launched at the end, did not land (core plan §5) |

@@ -57,7 +57,7 @@ public sealed class ClassTests
     public void AfterASleepTheVillagerOffersTheClassAndNoGraciasDeclinesIt()
     {
         var session = Vocaterra.Game.Core.Tests.Save.SleepTests.EndedFirstSession();
-        SaveGame.Sleep(session, SaveGame.Capture(session, TestGame.Route()));
+        SaveGame.Sleep(session, SaveGame.Capture(session));
         _ = session.Simulation.GrantItems(Vocaterra.Game.Core.Items.ItemId.Stake, 1); // Y11: with no stake the mayor offers it first, then the class (PlotPurchaseTests)
         Stage.TeleportToNpc(session, "villager");
 
@@ -204,7 +204,7 @@ public sealed class ClassTests
         var session = DayTwo();
         _ = session.OpenTalk("villager");
         Assert.True(session.Lessons.Start("personas"));
-        var text = SaveGame.Save(session, TestGame.Route());
+        var text = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 

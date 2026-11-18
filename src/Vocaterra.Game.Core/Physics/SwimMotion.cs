@@ -86,15 +86,19 @@ internal static class SwimMotion
     /// The vertical speed after one swimming tick: the drag and the slight gravity act, held jump pushes up (until <see cref="RiseSpeed"/>),
     /// and a fall faster than <see cref="SinkSpeed"/> is cut to it.
     /// </summary>
-    public static int NextVerticalSpeed(int velocityY, bool jumpHeld)
+    public static int NextVerticalSpeed(int velocityY, bool jumpHeld) =>
+        NextVerticalSpeed(velocityY, jumpHeld, DragPermille, SinkSpeed, RiseSpeed);
+
+    /// <summary>The swimming tick with the liquid's own drag, sink cap and swim-up cap (water's are the defaults above; lava's are <see cref="LavaMotion"/>).</summary>
+    public static int NextVerticalSpeed(int velocityY, bool jumpHeld, int dragPermille, int sinkSpeed, int riseSpeed)
     {
-        var next = velocityY - (velocityY * DragPermille / 1000) - SwimGravity;
-        if (jumpHeld && velocityY < RiseSpeed)
+        var next = velocityY - (velocityY * dragPermille / 1000) - SwimGravity;
+        if (jumpHeld && velocityY < riseSpeed)
         {
             next += RiseAcceleration;
         }
 
-        return Math.Max(next, -SinkSpeed);
+        return Math.Max(next, -sinkSpeed);
     }
 
     /// <summary>The vertical speed of a hop out: <see cref="HopVelocity"/>, or the current one if it is already higher (so held contact with the wall does not add up).</summary>
@@ -108,7 +112,7 @@ internal static class SwimMotion
     /// water. Flowing water (<see cref="FlowVector"/>) pushes at <see cref="FlowPush"/>; still water in a river column (<paramref name="currents"/>) at
     /// <see cref="RiverPush"/>; any other water not at all.
     /// </summary>
-    public static (int X, int Z, int Pull) Push(VoxelGrid grid, RiverCurrents? currents, int cellX, int cellY, int cellZ)
+    public static (int X, int Z, int Pull) Push(IVoxelReader grid, RiverCurrents? currents, int cellX, int cellY, int cellZ)
     {
         var flow = FlowVector.At(grid, cellX, cellY, cellZ);
         if (flow.IsHorizontal || flow.Y < 0)

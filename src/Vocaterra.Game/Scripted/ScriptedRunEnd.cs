@@ -6,12 +6,14 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
+using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Scripted;
 
@@ -35,6 +37,9 @@ public sealed class ScriptedRunEnd
     /// <summary>The tick at which a run that never settles takes its picture anyway (five minutes of game time).</summary>
     public const int RunawayTicks = 60 * 60 * 5;
 
+    /// <summary>The longest, in milliseconds of the wall clock, that a settled picture waits for the far tiles to reach the card.</summary>
+    public const double UploadWaitLimitMilliseconds = 120_000;
+
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly CheckBattery _checks;
@@ -49,6 +54,7 @@ public sealed class ScriptedRunEnd
     private readonly Action<long, string>? _logRunaway;
     private bool _runaway;
     private int _settled;
+    private double? _uploadWaitStart;
     private bool _shown;
     private int _sizeFrames;
     private int _framesAtSize;
@@ -153,7 +159,8 @@ public sealed class ScriptedRunEnd
     /// <param name="timings">The frames' timings, for the summary.</param>
     /// <param name="renderer">The renderer, for the summary.</param>
     /// <param name="preset">The quality preset, for the summary.</param>
-    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset)
+    /// <param name="streaming">The streamed world's host, for its counts (B07), or <see langword="null"/> in the bounded valley.</param>
+    public void AfterDraw(GraphicsDevice device, int width, int height, WindowSizes sizes, FrameTimings timings, VoxelRenderer renderer, QualityPreset preset, StreamedWorldHost? streaming = null, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases = null, (long Bytes, long Frames, double ProcessMegabytesPerSecond)? allocations = null)
     {
         var sim = _session.Simulation;
         var sized = !_options.IsScreenshotRun || ScreenshotGate.IsFinalSize(width, height, sizes.PreferredWidth, sizes.PreferredHeight, sizes.ClientWidth, sizes.ClientHeight);
@@ -169,14 +176,15 @@ public sealed class ScriptedRunEnd
 
         _framesAtSize = sized ? _framesAtSize + 1 : 0;
         var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames, _framesAtSize);
-        if (mayShoot && _shots.Take() is { } shot)
+        // A --shot waits as the final picture does until every far tile it lists is on the card (B07f: the shot of a step after a teleport was taken in the first frame, before the card had the far land, and showed a void under a high eye).
+        if (mayShoot && FarOnTheCard(streaming) && _shots.Take() is { } shot)
         {
             var saved = ScreenshotWriter.TrySave(device, shot);
             _console($"shot: {shot} ({(saved ? "saved" : "FAILED")}) at tick {sim.Tick}, {_session.Objective.Summary}");
             ExitCode = WorstExit(ExitCode, saved, false);
         }
 
-        if (!mayShoot || _options.ScreenshotPath is not { } path || !ReadyForPicture())
+        if (!mayShoot || _options.ScreenshotPath is not { } path || !ReadyForPicture(streaming))
         {
             return;
         }
@@ -184,20 +192,66 @@ public sealed class ScriptedRunEnd
         ExitCode = WorstExit(ExitCode, ScreenshotWriter.TrySave(device, path), _runaway);
         _console($"scene draw (voxel world, layers, flush): {timings.DrawSummary()}");
         _console($"frame time (end of one draw to the next, no vsync): {timings.FrameSummary()}");
-        _console($"voxel: {renderer.Stats.Summary()}; {renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
+        if (streaming is not null && _options.StreamStats)
+        {
+            _console(StreamLine(renderer, streaming, timings, phases, allocations));
+        }
+
+        if (_options.StreamStats)
+        {
+            var chunks = renderer.ChunkPassTimes;
+            _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time to submit): {chunks.Count} frames, median {chunks.Median:0.00} ms, p95 {chunks.Percentile(95):0.00} ms, p99 {chunks.Percentile(99):0.00} ms, longest {chunks.Longest:0.00} ms"));
+            if (renderer.CardTimes is { } card)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {card.Count} frames, median {card.Median:0.00} ms, p95 {card.Percentile(95):0.00} ms, p99 {card.Percentile(99):0.00} ms, longest {card.Longest:0.00} ms"));
+            }
+        }
+
+        if (renderer.GlPass is { } glPass && (_options.StreamStats || glPass.Errors.Count > 0)) // quiet by default: the compared output of a run does not hold it
+        {
+            var (errors, first) = glPass.Errors;
+            _console($"gl: the last frame's scope drew {glPass.LastPass.Quads} quads in {glPass.LastPass.DrawCalls} draw calls with {glPass.LastPass.StateChanges} state sets; {errors} GL error(s) cleared{(errors > 0 ? $" (first {first})" : string.Empty)}");
+        }
+
+        // A streamed world's counts of chunks and meshes depend on how it was loaded, not on what the run did, so they have a line of their own (--stream-stats); the compared line keeps what the picture shows.
+        _console($"voxel: {(renderer.IsStreamed ? string.Empty : renderer.Stats.Summary() + "; ")}{renderer.DrawnChunks} chunks drawn this frame, {renderer.DrawnFigureQuads} figure quads, {renderer.DrawnPlantQuads} plant quads (within {preset.PlantDistance} blocks, {preset.PlantKeepPercent}% built), occlusion {(preset.AmbientOcclusion ? "on" : "off")}, clouds {(preset.Clouds ? "on" : "off")}{(renderer.GrassPercent > 0 ? $", grass {renderer.DrawnGrassQuads} quads (slider {renderer.GrassPercent}%, within {preset.GrassDistance} blocks, cap {preset.GrassCapPercent}%; {renderer.GrassBuilds.Built} layers built in {renderer.GrassBuilds.Milliseconds:0} ms, {renderer.GrassQuadsBuilt} quads held)" : string.Empty)}{(renderer.DrawnRainVertices > 0 ? $", rain {renderer.DrawnRainVertices} vertices (budget {preset.RainDrops} drops)" : string.Empty)}");
         var body = sim.Player;
         _console(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {sim.Tick}, wood {sim.Inventory.Count(ItemId.Wood)}, berries {sim.Inventory.Count(ItemId.Berry)}, bottle {sim.Inventory.Count(ItemId.Bottle)}, water {sim.Inventory.Count(ItemId.WaterBottle)}, bread {(sim.Inventory.Items.Find("bread") is { } bread ? sim.Inventory.Count(bread.Id) : 0)}"));
         _console($"objective: {_session.Objective.Summary}");
         _exit();
     }
 
+    private static string StreamLine(VoxelRenderer renderer, StreamedWorldHost streaming, FrameTimings timings, (BusyFrameStats Streaming, BusyFrameStats Remesh)? phases, (long Bytes, long Frames, double ProcessMegabytesPerSecond)? allocations)
+    {
+        var residency = streaming.Residency.Stats;
+        var far = streaming.Far.Stats;
+        var allocation = allocations is { Frames: > 0 } a ? $"; allocation: streaming and meshing phases {a.Bytes / 1024.0 / a.Frames:0.0} KB a frame on the game thread ({a.Bytes / (1024.0 * 1024.0):0.0} MB in {a.Frames} frames), whole process {a.ProcessMegabytesPerSecond:0.00} MB/s, collections gen 0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}, {GC.GetTotalPauseDuration().TotalMilliseconds:0} ms paused" : string.Empty;
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; store [{streaming.LodStoreSummary}]; settles [{string.Join(", ", streaming.SettleMilliseconds.Select(static ms => ms.ToString("0", System.Globalization.CultureInfo.InvariantCulture)))}] ms; process {Environment.WorkingSet / (1024.0 * 1024.0):0} MB working set, {GC.GetTotalMemory(false) / (1024.0 * 1024.0):0} MB managed; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms{allocation}; {renderer.MeshingSummary}; {renderer.ChunksGeneratedByReads} chunks generated by reads on the game thread");
+    }
+
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
     // that is not waiting for its recording; a battery that rests is ready too, and a runaway run takes its picture anyway.
-    private bool ReadyForPicture()
+    // A settled picture waits until every far tile it lists is on the card, but never for ever: after UploadWaitLimitMilliseconds of the wall clock it is taken with what is there (the run's stream line says how many were not).
+    private bool FarOnTheCard(StreamedWorldHost? streaming)
+    {
+        if (streaming is null || streaming.Far.Unuploaded == 0)
+        {
+            _uploadWaitStart = null;
+            return true;
+        }
+
+        _uploadWaitStart ??= MonotonicClock.Milliseconds();
+        return MonotonicClock.Milliseconds() - _uploadWaitStart > UploadWaitLimitMilliseconds;
+    }
+
+    private bool ReadyForPicture(StreamedWorldHost? streaming)
     {
         var tick = _session.Simulation.Tick;
         return (tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
-                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
+                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking }
+                && FarOnTheCard(streaming)) // a settled picture waits until every far tile it lists is on the card
             || (_checks.RestsForShot && _settled >= SettleTicks)
             || RunawayAt(tick);
     }

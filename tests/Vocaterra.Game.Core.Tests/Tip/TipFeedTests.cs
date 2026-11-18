@@ -146,25 +146,25 @@ public sealed class TipFeedTests
         var session = TestGame.NewSessionWithShippedLessons(); // (a load builds its session with the bundle's lessons)
         Run(session, (9 * 60) + 30); // "walk" is up; "jump", "note" and "gather" wait for their delays
         session.Tips.Offer("aimed_npc");
-        var saved = SaveGame.Save(session, TestGame.Route());
+        var saved = SaveGame.Save(session);
 
         var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
+        Assert.Equal(saved, SaveGame.Save(loaded));
         Assert.Equal(["look", "walk"], loaded.Tips.Shown.Where(static id => id is "look" or "walk"));
         Assert.Equal("walk", loaded.Tips.Current!.Id);
         Run(session, TipFeed.ShowTicks * 3);
         Run(loaded, TipFeed.ShowTicks * 3);
         Assert.Equal(session.Tips.Shown, loaded.Tips.Shown);
         Assert.Equal(session.Tips.Current?.Id, loaded.Tips.Current?.Id);
-        Assert.Equal(SaveGame.Save(session, TestGame.Route()), SaveGame.Save(loaded, TestGame.Route()));
+        Assert.Equal(SaveGame.Save(session), SaveGame.Save(loaded));
     }
 
     [Fact]
     public void ASaveWithATipTheGameDoesNotHaveIsRefused()
     {
         var session = TestGame.NewSession();
-        var doc = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var doc = SaveGame.Parse(SaveGame.Save(session));
         var bad = doc with { Tips = new TipsSave(["no-such-tip"], [], null, 0) };
 
         Assert.Throws<SaveException>(() => SaveGame.Restore(bad, TestGame.Data, TestGame.Route()));
@@ -174,7 +174,7 @@ public sealed class TipFeedTests
     public void ASaveFromBeforeTheTipsAndLessonsExistedStillLoads()
     {
         var session = TestGame.NewSession();
-        var doc = SaveGame.Parse(SaveGame.Save(session, TestGame.Route())) with { Lessons = null, Tips = null };
+        var doc = SaveGame.Parse(SaveGame.Save(session)) with { Lessons = null, Tips = null };
 
         var loaded = SaveGame.Restore(doc, TestGame.Data, TestGame.Route(), CreditRules.FullTyped, bumpSession: false);
 

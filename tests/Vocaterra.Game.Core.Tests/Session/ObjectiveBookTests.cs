@@ -212,7 +212,7 @@ public sealed class ObjectiveBookTests
         var session = TestGame.NewSessionWithShippedLessons();
         _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 2);
 
-        var document = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var document = SaveGame.Parse(SaveGame.Save(session));
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(StepKeys(session), document.Objective.Select(static o => o.Key)); // every step, in the session's order: a step with a restore hook is saved too, so a load never undoes it
@@ -249,7 +249,7 @@ public sealed class ObjectiveBookTests
 
         Assert.True(loaded.SessionComplete);
         Assert.Null(loaded.CurrentObjective);
-        var resaved = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
+        var resaved = SaveGame.Parse(SaveGame.Save(loaded));
         Assert.Equal(SaveGame.CurrentVersion, resaved.Version);
         Assert.Equal(StepKeys(loaded), resaved.Objective.Select(static o => o.Key));
     }

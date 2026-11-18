@@ -28,9 +28,9 @@ Facts every session needs:
   (finished ones are in `done/`); the orchestrator keeps the open one current after every gate, launch and owner decision (owner, 2026-11-05), so a crash or a fresh session loses nothing. Research goes to `docs/research/`, bug reports and their triage
   table to `docs/qa-reports/`, superseded documents to `docs/archive/`; the rules are `docs/process/documentation.md`.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then); every heavy command (dotnet
-  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most two at
-  once machine-wide, caps each at 6 GB of RAM, no swap and 10 of 16 cores, and all of them together at 8 GB and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** at most two building agents at a time (the owner, 2026-11-05; one until then; one again on 2026-11-15, "only have 1 agent max", D-game-34 item 17; up to four since that evening, "you can have up to 4 agents now", item 19; up to five since 2026-11-16 22:30 UTC, "5 agents and 3 gates looks ok", item 38); every heavy command (dotnet
+  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which runs at most three at
+  once machine-wide, caps each at 10 GB of RAM (6 GB until 2026-11-16), no swap and 10 of 16 cores, and all of them together at 16 GB (8 GB until 2026-11-16, raised by the owner) and 14 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
   "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
   `dotnet format Vocaterra.sln --verify-no-changes`. `Vocaterra.Nlp.slnf` builds the core alone (its pack and licence scan use it).
@@ -43,7 +43,7 @@ Facts every session needs:
   command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
   suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
   (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
-  the save fixture (`tests/Vocaterra.Game.Core.Tests/Fixtures/save-v<version>.json`). No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
+  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` (since B05 its `stateDigest` depends on the world-generation files `world.json`, `biomes.json` and `underground.json` and the saved state, not on the bundle hash). No core test pins the hash (`docs/nlp/changing-the-core.md`). Core demo:
   `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.

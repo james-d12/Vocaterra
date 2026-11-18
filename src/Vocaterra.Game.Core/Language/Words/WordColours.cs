@@ -11,11 +11,11 @@ namespace Vocaterra.Game.Core.Language.Words;
 public static class WordColours
 {
     /// <summary>The grey set for the catalogue and the progress: one bit per block kind (<see cref="BlockKinds.Bit"/>).</summary>
-    public static ulong GreyKinds(NounCatalog nouns, WordProgress words)
+    public static UInt128 GreyKinds(NounCatalog nouns, WordProgress words)
     {
         ArgumentNullException.ThrowIfNull(nouns);
         ArgumentNullException.ThrowIfNull(words);
-        var grey = 0UL;
+        UInt128 grey = 0;
         foreach (var block in Enum.GetValues<BlockId>())
         {
             if (block == BlockId.Air)

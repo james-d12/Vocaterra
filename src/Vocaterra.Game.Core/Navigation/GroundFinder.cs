@@ -6,24 +6,40 @@ namespace Vocaterra.Game.Core.Navigation;
 public static class GroundFinder
 {
     /// <summary>
-    /// The cell the feet go to for the ground of a column: the highest block that is not a tree, not water and not air, with two free cells over it. <see langword="null"/>
+    /// The cell the feet go to for the ground of a column: the highest block that is not a tree and not air, with two free cells over it. Where that block is water (a pool, a lake, the
+    /// sea) the feet go to the cell over the water's surface, so the body floats there and never stands on the bed, a lake's depth under the picture (B07b); the surface, not the nearest dry
+    /// ground, because a lake's middle has none within a few blocks and the column asked for is the place the caller means. <see langword="null"/>
     /// when the column lies outside the world or has no such ground (a roof of solid blocks over the first ground found counts as none).
     /// </summary>
     /// <param name="grid">The world.</param>
     /// <param name="x">The block column's x.</param>
     /// <param name="z">The block column's z.</param>
-    public static BlockPos? StandingAt(VoxelGrid grid, int x, int z)
+    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z) => StandingAt(grid, x, z, int.MaxValue);
+
+    /// <summary>
+    /// The same, reading from <paramref name="highestFeet"/> down: the cell the feet go to for the highest ground whose standing cell is at or below that height (a cave's floor under the ground, B12).
+    /// </summary>
+    /// <param name="grid">The world.</param>
+    /// <param name="x">The block column's x.</param>
+    /// <param name="z">The block column's z.</param>
+    /// <param name="highestFeet">The highest y the feet may be at.</param>
+    public static BlockPos? StandingAt(IVoxelReader grid, int x, int z, int highestFeet)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        if (!grid.InBounds(x, 0, z))
+        if (!grid.InBounds(x, grid.Limits.MinY, z))
         {
             return null;
         }
 
-        for (var y = grid.SizeY - 3; y >= 1; y--)
+        for (var y = Math.Min(grid.Limits.EndY - 3, highestFeet - 1); y > grid.Limits.MinY; y--)
         {
             var block = grid.GetBlock(x, y, z);
-            if (block is BlockId.Air or BlockId.Water || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(x, y, z))
+            if (block == BlockId.Water)
+            {
+                return grid.BlocksBody(x, y + 1, z) || grid.BlocksBody(x, y + 2, z) ? null : new BlockPos(x, y + 1, z); // the highest water of the column: its surface
+            }
+
+            if (block == BlockId.Air || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(x, y, z))
             {
                 continue;
             }

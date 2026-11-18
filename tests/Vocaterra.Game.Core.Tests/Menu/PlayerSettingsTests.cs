@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Tests.Menu;
@@ -259,5 +260,318 @@ public sealed class PlayerSettingsTests
             Assert.Equal(spec.Default, spec.Snap(spec.Default));
             Assert.True(spec.Kind != SettingKind.Slider || (spec.Max - spec.Min) % spec.Step == 0, spec.Id.ToString());
         });
+    }
+
+    [Theory]
+    [InlineData(-5, 0)]
+    [InlineData(0, 0)]
+    [InlineData(34, 30)]
+    [InlineData(35, 40)]
+    [InlineData(100, 100)]
+    [InlineData(900, 100)]
+    public void Given_AGrassValue_When_Set_Then_ItIsLimitedToZeroToOneHundredInStepsOfTen(int asked, int expected)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Grass, asked);
+        Assert.Equal(expected, settings.Get(SettingId.Grass));
+        Assert.Equal(expected / 100.0, settings.Grass);
+    }
+
+    [Fact]
+    public void Given_ANewGame_When_TheGrassIsRead_Then_ItIsTheLushDefaultAndMovingItIsTold()
+    {
+        var settings = new PlayerSettings();
+        Assert.Equal(PlayerSettings.DefaultGrass, settings.Get(SettingId.Grass));
+        Assert.Equal(SettingKind.Slider, PlayerSettings.Spec(SettingId.Grass).Kind);
+        var changed = new List<SettingId>();
+        settings.Changed += changed.Add;
+        settings.Set(SettingId.Grass, 100);
+        settings.Set(SettingId.Grass, 100);
+        Assert.Equal([SettingId.Grass], changed);
+        Assert.Contains(MenuRows.Settings(settings, null), static row => row.Id == nameof(SettingId.Grass));
+        Assert.Equal("Grass", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Grass).LabelKey));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(PlayerSettings.DefaultGrass)]
+    [InlineData(100)]
+    [InlineData(10)]
+    public void Given_AGrassSetting_When_SavedAndLoaded_Then_ItComesBack(int percent)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Grass, percent);
+        var saved = settings.ToSave();
+        Assert.Equal(percent == PlayerSettings.DefaultGrass ? null : percent, saved.Grass); // the default is left out, as the other settings' defaults are (zero is written: it is not the default)
+        Assert.Equal(percent, PlayerSettings.Resolve(saved).Get(SettingId.Grass));
+        var json = System.Text.Json.JsonSerializer.Serialize(saved);
+        var again = System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!;
+        Assert.Equal(percent, PlayerSettings.Resolve(again).Get(SettingId.Grass));
+    }
+
+    [Fact]
+    public void Given_ASaveWithoutTheGrassField_When_Resolved_Then_TheDefaultHolds()
+    {
+        Assert.Equal(PlayerSettings.DefaultGrass, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default)).Get(SettingId.Grass));
+        Assert.Equal(100, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Grass: 4000)).Get(SettingId.Grass));
+    }
+
+    [Fact]
+    public void Given_AGrassLaunchOption_When_Resolved_Then_ItWinsOverTheSaveAndIsSnapped()
+    {
+        var saved = new SaveSettings(SoundVolumes.Default, Grass: 20);
+        Assert.Equal(20, PlayerSettings.Resolve(saved).Get(SettingId.Grass));
+        Assert.Equal(80, PlayerSettings.Resolve(saved, new LaunchSettings(Grass: 80)).Get(SettingId.Grass));
+        Assert.Equal(0, PlayerSettings.Resolve(saved, new LaunchSettings(Grass: 0)).Get(SettingId.Grass));
+        Assert.Equal(70, PlayerSettings.Resolve(null, new LaunchSettings(Grass: 68)).Get(SettingId.Grass));
+    }
+
+    [Theory]
+    [InlineData(SettingId.Workers, -3, 0)]
+    [InlineData(SettingId.Workers, 0, 0)]
+    [InlineData(SettingId.Workers, 5, 5)]
+    [InlineData(SettingId.Workers, 8, 8)]
+    [InlineData(SettingId.Workers, 40, 8)]
+    [InlineData(SettingId.FarDistance, 99, 16)]
+    [InlineData(SettingId.FarDistance, 7, 7)]
+    [InlineData(SettingId.FarDetail, 10, 50)]
+    [InlineData(SettingId.FarDetail, 112, 100)]
+    [InlineData(SettingId.FarDetail, 900, 200)]
+    [InlineData(SettingId.FarTrees, 99, 6)]
+    [InlineData(SettingId.FarTextures, 9, 3)]
+    [InlineData(SettingId.FarExact, -2, 0)]
+    public void Given_AFarViewOrWorkerValue_When_Set_Then_ItIsLimitedToTheSettingsRangeAndSteps(SettingId id, int asked, int expected)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(id, asked);
+        Assert.Equal(expected, settings.Get(id));
+    }
+
+    [Fact]
+    public void Given_ANewGame_When_TheWorkerAndFarViewSettingsAreRead_Then_TheyAreAutoAndTheUsualLook()
+    {
+        var settings = new PlayerSettings();
+        Assert.Equal(0, settings.Workers); // Auto (D-game-34 item 42)
+        Assert.Equal("settingsAuto", PlayerSettings.Spec(SettingId.Workers).MinKey);
+        Assert.Equal(0, settings.Get(SettingId.FarDistance));
+        Assert.Equal(100, settings.Get(SettingId.FarDetail));
+        Assert.Equal(0, settings.Get(SettingId.FarTrees));
+        Assert.Equal(2, settings.Get(SettingId.FarTextures));
+        Assert.Equal(0, settings.Get(SettingId.FarExact));
+    }
+
+    [Fact]
+    public void Given_TheSettingsPage_When_TheRowsAreBuilt_Then_TheWorkerAndFarViewRowsAreInTheGraphicsGroup()
+    {
+        var rows = MenuRows.Settings(new PlayerSettings(), null);
+        var graphics = rows.ToList().FindIndex(static row => row.LabelKey == "headingGraphics");
+        var next = rows.ToList().FindIndex(graphics + 1, static row => row.Kind == MenuRowKind.Heading);
+        var inGroup = rows.Skip(graphics + 1).Take(next - graphics - 1).Select(static row => row.Id).ToList();
+        foreach (var id in new[] { SettingId.Workers, SettingId.FarDistance, SettingId.FarDetail, SettingId.FarTrees, SettingId.FarTextures, SettingId.FarExact })
+        {
+            Assert.Contains(id.ToString(), inGroup);
+        }
+    }
+
+    [Fact]
+    public void Given_WorkerAndFarViewSettings_When_SavedAndLoaded_Then_TheyComeBackAndTheDefaultsAreLeftOut()
+    {
+        var defaults = new PlayerSettings().ToSave();
+        Assert.Null(defaults.Workers);
+        Assert.Null(defaults.FarDistance);
+        Assert.Null(defaults.FarDetail);
+        Assert.Null(defaults.FarTrees);
+        Assert.Null(defaults.FarTextures);
+        Assert.Null(defaults.FarExact);
+        Assert.DoesNotContain("Workers", System.Text.Json.JsonSerializer.Serialize(defaults), StringComparison.Ordinal);
+
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Workers, 6);
+        settings.Set(SettingId.FarDistance, 12);
+        settings.Set(SettingId.FarDetail, 150);
+        settings.Set(SettingId.FarTrees, 4);
+        settings.Set(SettingId.FarTextures, 0);
+        settings.Set(SettingId.FarExact, 3);
+        var json = System.Text.Json.JsonSerializer.Serialize(settings.ToSave());
+        var again = PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!);
+        foreach (var id in new[] { SettingId.Workers, SettingId.FarDistance, SettingId.FarDetail, SettingId.FarTrees, SettingId.FarTextures, SettingId.FarExact })
+        {
+            Assert.Equal(settings.Get(id), again.Get(id));
+        }
+    }
+
+    [Fact]
+    public void Given_AWorkerOrFarViewLaunchOption_When_Resolved_Then_ItWinsOverTheSaveAndIsSnapped()
+    {
+        var saved = new SaveSettings(SoundVolumes.Default, Workers: 3, FarDistance: 4);
+        Assert.Equal(3, PlayerSettings.Resolve(saved).Workers);
+        Assert.Equal(8, PlayerSettings.Resolve(saved, new LaunchSettings(Workers: 8)).Workers);
+        Assert.Equal(0, PlayerSettings.Resolve(saved, new LaunchSettings(Workers: 0)).Workers);
+        Assert.Equal(16, PlayerSettings.Resolve(saved, new LaunchSettings(FarDistance: 16)).Get(SettingId.FarDistance));
+        Assert.Equal(125, PlayerSettings.Resolve(null, new LaunchSettings(FarDetail: 120)).Get(SettingId.FarDetail));
+        Assert.Equal(4, PlayerSettings.Resolve(null, new LaunchSettings(FarDistance: 4)).Get(SettingId.FarDistance));
+    }
+
+    [Fact]
+    public void Given_ASaveWithWildWorkerAndFarViewFields_When_Resolved_Then_TheyAreHeldToTheirRanges()
+    {
+        var wild = PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Workers: 400, FarDistance: -9, FarDetail: 5, FarTrees: 77, FarTextures: 12, FarExact: 99));
+        Assert.Equal(8, wild.Workers);
+        Assert.Equal(0, wild.Get(SettingId.FarDistance));
+        Assert.Equal(50, wild.Get(SettingId.FarDetail));
+        Assert.Equal(6, wild.Get(SettingId.FarTrees));
+        Assert.Equal(3, wild.Get(SettingId.FarTextures));
+        Assert.Equal(5, wild.Get(SettingId.FarExact));
+    }
+
+    [Fact]
+    public void Given_ANewGame_When_TheShadersAreRead_Then_TheyAreOnAndTheRowIsInTheGraphicsGroup()
+    {
+        var settings = new PlayerSettings();
+        Assert.True(settings.Shaders);
+        Assert.Equal(SettingKind.Toggle, PlayerSettings.Spec(SettingId.Shaders).Kind);
+        var rows = MenuRows.Settings(settings, null);
+        var graphics = rows.ToList().FindIndex(static row => row.Id == "heading.headingGraphics");
+        var interfaceGroup = rows.ToList().FindIndex(static row => row.Id == "heading.headingInterface");
+        var shaders = rows.ToList().FindIndex(static row => row.Id == nameof(SettingId.Shaders));
+        Assert.True(graphics >= 0 && shaders > graphics && shaders < interfaceGroup, "the Shaders row stands in the Graphics group");
+        Assert.Equal("Shaders", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Shaders).LabelKey));
+        Assert.Equal("Shaders and effects", TestGame.Locale.Ui("subEffects"));
+        var changed = new List<SettingId>();
+        settings.Changed += changed.Add;
+        settings.Set(SettingId.Shaders, 0);
+        settings.Set(SettingId.Shaders, 0);
+        Assert.Equal([SettingId.Shaders], changed);
+        Assert.False(settings.Shaders);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Given_TheShadersSetting_When_SavedAndLoaded_Then_ItComesBackAndTheDefaultIsLeftOut(bool on)
+    {
+        var settings = new PlayerSettings();
+        settings.Set(SettingId.Shaders, on ? 1 : 0);
+        var saved = settings.ToSave();
+        Assert.Equal(!on, saved.ShadersOff);
+        Assert.Equal(on, PlayerSettings.Resolve(saved).Shaders);
+        var json = System.Text.Json.JsonSerializer.Serialize(saved);
+        Assert.Equal(!on, json.Contains("ShadersOff", StringComparison.Ordinal)); // written only when off: a save of the default is byte for byte what it was
+        Assert.Equal(on, PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(json)!).Shaders);
+    }
+
+    [Fact]
+    public void Given_ASaveWithoutTheShadersField_When_Resolved_Then_TheyAreOnAndTheLaunchOptionWins()
+    {
+        Assert.True(PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default)).Shaders);
+        var off = new SaveSettings(SoundVolumes.Default, ShadersOff: true);
+        Assert.False(PlayerSettings.Resolve(off).Shaders);
+        Assert.True(PlayerSettings.Resolve(off, new LaunchSettings(Shaders: true)).Shaders);
+        Assert.False(PlayerSettings.Resolve(null, new LaunchSettings(Shaders: false)).Shaders);
+        Assert.True(PlayerSettings.Resolve(null, new LaunchSettings()).Shaders);
+    }
+
+    // B17c: the graphics effects of the settings page's Graphics group (D-game-34 item 43), each a toggle on by default, saved only when off, read back, and a launch option each.
+    private static readonly (SettingId Id, string Json, string Label, Func<PlayerSettings, bool> Read, Func<SaveSettings, bool> Saved, Func<bool, LaunchSettings> Launch)[] Effects =
+    [
+        (SettingId.SunFollowsHour, "SunFollowsHourOff", "Sun follows the hour", static s => s.SunFollowsHour, static s => s.SunFollowsHourOff, static on => new LaunchSettings(SunFollowsHour: on)),
+        (SettingId.ClimateColours, "ClimateColoursOff", "Climate colours", static s => s.ClimateColours, static s => s.ClimateColoursOff, static on => new LaunchSettings(ClimateColours: on)),
+        (SettingId.WaterShader, "WaterShaderOff", "Water shader", static s => s.WaterShader, static s => s.WaterShaderOff, static on => new LaunchSettings(WaterShader: on)),
+        (SettingId.HeightFog, "HeightFogOff", "Fog by height", static s => s.HeightFog, static s => s.HeightFogOff, static on => new LaunchSettings(HeightFog: on)),
+        (SettingId.FarLight, "FarLightOff", "Far view light", static s => s.FarLight, static s => s.FarLightOff, static on => new LaunchSettings(FarLight: on)),
+    ];
+
+    [Fact]
+    public void Given_TheGraphicsEffects_When_ANewGameStarts_Then_EachIsOnAndInTheGraphicsGroupWithTheShaders()
+    {
+        var settings = new PlayerSettings();
+        var rows = MenuRows.Settings(settings, null).ToList();
+        var graphics = rows.FindIndex(static row => row.Id == "heading.headingGraphics");
+        var interfaceGroup = rows.FindIndex(static row => row.Id == "heading.headingInterface");
+        var effects = rows.FindIndex(static row => row.LabelKey == "subEffects");
+        foreach (var (id, _, label, read, _, _) in Effects)
+        {
+            Assert.True(read(settings), $"{id} is on in a new game");
+            Assert.Equal(SettingKind.Toggle, PlayerSettings.Spec(id).Kind);
+            Assert.Equal(label, TestGame.Locale.Ui(PlayerSettings.Spec(id).LabelKey));
+            var row = rows.FindIndex(r => r.Id == id.ToString());
+            Assert.True(row > effects && effects > graphics && row < interfaceGroup, $"{id}'s row is under the effects' heading in the Graphics group");
+        }
+
+        // B18's grass slider and the window's antialiasing moved into the group, beside the shaders (B17c).
+        foreach (var moved in new[] { SettingId.Shaders, SettingId.Grass, SettingId.Msaa })
+        {
+            var row = rows.FindIndex(r => r.Id == moved.ToString());
+            Assert.True(row > effects && row < interfaceGroup, $"{moved} is in the effects' group");
+        }
+
+        Assert.Equal(4, settings.Msaa);
+        Assert.Equal(SettingKind.Choice, PlayerSettings.Spec(SettingId.Msaa).Kind);
+        Assert.Equal("Antialiasing", TestGame.Locale.Ui(PlayerSettings.Spec(SettingId.Msaa).LabelKey));
+    }
+
+    [Fact]
+    public void Given_AnEffectIsSwitched_When_SetTwice_Then_ChangedFiresOnceAndTheOthersStayOn()
+    {
+        foreach (var (id, _, _, read, _, _) in Effects)
+        {
+            var settings = new PlayerSettings();
+            var changed = new List<SettingId>();
+            settings.Changed += changed.Add;
+            settings.Set(id, 0);
+            settings.Set(id, 0);
+            Assert.Equal([id], changed);
+            Assert.False(read(settings));
+            Assert.Equal(Effects.Length - 1, Effects.Count(e => e.Read(settings)));
+        }
+    }
+
+    [Fact]
+    public void Given_AnEffectOff_When_SavedAndLoaded_Then_ItComesBackAndAnEffectOnIsLeftOutOfTheFile()
+    {
+        var plain = System.Text.Json.JsonSerializer.Serialize(new PlayerSettings().ToSave());
+        foreach (var (id, json, _, read, saved, _) in Effects)
+        {
+            Assert.DoesNotContain(json, plain, StringComparison.Ordinal); // a save of the default is byte for byte what it was
+            var settings = new PlayerSettings();
+            settings.Set(id, 0);
+            var save = settings.ToSave();
+            Assert.True(saved(save));
+            var text = System.Text.Json.JsonSerializer.Serialize(save);
+            Assert.Contains(json, text, StringComparison.Ordinal);
+            var back = PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(text)!);
+            Assert.False(read(back));
+            Assert.Equal(Effects.Length - 1, Effects.Count(e => e.Read(back)));
+        }
+
+        Assert.DoesNotContain("Msaa", plain, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Given_ALaunchOptionForAnEffect_When_Resolved_Then_ItWinsOverTheSaveForTheRun()
+    {
+        foreach (var (_, _, _, read, _, launch) in Effects)
+        {
+            Assert.True(read(PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, SunFollowsHourOff: true, ClimateColoursOff: true, WaterShaderOff: true, HeightFogOff: true, FarLightOff: true), launch(true))));
+            Assert.False(read(PlayerSettings.Resolve(null, launch(false))));
+            Assert.True(read(PlayerSettings.Resolve(null, new LaunchSettings())));
+        }
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(2, 2)]
+    [InlineData(4, 4)]
+    [InlineData(8, 8)]
+    public void Given_TheAntialiasingRow_When_SavedAndLoaded_Then_TheSamplesComeBackAndTheDefaultIsLeftOut(int samples, int expected)
+    {
+        var settings = PlayerSettings.Resolve(null, new LaunchSettings(Msaa: samples));
+        Assert.Equal(expected, settings.Msaa);
+        var save = settings.ToSave();
+        Assert.Equal(samples == 4 ? null : samples, save.Msaa);
+        Assert.Equal(expected, PlayerSettings.Resolve(save).Msaa);
+        Assert.Equal(expected, PlayerSettings.Resolve(System.Text.Json.JsonSerializer.Deserialize<SaveSettings>(System.Text.Json.JsonSerializer.Serialize(save))!).Msaa);
+        Assert.Equal(4, PlayerSettings.Resolve(new SaveSettings(SoundVolumes.Default, Msaa: 3)).Msaa); // not a count the window offers: the default
+        Assert.Equal(4, PlayerSettings.Resolve(null, new LaunchSettings(Msaa: 3)).Msaa);
     }
 }

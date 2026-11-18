@@ -47,7 +47,7 @@ most of the game's session tests from Game.Tests to Game.Core.Tests, which now h
 Game.Tests has 529. The full set "takes ages" (owner, 2026-10-26), so day-to-day work ran only `Vocaterra.Game.Tests` and the full set waited
 for milestones.
 
-Everything runs under `scripts/limited.sh`: at most two heavy commands at once (one until 2026-11-05), each at most 10 of 16 cores and 6 GB of RAM, all together at most 14 cores and 8 GB, and `-m:2`. Under those limits, wasted
+Everything runs under `scripts/limited.sh`: at most three heavy commands at once (two from 2026-11-05, three since 2026-11-16; one until 2026-11-05), each at most 10 of 16 cores and 6 GB of RAM (10 GB since 2026-11-16), all together at most 14 cores and 8 GB (16 GB since 2026-11-16), and `-m:2`. Under those limits, wasted
 CPU and memory turn straight into extra minutes. The goal was to cut that waste without weakening any test or oracle, and then give
 developers a fast tier to run on every step.
 
@@ -250,6 +250,28 @@ cap stays (the owner, D-game-23 item 6) and the xUnit threads stay at 3. Sonnet 
 1.1 GB for ten seeds; now seed 42 and the last two others), and `TeacherLoopTests`' rig never stopped its turn worker (about 30 MB a test;
 now disposed). Live heap peak 563 MB (was 1.67 GB), unforced 1.07 GB of the 3 GB cap (was 2.96 GB), the test host 2.1 GB (was 3.9 GB);
 the gate's suite peak 4.5 GB (was 6.0). `RouteSceneCacheTests` pins the cache. Report `.claude/briefs/t10-report.md`.
+
+### T11: B28, the long classes split and the threads raised, done (2026-11-17)
+
+The full suite had grown from 7 to 42 minutes in two days, with the machine's load average at 12 to 13 from the other agents. xUnit runs the tests of one class one
+after another, so the slow classes were split by theme (each keeps every test and assertion; the shared fields and helpers moved to an abstract `<Name>Base` class,
+members `internal`, and the long tests moved to classes of their own so they run beside the others): `StreamedWorldHostTests` (13 tests, 38 min) into nine classes
+(`...Settle`, `...Ring`, `...SaveEdit`, `...OtherSave`, `...Quit`, `...Dispose`, `...FarBuild` and the small ones; the tests that use a folder make their own GUID folder, so none
+shares one), `FarViewTests` into six, `LodStoreTests`, `TerrainTuningTests`, `HeadwaterTests`, `ProceduralChunkSourceTests`, `DrainageNetworkTests`, `UndergroundWorldTests` and
+Game.Tests' `ChunkResidencyTests` into two to four each. `Game.Core.Tests` runs on 6 threads (was 3; Game.Tests has no limit, the cores' count). `NamePlatesTests`
+spent its 6 to 9 minutes in two game processes run one after the other (each starts the game, builds the world and waits 5 s); they now run at the same time (one async test).
+About 35 classes of more than a minute are marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]` and so left out of `scripts/test.sh fast`.
+
+| Run (load 8 to 13, other agents building) | Game.Core.Tests | Game.Tests | Nlp.Tests | Fuzzing | The run |
+|---|---|---|---|---|---|
+| Base, full | 34.3 m | 38.6 m | 286 s | 170 s | 42.3 m |
+| After, full | 31.5 m | 19.5 m | 285 s | 250 s | 31.5 m |
+| After, fast | 187 s | 32 s | 19 s | left out | 187 s (3.1 m) |
+
+Counts: 12,568 before; after 12,567 passed and one failed, `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` (a timing test of Nlp.Tests under load; it passed alone). Peak memory of the full run 5.5 GB.
+The classes' tests are CPU-bound (the test projects build in Debug), so the gain is bounded by the cores the other agents leave: each long test now takes up to 18 minutes
+of wall time because 16 test threads share the machine. The next levers are the Debug build of the world generation under test and the single tests over 5 minutes
+(`ProceduralChunkSourceOrderTests`, `LodStoreRingEditRaceTests`, the host tests that settle a world), which only a cheaper test or a smaller sample can shorten.
 
 ## Files touched
 - **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`

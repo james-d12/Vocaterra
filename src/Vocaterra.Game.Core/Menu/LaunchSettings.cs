@@ -19,6 +19,21 @@ namespace Vocaterra.Game.Core.Menu;
 /// <param name="FieldOfView"><c>--fov</c> in degrees, 60 to 110 in steps of 5.</param>
 /// <param name="MouseSensitivity"><c>--mouse-sensitivity</c> in percent, 25 to 300 in steps of 5.</param>
 /// <param name="InvertY"><c>--invert-y</c>.</param>
+/// <param name="Grass"><c>--grass</c> in percent, 0 to 100 in steps of 10 (B18), or <see langword="null"/> for the save's.</param>
+/// <param name="Workers"><c>--workers</c> (B07d): 0 for auto, or 1 to 8 worker threads; <see langword="null"/> for the save's.</param>
+/// <param name="FarDistance"><c>--far-distance</c> in km (B07d; 0 for the quality's own), or <see langword="null"/> for the save's.</param>
+/// <param name="FarDetail"><c>--far-detail</c> in percent, 50 to 200 in steps of 25 (B07d), or <see langword="null"/> for the save's.</param>
+/// <param name="FarTrees"><c>--far-trees</c> as the setting counts it (0 auto, 1 none, 2 to 6 the distances; B07d), or <see langword="null"/> for the save's.</param>
+/// <param name="FarTextures"><c>--far-textures</c> 0 to 3 (B07d), or <see langword="null"/> for the save's.</param>
+/// <param name="FarExact"><c>--far-exact</c> as the setting counts it (0 auto, 1 none, 2 to 5 the distances; B07d), or <see langword="null"/> for the save's.</param>
+/// <param name="Shaders"><c>--gl-shaders on|off</c> (B17b): the game's own GLSL shaders for the chunks, or <see langword="null"/> for the save's (on for a new game).</param>
+/// <param name="SunFollowsHour"><c>--sun-follows-hour on|off</c> (B17c), or <see langword="null"/> for the save's (on for a new game).</param>
+/// <param name="ClimateColours"><c>--climate-colours on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="WaterShader"><c>--water-shader on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="HeightFog"><c>--height-fog on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="FarLight"><c>--far-light on|off</c> (B17c), or <see langword="null"/> for the save's.</param>
+/// <param name="Msaa"><c>--msaa 0|2|4|8</c> (B22), or <see langword="null"/> for the save's (4 for a new game).</param>
+/// <param name="PassOpen">Whether <c>--pass open</c> was given (it only switches the pass cheat on).</param>
 public sealed record LaunchSettings(
     bool Scripted = false,
     double? SfxVolume = null,
@@ -35,4 +50,19 @@ public sealed record LaunchSettings(
     bool? InvertY = null,
     double? VoiceVolume = null,
     double? UiVolume = null,
-    double? WeatherVolume = null);
+    double? WeatherVolume = null,
+    bool PassOpen = false,
+    int? Grass = null,
+    int? Workers = null,
+    int? FarDistance = null,
+    int? FarDetail = null,
+    int? FarTrees = null,
+    int? FarTextures = null,
+    int? FarExact = null,
+    bool? Shaders = null,
+    bool? SunFollowsHour = null,
+    bool? ClimateColours = null,
+    bool? WaterShader = null,
+    bool? HeightFog = null,
+    bool? FarLight = null,
+    int? Msaa = null);
