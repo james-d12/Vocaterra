@@ -12,13 +12,15 @@ namespace Vocaterra.Game.Core.Tests.World.Streaming;
 /// and a snapshot that has become twice as slow (a chunk read again and again, a column generated per block) does.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class PristineSnapshotTimeTests(ITestOutputHelper output)
 {
     private const int Passes = 3;
 
     // Measured (B24, Debug as the suite runs, CPU time, fastest of three): 2,930 ms a snapshot on average over the three windows (B27, after the drainage network's reach cache; 5,780 after B02c's drainage network before it, 2,740 before B02c). The budget is twice the measurement, rounded up.
-    private static readonly double BudgetMilliseconds = CpuTime.Budget(5_900);
+    // B29a: re-set from Release (the suite runs on the Release build): 451 ms of CPU time a snapshot, fastest of three; the budget is twice that (was 5 900 from Debug).
+    private static readonly double BudgetMilliseconds = CpuTime.Budget(910);
 
     [Fact]
     public void Given_ThreeWindowsOfTheStreamedWorld_When_TheyAreSnapshotWithoutInstalling_Then_TheCpuTimePerSnapshotIsWithinBudget()

@@ -112,11 +112,11 @@ public sealed class AtmosphereSaveTests
     [InlineData("save-v9.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
+        var text = SaveFixture.Read(fixture);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 
-        Assert.Null(loaded.Migration); // the fixture carries this bundle's hash, so the load is strict: its digest, taken before the clock existed, is checked and still the world's
+        Assert.Null(loaded.Migration); // the fixture is read with this bundle's hash (SaveFixture), so the load is strict: its digest, taken before the clock existed, is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
         Assert.Equal(9, SaveGame.Parse(SaveOf(loaded)).Version);

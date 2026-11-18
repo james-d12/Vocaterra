@@ -2,12 +2,19 @@
 # Runs the test suite, or a tier of it, the way the merge gate does: the build with -m:4 and the tests with -m:2, each through
 # scripts/limited.sh (one heavy command on the machine at a time, under the memory and CPU caps). docs/process/test-performance-plan.md, T4.
 #
-#   scripts/test.sh fast                every test that is not marked slow ([Trait(TestSpeed.Trait, TestSpeed.Slow)] on a class or a method, or
-#                                       the fuzz suite's assembly trait): run it after every step of the work
-#   scripts/test.sh full                the whole suite, as the gate and CI run it: run it at a milestone and before a merge
-#   scripts/test.sh project <name>      one test project, every test (Vocaterra.Game.Tests, or the path of a test project)
+#   scripts/test.sh fast                every test that is not marked slow ([Trait(TestSpeed.Trait, TestSpeed.Slow)] on a class or a method), not a timing
+#                                       test and not in the fuzz suite: run it after every step of the work
+#   scripts/test.sh full                the whole suite except the fuzz suite and the timing tests (B29a: both run elsewhere; the merge gate runs the
+#                                       suite as this mode does and then the timing tests as their own step, CI runs everything): run it at a milestone
+#   scripts/test.sh timing              only the timing tests (Category=Timing: the CPU-time budgets of Game.Core.Tests and Nlp.Tests), alone and one at a
+#                                       time: run it when the milestone changes performance or a timing test
+#   scripts/test.sh ci                  every test, the fuzz suite and the timing tests included: what CI's build-and-test job runs
+#   scripts/test.sh project <name>      one test project (Vocaterra.Game.Tests, or the path of a test project), without the timing tests and the fuzz
+#                                       suite as full does; --filter Category=Fuzz (or Timing) runs a project's own on purpose
 #
-# Options after the mode go to dotnet test: --no-build skips the build, and a --filter is combined with the fast tier's. Model-gated tests run
+# The build and the tests use the Release configuration (B29a, docs/process/test-performance-plan.md T12: the world generation under test runs
+# 5 to 8 times faster than in Debug); VOCATERRA_CONFIG=Debug runs a Debug build instead. The CPU timing budgets are set from Release times.
+# Options after the mode go to dotnet test: --no-build skips the build, and a --filter is combined with the mode's. Model-gated tests run
 # when VOCATERRA_MODELS_DIR is set, or the shared models folder (~/.local/share/vocaterra/models) exists, as in the gate. The TRX files land in
 # .claude/test-timings/<mode>-<stamp>/, and the run ends with the wall time and counts of each assembly (scripts/test-timings.py); fast also
 # names the tests it left out.
@@ -17,14 +24,15 @@ L="$ROOT/scripts/limited.sh"
 cd "$ROOT" || exit 1
 
 usage() {
-  echo "usage: scripts/test.sh fast|full|project <name> [dotnet test options]" >&2
+  echo "usage: scripts/test.sh fast|full|timing|ci|project <name> [dotnet test options]" >&2
   exit 2
 }
 [ "$#" -ge 1 ] || usage
 mode="$1"
 shift
 case "$mode" in
-  fast|full) target="Vocaterra.sln" ;;
+  fast|full|ci) target="Vocaterra.sln" ;;
+  timing) target="" ;;
   project)
     [ "$#" -ge 1 ] || usage
     name="$1"
@@ -51,19 +59,37 @@ while [ "$#" -gt 0 ]; do
   esac
   shift
 done
-if [ "$mode" = fast ]; then
-  filter="${filter:+($filter)&}Speed!=Slow"
+CONFIG="${VOCATERRA_CONFIG:-Release}"
+case "$mode" in
+  fast) mode_filter="Speed!=Slow&Category!=Timing&Category!=Fuzz" ;;
+  full) mode_filter="Category!=Timing&Category!=Fuzz" ;;
+  timing) mode_filter="Category=Timing" ;;
+  project) mode_filter="Category!=Timing&Category!=Fuzz" ;;
+  *) mode_filter="" ;;
+esac
+# A --filter on a Category (project mode) replaces the mode's own, so a project's timing or fuzz tests can still be run on purpose.
+case "$filter" in *Category=*) mode_filter="" ;; esac
+if [ -n "$mode_filter" ]; then
+  filter="${filter:+($filter)&}$mode_filter"
 fi
 [ -n "$filter" ] && args+=(--filter "$filter")
 
+# The timing tests live in two projects; the mode builds and runs those and no other.
+timing_projects=(tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj tests/Vocaterra.Nlp.Tests/Vocaterra.Nlp.Tests.csproj)
+if [ "$mode" = timing ]; then targets=("${timing_projects[@]}"); else targets=("$target"); fi
+
 if [ "$build" -eq 1 ]; then
-  "$L" dotnet build "$target" -warnaserror -m:4 -v:q -nologo || exit $?
+  for t in "${targets[@]}"; do
+    "$L" dotnet build "$t" -c "$CONFIG" -warnaserror -m:4 -v:q -nologo || exit $?
+  done
 fi
 
 results=".claude/test-timings/$mode-$(date +%Y%m%d-%H%M%S)"
-echo "test.sh: $mode on $target${filter:+ with --filter \"$filter\"}; models: ${VOCATERRA_MODELS_DIR:-none}; TRX files in $results"
-"$L" dotnet test "$target" --no-build -m:2 --logger trx --results-directory "$results" "${args[@]}"
-rc=$?
+echo "test.sh: $mode on ${targets[*]} ($CONFIG)${filter:+ with --filter \"$filter\"}; models: ${VOCATERRA_MODELS_DIR:-none}; TRX files in $results"
+rc=0
+for t in "${targets[@]}"; do
+  "$L" dotnet test "$t" -c "$CONFIG" --no-build -m:2 --logger trx --results-directory "$results" "${args[@]}" || rc=$?
+done
 
 if [ "$mode" = fast ]; then
   echo

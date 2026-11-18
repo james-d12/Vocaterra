@@ -23,7 +23,7 @@ public sealed class SecondTryTests
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -32,7 +32,7 @@ public sealed class SecondTryTests
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} check answers came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} check answers came back", 30_000));
             Thread.Sleep(2);
         }
 
@@ -187,7 +187,7 @@ public sealed class SecondTryTests
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("villager");
         var worker = session.StartWorker(loadSpeech: false);
-        Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.donde-esta-el-rio");
 
         _ = session.SubmitCheck(item, TurnSource.Button, TestGame.Data.Words.DontKnowLine, null, null);

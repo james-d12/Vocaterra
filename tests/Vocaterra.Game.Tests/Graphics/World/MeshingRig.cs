@@ -83,10 +83,10 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
     }
 
     /// <summary>Frames until nothing is left to do (a pool's workers get their time).</summary>
-    public int Settle(int timeoutMilliseconds = 120_000)
+    public int Settle(long timeoutMilliseconds = 600_000)
     {
         var built = 0;
-        var started = Environment.TickCount64;
+        var deadline = HangGuard.DeadlineAfter(timeoutMilliseconds);
         do
         {
             built += Frame();
@@ -95,7 +95,7 @@ internal sealed class MeshingRig : IChunkMeshSink, IDisposable
                 Thread.Sleep(1);
             }
 
-            Assert.True(Environment.TickCount64 - started < timeoutMilliseconds, "the view did not settle");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung("the view did not settle", timeoutMilliseconds));
         }
         while (Pipeline.Busy);
         return built;

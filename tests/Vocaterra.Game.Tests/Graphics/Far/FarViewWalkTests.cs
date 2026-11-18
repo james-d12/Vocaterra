@@ -15,7 +15,7 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
         using var pool = new JobPool(0);
         var view = Make(pool);
 
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         Assert.Equal(view.Unuploaded, view.PendingTiles.Count);
         Assert.Empty(view.Draw); // built, none on the card: nothing is drawn yet
         Land(view, 192, 192);
@@ -39,7 +39,7 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
     {
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         var built = view.Stats.Built;
 
         view.Update(193.5, 192.5, Voxel, Release, null);
@@ -54,12 +54,12 @@ public sealed class FarViewWalkTests(ITestOutputHelper output) : FarViewTestsBas
     {
         using var pool = new JobPool(0);
         var view = Make(pool);
-        Assert.True(view.Settle(192, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192, 192, Voxel, Release, limit));
         Land(view, 192, 192);
         var before = view.Draw.Select(static t => t.Key).ToHashSet();
         var built = view.Stats.Built;
 
-        Assert.True(view.Settle(192 + 30, 192, Voxel, Release, 120_000));
+        HangGuard.Settled(limit => view.Settle(192 + 30, 192, Voxel, Release, limit));
         Land(view, 192 + 30, 192);
 
         var after = view.Draw.Select(static t => t.Key).ToHashSet();

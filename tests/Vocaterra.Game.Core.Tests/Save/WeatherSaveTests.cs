@@ -130,7 +130,7 @@ public sealed class WeatherSaveTests
     [InlineData("save-v9.json")]
     public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsEight(string fixture)
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", fixture));
+        var text = SaveFixture.Read(fixture);
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine);
 

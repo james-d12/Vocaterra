@@ -146,14 +146,13 @@ public sealed class DrainageNetworkTests(ITestOutputHelper output) : DrainageNet
         var climate = new ClimateSampler(World, 7);
         var reach = new HeightModel(World, 7).Reaches(3000, 7400, 3500, 7900).OrderByDescending(static r => r.Area).First(); // a river of seed 7's continent near (3 200, 7 600)
         var (x, z) = (reach.FromX, reach.FromZ);
-        var watch = System.Diagnostics.Stopwatch.StartNew();
         ColumnShape dry;
         using (DrainageNetwork.WithoutReading())
         {
             dry = model.Shape(x, z, climate.At(x, z));
         }
 
-        Assert.True(watch.ElapsedMilliseconds < 100 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor, $"a dry column took {watch.ElapsedMilliseconds} ms");
+        // How quick the dry look-up is is held to a CPU-time budget in Timing.SpeedChecksTimingTests (B29b).
         Assert.Equal(0, dry.RiverWeight + dry.LakeWeight);
         Assert.False(model.IsWarm(x, z), "a dry look-up read nothing");
         model.Warm(x, z);

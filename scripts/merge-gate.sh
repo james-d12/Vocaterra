@@ -3,11 +3,22 @@
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
 # Merges each branch into the target branch $GATE_TARGET, a feature branch, never main (owner, 2026-10-23: nothing is merged into or pushed
 # to main; the owner merges feature branches by pull request), with --no-ff (aborting that merge on conflict), then runs the gate on
-# Vocaterra.sln: build with warnings as
-# errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
-# set), the format check, the game bundle validation with the content gate (the lint at A2, the bundle's ceiling, since V08) and the core's
-# offline licence scan. Every check's log is kept under .claude/gate-logs/
-# so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
+# Vocaterra.sln: build in Release with warnings as errors (B29a: the tests run on the Release build, 5 to 8 times faster than Debug for world
+# generation), the test suite without the fuzz suite and the timing tests (the core's unit and golden suites and the game's; model-backed tests run
+# when VOCATERRA_MODELS_DIR is set), then the timing tests as their own step, alone, after the suite, the format check, the game bundle validation
+# with the content gate (the lint at A2, the bundle's ceiling, since V08), the grammar replay and the licence scans. The fuzz suite runs in CI
+# only (owner, 2026-11-18, D-game-34 item 58). Every check's log is kept under .claude/gate-logs/ so that an intermittent failure can be identified
+# afterwards. Exit status is 0 only when every merge succeeded and every check passed.
+#
+# B29a, the whole gate is one limited.sh command: the script re-runs itself once under scripts/limited.sh, so it holds one slot and one
+# scope's caps (10 GB, 10 cores, no swap) from the merge to the last scan and never queues for a slot after it starts; its inner limited.sh
+# calls run directly through the re-entrancy (VOCATERRA_LIMITED=1). The merge, the commit message and the log names are unchanged.
+#
+# A failed test (a step's TRX files under .claude/gate-logs/trx-<stamp>/) is re-run alone in its project and labelled: FLAKY (passed alone) or
+# FAILED. The step passes when every failure is FLAKY; the FLAKY names are printed in the summary and kept in .claude/gate-logs/flaky-<stamp>.txt for
+# the orchestrator to record. More than 20 failures in a step fail it without a re-run. After the test steps the gate prints each assembly's
+# time and its slowest class's time next to the last gate's (timing-<stamp>.json, scripts/gate-tests.py), with a warning, never a failure,
+# for 10 percent growth or a class over 5 minutes.
 #
 # The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in; the content schema
 # test's project (tests/Vocaterra.Game.Core.Tests, with NJsonSchema); and the game's shipped projects, Vocaterra.Game (MonoGame, FontStashSharp,
@@ -17,8 +28,9 @@ set -uo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
-# Resource limits (owner, 2026-10-22, after two desktop crashes): every heavy step runs through scripts/limited.sh (one heavy command
-# on the machine at a time, a memory and CPU cap, no lingering build servers), the build with -m:4 and the tests with -m:2.
+# Resource limits (owner, 2026-10-22, after two desktop crashes): every heavy step runs through scripts/limited.sh (a slot, a memory and CPU cap,
+# no lingering build servers), the build with -m:4 and the tests with -m:2.
+CONFIG="${VOCATERRA_CONFIG:-Release}"
 L="$(cd "$(dirname "$0")" && pwd)/limited.sh"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
@@ -29,6 +41,11 @@ TARGET="${GATE_TARGET:-}"
 [ "$TARGET" != "main" ] || { echo "refusing to merge into main (owner, 2026-10-23); use a feature branch" >&2; exit 2; }
 [ "$(git branch --show-current)" = "$TARGET" ] || { echo "not on $TARGET"; exit 1; }
 [ -z "$(git status --short)" ] || { echo "$TARGET is dirty"; git status --short; exit 1; }
+
+# One slot for the whole gate (B29a): re-run under limited.sh once; the inner calls then run directly.
+if [ "${VOCATERRA_LIMITED:-}" != 1 ]; then
+  exec "$L" bash "$ROOT/scripts/merge-gate.sh" "$@"
+fi
 
 # Speech models: the core's ModelStore reads VOCATERRA_MODELS_DIR. The pinned models are fetched once into a shared folder outside the
 # repository (scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set), so tests that need a model run in the gate instead of being skipped.
@@ -56,27 +73,72 @@ done
 
 echo "=== gate ==="
 BUILDLOG=".claude/gate-logs/build-$STAMP.log"
-{ "$L" dotnet restore Vocaterra.sln -m:4 && "$L" dotnet build Vocaterra.sln -warnaserror --no-restore -m:4; } > "$BUILDLOG" 2>&1
+{ "$L" dotnet restore Vocaterra.sln -m:4 && "$L" dotnet build Vocaterra.sln -c "$CONFIG" -warnaserror --no-restore -m:4; } > "$BUILDLOG" 2>&1
 build_rc=$?
 grep -E "Warning\(s\)|Error\(s\)" "$BUILDLOG" | sort | uniq -c
 grep -E ": error " "$BUILDLOG" | head -10
 
-TESTLOG=".claude/gate-logs/test-$STAMP.log"
-"$L" dotnet test Vocaterra.sln --no-build -m:2 > "$TESTLOG" 2>&1
-test_rc=$?
-SUMMARY="$(grep -E "^(Passed|Failed)!" "$TESTLOG" | sed -E 's/,//g')"
-echo "$SUMMARY" | awk 'NF {f+=$4; p+=$6; s+=$8} END {print "tests: passed="p" failed="f" skipped="s}'
-grep -E "^\s+Failed |\[FAIL\]" "$TESTLOG" | head -20
-# Every test assembly that starts must report a result (H08a: a test host killed for memory printed nothing and dotnet test still exited 0).
-runs="$(grep -c "Test run for " "$TESTLOG")"
-results="$(grep -cE "^(Passed|Failed)!" "$TESTLOG")"
-if [ "$runs" -ne "$results" ]; then
-  echo "tests: INCOMPLETE, $runs test runs started but $results results; no result for:"
-  grep "Test run for " "$TESTLOG" | sed -E 's/^Test run for //; s/ \(.*$//' | while read -r asm; do
-    grep -qE "^(Passed|Failed)!.* - $(basename "$asm") " "$TESTLOG" || echo "  $asm"
+# The test steps (B29a). run_step NAME FILTER [PROJECT...] runs `dotnet test` on the solution (or each named project, one after the other) with the
+# filter, TRX files under .claude/gate-logs/trx-<stamp>/NAME, and the console in NAME's log. Every failed test is re-run alone and labelled
+# (see the header). The step's counts, the FLAKY and FAILED lines and its result are printed; its return code is 0 only when every failure was FLAKY.
+TRXROOT=".claude/gate-logs/trx-$STAMP"
+FLAKYFILE=".claude/gate-logs/flaky-$STAMP.txt"
+: > "$FLAKYFILE"
+MAX_RERUNS=20
+run_step() {
+  local name="$1" filter="$2"; shift 2
+  local log=".claude/gate-logs/$name-$STAMP.log" trx="$TRXROOT/$name" rc=0 target
+  local targets=("$@"); [ "${#targets[@]}" -gt 0 ] || targets=(Vocaterra.sln)
+  : > "$log"
+  for target in "${targets[@]}"; do
+    "$L" dotnet test "$target" -c "$CONFIG" --no-build -m:2 --filter "$filter" --logger trx --results-directory "$trx" >> "$log" 2>&1 || rc=1
   done
-  test_rc=1
-fi
+  local summary
+  summary="$(grep -E "^(Passed|Failed)!" "$log" | sed -E 's/,//g')"
+  echo "$name: $(echo "$summary" | awk 'NF {f+=$4; p+=$6; s+=$8} END {print "passed="p" failed="f" skipped="s}')"
+  [ -n "$summary" ] || rc=1
+  # Every test assembly that starts must report a result (H08a: a test host killed for memory printed nothing and dotnet test still exited 0).
+  # An assembly whose tests are all filtered out reports "No test matches".
+  local runs results
+  runs="$(grep -c "Test run for " "$log")"
+  results="$(grep -cE "^(Passed|Failed)!|No test matches" "$log")"
+  if [ "$runs" -ne "$results" ]; then
+    echo "$name: INCOMPLETE, $runs test runs started but $results results; no result for:"
+    grep "Test run for " "$log" | sed -E 's/^Test run for //; s/ \(.*$//' | while read -r asm; do
+      grep -qE "^(Passed|Failed)!.* - $(basename "$asm") |No test matches" "$log" || echo "  $asm"
+    done
+    return 1
+  fi
+  [ "$rc" -eq 0 ] && return 0
+  local fails=() line proj fq alone bad=0
+  mapfile -t fails < <(python3 -I scripts/gate-tests.py failed "$trx" 2>/dev/null)
+  if [ "${#fails[@]}" -eq 0 ]; then echo "$name: FAILED without a failed test in the TRX files (a crash, a killed host or no result); see $log"; return 1; fi
+  if [ "${#fails[@]}" -gt "$MAX_RERUNS" ]; then echo "$name: FAILED, ${#fails[@]} tests failed (more than $MAX_RERUNS, not re-run)"; return 1; fi
+  for line in "${fails[@]}"; do
+    proj="${line%%$'\t'*}"; fq="${line#*$'\t'}"
+    alone="$("$L" dotnet test "tests/$proj/$proj.csproj" -c "$CONFIG" --no-build -m:1 --filter "FullyQualifiedName=$fq" 2>&1)"
+    printf '=== re-run alone: %s (%s)\n%s\n' "$fq" "$proj" "$alone" >> "$log"
+    # A filter that matches no test exits 0, so a pass needs at least one passed test.
+    if grep -qE "^Passed!.*Passed: +[1-9]" <<<"$alone" && ! grep -qE "^Failed!" <<<"$alone"; then
+      echo "FLAKY $fq"; echo "$name FLAKY $fq ($proj)" >> "$FLAKYFILE"
+    else
+      echo "FAILED $fq"; bad=1
+    fi
+  done
+  return "$bad"
+}
+
+# The suite without the fuzz suite (CI only) and the timing tests (their own step below).
+run_step test "Category!=Timing&Category!=Fuzz"
+test_rc=$?
+# The timing tests alone after the suite, so no other test host loads the machine while they measure (the two projects that have them).
+run_step timing "Category=Timing" tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj tests/Vocaterra.Nlp.Tests/Vocaterra.Nlp.Tests.csproj
+timing_rc=$?
+[ "$test_rc" -eq 0 ] && [ "$timing_rc" -eq 0 ] || test_rc=1
+TESTLOG=".claude/gate-logs/test-$STAMP.log"
+SUMMARY="$(cat "$TESTLOG" ".claude/gate-logs/timing-$STAMP.log" 2>/dev/null | grep -E "^(Passed|Failed)!" | sed -E 's/,//g')"
+if [ -s "$FLAKYFILE" ]; then echo "flaky (passed alone; record them as findings):"; sed 's/^/  /' "$FLAKYFILE"; else echo "flaky: none"; fi
+python3 -I scripts/gate-tests.py report "suite=$TRXROOT/test" "timing=$TRXROOT/timing" --out ".claude/gate-logs/timing-$STAMP.json" --logs .claude/gate-logs || true
 
 FORMATLOG=".claude/gate-logs/format-$STAMP.log"
 "$L" dotnet format Vocaterra.sln --verify-no-changes --no-restore > "$FORMATLOG" 2>&1
@@ -113,7 +175,7 @@ if [ -f content/PHRASES.md ]; then
   printf '%s\n' "$CEFR_A1" >> "$CONTENTLOG"
   echo "content gate: cefr-check a1 report, does not fail: $(sed -nE 's/^cefr a1: [0-9]+ lemmas in (.+), [0-9]+ covered, ([0-9]+) not in the list$/\2 above A1 in \1/p' <<<"$CEFR_A1" | paste -sd ';' - | sed 's/;/; /g')"
   echo "== the game's validator (the host's --validate-content: the game's files, and each lesson's Spanish and tenses within its level)" >> "$CONTENTLOG"
-  if "$L" dotnet run --project src/Vocaterra.Host --no-build -- --content content/game-v1 --validate-content >> "$CONTENTLOG" 2>&1; then
+  if "$L" dotnet run --project src/Vocaterra.Host -c "$CONFIG" --no-build -- --content content/game-v1 --validate-content >> "$CONTENTLOG" 2>&1; then
     echo "content gate: --validate-content clean (each lesson within its level, fails the gate)"
   else
     content_rc=1; echo "content gate: FAIL (--validate-content; see $CONTENTLOG)"
@@ -152,6 +214,6 @@ ok=1
 [ "$content_rc" -eq 0 ] || ok=0
 [ "$license_rc" -eq 0 ] || ok=0
 [ "${grammar_rc:-0}" -eq 0 ] || ok=0
-echo "logs: $BUILDLOG $TESTLOG $FORMATLOG $CONTENTLOG $LICENSELOG ${GRAMMARLOG:-}"
+echo "logs: $BUILDLOG $TESTLOG .claude/gate-logs/timing-$STAMP.log $FORMATLOG $CONTENTLOG $LICENSELOG ${GRAMMARLOG:-}"
 [ "${#failed[@]}" -eq 0 ] && echo "merge-failures: none" || { echo "merge-failures: ${failed[*]}"; ok=0; }
 if [ "$ok" -eq 1 ]; then echo "result: PASS"; else echo "result: FAIL"; exit 1; fi

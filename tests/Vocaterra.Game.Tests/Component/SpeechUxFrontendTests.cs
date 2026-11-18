@@ -251,7 +251,7 @@ public sealed class SpeechUxFrontendTests
         public AtTheStall()
         {
             Session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
-            Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
+            Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)));
             Session.Simulation.TeleportTo(NpcStandOff.Choose(Session.Scene.Grid, Session.Scene.Npc("shopkeeper").Feet, Session.Simulation.Player.FeetBlock)!.Value);
             var opening = Session.OpenTalk("shopkeeper");
             Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data, Session.Phrases);
@@ -276,8 +276,8 @@ public sealed class SpeechUxFrontendTests
         public IReadOnlyList<AppliedTurn> Await(int count)
         {
             var all = new List<AppliedTurn>();
-            var deadline = Environment.TickCount64 + 30000;
-            while (all.Count < count && Environment.TickCount64 < deadline)
+            var deadline = HangGuard.DeadlineAfter(30000);
+            while (all.Count < count && !HangGuard.Passed(deadline))
             {
                 all.AddRange(Pump.Apply());
                 Thread.Sleep(2);
@@ -662,7 +662,7 @@ public sealed class SpeechUxFrontendTests
     public void TheScriptedSpeakStepAsksThePanelToSendASpokenLineAndWaitsForTheTurn()
     {
         using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
-        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
+        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)));
         var look = new LookControl();
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);
         var hooks = new ScenarioHooks(

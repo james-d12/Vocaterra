@@ -150,7 +150,7 @@ public sealed class SleepEntrySaveTests
     [Fact]
     public void GivenTheFixtureWithThePlayerAtTheLitFire_When_ItLoadsAndTheyAreWokenBySleeping_Then_TheLastPlaceIsTheFire()
     {
-        var text = File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", "save-v9.json"));
+        var text = SaveFixture.Read("save-v9.json");
         Assert.Null(SaveGame.Parse(text).Systems!.Sleep); // recorded before any sleep, with no lodging
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.True(loaded.AtSleepPlace);

@@ -23,7 +23,7 @@ public sealed class LearnerRecordTests
     private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
-        var deadline = Environment.TickCount64 + 30000;
+        var deadline = HangGuard.DeadlineAfter(30000);
         while (all.Count < count)
         {
             all.AddRange(session.Collect());
@@ -32,7 +32,7 @@ public sealed class LearnerRecordTests
                 break;
             }
 
-            Assert.True(Environment.TickCount64 < deadline, $"Only {all.Count} of {count} turns came back.");
+            Assert.False(HangGuard.Passed(deadline), HangGuard.Hung($"Only {all.Count} of {count} turns came back", 30_000));
             Thread.Sleep(2);
         }
 
@@ -62,7 +62,7 @@ public sealed class LearnerRecordTests
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalkForClass("shopkeeper");
         var worker = session.StartWorker(loadSpeech: false);
-        Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
+        Assert.True(worker.WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
 
         var request = session.SubmitTyped("quiero dos aguas");
         _ = Drain(session, 1);
@@ -88,7 +88,7 @@ public sealed class LearnerRecordTests
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalkForClass("shopkeeper");
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
 
         _ = session.SubmitSpeak("quiero dos aguas");
         var applied = Drain(session, 1).Single();
@@ -277,7 +277,7 @@ public sealed class LearnerRecordTests
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalkForClass("shopkeeper");
-        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000), "The worker did not load.");
+        Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady((int)HangGuard.Scale(30000)), HangGuard.Hung("The worker did not load", 30_000));
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
 
         _ = session.SubmitCheck(item, TurnSource.Typed, "Quiero agua, por favor.", null, null);

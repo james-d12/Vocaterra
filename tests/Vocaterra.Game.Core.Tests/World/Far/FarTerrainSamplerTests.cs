@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
@@ -209,10 +208,9 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_ManyColumns_When_TheyAreSampled_Then_TheTimePerSampleIsReported()
+    public void Given_ManyColumns_When_TheyAreSampled_Then_EveryColumnIsRead()
     {
         _ = Sampler.At(1000, 1000);
-        var watch = Stopwatch.StartNew();
         var count = 0;
         foreach (var (x, z) in OutsideColumns(64, -1000, 1000))
         {
@@ -220,8 +218,9 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
             count++;
         }
 
-        output.WriteLine($"{count} samples, {watch.Elapsed.TotalMilliseconds / count * 1000:0.0} us each (Debug, one thread)");
-        Assert.True(watch.Elapsed.TotalSeconds < 20 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor);
+        // The time per sample is held to a CPU-time budget in Timing.SpeedChecksTimingTests (B29b).
+        output.WriteLine($"{count} columns sampled");
+        Assert.True(count > 100);
     }
 
     // The ground of a column as the generated chunks have it: from the top, past the air, plants and crowns, the water's top noted, down to the first solid block.
