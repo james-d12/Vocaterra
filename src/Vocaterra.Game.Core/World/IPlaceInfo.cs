@@ -15,6 +15,9 @@ public interface IPlaceInfo
     /// <param name="z">The block's z.</param>
     ClimateSample ClimateAt(int x, int z);
 
+    /// <summary>The climate temperature (fixed point, the unit of <see cref="TemperatureAt"/>) below which snow lies: the generator's own snow line, so the player's cold and the white ground agree (I06c).</summary>
+    int SnowBelowTemperature { get; }
+
     /// <summary>The climate temperature at a point: the column's sea-level temperature lowered by the lapse with height (biomes plan section 3.3).</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="y">The height.</param>

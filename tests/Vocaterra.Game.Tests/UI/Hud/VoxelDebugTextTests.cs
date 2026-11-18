@@ -49,6 +49,8 @@ public sealed class VoxelDebugTextTests
 
         Assert.Equal("temp 12.5C   warmth 0.0   feels 12.5C cool", VoxelDebugText.Temperature(new TemperatureReading(125, 0, cool, Held: false)));
         Assert.Equal("temp -5.0C held   warmth 3.0   feels -2.0C cool", VoxelDebugText.Temperature(new TemperatureReading(-50, 30, cool, Held: true)));
-        Assert.Equal("temp -5.8C   warmth 0.0   feels -5.8C cool   climate -12.0", VoxelDebugText.Temperature(new TemperatureReading(-58, 0, cool, Held: false, ClimateTenths: -120)));
+        var terms = new[] { new TemperatureContribution("climate", 140), new TemperatureContribution("day", -60), new TemperatureContribution("fire", 0) };
+        Assert.Equal("temp 8.0C   warmth 0.0   feels 8.0C cool   [climate 14.0 day -6.0]", VoxelDebugText.Temperature(new TemperatureReading(80, 0, cool, Held: false, terms, 80)));
+        Assert.Equal("temp 10.0C -> 8.0C   warmth 0.0   feels 10.0C cool   [climate 14.0 day -6.0]", VoxelDebugText.Temperature(new TemperatureReading(100, 0, cool, Held: false, terms, 80)));
     }
 }

@@ -129,6 +129,11 @@ and are not saved. `RestoreParts` puts the places made in play back first, befor
 - **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
   is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
 
+**The `temperature` entry (I06c).** `systems.temperature` is `{"felt"}`: how far the temperature the player feels has got towards the place's (`PlayerTemperature`'s lag), in millionths of a tenth of a
+degree. It is state because the band the felt value falls in slows the walk and quickens the thirst, so a load that took the place's value at once would continue differently from the game it was saved
+from (`SaveGameTests.ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession`). Left out when nothing lags; the entry is optional, so the version stays 8 and a save without it starts at the place's
+value (the fixtures keep loading). The place's own temperature and the band's line are never saved: they are derived from the stored time, the weather and the world.
+
 **The `land` entry (Y09).** `systems.land` keeps the player's plots, both optional, the entry absent when neither exists: `pending` (the plot marked with a stake and not yet bought, Y10) and `owned` (the plot bought from
 the mayor, Y11), each `{"x", "z", "width", "depth"}`: the west-north corner and the size in blocks, along the world's axes (a plot is columns, not a volume). One plot of each kind at most. What is *not* saved is the rules: the
 protected regions and the meadows come from `game/land.json` and the scene (`LandRules` builds its mask when the session starts), so an edit of the file changes where a column is protected for every save. A load and a sleep's restore put the

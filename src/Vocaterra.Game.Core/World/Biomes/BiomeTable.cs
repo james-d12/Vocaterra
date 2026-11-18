@@ -38,6 +38,9 @@ public sealed class BiomeTable : IBiomeSelector
     private readonly BiomeSurface[] _surfaces;
     private readonly TerrainNoise _dither;
 
+    /// <summary>The climate temperature (fixed point, as <see cref="IClimateSampler.TemperatureAt"/> gives it) below which snow lies on a snow-capped column; the player's cold reads the same line (I06c).</summary>
+    public int SnowBelow => _snowBelow;
+
     /// <summary>Creates the table of one world seed.</summary>
     /// <param name="data">The biomes.</param>
     /// <param name="world">The world's numbers (the sea level, the lapse and the snow and tree-line thresholds).</param>

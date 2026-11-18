@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Tests.Temperature;
 /// </summary>
 public sealed class TemperatureFeelTests
 {
-    private static int Place(TemperatureSituation situation) => TemperatureRig.Place.TenthsAt(situation);
+    private static int Place(ITemperatureContext situation) => TemperatureRig.Place.TenthsAt(situation);
 
     private static string Band(int tenths) => TemperatureRig.Data.BandFor(tenths).Id;
 
@@ -85,7 +85,7 @@ public sealed class TemperatureFeelTests
         var situation = TemperatureRig.Open(TemperatureRig.Sky(5.3, "cloudy"));
 
         Assert.Equal(Place(situation), Place(situation));
-        Assert.Equal(Place(situation), new PlaceTemperature(TemperatureTerms.Standard(TemperatureRig.Data)).TenthsAt(situation));
+        Assert.Equal(Place(situation), PlaceTemperature.From(TemperatureRig.Data).TenthsAt(situation));
     }
 
     [Fact]

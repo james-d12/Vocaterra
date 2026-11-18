@@ -335,6 +335,7 @@
     "need.health.1": "I'm weak.",
     "need.health.2": "I'm very weak.",
     "temperature.cold": "I'm cold.",
+    "temperature.hot": "I'm hot.",
     "refuse.different": "That is a different item.",
     "refuse.trashDifferent": "The bin holds something else.",
     "refuse.slotFull": "That stack is full.",

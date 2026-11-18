@@ -55,11 +55,19 @@ public static class VoxelDebugText
 
     /// <summary>
     /// The temperature line (I06): the place's temperature in degrees Celsius (<c>held</c> when <c>--temperature</c> holds it), the player's warmth, the feeling those make and the
-    /// band it falls in, and what the world's climate took off when it took any (I06b).
+    /// band it falls in, then each term of the place by name and its tenths of a degree (I06c: <c>[climate 14.0 day 3.1 ...]</c>, a term at 0 left out); while the felt temperature is still on its way
+    /// to the place's, the place's follows the felt one (<c>temp 10.0C -&gt; 8.0C</c>).
     /// </summary>
     /// <param name="reading">The temperature now.</param>
     public static string Temperature(TemperatureReading reading) =>
-        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}{(reading.ClimateTenths == 0 ? string.Empty : "   climate " + TemperatureUnits.Format(reading.ClimateTenths))}";
+        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}{Arrival(reading)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}{Terms(reading)}";
+
+    private static string Arrival(TemperatureReading reading) => reading.TargetTenths is { } target && target != reading.PlaceTenths && !reading.Held ? " -> " + TemperatureUnits.Format(target) + "C" : string.Empty;
+
+    private static string Terms(TemperatureReading reading) =>
+        reading.Terms is { Count: > 0 } terms && terms.Where(static t => t.Tenths != 0).ToList() is { Count: > 0 } shown
+            ? "   [" + string.Join(' ', shown.Select(static t => t.Term + " " + TemperatureUnits.Format(t.Tenths))) + "]"
+            : string.Empty;
 
     /// <summary>
     /// The clock and weather line (E03): the hour as hh:mm, the phase, and <c>held</c> when the clock is held; the weather's kind and, during a change of kind, the kind it

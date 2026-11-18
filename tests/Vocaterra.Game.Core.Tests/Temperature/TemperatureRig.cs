@@ -13,7 +13,7 @@ internal static class TemperatureRig
     public static TemperatureData Data => TestGame.Data.Temperature;
 
     /// <summary>The shipped terms in a place.</summary>
-    public static PlaceTemperature Place => new(TemperatureTerms.Standard(Data));
+    public static PlaceTemperature Place => PlaceTemperature.From(Data);
 
     /// <summary>The sky at an hour with a kind of the shipped weather in it (no kind named in the code under test: the test names it, as the data does).</summary>
     public static AtmosphereSnapshot Sky(double hour, string kind)
@@ -24,10 +24,14 @@ internal static class TemperatureRig
     }
 
     /// <summary>A situation in the open, with no fire.</summary>
-    public static TemperatureSituation Open(AtmosphereSnapshot sky) => new(sky, new BlockPos(5, 10, 5), 0, null);
+    public static TemperatureContext Open(AtmosphereSnapshot sky, double covered = 0) => new(sky, new BlockPos(5, 10, 5), covered, null);
 
     /// <summary>A situation under a roof over every column round the feet.</summary>
-    public static TemperatureSituation Covered(AtmosphereSnapshot sky) => Open(sky) with { CoveredShare = 1 };
+    public static TemperatureContext Covered(AtmosphereSnapshot sky) => Open(sky, 1);
+
+    /// <summary>A moment in a world, with the data's own environment (the ground and the biomes' rows) unless another is given.</summary>
+    public static TemperatureContext At(AtmosphereSnapshot sky, IPlaceInfo? places, int x = 0, int y = 40, int z = 0, TemperatureEnvironment? environment = null) =>
+        new(sky, new BlockPos(x, y, z), 0, null, places, environment ?? Data.Environment);
 
     /// <summary>A grid with one ring of eight stones round (8, 10, 8), lit by a torch on a stone of its rim when asked.</summary>
     public static FireRings Ring(bool lit)
@@ -53,5 +57,5 @@ internal static class TemperatureRig
     }
 
     /// <summary>A situation at a distance from the ring's middle (8, 10, 8) along x.</summary>
-    public static TemperatureSituation Beside(AtmosphereSnapshot sky, FireRings fires, int distance) => new(sky, new BlockPos(8 + distance, 10, 8), 0, fires);
+    public static TemperatureContext Beside(AtmosphereSnapshot sky, FireRings fires, int distance) => new(sky, new BlockPos(8 + distance, 10, 8), 0, fires);
 }
