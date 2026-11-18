@@ -12,14 +12,16 @@ namespace Vocaterra.Game.Core.Tests.World.Streaming;
 /// development machine, so a busy machine does not fail it and a step that has become twice as slow does.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class StreamedWorldTimeTests(ITestOutputHelper output)
 {
     // Measured (B24, Debug as the suite runs, CPU time, fastest of three): (B27, after the drainage network's reach cache; 15.4 and 20.4 before it) a column's band 6.4 ms, its band layers 11.2 (2.6 a chunk), a plan of 28 columns' radius 1.0. Each budget is twice the measurement, rounded up.
-    private static readonly double BandBudget = CpuTime.Budget(13);
-    private static readonly double MadeBudget = CpuTime.Budget(23);
-    private static readonly double PerChunkBudget = CpuTime.Budget(6);
-    private static readonly double PlanBudget = CpuTime.Budget(2);
+    // B29a: re-set from Release (the suite runs on the Release build): a column's band 1.25 ms (1.00 in the full suite), its band layers 1.81 (0.43 a chunk), a plan 0.4; each budget is twice that (the old budgets, from Debug: 13, 23, 6 and 2).
+    private static readonly double BandBudget = CpuTime.Budget(2.6);
+    private static readonly double MadeBudget = CpuTime.Budget(3.7);
+    private static readonly double PerChunkBudget = CpuTime.Budget(0.9);
+    private static readonly double PlanBudget = CpuTime.Budget(0.8);
 
     // The CPU milliseconds one call costs: after one warm-up call, the fastest of three passes of `repeats` calls.
     private static double Time(Action action, int repeats)

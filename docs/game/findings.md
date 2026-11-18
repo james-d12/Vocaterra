@@ -3012,6 +3012,55 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   tile and rebuilds it from its data, as a change of levels already did; the read-back code is gone. The test covers the decision (no
   graphics device in a test). Gated: 12,787 passed; the one failure the sample town's wall-clock test, passing alone: it keeps failing
   gates under load and should move to CPU time (the next branch).
+- **B29a, the throughput review's script changes (2026-11-18, merge `2fe21cd7`).** Tests now build and run in Release in `scripts/test.sh`,
+  the gate and CI: on a quiet machine the full suite with the fuzz suite took 26.4 minutes in Debug and 8.9 in Release (3.0 times), with
+  every golden, the end-to-end goldens and the save fixture unchanged and the CPU budgets re-set to twice their Release cost. Game.Core.Tests
+  fell from 26.4 minutes to 332 s and Game.Tests from 17.6 minutes to 202 s; Nlp.Tests barely moved (241 to 199 s), so its lane,
+  with `OpenFallbackMeasurementTests` (167 to 279 s), now sets the gate's floor beside Game.Core.Tests. No class is over 5 minutes, so the
+  review's item 9 does not apply. The gate holds one limited.sh slot for its whole run (peak 6.3 to 6.5 GB), re-runs failed tests alone
+  (FLAKY or FAILED) and prints a test-time report; the timing tests run as their own step and the fuzz suite only in CI (item 58). The
+  gate: 28.4 minutes with the old script against 13.0 with the new on the same tree (quiet), about 11 minutes on the real gate with one
+  agent building beside it. `scripts/test.sh fast` 187 s to 93 s. **Process finding:** the gate runs the target's own copy of
+  `merge-gate.sh`, so a milestone that changes the gate must be merged first and then gated; the first dry run, on the old script, failed
+  six timing tests that mixed a Debug build with Release budgets. The four budgets near 1 ms sit at twice their cost; a heavily loaded
+  machine may trip them (CI's factor 4 covers CI).
+- **B29c, the hot spots and the polling hook (2026-11-18, merge `cb71d43d`).** The save fixture's `bundleHash` is a placeholder; nine test
+  files read the fixture through `SaveFixture.Read`, which puts in the current bundle's hash, so a content edit touches only the content and
+  `manifest.json` (three files before). `scripts/rehash-bundle.sh` runs the hash and validate through limited.sh; `content-loop.sh`'s
+  fixtures step now only reports. A project `.claude/settings.json` adds a PreToolUse hook (`scripts/hooks/no-polling.py`, test
+  `scripts/tests/no-polling-test.py`, 20 cases) that blocks a Bash `sleep` over 30 s, an `until`/`while` loop that sleeps and `nohup … &`.
+  Known false positive: a command that only quotes such text (a commit message with "sleep 600") is blocked too. The gate's time report
+  worked on its second run (833 s against 899 s). Haiku took 541 tool calls for it, many more than a Sonnet agent on a milestone of its size.
+- **B29b, no wall-clock asserts (2026-11-18, merge `fa42ad71`).** Seven speed asserts outside the timing collections (ProceduralReliefRegion,
+  GuideTurn, WorldFacts twice, WorldEditsSave, DrainageNetwork, FarTerrainSampler) became CPU budgets in `SpeedChecksTimingTests`, and Lint's
+  "under five seconds" moved to `LintTimeTests`; three costs sit under the process CPU clock's 10 ms resolution and have small fixed budgets.
+  Every wait of an outcome test (58 `Settle`/`SettleNear` call sites, the deadline loops, the `Wait*` calls) is a hang guard through
+  `HangGuard`, scaled by 4 under CI and reported as "hung", never as a wrong result; `StreamedWorldHostRingTests`, which failed CI on `main`
+  (run 44298795061) when `Settle`'s 120 s default ran out on the runner, now passes 600 s × 4. `StreamedWorldHostDisposeTests` and
+  `FileLodPersistenceTests` lost their wall-clock bounds (15 s, 1.5 s) for hang guards; the shutdown test still asserts the call returns
+  without draining. `WallClockRulesTests` scans every test source and fails on a clock read, a clock assert or a literal wait limit outside
+  the timing files and its 10-entry allow-list (proved on a re-added Stopwatch assert). Left: `ChunkIndexTests`, `RegionTimeTests`,
+  `ProceduralTimingTests` and `ProceduralChunkTimeTests` time with a wall Stopwatch inside the timing collection (they run alone in the gate's
+  timing step).
+- **The throughput re-measure after B29a to B29c (2026-11-18, quiet machine, `ff4e05cb`).** Against the review's section 5 table
+  (docs/research/2026-11-18-throughput-review.md): the whole gate 9 min 47 s (B29b's gate, nothing else running; about 27 min after B28,
+  estimated 10); B29a's and B29c's gates 11 min 28 s and 10 min 0 s with agents beside them (up to 94 min with slot waits before);
+  `scripts/test.sh fast` 97 s of tests, 135 s with the build (187 s after B28; estimated under 60 s: Game.Core.Tests alone takes 97 s);
+  no flaky test in the three gates. CI on PR #70 (run 44325948521) passed in Release with everything, the fuzz suite (141 tests, 11 min)
+  and the timing tests included: `build-and-test` 20 min (38 min on the same PR in Debug that morning; `main`'s Debug run failed after
+  74 min). The longest CI assemblies are Game.Core.Tests 17.5 min and Game.Tests 16.3 min on the 4-core runner.
+- **B29e, the polling hook and quoted text (2026-11-18, merge `609dea89`).** The hook masks quoted strings and comments before its checks and
+  checks the argument of `bash -c` (and `sh`, `zsh`, `dash`, behind `timeout`) as a command, so a commit message or an `echo` that only
+  quotes `sleep 600` passes while real sleeps and loops still block (33 cases). Before it, the live hook blocked the orchestrator's own
+  check of B29e because the case list was quoted on the command line. Still passing: `eval "sleep 600"` and `bash -s` with a heredoc body
+  that sleeps. **The shared notes** (the study's item 6, approved in item 57 but left out of B29c's brief): from now on agents do not edit
+  `README.md`, `docs/game/running.md` or `docs/game/architecture.md` (changed by 37 and 26 commits since 2026-11-10); their reports give the
+  text and the orchestrator applies it when it records the milestone (orchestrator.md, milestone loop step 6; the brief template).
+- **B29d, the last wall-clock timing (2026-11-18, merge `44ed6701`).** `ChunkIndexTests` (0.6 ms, mean of 200 edits), `RegionTimeTests` (70 and
+  100 ms) and `ProceduralTimingTests` (50 ms; one chunk column 0.4 ms over 1,000 repeats) measure with `CpuTime` at twice the highest measured
+  Release run, from wall bounds of 100 to 3,000 ms; `ProceduralChunkTimeTests` already asserted on CPU time. No test now asserts on wall time
+  except through `HangGuard`. The Haiku agent handed back once before its work was done (a timing run still in the background) and finished
+  when told to.
 - **I01, items as data (2026-11-15, on `feature/inventory`).** Report `.claude/briefs/i01-report.md`. Gated at `e865a818`: 11,543
   passed, 3 skipped; no digest, golden or fuzz baseline moved. `items.json` holds the 14 items; `IItemCatalogue` replaces the static
   table in about 25 consumers; the enum keeps nine members code needs by behaviour, and a data-only item (id from 100) works in the bag,

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water.Currents;
 using Vocaterra.Game.Core.World.Streaming;
@@ -29,7 +30,7 @@ public sealed class StreamedViewSetTests
         var scene = StreamedWorlds.Scene();
         var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
         var residency = new ChunkResidency(scene.Grid, scene.Streaming!, Small, pool, scene.Places);
-        Assert.True(residency.Settle(x, y, z));
+        HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
         return (scene, residency, x, y, z);
     }
 

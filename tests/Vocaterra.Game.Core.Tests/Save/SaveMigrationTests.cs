@@ -319,7 +319,7 @@ public sealed class SaveMigrationTests
     [Fact]
     public void TheFixtureLoadsStrictAndAcrossBundles()
     {
-        var text = File.ReadAllText(FixturePath("save-v10.json"));
+        var text = SaveFixture.Read("save-v10.json");
 
         var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);
@@ -373,19 +373,5 @@ public sealed class SaveMigrationTests
         }
 
         throw new InvalidOperationException("no air in the chunk");
-    }
-
-    internal static string FixturePath(string name)
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "tests", "Vocaterra.Game.Core.Tests", "Fixtures", name);
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new FileNotFoundException($"The fixture {name} was not found above the test output folder.");
     }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -384,17 +383,14 @@ public sealed class ProceduralReliefRegionTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_TheSampleTown_When_ItIsBuiltAgain_Then_ItIsTheSameTemplateAndTheBuildTakesAFewHundredMilliseconds()
+    public void Given_TheSampleTown_When_ItIsBuiltAgain_Then_ItIsTheSameTemplate()
     {
         var layout = SampleTown.Layout;
         var placement = Town.Placement;
-        var watch = Stopwatch.StartNew();
         var again = ProceduralReliefRegion.Create(SampleTown.Id, layout, placement, SampleTown.Data.WorldGen, SampleTown.Seed);
-        watch.Stop();
 
-        output.WriteLine($"a 96 x 96 x 96 town region: built, frozen and its edge profile worked out in {watch.ElapsedMilliseconds} ms (Debug)");
+        // The build's time is held to a CPU-time budget in Timing.SpeedChecksTimingTests (B29b).
         Assert.Equal(Town.TemplateDigest, again.TemplateDigest);
-        Assert.True(watch.ElapsedMilliseconds < 5000 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor);
     }
 
     [Fact]

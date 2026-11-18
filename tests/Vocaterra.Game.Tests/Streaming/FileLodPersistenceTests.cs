@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Streaming;
@@ -196,14 +197,16 @@ public sealed class FileLodPersistenceTests : IDisposable
             _ = store.Put(new LodSectionKey(0, x, 0, 0), big, LodOrigin.Real, 0xFF);
         }
 
-        var started = Environment.TickCount64;
-        var finished = disk.Shutdown(TimeSpan.FromMilliseconds(1));
-        var took = Environment.TickCount64 - started;
-
-        Assert.True(took < 1500, $"shutdown took {took} ms");
+        // Shutdown(1 ms) must come back and not wait for the writer to drain the queue. Its bound is a hang guard (a call that waits is a hang, and the writer's state below says whether it drained);
+        // how long the call takes is a speed, which no test outside the timing collection checks.
+        var finished = false;
+        var closing = new Thread(() => finished = disk.Shutdown(TimeSpan.FromMilliseconds(1))) { IsBackground = true };
+        closing.Start();
+        var returned = closing.Join(HangGuard.Scale(TimeSpan.FromSeconds(60)));
+        Assert.True(returned, HangGuard.Hung("shutdown did not return", 60_000));
         Assert.False(finished && !disk.IsWriterStopped);
-        var until = Environment.TickCount64 + 60_000;
-        while (!disk.IsWriterStopped && Environment.TickCount64 < until)
+        var until = HangGuard.DeadlineAfter(60_000);
+        while (!disk.IsWriterStopped && !HangGuard.Passed(until))
         {
             Thread.Sleep(10);
         }

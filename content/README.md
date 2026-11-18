@@ -111,7 +111,8 @@ Everything the game says, shows and builds its world from, outside the code. The
       `grammar/game-v1-waivers.json`. Without `--grammar`, new Spanish stops the loop at step 1;
    3. asks the renderer which speech files are new or changed (`scripts/prerender-speech.sh --check`) and, with `--speech`, renders them and
       refreshes again (the manifest after the new WAVs, provenance, the strings);
-   4. writes the bundle's new `bundleHash` into every file under `tests/` that holds the old one (the save fixture `save-v10.json`); an edit of `locale/` alone moves none;
+   4. has nothing to write since B29c: no test pins the bundle's hash (the save fixtures are read with the current one), so the edit touches the
+      content and `game-v1/manifest.json` only; an edit of `locale/` alone moves none;
    5. builds the solution, then checks the end-to-end goldens and the identity baseline (`tests/Vocaterra.Nlp.Golden.Tests`). When the edit means
       to move them, run it again with `--record`: it records them and prints what moved (commit them in a commit of their own). It then checks
       that the fuzz suite's stream digests (`FuzzLanguageStreamTests`) did not move: since the core's M57 they run on frozen inputs, a copy of
@@ -136,7 +137,7 @@ Everything the game says, shows and builds its world from, outside the code. The
    - writes the grammar strings again and runs the grammar check offline from the committed cache. New Spanish text misses the cache, and the
      message names the LanguageTool steps.
 4. Commit the edit with what the loop changed (the manifests, the grammar strings and the cache, the speech files, `speech-index.json` and the
-   listening checklist, the save fixtures), and the re-recorded goldens in a commit of their own. Run the whole suite (`scripts/test.sh full`,
+   listening checklist), and the re-recorded goldens in a commit of their own. Run the whole suite (`scripts/test.sh full`,
    or the loop with `--tier full`) before the milestone ends. The core's tests run on `game-v1` too (R02), so a failing core test is the signal
    that the edit broke something the core relies on.
 
@@ -150,6 +151,10 @@ voxels; `log`, `torch` and `bottle` are modelled in code), `tags` (an open list 
 it works on, and `speed`, how many times faster than bare hands). The other files name an item by its `name` (the nouns' `items`, a shop row, a recipe, a gift, a procedure). The code's `ItemId` enum keeps
 only the items that behaviour refers to (the bottle fills, the book opens, coins pay, the stake and the camp kit place); the loader checks each against its row and stops on a mismatch, and an item
 that is a row alone works everywhere an item can. The gear fields `wear`, `stats`, `look` and `capacity` are described under "Equipment (I03a)" below; `durability` is added when the wear milestone needs it. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
+
+A content edit that needs only the hash, without the loop's checks, is `scripts/rehash-bundle.sh` (B29c): it runs `content.sh hash` and
+`content.sh validate` through `limited.sh` and prints the new bundle hash. A conflict in `game-v1/manifest.json` is resolved by taking either
+side and running it, since the hash is computed from the files.
 
 ## Adding things
 
@@ -499,8 +504,8 @@ it is not in the bundle.
 
 3. **The speech and the grammar** (`docs/game/content.md`). Run `scripts/content-loop.sh --grammar --speech` directly, never under
    `scripts/limited.sh`. `--grammar` starts LanguageTool and checks the new Spanish lines; `--speech` renders their clips (the voice comes from the
-   NPC's file) and refreshes the manifest, the strings and the speech index. The loop also rewrites the bundle's hash, so the save fixtures are updated
-   by it, and it runs the whole chain (the validation, the goldens, the fast tier). Commit what it changed, as the loop's step 4 says.
+   NPC's file) and refreshes the manifest, the strings and the speech index. The loop also re-hashes the bundle (no save fixture needs the new
+   hash since B29c), and it runs the whole chain (the validation, the goldens, the fast tier). Commit what it changed.
 
 4. **Only for a new precipitation** (not for fog). The style table `src/Vocaterra.Game/Graphics/Weather/PrecipitationStyles.cs` needs one row whose
    `Id` is the precipitation's kind (length, width, fall speed, colour, opacity, slant and share of the drops). This is code. Apart from the rain's bed

@@ -32,8 +32,7 @@
 #               cefr-checks, the host's --validate-content, the grammar strings and the grammar check offline from the committed cache
 #   2 grammar   with --grammar, the LanguageTool steps of docs/game/content.md ("Refreshing the cache"), then CI's rebuilt-from-nothing check
 #   3 speech    scripts/prerender-speech.sh --check (and the stale WAVs a render would delete); with --speech the render and a second refresh
-#   4 fixtures  every file under tests/ that holds the bundle's old bundleHash (the save fixtures) gets the new one: the old value is the one at
-#               HEAD, the one before step 1, or one an earlier run in this worktree saw (.claude/content-loop/bundle-values)
+#   4 fixtures  nothing to write since B29c: no test pins the bundle's hash (the save fixtures read the current one), so the step only says so
 #   5 build     dotnet build Vocaterra.sln -warnaserror -m:4 (once; the tests run with --no-build)
 #   6 goldens   tests/Vocaterra.Nlp.Golden.Tests, checked, or recorded with --record (VOCATERRA_RECORD_GOLDEN and VOCATERRA_RECORD_IDENTITY)
 #   7 digests   FuzzLanguageStreamTests: since the core's M57 its digests run on frozen inputs (a fixture of the bundle's grammars and words), so a
@@ -220,8 +219,6 @@ failures() {
   printf '%s' "$names" | tr '\n' ' '
 }
 
-bundle_value() { python3 -I -c 'import json, sys; print(json.load(sys.stdin)["bundleHash"])'; }
-
 LT_UP=0
 stop_languagetool() {
   if [ "$LT_UP" -eq 1 ]; then
@@ -264,18 +261,6 @@ finish_run() {
   summary | sed 's/ *$//' | tee "$LOGDIR/summary.txt"
   exit "$rc"
 }
-
-# The bundle's old value, which the save fixtures may hold: the one at HEAD, the one before step 1 (a manifest rewritten by hand before the
-# loop), and every one an earlier run of the loop in this worktree saw or wrote into the fixtures (a run that failed after its refresh leaves
-# the fixtures behind the manifest). VALUES keeps the last 50; it is in the loop's git-ignored folder.
-VALUES=.claude/content-loop/bundle-values
-OLD_START="$(bundle_value <"$GAME/manifest.json")"
-OLD_HEAD="$(git show "HEAD:$GAME/manifest.json" 2>/dev/null | bundle_value 2>/dev/null)"
-remember_value() {
-  { [ -f "$VALUES" ] && cat "$VALUES"; printf '%s\n' "$@"; } | grep -E '^[0-9a-f]{64}$' | awk '!seen[$0]++' | tail -n 50 >"$VALUES.new"
-  mv "$VALUES.new" "$VALUES"
-}
-remember_value "$OLD_HEAD" "$OLD_START"
 
 # ---- 1. refresh
 step_refresh() {
@@ -418,26 +403,7 @@ step_speech() {
 # ---- 4. fixtures
 step_fixtures() {
   begin fixtures
-  local new f was
-  local -a files
-  new="$(bundle_value <"$GAME/manifest.json")"
-  grep -vxF "$new" "$VALUES" >"$LOGDIR/old-values.txt"
-  sed 's|.*|s/&/'"$new"'/g|' "$LOGDIR/old-values.txt" >"$LOGDIR/old-values.sed"
-  mapfile -t files < <(grep -rlF --exclude-dir=bin --exclude-dir=obj -f "$LOGDIR/old-values.txt" tests/)
-  if [ "${#files[@]}" -gt 0 ]; then
-    was="$(grep -ohF -f "$LOGDIR/old-values.txt" "${files[@]}" | sort -u | cut -c1-8 | sed 's/$/…/' | paste -sd' ')"
-    for f in "${files[@]}"; do
-      sed -i -f "$LOGDIR/old-values.sed" "$f"
-    done
-    remember_value "$new"
-    end_step passed "bundle $was -> ${new:0:8}…"
-  elif grep -rqF --exclude-dir=bin --exclude-dir=obj "$new" tests/; then
-    remember_value "$new"
-    end_step passed "bundle ${new:0:8}…, which the fixtures hold already"
-  else
-    fail "no file under tests/ holds the bundle's new value (${new:0:8}…) or an old one this worktree has had" \
-      "put $new into the save fixture that pins it (tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json) by hand, then run the loop again"
-  fi
+  end_step passed "no test pins the bundle hash (B29c): nothing to write"
 }
 
 # ---- 5. build

@@ -10,13 +10,15 @@ namespace Vocaterra.Game.Core.Tests.World.Generation;
 /// seconds build the route for every seed the tests use, many at once, and the budget is for the build, not for those.
 /// </summary>
 [Collection(TimingCollection.Name)]
+[Trait(TestSpeed.Category, TestSpeed.Timing)]
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class SceneBuildTimeTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
     // Measured (B24, Debug, CPU time, fastest of three attempts, with the drainage network): build 3,540 ms and digest 72 ms after the merge of B02c (4,121 and 119 in an earlier, busier run). The budget is twice the quieter, rounded up.
-    private static readonly double Budget = CpuTime.Budget(7300);
+    // B29a: re-set from Release (the suite runs on the Release build): build 688 ms and digest 32 ms, the fastest of three; the budget is twice that (was 7300 from Debug).
+    private static readonly double Budget = CpuTime.Budget(1450);
 
     [Fact]
     public void Seed42SceneMatchesTheGoldenAndBuildsWithinItsCpuBudget()

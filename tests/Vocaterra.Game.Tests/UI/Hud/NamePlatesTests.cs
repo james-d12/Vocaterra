@@ -85,7 +85,7 @@ public sealed class NamePlatesTests
         using var process = Process.Start(start)!;
         _ = process.StandardOutput.ReadToEnd();
         _ = process.StandardError.ReadToEnd();
-        Assert.True(process.WaitForExit(120_000));
+        Assert.True(process.WaitForExit((int)HangGuard.Scale(120_000)), HangGuard.Hung("the render process did not exit", 120_000));
         Assert.Equal(0, process.ExitCode);
         return File.ReadAllBytes(png);
     }

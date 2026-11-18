@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Tests.Streaming;
@@ -34,7 +35,7 @@ public sealed class JobPoolTests
             pool.Submit(JobLane.Tiles, i, static () => false, () =>
             {
                 threads[Environment.CurrentManagedThreadId] = true;
-                _ = gate.Wait(60_000);
+                _ = gate.Wait((int)HangGuard.Scale(60_000));
                 _ = Interlocked.Increment(ref ran);
             });
         }
@@ -44,8 +45,8 @@ public sealed class JobPoolTests
 
         // Every worker holds a job at the gate until all eight have started (a wait on the condition, bounded, not a sleep of a fixed length); a worker that has not started yet
         // would otherwise find the queue already drained by the others, and the count below would be taken before the threads exist.
-        var started = Environment.TickCount64 + 30_000;
-        while (threads.Count < 8 && Environment.TickCount64 < started)
+        var started = HangGuard.DeadlineAfter(30_000);
+        while (threads.Count < 8 && !HangGuard.Passed(started))
         {
             Thread.Sleep(5);
         }
@@ -54,8 +55,8 @@ public sealed class JobPoolTests
         gate.Set();
         Assert.Equal(1, pool.Resize(1)); // down again, mid-queue
         Assert.Equal(1, pool.Workers);
-        var until = Environment.TickCount64 + 30_000;
-        while (Volatile.Read(ref ran) < Jobs && Environment.TickCount64 < until)
+        var until = HangGuard.DeadlineAfter(30_000);
+        while (Volatile.Read(ref ran) < Jobs && !HangGuard.Passed(until))
         {
             Thread.Sleep(5);
         }
@@ -155,7 +156,7 @@ public sealed class JobPoolTests
             });
         }
 
-        Assert.True(done.Wait(TimeSpan.FromSeconds(30)));
+        Assert.True(done.Wait(HangGuard.Scale(TimeSpan.FromSeconds(30))), HangGuard.Hung("the jobs did not finish", TimeSpan.FromSeconds(30)));
         Assert.InRange(threads.Count, 1, 2);
         Assert.DoesNotContain(Environment.CurrentManagedThreadId, threads.Keys);
         Assert.Null(pool.Failure);

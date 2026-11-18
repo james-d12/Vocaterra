@@ -16,7 +16,7 @@ public sealed class StreamedWorldHostRingTests : StreamedWorldHostTestBase
         var preset = QualityPreset.For(QualityLevel.Low).WithViewDistance(96).WithFarRange(256) with { FarRealRadius = 48 };
         using var host = StreamedWorldHost.For(scene, preset, 0)!;
         var eye = (X: scene.Spawn.Feet.X + 0.5f, Y: scene.Spawn.Feet.Y + 1.6f, Z: scene.Spawn.Feet.Z + 0.5f);
-        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
+        HangGuard.Settled(limit => host.Settle(eye.X, eye.Y, eye.Z, _ => { }, limit));
         var done = host.Ring.Done;
         Assert.True(done > 4, $"{done} footprints are real");
         var (sx, sz) = ((int)MathF.Floor(eye.X / 32), (int)MathF.Floor(eye.Z / 32));
@@ -27,7 +27,7 @@ public sealed class StreamedWorldHostRingTests : StreamedWorldHostTestBase
         var (bx, by, bz) = ((int)MathF.Floor(eye.X), (int)MathF.Floor(scene.Spawn.Feet.Y) - 1, (int)MathF.Floor(eye.Z));
         Assert.True(scene.Grid.SetBlock(bx, by, bz, Vocaterra.Game.Core.Voxel.BlockId.Air));
         host.Update(eye.X, eye.Y, eye.Z, _ => { });
-        Assert.True(host.Settle(eye.X, eye.Y, eye.Z, _ => { }));
+        HangGuard.Settled(limit => host.Settle(eye.X, eye.Y, eye.Z, _ => { }, limit));
 
         var section = host.Far.World.Store.Get(new Vocaterra.Game.Core.World.Lod.LodSectionKey(0, bx >> 5, by >> 5, bz >> 5))!;
         Assert.Equal(Vocaterra.Game.Core.Voxel.BlockId.Air, section.BlockAt(Vocaterra.Game.Core.World.Lod.LodSection.Index(bx & 31, by & 31, bz & 31)));
@@ -47,7 +47,7 @@ public sealed class StreamedWorldHostRingTests : StreamedWorldHostTestBase
         Assert.True(pending > 4, $"{pending} planned after {done} done");
 
         host.Update(x + 40, y, z, _ => { }); // the eye moves further than a section: a new plan
-        Assert.True(host.Settle(x + 40, y, z, _ => { }));
+        HangGuard.Settled(limit => host.Settle(x + 40, y, z, _ => { }, limit));
 
         var (min, _) = host.Far.World.SyRange(0);
         var missing = 0;

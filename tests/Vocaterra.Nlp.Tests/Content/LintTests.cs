@@ -179,17 +179,6 @@ public class LintTests
         Assert.EndsWith(first.SummaryLine() + "\n", first.Format(), StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void TheBundleLintTakesUnderFiveSeconds()
-    {
-        // Read before the clock starts: loading the bundle has its own test and budget, and only the type initializer's timing kept it out of this one.
-        var bundle = TestSupport.Bundle;
-        var started = System.Diagnostics.Stopwatch.StartNew();
-        ContentLinter.Lint(bundle, new LintOptions { Level = "a2" });
-
-        Assert.True(started.Elapsed < TimeSpan.FromSeconds(5 * Vocaterra.Nlp.Tests.TimingFactor.Value), $"the lint took {started.Elapsed}");
-    }
-
     // ---- 1. Coverage -----------------------------------------------------------------------------------------------------------------
 
     [Fact]

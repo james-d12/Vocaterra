@@ -332,7 +332,7 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         _ = session.TakeOrders(); // the orders are taken: this test is not about their offer (issue #54)
-        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Assert.True(session.StartWorker().WaitUntilReady((int)HangGuard.Scale(60000)), HangGuard.Hung("the worker was not ready", 60000));
         Stage.TeleportToNpc(session, "smith");
         _ = session.OpenTalk("smith");
 
@@ -350,8 +350,8 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
 
     private static AppliedTurn Drain(VoxelSession session)
     {
-        var deadline = Environment.TickCount64 + 120000;
-        while (Environment.TickCount64 < deadline)
+        var deadline = HangGuard.DeadlineAfter(120000);
+        while (!HangGuard.Passed(deadline))
         {
             var applied = session.Collect();
             if (applied.Count > 0)
@@ -362,6 +362,6 @@ public sealed class OpenDecodeTests(ITestOutputHelper output)
             Thread.Sleep(5);
         }
 
-        throw new TimeoutException("The turn did not come back.");
+        throw new TimeoutException(HangGuard.Hung("The turn did not come back", 120_000));
     }
 }

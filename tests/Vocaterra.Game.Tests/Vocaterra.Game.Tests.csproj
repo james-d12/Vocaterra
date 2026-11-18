@@ -32,6 +32,7 @@
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestItems.cs" Link="TestSupport\TestItems.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\ValleyBuild.cs" Link="TestSupport\ValleyBuild.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestSpeed.cs" Link="TestSupport\TestSpeed.cs" />
+    <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\HangGuard.cs" Link="TestSupport\HangGuard.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\LocaleFixture.cs" Link="TestSupport\LocaleFixture.cs" />
   </ItemGroup>
 

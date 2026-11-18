@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
@@ -97,20 +96,17 @@ public sealed class WorldEditsSaveTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Given_TheValley_When_ItIsSavedAndLoaded_Then_TheTimesAreReported()
+    public void Given_TheValley_When_ItIsSavedAndLoaded_Then_TheSizesAreReported()
     {
         var session = TestGame.NewSession();
         session.Scene.Grid.SetBlock(50, 5, 2, BlockId.Torch);
         _ = SaveOf(session); // warms the code paths
 
-        var watch = Stopwatch.StartNew();
         var text = SaveOf(session);
-        var saved = watch.Elapsed;
-        watch.Restart();
-        _ = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: session.Credit);
-        var loaded = watch.Elapsed;
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: session.Credit);
 
-        output.WriteLine($"save {saved.TotalMilliseconds:F1} ms, load (scene build + restore) {loaded.TotalMilliseconds:F1} ms, {text.Length:N0} characters");
-        Assert.True(saved < TimeSpan.FromSeconds(2 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor), $"The save took {saved.TotalMilliseconds:F0} ms.");
+        // The save's time is held to a CPU-time budget in Timing.SpeedChecksTimingTests (B29b); here it must load back with its edit.
+        output.WriteLine($"{text.Length:N0} characters");
+        Assert.Equal(BlockId.Torch, loaded.Scene.Grid.GetBlock(50, 5, 2));
     }
 }
