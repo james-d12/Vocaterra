@@ -258,11 +258,11 @@ the mountains; the owner decides whether it joins this series.
 | Armour | la coraza | body | armour 5 | 4 hierro | 12, Domingo | not in lexicon: add (or «el peto») |
 | Armour | las grebas | legs | armour 3 | 3 hierro | 8, Domingo | not in lexicon: add |
 | Armour | (armoured boots) | feet | armour 2 | 2 hierro | 6, Domingo | open: no plain word that is not «botas» |
-| Accessory | el anillo | ring | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
-| Accessory | la pulsera | ring | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
-| Accessory | el cinturón | ring | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
-| Accessory | el collar | ring | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
-| Accessory | el amuleto | ring | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
+| Accessory | el anillo | accessory | max stamina +20 | 1 hierro | 6, Pablo | lexicon, A2 |
+| Accessory | la pulsera | accessory | walk ×1.10 | 1 hierro | 6, Pablo | not in lexicon (A2 list has it): add |
+| Accessory | el cinturón | accessory | hunger ×0.75 | 2 cuero | 5, Pablo | lexicon |
+| Accessory | el collar | accessory | thirst ×0.75 | 1 hierro, 1 cuero | 5, Pablo | lexicon |
+| Accessory | el amuleto | accessory | light 1 | 1 hierro | 8, Pablo | not in lexicon: add |
 | Off-hand | el escudo | offhand | armour 3 | 2 madera, 2 hierro | 8, Domingo | lexicon |
 | Off-hand | la antorcha (today's torch) | offhand | light 2 | 2 madera (as now) | 1, Domingo | catalogue noun |
 | Off-hand | el farol | offhand | light 4 | 1 hierro, 1 antorcha | 6, Domingo | lexicon |
