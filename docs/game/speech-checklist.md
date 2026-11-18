@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1712 of the 1712 files have no mark (guide 538, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 136, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1738 of the 1738 files have no mark (guide 564, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 136, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -183,6 +183,10 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.agua | speech/cards/card.agua.wav | guide | 1.0 | el agua |  |
 | card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.slow.wav | shopkeeper | 0.8 | el agua |  |
 | card.agua.shopkeeper | speech/shopkeeper/card.agua.shopkeeper.wav | shopkeeper | 1.0 | el agua |  |
+| card.amuleto | speech/cards/card.amuleto.slow.wav | guide | 0.8 | el amuleto |  |
+| card.amuleto | speech/cards/card.amuleto.wav | guide | 1.0 | el amuleto |  |
+| card.anillo | speech/cards/card.anillo.slow.wav | guide | 0.8 | el anillo |  |
+| card.anillo | speech/cards/card.anillo.wav | guide | 1.0 | el anillo |  |
 | card.antorcha | speech/cards/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
 | card.antorcha | speech/cards/card.antorcha.wav | guide | 1.0 | la antorcha |  |
 | card.apariencia | speech/cards/card.apariencia.slow.wav | guide | 0.8 | la apariencia |  |
@@ -197,6 +201,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.bol | speech/cards/card.bol.wav | guide | 1.0 | el bol |  |
 | card.bolsa | speech/cards/card.bolsa.slow.wav | guide | 0.8 | la bolsa |  |
 | card.bolsa | speech/cards/card.bolsa.wav | guide | 1.0 | la bolsa |  |
+| card.bota | speech/cards/card.bota.slow.wav | guide | 0.8 | las botas |  |
+| card.bota | speech/cards/card.bota.wav | guide | 1.0 | las botas |  |
 | card.botella | speech/cards/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/cards/card.botella.wav | guide | 1.0 | la botella |  |
 | card.cabeza | speech/cards/card.cabeza.slow.wav | guide | 0.8 | la cabeza |  |
@@ -211,8 +217,16 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.campamento | speech/cards/card.campamento.wav | guide | 1.0 | el campamento |  |
 | card.casa | speech/cards/card.casa.slow.wav | guide | 0.8 | la casa |  |
 | card.casa | speech/cards/card.casa.wav | guide | 1.0 | la casa |  |
+| card.casco | speech/cards/card.casco.slow.wav | guide | 0.8 | el casco |  |
+| card.casco | speech/cards/card.casco.wav | guide | 1.0 | el casco |  |
 | card.chaqueta | speech/cards/card.chaqueta.slow.wav | guide | 0.8 | la chaqueta |  |
 | card.chaqueta | speech/cards/card.chaqueta.wav | guide | 1.0 | la chaqueta |  |
+| card.cinturon | speech/cards/card.cinturon.slow.wav | guide | 0.8 | el cinturón |  |
+| card.cinturon | speech/cards/card.cinturon.wav | guide | 1.0 | el cinturón |  |
+| card.collar | speech/cards/card.collar.slow.wav | guide | 0.8 | el collar |  |
+| card.collar | speech/cards/card.collar.wav | guide | 1.0 | el collar |  |
+| card.coraza | speech/cards/card.coraza.slow.wav | guide | 0.8 | la coraza |  |
+| card.coraza | speech/cards/card.coraza.wav | guide | 1.0 | la coraza |  |
 | card.cuchara | speech/cards/card.cuchara.slow.wav | guide | 0.8 | la cuchara |  |
 | card.cuchara | speech/cards/card.cuchara.wav | guide | 1.0 | la cuchara |  |
 | card.cuero | speech/cards/card.cuero.slow.wav | guide | 0.8 | el cuero |  |
@@ -221,16 +235,22 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.cuerpo | speech/cards/card.cuerpo.wav | guide | 1.0 | el cuerpo |  |
 | card.equipo | speech/cards/card.equipo.slow.wav | guide | 0.8 | el equipo |  |
 | card.equipo | speech/cards/card.equipo.wav | guide | 1.0 | el equipo |  |
+| card.escudo | speech/cards/card.escudo.slow.wav | guide | 0.8 | el escudo |  |
+| card.escudo | speech/cards/card.escudo.wav | guide | 1.0 | el escudo |  |
 | card.espalda | speech/cards/card.espalda.slow.wav | guide | 0.8 | la espalda |  |
 | card.espalda | speech/cards/card.espalda.wav | guide | 1.0 | la espalda |  |
 | card.estaca | speech/cards/card.estaca.slow.wav | guide | 0.8 | la estaca |  |
 | card.estaca | speech/cards/card.estaca.wav | guide | 1.0 | la estaca |  |
+| card.farol | speech/cards/card.farol.slow.wav | guide | 0.8 | el farol |  |
+| card.farol | speech/cards/card.farol.wav | guide | 1.0 | el farol |  |
 | card.fruta | speech/cards/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/cards/card.fruta.wav | guide | 1.0 | la fruta |  |
 | card.fuego | speech/cards/card.fuego.slow.wav | guide | 0.8 | el fuego |  |
 | card.fuego | speech/cards/card.fuego.wav | guide | 1.0 | el fuego |  |
 | card.gorro | speech/cards/card.gorro.slow.wav | guide | 0.8 | el gorro |  |
 | card.gorro | speech/cards/card.gorro.wav | guide | 1.0 | el gorro |  |
+| card.greba | speech/cards/card.greba.slow.wav | guide | 0.8 | las grebas |  |
+| card.greba | speech/cards/card.greba.wav | guide | 1.0 | las grebas |  |
 | card.hacha | speech/cards/card.hacha.slow.wav | guide | 0.8 | el hacha |  |
 | card.hacha | speech/cards/card.hacha.wav | guide | 1.0 | el hacha |  |
 | card.harina | speech/cards/card.harina.slow.wav | guide | 0.8 | la harina |  |
@@ -253,6 +273,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.masa | speech/cards/card.masa.wav | guide | 1.0 | la masa |  |
 | card.mesa | speech/cards/card.mesa.slow.wav | guide | 0.8 | la mesa |  |
 | card.mesa | speech/cards/card.mesa.wav | guide | 1.0 | la mesa |  |
+| card.mochila | speech/cards/card.mochila.slow.wav | guide | 0.8 | la mochila |  |
+| card.mochila | speech/cards/card.mochila.wav | guide | 1.0 | la mochila |  |
 | card.moneda | speech/cards/card.moneda.slow.wav | guide | 0.8 | la moneda |  |
 | card.moneda | speech/cards/card.moneda.wav | guide | 1.0 | la moneda |  |
 | card.pan | speech/cards/card.pan.slow.wav | guide | 0.8 | el pan |  |
@@ -271,10 +293,14 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.puente | speech/cards/card.puente.wav | guide | 1.0 | el puente |  |
 | card.puerta | speech/cards/card.puerta.slow.wav | guide | 0.8 | la puerta |  |
 | card.puerta | speech/cards/card.puerta.wav | guide | 1.0 | la puerta |  |
+| card.pulsera | speech/cards/card.pulsera.slow.wav | guide | 0.8 | la pulsera |  |
+| card.pulsera | speech/cards/card.pulsera.wav | guide | 1.0 | la pulsera |  |
 | card.rio | speech/cards/card.rio.slow.wav | guide | 0.8 | el río |  |
 | card.rio | speech/cards/card.rio.wav | guide | 1.0 | el río |  |
 | card.ropa | speech/cards/card.ropa.slow.wav | guide | 0.8 | la ropa |  |
 | card.ropa | speech/cards/card.ropa.wav | guide | 1.0 | la ropa |  |
+| card.saco | speech/cards/card.saco.slow.wav | guide | 0.8 | el saco |  |
+| card.saco | speech/cards/card.saco.wav | guide | 1.0 | el saco |  |
 | card.sombrero | speech/cards/card.sombrero.slow.wav | guide | 0.8 | el sombrero |  |
 | card.sombrero | speech/cards/card.sombrero.wav | guide | 1.0 | el sombrero |  |
 | card.tela | speech/cards/card.tela.slow.wav | guide | 0.8 | la tela |  |
@@ -1487,8 +1513,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_give_bread.1 | speech/shopkeeper/shop_give_bread.1.wav | shopkeeper | 1.0 | Aquí tienes el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.slow.wav | shopkeeper | 0.8 | Toma el pan. |  |
 | shop_give_bread.2 | speech/shopkeeper/shop_give_bread.2.wav | shopkeeper | 1.0 | Toma el pan. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua, pan, harina, tela, cuero y ropa. |  |
-| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua, pan, harina, tela, cuero y ropa. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.slow.wav | shopkeeper | 0.8 | Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares. |  |
+| shop_hay.1 | speech/shopkeeper/shop_hay.1.wav | shopkeeper | 1.0 | Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares. |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_ask.1 | speech/shopkeeper/shop_help_ask.1.wav | shopkeeper | 1.0 | Puedes decir: «Quiero agua, por favor». |  |
 | shop_help_offer.1 | speech/shopkeeper/shop_help_offer.1.slow.wav | shopkeeper | 0.8 | Puedes decir: «Sí, por favor» o «No, gracias». |  |
@@ -1547,8 +1573,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | shop_well.1 | speech/shopkeeper/shop_well.1.wav | shopkeeper | 1.0 | Bien, gracias. |  |
 | shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.slow.wav | shopkeeper | 0.8 | No, gracias. Solo compro pan. |  |
 | shop_wont_buy.1 | speech/shopkeeper/shop_wont_buy.1.wav | shopkeeper | 1.0 | No, gracias. Solo compro pan. |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa. |  |
-| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.slow.wav | shopkeeper | 0.8 | No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares. |  |
+| shop_wont_sell.1 | speech/shopkeeper/shop_wont_sell.1.wav | shopkeeper | 1.0 | No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares. |  |
 | shop_yes.1 | speech/shopkeeper/shop_yes.1.slow.wav | shopkeeper | 0.8 | ¡Sí! |  |
 | shop_yes.1 | speech/shopkeeper/shop_yes.1.wav | shopkeeper | 1.0 | ¡Sí! |  |
 | smith_buy.1 | speech/smith/smith_buy.1.slow.wav | smith | 0.8 | ¡Gracias! Aquí tienes tus monedas. |  |
@@ -1557,8 +1583,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_bye.1 | speech/smith/smith_bye.1.wav | smith | 1.0 | ¡Adiós! Hasta luego. |  |
 | smith_bye.2 | speech/smith/smith_bye.2.slow.wav | smith | 0.8 | Hasta luego. |  |
 | smith_bye.2 | speech/smith/smith_bye.2.wav | smith | 1.0 | Hasta luego. |  |
-| smith_cant_pay.1 | speech/smith/smith_cant_pay.1.slow.wav | smith | 0.8 | El hierro cuesta tres monedas. |  |
-| smith_cant_pay.1 | speech/smith/smith_cant_pay.1.wav | smith | 1.0 | El hierro cuesta tres monedas. |  |
+| smith_cant_pay.1 | speech/smith/smith_cant_pay.1.slow.wav | smith | 0.8 | Necesitas más monedas. |  |
+| smith_cant_pay.1 | speech/smith/smith_cant_pay.1.wav | smith | 1.0 | Necesitas más monedas. |  |
 | smith_cant_sell.1 | speech/smith/smith_cant_sell.1.slow.wav | smith | 0.8 | No tienes madera. |  |
 | smith_cant_sell.1 | speech/smith/smith_cant_sell.1.wav | smith | 1.0 | No tienes madera. |  |
 | smith_cloudy.1 | speech/smith/smith_cloudy.1.slow.wav | smith | 0.8 | Hoy está nublado. |  |
@@ -1581,8 +1607,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_nice.1 | speech/smith/smith_nice.1.wav | smith | 1.0 | ¡Qué bien! |  |
 | smith_no_room.1 | speech/smith/smith_no_room.1.slow.wav | smith | 0.8 | Tu bolsa está llena. |  |
 | smith_no_room.1 | speech/smith/smith_no_room.1.wav | smith | 1.0 | Tu bolsa está llena. |  |
-| smith_none_asked.1 | speech/smith/smith_none_asked.1.slow.wav | smith | 0.8 | Hay hierro. ¿Cuánto quieres? |  |
-| smith_none_asked.1 | speech/smith/smith_none_asked.1.wav | smith | 1.0 | Hay hierro. ¿Cuánto quieres? |  |
+| smith_none_asked.1 | speech/smith/smith_none_asked.1.slow.wav | smith | 0.8 | Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres? |  |
+| smith_none_asked.1 | speech/smith/smith_none_asked.1.wav | smith | 1.0 | Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres? |  |
 | smith_none_offered.1 | speech/smith/smith_none_offered.1.slow.wav | smith | 0.8 | ¿Cuántos bloques de madera me vendes? |  |
 | smith_none_offered.1 | speech/smith/smith_none_offered.1.wav | smith | 1.0 | ¿Cuántos bloques de madera me vendes? |  |
 | smith_offer.1 | speech/smith/smith_offer.1.slow.wav | smith | 0.8 | ¿Quieres un hacha? Necesito dos bloques de madera y dos monedas. |  |
@@ -1597,8 +1623,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | smith_receive.1 | speech/smith/smith_receive.1.wav | smith | 1.0 | ¡Hola! ¿Qué tienes para mí? |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.slow.wav | smith | 0.8 | Puedes decir: «Aquí tienes la madera y las monedas». |  |
 | smith_receive_help.1 | speech/smith/smith_receive_help.1.wav | smith | 1.0 | Puedes decir: «Aquí tienes la madera y las monedas». |  |
-| smith_sell.1 | speech/smith/smith_sell.1.slow.wav | smith | 0.8 | Aquí tienes el hierro. ¡Gracias! |  |
-| smith_sell.1 | speech/smith/smith_sell.1.wav | smith | 1.0 | Aquí tienes el hierro. ¡Gracias! |  |
+| smith_sell.1 | speech/smith/smith_sell.1.slow.wav | smith | 0.8 | Aquí tienes. ¡Gracias! |  |
+| smith_sell.1 | speech/smith/smith_sell.1.wav | smith | 1.0 | Aquí tienes. ¡Gracias! |  |
 | smith_sun.1 | speech/smith/smith_sun.1.slow.wav | smith | 0.8 | Hoy hace sol. |  |
 | smith_sun.1 | speech/smith/smith_sun.1.wav | smith | 1.0 | Hoy hace sol. |  |
 | smith_thank.1 | speech/smith/smith_thank.1.slow.wav | smith | 0.8 | De nada. |  |
