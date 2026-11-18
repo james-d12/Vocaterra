@@ -4,72 +4,10 @@ using Vocaterra.Game.Core.World.Generation.Procedural;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation.Procedural;
 
-/// <summary>
-/// A chunk is a function of the seed, the data and its coordinates (B03): the same alone and among its neighbours, in any order, from any instance of the source, with any window wider than the
-/// one it needs, and through the column shortcut or the single chunk.
-/// </summary>
-public sealed class ProceduralChunkSourceTests
+/// <summary>The rest of ProceduralChunkSourceTests's tests (B28 split the slow ones into classes of their own, sharing ProceduralChunkSourceTestsBase).</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
+public sealed class ProceduralChunkSourceTests : ProceduralChunkSourceTestsBase
 {
-    public static TheoryData<ulong, Feature> Places => new()
-    {
-        { 42, Feature.Forest },
-        { 7, Feature.Coast },
-        { 2026, Feature.River },
-        { 42, Feature.Mountain },
-    };
-
-    private static List<VoxelChunkCoord> Neighbourhood(int cx, int cz, int firstLayer, int lastLayer)
-    {
-        var coords = new List<VoxelChunkCoord>();
-        for (var z = cz - 1; z <= cz + 1; z++)
-        {
-            for (var x = cx - 1; x <= cx + 1; x++)
-            {
-                for (var y = firstLayer; y <= lastLayer; y++)
-                {
-                    coords.Add(new VoxelChunkCoord(x, y, z));
-                }
-            }
-        }
-
-        return coords;
-    }
-
-    // A fixed shuffle: the order is a function of the seed, so a failure is the same failure on the next run.
-    private static List<VoxelChunkCoord> Shuffled(List<VoxelChunkCoord> coords, ulong seed)
-    {
-        var rng = new Vocaterra.Game.Core.Mathematics.WorldRng(seed);
-        var list = new List<VoxelChunkCoord>(coords);
-        for (var i = list.Count - 1; i > 0; i--)
-        {
-            var j = rng.NextInt(i + 1);
-            (list[i], list[j]) = (list[j], list[i]);
-        }
-
-        return list;
-    }
-
-    [Theory]
-    [MemberData(nameof(Places))]
-    public void Given_APlaceAndItsNeighbours_When_TheyAreGeneratedInAnyOrderOnOneSourceAndOneByOneOnOthers_Then_EveryChunkEqualsTheSameChunkGeneratedAlone(ulong seed, Feature feature)
-    {
-        var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
-        var coords = Neighbourhood(cx, cz, feature == Feature.Mountain ? 0 : -4, feature == Feature.Mountain ? 19 : 7);
-        var among = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, TestGame.Data.Underground);
-        var generated = new Dictionary<VoxelChunkCoord, string>();
-        foreach (var coord in Shuffled(coords, seed ^ 0x5eed))
-        {
-            generated[coord] = among.Generate(coord).ComputeDigestHex();
-        }
-
-        foreach (var coord in coords)
-        {
-            var alone = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, TestGame.Data.Underground).Generate(coord);
-            Assert.Equal(alone.ComputeDigestHex(), generated[coord]);
-            Assert.Equal(coord, alone.Coord);
-        }
-    }
-
     [Theory]
     [MemberData(nameof(Places))]
     public void Given_ASourceWithAWiderWindow_When_TheSameChunksAreGenerated_Then_TheyAreUnchangedSoTheMarginIsEnough(ulong seed, Feature feature)

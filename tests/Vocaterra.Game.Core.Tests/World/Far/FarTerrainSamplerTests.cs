@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.World.Regions;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Far;
@@ -7,6 +8,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Far;
 
 /// <summary>The far view's sampler (B07, D-game-34 item 21): the land read from the height model and the biome table with no chunk generated; pure, deterministic and the same land the generator makes.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
 {
     private static FarTerrainSampler Sampler => RegionTestWorld.Composition().World.Far;
@@ -219,7 +221,7 @@ public sealed class FarTerrainSamplerTests(ITestOutputHelper output)
         }
 
         output.WriteLine($"{count} samples, {watch.Elapsed.TotalMilliseconds / count * 1000:0.0} us each (Debug, one thread)");
-        Assert.True(watch.Elapsed.TotalSeconds < 20);
+        Assert.True(watch.Elapsed.TotalSeconds < 20 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor);
     }
 
     // The ground of a column as the generated chunks have it: from the top, past the air, plants and crowns, the water's top noted, down to the first solid block.

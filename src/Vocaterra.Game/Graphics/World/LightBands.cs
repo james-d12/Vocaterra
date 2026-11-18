@@ -61,6 +61,15 @@ public static class LightBands
         _ => daylight >= DayFrom ? LightBand.Day : daylight <= NightUpTo ? LightBand.Night : phase == DayPhase.Dawn ? LightBand.Dawn : LightBand.Dusk,
     };
 
+    /// <summary>
+    /// The band meshes are built in (B17c): the look's own for the effects, which bake the band's sun into the vertex colours and build a chunk again when the band changes; <see cref="LightBand.Day"/> always for a mesh whose light is data (the program takes the
+    /// sun as a uniform, so the hour never changes a mesh) and for the effects when the sun does not follow the hour (one sun, so one band: the light of the moment is the tint alone).
+    /// </summary>
+    /// <param name="lookBand">The band of the sky's look at this moment (<see cref="For"/>).</param>
+    /// <param name="lightAsData">Whether the meshes carry their light as data (the program draws).</param>
+    /// <param name="sunFollowsHour">Whether the sun follows the hour (the setting).</param>
+    public static LightBand MeshBand(LightBand lookBand, bool lightAsData, bool sunFollowsHour) => lightAsData || !sunFollowsHour ? LightBand.Day : lookBand;
+
     /// <summary>The colour a chunk of a band is drawn with so that its baked sun light shows as <paramref name="sun"/>: the light of the moment divided by the band's baked light.</summary>
     /// <param name="sun">The sun's light on the world (<see cref="Sky.SkyLook.SunLight"/>).</param>
     /// <param name="band">The band the chunk's mesh was built in.</param>

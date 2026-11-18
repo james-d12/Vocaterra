@@ -84,6 +84,19 @@ The tests that wait for the worker's turns give up after 30 or 120 s, far above 
 1438 of 3000 ms, the world snapshot 0.50 of 1.5 s and the scene build and digest 708 of 3000 ms; the first is the likely CI failure, the second and the third
 the next. The timed tests were within four times of their budgets at V16 too (1676 ms, 1275 ms and 0.49 s then).
 
+### CI on a slow runner (B30)
+
+- **Timing factor.** Every CPU-time budget is multiplied by one factor: 1 locally, 4 when `CI=true` or `GITHUB_ACTIONS=true` (the runner has 4 cores and is
+  about four times slower), or the value of `VOCATERRA_TIMING_FACTOR` (it wins). It lives in `CpuTime.Factor` / `CpuTime.Budget` (`tests/Vocaterra.Game.Core.Tests/TestSupport/CpuTime.cs`)
+  and `TimingFactor` (`tests/Vocaterra.Nlp.Tests/TimingFactor.cs`). The local budgets are unchanged; the budgets are the constants of each test (`ProceduralChunkTimeTests` 14, 13, 41 and 13 ms; `StreamedWorldTimeTests` 13, 23, 6 and 2 ms;
+  `PristineSnapshotTimeTests` 5,900 ms; `ValleyUndergroundTimeTests` 5,000 ms; `SceneBuildTimeTests` 7,300 ms; `GeneratedLexiconLoadTimeTests` 1,082 ms; on CI four times each). The few wall-clock bounds (the lint under 5 s, the guide's turn, the world snapshot, a digest after an edit, the save, the far-terrain
+  and relief-region tests, a dry drainage column) take the same factor.
+- **Timeout.** `build-and-test` has `timeout-minutes: 120`. Measured on 2026-11-17 (Debug, `CI=true`, an empty `VOCATERRA_MODELS_DIR`, `taskset -c 0-3` inside `limited.sh`, the machine
+  at load 18 from other agents' builds, so a pessimistic figure): build 282 s, `dotnet test --no-build` 2602 s (43 min; `Vocaterra.Game.Core.Tests` 42 min and `Vocaterra.Game.Tests` 41 min
+  run side by side). Every CPU-time test passed at factor 4. Debug stays: it is the build the budgets and goldens are measured on, and 120 min is over 2.5 times the figure.
+- **What skips on CI.** The model-gated tests (no `VOCATERRA_MODELS_DIR`), the live-GL tests (`VOCATERRA_GL_TESTS` unset) and `NamePlatesTests` (it returns at once without
+  `DISPLAY`, as `PlaytestReportTests` does without its tools). The far store (`VOCATERRA_LOD_DIR`) defaults to the user's data folder, which the runner can write.
+
 ## The licence scan
 
 The merge gate's licence step (`scripts/license-scan.sh --offline`, run through `scripts/limited.sh`) covers the core (`Vocaterra.Nlp.slnf`), the

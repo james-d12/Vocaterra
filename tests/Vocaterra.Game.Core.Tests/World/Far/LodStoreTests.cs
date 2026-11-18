@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Far;
@@ -9,51 +8,9 @@ using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Far;
 
-/// <summary>The far view's store of three-dimensional sections (B07c): the packed format, the mip that makes a level from the one below, the light, the store's rules and its disk, the model that fills it and the real chunks that replace the model.</summary>
-public sealed class LodStoreTests(ITestOutputHelper output)
+/// <summary>The rest of LodStoreTests's tests (B28 split the slow ones into classes of their own, sharing LodStoreTestsBase).</summary>
+public sealed class LodStoreTests(ITestOutputHelper output) : LodStoreTestsBase(output)
 {
-    private sealed class MemoryDisk : ILodPersistence
-    {
-        public ConcurrentDictionary<LodSectionKey, byte[]> Files { get; } = new();
-
-        public byte[]? Load(LodSectionKey key) => Files.TryGetValue(key, out var blob) ? blob : null;
-
-        public int SaveDelayMilliseconds { get; init; }
-
-        public void Save(LodSectionKey key, byte[] blob)
-        {
-            if (SaveDelayMilliseconds > 0)
-            {
-                Thread.Sleep(SaveDelayMilliseconds); // a slow disk keeps a store step open longer, so the threads of a test overlap
-            }
-
-            Files[key] = blob;
-        }
-    }
-
-    private static LodWorld WorldOf(ulong seed, LodStore? store = null, int treeLevels = 2)
-    {
-        var sampler = new FarTerrainSampler(ProceduralTestWorld.Source(seed).World, RegionCatalog.Empty);
-        return sampler.FarWorld(store ?? new LodStore(), treeLevels);
-    }
-
-    private static LodSection Mixed(Func<int, int, int, BlockId> block)
-    {
-        var section = LodSection.Air();
-        for (var y = 0; y < 32; y++)
-        {
-            for (var z = 0; z < 32; z++)
-            {
-                for (var x = 0; x < 32; x++)
-                {
-                    section.SetBlock(LodSection.Index(x, y, z), block(x, y, z));
-                }
-            }
-        }
-
-        return section;
-    }
-
     [Fact]
     public void Given_UniformAndMixedSections_When_TheyArePackedAndUnpacked_Then_TheyAreTheSameAndSmall()
     {
@@ -73,7 +30,7 @@ public sealed class LodStoreTests(ITestOutputHelper output)
             Assert.Equal(mixed.LightAt(i), again.LightAt(i));
         }
 
-        output.WriteLine($"a mixed section packs to {mixed.Pack().Length} bytes of {LodSection.Volume * 3}");
+        Output.WriteLine($"a mixed section packs to {mixed.Pack().Length} bytes of {LodSection.Volume * 3}");
         Assert.True(mixed.Pack().Length < LodSection.Volume / 2);
     }
 
@@ -200,7 +157,7 @@ public sealed class LodStoreTests(ITestOutputHelper output)
         Assert.Contains(BlockId.Leaves, blocks);
         Assert.Contains(BlockId.Trunk, blocks);
         Assert.Equal(stack.Sections.Length, world.Stack(0, cx >> 1, cz >> 1).Sections.Length);
-        output.WriteLine($"{world.Store.Count} sections, {world.Store.Bytes / 1024} KB packed for one stack");
+        Output.WriteLine($"{world.Store.Count} sections, {world.Store.Bytes / 1024} KB packed for one stack");
     }
 
     [Fact]
@@ -230,7 +187,7 @@ public sealed class LodStoreTests(ITestOutputHelper output)
             heights.Add(top);
         }
 
-        output.WriteLine("the ground at one column by level: " + string.Join(", ", heights));
+        Output.WriteLine("the ground at one column by level: " + string.Join(", ", heights));
         var ground = heights[0];
         Assert.All(heights, h => Assert.InRange(h, ground - 48, ground + 48));
     }
@@ -293,29 +250,6 @@ public sealed class LodStoreTests(ITestOutputHelper output)
         Assert.NotEqual(0xFF, entry.RealMask);
     }
 
-    // A sample of the model's sea: a block at least 40 blocks from any land, found on a grid (the water's own level is the sea's).
-    private static (int X, int Z, int Level) OpenSea(FarTerrainSampler sampler)
-    {
-        for (var z = -9000; z <= 9000; z += 397)
-        {
-            for (var x = -9000; x <= 9000; x += 401)
-            {
-                var all = true;
-                for (var k = 0; k < 9 && all; k++)
-                {
-                    all = sampler.At(x + (((k % 3) - 1) * 40), z + (((k / 3) - 1) * 40)).IsWater;
-                }
-
-                if (all)
-                {
-                    return (x, z, sampler.At(x, z).WaterLevel);
-                }
-            }
-        }
-
-        throw new InvalidOperationException("no open sea");
-    }
-
     [Fact]
     public void Given_AnOpenSea_When_EveryLevelOfItsStackIsMade_Then_TheWaterTopIsAWaterVoxelWithNoHoleToTheSky()
     {
@@ -339,7 +273,7 @@ public sealed class LodStoreTests(ITestOutputHelper output)
                 }
             }
 
-            output.WriteLine($"level {level}: the water's top at {topWater} for a sea at {sea}");
+            Output.WriteLine($"level {level}: the water's top at {topWater} for a sea at {sea}");
             Assert.True(topWater != int.MinValue, $"no water at level {level}");
             Assert.InRange(topWater, sea + 1 - cell, sea + 1 + cell);
         }
@@ -482,106 +416,6 @@ public sealed class LodStoreTests(ITestOutputHelper output)
 
         Assert.True(store.Count < 150, $"{store.Count} sections");
         Assert.NotNull(store.Entry(real));
-    }
-
-    // The generator's stack as a ring ingest makes it (stone under chunk row 4, a column of planks in each footprint) and an edit's chunk (a house block in the second section up).
-    private static ChunkData? GeneratorChunk(int cx, int cy, int cz) => cy < 4 ? new ChunkData(new VoxelChunkCoord(cx, cy, cz), Enumerable.Repeat(BlockId.Timber, ChunkData.Volume).ToArray(), null) : null; // a block the model never makes, so a section the model made is told from one the generator did
-
-    private static BlockId[] HouseChunk()
-    {
-        var blocks = new BlockId[ChunkData.Volume];
-        blocks[(((3 << 4) | 5) << 4) | 7] = BlockId.Planks;
-        return blocks;
-    }
-
-    private static void AssertSameBlocks(LodSection expected, LodSection actual, string where)
-    {
-        for (var i = 0; i < LodSection.Volume; i++)
-        {
-            if (expected.BlockAt(i) != actual.BlockAt(i))
-            {
-                Assert.Fail($"{where}: voxel {i} is {actual.BlockAt(i)}, not {expected.BlockAt(i)}");
-            }
-        }
-    }
-
-    [Fact]
-    public void Given_TheRingsStackAndAnEditsChunkOfTheSameFootprint_When_TheyAreIngestedOnTwoThreadsManyTimes_Then_TheRealBlocksAndTheEditBothSurviveInMemoryAndOnDisk()
-    {
-        // B07f, C1: the edit's relight used to write back the stack it had read before the ring's real sections arrived, over them.
-        var disk = new MemoryDisk { SaveDelayMilliseconds = 1 };
-        var world = WorldOf(42, new LodStore(disk), treeLevels: 1);
-        var (min, max) = world.SyRange(0);
-        var edit = HouseChunk();
-        var reference = WorldOf(42, new LodStore(), treeLevels: 1);
-        reference.IngestStack(0, 0, GeneratorChunk);
-        reference.IngestChunk(new VoxelChunkCoord(0, 4, 0), edit);
-
-        for (var round = 0; round < 90; round++)
-        {
-            var (sx, sz) = (round, 7);
-            var coord = new VoxelChunkCoord(2 * sx, 4, 2 * sz); // a chunk of the second section from the ground (cy 4 is section 2)
-            using var go = new ManualResetEventSlim();
-            Exception? failure = null;
-            Thread Start(Action work) => new(() =>
-            {
-                try
-                {
-                    go.Wait();
-                    work();
-                }
-                catch (Exception ex)
-                {
-                    failure = ex;
-                }
-            });
-            var ring = Start(() =>
-            {
-                Thread.Sleep(round); // the ring's ingest begins a millisecond later each round, so it overlaps every point of the edit's relight
-                world.IngestStack(sx, sz, (cx, cy, cz) => GeneratorChunk(cx - (2 * sx), cy, cz - (2 * sz)));
-            });
-            var player = Start(() => world.IngestChunk(coord, edit));
-            ring.Start();
-            player.Start();
-            go.Set();
-            ring.Join();
-            player.Join();
-            Assert.Null(failure);
-
-            for (var sy = min; sy <= max; sy++)
-            {
-                var key = new LodSectionKey(0, sx, sy, sz);
-                var entry = world.Store.Entry(key)!;
-                Assert.Equal(LodOrigin.Real, entry.Origin);
-                Assert.Equal(0xFF, entry.RealMask);
-                var here = world.Store.Get(key)!;
-                AssertSameBlocks(reference.Store.Get(new LodSectionKey(0, 0, sy, 0))!, here, $"round {round} section {sy}");
-                var saved = disk.Files[key];
-                Assert.Equal(LodOrigin.Real, (LodOrigin)saved[0]);
-                AssertSameBlocks(here, LodSection.Unpack(saved[3..]), $"round {round} section {sy} on disk");
-            }
-
-            Assert.Equal(1 << 0, world.Store.Entry(new LodSectionKey(0, sx, 2, sz))!.EditedMask & 1);
-        }
-    }
-
-    [Fact]
-    public void Given_TwoThreadsEditingChunksOfTheSameStackWhileTheRingIngestsIt_When_TheyAreDone_Then_BothEditsAreInAndTheStackIsStillTheGenerators()
-    {
-        var world = WorldOf(42, new LodStore(new MemoryDisk()), treeLevels: 1);
-        var edit = HouseChunk();
-        for (var round = 0; round < 40; round++)
-        {
-            var sx = round;
-            Parallel.Invoke(
-                () => world.IngestStack(sx, 3, (cx, cy, cz) => GeneratorChunk(cx - (2 * sx), cy, cz - 6)),
-                () => world.IngestChunk(new VoxelChunkCoord(2 * sx, 4, 6), edit),
-                () => world.IngestChunk(new VoxelChunkCoord((2 * sx) + 1, 4, 6), edit));
-            var section = world.Store.Get(new LodSectionKey(0, sx, 2, 3))!;
-            Assert.Equal(BlockId.Planks, section.BlockAt(LodSection.Index(7, 3, 5)));
-            Assert.Equal(BlockId.Planks, section.BlockAt(LodSection.Index(16 + 7, 3, 5)));
-            Assert.Equal(BlockId.Timber, world.Store.Get(new LodSectionKey(0, sx, 1, 3))!.BlockAt(LodSection.Index(9, 9, 9)));
-        }
     }
 
     [Fact]

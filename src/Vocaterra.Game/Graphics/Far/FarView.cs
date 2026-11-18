@@ -23,6 +23,12 @@ public sealed class FarTile(FarTileKey key)
     /// <summary>The indices on the graphics card, once uploaded.</summary>
     public IndexBuffer? Indices { get; set; }
 
+    /// <summary>The tile's buffers in the game's own OpenGL program's form (B17c: the far view drawn through the chunks' program, <see cref="FarTerrainRenderer.DrawGl"/>), instead of <see cref="Buffer"/> and <see cref="Indices"/>; <see langword="null"/> when the tile is drawn with MonoGame's effects.</summary>
+    public Gl.GlFarBuffers? GlBuffers { get; set; }
+
+    /// <summary>Whether the tile has vertices on the card, in either form.</summary>
+    public bool HasBuffers => Buffer is not null || GlBuffers is not null;
+
     /// <summary>Whether the tile's buffers are on the graphics card, so it can be drawn (a tile that is only <see cref="Pending"/> cannot: its leaf is drawn from a coarser tile until it is).</summary>
     public bool OnCard { get; set; }
 
@@ -58,7 +64,7 @@ public sealed class FarTile(FarTileKey key)
     }
 
     /// <summary>Whether a worker has made the tile.</summary>
-    public bool IsBuilt => Pending is not null || Buffer is not null || OnCard;
+    public bool IsBuilt => Pending is not null || HasBuffers || OnCard;
 }
 
 /// <summary>What the far view holds and what it cost, for the run's report.</summary>
@@ -298,6 +304,7 @@ public sealed class FarView
         ArgumentNullException.ThrowIfNull(dispose);
         var treesChanged = settings.TreeLevels != Settings.TreeLevels;
         var reshaped = settings.Levels != Settings.Levels || treesChanged || settings.TexturedLevels != Settings.TexturedLevels; // a tile is built for its levels' textures, so a change of them makes every tile again (B07d)
+        var recoloured = !ReferenceEquals(settings.Ground, Settings.Ground); // the climate colours are baked into the tiles' vertex colours (B22, B17c's setting): every tile is made again
         Settings = settings;
         if (reshaped)
         {
@@ -309,7 +316,7 @@ public sealed class FarView
         }
 
         _selectedFor = (double.NaN, 0, 0);
-        if (reshaped)
+        if (reshaped || recoloured)
         {
             foreach (var tile in _tiles.Values)
             {
@@ -473,7 +480,7 @@ public sealed class FarView
 
             tile.Pending?.Release(); // a newer mesh of the tile replaces one the card never took
             tile.Pending = mesh;
-            if (tile.Buffer is null)
+            if (!tile.HasBuffers)
             {
                 tile.Adopt(mesh); // a tile made again keeps its old buffers and their counts until the renderer swaps them
             }

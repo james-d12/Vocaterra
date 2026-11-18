@@ -5,28 +5,10 @@ using Vocaterra.Game.Core.World.Underground;
 
 namespace Vocaterra.Game.Core.Tests.World.Underground;
 
-/// <summary>
-/// The underground as the pipeline builds it (B11): the rules that keep it clear of water and of the ground, the entrances, the lava, the floor, and that a chunk is the same alone, among its neighbours
-/// and from any thread. The sampled areas are real places of the procedural world for the three seeds the water checks run over.
-/// </summary>
-public sealed class UndergroundWorldTests
+/// <summary>The rest of UndergroundWorldTests's tests (B28 split the slow ones into classes of their own, sharing UndergroundWorldTestsBase).</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
+public sealed class UndergroundWorldTests : UndergroundWorldTestsBase
 {
-    public static TheoryData<ulong, Feature> WaterPlaces => new()
-    {
-        { 42, Feature.River }, { 42, Feature.Lake }, { 42, Feature.Coast },
-        { 7, Feature.River }, { 7, Feature.Coast },
-        { 2026, Feature.River }, { 2026, Feature.Lake }, { 2026, Feature.Coast },
-    };
-
-    private static UndergroundData Data => TestGame.Data.Underground!;
-
-    private static SampledArea Area(ulong seed, Feature feature, int span = 5)
-    {
-        var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
-        var source = ProceduralTestWorld.Source(seed);
-        return new SampledArea(source, source.GenerateColumn, cx - (span / 2), cz - (span / 2), span, span);
-    }
-
     [Fact]
     public void Given_TheShippedPipeline_When_ItsPassesAreListed_Then_TheUndergroundRunsBetweenTheStoneAndTheTrees()
     {
@@ -214,44 +196,6 @@ public sealed class UndergroundWorldTests
 
         Assert.All(counts.Skip(1), static c => Assert.InRange(c, 1800, 3200)); // 2 500 each in a fair draw
         Assert.Equal(-61, floor.HighestPossibleY);
-    }
-
-    [Theory]
-    [InlineData(42UL, Feature.Forest)]
-    [InlineData(7UL, Feature.Mountain)]
-    [InlineData(2026UL, Feature.Plain)]
-    public void Given_ACaveRichPlace_When_ItsChunksAreGeneratedInAnyOrderAndOnManyThreads_Then_EveryChunkEqualsTheSameChunkAlone(ulong seed, Feature feature)
-    {
-        var (cx, cz) = ProceduralTestWorld.Find(seed, feature);
-        var coords = new List<VoxelChunkCoord>();
-        for (var z = cz - 1; z <= cz + 1; z++)
-        {
-            for (var x = cx - 1; x <= cx + 1; x++)
-            {
-                for (var y = -4; y <= (feature == Feature.Mountain ? 12 : 3); y++)
-                {
-                    coords.Add(new VoxelChunkCoord(x, y, z));
-                }
-            }
-        }
-
-        var rng = new Vocaterra.Game.Core.Mathematics.WorldRng(seed);
-        var shuffled = new List<VoxelChunkCoord>(coords);
-        for (var i = shuffled.Count - 1; i > 0; i--)
-        {
-            var j = rng.NextInt(i + 1);
-            (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
-        }
-
-        var among = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data);
-        var amongDigests = shuffled.ToDictionary(static c => c, c => among.Generate(c).ComputeDigestHex());
-        var threaded = coords.AsParallel().WithDegreeOfParallelism(8).Select(c => (c, ProceduralTestWorld.Source(seed).Generate(c).ComputeDigestHex())).ToDictionary(static p => p.c, static p => p.Item2);
-        foreach (var coord in coords)
-        {
-            var alone = new ProceduralChunkSource(TestGame.Data.WorldGen, TestGame.Data.Biomes, seed, null, Data).Generate(coord).ComputeDigestHex();
-            Assert.Equal(alone, amongDigests[coord]);
-            Assert.Equal(alone, threaded[coord]);
-        }
     }
 
     [Fact]

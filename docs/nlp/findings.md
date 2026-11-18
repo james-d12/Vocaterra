@@ -1512,3 +1512,24 @@ this file. What is still open is collected in [open-items](../open-items.md).
   injectable variants with identical phones (still exactly one tag, with the tag, phones and span of that site); no check was relaxed otherwise. Regression: four facts in
   `GreedyPhoneScorerTests` (one h, two h's, an h at a lone second word, a silent h before a vowel word and a lone silent-h word). Plan row text proposed: "M99 done: one heard
   extra phone is one tag (a silent h ending a word and one starting the next no longer double-tag; the first word in the text gets it), seed `a2RKk5N6Ibt4` fixed."
+- **M100, the lexicon load test on CPU time (2026-11-17).** Tests only (`tests/Vocaterra.Nlp.Tests`), no core or pack change, goldens unchanged. *Cause:*
+  `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` took the median of three wall-clock loads against 3 000 ms, so a busy machine (other agents' builds) made the gate
+  fail (B24's report; the codebase review's T2). *Fix:* the test now measures the CPU time of this process (any thread) while `SpanishContent.Load` runs with hash
+  verification, the fastest of three attempts, the same method as the game's `CpuTime` helper (B24). It sits in its own class, `GeneratedLexiconLoadTimeTests`, in a
+  new non-parallel `Timing` collection (`tests/Vocaterra.Nlp.Tests/TimingCollection.cs`, the game's `TimingCollection` in the core's assembly), so it runs alone. *Measured*
+  (sample bundle, machine at load about 10): attempts 582, 711 and 541 ms of CPU time, fastest 541 ms. *Budget:* 1 082 ms, twice the measured cost, so a doubling of the
+  load's cost fails the test. The budget is strict (`<`), so a run at exactly a doubling fails too. Full suite: 12 643 passed, 0 failed, 8 skipped (unchanged from the base).
+- **A fuzz seed on an adjective's gender (found 2026-11-17 by the B11c gate on `feature/biomes`; not changed, given to M101).** O3,
+  `CorrectSentenceFuzzTests.CorrectSentences_AnalyzeClean_MatchTheirGrammar_AndYieldTheirSlots`, seed `3gcdMpDLcrQ4`: the pattern
+  `[[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ([PRON] [DET]|[DET]|[ART] [ART])?]` realised «Laná doloroso les» as a correct sentence; the
+  analyser reports `gender.agree@5+8`, expected «dolorosa». It replays (`CsCheck_Seed=3gcdMpDLcrQ4`, fails the same), and the gate's two
+  branches touched no core code (a game test file, a game test constant), so it is the core's: either the realiser paired a feminine
+  item noun with a masculine adjective it should have agreed, or the analyser misreads «Laná»'s gender. To triage in M101.
+- **M101, a fuzz seed on an adjective's gender (2026-11-17; seed `3gcdMpDLcrQ4`, the entry above).** Tests only (`tests/Vocaterra.Nlp.Fuzzing.Tests`), no core or pack change, goldens unchanged.
+  *Cause:* «Laná» is not an item noun: it is a drawn name (`[WORD:qty]`, an invented syllable string), and its accents folded it onto the lexicon noun «lana» (feminine). The pattern
+  `[NOUN:item]? [WORD:qty]? [ADJ] [PRON] ...` left the noun out, so the adjective had no head and the realiser gave it its default masculine; the analyser reads «laná» as «lana» (the lexicon
+  folds accents, as the realiser's own `IsClosedClassOnly` knows) and agrees the adjective with it, hence `gender.agree` «dolorosa». Both readings of the analyser are right; the realiser's
+  M62b re-roll (`name-read-as-noun`) covered a name that is a noun only after a determiner or a loose adjective, not before one. *Fix* (the realiser, `SentenceRealizer`): a drawn name that is
+  a lexicon noun (accents ignored) right before an adjective that belongs to no noun is re-rolled (the same skip reason); the oracle is unchanged. Regression: `NameReadAsNounTests` (the analyser's
+  reading of «laná doloroso les», the failing recipe, 3 000 draws of the pattern analysed clean). Plan row text proposed: "M101 done: seed `3gcdMpDLcrQ4` fixed in the realiser (a name that is a noun
+  once its accents are ignored is re-rolled before a loose adjective)."

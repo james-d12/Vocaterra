@@ -1,4 +1,4 @@
-# B17a: a GLSL spike on MonoGame's context (2026-11-17); B17b: every chunk pass on it (below)
+# B17a: a GLSL spike on MonoGame's context (2026-11-17); B17b: every chunk pass on it; B17c: the light, fog, water and far view in it (below)
 
 Goal (D-game-34 items 30, 39, 40; `docs/game/biomes-plan.md` section 3.9): prove that the game can draw its chunks with its own OpenGL shaders, compiled at run time by the
 driver, inside MonoGame's frame, and say how well it fits. The spike draws the **opaque chunk pass** through one GLSL program behind `--gl-shaders` (off by default). The sky, the far
@@ -232,3 +232,135 @@ Build `-warnaserror` 0 warnings (the solution, Debug; the game in Release); `scr
 
 **What the plans should say** (the documents this milestone may not edit): `docs/game/implementation-plan.md` section 4.14, row B17b: done, with this section and the numbers above; `docs/game/biomes-plan.md` section 3.9: B17b's items 1, 2, 3, 5 and 6 of the spike are done and the GL path is the default (on; the Shaders row; the fallback automatic);
 `docs/game/decisions.md`: D-game-34 item 43 is met for the GL path (a Shaders toggle in a "Shaders and effects" group of the Graphics settings, on by default, a quality level sets it, B17c's effects join it each with its own toggle).
+
+
+---
+
+# B17c: light, fog, water and the far view in the shaders (2026-11-17)
+
+Goal (D-game-34 items 41 and 43; `docs/game/biomes-plan.md` section 3.9 items 2 to 7): move the light, the fog and the water into the shaders, put the far view on the same program and light model, and give every added effect a toggle in the settings page's Graphics group.
+Branch `B17c-light-in-shaders`, code in `src/Vocaterra.Game/Graphics/Gl`, `Graphics/World` (`LightData`, `LightModel`, `ChunkMesher`), `Graphics/Sky` (`SunModel`) and `Graphics/Far`.
+
+## What moved
+
+| Piece | Where | What changed |
+|---|---|---|
+| **Light as data** | `LightData`, `MeshBuffer.Lights`, `ChunkMesher` (`MeshOptions.Data`) | A chunk mesh built for the program has the **material** in the 24-byte vertex's colour and, in a second 4-byte stream, a **light word** a corner: bits 0 to 7 sky light, 8 to 15 block light, 16 to 17 corner occlusion, 18 to 20 the face (east, west, up, down, south, north, `Flat`, `Fixed`), 21 to 23 flags (the water's wave), 24 to 31 an extra byte (a flat face's grey level; the water's depth). The mesher is still a pure function of its snapshot (tested byte for byte on a worker and inline). No band, no tint, no glow mesh in this path. |
+| **The shader's light** | `chunk.vert.glsl` | `material * faceShade(sun) * occlusionKeep * sky * sunColour + amber * glowStrength * block` per vertex (so the interpolation across a face is the baked one's), with the sun's direction and colour, the glow's strength, the tints and the occlusion table as uniforms (`GlLightFrame`; the tints and the table are `ChunkMesher`'s own numbers, one source for the shader and the fallback). `LightModel` is the same maths in C#; `LightModelTests` hold it to the baked mesh of every band to the byte, and a live test holds the shader to `LightModel`. |
+| **The sun** | `SunModel` | The faces are shaded by the afternoon's fixed sun while the real sun is high (from 42 degrees of elevation: all the midday), by the real sun low down (held at least 7.5 degrees up while it is above the horizon, as B22's dusk band stood it), and by the moon at midnight at night, turned along the great circle through the dusk's whole twilight: a function of the sky's look with no step (the largest step in a minute of game time is under 3 degrees; B22's bands jumped). The sun's colour is the look's `SunLight`. |
+| **Fog by height** | `chunk.vert.glsl` | An exponential density along the ray from the eye to the vertex (the closed form), `1 - exp(-density)` mixed with the linear distance fog, in the fog's colour (the look's horizon colour: the haze of the far view), thicker with the weather's fog, none under water. Near chunks and far tiles alike (one program). |
+| **The water shader** | `chunk.vert.glsl`, `chunk.frag.glsl`, `AddWater*` in the mesher | B22's depth tint is now computed in the shader from the depth the surface corner carries; the surface's top corners (and the top edge of the sides) move with three sines of the world position and the game's time (0.035 block at most; the sides follow, no seam); a view at a grazing angle takes the haze's colour and turns more opaque (the facet's normal from the screen derivatives). No reflection pass. |
+| **The far view** | `FarTerrainRenderer.Draw` with a `FarGlDraw`, `GlChunkPass` (`FarLand`, `FarLit`, `FarWater`), `GlFarBuffers` | The far tiles upload into buffers of the pass and are drawn in a scope of their own (their projection and depth range, then a depth clear): colours baked in the Day's sun as before, brought by the fragment stage to the sun of the moment by each face's own direction (screen-space derivatives of the position, `shade(n, sun) / shade(n, daySun)`, exactly 1 at the Day's sun), with the same fog and fog by height. Its textures are mipped copies: the atlas to the level where a texel is a whole cell, and the noise. Tiles uploaded for the other path are carried over a few a frame when the setting or the shaders change; the climate colours are baked in the tiles, so their toggle makes the tiles again. |
+| **The toggles** | `SettingId`, `PlayerSettings`, `SaveSettings`, `MenuRows`, `GraphicsEffects`, `QualityPreset`, `LaunchOptions` | Five rows under *Shaders and effects* with Shaders, and B18's Grass and a new Antialiasing row moved in: sun follows the hour, climate colours, water shader, fog by height, far view light. Each is on by default, written to a save only when off (a save of the default is byte for byte what it was), a launch option each (`--sun-follows-hour`, `--climate-colours`, `--water-shader`, `--height-fog`, `--far-light`, `on|off`), set by the quality level (Low: water shader and fog by height off), applied at once. |
+
+## The effects' path is the fallback (what was chosen)
+
+With Shaders off, no GL 3.3 or a program that does not compile, the renderer draws with MonoGame's effects and the mesher builds as it always did (`MeshOptions.Data` false: the colours baked from the same inputs, the four bands, the glow mesh). Nothing of the light is data there. A hash of every vertex of every mesh of the
+scenes in every band, recorded at the base commit before any of this moved, is a test (`BakedLightGoldenTests`); the existing tests of the bands, the depth darkening, the glow, the bed and the water pass unchanged. The toggles that are uniforms in the program (the sun, the water shader) are baked in the fallback: the sun's setting picks Day for every band and the older dusk's light (one band, so no remesh at an hour), the water's the baked tint; the fog by height and the far view's light need the program.
+
+## The texture array (what was chosen)
+
+**Not adopted: the atlas stays one texture.** The bleeding between cells that an array removes is where a texel is more than one cell, and the game never samples there. The atlas's mips are made cell by cell up to level 4, where a texel is a whole 16 x 16 cell (`AtlasMipBleedTests` changes one cell and
+checks that no texel outside it moves at any of levels 0 to 4); the far view's sampler (and the GL copy of it, `TryAddFarTextures`) stops at level 4; and the chunks are at most a view distance away, where a block is 2.3 pixels at 1280 wide, 4.6 at 2560 and 6.9 at 3840 (the level the card picks is 2.8, 1.8 and 1.2). An array
+would also have put a layer index in every vertex (the mesher's and the far mesher's), for a defect nothing shows. Revisit if the render distance of the chunks grows or the atlas gains cells with their own alpha edges.
+
+## The comparison
+
+Scripted runs (one game run a view, or one run with several `--shot` steps; the steps of each view are in `index.md` beside the pictures; Release, High, seed 42, 1280 x 720, a fixed 60 Hz scripted clock, 240 frames after the steps; the base is the build of `25d8c494`, B17b's merge, run on its own content: the new settings strings are orphans to it) with the defaults of B17c (every effect on); pictures and the
+differences, `/home/james/Dev/Vocaterra/artifacts/b-series/b17c/` (outside git, `index.md`). Tolerance as B17a's and B17b's: at most 0.1 percent of the pixels differing by more than 8 of 255 (`scripts/gl-compare-images.py`).
+
+| View | Where | Differing at all | By more than 8 | Largest | Within the tolerance |
+|---|---|---|---|---|---|
+| meadow, midday | 380,217 east, the streamed world | 367,124 | 7 (0.0008%) | 12 | yes |
+| cave | the landing 468,62,153 | 472,227 (none by more than 2) | 0 | 2 | yes |
+| village, midday | the street 266,223 | 604,307 | 1 (0.0001%) | 13 | yes |
+| rain, midday | the meadow, `--set-weather rain` | 368,067 | 6 (0.0007%) | 11 | yes |
+| meadow at dusk (21 h) | | 499,627 | 78 (0.0085%) | 21 | yes |
+| wood at dusk (21 h) | the valley wood 196,206 | 592,578 | 116 (0.0126%) | 46 | yes |
+| meadow at night (0 h) | | 279,498 | 7 (0.0008%) | 10 | yes |
+| night village, torches and lanterns | 266,223 at 0 h | 442,085 | 2 (0.0002%) | 17 | yes: the block light in the faces' vertices is the old glow pass's picture |
+| lake shore, midday | the pool above the waterfall 258,106 | 489,627 | 7,663 (0.83%) | 140 | no: the water shader (below) |
+| under water | 262,88,136 | 449,773 | 4,792 (0.52%) | 49 | no: the water shader's surface seen from below |
+| far view, midday | 812,762 east | 331,790 | 47,033 (5.1%) | 72 | no: the fog by height on the far land (a band 58 rows tall) |
+| far view, dusk (20.5 h) | | 386,387 | 62,860 (6.8%) | 58 | no: the same, and the far view's own light |
+| lake shore at 20 h | | 514,687 | 348,873 (37.9%) | 112 | no: the sun following the hour (the golden hour: the Day band's fixed afternoon sun before, the real low sun after) |
+
+**Each effect off** (the same scripts with the option; against the base's picture of the same view and tick; the pictures are in `artifacts/b-series/b17c/`, `off-*`). An effect off is the picture without the effect, which for B22's three (the sun, the climate colours, the depth tint) is a picture of before B22 and not the base's:
+
+| Effect off | View | Differing by more than 8 | What it is |
+|---|---|---|---|
+| fog by height | far view, midday | 14 pixels (0.0015%), largest 77 | the base's picture: the far view drawn through the program is the old far view's, so the 5 percent above is the haze alone |
+| Shaders (the fallback, MonoGame's effects) | lake shore, midday; the night village | 0 (7 pixels differ by 1 of 255); 0 | the base's picture to the pixel: the fallback bakes today's colours |
+| sun follows the hour | meadow at dusk, far view at dusk | 55.2%, 34.6% | the afternoon sun at every hour and the older, lighter dusk (B22's dusk darkening and its low sun are gone, as the setting says) |
+| climate colours | meadow, midday | 2.3% (largest 12) | the colour map's middle everywhere (the near and far land) |
+| water shader | lake shore, midday | 3.6% (largest 190) | plain water: no depth tint, no sheen at the edge, no movement |
+| far view light | far view, dusk | (a picture only) | the far view drawn by MonoGame's effects in the day's baked light, as before; the chunks in front still take the shader's |
+| all five | meadow; the shore; the far view | 2.5%; 0.6%; 32.5% | the climate colours and the depth tint are most of it; nothing else differs at midday |
+
+The first rows are the point: with the light moved into the shader the pictures at midday, in the cave, in the rain, at dusk, at night and by torchlight are today's, to a step or two of rounding (the cave's largest difference anywhere is 2 of 255), and the lanterns' glow, now the block light of the faces' own corners and one pass, adds
+up to the same picture as the old second pass (2 pixels differ by more than 8). The views outside the tolerance are each an effect that is new and on by default, explained by its row.
+
+## Times
+
+`--stream-stats`, Release, High, interleaved before / after pairs (two runs each; the machine was shared with up to four other agents' builds, tests and game windows, load 10 to 20, and the card with their windows: read the pairs, not the absolute numbers; the shore's second "before" was killed by the load, so it has one pair and a lone "after").
+The card's time is the `GL_TIME_ELAPSED` query round the chunk passes (B17b; the far view's scope is a pass of its own and is not in it, before or after).
+
+| View | Chunk passes, processor time to submit (before / after) | Card's time, median (before / after) | Frame p50 (before / after) | Draw calls and quads (after) |
+|---|---|---|---|---|
+| shore, run 1 | 1.39 / 1.20 ms | 0.56 / 0.48 ms | 4.3 / 3.7 ms | 1,656 and 609k |
+| shore, run 2 | (killed) / 1.05 ms | (killed) / 0.38 ms | (killed) / 3.2 ms | |
+| torches, run 1 | 0.33 / 0.41 ms | 0.28 / 0.16 ms | 2.5 / 2.4 ms | 557 and 195k |
+| torches, run 2 | 0.75 / 0.94 ms | 1.06 / 1.07 ms | 5.7 / 5.9 ms | |
+| meadow, run 1 | 0.51 / 0.92 ms | 0.24 / 0.26 ms | 3.9 / 24.0 ms (after: another agent's window on the machine) | 1,258 and 455k |
+| meadow, run 2 | 1.27 / 0.98 ms | 4.23 / 0.36 ms (before: the card shared) | 40.9 / 6.2 ms (before: load) | |
+
+Read as the B17b table was: the processor's time to submit stays at 0.3 to 1.4 ms either side (the passes are the same draw calls; the glow pass's draws are gone and the program sets a few more uniforms a frame), the card's time is equal within the noise of the shared card (the two meadow pairs show the card and the processor of the other agents' runs more than the game's), and the frame
+is not the passes' time. Nothing is slower beyond noise; the far view's scope is not in these figures, before or after.
+
+**A change of the hour**, before (the effects' band baking, and B17b's program too: the band is baked into each mesh) and after: the same run held at 13 h for six seconds and the same run with the clock set to 21 h after three (`--set-time`), Release, High, the streamed meadow, the workers' own count of meshes built (the `stream:` line):
+
+| | held at 13 h | 13 h then 21 h | the change costs |
+|---|---|---|---|
+| before (B17b: the Dusk band is baked into the meshes) | 7,543 meshes in 7.1 s of worker time, frame p50 6.0 ms | 13,372 meshes in 26.2 s, frame p50 43.1 ms, the longest frame 4.6 s | 5,829 meshes built again, 19 s of the workers, a stall |
+| after (the sun is a uniform) | 7,543 meshes, frame p50 3.3 ms | 7,543 meshes in 8.5 s, frame p50 5.1 ms, the longest frame 45 ms | none: a change of the hour builds nothing (a test holds the pipeline's job count over a whole day) |
+
+
+**A torch placed** re-meshes the chunks its light reaches (12 chunks at the village's first torch) before and after, since the block light is in those chunks' vertices; what is gone is the glow mesh (a second set of quads for the faces in reach, 4,244 quads against 3,867 for the 12 chunks) and the band: the time to mesh the 12 chunks, measured in the mesher alone, is 12.8 ms baked and 12.5 ms as data (three runs each, the whole
+view of 566 chunks 860 to 970 ms baked and 863 to 875 ms as data), so the processor's cost of a torch is the same re-mesh as before and its light is exactly its own (no colour round it is baked).
+
+## What B23 inherits
+
+- **The two channels are defined and filled.** A corner's sky and block light are bytes of the light word (`LightData`): 255 is level 15 and a level `L` of B23's 0 to 15 is `LightData.FromLevel(L)` (`L * 17`; `LevelOf` the other way), so the propagated levels go in as they are and the shader needs no change. Today's sources fill them in one place each: `ChunkMesher.CornerWord` (a cube corner: the sky byte is B12's darkening by depth,
+  `CornerSky`'s mean over the cells that meet at the corner; the block byte is the reach of the lanterns', torches' and lava's glow, `Glow.At`), `Open` (the pieces with no source of their own: plants, grass tufts take the sky share of their cell, the water sky 255), and the fixed word of the self-lit pieces. B23 replaces those two values by the propagated levels of the corner's cells (the same average) and keeps
+  `ChunkLightIndex`'s invalidation for the chunks a light reaches.
+- **What the shader does with them:** the sky byte scales the sun's light (so a cave's floor is the dark of its sky level, with the cave minimum of B12 (`SkyDepthLight.CaveMinimum`, 0.28) in the byte today: B23 can move it into a uniform as an ambient floor), the block byte adds amber times the glow's strength (`uGlowColour`; a coloured light would need a colour in the word: byte 3 is free outside the water and the flat faces, and two flag bits are).
+- **The fallback must bake from the same words.** `Data` false still bakes with the old rules (the bands, the glow mesh, `CornerSky`); B23's propagated light has to reach it too (its brief says "in vertex colours with the built-in effects"): `LightModel.Corner` is the one place that turns a word and a sun into a colour, so the baked path can take B23's levels the same way (a CPU step from the words), with `BakedLightGoldenTests` to be re-recorded for the intended change.
+- **No re-mesh for the hour or the weather, ever:** a change of light is a few uniforms (`GlLightFrame`); a torch placed or a shaft dug re-meshes the chunks its light reaches (their words), the same chunks and the same cost as before (12 chunks, 12.5 ms at the village's first torch).
+- The vertex is 28 bytes in two streams (24 + 4); the light word has 2 spare flag bits and a free extra byte for what B23 needs next.
+
+## The scripted runs, both builds
+
+`scripts/scripted-runs.sh` with `GAME_BIN` a wrapper (the base's on its own content; B17c's; B17c's with the five effects off), then `scripts/compare-runs.py`: **r14-third** (the behind-the-shoulder avatar), **r15-grey-dusk** (greyscale, dusk) and **r31-lake** (the lake: the surface, under water through the render target, the shore). Every file of every run that is not a picture (the stdout, the session log, the replay, the saves) is **byte for byte the
+same** as the base's (after `compare-runs.py`'s masks); only the pictures differ, and each difference is an effect on by default:
+
+| Picture | Differing by more than 8 | Why |
+|---|---|---|
+| r14-third (the avatar, the run's clock starts at 8 h) | 17.0% | the sun following the hour: at 8 h the sun stands 27 degrees up, so the faces take the morning sun's shade where the base used the afternoon's fixed one |
+| r15-grey-dusk (greyscale, `--dusk`) | 5.7% | the sun at dusk (7.5 degrees up in the west) against B22's dusk band, in grey, and the far land's haze |
+| r31-lake: water, land, land-north, shot | 16.7%, 22.0%, 0.44%, 0.65% | the morning sun again (the first two face the morning sun), the water shader's surface and edge, the fog by height over the far land |
+| the same runs with all five effects off: r14-third, r31-lake water, r31-lake land | 0.28%, 0.015%, 11.0% | what is left is the climate colours (the grass and leaves in the colour map's middle) and the water's depth tint, which are B22's effects and so also off; the lake's water picture, which has no land in its middle, is the base's to 136 pixels |
+
+## The gate
+
+Build `-warnaserror`: 0 warnings, 0 errors (Debug, the solution); `scripts/test.sh full` with `VOCATERRA_GL_TESTS=1`: **12,590 passed, 0 failed, 3 skipped** (the model-gated tests; the base was 12,539), the live GL tests among them (the program compiles, every embedded source compiles, the scope restores everything it captured after every kind of draw including the far kinds,
+a quad through the pass equals the effects' picture on the back buffer and a render target, and the shader's light of nine words equals `LightModel` to 2 of 255). New tests: `LightDataTests`, `LightModelTests`, `DataMeshTests`, `SunModelTests`, `BakedLightGoldenTests`, `GraphicsEffectsTests`, `FarGlFormTests`, `AtlasMipBleedTests`, a far-view recolour test, `PlayerSettingsTests` additions and the live numeric test. `dotnet format
+--verify-no-changes` clean; `scripts/content.sh validate` and the A2 lint clean (game-v1's bundle unchanged; the locale bundle's manifest refreshed for the new strings: `scripts/content.sh refresh`); the gate's licence scans (offline) PASSED, no package added.
+
+**What the plans should say** (the documents this milestone may not edit): `docs/game/implementation-plan.md` section 4.14, row B17c: done, with this section's numbers (the midday, cave, rain, dusk, night and torch views equal the base's to a handful of pixels; the effects' fallback to the pixel); `docs/game/biomes-plan.md` section 3.9: items 2 to 7 are done, the texture array is not adopted (this section says why), a placed torch re-meshes the chunks its
+light reaches as before (the block light is in their vertices) and a change of hour, weather or glow builds nothing; `docs/game/decisions.md`: D-game-34 item 43 is met for B22's effects and B17c's (five rows and Antialiasing in the Graphics group, the quality level sets them), B23 follows with the channels defined here.
+
+## The torch runs, both paths (after the merge of feature/biomes at 66d9b263)
+
+r42-camp, r01-route and r40-inn (they place torches and no longer stall: B25 found the stall in B07f's code, fixed in `2f995552`) run to the end on every variant: the effects' path (`--gl-shaders off`) and the program's, with the five effects on and with them off (`--sun-follows-hour off --climate-colours off --water-shader off`, and for the program also `--height-fog off --far-light off`). `compare-runs.py`: the simulation is the same on both paths in every run (the saves differ only in their `settings` object, which keeps `shadersOff`), stdout equal;
+`sounds.log` differs by where the voice's end lands (a few ticks apart, which moves the ducking of the other sounds), as the runs' notes say, not by the pictures. The pictures with the effects on differ by the effects the effects' path does not have in the same form (the run clock starts at 8 h, so the morning sun, the water shader, the fog by height: r40-inn's morning picture 52% of the pixels by more than 8, r42-camp's day 4.9%, r01-route 4.1%); with the effects off on both paths they are the same
+to a pixel or two (at most 8 pixels differ by more than 8 in any picture, the largest difference 21 of 255 on a torch flame's edge).

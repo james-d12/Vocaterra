@@ -14,7 +14,8 @@ namespace Vocaterra.Game.Graphics.World;
 /// <param name="Band">The light band whose sun is baked into the colours (the same as the chunk's own mesh, which the layer is drawn with).</param>
 /// <param name="Ground">The ground temperature and humidity at a block (B22, <see cref="GroundClimate.Of"/>), from which a tuft takes the same land colour as the chunk's own grass and tall grass (<see cref="ColumnTints"/>); <see langword="null"/> for the colour map's middle.</param>
 /// <param name="Grey">Whether the block's tuft is drawn from the grey copy of the atlas (the greyscale view).</param>
-public sealed record GrassLayerOptions(float Cap, GrassBiomes Data, Func<int, int, string?>? BiomeAt, SkySurface? Sky, LightBand Band, bool Grey, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null);
+/// <param name="LightAsData">B17c: whether the tufts carry their light as data (<see cref="LightData"/>: the sky light of the cell, the sun's colour alone) with the material as the vertex colour, as the chunk's own mesh does, or have it baked in as before (the default).</param>
+public sealed record GrassLayerOptions(float Cap, GrassBiomes Data, Func<int, int, string?>? BiomeAt, SkySurface? Sky, LightBand Band, bool Grey, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null, bool LightAsData = false);
 
 /// <summary>
 /// The decorative grass of one chunk (B18): the quads of its tufts, in four quadrants of 8 x 8 columns, each quadrant ordered by tier (a tuft's rank in the density, so the first tiers hold the tufts a low
@@ -131,13 +132,13 @@ public static class GrassMesher
         var mesh = new MeshBuffer();
         var start = new int[Quadrants + 1];
         var cumulative = new int[Quadrants * (Tiers + 1)];
-        var sun = LightBands.BakedSun(options.Band);
+        var sun = options.LightAsData ? (R: 1f, G: 1f, B: 1f) : LightBands.BakedSun(options.Band);
         var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(BlockAtlasLayout.CellFor(BlockId.TallGrass, BlockFace.North), options.Grey);
         var quadrantQuads = new int[Quadrants];
         foreach (var tuft in tufts)
         {
             var before = mesh.FaceCount;
-            AddTuft(mesh, tuft, sun, options.Sky, land.Grass(tuft.X, tuft.Y, tuft.Z), u0, v0, u1, v1);
+            AddTuft(mesh, tuft, sun, options.Sky, land.Grass(tuft.X, tuft.Y, tuft.Z), u0, v0, u1, v1, options.LightAsData);
             quadrantQuads[tuft.Quadrant] += mesh.FaceCount - before;
         }
 
@@ -178,7 +179,7 @@ public static class GrassMesher
 
     // One tuft: two quads crossing on the diagonals of the cell's top, jittered and a little narrower than the cell so it stays over its own block (a path or a doorstep beside it is never covered),
     // one of three heights and one of three tints from the hash, brighter at the tip than at the root, in the band's sun and the sky's light.
-    private static void AddTuft(MeshBuffer buffer, Tuft tuft, (float R, float G, float B) sun, SkySurface? sky, (float R, float G, float B) land, float u0, float v0, float u1, float v1)
+    private static void AddTuft(MeshBuffer buffer, Tuft tuft, (float R, float G, float B) sun, SkySurface? sky, (float R, float G, float B) land, float u0, float v0, float u1, float v1, bool data)
     {
         var h = CellHash(tuft.X, tuft.Y, tuft.Z);
         var h2 = BlockArtNature.Mix((uint)tuft.Z, (uint)tuft.X + 0x3c6e, (uint)tuft.Y + 0xa54f);
@@ -189,9 +190,11 @@ public static class GrassMesher
         var half = 0.31f + ((((h2 >> 16) & 3) / 3f) * 0.06f);
         var variation = ((h >> 28) % 3) switch { 0 => (1f, 1f, 1f), 1 => (0.93f, 1f, 0.86f), _ => (0.86f, 0.97f, 0.92f) };
         var tint = (variation.Item1 * land.R, variation.Item2 * land.G, variation.Item3 * land.B); // the land's colour at the column (B22, as the chunk's tall grass takes it) with the tuft's own small variation on top
-        var light = sky is null ? 1f : sky.FactorAt(tuft.X, tuft.Y + 1, tuft.Z);
+        var skyShare = sky is null ? 1f : sky.FactorAt(tuft.X, tuft.Y + 1, tuft.Z);
+        var light = data ? 1f : skyShare; // a data tuft carries the sky's share in its light word, not in its colour
         var root = MeshVertex.Pack(Channel(184, sun.R, tint.Item1, light), Channel(206, sun.G, tint.Item2, light), Channel(196, sun.B, tint.Item3, light));
         var tip = MeshVertex.Pack(Channel(255, sun.R, tint.Item1, light), Channel(252, sun.G, tint.Item2, light), Channel(240, sun.B, tint.Item3, light));
+        var word = LightData.Pack(LightData.FromShare(skyShare), 0, 3, LightFace.Flat, 255);
         var cx = tuft.X + 0.5f + jitterX;
         var cz = tuft.Z + 0.5f + jitterZ;
         var y = tuft.Y + 1f - 0.02f; // sunk a hair into the block's top so no gap shows under the root
@@ -201,11 +204,18 @@ public static class GrassMesher
             var az = -half;
             var bx = -ax;
             var bz = half;
-            buffer.AddQuad(
-                new MeshVertex(cx + ax, y, cz + az, root, u0, v1),
-                new MeshVertex(cx + bx, y, cz + bz, root, u1, v1),
-                new MeshVertex(cx + bx, y + height, cz + bz, tip, u1, v0),
-                new MeshVertex(cx + ax, y + height, cz + az, tip, u0, v0));
+            var a = new MeshVertex(cx + ax, y, cz + az, root, u0, v1);
+            var b = new MeshVertex(cx + bx, y, cz + bz, root, u1, v1);
+            var c = new MeshVertex(cx + bx, y + height, cz + bz, tip, u1, v0);
+            var d = new MeshVertex(cx + ax, y + height, cz + az, tip, u0, v0);
+            if (data)
+            {
+                buffer.AddQuad(a, b, c, d, word, word, word, word);
+            }
+            else
+            {
+                buffer.AddQuad(a, b, c, d);
+            }
         }
     }
 

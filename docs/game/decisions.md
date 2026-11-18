@@ -966,6 +966,19 @@ the owner's answers of 2026-11-15 are in its section 5.
     LGPL-2.0-or-later; offered a one-package exception or refusing it): "We don't really care about license, so just accept it, it
     doesn't really matter. This is still only an internal game, so licensing is really not a problem at the moment." A one-package
     exception in the licence scan (LGPL stays off the general allowlist); a release would carry the LGPL text and a source link.
+50. **The throughput study's changes, once the running work drains** (2026-11-17, about 20:20 UTC; the study
+    docs/research/2026-11-17-ai-development-throughput.md, offered (A) tests in Release builds, (B) a new slot policy in limited.sh, (C) a
+    gate that skips the test run when the agent's full run covered the exact tree, (D) a test-time report in the gate): "For the meta agent
+    analysis can we kickoff [it] once all current active work is done". Read as yes to A to D (A only after one measurement shows it
+    faster with the goldens unchanged; B keeps the slice's 14-core and memory caps), applied by one milestone with nothing else running;
+    no new milestone starts until the running ones have merged. The owner was told he can drop any of A to D.
+51. **feature/biomes into main by the morning of 2026-11-18** (2026-11-17, about 23:15 UTC): "Don't worry about the caching for now.
+    We'll come back to performance later on. We need to basically just finish up everything and get this feature biome merged to main by
+    tomorrow morning"; asked which milestones go in first: "Small ones only (Recommended)": M101, B11d and B02d join B17c and B03b,
+    with B30 (CI ready: the timing tests on CI's slower runner, CI's timeout); B29 (item 50's changes), B23, B16 and the caching ideas
+    wait until after the merge, on a fresh branch from main. The orchestrator opens the pull request; the owner merges it. Also: "Make
+    sure to include document any milestones that we haven't accomplished once this is done, because we'll obviously need to do that in
+    a fresh agent on a fresh PR": a new handover lists them.
 
 ## Already decided
 

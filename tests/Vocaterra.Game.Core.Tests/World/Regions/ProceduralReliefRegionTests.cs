@@ -394,7 +394,7 @@ public sealed class ProceduralReliefRegionTests(ITestOutputHelper output)
 
         output.WriteLine($"a 96 x 96 x 96 town region: built, frozen and its edge profile worked out in {watch.ElapsedMilliseconds} ms (Debug)");
         Assert.Equal(Town.TemplateDigest, again.TemplateDigest);
-        Assert.True(watch.ElapsedMilliseconds < 5000);
+        Assert.True(watch.ElapsedMilliseconds < 5000 * Vocaterra.Game.Core.Tests.TestSupport.CpuTime.Factor);
     }
 
     [Fact]

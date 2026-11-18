@@ -2938,3 +2938,45 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   sky. Open: a full re-run of the tour after B02c moved its river, lake and dense-woodland stops stalled at the beach stop past a
   30-minute bound (not diagnosed); pictures 07, 12 and 14 are of the old stops. Gated: 12,714 passed; the one failure the core's
   wall-clock lexicon test (M100), passing alone.
+- **B27, the drainage network's cost (2026-11-17, `accc36b1`).** B02c had made generation 2.5 to 3 times dearer. A profile found the cost
+  in `River()`: every column scanned the 9 x 9 drainage nodes round its own (about 47,000 look-ups a 24 x 24 window), almost none of them
+  holding a river. Each node now keeps the river reaches within its look window in its tile, computed once, and a column runs the same
+  arithmetic over those few: byte-identical (goldens, the scene digest, the fixture's digest and the atmosphere pins unchanged). A surface
+  chunk 13.9 to 6.7 ms of CPU (B02c's base was 6.4 to 6.9), all-stone 13.6 to 6.4, the valley snapshot 5.8 to 2.9 s; B24's budgets halved
+  to twice the new cost. One side effect: the underground cost ratio (a column with the underground against without) rose to about 8
+  under load, past its bound of 6, because the base got cheaper while the underground did not (passing alone): its bound is re-set from
+  a new measurement. Gated: 12,713 passed; the failures that ratio and the core's lexicon wall-clock test (M100), both passing alone.
+- **B28, test speed, and M100 (2026-11-17, `88521d07`, `12ae33c8`, gated together).** The throughput study found the full suite had grown
+  from 7 to 50 minutes in two days. B28 split the longest test classes so xUnit runs their tests in parallel (StreamedWorldHostTests's 13
+  tests ran one after another for 45 minutes), raised Game.Core.Tests from 3 to 6 threads (peak memory 5.5 GB), ran NamePlates' two game
+  processes side by side, and marked about 35 slow classes so the fast tier takes 3 minutes. No test was added, removed or weakened. With
+  B27's cheaper generation, the gate's test phase took 26 minutes (Game.Core.Tests 26, Game.Tests 18) against about 50 that morning.
+  Game.Core.Tests is now bound by a few single tests over 5 minutes in Debug builds: the next lever is optimised builds under test (item
+  50 A). M100 put the core's last wall-clock timing test (the lexicon load) on CPU time: 541 ms, budget 1,082. Gated clean.
+- **B11c, the owner's holes in a meadow (2026-11-17, `edb8516a`).** The three pits at (857, 71, 227), seed 42, were not caves breaking
+  through the cover: they were B11's one-block entrance shafts on its mask lattice (a slice of the code he played at 18:00 on 2026-11-16
+  shows a shaft from the grass to a cave; 35 entrance columns in 32 x 32 round the spot). B11b replaced the shafts with winding passages at
+  21:39 that night. On the current world the spot is an unbroken meadow, and scans find no pit in 320,000 columns a seed (42, 7, 2026).
+  The cover rule is sound. `CaveCoverTests` guards it over three seeds. Gated with B27's ratio bound (6 to 10: the base got cheaper);
+  the gate's two failures were not theirs: B07d's `JobPoolTests` resize race (it counts threads before they start; passes alone, planned
+  in B29) and a core fuzz seed (M101).
+- **B17c, light, fog and water in the shaders (2026-11-17, `9e8f202a`).** Each chunk vertex now carries a 4-byte light word (sky, block,
+  corner occlusion, the face's direction, a spare byte for a flat face's grey or the water's depth) beside its material colour; the shader
+  combines them with the sun's direction and colour for the hour, the sky's brightness, the glow, so a change of hour or weather rebuilds no
+  mesh (the base rebuilt 5,829 meshes for an hour change, 19 s of worker time and a 4.6 s frame; now none, longest frame 45 ms). B22's four
+  baked bands are gone from the shader path; the sun follows the hour smoothly. Fog by height (a closed form along the ray, the haze's
+  colour), a water shader (depth tint, movement, a brighter grazing edge) and the far view drawn through the same program, its baked Day
+  colours relit per face, so near and far meet in one colour at midday and dusk. A texture array was not needed (the atlas's mips are
+  cell-pure to level 4). Five toggles under "Shaders and effects" with Antialiasing and Grass, each on by default and set by the quality
+  level (item 43). With shaders off, the mesher bakes today's colours exactly (a golden from before the change). Against the base: midday,
+  cave, rain, dusk and night views within 0.1% of pixels; the lake shore, under water, the far views and a golden-hour view outside it by
+  design (the water shader, fog by height, the sun at its hour). Its merge with B07d's settings and far view took 13 conflicts. The torch
+  runs finish on both paths; with effects off they match within 8 pixels. B23 inherits the sky and block channels. Gated: 12,765 passed;
+  the one failure B07d's JobPool race (B30).
+- **B30, CI ready for the merge into main (2026-11-18, `946fd44e`).** CI's runner (4 cores) is about four times slower than this machine,
+  and the CPU timing tests' budgets were twice this machine's cost, so they would have failed there; `build-and-test` also had a 30-minute
+  limit for a suite that now takes 26 minutes here. Every CPU timing budget, and eight wall-clock bounds that would also trip, now take a
+  factor: 1 locally, 4 when `CI` or `GITHUB_ACTIONS` is set (`VOCATERRA_TIMING_FACTOR` overrides). A run here as CI does it (Debug, no
+  models, no GL tests, 4 cores) took 282 s to build and 43 minutes to test at load 18; the limit is now 120 minutes. NamePlates returns
+  early without a display, live-GL and model-gated tests skip. B07d's `JobPoolTests` resize race (three gates failed on it) now waits until
+  all eight workers have started a job. The orchestrator cannot read CI's results (403): the owner reports them. Gated clean.

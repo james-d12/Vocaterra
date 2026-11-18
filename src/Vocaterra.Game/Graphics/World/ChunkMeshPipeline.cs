@@ -10,7 +10,8 @@ namespace Vocaterra.Game.Graphics.World;
 /// <summary>The vertices of one mesh of a chunk, ready for the card (B21): the quads' corners as <see cref="MeshVertex"/> (the layout of the engine's vertex), cut to what a 16-bit index reaches.</summary>
 /// <param name="Vertices">Four vertices to a quad, or <see langword="null"/> for none.</param>
 /// <param name="Quads">How many quads.</param>
-public readonly record struct MeshPart(MeshVertex[]? Vertices, int Quads)
+/// <param name="Lights">B17c: the light word of each vertex (<see cref="LightData"/>) when the mesh carries its light as data, or <see langword="null"/> for a baked mesh.</param>
+public readonly record struct MeshPart(MeshVertex[]? Vertices, int Quads, uint[]? Lights = null)
 {
     /// <summary>The most quads a chunk mesh holds: it is drawn with 16-bit indices, so 65 532 vertices. A full chunk of cubes tops out at 12 288 quads.</summary>
     public const int MaxQuads = 16383;
@@ -21,7 +22,7 @@ public readonly record struct MeshPart(MeshVertex[]? Vertices, int Quads)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         var quads = Math.Min(mesh.FaceCount, MaxQuads);
-        return quads == 0 ? default : new MeshPart(mesh.Vertices[..(quads * 4)].ToArray(), quads);
+        return quads == 0 ? default : new MeshPart(mesh.Vertices[..(quads * 4)].ToArray(), quads, mesh.HasLights ? mesh.Lights[..(quads * 4)].ToArray() : null);
     }
 }
 
