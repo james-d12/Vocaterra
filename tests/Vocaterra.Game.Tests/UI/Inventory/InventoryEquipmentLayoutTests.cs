@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Inventory;
 using Xunit.Abstractions;
@@ -263,6 +264,44 @@ public sealed class InventoryEquipmentLayoutTests(ITestOutputHelper output)
         }
     }
 
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Given_ARegularLayout_When_TheHeadingsAreMeasuredInTheRealFont_Then_EachIsTheFullBareNounInsideItsBoxAndApartFromTheLabelsTheBagAndEachOther(int windowWidth, int windowHeight, int scale)
+    {
+        var font = new FontProvider(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf")).Get(FontProvider.NativeSize);
+        var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
+        foreach (var slots in Slots)
+        {
+            var layout = new InventoryLayout(width, height, slots, 5, Shipped);
+            if (layout.Compact)
+            {
+                continue; // compact and tight keep a short mark, the word on hover (I04b)
+            }
+
+            var texts = new List<PixelBox>();
+            for (var column = 0; column < Shipped.ColumnHeadings.Count; column++)
+            {
+                var lemma = Shipped.ColumnHeadings[column]!;
+                var box = layout.HeadingBox(column);
+                var text = HeadingText.Pick(lemma, box.Width, t => DrawHelpers.Width(font, t));
+                var measured = (int)Math.Ceiling(DrawHelpers.Width(font, text));
+                var left = layout.HeadingTextLeft(column, measured);
+                output.WriteLine($"{width}x{height} slots {slots}: heading {text} {measured} px in box {box}");
+
+                Assert.Equal(lemma, text);
+                Assert.DoesNotContain(' ', text);
+                Assert.True(measured <= box.Width, $"{lemma} ({measured} px) does not fit {box}");
+                Assert.True(left >= box.X && left + measured <= box.Right);
+                var drawn = new PixelBox(left, box.Y, measured, box.Height);
+                Assert.All(texts, other => Assert.True(Apart(drawn, other), $"{lemma} overlaps another heading"));
+                texts.Add(drawn);
+                Assert.All(Enumerable.Range(0, Shipped.BodyRows).Select(layout.RowLabelBox), label => Assert.True(Apart(box, label), $"{box} overlaps a row label {label}"));
+                Assert.All(Enumerable.Range(0, slots).Select(layout.Cell), cell => Assert.True(Apart(box, cell), $"{box} overlaps the bag cell {cell}"));
+                Assert.All(new[] { layout.SortButton, layout.TrashCell }, tool => Assert.True(Apart(box, tool)));
+            }
+        }
+    }
+
     [Fact]
     public void Given_ShapeWithoutHeadings_When_TheLayoutIsMade_Then_NoRoomIsSpentOnThem()
     {
@@ -287,6 +326,7 @@ public sealed class InventoryEquipmentLayoutTests(ITestOutputHelper output)
         Assert.Equal(4, data.Shape.ColumnHeadings.Count);
         Assert.Equal("mano", data.Shape.ColumnHeadings[3]);
         Assert.True(layout.HeadingBox(3).Width > 0);
+        Assert.True(Apart(layout.HeadingBox(3), layout.Cell(0)), "the fourth heading overlaps the bag");
         Assert.True(layout.HeadingBox(2).Right <= layout.HeadingBox(3).X);
     }
 

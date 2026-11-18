@@ -1,29 +1,22 @@
 namespace Vocaterra.Game.UI.Inventory;
 
 /// <summary>
-/// What a doll column's heading says when the room is short (I04b): the Spanish noun with its article (<c>la ropa</c>) while it fits, else the noun alone, else a short mark of its first letters (<c>apa</c>);
-/// the full words are on hover whatever is drawn. Plain numbers and a measuring function, so a test checks it with a stand-in font.
+/// What a doll column's heading says (I04b, I04c): the bare Spanish noun (<c>ropa</c>, no article, I04c) while it fits, else a short mark of its first letters (<c>apa</c>);
+/// the noun with its article and the English are on hover whatever is drawn. Plain numbers and a measuring function, so a test checks it with a stand-in font.
 /// </summary>
 public static class HeadingText
 {
     /// <summary>How many letters the short mark keeps.</summary>
     public const int MarkLetters = 3;
 
-    /// <summary>The longest of the three that fits <paramref name="width"/>, the mark when none does.</summary>
-    /// <param name="withArticle">The noun with its article.</param>
-    /// <param name="noun">The noun alone.</param>
+    /// <summary>The bare noun when it fits <paramref name="width"/>, else its short mark.</summary>
+    /// <param name="noun">The noun alone, without its article.</param>
     /// <param name="width">The room in pixels.</param>
     /// <param name="measure">The width of a text in the panel's font.</param>
-    public static string Pick(string withArticle, string noun, int width, Func<string, float> measure)
+    public static string Pick(string noun, int width, Func<string, float> measure)
     {
-        ArgumentNullException.ThrowIfNull(withArticle);
         ArgumentNullException.ThrowIfNull(noun);
         ArgumentNullException.ThrowIfNull(measure);
-        if (measure(withArticle) <= width)
-        {
-            return withArticle;
-        }
-
         return measure(noun) <= width ? noun : Mark(noun);
     }
 
