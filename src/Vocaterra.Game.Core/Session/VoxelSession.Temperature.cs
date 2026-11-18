@@ -33,6 +33,6 @@ public sealed partial class VoxelSession
         var player = Simulation.Player;
         const double U = VoxelPhysics.UnitsPerBlock;
         var covered = ListenerShelter.CoveredShare(Simulation.Grid.HighestBlock, new Listener(player.CenterX / U, player.MinY / U, player.CenterZ / U, player.Yaw));
-        return new TemperatureSituation(Simulation.Atmosphere, player.FeetBlock, covered, Fires);
+        return new TemperatureSituation(Simulation.Atmosphere, player.FeetBlock, covered, Fires, Scene.Places);
     }
 }
