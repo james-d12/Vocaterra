@@ -11,12 +11,12 @@ public sealed class ItemCatalogueTests
     private static readonly string Shipped = File.ReadAllText(Repo.Path("content", "game-v1", "game", "items.json"));
 
     [Fact]
-    public void Given_TheShippedBundle_When_TheCatalogueLoads_Then_ItHasTheTwentyFourRowsInTheFilesOrderAndEveryEnumMember()
+    public void Given_TheShippedBundle_When_TheCatalogueLoads_Then_ItHasTheThirtySevenRowsInTheFilesOrderAndEveryEnumMember()
     {
         var catalogue = ItemCatalogue.Load(TestGame.Bundle);
 
-        Assert.Equal(24, catalogue.All.Count); // I08a: the three materials and the seven clothes, ids 100 to 109
-        Assert.Equal(["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour", "stake", "camp-kit", "cloth", "leather", "iron", "hat", "cap", "shirt", "jacket", "coat", "trousers", "shoes"], catalogue.All.Select(static d => d.Name));
+        Assert.Equal(37, catalogue.All.Count); // I08a: the three materials and the seven clothes, ids 100 to 109; I08b: the thirteen of ids 110 to 122
+        Assert.Equal(["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book", "coin", "apple", "axe", "roast-apple", "flour", "stake", "camp-kit", "cloth", "leather", "iron", "hat", "cap", "shirt", "jacket", "coat", "trousers", "shoes", "helmet", "cuirass", "greaves", "boots", "ring", "bracelet", "belt", "necklace", "amulet", "shield", "lantern", "sack", "backpack"], catalogue.All.Select(static d => d.Name));
         foreach (var member in Enum.GetValues<ItemId>())
         {
             Assert.Equal(ItemCatalogue.KeyOf(member), catalogue.Get(member).Name);
@@ -121,7 +121,7 @@ public sealed class ItemCatalogueTests
 
         var catalogue = TestItems.With(gem);
 
-        Assert.Equal(25, catalogue.All.Count);
+        Assert.Equal(38, catalogue.All.Count);
         Assert.Same(gem, catalogue.Get((ItemId)900));
         Assert.Same(gem, catalogue.Find("gem"));
         Assert.Equal("gem", catalogue.All[^1].Name);

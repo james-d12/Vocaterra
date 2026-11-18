@@ -151,6 +151,12 @@
       "matches": []
     },
     {
+      "key": "037dd8937435777142c8424eb73b8daa75c72ac1e843207187f866f30467cd95",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un cinturón",
+      "matches": []
+    },
+    {
       "key": "03a65eb8ca797fb0db191c0296ab94e2f53f2b0398e5bac1ec0a7b1c05afbae9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué quieres?",
@@ -190,6 +196,12 @@
       "key": "0419f06e878b03ea3901d8f15a237357df89d64e509858fd6643dd106a0a8b87",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer hago pan",
+      "matches": []
+    },
+    {
+      "key": "04ad08e4073d9abca634a8459aa4ea45dfdbc9683aa004d0694cd605a9ffbcec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da una mochila",
       "matches": []
     },
     {
@@ -639,9 +651,21 @@
       ]
     },
     {
+      "key": "0f7f75bc406ac14317fc73e90cbd850ff80b4cb3f96998111fdf2a1bc38ea8bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.",
+      "matches": []
+    },
+    {
       "key": "0fb5958b8e5e6b26c16f6ade6245d6acc9d9b336d9c2020150fa280f0bcf7552",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero dos panes, por favor.",
+      "matches": []
+    },
+    {
+      "key": "0fcbcea119d85734d70044640a71ef14fef0cb4cd293955c112fe06dc0f54296",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da un cinturón",
       "matches": []
     },
     {
@@ -936,6 +960,12 @@
       "matches": []
     },
     {
+      "key": "162434a0e69662d3535ecad193af37ba11460e9e357b5817d4cd9a209a5c1a1c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una mochila por favor",
+      "matches": []
+    },
+    {
       "key": "16262f73c8006dd089874e39a6172c787000389d3d44206a3730bceb2d1f24f2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el lago por favor",
@@ -999,6 +1029,12 @@
       "key": "171f66ec98360fb84634c10f260e0a9cffaf0a5a58daea7c619cf41c5fa10032",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Te falta libro.",
+      "matches": []
+    },
+    {
+      "key": "176464bbfe32c4103b759d3a3c0228b5d69c33928fa48e6e41b0353179bea011",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un saco",
       "matches": []
     },
     {
@@ -1454,6 +1490,12 @@
       "matches": []
     },
     {
+      "key": "2022c48e09a5f7f0f1464fa78dc59d30a4aa61ea9ea6a7816ebb52d5ada17bfa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un cinturón por favor",
+      "matches": []
+    },
+    {
       "key": "20536cea13665f7db30477f25b95acffeb31fbca55a672a519e324da92c9b9f8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El terreno cuesta diez monedas. ¿Quieres el terreno?",
@@ -1523,6 +1565,12 @@
       "key": "22b55626196ee5a63feeff84b77fa33f238d0299c54ac657518a15e215916ffd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella compró pescado",
+      "matches": []
+    },
+    {
+      "key": "22e5833f51e2ec7a1ee88676ef503be0ae0e5cbf6b1c1c9696057c49eac2b28d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un farol",
       "matches": []
     },
     {
@@ -1762,6 +1810,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "28364b876953800978b3236c208997569e0f4aff0807de6248c2510ec26f2a6d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da un amuleto",
+      "matches": []
     },
     {
       "key": "286d3e802d37d45d22176e33419f7d6f664fd6b5abf770219923adbb91b2d110",
@@ -2018,6 +2072,12 @@
       "matches": []
     },
     {
+      "key": "2cdcd430be9baebb1f0fad1b2f1c15116c10eeabe1c95e7432b45e0ea894c8e0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un collar por favor",
+      "matches": []
+    },
+    {
       "key": "2d1a63dff370ad784a6bcf0d766e2678a00c5dd48c38f649f4eec3a91bda6d3b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito pan",
@@ -2134,6 +2194,12 @@
       "key": "2ff2217494f1d75ce6a72b297f7576e97750973d7bc759ce5d800e58626c2d55",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Se dice «tengo», no «tiene».",
+      "matches": []
+    },
+    {
+      "key": "2ffcb3917b750d8ace6aade3b9c766c675e209cb5fcc3c0937591b6487a0c610",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un cinturón",
       "matches": []
     },
     {
@@ -2328,6 +2394,12 @@
       "key": "3459d607f8de841f7631da7929415137c9706fed535634bb57a95954227e748c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está la panadería",
+      "matches": []
+    },
+    {
+      "key": "34645516324710d78bd92df64ba729864bf439dd7b93c88e71d9b24aa62187b6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero grebas",
       "matches": []
     },
     {
@@ -2751,6 +2823,23 @@
       "matches": []
     },
     {
+      "key": "3c62f09bd56e1991c9b43a7833778a354b0ed867161977905c9d0e2bab72dc7b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la pulsera",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "3c710568f6d02747000e7d79a5f0b8fcbdf28cf7ac7f69ec4a443b9b2e4d2c74",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí hay pan. ¿Cuántos panes quieres?",
@@ -2813,6 +2902,12 @@
       "key": "3e07a5d020024e21d5cd988a70c93274872b0bcb118d61537aa8b2a87375bda5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo que ir al río hoy",
+      "matches": []
+    },
+    {
+      "key": "3e6ac7e0053cf1c67e6cd622aea53dc1848ae133e4f1257284e89edaa2eeab5f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un collar",
       "matches": []
     },
     {
@@ -3299,6 +3394,23 @@
       ]
     },
     {
+      "key": "494eaf8fa661de4a73e32b404632c7d2d68549b2479f93211ebe817295324d44",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el anillo",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "49614ca3118aef6bb2e9cc35c016b5df7f2a783995c476fc95cad6e6265b2ce2",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cuero por favor",
@@ -3326,6 +3438,12 @@
       "key": "49eaaaf44d4bf53fc313a01914c961e30f25e032a5ae736cf7db96f1201456bd",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Una clase hoy? ¿Sí o no?",
+      "matches": []
+    },
+    {
+      "key": "49fb9a34ea26cfcf326c97f5f68131f19ef1b17c2768da1a7f32a030d7d6dbff",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una pulsera",
       "matches": []
     },
     {
@@ -3485,9 +3603,21 @@
       "matches": []
     },
     {
+      "key": "4ca81d514b1db032b59e36a2c07cd86fee50238d259a6289383dd561f5e31101",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un saco por favor",
+      "matches": []
+    },
+    {
       "key": "4cb0a3c2a15cb2a59ea83ab0d6ccd0da8f0ddc823c7386d09f93477e8eaad5c7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Voy a hacer pan",
+      "matches": []
+    },
+    {
+      "key": "4ce346a7d1bde01420cd91433f97a88b66199f53fa83226365d2bb7438c39ef8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das un collar",
       "matches": []
     },
     {
@@ -3547,6 +3677,12 @@
       "key": "4e748c49f3dc283a85e55ad2f458ab4fa76cb268cda796302829d86da0046816",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me llamo León.",
+      "matches": []
+    },
+    {
+      "key": "4e7be3e83d5191026f98d4fdb5363bae39cdf97d2abb0dc88f18a4a6d8e84fef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un anillo por favor",
       "matches": []
     },
     {
@@ -3805,6 +3941,12 @@
       "matches": []
     },
     {
+      "key": "532156b0925827bf08eacebf52be5cfbf032ff036ae2eed92642d68977dbe540",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das un saco",
+      "matches": []
+    },
+    {
       "key": "534916d0d1ac0660857171920f4cbdfd43ba3a09e3251b2b3f2d898ce465f178",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mañana voy a comer pan",
@@ -4002,6 +4144,12 @@
       "matches": []
     },
     {
+      "key": "57877e41ead1939de5eb68ca5c5e27907f04ab4cc561db450b270e93ed2af9c6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un amuleto",
+      "matches": []
+    },
+    {
       "key": "57aab544873f8ab0fb85288e3bb0d1a788cfc932ae5b7f3c6f217201be1fe8d3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde está el lago",
@@ -4125,6 +4273,12 @@
       "matches": []
     },
     {
+      "key": "59c848c29d3cf62c28e71b42c2e3f41af2ba35b6a0e445257a8430fe12e246bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da un collar",
+      "matches": []
+    },
+    {
       "key": "5a24c651a340520ed61e7dfca0a869aefb1d57c9466fd1ccecba68fcebcbeeaf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayuda.",
@@ -4212,12 +4366,6 @@
       "key": "5c5e693d9fa52c6e1ea250c326c7a427a55d2b2667c468a5c9756b90ded2f2fa",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No tienes fruta.",
-      "matches": []
-    },
-    {
-      "key": "5c646cf7b9a06285daf1cc65699a294b90f20fa60409099343cabecbb12c8e3f",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "El hierro cuesta tres monedas.",
       "matches": []
     },
     {
@@ -4409,6 +4557,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué vas a hacer mañana?",
       "matches": []
+    },
+    {
+      "key": "5f5789ee48a33d117ba7fe6dafd99b30b78428fc3a1c6ab83da889d54b69b139",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el amuleto",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
     },
     {
       "key": "5f74fb241489cf0d772698dc9b21ec28fe69f498b0e9d53fa073f43b444adbd9",
@@ -4688,6 +4853,12 @@
       "key": "63f9420cc59cde1d1cb552837a0b6c9713aa0addf8a48d14b743b2a45b8c6467",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero una manzana",
+      "matches": []
+    },
+    {
+      "key": "643f0424289a996cd9dc6d79278f1254d84512c9cde3334771083199be162518",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un amuleto",
       "matches": []
     },
     {
@@ -5274,6 +5445,12 @@
       ]
     },
     {
+      "key": "7109fc9c833c385e3e775c212e50bd2a4c733346a73e9722d868fb3993d74dac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un amuleto por favor",
+      "matches": []
+    },
+    {
       "key": "7112ed7e91762c286360c54d655b8a3b8530501ac816456aebc5e5bf2abf1782",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cuánto cuesta?",
@@ -5371,6 +5548,12 @@
       "key": "72c4dfaab28d7fd49b2865a17a2c750d4a3cbaaed2250eda45013cea594b358d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Puedes decir: «Quiero un terreno, por favor».",
+      "matches": []
+    },
+    {
+      "key": "72c6d33248fb6e94ca6c7ec61bec2c5029e62ff84ebdd52d5ad53129ab214025",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.",
       "matches": []
     },
     {
@@ -5526,6 +5709,12 @@
       "key": "75af87f2b40caa879a4077a8ea84a16032059945860995263edd590df879c5d8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hay un pozo aquí",
+      "matches": []
+    },
+    {
+      "key": "75fd47ccdbb208faec7f71f7d548fc68c7cfb62e3495f47f7acbe010454c54bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una pulsera por favor",
       "matches": []
     },
     {
@@ -5846,6 +6035,23 @@
       "matches": []
     },
     {
+      "key": "7b5399fe918c173dc9038b5c1e81fa0fc16c72172515cf744106dacfb477acae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el escudo",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "7b5424470df15d9c7641cc8fd2cf4ef80f2172eebada8c20e6710e192b69ac1a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero un habitación, por favor",
@@ -6057,6 +6263,12 @@
       "key": "7f9d88eb6b5fc66964b1c7df4b8bafea2684e459b6272976d6d80ee91c9abc0c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí fui al río",
+      "matches": []
+    },
+    {
+      "key": "7fa7f83dc165df4a5f95fa15b8f0cb315a392618683ad8456d6547e45d21d7bd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un collar",
       "matches": []
     },
     {
@@ -6306,6 +6518,12 @@
       "key": "84a14d2a1eea3ff47a6230ca203440fa764fcb6f6523fe06cd88839635238fd6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Después voy a buscar madera",
+      "matches": []
+    },
+    {
+      "key": "84fe64d5f283dfd8073573381f70aac611932417586f194625d18a472d8a8440",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da un saco",
       "matches": []
     },
     {
@@ -6690,6 +6908,12 @@
       ]
     },
     {
+      "key": "8f9cdf942e05d6b703f08da70a6fedeabc4b33c47edc2f54a618549f5f8a3335",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un cinturón por favor",
+      "matches": []
+    },
+    {
       "key": "8fb2471b4ccd992ee0adc4eb8ca0c453d8a3d710034150b7bc8db2854ecb3525",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No.",
@@ -6924,6 +7148,12 @@
       "matches": []
     },
     {
+      "key": "94b734fc05a4d49fec748616fb4d1f66cc4d60e085b845db78fdf5bff125f2ef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un casco",
+      "matches": []
+    },
+    {
       "key": "94b86049a31440a0261fdcf55160818790563dea0d26686d4c094f20fe3237eb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo compraré pan",
@@ -7096,6 +7326,12 @@
       "matches": []
     },
     {
+      "key": "98254206263a4bdba361c42471f1023da55e7ab1f7d8cc3b3f3fecb3357efc5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un saco por favor",
+      "matches": []
+    },
+    {
       "key": "9855ede0015e172b4ca2581ce4089723030e548a7f3ca06e92e7f69df154c6ac",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo cuatro monedas",
@@ -7164,6 +7400,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo mucha sed.",
       "matches": []
+    },
+    {
+      "key": "99a193cd8d27d15d6a6c5e026a81867aebda40fc93bcc67ed0fb6e8923b51bf7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "las botas",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Las"
+          ]
+        }
+      ]
     },
     {
       "key": "99cf1d943ed6e6107b2cabe044ffab030fcc39d8ad5848bed4244d54fde14fc9",
@@ -7379,6 +7632,12 @@
       ]
     },
     {
+      "key": "9d4eed0830fc94eb2a1f15f1560bdb7e15ec3248dd1059359f926ed7b44781f6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das un amuleto",
+      "matches": []
+    },
+    {
       "key": "9d62187cd045b0eb6664f8257ebd909c68b1695db87f5ab3cb7d808d40c228a3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo necesito agua",
@@ -7397,12 +7656,6 @@
       "matches": []
     },
     {
-      "key": "9da602c69029580ca607972a5b2b15704396d58e1269bdeb1158419c7ca4c94e",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa.",
-      "matches": []
-    },
-    {
       "key": "9da7f9948f4d7cf6c9808ca2f892b0381774da8078fc4bf607a03e5dff4859b0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cómo te llamas?",
@@ -7412,6 +7665,12 @@
       "key": "9da820ff31440f49af57a5b73f4dfd80381471b85699e92ef239e9e0693a3b32",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Para una espada necesitas espada.",
+      "matches": []
+    },
+    {
+      "key": "9dbfb4461af22634a51823f566c7a0dc559a6051c48f3491e2bd1d0f0fcaaeb0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da una pulsera",
       "matches": []
     },
     {
@@ -7998,6 +8257,12 @@
       "matches": []
     },
     {
+      "key": "a82146bcf1ea3899cef0ab7147584abdf06fbb3e94781ed557ab89d8a6717cc6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un saco",
+      "matches": []
+    },
+    {
       "key": "a87796ddd842fba27a66d1574bce05d62221b8e629f3f4278e0d6b079224b8b1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy hace sol.",
@@ -8007,6 +8272,12 @@
       "key": "a8ae457779e5d17500fc109b439d82e5aedbf27d43893c595ae510e6c0398f52",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es muy caro.",
+      "matches": []
+    },
+    {
+      "key": "a8b7a4d71ffa7d3779f72b01447acd7c96dc052db011ccaf21f7244ae04ba678",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un amuleto por favor",
       "matches": []
     },
     {
@@ -8532,6 +8803,23 @@
       "matches": []
     },
     {
+      "key": "b39bd646967cf5b6be0a6d748d7407bad93a69182d7c9cb2d10903b466f852f0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el collar",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "b3ba1a8225302a1bd0d98d6c21858901c5441dfc5c4653680440ebecc80f8383",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Compraré pan mañana",
@@ -8565,12 +8853,6 @@
       "key": "b55a55454c4ec15a109210f1fa108457298b2cdddc511af92cea3ad2a18a10bb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Rosa",
-      "matches": []
-    },
-    {
-      "key": "b55d3acab8917f7554036e36af6150e94dc5f3c7cce3905f5daf2cbd039f5e97",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Hay hierro. ¿Cuánto quieres?",
       "matches": []
     },
     {
@@ -8704,6 +8986,12 @@
       "matches": []
     },
     {
+      "key": "b89f47278120edf842b2eff6959d1cc537c257b89e9c26b707dbf4e31e3e3879",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una mochila",
+      "matches": []
+    },
+    {
       "key": "b8cff3fb9e4488c6407872068b6d292a3b6f2b8fb7474e357af051de0a910c19",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das una camisa",
@@ -8785,6 +9073,12 @@
       "key": "ba426d4430c379ed2770a8ef8084cade331cffc7e2e02a412deae2a09b65ebd8",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hoy compré dos panes",
+      "matches": []
+    },
+    {
+      "key": "ba745b73814fe4099bfa50921c27ea8ea928145aeacdfb1d592d4e06deae8a55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres?",
       "matches": []
     },
     {
@@ -8942,6 +9236,12 @@
       "matches": []
     },
     {
+      "key": "be34ba9546a736c8f7fda7a57d9cf7121c554e16eda7e8662be1a06c6a5f8f24",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un anillo por favor",
+      "matches": []
+    },
+    {
       "key": "be5e1c953cd56d99612cd2b1748fecb997de2c923494f2761b56503199a2122c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quere fruta",
@@ -8964,6 +9264,29 @@
       "key": "be627e98867e8fbbf8218702f98be02bab6a57cbeadfc9f6253eda93053d085d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Buenas noches. Tu cama está allí.",
+      "matches": []
+    },
+    {
+      "key": "be65f0c2c0d1536302a95bd0cb65b5477a26c165b5b183d5e29189b6d95ea879",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el farol",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "be6819ffc2a5d43ddbd76daebf05c3709346e12e8a736a7a00519c0105a65efc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito una mochila",
       "matches": []
     },
     {
@@ -9103,6 +9426,12 @@
       "matches": []
     },
     {
+      "key": "c1e5c6a32d146ee5e7c8765c940a36f5d2d8d92ee8d9c88ea3c304f8f82216e0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una antorcha",
+      "matches": []
+    },
+    {
       "key": "c23175ed1f50608a57ece59a09dcffbffa4188b60205396a05f60221ba2e773d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero una manzana roja",
@@ -9130,6 +9459,12 @@
       "key": "c2eb5c7d15182685f093a7e6ca29e521b6e0512100af61a9d5367efc638b8536",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Cuántos panes me vendes?",
+      "matches": []
+    },
+    {
+      "key": "c2f180fd980d1fe8e143f5052ab30b2dcf3e60532d360c6a67213ba8a9137942",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una coraza",
       "matches": []
     },
     {
@@ -9264,9 +9599,9 @@
       "matches": []
     },
     {
-      "key": "c65f5addc9f56f3503f9209cd135b982902033d0905bc867acb4516f22c8f029",
+      "key": "c6c9a354d6f0677b51961e66a6045ac91d1f222df4290b58e167711e45132524",
       "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Aquí tienes el hierro. ¡Gracias!",
+      "text": "Quiero un anillo",
       "matches": []
     },
     {
@@ -9285,6 +9620,12 @@
       "key": "c71aa6f5a6b276db76db98846904dbb51d2dd629615a3b16b181889194247ce0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Bien, ¿y tú?",
+      "matches": []
+    },
+    {
+      "key": "c73ea675fa5d2ba785005037fb79461b514c2ce25f9d9156a07ab7e853f60866",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una pulsera por favor",
       "matches": []
     },
     {
@@ -9441,6 +9782,12 @@
       "matches": []
     },
     {
+      "key": "c9b191eef369fd6a709e1d0396e72a80cf2a416bd86809acb47c7fbc60716448",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das un cinturón",
+      "matches": []
+    },
+    {
       "key": "c9b62ab391a4bf2c6fbaf2126d82aa82c87ee2adf9f00b609618d6b3723a1f75",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "El libro sale de los libros.",
@@ -9558,6 +9905,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es un árbol",
       "matches": []
+    },
+    {
+      "key": "cc115841c1c9e4349e5b6c28ee9964b30a1b87d0a7b2c985456b2de68e176f54",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el saco",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
     },
     {
       "key": "cc19621acb1e76af125f8ebe408d7ceb39f9702ba0e3e06cc598e12f5b44a69b",
@@ -10181,6 +10545,12 @@
       "matches": []
     },
     {
+      "key": "d92d6888790695af797f7defdaaaabd2327296be53dc807d8323c0e1efbcaa9b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un escudo",
+      "matches": []
+    },
+    {
       "key": "d932eae4ce92a06ebc494b4000cd01ef7ef1880780f27037460379201fa8b2e4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Dónde está la panadería?",
@@ -10336,6 +10706,12 @@
       "matches": []
     },
     {
+      "key": "dd291ea119c2c8dd0c4d43c23f12e29474947e5e32a907ea18a37e1ba878ce4c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das una mochila",
+      "matches": []
+    },
+    {
       "key": "dd4b044f5eb271cec817030522a18fda3c503d022e8e01ba6680f641271d14d6",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Miro bien.",
@@ -10381,6 +10757,12 @@
       "key": "de251829111b8c3e01d75f7d868d5c3ef9469725b157189f36eaf3e3e4da42ee",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro que sí",
+      "matches": []
+    },
+    {
+      "key": "de50e0d3a868c30b1ce7ae3a2a96d51e3be442f056a704ab5c855c05529f9c6c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero botas",
       "matches": []
     },
     {
@@ -10478,6 +10860,12 @@
       "matches": []
     },
     {
+      "key": "dfbd7438c1d9342ebd1da7b755641129c4fb2d5846153df76edafa2992f2d166",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da un anillo",
+      "matches": []
+    },
+    {
       "key": "dfeee35b392332481a9972a0d1174d897d0bd6e7985dd1179c3fc5c3b1245360",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Posadera",
@@ -10494,6 +10882,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer luz compra pescado",
       "matches": []
+    },
+    {
+      "key": "e007adf47328423ccc097d9fa415000cd63725859521624de374c65aa241443e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la coraza",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "e0085736dca9cac1acf016a18343cc9bcb6c133b7301745cf13476e2acfa92c8",
@@ -10585,6 +10990,12 @@
       "matches": []
     },
     {
+      "key": "e1aa7e547d30b2cda90daa47e10678e992731d276bb83c52e431d5a84ae8dd24",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un collar por favor",
+      "matches": []
+    },
+    {
       "key": "e221b0acf6e83f3617880720a015b274f393b8d93498b905b98582556cf5519f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vamos a comer frutas",
@@ -10635,6 +11046,12 @@
       "key": "e2a1b83007e5e7ffd1c3605051d884ddb40fd1f72ac7d57f798e1ef6fb5be92c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mar fue al río y te busca. ¿Adónde tienes que ir?",
+      "matches": []
+    },
+    {
+      "key": "e2c16f644abc111835bdc53a0357dade8b85e054b50ca8e5dca21b0788027621",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una mochila por favor",
       "matches": []
     },
     {
@@ -10712,6 +11129,12 @@
           ]
         }
       ]
+    },
+    {
+      "key": "e33abc78adbf766ece4d734ca6f675586551070b008c57d446b67172b3e17410",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das una pulsera",
+      "matches": []
     },
     {
       "key": "e377ae09b7adeeb06e170ec42dff1dfa930065508df4f8ee45fffefa996fb405",
@@ -10847,6 +11270,12 @@
       "key": "e61cdedf0c9ed9fcd93d98aef6857c238d2c2a32b4eb629e651511e78c4cd51f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, es muy caro",
+      "matches": []
+    },
+    {
+      "key": "e696bbff9046621d10e34e6e6e127dc5cca6a85f60e62ca43dbbb45f7148adba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito un anillo",
       "matches": []
     },
     {
@@ -11035,9 +11464,49 @@
       "matches": []
     },
     {
+      "key": "eb0a33d1a4cb8139fb7384290ac0e8763988bcc02e79edaff967ccee7f435780",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la mochila",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "eb147f19bb9783e25a0ae5acbe8d0d6b990f3b4ccc21798deafecd4030ea0668",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hasta luego.",
+      "matches": []
+    },
+    {
+      "key": "eb366b326f52f143e306a446b5b4ea80abc9757ce766de89d5d832f8fadee24c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "las grebas",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Las"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "eb485a0864ce198c709dd3c45d80e54b1b267f4286a1ce5d7fab277995926b1b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito una pulsera",
       "matches": []
     },
     {
@@ -11370,12 +11839,6 @@
       "matches": []
     },
     {
-      "key": "f0ead479bddbc20e9efdc60ca9d3b17401c3c9100603dfcca5daa2c488ccb3f4",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Hay agua, pan, harina, tela, cuero y ropa.",
-      "matches": []
-    },
-    {
       "key": "f1256a7a0d7dca5a319b5b3a08c5d9d0e2c982dc05294955985b64b48c3aaca0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo una fruta.",
@@ -11476,6 +11939,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tienes un libro.",
       "matches": []
+    },
+    {
+      "key": "f2bc7b2bffba3345bebcafae2bb0ce30b1ca568c1ac362e8863ebe5a7d0ff137",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el cinturón",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
     },
     {
       "key": "f2fea2edca29e32266e3f3a536084e4ade38f6b40a90356539fe7e1b2a4945e5",
@@ -11639,6 +12119,23 @@
       "key": "f66b6b4974958f5c4c01f1d241dc773dec98098ce2988aed0ec8926b6bd9579e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "el equipo",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f6a1cc4ded1cbc185a744c11c1ef1acaa4eb3246307acbb560baa44a80c2b79f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el casco",
       "matches": [
         {
           "rule": "UPPERCASE_SENTENCE_START",
@@ -11919,6 +12416,12 @@
       "key": "fd8c0c8eb981af77bd8e30c4f0b910ea8393b346d6ae7104f8e506faadc6613f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, ayer fui al río",
+      "matches": []
+    },
+    {
+      "key": "fdba42b7948e29e9317e4fa0240b69ccf6484c1bb396fd4076ff9850846f5ffe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das un anillo",
       "matches": []
     },
     {

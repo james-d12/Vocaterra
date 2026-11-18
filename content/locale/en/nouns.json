@@ -48,6 +48,19 @@
     "noun.chaqueta": "jacket",
     "noun.abrigo": "coat",
     "noun.pantalón": "trousers",
-    "noun.zapato": "shoes"
+    "noun.zapato": "shoes",
+    "noun.casco": "helmet",
+    "noun.coraza": "cuirass",
+    "noun.greba": "greaves",
+    "noun.bota": "boots",
+    "noun.anillo": "ring",
+    "noun.pulsera": "bracelet",
+    "noun.cinturón": "belt",
+    "noun.collar": "necklace",
+    "noun.amuleto": "amulet",
+    "noun.escudo": "shield",
+    "noun.farol": "lantern",
+    "noun.saco": "sack",
+    "noun.mochila": "backpack"
   }
 }

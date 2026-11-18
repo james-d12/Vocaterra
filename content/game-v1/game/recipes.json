@@ -11,6 +11,19 @@
     { "output": "chaqueta", "count": 1, "ingredients": [{ "item": "tela", "count": 3 }, { "item": "cuero", "count": 1 }], "station": "mesa" },
     { "output": "abrigo", "count": 1, "ingredients": [{ "item": "tela", "count": 4 }, { "item": "cuero", "count": 2 }], "station": "mesa" },
     { "output": "pantalón", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
-    { "output": "zapato", "count": 1, "ingredients": [{ "item": "cuero", "count": 1 }], "station": "mesa" }
+    { "output": "zapato", "count": 1, "ingredients": [{ "item": "cuero", "count": 1 }], "station": "mesa" },
+    { "output": "casco", "count": 1, "ingredients": [{ "item": "hierro", "count": 2 }], "station": "mesa" },
+    { "output": "coraza", "count": 1, "ingredients": [{ "item": "hierro", "count": 4 }], "station": "mesa" },
+    { "output": "greba", "count": 1, "ingredients": [{ "item": "hierro", "count": 3 }], "station": "mesa" },
+    { "output": "bota", "count": 1, "ingredients": [{ "item": "hierro", "count": 2 }], "station": "mesa" },
+    { "output": "anillo", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "pulsera", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "cinturón", "count": 1, "ingredients": [{ "item": "cuero", "count": 2 }], "station": "mesa" },
+    { "output": "collar", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }, { "item": "cuero", "count": 1 }], "station": "mesa" },
+    { "output": "amuleto", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "escudo", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }, { "item": "hierro", "count": 2 }], "station": "mesa" },
+    { "output": "farol", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }, { "item": "antorcha", "count": 1 }], "station": "mesa" },
+    { "output": "saco", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "mochila", "count": 1, "ingredients": [{ "item": "tela", "count": 3 }, { "item": "cuero", "count": 2 }], "station": "mesa" }
   ]
 }

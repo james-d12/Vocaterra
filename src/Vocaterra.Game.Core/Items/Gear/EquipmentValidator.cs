@@ -5,8 +5,7 @@ namespace Vocaterra.Game.Core.Items.Gear;
 
 /// <summary>
 /// The checks of <c>game/equipment.json</c> and of the gear in <c>game/items.json</c> that need more than a shape (I03a): group ids that are unique keys, groups that have slots with unique names and
-/// wear kinds that are keys, accepted tags and labels that are well formed, layers from 1 to 9; and every item that has a <c>wear</c> has a slot of that kind in a group that accepts one of its tags and a stack
-/// limit of 1, an inventory base from the hotbar's size up, and an item with <c>stats</c> or a <c>look</c> can be worn. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
+/// wear kinds that are keys, accepted tags and labels that are well formed, layers from 1 to 9; and every item that has a <c>wear</c> has a slot of that kind in a group that accepts one of its tags (a worn item may still stack in the bag, as the torch does: the equip rules take one at a time, I08b), an inventory base from the hotbar's size up, and an item with <c>stats</c> or a <c>look</c> can be worn. <see cref="Content.GameDataValidator"/> runs it with the other files' checks.
 /// </summary>
 internal static partial class EquipmentValidator
 {
@@ -123,11 +122,6 @@ internal static partial class EquipmentValidator
         {
             var accepted = string.Join(", ", slotGroups.SelectMany(static g => g.Accepts).Distinct(StringComparer.Ordinal));
             problems.Add($"game/items.json: '{item.Name}' is worn on '{item.Wear}' but carries none of the tags the groups with such a slot accept ({accepted}).");
-        }
-
-        if (item.MaxStack != 1)
-        {
-            problems.Add($"game/items.json: '{item.Name}' can be worn, so its stack limit must be 1 (it is {item.MaxStack}).");
         }
     }
 

@@ -440,3 +440,23 @@ chaqueta
 abrigo
 # pantalón: the trousers, said «los pantalones», clothing for the legs (I08a); in neither of the core's lists.
 pantalón
+# coraza: the cuirass, the iron plate for the chest and back, the smith's body armour (I08b, D-game-35 (a)); in neither of the core's lists.
+coraza
+# greba: the greaves (said «las grebas»), the iron plates for the shins (I08b); in neither of the core's lists.
+greba
+# bota: the boots (said «las botas»), the iron armour for the feet; the clothes' shoes are «los zapatos» (I08b); in neither of the core's lists.
+bota
+# cinturón: the belt, an accessory that slows hunger, sold at the stall (I08b); in neither of the core's lists.
+cinturón
+# collar: the necklace, an accessory that slows thirst, sold at the stall (I08b); in neither of the core's lists.
+collar
+# amuleto: the amulet, an accessory that gives a little light at night, sold at the stall (I08b); in neither of the core's lists.
+amuleto
+# escudo: the shield, held in the other hand, sold by the smith (I08b); in neither of the core's lists.
+escudo
+# farol: the lantern, held in the other hand for a strong light, sold by the smith (I08b); in neither of the core's lists.
+farol
+# saco: the sack, the small bag worn on the back that adds ten slots (I08b); in neither of the core's lists.
+saco
+# mochila: the backpack, the large bag worn on the back that adds twenty slots (I08b); in neither of the core's lists.
+mochila

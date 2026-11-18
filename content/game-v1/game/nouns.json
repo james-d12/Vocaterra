@@ -55,6 +55,19 @@
     {"lemma": "chaqueta", "items": ["jacket"], "blocks": []},
     {"lemma": "abrigo", "items": ["coat"], "blocks": []},
     {"lemma": "pantalón", "items": ["trousers"], "blocks": [], "plural": true, "labels": { "trousers": "pantalones" }},
-    {"lemma": "zapato", "items": ["shoes"], "blocks": [], "plural": true, "labels": { "shoes": "zapatos" }}
+    {"lemma": "zapato", "items": ["shoes"], "blocks": [], "plural": true, "labels": { "shoes": "zapatos" }},
+    {"lemma": "casco", "items": ["helmet"], "blocks": []},
+    {"lemma": "coraza", "items": ["cuirass"], "blocks": []},
+    {"lemma": "greba", "items": ["greaves"], "blocks": [], "plural": true, "labels": { "greaves": "grebas" }},
+    {"lemma": "bota", "items": ["boots"], "blocks": [], "plural": true, "labels": { "boots": "botas" }},
+    {"lemma": "anillo", "items": ["ring"], "blocks": []},
+    {"lemma": "pulsera", "items": ["bracelet"], "blocks": []},
+    {"lemma": "cinturón", "items": ["belt"], "blocks": []},
+    {"lemma": "collar", "items": ["necklace"], "blocks": []},
+    {"lemma": "amuleto", "items": ["amulet"], "blocks": []},
+    {"lemma": "escudo", "items": ["shield"], "blocks": []},
+    {"lemma": "farol", "items": ["lantern"], "blocks": []},
+    {"lemma": "saco", "items": ["sack"], "blocks": []},
+    {"lemma": "mochila", "items": ["backpack"], "blocks": []}
   ]
 }

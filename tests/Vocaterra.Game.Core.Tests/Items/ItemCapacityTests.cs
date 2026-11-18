@@ -35,7 +35,7 @@ public sealed class ItemCapacityTests
         var catalogue = Parse("""{ "name": "pouch", "id": 300, "stack": 1, "icon": "pouch", "tags": ["bag"], "wear": "back", "capacity": 6 }""");
 
         Assert.Equal(6, catalogue.Find("pouch")!.Capacity);
-        Assert.Equal(6, catalogue.LargestCapacity);
+        Assert.Equal(20, catalogue.LargestCapacity); // the shipped backpack (I08b) is still the largest bag
     }
 
     [Theory]

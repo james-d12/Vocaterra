@@ -15,14 +15,16 @@ public sealed class ItemGearFieldsTests
     }
 
     [Fact]
-    public void Given_TheShippedItems_When_TheyAreRead_Then_OnlyTheClothesHaveGearFieldsYet()
+    public void Given_TheShippedItems_When_TheyAreRead_Then_OnlyTheWearablesHaveGearFields()
     {
-        Assert.All(TestItems.Catalogue.All.Where(static d => !d.Tags.Contains("clothing")), static d => // I08a: the seven clothes are the first gear; armour, accessories and bags come with I08b
+        string[] gear = ["clothing", "armour", "accessory", "offhand", "bag"]; // I08a: the clothes; I08b: armour, accessories, the off-hand (shield, lantern, torch) and the bags
+        Assert.All(TestItems.Catalogue.All.Where(d => !d.Tags.Intersect(gear).Any()), static d =>
         {
             Assert.Null(d.Wear);
             Assert.Null(d.Stats);
             Assert.Null(d.Look);
         });
+        Assert.All(TestItems.Catalogue.All.Where(d => d.Tags.Intersect(gear).Any()), static d => Assert.NotNull(d.Wear));
     }
 
     [Fact]

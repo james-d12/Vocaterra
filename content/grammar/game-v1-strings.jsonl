@@ -400,7 +400,7 @@
 {"id":"dialogue:shop_give.2","text":"Aquí tienes la botella. El agua está en el río.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.1","text":"Aquí tienes el pan.","kind":"npc"}
 {"id":"dialogue:shop_give_bread.2","text":"Toma el pan.","kind":"npc"}
-{"id":"dialogue:shop_hay.1","text":"Hay agua, pan, harina, tela, cuero y ropa.","kind":"npc"}
+{"id":"dialogue:shop_hay.1","text":"Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.","kind":"npc"}
 {"id":"dialogue:shop_help_ask.1","text":"Puedes decir: «Quiero agua, por favor».","kind":"npc"}
 {"id":"dialogue:shop_help_offer.1","text":"Puedes decir: «Sí, por favor» o «No, gracias».","kind":"npc"}
 {"id":"dialogue:shop_need.1","text":"¿Qué necesitas?","kind":"npc"}
@@ -420,12 +420,12 @@
 {"id":"dialogue:shop_weather.1","text":"Sí, hace {weather}.","kind":"template"}
 {"id":"dialogue:shop_well.1","text":"Bien, gracias.","kind":"npc"}
 {"id":"dialogue:shop_wont_buy.1","text":"No, gracias. Solo compro pan.","kind":"npc"}
-{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa.","kind":"npc"}
+{"id":"dialogue:shop_wont_sell.1","text":"No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.","kind":"npc"}
 {"id":"dialogue:shop_yes.1","text":"¡Sí!","kind":"npc"}
 {"id":"dialogue:smith_buy.1","text":"¡Gracias! Aquí tienes tus monedas.","kind":"npc"}
 {"id":"dialogue:smith_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
 {"id":"dialogue:smith_bye.2","text":"Hasta luego.","kind":"npc"}
-{"id":"dialogue:smith_cant_pay.1","text":"El hierro cuesta tres monedas.","kind":"npc"}
+{"id":"dialogue:smith_cant_pay.1","text":"Necesitas más monedas.","kind":"npc"}
 {"id":"dialogue:smith_cant_sell.1","text":"No tienes madera.","kind":"npc"}
 {"id":"dialogue:smith_cloudy.1","text":"Hoy está nublado.","kind":"npc"}
 {"id":"dialogue:smith_delivered.1","text":"¡Gracias! Toma el hacha.","kind":"npc"}
@@ -437,7 +437,7 @@
 {"id":"dialogue:smith_name.1","text":"Me llamo Domingo.","kind":"npc"}
 {"id":"dialogue:smith_nice.1","text":"¡Qué bien!","kind":"npc"}
 {"id":"dialogue:smith_no_room.1","text":"Tu bolsa está llena.","kind":"npc"}
-{"id":"dialogue:smith_none_asked.1","text":"Hay hierro. ¿Cuánto quieres?","kind":"npc"}
+{"id":"dialogue:smith_none_asked.1","text":"Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres?","kind":"npc"}
 {"id":"dialogue:smith_none_offered.1","text":"¿Cuántos bloques de madera me vendes?","kind":"npc"}
 {"id":"dialogue:smith_offer.1","text":"¿Quieres un hacha? Necesito dos bloques de madera y dos monedas.","kind":"npc"}
 {"id":"dialogue:smith_ok.1","text":"Está bien.","kind":"npc"}
@@ -445,7 +445,7 @@
 {"id":"dialogue:smith_rain.1","text":"Hoy llueve.","kind":"npc"}
 {"id":"dialogue:smith_receive.1","text":"¡Hola! ¿Qué tienes para mí?","kind":"npc"}
 {"id":"dialogue:smith_receive_help.1","text":"Puedes decir: «Aquí tienes la madera y las monedas».","kind":"npc"}
-{"id":"dialogue:smith_sell.1","text":"Aquí tienes el hierro. ¡Gracias!","kind":"npc"}
+{"id":"dialogue:smith_sell.1","text":"Aquí tienes. ¡Gracias!","kind":"npc"}
 {"id":"dialogue:smith_sun.1","text":"Hoy hace sol.","kind":"npc"}
 {"id":"dialogue:smith_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:smith_thank.2","text":"¡Con gusto!","kind":"npc"}
@@ -1862,6 +1862,13 @@
 {"id":"answer-sets/people-smith:iron","text":"quiero hierro","kind":"learner"}
 {"id":"answer-sets/people-smith:iron.alias1","text":"necesito hierro","kind":"learner"}
 {"id":"answer-sets/people-smith:iron.alias2","text":"quiero el hierro","kind":"learner"}
+{"id":"answer-sets/people-smith:helmet","text":"quiero un casco","kind":"learner"}
+{"id":"answer-sets/people-smith:cuirass","text":"quiero una coraza","kind":"learner"}
+{"id":"answer-sets/people-smith:greaves","text":"quiero grebas","kind":"learner"}
+{"id":"answer-sets/people-smith:boots","text":"quiero botas","kind":"learner"}
+{"id":"answer-sets/people-smith:shield","text":"quiero un escudo","kind":"learner"}
+{"id":"answer-sets/people-smith:lantern","text":"quiero un farol","kind":"learner"}
+{"id":"answer-sets/people-smith:torch","text":"quiero una antorcha","kind":"learner"}
 {"id":"answer-sets/people-smith:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias1","text":"buenos días","kind":"learner"}
 {"id":"answer-sets/people-smith:hello.alias2","text":"buenas tardes","kind":"learner"}
@@ -2138,6 +2145,48 @@
 {"id":"answer-sets/supplies:shoes.alias3","text":"necesito zapatos","kind":"learner"}
 {"id":"answer-sets/supplies:shoes.alias4","text":"zapatos por favor","kind":"learner"}
 {"id":"answer-sets/supplies:shoes.alias5","text":"me das zapatos","kind":"learner"}
+{"id":"answer-sets/supplies:ring","text":"quiero un anillo por favor","kind":"learner"}
+{"id":"answer-sets/supplies:ring.alias1","text":"quiero un anillo","kind":"learner"}
+{"id":"answer-sets/supplies:ring.alias2","text":"necesito un anillo","kind":"learner"}
+{"id":"answer-sets/supplies:ring.alias3","text":"un anillo por favor","kind":"learner"}
+{"id":"answer-sets/supplies:ring.alias4","text":"me da un anillo","kind":"learner"}
+{"id":"answer-sets/supplies:ring.alias5","text":"me das un anillo","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet","text":"quiero una pulsera por favor","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet.alias1","text":"quiero una pulsera","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet.alias2","text":"necesito una pulsera","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet.alias3","text":"una pulsera por favor","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet.alias4","text":"me da una pulsera","kind":"learner"}
+{"id":"answer-sets/supplies:bracelet.alias5","text":"me das una pulsera","kind":"learner"}
+{"id":"answer-sets/supplies:belt","text":"quiero un cinturón por favor","kind":"learner"}
+{"id":"answer-sets/supplies:belt.alias1","text":"quiero un cinturón","kind":"learner"}
+{"id":"answer-sets/supplies:belt.alias2","text":"necesito un cinturón","kind":"learner"}
+{"id":"answer-sets/supplies:belt.alias3","text":"un cinturón por favor","kind":"learner"}
+{"id":"answer-sets/supplies:belt.alias4","text":"me da un cinturón","kind":"learner"}
+{"id":"answer-sets/supplies:belt.alias5","text":"me das un cinturón","kind":"learner"}
+{"id":"answer-sets/supplies:necklace","text":"quiero un collar por favor","kind":"learner"}
+{"id":"answer-sets/supplies:necklace.alias1","text":"quiero un collar","kind":"learner"}
+{"id":"answer-sets/supplies:necklace.alias2","text":"necesito un collar","kind":"learner"}
+{"id":"answer-sets/supplies:necklace.alias3","text":"un collar por favor","kind":"learner"}
+{"id":"answer-sets/supplies:necklace.alias4","text":"me da un collar","kind":"learner"}
+{"id":"answer-sets/supplies:necklace.alias5","text":"me das un collar","kind":"learner"}
+{"id":"answer-sets/supplies:amulet","text":"quiero un amuleto por favor","kind":"learner"}
+{"id":"answer-sets/supplies:amulet.alias1","text":"quiero un amuleto","kind":"learner"}
+{"id":"answer-sets/supplies:amulet.alias2","text":"necesito un amuleto","kind":"learner"}
+{"id":"answer-sets/supplies:amulet.alias3","text":"un amuleto por favor","kind":"learner"}
+{"id":"answer-sets/supplies:amulet.alias4","text":"me da un amuleto","kind":"learner"}
+{"id":"answer-sets/supplies:amulet.alias5","text":"me das un amuleto","kind":"learner"}
+{"id":"answer-sets/supplies:sack","text":"quiero un saco por favor","kind":"learner"}
+{"id":"answer-sets/supplies:sack.alias1","text":"quiero un saco","kind":"learner"}
+{"id":"answer-sets/supplies:sack.alias2","text":"necesito un saco","kind":"learner"}
+{"id":"answer-sets/supplies:sack.alias3","text":"un saco por favor","kind":"learner"}
+{"id":"answer-sets/supplies:sack.alias4","text":"me da un saco","kind":"learner"}
+{"id":"answer-sets/supplies:sack.alias5","text":"me das un saco","kind":"learner"}
+{"id":"answer-sets/supplies:backpack","text":"quiero una mochila por favor","kind":"learner"}
+{"id":"answer-sets/supplies:backpack.alias1","text":"quiero una mochila","kind":"learner"}
+{"id":"answer-sets/supplies:backpack.alias2","text":"necesito una mochila","kind":"learner"}
+{"id":"answer-sets/supplies:backpack.alias3","text":"una mochila por favor","kind":"learner"}
+{"id":"answer-sets/supplies:backpack.alias4","text":"me da una mochila","kind":"learner"}
+{"id":"answer-sets/supplies:backpack.alias5","text":"me das una mochila","kind":"learner"}
 {"id":"answer-sets/supplies:sell-bread","text":"vendo pan","kind":"learner"}
 {"id":"answer-sets/supplies:sell-bread.alias1","text":"yo vendo pan","kind":"learner"}
 {"id":"answer-sets/supplies:sell-bread.alias2","text":"te vendo pan","kind":"learner"}
@@ -3797,12 +3846,15 @@
 {"id":"speech:baker_weather.1.viento","text":"Sí, hace viento.","kind":"npc"}
 {"id":"speech:card.abrigo","text":"el abrigo","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
+{"id":"speech:card.amuleto","text":"el amuleto","kind":"npc"}
+{"id":"speech:card.anillo","text":"el anillo","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.apariencia","text":"la apariencia","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}
 {"id":"speech:card.armadura","text":"la armadura","kind":"npc"}
 {"id":"speech:card.bol","text":"el bol","kind":"npc"}
 {"id":"speech:card.bolsa","text":"la bolsa","kind":"npc"}
+{"id":"speech:card.bota","text":"las botas","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
 {"id":"speech:card.cabeza","text":"la cabeza","kind":"npc"}
 {"id":"speech:card.calor","text":"la calor","kind":"npc"}
@@ -3810,16 +3862,23 @@
 {"id":"speech:card.camisa","text":"la camisa","kind":"npc"}
 {"id":"speech:card.campamento","text":"el campamento","kind":"npc"}
 {"id":"speech:card.casa","text":"la casa","kind":"npc"}
+{"id":"speech:card.casco","text":"el casco","kind":"npc"}
 {"id":"speech:card.chaqueta","text":"la chaqueta","kind":"npc"}
+{"id":"speech:card.cinturon","text":"el cinturón","kind":"npc"}
+{"id":"speech:card.collar","text":"el collar","kind":"npc"}
+{"id":"speech:card.coraza","text":"la coraza","kind":"npc"}
 {"id":"speech:card.cuchara","text":"la cuchara","kind":"npc"}
 {"id":"speech:card.cuero","text":"el cuero","kind":"npc"}
 {"id":"speech:card.cuerpo","text":"el cuerpo","kind":"npc"}
 {"id":"speech:card.equipo","text":"el equipo","kind":"npc"}
+{"id":"speech:card.escudo","text":"el escudo","kind":"npc"}
 {"id":"speech:card.espalda","text":"la espalda","kind":"npc"}
 {"id":"speech:card.estaca","text":"la estaca","kind":"npc"}
+{"id":"speech:card.farol","text":"el farol","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
 {"id":"speech:card.fuego","text":"el fuego","kind":"npc"}
 {"id":"speech:card.gorro","text":"el gorro","kind":"npc"}
+{"id":"speech:card.greba","text":"las grebas","kind":"npc"}
 {"id":"speech:card.hacha","text":"el hacha","kind":"npc"}
 {"id":"speech:card.harina","text":"la harina","kind":"npc"}
 {"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
@@ -3831,6 +3890,7 @@
 {"id":"speech:card.manzana","text":"la manzana","kind":"npc"}
 {"id":"speech:card.masa","text":"la masa","kind":"npc"}
 {"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
+{"id":"speech:card.mochila","text":"la mochila","kind":"npc"}
 {"id":"speech:card.moneda","text":"la moneda","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
 {"id":"speech:card.pantalon","text":"los pantalones","kind":"npc"}
@@ -3838,7 +3898,9 @@
 {"id":"speech:card.pierna","text":"la pierna","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
+{"id":"speech:card.pulsera","text":"la pulsera","kind":"npc"}
 {"id":"speech:card.ropa","text":"la ropa","kind":"npc"}
+{"id":"speech:card.saco","text":"el saco","kind":"npc"}
 {"id":"speech:card.sombrero","text":"el sombrero","kind":"npc"}
 {"id":"speech:card.tela","text":"la tela","kind":"npc"}
 {"id":"speech:card.terreno","text":"el terreno","kind":"npc"}

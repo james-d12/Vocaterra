@@ -4,7 +4,7 @@
   "generated_by": "hand-authored",
   "items": [
     { "name": "wood", "id": 0, "stack": 99, "icon": "wood", "held": "log", "tags": ["material"] },
-    { "name": "torch", "id": 21, "stack": 99, "icon": "torch", "held": "torch", "tags": ["placeable"] },
+    { "name": "torch", "id": 21, "stack": 99, "icon": "torch", "held": "torch", "tags": ["placeable", "offhand"], "wear": "offhand", "stats": { "light": 9 } },
     { "name": "berry", "id": 25, "stack": 99, "icon": "berry", "tags": ["food"] },
     { "name": "bottle", "id": 26, "stack": 99, "icon": "bottle", "held": "bottle", "tags": ["container"] },
     { "name": "water-bottle", "id": 27, "stack": 99, "icon": "water-bottle", "held": "bottle", "tags": ["container", "drink"] },
@@ -26,6 +26,19 @@
     { "name": "jacket", "id": 106, "stack": 1, "icon": "jacket", "tags": ["clothing"], "wear": "body", "stats": { "warmth": 30 }, "look": { "body": "#5f7f3f", "sleeve": "#5f7f3f" } },
     { "name": "coat", "id": 107, "stack": 1, "icon": "coat", "tags": ["clothing"], "wear": "body", "stats": { "warmth": 50 }, "look": { "body": "#8c2f3c", "sleeve": "#8c2f3c" } },
     { "name": "trousers", "id": 108, "stack": 1, "icon": "trousers", "tags": ["clothing"], "wear": "legs", "stats": { "warmth": 20 }, "look": { "legs": "#3f5f95" } },
-    { "name": "shoes", "id": 109, "stack": 1, "icon": "shoes", "tags": ["clothing"], "wear": "feet", "stats": { "warmth": 10 }, "look": { "feet": "#5a3a22" } }
+    { "name": "shoes", "id": 109, "stack": 1, "icon": "shoes", "tags": ["clothing"], "wear": "feet", "stats": { "warmth": 10 }, "look": { "feet": "#5a3a22" } },
+    { "name": "helmet", "id": 110, "stack": 1, "icon": "helmet", "tags": ["armour"], "wear": "head", "stats": { "armour": 2 }, "look": { "head": "#8f99a3" } },
+    { "name": "cuirass", "id": 111, "stack": 1, "icon": "cuirass", "tags": ["armour"], "wear": "body", "stats": { "armour": 5 }, "look": { "body": "#7f8a96" } },
+    { "name": "greaves", "id": 112, "stack": 1, "icon": "greaves", "tags": ["armour"], "wear": "legs", "stats": { "armour": 3 }, "look": { "legs": "#8a949e" } },
+    { "name": "boots", "id": 113, "stack": 1, "icon": "boots", "tags": ["armour"], "wear": "feet", "stats": { "armour": 2 }, "look": { "feet": "#6f7a86" } },
+    { "name": "ring", "id": 114, "stack": 1, "icon": "ring", "tags": ["accessory"], "wear": "accessory", "stats": { "maxStamina": 20 } },
+    { "name": "bracelet", "id": 115, "stack": 1, "icon": "bracelet", "tags": ["accessory"], "wear": "accessory", "stats": { "walkSpeed": 1.1 } },
+    { "name": "belt", "id": 116, "stack": 1, "icon": "belt", "tags": ["accessory"], "wear": "accessory", "stats": { "hungerDrain": 0.75 } },
+    { "name": "necklace", "id": 117, "stack": 1, "icon": "necklace", "tags": ["accessory"], "wear": "accessory", "stats": { "thirstDrain": 0.75 } },
+    { "name": "amulet", "id": 118, "stack": 1, "icon": "amulet", "tags": ["accessory"], "wear": "accessory", "stats": { "light": 5 } },
+    { "name": "shield", "id": 119, "stack": 1, "icon": "shield", "tags": ["offhand"], "wear": "offhand", "stats": { "armour": 3 } },
+    { "name": "lantern", "id": 120, "stack": 1, "icon": "lantern", "tags": ["offhand"], "wear": "offhand", "stats": { "light": 12 } },
+    { "name": "sack", "id": 121, "stack": 1, "icon": "sack", "tags": ["bag"], "wear": "back", "capacity": 10 },
+    { "name": "backpack", "id": 122, "stack": 1, "icon": "backpack", "tags": ["bag"], "wear": "back", "capacity": 20 }
   ]
 }

@@ -1009,7 +1009,7 @@
     "shop_wont_sell": {
       "poolId": "shop_wont_sell",
       "variants": [
-        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa." }
+        { "lineId": "shop_wont_sell.1", "text": "No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares." }
       ]
     },
     "villager_wont_sell": {
@@ -1191,7 +1191,7 @@
     "shop_hay": {
       "poolId": "shop_hay",
       "variants": [
-        { "lineId": "shop_hay.1", "text": "Hay agua, pan, harina, tela, cuero y ropa." }
+        { "lineId": "shop_hay.1", "text": "Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares." }
       ]
     },
     "guide.lesson.shop.bread": {
@@ -1868,19 +1868,19 @@
     "smith_sell": {
       "poolId": "smith_sell",
       "variants": [
-        { "lineId": "smith_sell.1", "text": "Aquí tienes el hierro. ¡Gracias!" }
+        { "lineId": "smith_sell.1", "text": "Aquí tienes. ¡Gracias!" }
       ]
     },
     "smith_cant_pay": {
       "poolId": "smith_cant_pay",
       "variants": [
-        { "lineId": "smith_cant_pay.1", "text": "El hierro cuesta tres monedas." }
+        { "lineId": "smith_cant_pay.1", "text": "Necesitas más monedas." }
       ]
     },
     "smith_none_asked": {
       "poolId": "smith_none_asked",
       "variants": [
-        { "lineId": "smith_none_asked.1", "text": "Hay hierro. ¿Cuánto quieres?" }
+        { "lineId": "smith_none_asked.1", "text": "Hay hierro, armadura, escudos, faroles y antorchas. ¿Cuánto quieres?" }
       ]
     },
     "smith_no_room": {

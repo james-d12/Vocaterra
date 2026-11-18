@@ -130,6 +130,11 @@ public static class BlockArt
             return BlockArtGear.Pixels(cell);
         }
 
+        if (BlockArtCarried.Draws(cell))
+        {
+            return BlockArtCarried.Pixels(cell);
+        }
+
         const int Size = BlockAtlasLayout.CellSize;
         var data = new byte[Size * Size * 4];
         for (var y = 0; y < Size; y++)

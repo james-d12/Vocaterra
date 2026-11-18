@@ -37,6 +37,16 @@
     {"form":"cuero","lemma":"cuero","pos":"noun","features":{"number":"sg","gender":"m"}},
     {"form":"cueros","lemma":"cuero","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"gorro","lemma":"gorro","pos":"noun","features":{"number":"sg","gender":"m"}},
-    {"form":"gorros","lemma":"gorro","pos":"noun","features":{"number":"pl","gender":"m"}}
+    {"form":"gorros","lemma":"gorro","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"coraza","lemma":"coraza","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"corazas","lemma":"coraza","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"greba","lemma":"greba","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"grebas","lemma":"greba","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"pulsera","lemma":"pulsera","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"pulseras","lemma":"pulsera","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"amuleto","lemma":"amuleto","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"amuletos","lemma":"amuleto","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"mochila","lemma":"mochila","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"mochilas","lemma":"mochila","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }
