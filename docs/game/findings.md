@@ -3138,3 +3138,6 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   hotbar (above its left end where a small window leaves no room). No swap key. One timing test, `StreamedWorldTimeTests`, failed the gate
   at twice its CPU budget while another session's three agents held the load at 14 to 20; it passed an hour earlier on the same world code at
   load 5. CPU-time budgets still move under heavy contention (shared cores, cache, clock): worth knowing when two sessions gate at once.
+- **I04c, bare headings (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i04c-report.md`. Gated at `b048d781`: 13,312
+  passed, 9 skipped. The owner asked for the headings without their article; the boxes of the outer columns overhang into the free space
+  beside the doll, so «apariencia» fits at 1280x720 in the normal font. The timing test I04b's gate failed under load passed here.
