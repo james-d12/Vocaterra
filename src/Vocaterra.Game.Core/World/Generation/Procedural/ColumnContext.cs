@@ -28,6 +28,7 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     private readonly bool[] _classified;
     private readonly ColumnSurface[] _surfaces;
     private readonly bool[] _surfaced;
+    private readonly bool[] _shaped = new bool[1]; // whether the shapers have run (an array: the pure folders keep every field readonly, and a context is never shared between threads)
     private readonly Lazy<List<PlantedTree>> _trees;
     private readonly Lazy<CavePlan> _caves;
     private readonly Lazy<IReadOnlyList<EntranceRamp>> _ramps;
@@ -92,7 +93,11 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     }
 
     /// <summary>Whether the shapers have run over the window (a context cut from a group's shaped window starts so).</summary>
-    public bool Shaped { get; set; }
+    public bool Shaped
+    {
+        get => _shaped[0];
+        set => _shaped[0] = value;
+    }
 
     /// <summary>The window's climate, row by row (x fastest): a group keeps it.</summary>
     public ClimateSample[] Climate => _climate;
