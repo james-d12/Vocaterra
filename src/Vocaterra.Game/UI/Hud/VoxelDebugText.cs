@@ -55,12 +55,12 @@ public static class VoxelDebugText
 
     /// <summary>
     /// The temperature line (I06): the place's temperature in degrees Celsius (<c>held</c> when <c>--temperature</c> holds it), the player's warmth, the feeling those make and the
-    /// band it falls in, then each term of the place by name and its tenths of a degree (I06c: <c>[climate 14.0 day 3.1 ...]</c>, a term at 0 left out), and the temperature the place has when the felt
-    /// one is still on its way (<c>-&gt; 6.2C</c>).
+    /// band it falls in, then each term of the place by name and its tenths of a degree (I06c: <c>[climate 14.0 day 3.1 ...]</c>, a term at 0 left out); while the felt temperature is still on its way
+    /// to the place's, the place's follows the felt one (<c>temp 10.0C -&gt; 8.0C</c>).
     /// </summary>
     /// <param name="reading">The temperature now.</param>
     public static string Temperature(TemperatureReading reading) =>
-        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}{Arrival(reading)}{Terms(reading)}";
+        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}{Arrival(reading)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}{Terms(reading)}";
 
     private static string Arrival(TemperatureReading reading) => reading.TargetTenths is { } target && target != reading.PlaceTenths && !reading.Held ? " -> " + TemperatureUnits.Format(target) + "C" : string.Empty;
 

@@ -114,6 +114,36 @@ public sealed class TemperatureLagTests
     }
 
     [Fact]
+    public void Given_AFeltValueStillOnItsWay_When_ItIsCapturedAndRestoredInAnotherPlayer_Then_BothContinueTheSame()
+    {
+        var one = Player(15);
+        _ = one.Update(Noon);
+        for (var tick = 0; tick < 500; tick++)
+        {
+            _ = one.Update(Night);
+        }
+
+        var two = Player(15);
+        two.Restore(one.Capture());
+
+        Assert.NotNull(one.Capture());
+        for (var tick = 0; tick < 300; tick++)
+        {
+            Assert.Equal(one.Update(Night).PlaceTenths, two.Update(Night).PlaceTenths);
+        }
+    }
+
+    [Fact]
+    public void Given_NoReadingYetOrNoLag_When_TheStateIsCaptured_Then_ThereIsNothingToKeep()
+    {
+        Assert.Null(Player(15).Capture());
+        var player = Player(0);
+        _ = player.Update(Noon);
+
+        Assert.Null(player.Capture());
+    }
+
+    [Fact]
     public void Given_TheShippedLag_When_ItIsRead_Then_ItIsASmallShareOfTheGapEachTick() =>
         Assert.InRange(TemperatureRig.Data.Lag.StepPerMillion, 100, 5000);
 

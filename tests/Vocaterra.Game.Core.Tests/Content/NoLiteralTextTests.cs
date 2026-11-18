@@ -30,6 +30,8 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Atmosphere/DayValidator.cs"] = "the content authors' problem list (game/day.json)",
         ["src/Vocaterra.Game.Core/Atmosphere/WeatherValidator.cs"] = "the content authors' problem list (game/weather.json)",
         ["src/Vocaterra.Game.Core/Temperature/TemperatureValidator.cs"] = "the content authors' problem list (game/temperature.json)",
+        ["src/Vocaterra.Game.Core/Temperature/TemperatureTermRegistry.cs"] = "the content authors' problem list (game/temperature.json terms)",
+        ["src/Vocaterra.Game.Core/Temperature/TermParameters.cs"] = "the content authors' problem list (a term row's parameters)",
         ["src/Vocaterra.Game.Core/Items/Gear/EquipmentValidator.cs"] = "the content authors' problem list (game/equipment.json and the gear fields of game/items.json)",
         ["src/Vocaterra.Game.Core/Damage/DamageValidator.cs"] = "the content authors' problem list (game/damage.json)",
         ["src/Vocaterra.Game.Core/Light/PlayerLightData.cs"] = "the content authors' problem list (game/light.json)",

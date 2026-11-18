@@ -93,6 +93,18 @@ public sealed class PlayerTemperature
         return (int)Math.Round(felt / (double)Micro, MidpointRounding.AwayFromZero);
     }
 
+    /// <summary>The felt temperature to keep in a save (I06c), or <see langword="null"/> when there is none to keep: no reading yet, or no lag in the data.</summary>
+    public TemperatureSave? Capture() => _feltMicro is { } felt && _data.Lag.SecondsToSettle > 0 ? new TemperatureSave(felt) : null;
+
+    /// <summary>Puts the felt temperature back after a load (<see langword="null"/>: the next reading takes the place's value at once).</summary>
+    /// <param name="save">What <see cref="Capture"/> gave.</param>
+    public void Restore(TemperatureSave? save)
+    {
+        _feltMicro = save?.Felt;
+        _kind = null;
+        _pendingLine = null;
+    }
+
     /// <summary>The line key waiting to be shown (said once on entering the cold), taken and cleared; <see langword="null"/> when none waits.</summary>
     public string? TakeLine()
     {
