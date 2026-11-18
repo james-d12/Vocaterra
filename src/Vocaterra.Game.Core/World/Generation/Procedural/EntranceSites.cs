@@ -94,6 +94,11 @@ internal sealed class EntranceSites
         var box = ((site.X * _spec.Cell) + keep, (site.Z * _spec.Cell) + keep, ((site.X + 1) * _spec.Cell) - 1 - keep, ((site.Z + 1) * _spec.Cell) - 1 - keep); // a passage stays inside its own site, so two never meet
         EntranceRamp? best = null;
         var bestCover = int.MinValue;
+        if (_spec.FaceRise > 0 && FaceMouth(site, box) is { } face)
+        {
+            return face; // a hill or cliff face in the site: the mouth opens sideways into it, and level ground is only for sites that have none
+        }
+
         for (var attempt = 0; attempt < _spec.Attempts; attempt++)
         {
             var ax = (site.X * _spec.Cell) + _spec.Margin + rng.NextInt(inner);
@@ -124,9 +129,68 @@ internal sealed class EntranceSites
         return best;
     }
 
+    // B11d: the site's face mouth, or null when it has no face the ground and the caves allow. The site's ground is read on a grid (FaceStep columns apart); a grid spot where the ground a grid step ahead in one
+    // of the four directions climbs FaceRise blocks or more, on ground that is plain and dry, with a level approach behind it, is a candidate: the mouth opens there, heading into the rise, and the path runs
+    // level and then gently down (no plunge), so the opening is an arch in the face with the rock overhead. The few steepest candidates are planned and the one the ground covers most wins.
+    private EntranceRamp? FaceMouth((int X, int Z) site, (int MinX, int MinZ, int MaxX, int MaxZ) box)
+    {
+        const int FaceStep = 6;
+        const int Candidates = 10;
+        var probe = new Probe(this);
+        var x0 = (site.X * _spec.Cell) + _spec.Margin;
+        var z0 = (site.Z * _spec.Cell) + _spec.Margin;
+        var inner = _spec.Cell - (2 * _spec.Margin);
+        var found = new List<(int Rise, int X, int Z, int Direction)>();
+        for (var z = z0; z < z0 + inner; z += FaceStep)
+        {
+            for (var x = x0; x < x0 + inner; x += FaceStep)
+            {
+                var here = probe.At(x, z);
+                if (!here.Usable || here.Height < _world.SeaLevel + _spec.MinHeightAboveSea)
+                {
+                    continue;
+                }
+
+                for (var d = 0; d < Directions.Length; d++)
+                {
+                    var ahead = probe.At(x + (Directions[d].X * FaceStep), z + (Directions[d].Z * FaceStep));
+                    var rise = ahead.Height - here.Height;
+                    if (ahead.Usable && rise >= _spec.FaceRise)
+                    {
+                        found.Add((rise, x, z, d));
+                    }
+                }
+            }
+        }
+
+        EntranceRamp? best = null;
+        var bestCover = int.MinValue;
+        var tried = 0;
+        foreach (var (_, x, z, d) in found.OrderByDescending(static f => f.Rise).ThenBy(static f => f.X).ThenBy(static f => f.Z).ThenBy(static f => f.Direction))
+        {
+            if (tried++ >= Candidates)
+            {
+                break;
+            }
+
+            var mouth = probe.At(x, z);
+            for (var variant = 0; variant < 3; variant++)
+            {
+                var path = WorldRng.For(_world.Seed, $"gen/entrances/face/{x}/{z}/{d}/{variant}", site.X, site.Z);
+                if (Plan(probe, x, z, d, mouth.Height, path, box, out var cover, face: true) is { } ramp && cover > bestCover)
+                {
+                    best = ramp;
+                    bestCover = cover;
+                }
+            }
+        }
+
+        return best;
+    }
+
     // The path of one heading and one draw of bends and slopes, or null when the ground, the water, a region or the lack of a cave under it forbids it; cover is how much ground the first cells lie under (a
     // hillside has more). The path is a walk of 4-connected cells along a heading that drifts, its floor drops a block at most from cell to cell, and it ends where it meets a cave deep enough, then a landing.
-    private EntranceRamp? Plan(Probe probe, int ax, int az, int direction, int mouthY, WorldRng rng, (int MinX, int MinZ, int MaxX, int MaxZ) box, out int cover)
+    private EntranceRamp? Plan(Probe probe, int ax, int az, int direction, int mouthY, WorldRng rng, (int MinX, int MinZ, int MaxX, int MaxZ) box, out int cover, bool face = false)
     {
         cover = 0;
         var spec = _spec;
@@ -137,7 +201,7 @@ internal sealed class EntranceSites
             return null; // the block before the mouth is the ground a body comes from: at most one block over or under the mouth's floor, so the first step is one block
         }
 
-        var (nodes, advance) = StartWalk(spec, rng, ax, az, direction, mouthY);
+        var (nodes, advance) = StartWalk(spec, rng, ax, az, direction, mouthY, face);
         var lava = _underground.LavaLevel;
         var length = -1;
         while (length < 0 && nodes.Count < spec.MaxLength)
@@ -193,7 +257,7 @@ internal sealed class EntranceSites
 
     // One walk of the path under construction, as a function that takes the next step and the list of cells so far: the heading drifts (bends of a few blocks in a random sense, never straying far from the first
     // heading), the floor falls in stretches of one slope or runs level, and the width and headroom drift between draws. The state lives in the closure (a pass keeps nothing between calls).
-    private static (List<PathNode> Nodes, Func<bool, bool> Advance) StartWalk(EntranceSpec spec, WorldRng rng, int ax, int az, int direction, int mouthY)
+    private static (List<PathNode> Nodes, Func<bool, bool> Advance) StartWalk(EntranceSpec spec, WorldRng rng, int ax, int az, int direction, int mouthY, bool face)
     {
         var nodes = new List<PathNode>();
         var seen = new HashSet<(int, int)>();
@@ -210,6 +274,10 @@ internal sealed class EntranceSites
             (16 * spec.HeadroomMin) + rng.NextInt((16 * (spec.HeadroomMax - spec.HeadroomMin)) + 1));
         var to = DrawSize();
         var from = to;
+        if (face)
+        {
+            runLeft = rng.NextInt(3, 7); // a face mouth's passage starts level (run 0) for a few cells and then falls gently: no plunge
+        }
 
         void Bend()
         {
@@ -234,7 +302,7 @@ internal sealed class EntranceSites
                 return false; // the path crossed itself: no passage on this draw
             }
 
-            if (nodes.Count > 0 && descend && nodes.Count <= spec.Plunge)
+            if (nodes.Count > 0 && descend && !face && nodes.Count <= spec.Plunge)
             {
                 var skip = rng.NextInt(3) == 0;
                 if (!skip || nodes.Count <= 3)

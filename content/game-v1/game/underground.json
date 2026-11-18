@@ -66,6 +66,7 @@
     ],
     "bowlDepth": 0,
     "bowlSlope": 1000,
+    "faceRise": 4,
     "plunge": 8
   },
   "lava": { "block": "lava", "level": -54 },

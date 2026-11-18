@@ -148,7 +148,8 @@
         "funnelLength",
         "floorBlocks",
         "bowlDepth",
-        "bowlSlope"
+        "bowlSlope",
+        "faceRise"
       ],
       "additionalProperties": false,
       "properties": {
@@ -201,7 +202,8 @@
           "maximum": 10,
           "description": "The deepest the ground may lie over the path's floor for the mouth's bowl to be cut, in blocks."
         },
-        "bowlSlope": { "type": "integer", "minimum": 500, "maximum": 4000, "description": "How far out, in thousandths of a block, the bowl's side runs for each block it rises." }
+        "bowlSlope": { "type": "integer", "minimum": 500, "maximum": 4000, "description": "How far out, in thousandths of a block, the bowl's side runs for each block it rises." },
+        "faceRise": { "type": "integer", "minimum": 0, "maximum": 24, "description": "How many blocks the ground must climb within 6 blocks ahead of a spot for a mouth to open sideways into it as a hill or cliff face (0: none); a site prefers such a face to level ground." }
       }
     },
     "lava": {

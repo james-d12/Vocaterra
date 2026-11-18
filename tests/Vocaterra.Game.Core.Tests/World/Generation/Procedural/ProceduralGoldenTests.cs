@@ -21,7 +21,7 @@ public sealed class ProceduralGoldenTests(ITestOutputHelper output)
         { 42, "lake", 9, -60, "ea3bca99f0867739e8ebb25b06e476219a054cc2f60451b438e29401005665ea" },
         { 42, "coast", -20, 28, "9fea60e233fb12a0682a19663e634ddb72168ea9fa3904d431c78b05e717e3cc" },
         { 42, "forest", -40, 4, "fa0905c17e1a118c2e4de367b6777148e0e8de7a676e594f3cdeb4e6d758eebc" },
-        { 42, "mountain", -4, -4, "a33acb45df9d70b016c10923101b5869cbca6d1aeb7c4910e1bd10f283286fe5" },
+        { 42, "mountain", -4, -4, "4e29b0894e58b2dbe565bcbe1a43cdf3843951cfa50114e7f56ebc5b76e1dcf6" },
         { 42, "plain", 12, 20, "a11d8ba92df48eb99756a4dc6aae90befb698cdfd997535d40ffb2d70143799e" },
         { 7, "river", -20, -28, "9e371ea880d2914ad74a66688db36294aee0637cbdd32e955badce5147d542d3" },
         { 7, "lake", 12, 75, "98a5d067cc94a7ccc495953efb6e3e1869311f98941e9f45ea257daf6313d5c1" },

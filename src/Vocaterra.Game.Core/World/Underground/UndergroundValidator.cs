@@ -273,6 +273,7 @@ internal static partial class UndergroundValidator
         Range(problems, "entrances.funnelLength", e.FunnelLength, 0, 24);
         Range(problems, "entrances.bowlDepth", e.BowlDepth, 0, 10);
         Range(problems, "entrances.bowlSlope", e.BowlSlope, 500, 4000);
+        Range(problems, "entrances.faceRise", e.FaceRise, 0, 24);
         Weights(problems, "entrances.floorBlocks", e.FloorBlocks, true);
     }
 
