@@ -345,6 +345,36 @@ public enum BlockCell
 
     /// <summary>The icon of the camp kit (the item, Y11): a small green tent with a dark door and a rolled bedroll in front. Placed last, so no other cell moves.</summary>
     IconCampKit,
+
+    /// <summary>The icon of a folded bolt of pale blue cloth (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCloth,
+
+    /// <summary>The icon of a brown hide (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconLeather,
+
+    /// <summary>The icon of a grey iron ingot (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconIron,
+
+    /// <summary>The icon of a straw hat with a red band (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconHat,
+
+    /// <summary>The icon of an orange woolly cap with a pom-pom (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCap,
+
+    /// <summary>The icon of a cream shirt (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconShirt,
+
+    /// <summary>The icon of an olive jacket (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconJacket,
+
+    /// <summary>The icon of a wine-red coat (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCoat,
+
+    /// <summary>The icon of blue trousers (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconTrousers,
+
+    /// <summary>The icon of a brown shoe (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconShoes,
 }
 
 /// <summary>
@@ -361,7 +391,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 15; // B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
+    public const int ColourRows = 17; // I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b; B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -489,6 +519,16 @@ public static class BlockAtlasLayout
         ["flour"] = BlockCell.IconFlour,
         ["stake"] = BlockCell.IconStake,
         ["camp-kit"] = BlockCell.IconCampKit,
+        ["cloth"] = BlockCell.IconCloth,
+        ["leather"] = BlockCell.IconLeather,
+        ["iron"] = BlockCell.IconIron,
+        ["hat"] = BlockCell.IconHat,
+        ["cap"] = BlockCell.IconCap,
+        ["shirt"] = BlockCell.IconShirt,
+        ["jacket"] = BlockCell.IconJacket,
+        ["coat"] = BlockCell.IconCoat,
+        ["trousers"] = BlockCell.IconTrousers,
+        ["shoes"] = BlockCell.IconShoes,
         ["bowl"] = BlockCell.IconBowl,
         ["spoon"] = BlockCell.IconSpoon,
         ["oven"] = BlockCell.IconOven,

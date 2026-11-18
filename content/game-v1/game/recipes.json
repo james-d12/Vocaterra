@@ -4,6 +4,13 @@
   "generated_by": "hand-authored",
   "recipes": [
     { "output": "antorcha", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }], "station": "mesa" },
-    { "output": "manzana", "makes": "roast-apple", "count": 1, "ingredients": [{ "item": "manzana", "count": 1 }], "station": "fuego" }
+    { "output": "manzana", "makes": "roast-apple", "count": 1, "ingredients": [{ "item": "manzana", "count": 1 }], "station": "fuego" },
+    { "output": "sombrero", "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "gorro", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "camisa", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "chaqueta", "count": 1, "ingredients": [{ "item": "tela", "count": 3 }, { "item": "cuero", "count": 1 }], "station": "mesa" },
+    { "output": "abrigo", "count": 1, "ingredients": [{ "item": "tela", "count": 4 }, { "item": "cuero", "count": 2 }], "station": "mesa" },
+    { "output": "pantalón", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "zapato", "count": 1, "ingredients": [{ "item": "cuero", "count": 1 }], "station": "mesa" }
   ]
 }

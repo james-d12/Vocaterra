@@ -9,7 +9,7 @@ public sealed class SessionTemperatureTests
 {
     private static VoxelSession Held(int tenths)
     {
-        var session = TestGame.NewSession();
+        var session = GearItems.Undress(TestGame.NewSession()); // the bands are tested bare: the starting clothes' four degrees (I08a) are EquipmentWarmthTests' and StartingClothesTests'
         session.Temperature.HeldTenths = tenths;
         return session;
     }
@@ -225,7 +225,7 @@ public sealed class SessionTemperatureTests
     public void TheTemperatureIsNotPartOfTheSavedState()
     {
         var cold = Held(-80);
-        var plain = TestGame.NewSession();
+        var plain = GearItems.Undress(TestGame.NewSession());
         for (var i = 0; i < 5; i++)
         {
             cold.Step([]);

@@ -178,6 +178,15 @@ public static class GameDataValidator
             Named($"{ObjectiveBook.SessionPath}: a starting item", item);
         }
 
+        foreach (var item in data.Objectives.Wears)
+        {
+            Named($"{ObjectiveBook.SessionPath}: a starting worn item", item);
+            if (data.Items.Get(item).Wear is null)
+            {
+                problems.Add($"{ObjectiveBook.SessionPath}: the starting worn item '{data.Items.Get(item).Name}' has no wear slot.");
+            }
+        }
+
         foreach (var order in data.Objectives.Objectives)
         {
             foreach (var goods in order.Goods)

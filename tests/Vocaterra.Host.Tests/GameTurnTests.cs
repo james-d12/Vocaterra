@@ -28,13 +28,13 @@ public sealed class GameTurnTests
 
         var lines = AgentLines(Agent("quiero madera", "stall-need", bag));
 
-        Assert.Equal(["No tengo eso. Tengo agua, pan y harina."], lines);
+        Assert.Equal(["No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa."], lines);
     }
 
     [Fact]
     public void AMissedGiftIsRefusedWithoutABagToo()
     {
-        Assert.Equal(["No tengo eso. Tengo agua, pan y harina."], AgentLines(Agent("quiero madera", "stall-need")));
+        Assert.Equal(["No tengo eso. Tengo agua, pan, harina, tela, cuero y ropa."], AgentLines(Agent("quiero madera", "stall-need")));
     }
 
     [Fact]

@@ -6,10 +6,10 @@ using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Items;
 
-/// <summary>An item that is a row of the data alone (I01: id 100, no <see cref="ItemId"/> member) works where an item can be named: a noun, a recipe, a shop row, a gift and a script.</summary>
+/// <summary>An item that is a row of the data alone (I01: id 900 here, no <see cref="ItemId"/> member) works where an item can be named: a noun, a recipe, a shop row, a gift and a script.</summary>
 public sealed class DataOnlyItemTests
 {
-    private static readonly ItemId Gem = (ItemId)100;
+    private static readonly ItemId Gem = (ItemId)900;
 
     private static readonly IItemCatalogue Items = TestItems.With(new ItemDefinition(Gem, "gem", 7, "gem", ItemHeld.Sprite, ["material"]));
 
