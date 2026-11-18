@@ -55,11 +55,11 @@ public static class VoxelDebugText
 
     /// <summary>
     /// The temperature line (I06): the place's temperature in degrees Celsius (<c>held</c> when <c>--temperature</c> holds it), the player's warmth, the feeling those make and the
-    /// band it falls in.
+    /// band it falls in, and what the world's climate took off when it took any (I06b).
     /// </summary>
     /// <param name="reading">The temperature now.</param>
     public static string Temperature(TemperatureReading reading) =>
-        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}";
+        $"temp {TemperatureUnits.Format(reading.PlaceTenths)}C{(reading.Held ? " held" : string.Empty)}   warmth {TemperatureUnits.Format(reading.WarmthTenths)}   feels {TemperatureUnits.Format(reading.FeelingTenths)}C {reading.Band.Id}{(reading.ClimateTenths == 0 ? string.Empty : "   climate " + TemperatureUnits.Format(reading.ClimateTenths))}";
 
     /// <summary>
     /// The clock and weather line (E03): the hour as hh:mm, the phase, and <c>held</c> when the clock is held; the weather's kind and, during a change of kind, the kind it

@@ -49,7 +49,7 @@ public sealed class PlayerTemperature
         var place = HeldTenths ?? _place.TenthsAt(situation);
         var warmth = Warmth.WarmthTenths();
         var band = _data.BandFor(place + warmth);
-        var reading = new TemperatureReading(place, warmth, band, HeldTenths is not null);
+        var reading = new TemperatureReading(place, warmth, band, HeldTenths is not null, _place.TenthsOf("climate", situation));
         if (band.Chill > 0 && !_chilled && band.Line is not null)
         {
             _pendingLine = band.Line;

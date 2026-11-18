@@ -12,4 +12,5 @@ namespace Vocaterra.Game.Core.Temperature;
 /// <param name="Feet">The block the player's feet are in.</param>
 /// <param name="CoveredShare">The share of the columns round the feet that have cover above the head, 0 (open sky) to 1 (a roof over all of them): the very query the rain's drops and its sound use (<see cref="OverheadCover"/>).</param>
 /// <param name="Fires">The world's fire rings (<see cref="FireRings.NearLit"/>), or <see langword="null"/> for a world with none.</param>
-public readonly record struct TemperatureSituation(AtmosphereSnapshot Atmosphere, BlockPos Feet, double CoveredShare, FireRings? Fires);
+/// <param name="Places">The world's pure place query (the climate at a column and height, I06b), or <see langword="null"/> for a situation with no world (the climate term then adds nothing).</param>
+public readonly record struct TemperatureSituation(AtmosphereSnapshot Atmosphere, BlockPos Feet, double CoveredShare, FireRings? Fires, World.IPlaceInfo? Places = null);

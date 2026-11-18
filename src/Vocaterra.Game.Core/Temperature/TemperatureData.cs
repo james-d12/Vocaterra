@@ -13,6 +13,7 @@ namespace Vocaterra.Game.Core.Temperature;
 /// <param name="CloudCoolingTenths">The cooling of full cloud cover.</param>
 /// <param name="PrecipitationCoolingTenths">The cooling of precipitation at full intensity.</param>
 /// <param name="WindCoolingTenths">The cooling of the strongest wind.</param>
+/// <param name="Climate">How the world's climate cools the place (I06b).</param>
 /// <param name="ShelterBonusTenths">The warmth of full cover overhead.</param>
 /// <param name="ShelterOnlyInPrecipitation">Whether the cover warms only while something falls.</param>
 /// <param name="FireRadiusBlocks">How far from a lit ring's middle its fire warms, in blocks across.</param>
@@ -24,6 +25,7 @@ public sealed record TemperatureData(
     int CloudCoolingTenths,
     int PrecipitationCoolingTenths,
     int WindCoolingTenths,
+    ClimateCooling Climate,
     int ShelterBonusTenths,
     bool ShelterOnlyInPrecipitation,
     int FireRadiusBlocks,
@@ -78,6 +80,7 @@ public sealed record TemperatureData(
             }
 
             var weather = root.GetProperty("weather");
+            var climate = root.GetProperty("climate");
             var shelter = root.GetProperty("shelter");
             var fire = root.GetProperty("fire");
             return new TemperatureData(
@@ -86,6 +89,7 @@ public sealed record TemperatureData(
                 weather.GetProperty("cloudTenths").GetInt32(),
                 weather.GetProperty("precipitationTenths").GetInt32(),
                 weather.GetProperty("windTenths").GetInt32(),
+                new ClimateCooling(climate.GetProperty("referenceThousandths").GetInt32(), climate.GetProperty("coolingTenthsPerRange").GetInt32(), climate.GetProperty("maxCoolingTenths").GetInt32()),
                 shelter.GetProperty("bonusTenths").GetInt32(),
                 shelter.GetProperty("onlyInPrecipitation").GetBoolean(),
                 fire.GetProperty("radiusBlocks").GetInt32(),

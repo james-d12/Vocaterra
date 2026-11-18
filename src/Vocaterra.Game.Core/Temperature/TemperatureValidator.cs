@@ -21,6 +21,9 @@ internal static class TemperatureValidator
         Within(problems, "weather.cloudTenths", data.CloudCoolingTenths, 0, Limit);
         Within(problems, "weather.precipitationTenths", data.PrecipitationCoolingTenths, 0, Limit);
         Within(problems, "weather.windTenths", data.WindCoolingTenths, 0, Limit);
+        Within(problems, "climate.referenceThousandths", data.Climate.ReferenceThousandths, -2000, 2000);
+        Within(problems, "climate.coolingTenthsPerRange", data.Climate.CoolingTenthsPerRange, 0, Limit);
+        Within(problems, "climate.maxCoolingTenths", data.Climate.MaxCoolingTenths, 0, Limit);
         Within(problems, "shelter.bonusTenths", data.ShelterBonusTenths, 0, Limit);
         Within(problems, "fire.bonusTenths", data.FireBonusTenths, 0, Limit);
         Within(problems, "fire.radiusBlocks", data.FireRadiusBlocks, 1, 64);

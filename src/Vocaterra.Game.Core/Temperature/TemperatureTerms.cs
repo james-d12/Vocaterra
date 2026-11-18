@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Core.Temperature;
 /// </summary>
 public static class TemperatureTerms
 {
-    /// <summary>The terms the game starts with, made from the data's numbers: base, day, weather, shelter, fire.</summary>
+    /// <summary>The terms the game starts with, made from the data's numbers: base, day, weather, climate, shelter, fire.</summary>
     /// <param name="data">The temperature's data.</param>
     public static IReadOnlyList<ITemperatureTerm> Standard(TemperatureData data)
     {
@@ -17,6 +17,7 @@ public static class TemperatureTerms
             new BaseTemperatureTerm(data.BaseTenths),
             new DayTemperatureTerm(data.DayAmplitudeTenths),
             new WeatherTemperatureTerm(data.CloudCoolingTenths, data.PrecipitationCoolingTenths, data.WindCoolingTenths),
+            new ClimateTemperatureTerm(data.Climate),
             new ShelterTemperatureTerm(data.ShelterBonusTenths, data.ShelterOnlyInPrecipitation),
             new FireTemperatureTerm(data.FireRadiusBlocks, data.FireBonusTenths),
         ];

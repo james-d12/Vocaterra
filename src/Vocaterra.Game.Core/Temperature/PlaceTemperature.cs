@@ -44,6 +44,22 @@ public sealed class PlaceTemperature
         return (int)Math.Clamp(sum, -LimitTenths, LimitTenths);
     }
 
+    /// <summary>What the term of that name adds here and now, in tenths (0 when no term has the name).</summary>
+    /// <param name="name">The term's <see cref="ITemperatureTerm.Name"/>.</param>
+    /// <param name="situation">The place and the moment.</param>
+    public int TenthsOf(string name, in TemperatureSituation situation)
+    {
+        foreach (var term in _terms)
+        {
+            if (string.Equals(term.Name, name, StringComparison.Ordinal))
+            {
+                return term.TenthsAt(situation);
+            }
+        }
+
+        return 0;
+    }
+
     /// <summary>What each term adds here and now, in registration order (the debug overlay and the tests read it).</summary>
     /// <param name="situation">The place and the moment.</param>
     public IReadOnlyList<TemperatureContribution> Breakdown(in TemperatureSituation situation)
