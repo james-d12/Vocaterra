@@ -51,6 +51,7 @@ public sealed partial class NoLiteralTextTests
         ["src/Vocaterra.Game.Core/Language/Words/NounCatalog.cs"] = "a load error for the content authors",
         ["src/Vocaterra.Game.Core/Session/GameBundle.cs"] = "the error when the bundle is not found (a command-line run)",
         ["src/Vocaterra.Game.Core/Save/SaveGame.cs"] = "the strict-save refusal and the migration notes, printed on the console of a command-line run",
+        ["src/Vocaterra.Game/Startup/GiveLine.cs"] = "the --give test aid's console line (I10b)",
         ["src/Vocaterra.Game.Core/Save/SaveMigration.cs"] = "the migration report on the console",
         ["src/Vocaterra.Game.Core/Save/Autosave.cs"] = "the autosave's reasons on the console",
         ["src/Vocaterra.Game.Core/Reporting/ReportMarkdown.cs"] = "the saved report's headings (a file for the developers)",

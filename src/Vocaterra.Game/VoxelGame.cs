@@ -372,8 +372,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     },
                     item =>
                     {
-                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
-                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
+                        var notGiven = session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine(GiveLine.Text(session.Data.Items.Get(item).Name, notGiven, session.Simulation.Inventory.Count(item)));
                     },
                     ground =>
                     {
@@ -399,7 +399,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     },
                     item =>
                     {
-                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal gives nothing
+                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal leaves it in the bag (I10b)
                         var equipment = session.Simulation.Equipment;
                         var result = session.Simulation.WearFromStart(item, out var slot);
                         var name = session.Data.Items.Get(item).Name;
