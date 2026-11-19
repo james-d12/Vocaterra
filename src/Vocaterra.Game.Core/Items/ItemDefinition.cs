@@ -49,6 +49,15 @@ public enum ItemId : ushort
 public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 
 /// <summary>
+/// How an item wears out (I07, inventory-plan 3.12): the wear at which it is worn out, what wears it and how fast. The <paramref name="Source"/> names an <see cref="Wearing.IWearSource"/> (<c>use</c>, <c>time</c>, <c>damage</c>), so a new
+/// cause of wear is a source class and a data value, never an edit of the others. A worn-out item is never lost: a tool works at bare hands' speed and gear gives no stats.
+/// </summary>
+/// <param name="Max">The wear at which the item is worn out (at least 1).</param>
+/// <param name="Source">The id of the wear source that wears this item (<see cref="Wearing.WearSources"/>).</param>
+/// <param name="Rate">The wear a source's unit adds: per gather for <c>use</c>, per in-game hour worn for <c>time</c>, per point of damage taken for <c>damage</c> (at least 1).</param>
+public sealed record DurabilitySpec(int Max, string Source, int Rate = 1);
+
+/// <summary>
 /// What the game knows about one item kind, one row of <c>game/items.json</c> (I01): its stable key, its numeric id, its stack limit, the picture it is drawn with, how the hand holds it,
 /// its tags and, for a tool, its <see cref="ToolSpec"/>; a piece of gear also has the slot it fits, the stats it gives and how it looks on the body (I03a). The stack limit lives here and nowhere else.
 /// The rows are read once into an <see cref="IItemCatalogue"/>.
@@ -64,6 +73,7 @@ public sealed record ToolSpec(Material Class, int Speed, int Yield = 1);
 /// <param name="Stats">What the item adds to the player's stat sheet while it is worn, by open stat key (<c>warmth</c> in tenths of a degree), or <see langword="null"/> for none. Sorted by key.</param>
 /// <param name="Look">The colours the item gives the body parts it covers (drawn on the player by I09), or <see langword="null"/> when it changes nothing.</param>
 /// <param name="Capacity">The bag slots a worn bag adds to the base of the inventory (I03b; only an item tagged <c>bag</c> and worn on the <c>back</c> has one), or <see langword="null"/> for an item that adds none.</param>
+/// <param name="Durability">How the item wears out (I07), or <see langword="null"/> for an item that never does. An item with a durability stacks to 1.</param>
 public sealed record ItemDefinition(
     ItemId Id,
     string Name,
@@ -75,7 +85,8 @@ public sealed record ItemDefinition(
     string? Wear = null,
     IReadOnlyDictionary<string, double>? Stats = null,
     ItemLook? Look = null,
-    int? Capacity = null)
+    int? Capacity = null,
+    DurabilitySpec? Durability = null)
 {
     /// <summary>The stack limit of a material or a placeable block.</summary>
     public const int DefaultStackLimit = 99;
@@ -86,8 +97,15 @@ public sealed record ItemDefinition(
     /// <summary>The kind of slot a bag is worn in.</summary>
     public const string BagWear = "back";
 
+    /// <summary>The largest wear at which an item may wear out (a sanity limit, so the wear and its digest stay small whole numbers).</summary>
+    public const int MaxDurability = 100000;
+
     /// <summary>The most slots one bag may add (a sanity limit, so the inventory's array stays a few rows).</summary>
     public const int MaxCapacity = 100;
+
+    /// <summary>Whether an item of this kind at <paramref name="wear"/> is worn out (I07): it has a durability and the wear has reached it. A worn-out item is never lost; it gives no stats and a tool works at bare hands' speed.</summary>
+    /// <param name="wear">The stack's wear.</param>
+    public bool IsWornOut(int wear) => Durability is { } durability && wear >= durability.Max;
 
     /// <summary>Whether the item carries <paramref name="tag"/>.</summary>
     /// <param name="tag">The tag, compared exactly.</param>
@@ -97,11 +115,24 @@ public sealed record ItemDefinition(
 /// <summary>A number of one item kind in a slot. A stack with a count of zero is an empty slot.</summary>
 /// <param name="Item">The kind (meaningless when <paramref name="Count"/> is zero).</param>
 /// <param name="Count">How many.</param>
-public readonly record struct ItemStack(ItemId Item, int Count)
+/// <param name="Wear">How worn the item is (I07): 0 for new, up to the item's <see cref="ItemDefinition.Durability"/> maximum, where it is worn out. Meaningful only for an item with a durability, which stacks to 1; it travels with the item through every move, and two stacks with different wear never merge (<see cref="CanMergeWith"/>).</param>
+public readonly record struct ItemStack(ItemId Item, int Count, int Wear = 0)
 {
     /// <summary>An empty slot.</summary>
     public static ItemStack Empty { get; } = new(ItemId.Wood, 0);
 
     /// <summary>Whether the slot holds nothing.</summary>
     public bool IsEmpty => Count == 0;
+
+    /// <summary>Whether this stack and <paramref name="other"/> are of one item at one wear, so a move may put them into one slot (an empty stack merges with nothing).</summary>
+    /// <param name="other">The other stack.</param>
+    public bool CanMergeWith(ItemStack other) => !IsEmpty && !other.IsEmpty && Item == other.Item && Wear == other.Wear;
+
+    /// <summary>The same item at the same wear with another count (what a split or a partial move leaves); an empty stack when <paramref name="count"/> is zero or less.</summary>
+    /// <param name="count">The new count.</param>
+    public ItemStack WithCount(int count) => count <= 0 ? Empty : this with { Count = count };
+
+    /// <summary>The stack of a durable item at a wear: <paramref name="wear"/> clamped to 0 or more.</summary>
+    /// <param name="wear">The wear.</param>
+    public ItemStack WithWear(int wear) => this with { Wear = Math.Max(0, wear) };
 }

@@ -90,7 +90,7 @@
 {"path":"game/day.json","sha256":"7b21f1b9cd2460c5cf9f3e029d0c826f88b883ab5ce34fd0a8cd94f983bc5508","bytes":830},
 {"path":"game/equipment.json","sha256":"5b467962132a7a2d0703033543124dac8d6b7ee43e06e9035d8eeee6dede5ad8","bytes":2572},
 {"path":"game/host-events.json","sha256":"8abd41876013b44337749762f49ed8cb4eb4b2e9e04184ac3ae538eab5b4ad18","bytes":7274},
-{"path":"game/items.json","sha256":"d2a2ab9c71da13600011bbbc6bda17ecb9d4191604930a25facd5f5e8cebf987","bytes":4816},
+{"path":"game/items.json","sha256":"b873130abdf63e150d2374ed199d9e2b34b41aa08b09af979fff2283524bbeb7","bytes":5833},
 {"path":"game/land.json","sha256":"26300fd7a08c3a0f6b983b075cb77fc731bff3028aa49ade835d01a0fdc52f3f","bytes":1582},
 {"path":"game/lessons.json","sha256":"6a2856b0a0d4440291a3a2458f72c063eabd5af1aaa8c86ac6c55aa28adcde99","bytes":1751},
 {"path":"game/lessons/ayer-en-el-pueblo.json","sha256":"c5084170028ae59f4725a9123c7daa135223202e47e7b41a1913c74fd2eab703","bytes":4133},
@@ -128,7 +128,7 @@
 {"path":"game/phrases.json","sha256":"be792f08e3cb7716ec144782b48c5c3d561c8202fd5c400c4acfa2bfcef136fd","bytes":42299},
 {"path":"game/procedures.json","sha256":"b187eeef5cb34f6c8a93e5e2d163413327ca45d0fba4a7a13c1b90cd1a08f133","bytes":206},
 {"path":"game/procedures/pan.json","sha256":"3b3a011555bb79537f48d60bbced70c6dbd6d73ab6d5159954826382839e0d54","bytes":1262},
-{"path":"game/recipes.json","sha256":"2400fd4d19c6aaf91c0dbd760cf1eafb05a87caa8b2e35d75535af57b8b22da5","bytes":2766},
+{"path":"game/recipes.json","sha256":"a26f8341e0a5c9a9988b4cd1af3a354fb9da99aaecf3f57dd2b960699469f9ad","bytes":5419},
 {"path":"game/scene.json","sha256":"cab606ebed2d64b5ae3d58be157c92e967ceb2843ebc49a528aba70f9e13b16c","bytes":33002},
 {"path":"game/session.json","sha256":"a59d0005cd99ca775199a676211e5b7eff80752b4b7b97a216671e953a6d8601","bytes":924},
 {"path":"game/stations.json","sha256":"e30b4083f65e278ca24d40d597b3f827f3a36992dd59357317c772ab3a086b43","bytes":536},
@@ -136,7 +136,7 @@
 {"path":"game/tips.json","sha256":"4af271e0f305d3fb3e4277b4245ebd643be985ebd5d2997ef33e1222225d7f69","bytes":1413},
 {"path":"game/underground.json","sha256":"701862d2f52c6bec7e73d979bb405a102ce628665e81e4f8e396214f702f0054","bytes":8487},
 {"path":"game/weather.json","sha256":"9697dee582e66869641a7b334f30e2597eb7ba46fe9246b14f1912b31b73246b","bytes":1886},
-{"path":"game/words.json","sha256":"cfd982bda57e17b86dcd8a9a2bacfbe64501a662ccf766059adcf36a965b5778","bytes":5719},
+{"path":"game/words.json","sha256":"55b3e0e75cc1537b7a1336ea5a7418e129c1a92fef0d5606248149f40a5e4f30","bytes":5777},
 {"path":"game/world.json","sha256":"6a796385ebd8c20e17ad1379615b8fc93222b4a232f36bf7ba8cf66d22d7f176","bytes":10320},
 {"path":"intents/intents.json","sha256":"9b8c2807dffd75d1fdba3e8d8a9dd21eab0be554196d9d848b703a3ed7893b21","bytes":81396},
 {"path":"lexicon/game.json","sha256":"63042bc7ae10c23e8e90ed5942af5b20464e631784edfb730f8701928c9805ac","bytes":6176},
@@ -1885,4 +1885,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"668bdea763a6ef544b777aa5233842472f39dbdca617e6432efaa4d9326c671a"}
+],"bundleHash":"f2c85039cc058a6c9e03271e3962a21033b5cbb1e1875098ccb014b766c13db0"}

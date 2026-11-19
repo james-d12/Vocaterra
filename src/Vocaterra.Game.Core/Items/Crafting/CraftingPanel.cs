@@ -74,6 +74,13 @@ public sealed class CraftingPanel : IScreen
             return;
         }
 
+        var rows = CraftingScreen.Rows(_session.Simulation, _session.Recipes);
+        if ((uint)row >= (uint)rows.Count)
+        {
+            return;
+        }
+
+        row = rows[row].Index; // the click is on a place of the panel (repair rows come and go, I07); the craft is the recipe's index
         if (_session.Simulation.CanCraft(row) != CraftResult.Done)
         {
             _sound.Queue(SoundCue.CraftRefused); // soft: the ingredients are not there yet (S24)

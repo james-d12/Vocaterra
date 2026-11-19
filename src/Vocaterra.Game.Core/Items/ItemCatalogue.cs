@@ -155,6 +155,29 @@ public sealed partial class ItemCatalogue : IItemCatalogue
             }
         }
 
+        if (row.Durability is { } durability)
+        {
+            if (durability.Max < 1 || durability.Max > ItemDefinition.MaxDurability)
+            {
+                throw new InvalidDataException($"{RelativePath}: the durability of '{row.Name}' is {durability.Max}; it must be from 1 to {ItemDefinition.MaxDurability}.");
+            }
+
+            if (durability.Rate < 1 || durability.Rate > durability.Max)
+            {
+                throw new InvalidDataException($"{RelativePath}: the durability rate of '{row.Name}' is {durability.Rate}; it must be from 1 to its maximum ({durability.Max}).");
+            }
+
+            if (!NamePattern().IsMatch(durability.Source))
+            {
+                throw new InvalidDataException($"{RelativePath}: the durability source of '{row.Name}' is '{durability.Source}', which is not a lowercase key.");
+            }
+
+            if (row.MaxStack != 1)
+            {
+                throw new InvalidDataException($"{RelativePath}: '{row.Name}' has a durability, so it must stack to 1 (wear belongs to one item, not to a stack of many).");
+            }
+        }
+
         if (row.Wear is not null && !NamePattern().IsMatch(row.Wear))
         {
             throw new InvalidDataException($"{RelativePath}: the wear of '{row.Name}' is '{row.Wear}', which is not a lowercase key (letters, digits and hyphens).");
@@ -230,7 +253,30 @@ public sealed partial class ItemCatalogue : IItemCatalogue
             element.TryGetProperty("wear", out var wear) ? wear.GetString() : null,
             Stats(name, element),
             Look(name, element),
-            element.TryGetProperty("capacity", out var capacity) ? capacity.GetInt32() : null);
+            element.TryGetProperty("capacity", out var capacity) ? capacity.GetInt32() : null,
+            Durability(name, element));
+    }
+
+    private static DurabilitySpec? Durability(string name, JsonElement element)
+    {
+        if (!element.TryGetProperty("durability", out var durability) || durability.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        if (!durability.TryGetProperty("max", out var max) || !max.TryGetInt32(out var maxValue)
+            || !durability.TryGetProperty("source", out var source) || source.ValueKind != JsonValueKind.String)
+        {
+            throw new InvalidDataException($"{RelativePath}: the durability of '{name}' needs a whole number 'max' and a 'source'.");
+        }
+
+        var rate = 1;
+        if (durability.TryGetProperty("rate", out var rateElement) && !rateElement.TryGetInt32(out rate))
+        {
+            throw new InvalidDataException($"{RelativePath}: the durability rate of '{name}' is not a whole number.");
+        }
+
+        return new DurabilitySpec(maxValue, source.GetString() ?? string.Empty, rate);
     }
 
     private static SortedDictionary<string, double>? Stats(string name, JsonElement element)

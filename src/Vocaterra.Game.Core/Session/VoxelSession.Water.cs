@@ -12,7 +12,7 @@ public sealed partial class VoxelSession
     private DrowningDamage Drowning => _drowning ??= new DrowningDamage(Modified(new NeedsHealth(Needs, () => NeedsEnabled && PlayActive)));
 
     // I05a: the health behind the damage pipeline, which runs the modifiers game/damage.json names for each cause over the stat sheet.
-    private ModifiedHealth Modified(IPlayerHealth inner) => new(inner, Data.Damage, DamageModifiers.Standard(), () => Simulation.Stats);
+    private ModifiedHealth Modified(IPlayerHealth inner) => new(inner, Data.Damage, DamageModifiers.Standard(() => Simulation.Wear), () => Simulation.Stats);
 
     /// <summary>The health the water hurts: <see cref="NeedsHealth"/> over the player's needs, unless a test puts another in.</summary>
     internal IPlayerHealth PlayerHealth

@@ -114,6 +114,12 @@ public static class WorldEvents
     /// <summary>An item was crafted (W01; the detail is the output's noun, or its name when it has none, and the amount is the count made).</summary>
     public const string ItemCrafted = "item_crafted";
 
+    /// <summary>A tool wore out (I07; the detail is the tool's noun, or its name when it has none). Raised once, the moment it reaches its durability; the HUD says a short line.</summary>
+    public const string ToolWorn = "tool_worn";
+
+    /// <summary>An item was repaired at the workbench (I07; the detail is the item's noun, or its name when it has none).</summary>
+    public const string ItemRepaired = "item_repaired";
+
     /// <summary>A first-time tip was shown (S16; the detail is the tip's id).</summary>
     public const string TipShown = "tip_shown";
 
@@ -233,5 +239,6 @@ public static class WorldEvents
         CampPlaced,
         DayPhase, WeatherChanged,
         PassOpened,
+        ToolWorn, ItemRepaired,
     ];
 }

@@ -49,7 +49,7 @@ public sealed class CraftingScreen
         return lemmas.Distinct(StringComparer.Ordinal).ToList();
     }
 
-    /// <summary>The panel's rows for the 3D simulation's inventory and the stations in reach, in the book's order.</summary>
+    /// <summary>The panel's rows for the 3D simulation's inventory and the stations in reach, in the book's order. A repair row (I07) is left out while nothing of its item is worn, so a row's <see cref="CraftingRow.Index"/> (its recipe) is not its place on the panel.</summary>
     public static IReadOnlyList<CraftingRow> Rows(VoxelSimulation simulation, RecipeBook book)
     {
         ArgumentNullException.ThrowIfNull(simulation);
@@ -58,6 +58,11 @@ public sealed class CraftingScreen
         for (var i = 0; i < book.Entries.Count; i++)
         {
             var entry = book.Entries[i];
+            if (entry.Rule.Repairs && !simulation.Wear.NeedsRepair(entry.Rule.Output))
+            {
+                continue; // I07: a repair row is on the panel only while something of its item is worn
+            }
+
             var have = entry.Ingredients.Select(p => simulation.Inventory.Count(p.Item)).ToList();
             rows.Add(new CraftingRow(i, entry, have, simulation.CanCraft(i)));
         }

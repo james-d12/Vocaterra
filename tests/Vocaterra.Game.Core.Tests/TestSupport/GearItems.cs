@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.Voxel;
+using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.TestSupport;
 
@@ -31,6 +32,24 @@ internal static class GearItems
     public static readonly ItemId Lantern = (ItemId)215;
     public static readonly ItemId Amulet = (ItemId)216;
 
+    /// <summary>A cap that wears by time (I07): 4 hours.</summary>
+    public static readonly ItemId Cap = (ItemId)217;
+
+    /// <summary>A mail shirt that wears by damage (I07): 10 points.</summary>
+    public static readonly ItemId Mail = (ItemId)218;
+
+    /// <summary>A hatchet that wears by use (I07): 3 gathers; works on wood at speed 4.</summary>
+    public static readonly ItemId Hatchet = (ItemId)219;
+
+    /// <summary>A lamp in the off-hand that wears by time (I07): 2 hours, light 12.</summary>
+    public static readonly ItemId Lamp = (ItemId)220;
+
+    /// <summary>A satchel that wears by time (I07): 2 hours, 10 slots.</summary>
+    public static readonly ItemId Satchel = (ItemId)221;
+
+    /// <summary>A buckler that wears by damage (I07): 6 points, armour 3.</summary>
+    public static readonly ItemId Buckler = (ItemId)222;
+
     /// <summary>The slots the small test bag (<see cref="Sack"/>) adds.</summary>
     public const int SackCapacity = 10;
 
@@ -53,6 +72,12 @@ internal static class GearItems
         Gear(Gourd, "test-gourd", ["accessory"], "accessory", ("thirstDrain", 0.5)),
         Gear(Lantern, "test-lantern", ["offhand"], "offhand", ("light", 12)),
         Gear(Amulet, "test-amulet", ["accessory"], "accessory", ("light", 3)),
+        Gear(Cap, "test-cap", ["clothing"], "head", new DurabilitySpec(4, "time"), ("warmth", 20)),
+        Gear(Mail, "test-mail", ["armour"], "body", new DurabilitySpec(10, "damage"), ("armour", 5)),
+        Gear(Lamp, "test-lamp", ["offhand"], "offhand", new DurabilitySpec(2, "time"), ("light", 12)),
+        Gear(Buckler, "test-buckler", ["offhand"], "offhand", new DurabilitySpec(6, "damage"), ("armour", 3)),
+        new ItemDefinition(Hatchet, "test-hatchet", 1, "axe", ItemHeld.Sprite, ["tool"], new ToolSpec(Material.Wood, 4), Durability: new DurabilitySpec(3, "use")),
+        new ItemDefinition(Satchel, "test-satchel", 1, "test-satchel", ItemHeld.Sprite, ["bag"], Wear: "back", Capacity: 10, Durability: new DurabilitySpec(2, "time")),
         Bag(Sack, "test-sack", SackCapacity),
         Bag(Rucksack, "test-rucksack", RucksackCapacity)));
 
@@ -111,6 +136,9 @@ internal static class GearItems
 
     private static ItemDefinition Bag(ItemId id, string name, int capacity) =>
         new(id, name, 1, name, ItemHeld.Sprite, ["bag"], Wear: "back", Capacity: capacity);
+
+    private static ItemDefinition Gear(ItemId id, string name, string[] tags, string wear, DurabilitySpec durability, params (string Key, double Value)[] stats) =>
+        Gear(id, name, tags, wear, stats) with { Durability = durability };
 
     private static ItemDefinition Gear(ItemId id, string name, string[] tags, string wear, params (string Key, double Value)[] stats) =>
         new(id, name, 1, name, ItemHeld.Sprite, tags, Wear: wear, Stats: stats.Length == 0 ? null : stats.ToDictionary(static s => s.Key, static s => s.Value));

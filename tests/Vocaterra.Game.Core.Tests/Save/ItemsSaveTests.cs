@@ -70,7 +70,7 @@ public sealed class ItemsSaveTests
     [Fact]
     public void Given_TheVersion10Fixture_When_ItLoads_Then_TheBagHoldsTheItemsItNames()
     {
-        var text = SaveFixture.Read("save-v10.json");
+        var text = SaveFixture.Read("save-v11.json");
 
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
 
@@ -81,14 +81,14 @@ public sealed class ItemsSaveTests
     }
 
     [Fact]
-    public void Given_ASaveOfVersion9_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
+    public void Given_ASaveOfVersion10_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
     {
-        var text = SaveFixture.Read("save-v10.json").Replace("\"version\":10,", "\"version\":9,", StringComparison.Ordinal);
+        var text = SaveFixture.Read("save-v11.json").Replace("\"version\":11,", "\"version\":10,", StringComparison.Ordinal);
 
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 
-        Assert.Equal("The save is format version 9; the oldest this game loads is 10 (it writes 10), and older saves are not migrated.", error.Message);
-        Assert.Equal(10, SaveGame.OldestReadableVersion);
+        Assert.Equal("The save is format version 10; the oldest this game loads is 11 (it writes 11), and older saves are not migrated.", error.Message);
+        Assert.Equal(11, SaveGame.OldestReadableVersion);
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Data, Pristine));
     }
 }

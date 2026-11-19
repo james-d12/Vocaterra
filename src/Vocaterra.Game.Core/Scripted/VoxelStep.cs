@@ -39,6 +39,9 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
     /// <summary>Craft the recipe that makes the item (its Spanish noun or the item's key).</summary>
     public static VoxelStep Craft(string item) => new(VoxelStepKind.Craft, Item: item);
 
+    /// <summary>Repair the item at the workbench (its Spanish noun or the item's key; I07).</summary>
+    public static VoxelStep Repair(string item) => new(VoxelStepKind.Repair, Item: item);
+
     /// <summary>A step that moves items by hand (I02): <paramref name="action"/> at a slot of a container (<see cref="ContainerIds"/>); the container and slot are ignored by sort and return.</summary>
     public static VoxelStep SlotMove(MoveAction action, int container, int slot) => new(VoxelStepKind.SlotMove, X: container, Y: slot, Slot: (int)action);
 

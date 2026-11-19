@@ -9539,6 +9539,12 @@
       "matches": []
     },
     {
+      "key": "c48cb2401e55fb71c6ee110f5cedda87e0f30cd4542b8326d6a130aec42d0691",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito arreglar la herramienta.",
+      "matches": []
+    },
+    {
       "key": "c4dbefb425d5b72813240e5563f4c6daabc55d185e0209def6307e54b53ec06a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fui al río ayer",

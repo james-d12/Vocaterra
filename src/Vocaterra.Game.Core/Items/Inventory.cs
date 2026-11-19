@@ -184,7 +184,7 @@ public sealed class Inventory
 
             var take = Math.Min(left, _slots[i].Count);
             left -= take;
-            SetSlot(i, new ItemStack(item, _slots[i].Count - take));
+            SetSlot(i, _slots[i].WithCount(_slots[i].Count - take));
         }
 
         return true;
@@ -204,7 +204,7 @@ public sealed class Inventory
             return false;
         }
 
-        SetSlot(slot, new ItemStack(stack.Item, stack.Count - count));
+        SetSlot(slot, stack.WithCount(stack.Count - count));
         return true;
     }
 
@@ -238,7 +238,7 @@ public sealed class Inventory
             for (var i = 0; i < _active && left > 0; i++)
             {
                 var current = working is null ? _slots[i] : working[i];
-                var matches = pass == 0 ? !current.IsEmpty && current.Item == item : current.IsEmpty;
+                var matches = pass == 0 ? !current.IsEmpty && current.Item == item && current.Wear == 0 : current.IsEmpty; // new items only join unworn stacks (I07)
                 if (!matches)
                 {
                     continue;

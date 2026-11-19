@@ -83,16 +83,16 @@ public sealed class InventoryOps
         }
 
         var limit = _items.Get(held.Item).MaxStack;
-        if (there.Item == held.Item && there.Count < limit)
+        if (there.CanMergeWith(held) && there.Count < limit)
         {
             var moved = Math.Min(limit - there.Count, held.Count);
-            var merged = tx.Put(c, slot, new ItemStack(there.Item, there.Count + moved));
+            var merged = tx.Put(c, slot, there.WithCount(there.Count + moved));
             if (!merged.IsDone)
             {
                 return merged;
             }
 
-            _held.Put(0, held.Count == moved ? ItemStack.Empty : new ItemStack(held.Item, held.Count - moved));
+            _held.Put(0, held.WithCount(held.Count - moved));
             return MoveResult.Done;
         }
 
@@ -127,7 +127,7 @@ public sealed class InventoryOps
 
         if (!there.IsEmpty)
         {
-            if (there.Item != held.Item)
+            if (!there.CanMergeWith(held))
             {
                 return MoveResult.Refused(MoveReason.DifferentItem);
             }
@@ -138,13 +138,13 @@ public sealed class InventoryOps
             }
         }
 
-        var put = tx.Put(c, slot, new ItemStack(held.Item, there.IsEmpty ? 1 : there.Count + 1));
+        var put = tx.Put(c, slot, held.WithCount(there.IsEmpty ? 1 : there.Count + 1));
         if (!put.IsDone)
         {
             return put;
         }
 
-        _held.Put(0, held.Count == 1 ? ItemStack.Empty : new ItemStack(held.Item, held.Count - 1));
+        _held.Put(0, held.WithCount(held.Count - 1));
         return MoveResult.Done;
     }
 
@@ -212,7 +212,7 @@ public sealed class InventoryOps
             return MoveResult.Refused(MoveReason.NoSuchContainer);
         }
 
-        var totals = new SortedDictionary<int, (ItemId Item, int Count)>();
+        var totals = new SortedDictionary<(int Order, int Wear), (ItemId Item, int Count)>();
         for (var i = Inventory.HotbarSize; i < bag.SlotCount; i++)
         {
             var stack = bag.Get(i);
@@ -221,17 +221,17 @@ public sealed class InventoryOps
                 continue;
             }
 
-            var key = _order.GetValueOrDefault(stack.Item, int.MaxValue - (int)stack.Item);
+            var key = (_order.GetValueOrDefault(stack.Item, int.MaxValue - (int)stack.Item), stack.Wear); // stacks of one wear merge; a worn item keeps its wear (I07)
             totals[key] = totals.TryGetValue(key, out var seen) ? (stack.Item, seen.Count + stack.Count) : (stack.Item, stack.Count);
         }
 
         var sorted = new List<ItemStack>();
-        foreach (var (item, count) in totals.Values)
+        foreach (var ((_, wear), (item, count)) in totals)
         {
             var limit = _items.Get(item).MaxStack;
             for (var left = count; left > 0; left -= Math.Min(left, limit))
             {
-                sorted.Add(new ItemStack(item, Math.Min(left, limit)));
+                sorted.Add(new ItemStack(item, Math.Min(left, limit), wear));
             }
         }
 
@@ -283,13 +283,13 @@ public sealed class InventoryOps
     private MoveResult PickUp(MoveTransaction tx, ISlotContainer c, int slot, ItemStack there, int take)
     {
         var left = there.Count - take;
-        var lifted = tx.Put(c, slot, left == 0 ? ItemStack.Empty : new ItemStack(there.Item, left));
+        var lifted = tx.Put(c, slot, there.WithCount(left));
         if (!lifted.IsDone)
         {
             return lifted;
         }
 
-        _held.Put(0, new ItemStack(there.Item, take));
+        _held.Put(0, there.WithCount(take));
         _held.SetOrigin(c.Id, slot);
         return MoveResult.Done;
     }
@@ -341,14 +341,14 @@ public sealed class InventoryOps
             for (var i = from; i < end && left > 0; i++)
             {
                 var there = container.Get(i);
-                if (pass == 0 ? there.IsEmpty || there.Item != stack.Item || there.Count >= limit : !there.IsEmpty)
+                if (pass == 0 ? !there.CanMergeWith(stack) || there.Count >= limit : !there.IsEmpty)
                 {
                     continue;
                 }
 
                 var have = pass == 0 ? there.Count : 0;
                 var add = Math.Min(left, limit - have);
-                var put = tx.Put(container, i, new ItemStack(stack.Item, have + add));
+                var put = tx.Put(container, i, stack.WithCount(have + add));
                 if (!put.IsDone)
                 {
                     if (pass == 1)
@@ -357,14 +357,14 @@ public sealed class InventoryOps
                     }
 
                     failure = put;
-                    return new ItemStack(stack.Item, left);
+                    return stack.WithCount(left);
                 }
 
                 left -= add;
             }
         }
 
-        return left == 0 ? ItemStack.Empty : new ItemStack(stack.Item, left);
+        return stack.WithCount(left);
     }
 
     private bool Locate(int container, int slot, out ISlotContainer found, out MoveResult failure)

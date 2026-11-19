@@ -36,8 +36,15 @@ internal sealed class MoveRig
         return this;
     }
 
+    /// <summary>Sets the wear of the stack in a bag slot (I07).</summary>
+    public MoveRig Worn(int slot, int wear)
+    {
+        Bag.SetSlot(slot, Bag.Slots[slot].WithWear(wear));
+        return this;
+    }
+
     public string Snapshot() =>
         string.Join(',', Bag.Slots.Select(Describe)) + "|" + string.Join(',', Sim.Equipment.Slots.Select(Describe)) + "|" + Describe(Sim.Trash.Stack) + "|" + Describe(Sim.Held.Stack) + $"|{Sim.Held.OriginContainer}.{Sim.Held.OriginSlot}";
 
-    private static string Describe(ItemStack s) => s.IsEmpty ? "-" : $"{(int)s.Item}x{s.Count}";
+    private static string Describe(ItemStack s) => s.IsEmpty ? "-" : $"{(int)s.Item}x{s.Count}{(s.Wear > 0 ? $"w{s.Wear}" : string.Empty)}";
 }

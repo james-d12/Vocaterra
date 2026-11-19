@@ -47,4 +47,31 @@ public static class CraftingRules
         inventory.Add(recipe.Output, recipe.OutputCount);
         return CraftResult.Done;
     }
+
+    /// <summary>
+    /// Whether a repair row can be done now (I07): something of its item has wear (<paramref name="hasWear"/>), the inventory holds the material and the station is in reach. Nothing is changed, and no output has to fit.
+    /// </summary>
+    /// <param name="recipe">The repair row.</param>
+    /// <param name="inventory">The inventory the material comes from.</param>
+    /// <param name="stationInReach">Whether the row's station is within reach.</param>
+    /// <param name="hasWear">Whether a stack of the item is worn (<c>ItemWear.NeedsRepair</c>).</param>
+    public static CraftResult CheckRepair(Recipe recipe, Inventory inventory, bool stationInReach, bool hasWear)
+    {
+        ArgumentNullException.ThrowIfNull(recipe);
+        ArgumentNullException.ThrowIfNull(inventory);
+        if (!hasWear)
+        {
+            return CraftResult.NothingToRepair;
+        }
+
+        foreach (var ingredient in recipe.Ingredients)
+        {
+            if (inventory.Count(ingredient.Item) < ingredient.Count)
+            {
+                return CraftResult.MissingIngredients;
+            }
+        }
+
+        return recipe.Station is not null && !stationInReach ? CraftResult.MissingStation : CraftResult.Done;
+    }
 }
