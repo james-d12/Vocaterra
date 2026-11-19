@@ -58,11 +58,12 @@ public sealed class InventoryLayer : IFrameLayer
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + layout.DividerY, textWidth, 1), new Color(255, 214, 64, 120));
 
         var hit = view.Mouse is { } pointer ? layout.Hit(pointer.X, pointer.Y, view.Items.SlotCount) : InventoryHit.None;
+        var labels = view.Items.Slots.Take(view.Items.SlotCount).Where(static s => !s.IsEmpty).Select(s => BagLabel(view, s)).ToList(); // the names shown now: a cut name keeps the letters that tell it from these (I10b)
         DrawDoll(spriteBatch, view, font, layout, hit);
         for (var slot = 0; slot < view.Items.SlotCount; slot++) // the active slots only: three to five rows of ten (I03b)
         {
             var cell = layout.Cell(slot);
-            DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact, layout.Tight, hit is { Kind: InventoryHitKind.Cell } over && over.Slot == slot);
+            DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact, layout.Tight, hit is { Kind: InventoryHitKind.Cell } over && over.Slot == slot, labels);
         }
 
         DrawSortButton(spriteBatch, view, layout.SortButton);
@@ -286,7 +287,9 @@ public sealed class InventoryLayer : IFrameLayer
         }
     }
 
-    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact, bool tight, bool hot)
+    private static string BagLabel(FrameView view, ItemStack stack) => view.Session.Nouns.LabelOf(stack.Item) ?? view.Session.Data.Items.Get(stack.Item).Name;
+
+    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact, bool tight, bool hot, IReadOnlyList<string> labels)
     {
         var pixel = view.Pixel;
         spriteBatch.Draw(pixel, box, stack.IsEmpty ? Empty : Filled);
@@ -300,11 +303,14 @@ public sealed class InventoryLayer : IFrameLayer
         var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + (tight ? 2 : compact ? 3 : 4), Icon, Icon);
         view.DrawIcon(spriteBatch, stack.Item, icon);
 
-        var label = view.Session.Nouns.LabelOf(stack.Item) ?? view.Session.Data.Items.Get(stack.Item).Name;
         var colour = Color.Lerp(Unseen, Known, (float)saturation);
-        label = DrawHelpers.Fit(font, label, box.Width - 2); // a narrow slot cuts a long name with an ellipsis (X08)
-        var labelWidth = DrawHelpers.Width(font, label);
-        DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + (tight ? 34 : compact ? 36 : 40)), colour);
+
+        // A narrow slot cuts a long name with an ellipsis (X08); the cut keeps the letters that tell it from the other names in the bag, in a smaller font when the room needs it (I10b, QA-2026-11-19-ui-4).
+        var (label, step) = BagLabelFitter.Fit(BagLabel(view, stack), labels, box.Width - 2, (text, s) => DrawHelpers.Width(view.Fonts.Get(FontProvider.NativeSize - (s * 2)), text));
+        var labelFont = view.Fonts.Get(FontProvider.NativeSize - (step * 2));
+        var labelWidth = DrawHelpers.Width(labelFont, label);
+        var labelTop = box.Top + (tight ? 34 : compact ? 36 : 40) + step; // a smaller font sits a pixel lower per step, so its baseline stays near the others'
+        DrawHelpers.Text(spriteBatch, labelFont, label, new Vector2(box.Center.X - (labelWidth / 2), labelTop), colour);
 
         if (CountBadge.Text(stack.Count, showOne: true) is { } count)
         {
