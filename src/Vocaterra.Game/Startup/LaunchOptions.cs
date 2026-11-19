@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
@@ -79,6 +80,8 @@ public sealed record LaunchOptions
         + "  --dusk                  hold the day clock at the dusk hour (21): the low orange sun, the warm light and lanterns that glow at full strength (S15, E02)\n"
         + "  --time <hour>           hold the day clock at an hour from 0 to 24 (fractions allowed: 7.5 is half past seven) so the sky, the fog and the light show it: 0 midnight, 5 dawn, 13 noon, 21 dusk (E02)\n"
         + "  --weather <id>          hold the weather at one of the loaded bundle's kinds (an id from game/weather.json; an unknown id is refused and the ids are listed) so the sky, the clouds, the fog and the light show it (E05)\n"
+        + "  --temperature <n>       hold the temperature where the player stands at n degrees Celsius (negative and one decimal allowed, -5 or 12.5; more decimals round to the tenth): the feeling is that plus the\n"
+        + "                          player's warmth, and the cold bands slow the walk, show the cold icon and say the line once (I06). F3 shows the temperature. Not saved\n"
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
@@ -107,6 +110,11 @@ public sealed record LaunchOptions
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
+        + "  --equip <item>          give the item and wear it in the first slot that takes it (repeatable; a test aid, I03a); an item that cannot be worn is reported and left in the bag\n"
+        + "  --move <action>[,<place>,<slot>]  send the command a click on the inventory screen sends (I02): left, right or shift at bag, equip or trash and a slot from 0 (the equipment's is its flat index in\n"
+        + "                          equipment.json order), or sort, or return (the held stack goes back); repeatable; a step: --move shift,bag,3 wears a wearable, --move sort\n"
+        + "  --wear <item>=<n>       set the wear of the item to n, clamped to its durability (the item is given first if none is carried or worn; repeatable; a test aid, I07): hacha=500 is a worn-out axe\n"
+        + "  --repair <item>         repair the item at the workbench with the station in reach and the material in the bag (I07; like --craft: needs --screenshot, the console says the result)\n"
         + "  --place-camp x,z,face   set up the camp with the camp kit in the bag (Y12; give one with --give equipo): the fire ring's middle goes on the ground column x,z and the camp faces\n"
         + "                          north, east, south or west as given; the kit's use on that ground: the console says the answer and a refusal's reason, nothing changes on a refusal\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
@@ -429,6 +437,9 @@ public sealed record LaunchOptions
 
     /// <summary>The hour <c>--time</c> holds the day clock at (E02), 0 to 24, or <see langword="null"/> when the clock runs (or <c>--dusk</c> holds it).</summary>
     public double? TimeHour { get; init; }
+
+    /// <summary>The temperature <c>--temperature</c> holds the place at (I06), in tenths of a degree Celsius, or <see langword="null"/> when it is worked out from the world. Not saved.</summary>
+    public int? TemperatureTenths { get; init; }
 
     /// <summary>The id of the weather kind <c>--weather</c> holds (E05), or <see langword="null"/> when the weather runs. Which ids exist is the bundle's: <see cref="CheckWeather"/> checks it once the data has loaded.</summary>
     public string? WeatherId { get; init; }
@@ -785,8 +796,8 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--eat" or "--give" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
-                or "--check" or "--pick" or "--time" or "--weather" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--wear" or "--repair" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
             {
@@ -820,6 +831,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { TimeHour = hour };
+                    break;
+                case "--temperature":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var degrees) || !double.IsFinite(degrees) || degrees is < -100 or > 100)
+                    {
+                        error = $"--temperature needs degrees Celsius from -100 to 100 (negative and one decimal allowed, -5 or 12.5), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { TemperatureTenths = TemperatureUnits.FromCelsius(degrees) };
                     break;
                 case "--weather":
                     if (string.IsNullOrWhiteSpace(value))
@@ -1599,6 +1619,24 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.PlaceCamp, Value: value.Trim()));
                     break;
+                case "--equip":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--equip needs an item, like camisa.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Equip, Value: value.Trim()));
+                    break;
+                case "--wear":
+                    if (!value.Contains('=', StringComparison.Ordinal) || value.IndexOf('=', StringComparison.Ordinal) == 0 || !int.TryParse(value.AsSpan(value.IndexOf('=', StringComparison.Ordinal) + 1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _))
+                    {
+                        error = "--wear needs an item and a wear, like hacha=400.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Wear, Value: value.Trim()));
+                    break;
                 case "--give":
                     if (value.Trim().Length == 0)
                     {
@@ -1635,6 +1673,16 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Act, Value: string.Join(',', actParts)));
                     break;
+                case "--move":
+                    if (!VoxelStep.TryParseMove(value, out var moveStep))
+                    {
+                        error = "--move needs an action and a place, like left,bag,12 or shift,bag,3, or sort, or return (left, right and shift take bag, equip or trash and a slot from 0).";
+                        return false;
+                    }
+
+                    steps.Add(moveStep); // I02: the same command a click on the inventory screen sends
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 case "--craft":
                     if (value.Trim().Length == 0)
                     {
@@ -1646,6 +1694,17 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--repair":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--repair needs an item, like hacha.";
+                        return false;
+                    }
+
+                    steps.Add(VoxelStep.Repair(value.Trim()));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 default:
                     break;
             }
@@ -1653,7 +1712,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --station, --station-say, --act, --proc-help, --eat, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --move, --station, --station-say, --act, --proc-help, --eat, --equip, --wear, --repair, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

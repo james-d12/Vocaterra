@@ -55,7 +55,7 @@ internal static class ProcedureRig
     /// <summary>A bag with what one run uses.</summary>
     public static Inventory Bag()
     {
-        var bag = new Inventory();
+        var bag = new Inventory(TestItems.Catalogue);
         _ = bag.Add(ItemId.Wood, 1);
         _ = bag.Add(ItemId.WaterBottle, 1);
         return bag;

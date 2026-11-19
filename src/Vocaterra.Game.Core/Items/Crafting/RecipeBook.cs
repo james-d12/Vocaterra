@@ -17,15 +17,17 @@ public sealed class RecipeBook
     public const string RelativePath = "game/recipes.json";
 
     private readonly Dictionary<string, int> _indexByOutput;
+    private readonly Dictionary<string, int> _repairByOutput;
 
     private RecipeBook(IReadOnlyList<RecipeEntry> entries)
     {
         Entries = entries;
         Rules = entries.Select(static e => e.Rule).ToList();
         _indexByOutput = [];
+        _repairByOutput = [];
         for (var i = 0; i < entries.Count; i++)
         {
-            _indexByOutput.Add(entries[i].Output.Lemma, i);
+            (entries[i].Rule.Repairs ? _repairByOutput : _indexByOutput).Add(entries[i].Output.Lemma, i);
         }
     }
 
@@ -65,6 +67,7 @@ public sealed class RecipeBook
 
         var entries = new List<RecipeEntry>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
+        var seenRepairs = new HashSet<string>(StringComparer.Ordinal);
         foreach (var element in root.GetProperty("recipes").EnumerateArray())
         {
             var outputLemma = element.GetProperty("output").GetString() ?? throw new InvalidDataException("A recipe has no output.");
@@ -73,13 +76,14 @@ public sealed class RecipeBook
             if (element.TryGetProperty("makes", out var makes) && makes.ValueKind == JsonValueKind.String)
             {
                 // A noun that covers several items (manzana: the apple and the roast apple) says which one the recipe makes, by the item's key.
-                var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(ItemDefinition.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
+                var made = output.Items.Cast<ItemId?>().FirstOrDefault(i => string.Equals(nouns.Items.Get(i!.Value).Name, makes.GetString(), StringComparison.Ordinal));
                 outputItem = made ?? throw new InvalidDataException($"{RelativePath}: '{outputLemma}' does not name the item '{makes.GetString()}' that its recipe makes.");
             }
 
-            if (!seen.Add(outputLemma))
+            var repairs = element.TryGetProperty("repairs", out var repairsValue) && repairsValue.ValueKind == JsonValueKind.True;
+            if (!(repairs ? seenRepairs : seen).Add(outputLemma))
             {
-                throw new InvalidDataException($"{RelativePath}: '{outputLemma}' has more than one recipe.");
+                throw new InvalidDataException($"{RelativePath}: '{outputLemma}' has more than one {(repairs ? "repair row" : "recipe")}.");
             }
 
             var count = PositiveCount(element.GetProperty("count"), outputLemma);
@@ -107,14 +111,14 @@ public sealed class RecipeBook
                     : throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' names no block.");
             }
 
-            var rule = new Recipe(outputItem, count, ingredients.Select(static i => new Ingredient(i.Item, i.Count)).ToList(), stationBlock);
+            var rule = new Recipe(outputItem, count, ingredients.Select(static i => new Ingredient(i.Item, i.Count)).ToList(), stationBlock, repairs);
             entries.Add(new RecipeEntry(output, count, ingredients, station, rule));
         }
 
         return new RecipeBook(entries);
     }
 
-    /// <summary>The recipe that makes the noun, or <see langword="null"/> when the noun has none (the guide then says it cannot be made).</summary>
+    /// <summary>The recipe that makes the noun, or <see langword="null"/> when the noun has none (the guide then says it cannot be made). A repair row (I07) is never a way to make something.</summary>
     public RecipeEntry? ForOutput(string lemma)
     {
         ArgumentNullException.ThrowIfNull(lemma);
@@ -126,6 +130,14 @@ public sealed class RecipeBook
     {
         ArgumentNullException.ThrowIfNull(lemma);
         return _indexByOutput.TryGetValue(lemma, out var index) ? index : -1;
+    }
+
+    /// <summary>The index of the row that repairs the noun's item (I07; the argument of a craft command), or -1 when none does.</summary>
+    /// <param name="lemma">The noun.</param>
+    public int RepairIndexOf(string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        return _repairByOutput.TryGetValue(lemma, out var index) ? index : -1;
     }
 
     private static int PositiveCount(JsonElement value, string recipe)

@@ -29,6 +29,9 @@ public enum VoxelStepKind
     /// <summary>Craft the recipe that makes an item, with the station in reach (<c>--craft madera</c>, <c>--craft antorcha</c>).</summary>
     Craft,
 
+    /// <summary>Repair an item at the workbench (<c>--repair hacha</c>, I07): the item's repair row, with the station in reach and the material in the bag; the console says whether it was repaired or why not.</summary>
+    Repair,
+
     /// <summary>Put a water source in a cell, which then flows (<c>--pour x,y,z</c>, a debug step for scripted runs and screenshots, water-plan H06).</summary>
     Pour,
 
@@ -43,4 +46,7 @@ public enum VoxelStepKind
 
     /// <summary>Let a held weather run on (<c>--set-weather run</c>, E03).</summary>
     RunWeather,
+
+    /// <summary>Move items by hand over a container and slot (<c>--move left,bag,12</c>, <c>--move shift,bag,3</c>, <c>--move sort</c>, <c>--move return</c>, I02): one <see cref="Simulation.VoxelCommandKind.SlotMove"/> command, the same a click sends.</summary>
+    SlotMove,
 }

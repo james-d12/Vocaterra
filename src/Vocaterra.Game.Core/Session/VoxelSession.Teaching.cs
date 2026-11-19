@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Activities;
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 
@@ -85,7 +84,7 @@ public sealed partial class VoxelSession
             _ = Simulation.GrantItems(item, count);
             LearnItem(item);
             _eventAmount = count;
-            LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+            LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name}, {how}");
             _eventAmount = 1;
         }
 

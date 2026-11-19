@@ -52,8 +52,8 @@ public sealed class BreadPilotTests
         var pan = Data.Procedures.Find("pan")!;
         var phrases = new PhraseProgress(Data.Phrases, 1, Rows);
         var runner = new ProcedureRunner(Data.Procedures, Data.Stations, TestGame.Nouns, phrases, CreditRules.Default, 7);
-        var bag = new Inventory();
-        _ = bag.Add(ItemId.Flour, 1);
+        var bag = new Inventory(TestItems.Catalogue);
+        _ = bag.Add(TestItems.Flour, 1);
         _ = bag.Add(ItemId.WaterBottle, 1);
         _ = bag.Add(ItemId.Wood, 1);
 
@@ -68,7 +68,7 @@ public sealed class BreadPilotTests
         }
 
         Assert.Equal((ProcedureState.Done, 3), (last!.State, last.Made)); // two loaves and the bonus: six steps right the first time
-        Assert.Equal((3, 0, 0, 1, 0), (bag.Count(ItemId.Bread), bag.Count(ItemId.Flour), bag.Count(ItemId.Wood), bag.Count(ItemId.Bottle), bag.Count(ItemId.WaterBottle)));
+        Assert.Equal((3, 0, 0, 1, 0), (bag.Count(TestItems.Bread), bag.Count(TestItems.Flour), bag.Count(ItemId.Wood), bag.Count(ItemId.Bottle), bag.Count(ItemId.WaterBottle)));
         Assert.Contains(runner.DrainEvents(), static e => e.Name == WorldEvents.ProcedureDone && e.Detail == "pan");
         Assert.All(pan.Rows.Take(6), row => Assert.Equal(2, (int)phrases.LevelOf(row) + 1)); // every row moves up a rung, with no comprehension credit yet
     }
@@ -78,15 +78,15 @@ public sealed class BreadPilotTests
     {
         var phrases = new PhraseProgress(Data.Phrases, 1, Rows);
         var runner = new ProcedureRunner(Data.Procedures, Data.Stations, TestGame.Nouns, phrases, CreditRules.Default, 7);
-        var bag = new Inventory();
-        _ = bag.Add(ItemId.Flour, 1);
+        var bag = new Inventory(TestItems.Catalogue);
+        _ = bag.Add(TestItems.Flour, 1);
         _ = bag.Add(ItemId.WaterBottle, 1);
         _ = bag.Add(ItemId.Wood, 1);
         _ = runner.Start("pan", "horno", true);
 
         Assert.Equal(ActOutcome.WrongThing, runner.Act("harina", "horno", "poner", bag, 1_000_000).Outcome); // the flour on the oven
         Assert.Equal(ActOutcome.OutOfOrder, runner.Act("cuchara", "bol", "mezclar", bag, 1_000_000).Outcome); // a later step's act: Luz says «Todavía no.»
-        Assert.Equal((1, 1, 1), (bag.Count(ItemId.Flour), bag.Count(ItemId.WaterBottle), bag.Count(ItemId.Wood))); // nothing used up
+        Assert.Equal((1, 1, 1), (bag.Count(TestItems.Flour), bag.Count(ItemId.WaterBottle), bag.Count(ItemId.Wood))); // nothing used up
     }
 
     // ---- The stall
@@ -117,11 +117,11 @@ public sealed class BreadPilotTests
 
         var turn = session.Say("quiero harina");
 
-        Assert.Equal((1, 2, 0), (Held(session, ItemId.Flour), Held(session, ItemId.Coin), Held(session, ItemId.Bottle)));
-        Assert.Contains("Aquí tienes la harina.", turn.Replies.Concat(turn.FollowUp ?? []));
+        Assert.Equal((1, 2, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin), Held(session, ItemId.Bottle)));
+        Assert.Contains("Aquí tienes. ¡Gracias!", turn.Replies.Concat(turn.FollowUp ?? []));
         Assert.DoesNotContain(turn.Replies.Concat(turn.FollowUp ?? []), static l => l.StartsWith("No tengo", StringComparison.Ordinal));
         _ = session.Say("quiero dos harinas");
-        Assert.Equal((3, 0), (Held(session, ItemId.Flour), Held(session, ItemId.Coin))); // one coin each
+        Assert.Equal((3, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin))); // one coin each
     }
 
     [Fact]
@@ -131,10 +131,10 @@ public sealed class BreadPilotTests
 
         var turn = session.Say("quiero harina");
 
-        Assert.Equal(0, Held(session, ItemId.Flour));
+        Assert.Equal(0, Held(session, TestItems.Flour));
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
-        Assert.Contains("La harina cuesta una moneda.", lines);
-        Assert.DoesNotContain("Aquí tienes la harina.", lines); // the success line is not said for a sale the world cannot make
+        Assert.Contains("Necesitas más monedas.", lines);
+        Assert.DoesNotContain("Aquí tienes. ¡Gracias!", lines); // the success line is not said for a sale the world cannot make
     }
 
     [Fact]
@@ -142,20 +142,20 @@ public sealed class BreadPilotTests
     {
         var session = At("shopkeeper", (ItemId.Coin, 3));
         var bag = session.Simulation.Inventory;
-        foreach (var item in ItemDefinition.All.Where(static d => d.Id is not (ItemId.Coin or ItemId.Flour or ItemId.Bread)))
+        foreach (var item in TestItems.Catalogue.All.Where(static d => d.Id is not (ItemId.Coin or TestItems.Flour or TestItems.Bread)))
         {
             while (bag.Add(item.Id, item.MaxStack) == 0)
             {
             }
         }
 
-        Assert.False(bag.CanAdd(ItemId.Flour, 1));
+        Assert.False(bag.CanAdd(TestItems.Flour, 1));
         var turn = session.Say("quiero harina");
 
-        Assert.Equal((0, 3), (Held(session, ItemId.Flour), Held(session, ItemId.Coin)));
+        Assert.Equal((0, 3), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
         Assert.Contains("Tu bolsa está llena.", lines);
-        Assert.DoesNotContain("Aquí tienes la harina.", lines);
+        Assert.DoesNotContain("Aquí tienes. ¡Gracias!", lines);
     }
 
     [Fact]
@@ -165,10 +165,10 @@ public sealed class BreadPilotTests
 
         var turn = session.Say("quiero tres harinas");
 
-        Assert.Equal((0, 2), (Held(session, ItemId.Flour), Held(session, ItemId.Coin)));
-        Assert.Contains("La harina cuesta una moneda.", turn.Replies.Concat(turn.FollowUp ?? []));
+        Assert.Equal((0, 2), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
+        Assert.Contains("Necesitas más monedas.", turn.Replies.Concat(turn.FollowUp ?? []));
         _ = session.Say("quiero dos harinas");
-        Assert.Equal((2, 0), (Held(session, ItemId.Flour), Held(session, ItemId.Coin)));
+        Assert.Equal((2, 0), (Held(session, TestItems.Flour), Held(session, ItemId.Coin)));
     }
 
     [Theory]
@@ -182,8 +182,8 @@ public sealed class BreadPilotTests
         var turn = session.Say(line);
 
         var lines = turn.Replies.Concat(turn.FollowUp ?? []).ToList();
-        Assert.Contains("No tengo eso. Tengo agua, pan y harina.", lines);
-        Assert.Equal((3, 0, 0, 0), (Held(session, ItemId.Coin), Held(session, ItemId.Flour), Held(session, ItemId.Bread), Held(session, ItemId.Bottle)));
+        Assert.Contains("No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", lines);
+        Assert.Equal((3, 0, 0, 0), (Held(session, ItemId.Coin), Held(session, TestItems.Flour), Held(session, TestItems.Bread), Held(session, ItemId.Bottle)));
     }
 
     [Fact]
@@ -195,17 +195,17 @@ public sealed class BreadPilotTests
 
         var bread = At("shopkeeper");
         _ = bread.Say("quiero pan");
-        Assert.Equal((1, 0, 0), (Held(bread, ItemId.Bread), Held(bread, ItemId.Coin), Held(bread, ItemId.Bottle)));
+        Assert.Equal((1, 0, 0), (Held(bread, TestItems.Bread), Held(bread, ItemId.Coin), Held(bread, ItemId.Bottle)));
     }
 
     [Fact]
     public void TheStallBuysBreadForOneCoinEachAndNothingElse()
     {
-        var session = At("shopkeeper", (ItemId.Bread, 2));
+        var session = At("shopkeeper", (TestItems.Bread, 2));
 
         var turn = session.Say("vendo pan");
 
-        Assert.Equal((0, 2), (Held(session, ItemId.Bread), Held(session, ItemId.Coin)));
+        Assert.Equal((0, 2), (Held(session, TestItems.Bread), Held(session, ItemId.Coin)));
         Assert.Contains("¡Gracias! Aquí tienes.", turn.Replies.Concat(turn.FollowUp ?? []));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.ItemTaken && e.Npc == "shopkeeper" && e.Detail == "pan, request");
 
@@ -225,7 +225,7 @@ public sealed class BreadPilotTests
         _ = session.Say("quiero agua, por favor");
         Assert.Equal(1, Held(session, ItemId.Bottle));
         var hay = At("shopkeeper").Say("¿hay pan?");
-        Assert.Contains("Hay agua, pan y harina.", hay.Replies.Concat(hay.FollowUp ?? []));
+        Assert.Contains("Hay agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares.", hay.Replies.Concat(hay.FollowUp ?? []));
     }
 
     // ---- Luz's offer and the class
@@ -301,7 +301,7 @@ public sealed class BreadPilotTests
         // The bake is done: she asks what the learner did.
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ProcedureDone, "baker", "pan"));
         Assert.Equal("k3-back", session.Lessons.Current!.Id);
-        _ = session.Simulation.GrantItems(ItemId.Bread, 3);
+        _ = session.Simulation.GrantItems(TestItems.Bread, 3);
         Stage.TeleportToNpc(session, "baker");
         _ = session.OpenTalkForClass("baker");
         Assert.Equal("k4-report", session.Lessons.Current!.Id);
@@ -316,11 +316,11 @@ public sealed class BreadPilotTests
         Assert.Equal("k5-flour", session.Lessons.Current!.Id);
         var flour = LessonDriver.DoStep(session);
         Assert.Equal("Quiero harina", flour.Sent);
-        Assert.Equal(1, Held(session, ItemId.Flour));
+        Assert.Equal(1, Held(session, TestItems.Flour));
         Assert.Equal("k5-sell", session.Lessons.Current!.Id);
         var sold = LessonDriver.DoStep(session);
         Assert.Equal("Vendo pan", sold.Sent);
-        Assert.Equal(0, Held(session, ItemId.Bread));
+        Assert.Equal(0, Held(session, TestItems.Bread));
         Assert.Equal(5, Held(session, ItemId.Coin)); // the five loaves (two from the skip, three baked) at a coin each
 
         while (session.Lessons.Engaged)

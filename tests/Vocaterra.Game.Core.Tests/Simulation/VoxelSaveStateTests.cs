@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -80,14 +81,14 @@ public sealed class VoxelSaveStateTests
     [Fact]
     public void TheSimulationRestoresToTheSameDigestAndContinuesTheSameWay()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         VoxelTestSupport.Run(sim, 90, VoxelCommand.Move(1, 0), VoxelCommand.Look(Angles.FromDegrees(120), 0));
         VoxelTestSupport.Run(sim, 1, VoxelCommand.SelectSlot(3));
         var state = sim.CaptureState();
 
         var restoredScene = Route();
         VoxelGridDiff.Apply(restoredScene.Grid, VoxelGridDiff.Capture(sim.Grid));
-        var restored = VoxelSimulation.Create(restoredScene);
+        var restored = VoxelSimulation.Create(restoredScene, TestItems.Catalogue);
         restored.Restore(state);
 
         Assert.Equal(sim.ComputeStateDigest(), restored.ComputeStateDigest());
@@ -102,7 +103,7 @@ public sealed class VoxelSaveStateTests
     [Fact]
     public void ASimulationStateThatIsNotPossibleIsRefused()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var state = sim.CaptureState();
 
         Assert.Throws<ArgumentOutOfRangeException>(() => sim.Restore(state with { SelectedSlot = Inventory.HotbarSize }));
@@ -113,10 +114,10 @@ public sealed class VoxelSaveStateTests
     [Fact]
     public void TheAirIsSavedWithTheStateAndTheRunContinuesTheSameWay()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         sim.Breath.Restore(400);
         var state = sim.CaptureState();
-        var restored = VoxelSimulation.Create(Route());
+        var restored = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         restored.Restore(state);
 
         Assert.Equal(400, state.Air);
@@ -132,11 +133,11 @@ public sealed class VoxelSaveStateTests
     [Fact]
     public void AStateWithoutAirIsAFullBreathAndTheDigestOfADryRunIsUnchangedByIt()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var state = sim.CaptureState();
 
         Assert.Equal(Vocaterra.Game.Core.Water.Breath.MaxAir, state.Air);
         sim.Breath.Restore(10);
-        Assert.NotEqual(VoxelSimulation.Create(Route()).ComputeStateDigest(), sim.ComputeStateDigest());
+        Assert.NotEqual(VoxelSimulation.Create(Route(), TestItems.Catalogue).ComputeStateDigest(), sim.ComputeStateDigest());
     }
 }

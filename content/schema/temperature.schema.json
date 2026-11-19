@@ -1,0 +1,340 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/temperature.json",
+  "description": "The temperature where the player stands and how it feels (I06, I06c): the terms that make up the place's temperature (each an id and its own parameters; the code's TemperatureTermRegistry builds them and refuses an unknown id), what they share (the ground below the surface, the biomes' adjustments), the lag of what is felt, and the bands the feeling (the temperature plus the player's warmth) is read against. Every temperature is whole tenths of a degree Celsius. Loaded by TemperatureData (Vocaterra.Game.Core); GameDataValidator checks the values (terms known and their parameters in range, the ground and lag within limits, biome ids that are rows of biomes.json, bands from warmest to coldest with falling bounds, walk factors above 0 and at most 1, unique ids, chills that do not fall and heats that do not rise as the bands get colder, a line only on a chilled or heated band, and every line a row of words.json's hudLines and of the locale).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "terms",
+    "ground",
+    "biomes",
+    "lag",
+    "bands"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        2
+      ]
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Who or what wrote the file (hand-authored)."
+    },
+    "about": {
+      "type": "string"
+    },
+    "terms": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The terms whose sum is the place's temperature, each a row with its id and its own parameters. The ids the game knows: climate, day, weather, shelter, fire. A new system adds a class and a registry line in code and a row here.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$",
+            "description": "The term's id, unique in the list."
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "id": {
+                "const": "climate"
+              },
+              "curve": {
+                "type": "array",
+                "minItems": 2,
+                "description": "Points of the map from the generator's climate temperature (thousandths of the field's range, rising) to tenths of a degree: straight between them, flat beyond the first and the last.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "climate",
+                    "tenths"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "climate": {
+                      "type": "integer",
+                      "minimum": -4000,
+                      "maximum": 4000
+                    },
+                    "tenths": {
+                      "type": "integer",
+                      "minimum": -4000,
+                      "maximum": 4000
+                    }
+                  }
+                }
+              },
+              "noWorldTenths": {
+                "type": "integer",
+                "minimum": -2000,
+                "maximum": 2000,
+                "description": "The baseline of a place with no generator (a test scene)."
+              }
+            },
+            "required": [
+              "id",
+              "curve",
+              "noWorldTenths"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "id": {
+                "const": "day"
+              },
+              "amplitudeTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000,
+                "description": "The day's swing: plus this in full daylight, minus it in the dark."
+              }
+            },
+            "required": [
+              "id",
+              "amplitudeTenths"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "id": {
+                "const": "weather"
+              },
+              "cloudTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              },
+              "precipitationTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              },
+              "windTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              },
+              "snowPrecipitationTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000,
+                "description": "The further cooling of precipitation at full intensity where it falls as snow (the climate at the feet below the generator's snow line)."
+              }
+            },
+            "required": [
+              "id",
+              "cloudTenths",
+              "precipitationTenths",
+              "windTenths",
+              "snowPrecipitationTenths"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "id": {
+                "const": "shelter"
+              },
+              "bonusTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              },
+              "onlyInPrecipitation": {
+                "type": "boolean",
+                "description": "Whether the cover warms only while something falls."
+              }
+            },
+            "required": [
+              "id",
+              "bonusTenths",
+              "onlyInPrecipitation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "id": {
+                "const": "fire"
+              },
+              "radiusBlocks": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64,
+                "description": "How far from the ring's middle, in blocks across."
+              },
+              "bonusTenths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2000
+              }
+            },
+            "required": [
+              "id",
+              "radiusBlocks",
+              "bonusTenths"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "id": {
+                "not": {
+                  "enum": [
+                    "climate",
+                    "day",
+                    "weather",
+                    "shelter",
+                    "fire"
+                  ]
+                }
+              }
+            },
+            "description": "A term a later system adds: its own parameters, read by its factory in code."
+          }
+        ]
+      }
+    },
+    "ground": {
+      "type": "object",
+      "required": [
+        "tenths",
+        "shallowBlocks",
+        "fadeBlocks"
+      ],
+      "additionalProperties": false,
+      "description": "The underground: below the natural surface the place eases to a steady temperature, and the day, the weather and the shelter fade out.",
+      "properties": {
+        "tenths": {
+          "type": "integer",
+          "minimum": -2000,
+          "maximum": 2000,
+          "description": "The steady ground temperature."
+        },
+        "shallowBlocks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64,
+          "description": "How far below the natural surface still counts as the surface (a ditch)."
+        },
+        "fadeBlocks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256,
+          "description": "Over how many blocks below that the sky fades out and the ground takes over."
+        }
+      }
+    },
+    "biomes": {
+      "type": "object",
+      "description": "Adjustments by biome id (a row of biomes.json). A biome with no row has none.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "offsetTenths": {
+            "type": "integer",
+            "minimum": -2000,
+            "maximum": 2000,
+            "description": "Added to the climate baseline."
+          },
+          "daySwingPermille": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4000,
+            "description": "The share of the day's swing that reaches the player there, in thousandths (default 1000)."
+          },
+          "weatherPermille": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4000,
+            "description": "The share of the weather's cooling, in thousandths (default 1000)."
+          }
+        }
+      }
+    },
+    "lag": {
+      "type": "object",
+      "required": [
+        "secondsToSettle"
+      ],
+      "additionalProperties": false,
+      "description": "How slowly what the player feels follows the place's temperature.",
+      "properties": {
+        "secondsToSettle": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600,
+          "description": "The time constant in seconds of play; 0 for no lag."
+        }
+      }
+    },
+    "bands": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The bands of how the temperature feels, from the warmest to the coldest, each from a lower bound below the one before. The coldest takes every feeling below its bound too.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "from",
+          "walkFactor",
+          "chill"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "description": "Lowercase kebab-case, unique."
+          },
+          "from": {
+            "type": "integer",
+            "minimum": -2000,
+            "maximum": 2000,
+            "description": "The lowest feeling in the band, in tenths of a degree."
+          },
+          "walkFactor": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1,
+            "description": "What the band multiplies the walking speed by (1 leaves it alone)."
+          },
+          "chill": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0 for no cold; above 0 the cold icon shows (that many notches). Never falls as the bands get colder."
+          },
+          "heat": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0 for no heat (the default); above 0 the band is hot. Never rises as the bands get colder; a band has a chill or a heat, not both."
+          },
+          "thirstFactor": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 8,
+            "description": "What the band multiplies the thirst's fall by (default 1)."
+          },
+          "line": {
+            "type": "string",
+            "description": "The HUD line key said on first entering a chilled or heated band: a key of words.json's hudLines, with its English in the locale. Only on a band with a chill or a heat."
+          }
+        }
+      }
+    }
+  }
+}

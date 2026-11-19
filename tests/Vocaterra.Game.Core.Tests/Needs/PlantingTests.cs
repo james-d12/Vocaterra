@@ -250,11 +250,11 @@ public sealed class PlantingTests
         var grass = new BlockRayHit(new BlockPos(0, 0, 0), BlockId.Grass, BlockFace.Up, new BlockPos(0, 1, 0), 10);
         var stone = grass with { Id = BlockId.Stone };
 
-        Assert.True(PlantingUse.Applies(click, true, berry, grass, needs));
-        Assert.False(PlantingUse.Applies(click, true, berry, null, needs)); // in the air: eaten
-        Assert.False(PlantingUse.Applies(click, true, berry, stone, needs)); // not on the ground: eaten
-        Assert.False(PlantingUse.Applies(click, true, new ItemStack(ItemId.Bread, 1), grass, needs));
-        Assert.True(FoodItemUse.Applies(click, true, berry, needs)); // eating is unchanged
+        Assert.True(PlantingUse.Applies(click, true, berry, grass, needs, TestItems.Catalogue));
+        Assert.False(PlantingUse.Applies(click, true, berry, null, needs, TestItems.Catalogue)); // in the air: eaten
+        Assert.False(PlantingUse.Applies(click, true, berry, stone, needs, TestItems.Catalogue)); // not on the ground: eaten
+        Assert.False(PlantingUse.Applies(click, true, new ItemStack(TestItems.Bread, 1), grass, needs, TestItems.Catalogue));
+        Assert.True(FoodItemUse.Applies(click, true, berry, needs, TestItems.Catalogue)); // eating is unchanged
     }
 
     [Fact]

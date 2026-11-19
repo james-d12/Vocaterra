@@ -2,6 +2,8 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Containers;
+using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Land;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
@@ -37,6 +39,7 @@ public sealed partial class VoxelSession : GuideSession
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
     private readonly List<string> _hints = [];
+    private MoveNotice? _moveNotice;
     private readonly List<(Objective Objective, ObjectiveStep Step)> _pendingSteps = [];
     private IReadOnlyList<ObjectiveStep> _completed = [];
     private int _eventAmount = 1;
@@ -67,10 +70,15 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Day, data.Weather, worldSeed, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest));
+        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed, data.Equipment, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest));
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back
+        }
+
+        foreach (var item in data.Objectives.Wears)
+        {
+            _ = Simulation.WearFromStart(item, out _); // the learner starts in a shirt, trousers and shoes (I08a; game/session.json "wears"); a loaded save puts its own worn items back
         }
 
         Simulation.SetRecipes(Recipes.Rules);
@@ -414,14 +422,20 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.ItemPickedUp:
                     LearnItem((ItemId)e.Detail);
                     _eventAmount = e.Amount; // the objectives count a pickup's items (each gatherable block drops one today)
-                    LogWorld(WorldEvents.ItemPickedUp, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    LogWorld(WorldEvents.ItemPickedUp, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     _eventAmount = 1;
                     break;
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);
                     _eventAmount = e.Amount; // W01: a craft is a world event, counted as a pickup is (the output's count)
-                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
+                    LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     _eventAmount = 1;
+                    break;
+                case SimulationEventKind.ToolWorn:
+                    NoteToolWorn((ItemId)e.Detail); // I07: tool_worn, once, and the line
+                    break;
+                case SimulationEventKind.ItemRepaired:
+                    LogWorld(WorldEvents.ItemRepaired, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     break;
                 case SimulationEventKind.BlockRemoved:
                     NoteGathered((BlockId)e.Detail, e.X, e.Y, e.Z); // N06: a bush picked by hand grows back after the next night
@@ -470,6 +484,12 @@ public sealed partial class VoxelSession : GuideSession
                 case SimulationEventKind.TakeBackRefused:
                     _hints.Add(Locale.Ui(LandTakeBackHint));
                     break;
+                case SimulationEventKind.MoveRefused:
+                    NoteRefusal(MoveRefusalText.KeyFor((MoveReason)e.Detail, (EquipResult)e.Amount, e.X), e.Tick);
+                    break;
+                case SimulationEventKind.EquipRefused:
+                    NoteRefusal(MoveRefusalText.KeyFor((EquipResult)e.Detail), e.Tick);
+                    break;
                 case SimulationEventKind.CampPackRequested:
                     _ = PackCamp(); // Y12: the gather button held on a block of the camp
                     break;
@@ -509,6 +529,17 @@ public sealed partial class VoxelSession : GuideSession
         RecordObjectives(new WorldEvent(Simulation.Tick, StoredTime.UnixSeconds, worldEvent, null, detail));
         _completed = FlushObjectives();
         return _completed;
+    }
+
+    /// <summary>The last refusal of a move by hand or of an equip (I04): what the inventory panel says for a few seconds (<see cref="MoveNotice.IsShown"/>), or <see langword="null"/> when none has happened.</summary>
+    public MoveNotice? MoveNotice => _moveNotice;
+
+    private void NoteRefusal(string? key, long tick)
+    {
+        if (key is not null)
+        {
+            _moveNotice = new MoveNotice(key, tick);
+        }
     }
 
     /// <summary>The short hints waiting to be shown, in order, left where they are (the console's line for a dev aid reads them; <see cref="TakeHints"/> clears them).</summary>
@@ -784,7 +815,7 @@ public sealed partial class VoxelSession : GuideSession
         _ = Simulation.GrantItems(item, count);
         LearnItem(item);
         _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
-        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name}, {how}");
         _eventAmount = 1;
         return true;
     }
@@ -798,7 +829,7 @@ public sealed partial class VoxelSession : GuideSession
         }
 
         _eventAmount = count; // an objective counting what was taken counts every item
-        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        LogWorld(WorldEvents.ItemTaken, npc, $"{Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name}, {how}");
         _eventAmount = 1;
     }
 

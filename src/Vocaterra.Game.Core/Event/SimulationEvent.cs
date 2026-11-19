@@ -62,6 +62,27 @@ public enum SimulationEventKind
 
     /// <summary>(Land, Y12) The player held the gather button on a block of their camp for the whole time it takes to pack it: the position is the block. The session packs the camp up.</summary>
     CampPackRequested = 17,
+
+    /// <summary>(Equipment, I03a) An item was put on: <see cref="SimulationEvent.Detail"/> is the item id, <see cref="SimulationEvent.Amount"/> the flat index of the slot (<c>EquipmentData.FlatIndex</c>).</summary>
+    ItemEquipped = 18,
+
+    /// <summary>(Equipment, I03a) An item was taken off: <see cref="SimulationEvent.Detail"/> is the item id, <see cref="SimulationEvent.Amount"/> the flat index of the slot it left.</summary>
+    ItemUnequipped = 19,
+
+    /// <summary>(Equipment, I03a) An equip or unequip was refused and changed nothing: <see cref="SimulationEvent.Detail"/> is the reason (a cast <c>EquipResult</c>), <see cref="SimulationEvent.Amount"/> the flat index of the slot, or -1 when the slot does not exist.</summary>
+    EquipRefused = 20,
+
+    /// <summary>(Interaction, I02) A slot move by hand was refused and changed nothing: <see cref="SimulationEvent.Detail"/> is the reason (a cast <c>MoveReason</c>), <see cref="SimulationEvent.Amount"/> the equipment's reason when a worn slot refused (a cast <c>EquipResult</c>, 0 otherwise), X the container's id, Y the slot and Z the action (a cast <c>MoveAction</c>).</summary>
+    MoveRefused = 21,
+
+    /// <summary>(Durability, I07) A tool reached its durability and is worn out: <see cref="SimulationEvent.Detail"/> is the item id. Raised once, the tick it wears out; it still works at bare hands' speed and is never lost.</summary>
+    ToolWorn = 22,
+
+    /// <summary>(Durability, I07) A piece of gear (anything that is not a tool) reached its durability: <see cref="SimulationEvent.Detail"/> is the item id. Raised once; it gives no stats until it is repaired.</summary>
+    GearWornOut = 23,
+
+    /// <summary>(Durability, I07) An item was repaired at the workbench and has no wear again: <see cref="SimulationEvent.Detail"/> is the item id.</summary>
+    ItemRepaired = 24,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

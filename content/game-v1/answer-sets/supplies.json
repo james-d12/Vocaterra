@@ -26,6 +26,102 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "cloth",
+      "canonical": "quiero tela por favor",
+      "aliases": ["quiero tela", "necesito tela", "tela por favor", "me da tela", "me das tela"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "leather",
+      "canonical": "quiero cuero por favor",
+      "aliases": ["quiero cuero", "necesito cuero", "cuero por favor", "me da cuero", "me das cuero"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "hat",
+      "canonical": "quiero un sombrero por favor",
+      "aliases": ["quiero un sombrero", "necesito un sombrero", "un sombrero por favor", "me da un sombrero", "me das un sombrero"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "cap",
+      "canonical": "quiero un gorro por favor",
+      "aliases": ["quiero un gorro", "necesito un gorro", "un gorro por favor", "me da un gorro", "me das un gorro"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "shirt",
+      "canonical": "quiero una camisa por favor",
+      "aliases": ["quiero una camisa", "necesito una camisa", "una camisa por favor", "me da una camisa", "me das una camisa"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "jacket",
+      "canonical": "quiero una chaqueta por favor",
+      "aliases": ["quiero una chaqueta", "necesito una chaqueta", "una chaqueta por favor", "me da una chaqueta", "me das una chaqueta"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "coat",
+      "canonical": "quiero un abrigo por favor",
+      "aliases": ["quiero un abrigo", "necesito un abrigo", "un abrigo por favor", "me da un abrigo", "me das un abrigo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "trousers",
+      "canonical": "quiero pantalones por favor",
+      "aliases": ["quiero pantalones", "quiero unos pantalones", "necesito pantalones", "pantalones por favor", "me das pantalones"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "shoes",
+      "canonical": "quiero zapatos por favor",
+      "aliases": ["quiero zapatos", "quiero unos zapatos", "necesito zapatos", "zapatos por favor", "me das zapatos"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "ring",
+      "canonical": "quiero un anillo por favor",
+      "aliases": ["quiero un anillo", "necesito un anillo", "un anillo por favor", "me da un anillo", "me das un anillo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bracelet",
+      "canonical": "quiero una pulsera por favor",
+      "aliases": ["quiero una pulsera", "necesito una pulsera", "una pulsera por favor", "me da una pulsera", "me das una pulsera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "belt",
+      "canonical": "quiero un cinturón por favor",
+      "aliases": ["quiero un cinturón", "necesito un cinturón", "un cinturón por favor", "me da un cinturón", "me das un cinturón"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "necklace",
+      "canonical": "quiero un collar por favor",
+      "aliases": ["quiero un collar", "necesito un collar", "un collar por favor", "me da un collar", "me das un collar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "amulet",
+      "canonical": "quiero un amuleto por favor",
+      "aliases": ["quiero un amuleto", "necesito un amuleto", "un amuleto por favor", "me da un amuleto", "me das un amuleto"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "sack",
+      "canonical": "quiero un saco por favor",
+      "aliases": ["quiero un saco", "necesito un saco", "un saco por favor", "me da un saco", "me das un saco"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "backpack",
+      "canonical": "quiero una mochila por favor",
+      "aliases": ["quiero una mochila", "necesito una mochila", "una mochila por favor", "me da una mochila", "me das una mochila"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "sell-bread",
       "canonical": "vendo pan",
       "aliases": ["yo vendo pan", "te vendo pan", "le vendo pan", "vendo un pan", "vendo dos panes"],

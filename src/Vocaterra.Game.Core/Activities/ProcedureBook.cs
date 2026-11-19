@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Core.Activities;
 public sealed record ProcedureBonus(int FirstTimeSteps, int Count);
 
 /// <summary>What a procedure makes: an item, how many, and the bonus when the steps go well.</summary>
-/// <param name="Item">The item's name (ItemDefinition.Name; the nouns schema's item kinds).</param>
+/// <param name="Item">The item's name (a row of game/items.json by its name).</param>
 /// <param name="Count">How many one run makes.</param>
 /// <param name="Bonus">The bonus, or <see langword="null"/> for none.</param>
 public sealed record ProcedureMakes(string Item, int Count, ProcedureBonus? Bonus);

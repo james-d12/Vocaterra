@@ -3202,3 +3202,111 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   orchestrator. The gates missed them because every `FarView` test runs without workers and with the ring radius equal to the voxel
   radius; the current flight test still has 316 of 1,200 frames with an uncovered leaf with the real ring. Shared sea nodes depending on
   publish order (`DrainageNetwork`) is a rare determinism crack, noted, not planned. Milestones B49 to B55 for the next PR.
+- **I01, items as data (2026-11-15, on `feature/inventory`).** Report `.claude/briefs/i01-report.md`. Gated at `e865a818`: 11,543
+  passed, 3 skipped; no digest, golden or fuzz baseline moved. `items.json` holds the 14 items; `IItemCatalogue` replaces the static
+  table in about 25 consumers; the enum keeps nine members code needs by behaviour, and a data-only item (id from 100) works in the bag,
+  saves, nouns, recipes and shops (`DataOnlyItemTests`). Save version 9 stores items by name. Two limits: the host's
+  `--validate-content` cannot check icon keys (the host does not reference the game; the game's start and the tests do), and items named
+  by a script resolve only at run time. Spot-checked: «quiero pan, por favor» at `stall-need` sells the bread; `--validate-content` clean.
+- **I06, temperature and cold (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i06-report.md`. Gated at `a9e5df38`:
+  11,632 passed, 3 skipped; no golden or digest moved. `PlaceTemperature` sums five data-driven terms; a new term is one class and one
+  registry line. First feelings: noon 18 °C, clear night 6, rainy windy night -2 (cold, walk 85%), by a fire +15; very cold is
+  unreachable in the valley until a climate term or `--temperature`. Three choices for the owner at stop 2: cloud cools at night as by
+  day; with `--needs off` the cold has no effect (so the language runs keep their baselines); shelter counts the covered share of the nine
+  columns round the feet (no flicker at an eave). The snowflake has not been seen in a window yet.
+- **I03a, the equipment core (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i03a-report.md`. Gated at `1627482f`:
+  11,751 passed, 3 skipped; no golden or digest moved (worn slots join the digest only when something is worn). The six slot groups are
+  rows of `equipment.json`, and code names none of them, so the off-hand and cosmetic slots came with the generic rules (I03b checks them
+  rather than building them). Rules are `IEquipRule`s, so I03b's bag rule is one class. Stat values are doubles, as the walk factor already
+  is; nothing in the digest reads them. A process note for briefs: the agent left a `pgrep -f` wait loop that matched itself, as the
+  standard brief warns; the orchestrator killed it.
+- **I03b, the bag and the rest of the slots (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i03b-report.md`. Gated at
+  `805b2c73`: 11,819 passed, 3 skipped. The bag is 30 slots from data (`bagSlots`) plus the worn bag's `capacity`; the static
+  `Inventory.SlotCount` is gone, so every consumer names its inventory's active count. Two pinned digests (`AtmosphereSimulationTests`)
+  moved, and the agent proved the cause: the fresh digest recomputed with 40 empty slots equals the old pin, with 30 the new one. No golden,
+  fuzz or scripted-run baseline moved. Save version 10 stores the active slots and the worn items by name. A limit left for later: the
+  active count is clamped to base plus the largest capacity, so data with two back slots could lose slots silently (unreachable with the
+  one-slot backpack group; no validator yet). The fixture was transformed by a throwaway test rather than recorded in a window (no windows
+  while the owner games).
+- **I02, interaction (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i02-report.md`. Gated at `95aedf89`: 11,905
+  passed, 3 skipped; no existing test, golden or fixture changed (the held stack and the trash join the digest only when they hold
+  something). Every move goes through one transaction over `ISlotContainer`s, so a refusal undoes the puts already made, and a chest is
+  one more container (a test `ChestContainer` proves it). Closing the panel on a full bag keeps the stack held rather than losing it; a save
+  returns it first and, only when the bag is full, refuses as a session not at rest does (the autosave catches it; worth a look in I04 if a
+  quit can meet it). Three small behaviours for I04 to judge: shift-click on a stack of several wearables is refused rather than taking
+  one; a wearable the rules refuse does not fall through to the hotbar move; right-click into the trash refuses a different item. The
+  `--move` step opens a window, like every scripted step, so it was proved by tests only. Process note: the orchestrator's `git worktree
+  add` used a relative path, so this worktree nested under the inventory worktree; later ones use an absolute path.
+- **I05a, the stat consumers (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i05a-report.md`. Gated at `b9aac8c9`:
+  11,977 passed, 3 skipped; no digest or baseline moved (nothing worn gives factors of 1). Each stat key has one rule in `StatRules`: the
+  factors (`walkSpeed`, `hungerDrain`, `thirstDrain`) multiply so that two items never sum past a whole, the rest add. Numbers for stop 3
+  and I08b to weigh: armour takes 4% per point, capped at 80% (20 points); the walk factor is clamped to 0.1 to 2.5; item ranges are 0.5
+  to 1.5 for walk speed and 0.25 to 2 for drains. Walk speed from gear applies with `--needs off` (unlike the cold), while drains and
+  stamina follow the needs. Damage causes are data ids now; armour applies to no cause, as the owner said, and a row in `damage.json`
+  would change that. A cause unknown at run time passes through unmodified (the validator refuses unknown ones at load).
+- **I09, gear on the player (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i09-report.md`. Gated at `50ae2330`:
+  11,996 passed, 3 skipped; no existing test, golden or fixture changed. The layer order is the groups' `layer` number, highest first, and
+  the back and off-hand slots are found by their `wear` kind, so no `role` field was needed and equipment.json kept its hash. Nothing worn
+  draws exactly as before (a mesh test checks the vertices); gear adds at most 9 boxes plus the off-hand item's extruded faces. Not yet seen:
+  no shipped item can be worn, so the pictures need a test-only content folder with `look` rows, and they wait for the owner's windows
+  (stop 4, with I04's).
+- **I04, the equipment panel (2026-11-16, on `feature/inventory`).** Report `.claude/briefs/i04-report.md`. Gated at `0cf31798`:
+  12,102 passed, 3 skipped. The doll's columns and rows come from equipment.json (layered groups in layer order, slots in first-seen
+  order), so a seventh group gets cells with no layout edit. A real bug found and fixed: the quit, menu Exit and F6 saves threw when a stack
+  was held with a full bag (only the autosave caught it); `SaveService.Write` now returns the stack first and declines to write if it
+  cannot. For stop 3: `accesorio` is not in the lexicon (accessory cells unlabelled); walk speed, hunger, thirst and stamina have no noun on
+  the stats line (icons only); the eleven refusal lines are English; the inventory key hints still say "left click: mine, place", stale
+  since I02. Known gap: 50 slots plus the needs list at 533x400 overflows the canvas foot, as before. Screenshots wait for the owner (stop 4,
+  with I09's): they need a test-only content copy with wearable rows, since nothing shipped can be worn.
+- **First screenshots of the panel and the gear (2026-11-16, the owner asked for them).** Taken by the orchestrator with a test-only copy of
+  `content/game-v1` in the scratchpad (13 wearable items borrowing existing icons, rehashed through a wrapper script, the locale bundle
+  copied beside it). The gear draws as planned: inflated colour boxes, the pack on the back, the sleeves and the off-hand item in first
+  person. Issues found, all handed to I04b at the owner's word: the held stack is not drawn when there is no mouse position (scripted runs);
+  the tight layout drops the stamina chip; the doll's columns have no headings; the title is English; the refusal lines are English; the key
+  hints still describe mining and placing; «espalda» is cut to «esp…» in an empty cell. The owner added an off-hand cell beside the hotbar.
+- **I-merge, I-merge-fix and I-merge2: `main` into the inventory series (2026-11-18, on `feature/inventory`).** Reports
+  `.claude/briefs/i-merge-fix-report.md` and `i-merge2-report.md`. The biomes series (PR #69, 472 commits) conflicted in 37 files: the save
+  stays at version 10 (main stayed at 9) with main's optional `passOpen`, `save-v10.json` carries main's edits; the two clock-digest pins in
+  `AtmosphereSimulationTests` moved from both sides (the world and the 30-slot bag) and were re-pinned on the merged state. Then the
+  throughput series (PR #70) in 14 files: `save-v10.json` pins no bundle hash. Gated together at `c3bd3c2b`: 13,234 passed, 9 skipped,
+  timing 23. Lesson: a gate run from the target's checkout uses the target's old `merge-gate.sh`; when the merge brings a new gate (here
+  Release builds and timing tests in their own step), the first run fails on the new tests' budgets and the gate must be re-run on the merged
+  tree. The first agent was stopped part-way by the owner; its unverified merge was committed as a WIP merge and finished by a second agent.
+- **I04b, the panel's fixes and the off-hand cell (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i04b-report.md`. Gated at
+  `3334359e`: 13,301 passed, 9 skipped. The held stack beside its cell without a pointer, every stat chip in every layout, headings from
+  `equipment.json`'s `heading` («la ropa», «la armadura», «la apariencia», short marks when tight), the title «la bolsa», eleven Spanish
+  refusal lines as `hudLines` with English in the locale, new key hints, full labels at regular size, and the off-hand cell left of the
+  hotbar (above its left end where a small window leaves no room). No swap key. One timing test, `StreamedWorldTimeTests`, failed the gate
+  at twice its CPU budget while another session's three agents held the load at 14 to 20; it passed an hour earlier on the same world code at
+  load 5. CPU-time budgets still move under heavy contention (shared cores, cache, clock): worth knowing when two sessions gate at once.
+- **I04c, bare headings (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i04c-report.md`. Gated at `b048d781`: 13,312
+  passed, 9 skipped. The owner asked for the headings without their article; the boxes of the outer columns overhang into the free space
+  beside the doll, so «apariencia» fits at 1280x720 in the normal font. The timing test I04b's gate failed under load passed here.
+- **I06b, the climate term (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i06b-report.md`. Gated at `a773a307`: 13,330
+  passed, 9 skipped. The player's temperature now reads the generator's climate (`IPlaceInfo.TemperatureAt`), so the biomes series' and the
+  inventory series' two temperatures finally meet (the plan's risk "Temperature against the biomes series"): the valley unchanged, the
+  highest peak 12 degrees colder. A cave reads slightly warmer than the slope above it (the lapse is by height); left for the owner's stop 2.
+- **I05b, light round the player (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i05b-report.md`. Gated at `f0b6a882`:
+  13,359 passed, 9 skipped. The plan assumed BasicEffect and a `LightMap`; the tree has neither: the world is drawn by the game's own GLSL
+  chunk program with baked sky and block light, so the player light is two uniforms and one term in `chunk.frag.glsl`, at no measurable cost.
+  The effects fallback (below OpenGL 3.3) draws no player light. A branch's content edit and another's both moving `manifest.json` conflict
+  at the gate; the orchestrator merges the target into the branch and runs `scripts/rehash-bundle.sh` first.
+- **I08a, the clothes (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i08a-report.md`. Gated at `1ed01a66`: 13,451 passed,
+  9 skipped. Item icons are painted in code (a table of strings per icon), so new gear needs no art files. Growing the atlas moved the baked
+  light golden (V depends on the atlas height) and the mip count; the next atlas growth will do the same. A shop answering «¿Tienes X?» with
+  a sale needs a core grammar change (`state_have` against `request_item`); purchases use «Quiero», «Necesito», «Me das».
+- **I06c, the climate model (2026-11-18, on `feature/inventory`).** Report `.claude/briefs/i06c-report.md`. Gated at `3e4f2fb9`: 13,517
+  passed, 9 skipped. A lag on a value that changes walking and thirst is simulation state: without saving it a loaded game diverged
+  (`ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession` caught it). Warmth adds in the heat too: with the warmest clothes a clear
+  valley noon reads hot; for the owner at stop 2.
+- **I08b, armour, accessories, bags (2026-11-19, on `feature/inventory`).** Report `.claude/briefs/i08b-report.md`. Gated at `73cb085e`:
+  13,659 passed, 9 skipped. Answer-set aliases for a shop NPC change what the open decoder hears: Domingo's aliases failed the model-gated
+  `OpenFallbackMeasurementTests`, so his rows stay canonical. A wearable that stacks (the torch) needed the validator's stack rule lifted;
+  `Equip` still takes one at a time.
+- **I07, durability (2026-11-19, on `feature/inventory`).** Report `.claude/briefs/i07-report.md`. Gated at `75b2494f`: 13,790 passed, 9
+  skipped. Save version 11. Appending wear to the state digest only where it is above zero kept every existing digest; worth copying for
+  later optional state. Damage wear waits for a damage cause that lists the `wear` modifier.
+- **I-fuzz, CI's fuzz failure on PR #71 (2026-11-19).** Report `.claude/briefs/i-fuzz-report.md`. Since B29a the merge gate leaves the fuzz
+  suite to CI, so the series' content (new nouns shifting the generator's draws) failed only there: the sentence generator could draw the
+  noun «cuanto», which reads as the determiner cuánto. Fixed in the generator (`LexiconCatalog.ReadsAsDeterminer`), not the oracle. A content
+  milestone should run `scripts/test.sh ci` (or at least the fuzz project) before its pull request.

@@ -258,7 +258,7 @@ public sealed class LandPlacementTests
     public void Given_ASimulationWithNoRulesHook_When_PlanksArePlacedAnywhere_Then_ItIsAsBeforeTheLandRules()
     {
         var scene = TestGame.Route(LandTestScene.Seed);
-        var simulation = VoxelSimulation.Create(scene);
+        var simulation = VoxelSimulation.Create(scene, TestItems.Catalogue);
         _ = simulation.GrantItems(ItemId.Wood, 1);
         var village = scene.Point("village");
         var (x, z) = LandTestScene.OpenColumn(scene.Grid, village.X, village.Z, 12, static (_, _) => true);

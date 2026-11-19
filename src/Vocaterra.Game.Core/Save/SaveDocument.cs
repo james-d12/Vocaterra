@@ -62,6 +62,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Air">The player's air in ticks (version 7, water-plan H03 and H06); <see langword="null"/>, and left out of the file, while the breath is full.</param>
 /// <param name="Flow">The cells waiting for a flow update, in queue order (version 7, water-plan H06); <see langword="null"/>, and left out of the file, while none wait.</param>
 /// <param name="DialoguePages">Each NPC's conversation lines (U08), so the panel scrolls back over earlier sessions: one page per NPC with lines, at most <see cref="Dialogue.DialogueModel.MaxLines"/> lines each. <see langword="null"/>, and left out of the file, while no NPC has a line; a save without it loads with empty pages. Optional, so it needs no save version.</param>
+/// <param name="Worn">The worn items (version 10, I03b), each by its slot group's id, its slot's name and the item's name (<see cref="WornSave"/>); <see langword="null"/>, and left out of the file, while nothing is worn. <see cref="Inventory"/> then holds the active slots: as many as the base and the worn bag give.</param>
 /// <param name="GivenOrders">The orders the player has taken on (issue #54: a «sí» to the NPC's offer, or the step of the lesson that tells it), ordinal. <see langword="null"/>, and left out of the file, while none is; a save without it has none, and the NPCs offer them again. Optional, so it needs no save version.</param>
 /// <param name="PassOpen">True once the pass through the east ring has opened (B08b: every required lesson complete, or the cheat setting); it never closes again. Written only when true; the rockfall's removal is in the world's changed chunks. Optional, so it needs no save version.</param>
 public sealed record SaveDocument(
@@ -107,6 +108,7 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<FlowEntry>? Flow = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WornSave>? Worn = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false);
 
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
@@ -385,10 +387,32 @@ public sealed record StepOutcomeSave(string StepId, StepOutcome Outcome);
 /// <param name="Progress">The ticks spent.</param>
 public sealed record GatherSave(BlockPos? Target, BlockId Block, int Progress);
 
-/// <summary>One inventory slot: the item and how many (0 for an empty slot).</summary>
-/// <param name="Item">The item kind.</param>
+/// <summary>
+/// One inventory slot (version 9, I01): the item by its stable name (<see cref="ItemDefinition.Name"/>, a row of <c>game/items.json</c>), how many and, since version 11 (I07), how worn it is. An empty slot is an empty name
+/// and a count of 0.
+/// </summary>
+/// <param name="Item">The item's name, or empty for an empty slot.</param>
 /// <param name="Count">The count.</param>
-public sealed record SlotSave(ItemId Item, int Count);
+/// <param name="Wear">The item's wear (version 11); 0, and left out of the file, for an item that is not worn.</param>
+public sealed record SlotSave(string Item, int Count, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int Wear = 0)
+{
+    /// <summary>The slot of a stack: an empty stack is the empty slot.</summary>
+    /// <param name="stack">The stack.</param>
+    /// <param name="items">The item catalogue that names the item.</param>
+    public static SlotSave Of(ItemStack stack, IItemCatalogue items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return stack.IsEmpty ? new SlotSave(string.Empty, 0) : new SlotSave(items.Get(stack.Item).Name, stack.Count, stack.Wear);
+    }
+
+    /// <summary>The stack the slot holds: the empty stack for an empty slot or an item the catalogue does not have (a save of content that lost the item). The wear is kept only for an item that has a durability, and never past it.</summary>
+    /// <param name="items">The item catalogue.</param>
+    public ItemStack ToStack(IItemCatalogue items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return Count > 0 && items.Find(Item) is { } definition ? new ItemStack(definition.Id, Count, Wears.Clamp(definition, Wear)) : ItemStack.Empty;
+    }
+}
 
 /// <summary>The count of one step of an objective (its key is <c>&lt;objective&gt;.&lt;step&gt;</c> since version 5).</summary>
 /// <param name="Key">The step's key (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>).</param>
@@ -535,6 +559,7 @@ public sealed record RepeatSave(string Tag, int Count);
 /// <param name="Procedures">The procedures (W06): what the learner knows, their records and the run in progress; <see langword="null"/> with none, which starts with none.</param>
 /// <param name="Sleep">The sleep places' state (Y02, version 8): the lodging given, the place last slept at and the places made in play; <see langword="null"/> for no lodging, no last place and no places made in play.</param>
 /// <param name="Land">The player's land (Y09, <c>systems.land</c>): <c>{"pending": {x, z, width, depth}, "owned": {x, z, width, depth}}</c>, each part only when the plot exists; <see langword="null"/> for no plot. The rules (the protected regions) are not saved: they come from the scene and the bundle. No version bump: a save without the entry has no plot.</param>
+/// <param name="Temperature">How far the felt temperature has got towards the place's (I06c, <c>systems.temperature</c>: <c>{"felt"}</c>); <see langword="null"/> starts at the place's value. No version bump.</param>
 /// <param name="Atmosphere">The day clock's offset and held hour (E01) and the weather's state (E04), <c>systems.atmosphere</c>: <c>{"offset", "frozenHour", "weather"}</c>, written only when it is not a new game's (the offset is 0, no hour is held and the weather is still in its first spell); <see langword="null"/> starts both as a new game has them.</param>
 public sealed record SystemsSave(
     Vocaterra.Game.Core.Needs.NeedsSave? Needs = null,
@@ -545,7 +570,8 @@ public sealed record SystemsSave(
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ProceduresSave? Procedures = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] SleepSave? Sleep = null,
     [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Atmosphere.AtmosphereState? Atmosphere = null,
-    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Land.LandSave? Land = null);
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Land.LandSave? Land = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Vocaterra.Game.Core.Temperature.TemperatureSave? Temperature = null);
 
 /// <summary>
 /// What the sleep places keep across a sleep and a load (Y02): whether the innkeeper has given the room, the place the player last slept at and the places made while the game runs.

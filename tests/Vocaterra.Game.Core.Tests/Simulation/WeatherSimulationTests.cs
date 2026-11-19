@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tests.Atmosphere;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.World;
 
@@ -16,7 +17,7 @@ public sealed class WeatherSimulationTests
 
     private static Scene Route() => VoxelTestSupport.BuildRoute(42);
 
-    private static VoxelSimulation Make(WeatherData? weather = null, ulong seed = 7) => VoxelSimulation.Create(Route(), DayData.Default, weather ?? Quick, seed);
+    private static VoxelSimulation Make(WeatherData? weather = null, ulong seed = 7) => VoxelSimulation.Create(Route(), TestItems.Catalogue, DayData.Default, weather ?? Quick, seed);
 
     private static List<SimulationEvent> Changes(VoxelSimulation sim, int ticks)
     {
@@ -33,7 +34,7 @@ public sealed class WeatherSimulationTests
     [Fact]
     public void ASimulationBuiltWithoutWeatherUsesTheDefaultDataAndSeedZero()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
 
         Assert.Equal(WeatherData.Default, sim.Weather.Data);
         Assert.Equal("clear", sim.Atmosphere.KindId);
@@ -124,7 +125,7 @@ public sealed class WeatherSimulationTests
     {
         var a = Make(seed: 7);
         var b = Make(seed: 7);
-        var defaults = VoxelSimulation.Create(Route());
+        var defaults = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         Assert.Equal(defaults.ComputeStateDigest(), a.ComputeStateDigest()); // the weather adds nothing in its first spell
         Assert.True(a.Weather.IsInitial);
         VoxelTestSupport.Run(a, 100);

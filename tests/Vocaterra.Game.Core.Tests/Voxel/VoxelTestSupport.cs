@@ -60,7 +60,7 @@ internal static class VoxelTestSupport
     }
 
     /// <summary>A simulation on <see cref="FlatScene"/>.</summary>
-    public static VoxelSimulation FlatSim(Action<VoxelGrid>? customise = null) => VoxelSimulation.Create(FlatScene(customise));
+    public static VoxelSimulation FlatSim(Action<VoxelGrid>? customise = null) => VoxelSimulation.Create(FlatScene(customise), TestItems.Catalogue);
 
     /// <summary>Steps <paramref name="ticks"/> times with the same commands.</summary>
     public static void Run(VoxelSimulation sim, int ticks, params VoxelCommand[] commands)

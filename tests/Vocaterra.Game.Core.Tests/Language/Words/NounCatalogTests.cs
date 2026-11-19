@@ -11,7 +11,7 @@ public sealed class NounCatalogTests
     [Fact]
     public void EveryItemKindIsNamedByANounWithAGenderAndANounReading()
     {
-        foreach (var definition in ItemDefinition.All)
+        foreach (var definition in TestItems.Catalogue.All)
         {
             var noun = TestGame.Nouns.ForItem(definition.Id);
             Assert.True(noun is not null, $"Item {definition.Name} has no catalogue noun.");
@@ -78,7 +78,7 @@ public sealed class NounCatalogTests
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("agua")!.Blocks);
         Assert.Equal([ItemId.WaterBottle], TestGame.Nouns.ForLemma("agua")!.Items);
         Assert.Equal([ItemId.Bottle], TestGame.Nouns.ForLemma("botella")!.Items);
-        Assert.Equal([ItemId.Bread], TestGame.Nouns.ForLemma("pan")!.Items);
+        Assert.Equal([TestItems.Bread], TestGame.Nouns.ForLemma("pan")!.Items);
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("río")!.Blocks);
         Assert.Equal([BlockId.Bridge], TestGame.Nouns.ForLemma("puente")!.Blocks);
         Assert.Equal([BlockId.Stall, BlockId.Roof], TestGame.Nouns.ForLemma("tienda")!.Blocks);
@@ -96,31 +96,31 @@ public sealed class NounCatalogTests
     public void AnItemNamedTwiceOrAnUnknownItemOrBlockIsRefused()
     {
         var twice = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["wood"]},{"lemma":"madera","items":["wood"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice, TestItems.Catalogue));
 
         var unknownItem = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["rock"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownItem));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownItem, TestItems.Catalogue));
 
         var unknownBlock = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":[],"blocks":["rock"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownBlock));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownBlock, TestItems.Catalogue));
     }
 
     [Fact]
     public void ASourceThatIsNotACatalogueNounIsRefused()
     {
         var json = """{"schemaVersion":1,"nouns":[{"lemma":"madera","items":["wood"],"sources":["cueva"]}]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json, TestItems.Catalogue));
     }
 
     [Fact]
     public void TheCatalogueHoldsOnlyTheNounsOfThe3DWorld()
     {
         // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4); the axe came back as the smith's (V03).
-        foreach (var lemma in new[] { "carbón", "hierro", "silla", "flor", "seta" })
+        foreach (var lemma in new[] { "carbón", "silla", "flor", "seta" }) // hierro came back as the smith's iron (I08a)
         {
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(33, TestGame.Nouns.Nouns.Count); // Y12 campamento (the camp, a step of «Mi terreno», no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
+        Assert.Equal(66, TestGame.Nouns.Nouns.Count); // I08b casco, coraza, greba, bota, anillo, pulsera, cinturón, collar, amuleto, escudo, farol, saco and mochila; I08a tela, cuero, hierro, sombrero, gorro, camisa, chaqueta, abrigo, pantalón and zapato (the materials and the clothes); I04b bolsa (the panel's title), ropa and apariencia (the doll's column headings; no item); I04 cabeza, cuerpo, pierna, pie, espalda, armadura and calor (the equipment panel's slot labels and stats, no item); Y12 campamento (the camp, a step of «Mi terreno», no item); Y11 terreno (the plot, no item) and equipo (the camp kit); W10 harina, bol, cuchara, masa, horno and mano (the bread, a fixture or a made thing each); N07 fuego; the 16 of S4, since S6 botella and pan, since S20 libro (the book item), Y10 estaca (the stake item), since V03 moneda, manzana and hacha
     }
 }

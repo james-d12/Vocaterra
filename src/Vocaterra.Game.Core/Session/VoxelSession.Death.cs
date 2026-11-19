@@ -65,7 +65,7 @@ public sealed partial class VoxelSession
 
     /// <summary>The chest and its contents for the save (<see langword="null"/> for none).</summary>
     internal ChestSave? CaptureChest() =>
-        _chest is { } chest ? new ChestSave(chest.Cell.X, chest.Cell.Y, chest.Cell.Z, chest.Items.Select(static i => new SlotSave(i.Item, i.Count)).ToArray()) : null;
+        _chest is { } chest ? new ChestSave(chest.Cell.X, chest.Cell.Y, chest.Cell.Z, chest.Items.Select(i => new SlotSave(Data.Items.Get(i.Item).Name, i.Count)).ToArray()) : null;
 
     // A save's chest back in: only the state, the block is in the world the save restored. A load never takes a chest away.
     internal void RestoreChest(ChestSave? save)
@@ -77,9 +77,12 @@ public sealed partial class VoxelSession
         }
 
         var chest = new BelongingsChest(new BlockPos(save.X, save.Y, save.Z));
-        foreach (var stack in save.Stacks)
+        foreach (var slot in save.Stacks)
         {
-            chest.Add(stack.Item, stack.Count);
+            if (slot.ToStack(Data.Items) is { IsEmpty: false } stack)
+            {
+                chest.Add(stack.Item, stack.Count);
+            }
         }
 
         _chest = chest;
@@ -121,16 +124,17 @@ public sealed partial class VoxelSession
         }
     }
 
-    // Everything in the bag but the items that stack to one goes into a chest on the nearest free ground cell. A second death before the night moves the first chest's contents into
-    // the new one (one chest at a time); a bag with nothing to leave leaves any chest as it was.
+    // Everything in the bag that the death rule (needs.json death.keepInBag, DeathSpec.Keeps: the items that stack to one) does not keep goes into a chest on the nearest free ground cell. A second death before the night moves the first chest's
+    // contents into the new one (one chest at a time); a bag with nothing to leave leaves any chest as it was. What is worn, and the worn bag, are not in the bag: they stay worn, so the bag keeps its size, and a kept
+    // stack stays in its own slot, so the kept stacks always fit (they are never moved, and the active count only changes when a bag comes off, which a death does not do).
     private void LeaveBelongings(BlockPos feet)
     {
         var bag = Simulation.Inventory;
         var left = new List<(ItemId Item, int Count)>();
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < bag.SlotCount; slot++)
         {
             var stack = bag.Slots[slot];
-            if (!stack.IsEmpty && ItemDefinition.Get(stack.Item).MaxStack > 1)
+            if (!stack.IsEmpty && !Data.Needs.Death.Keeps(bag.Items.Get(stack.Item)))
             {
                 left.Add((stack.Item, stack.Count));
                 bag.SetSlot(slot, ItemStack.Empty);

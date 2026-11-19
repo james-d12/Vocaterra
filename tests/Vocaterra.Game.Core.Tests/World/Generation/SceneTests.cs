@@ -402,7 +402,7 @@ public sealed class SceneTests(ITestOutputHelper output)
             waypoints.Add((to.X, to.Z));
         }
 
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var crossed = false;
         var totalCells = 0;
         for (var i = 1; i < waypoints.Count; i++)

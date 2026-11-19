@@ -10,7 +10,7 @@
         "kind": "give_item",
         "item": "bottle",
         "asked": ["agua", "botella"],
-        "instead": { "pan": "give_bread", "harina": "sell_flour" }
+        "instead": { "pan": "give_bread", "harina": "sell_goods", "tela": "sell_goods", "cuero": "sell_goods", "sombrero": "sell_goods", "gorro": "sell_goods", "camisa": "sell_goods", "chaqueta": "sell_goods", "abrigo": "sell_goods", "pantalón": "sell_goods", "zapato": "sell_goods", "anillo": "sell_goods", "pulsera": "sell_goods", "cinturón": "sell_goods", "collar": "sell_goods", "amuleto": "sell_goods", "saco": "sell_goods", "mochila": "sell_goods" }
       }
     },
     {
@@ -23,11 +23,11 @@
     },
     {
       "npc": "shopkeeper",
-      "event": "stall.sell_flour",
+      "event": "stall.sell_goods",
       "action": {
         "kind": "sell",
         "slot": "item",
-        "prices": { "harina": 1 }
+        "prices": { "harina": 1, "tela": 1, "cuero": 2, "sombrero": 2, "gorro": 3, "camisa": 3, "chaqueta": 6, "abrigo": 10, "pantalón": 3, "zapato": 3, "anillo": 6, "pulsera": 6, "cinturón": 5, "collar": 5, "amuleto": 8, "saco": 4, "mochila": 10 }
       }
     },
     {
@@ -123,6 +123,15 @@
         "kind": "give_item",
         "item": "coin",
         "count": 4
+      }
+    },
+    {
+      "npc": "smith",
+      "event": "smith.sell_goods",
+      "action": {
+        "kind": "sell",
+        "slot": "item",
+        "prices": { "hierro": 3, "casco": 6, "coraza": 12, "greba": 8, "bota": 6, "escudo": 8, "antorcha": 1, "farol": 6 }
       }
     },
     {

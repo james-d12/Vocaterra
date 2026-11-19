@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
@@ -18,6 +19,7 @@ public sealed class WorldStepper
     private readonly Func<bool> _micCheckActive;
     private readonly Func<bool> _dialogueOpen;
     private readonly CraftingPanel _crafting;
+    private readonly InventoryPanel? _inventory;
     private readonly long? _crashAfter;
     private readonly IReadOnlyList<ITickObserver> _observers;
     private readonly List<VoxelCommand> _commands = [];
@@ -32,6 +34,7 @@ public sealed class WorldStepper
     /// <param name="crafting">The crafting panel, whose clicked crafts run in the next tick.</param>
     /// <param name="crashAfter">The tick of <c>--debug-crash-after</c> (X05), or <see langword="null"/>.</param>
     /// <param name="observers">What follows the world, in order.</param>
+    /// <param name="inventory">The inventory panel, whose clicked moves run in the next tick (I02), or <see langword="null"/>.</param>
     public WorldStepper(
         VoxelSession session,
         LookControl look,
@@ -41,8 +44,10 @@ public sealed class WorldStepper
         Func<bool> dialogueOpen,
         CraftingPanel crafting,
         long? crashAfter,
-        IReadOnlyList<ITickObserver> observers)
+        IReadOnlyList<ITickObserver> observers,
+        InventoryPanel? inventory = null)
     {
+        _inventory = inventory;
         _session = session;
         _look = look;
         _scenario = scenario;
@@ -69,6 +74,7 @@ public sealed class WorldStepper
 
         // A craft clicked or typed this frame runs in this tick, after the gathering and the placing (the simulation's order).
         _crafting.TakeCrafts(_commands);
+        _inventory?.TakeMoves(_commands); // the moves clicked on the inventory screen, with the crafts (I02)
 
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));

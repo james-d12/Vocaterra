@@ -25,6 +25,9 @@ public sealed class WorldQuery : IPlaceInfo
     public ClimateSample ClimateAt(int x, int z) => _world.Climate.At(x, z);
 
     /// <inheritdoc />
+    public int SnowBelowTemperature => _world.Table.SnowBelow;
+
+    /// <inheritdoc />
     public int TemperatureAt(int x, int y, int z) => _world.Climate.TemperatureAt(x, y, z);
 
     /// <inheritdoc />

@@ -73,7 +73,7 @@ public sealed class BookDataTests
 
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Book));
         Assert.Null(BlockDefinition.PlacedBy(ItemId.Book));
-        Assert.Equal("book", ItemDefinition.Get(ItemId.Book).Name);
+        Assert.Equal("book", TestItems.Catalogue.Get(ItemId.Book).Name);
     }
 
     [Fact]

@@ -181,7 +181,7 @@ public sealed class StakeTests
     [Fact]
     public void TheStakeIsAnItemOfOneThatPlacesNoBlock()
     {
-        var definition = ItemDefinition.Get(ItemId.Stake);
+        var definition = TestItems.Catalogue.Get(ItemId.Stake);
 
         Assert.Equal("stake", definition.Name);
         Assert.Equal(1, definition.MaxStack);

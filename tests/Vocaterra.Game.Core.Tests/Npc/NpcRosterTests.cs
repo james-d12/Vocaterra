@@ -231,14 +231,14 @@ public sealed class NpcRosterTests
     public void TheHostEventsActionsAreReadAndAnUnknownOneIsRefused()
     {
         var json = HostEvents();
-        Assert.Equal(ItemId.Bottle, HostEventTable.Parse(json).Of("shopkeeper", "stall.give_water").Item);
-        Assert.Equal(NpcEffectKind.None, HostEventTable.Parse(json).Of("shopkeeper", "shopkeeper.ask").Kind);
+        Assert.Equal(ItemId.Bottle, HostEventTable.Parse(json, TestItems.Catalogue).Of("shopkeeper", "stall.give_water").Item);
+        Assert.Equal(NpcEffectKind.None, HostEventTable.Parse(json, TestItems.Catalogue).Of("shopkeeper", "shopkeeper.ask").Kind);
 
         Assert.Contains("is not one of give_item, point_at_noun, point_at_place, point_at_slot, take_item, sell", Refused(HostEvents(events => Entry(events, "stall.give_water")["action"]!["kind"] = "dance")), StringComparison.Ordinal);
         Assert.Contains("unknown item 'botella'", Refused(HostEvents(events => Entry(events, "stall.give_water")["action"]!["item"] = "botella")), StringComparison.Ordinal);
         Assert.Contains("given twice", Refused(HostEvents(events => Entry(events, "stall.give_bread")["event"] = "stall.give_water")), StringComparison.Ordinal);
 
-        static string Refused(string text) => Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(text)).Message;
+        static string Refused(string text) => Assert.Throws<InvalidDataException>(() => HostEventTable.Parse(text, TestItems.Catalogue)).Message;
     }
 
     [Fact]
@@ -270,7 +270,7 @@ public sealed class NpcRosterTests
         });
         var tips = TestGame.Data.Tips.Append(new TipSpec("mill", new Trigger(WorldEvents.TalkOpened, Npc: "miller"), "x", 0)).ToList();
 
-        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(json)).WithTips(tips));
+        var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(json, TestItems.Catalogue)).WithTips(tips));
 
         Assert.Contains("game/host-events.json: 'villager.give' is raised by 'miller', which is not one of the NPCs.", problems);
         Assert.Contains("game/host-events.json: villager's 'villager.point' points at 'mar', which is not a catalogue noun.", problems);

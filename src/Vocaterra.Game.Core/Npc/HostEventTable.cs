@@ -29,8 +29,9 @@ public sealed class HostEventTable
 
     /// <summary>Reads the table from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
+    /// <param name="items">The item catalogue the actions' item names are looked up in.</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed.</exception>
-    public static HostEventTable Load(ContentBundle bundle) => Parse(GameData.HostText(bundle, RelativePath));
+    public static HostEventTable Load(ContentBundle bundle, IItemCatalogue items) => Parse(GameData.HostText(bundle, RelativePath), items);
 
     /// <summary>
     /// Builds the table from the file's text: <c>{ "schemaVersion": 2, "events": [ { "npc", "event", "action": { "kind": "give_item", "item", "count"? } | { "kind":
@@ -39,10 +40,12 @@ public sealed class HostEventTable
     /// learner said (<see cref="NpcEffect.Quantity"/>), and one when it is left out; a price is a number of coins from 1.
     /// </summary>
     /// <param name="json">The contents of <c>game/host-events.json</c>.</param>
+    /// <param name="items">The item catalogue the actions' item names are looked up in (a count is held to the item's stack limit).</param>
     /// <exception cref="InvalidDataException">The text is malformed, an action's kind, item or count is unknown, or one NPC's event is given twice.</exception>
-    public static HostEventTable Parse(string json)
+    public static HostEventTable Parse(string json, IItemCatalogue items)
     {
         ArgumentNullException.ThrowIfNull(json);
+        ArgumentNullException.ThrowIfNull(items);
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -60,19 +63,19 @@ public sealed class HostEventTable
                 var action = entry.GetProperty("action");
                 var effect = Text(action, "kind") switch
                 {
-                    "give_item" => Counted(NpcEffect.Give(ItemNamed(Text(action, "item"))), action, npc, name) with { Asked = AskedNouns(action, npc, name), Instead = InsteadNouns(action, npc, name) },
+                    "give_item" => Counted(NpcEffect.Give(ItemNamed(items, Text(action, "item"))), action, npc, name, items) with { Asked = AskedNouns(action, npc, name), Instead = InsteadNouns(action, npc, name) },
                     "point_at_noun" => NpcEffect.PointAt(Text(action, "noun")),
                     "point_at_place" => NpcEffect.PointAtPlaceNamed(Text(action, "place")),
                     "point_at_slot" => NpcEffect.PointAtSlotNamed(Text(action, "slot")),
-                    "take_item" => Counted(NpcEffect.Take(ItemNamed(Text(action, "item"))), action, npc, name),
-                    "sell" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.SellList(PriceList(action, npc, name)) : NpcEffect.SellAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
-                    "buy" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.BuyList(PriceList(action, npc, name)) : NpcEffect.BuyAt(ItemNamed(Text(action, "item")), Price(action, npc, name)),
+                    "take_item" => Counted(NpcEffect.Take(ItemNamed(items, Text(action, "item"))), action, npc, name, items),
+                    "sell" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.SellList(PriceList(action, npc, name)) : NpcEffect.SellAt(ItemNamed(items, Text(action, "item")), Price(action, npc, name)),
+                    "buy" => action.TryGetProperty("prices", out _) || action.TryGetProperty("slot", out _) ? NpcEffect.BuyList(PriceList(action, npc, name)) : NpcEffect.BuyAt(ItemNamed(items, Text(action, "item")), Price(action, npc, name)),
                     "procedure_repeat" => new NpcEffect(NpcEffectKind.ProcedureRepeat),
                     "procedure_slower" => new NpcEffect(NpcEffectKind.ProcedureSlower),
                     "procedure_help" => new NpcEffect(NpcEffectKind.ProcedureHelp),
                     "give_missing" => new NpcEffect(NpcEffectKind.GiveMissing),
                     "grant_lodging" => new NpcEffect(NpcEffectKind.GrantLodging),
-                    "sell_plot" => new NpcEffect(NpcEffectKind.SellPlot, ItemNamed(Text(action, "item"))),
+                    "sell_plot" => new NpcEffect(NpcEffectKind.SellPlot, ItemNamed(items, Text(action, "item"))),
                     "teach_recipe" => new NpcEffect(NpcEffectKind.TeachRecipe, Procedure: OptionalText(action, "procedure")),
                     "start_procedure" => new NpcEffect(NpcEffectKind.StartProcedure, Procedure: OptionalText(action, "procedure")),
                     var kind => throw new InvalidDataException($"{RelativePath}: the action '{kind}' of {npc}'s '{name}' is not one of {string.Join(", ", Kinds)}."),
@@ -111,7 +114,7 @@ public sealed class HostEventTable
         _table.Keys.OrderBy(static k => k.Npc, StringComparer.Ordinal).ThenBy(static k => k.HostEvent, StringComparer.Ordinal).ToList();
 
     // The count of an action that gives or takes items: a number from 1 (one when it is left out), or "qty", the number the learner said.
-    private static NpcEffect Counted(NpcEffect effect, JsonElement action, string npc, string name)
+    private static NpcEffect Counted(NpcEffect effect, JsonElement action, string npc, string name, IItemCatalogue items)
     {
         if (!action.TryGetProperty("count", out var count))
         {
@@ -123,7 +126,7 @@ public sealed class HostEventTable
             return effect with { CountSlot = NpcEffect.QuantitySlot };
         }
 
-        return count.ValueKind == JsonValueKind.Number && count.TryGetInt32(out var number) && number >= 1 && number <= ItemDefinition.Get(effect.Item).MaxStack
+        return count.ValueKind == JsonValueKind.Number && count.TryGetInt32(out var number) && number >= 1 && number <= items.Get(effect.Item).MaxStack
             ? effect with { Count = number }
             : throw new InvalidDataException($"{RelativePath}: the count of {npc}'s '{name}' must be \"{NpcEffect.QuantitySlot}\" or a number from 1 to the item's stack.");
     }
@@ -184,8 +187,8 @@ public sealed class HostEventTable
             : throw new InvalidDataException($"{RelativePath}: the prices of {npc}'s '{name}' must map at least one noun to a number of coins from 1.");
     }
 
-    private static ItemId ItemNamed(string name) =>
-        ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id
+    private static ItemId ItemNamed(IItemCatalogue items, string name) =>
+        items.Find(name)?.Id
         ?? throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
 
     // A text that may be left out (empty then): the procedure of teach_recipe and start_procedure, which is the NPC's own when it is not named (W08).

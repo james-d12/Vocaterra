@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/equipment.json",
+  "description": "The slot groups gear is worn in (I03a, inventory-plan 3.4): one row per group, each with its slots, the item tags it accepts, whether one of a kind is allowed, and whether the worn items give their stats. Loaded by EquipmentData (Vocaterra.Game.Core); EquipmentValidator checks the values and the items (group ids unique keys, slots with unique names, every item with a `wear` has a slot of that kind in a group that accepts one of its tags, and a stack limit of 1). The order of the groups and of their slots is part of the bundle: commands and the state digest carry indexes. Equipment code never names a group.",
+  "type": "object",
+  "required": ["schemaVersion", "groups"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "bagSlots": { "type": "integer", "minimum": 10, "maximum": 100, "description": "The inventory's slots with no bag worn (I03b): the hotbar's 10 and the rows under it (default 30). A worn bag item adds its `capacity` (items.json); the hotbar is the first 10 slots." },
+    "groups": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/group" }, "description": "The groups in order (the order commands and the digest index)." }
+  },
+  "definitions": {
+    "key": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "noun": { "type": "string", "pattern": "^[a-zñáéíóúü]+( [a-zñáéíóúü]+)*$" },
+    "group": {
+      "type": "object",
+      "required": ["id", "accepts", "noDuplicates", "statsApply"],
+      "additionalProperties": false,
+      "oneOf": [
+        { "required": ["slots"], "not": { "anyOf": [{ "required": ["count"] }, { "required": ["wear"] }, { "required": ["label"] }] } },
+        { "required": ["count", "wear"], "not": { "anyOf": [{ "required": ["slots"] }, { "required": ["labels"] }] } }
+      ],
+      "properties": {
+        "id": { "$ref": "#/definitions/key", "description": "The group's stable key (clothing, armour, accessories...). Code never names it." },
+        "layer": { "type": "integer", "minimum": 1, "maximum": 9, "description": "Where the avatar draws the group: 1 under, 2 over, 3 looks only. Left out for a group that is not a drawn layer." },
+        "slots": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/definitions/key" }, "description": "Named slots (head, body, legs, feet). An item's `wear` must equal the slot's name." },
+        "labels": { "type": "object", "patternProperties": { "^[a-z0-9]+(-[a-z0-9]+)*$": { "$ref": "#/definitions/noun" } }, "additionalProperties": false, "description": "The Spanish noun of each named slot (a key of `slots`), which the panel names the slot with." },
+        "count": { "type": "integer", "minimum": 1, "maximum": 16, "description": "How many identical slots (accessories 3, the off-hand 1, the backpack 1)." },
+        "wear": { "$ref": "#/definitions/key", "description": "The wear kind of every counted slot (accessory, offhand, back)." },
+        "label": { "$ref": "#/definitions/noun", "description": "The Spanish noun of the counted slots; left out when the lexicon has no word yet." },
+        "heading": { "$ref": "#/definitions/noun", "description": "The Spanish noun that heads the group's column in the equipment panel (I04b: ropa, armadura, apariencia); only for a group with a `layer`. A fourth layer brings its own heading." },
+        "accepts": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/definitions/key" }, "description": "The item tags the group takes: an item with any of them fits." },
+        "noDuplicates": { "type": "boolean", "description": "Whether one item kind may be worn only once in the group (the accessories)." },
+        "statsApply": { "type": "boolean", "description": "Whether the worn items give their stats (false for the cosmetic layer)." }
+      }
+    }
+  }
+}

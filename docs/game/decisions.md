@@ -36,6 +36,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-31 | Day, night and weather (the E series, `docs/game/weather-plan.md`) | decided (owner, 2026-11-10): a free-running day and night cycle first, then weather in spells (sunny, cloudy, rain) with a new roll on waking; the first version is the atmosphere and truthful NPC answers, no gameplay effect; built in a new worktree from `main` | nothing |
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
 | D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | decided (owner, 2026-11-15): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); the pass opens once every lesson listed in `world.json` (all of today's) is complete, or at once with a cheat setting, and until then a rockfall closes it and the valley's edge stays a wall; no lesson uses the new land; nothing new can be gathered (no digging, no ore items or nouns); lava blocks the body and does no harm | nothing |
+| D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | decided (owner, 2026-11-15; building started the same day with I00; I01 waits for the owner's word): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag (`el saco` 10, `la mochila` 20) adds slots; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; gear nouns above A2 join the world words; saves break; amends D-game-23 (c) | I00 to I10 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -435,6 +436,9 @@ meals and farming. The current document lists open decisions in section 18, incl
 3. **What bread is for (new, (r)):** the stall buys bread for one coin, a fixed `buy` at the shopkeeper.
 4. **The tú imperative (replaces (h)):** heard only in the pilot. No imperative is taught, so W09 leaves the pilot's path and the book
    gets no imperative column.
+
+**Amended:** (c), "no combat; gear is for places", became "combat later" by D-game-35 (2026-11-15): armour gives a rating for combat
+to come and reduces nothing yet.
 
 **Still proposed:** (a), (c) to (g), (i), (k), (l), (m), (n), (p) and (q) of activities-plan section 12 ((b), needs as buffs only, is
 replaced by D-game-24), and the recommendations in the design document's section 18: the pilot protocol, a listening gate for Luz's
@@ -1036,6 +1040,53 @@ the owner's answers of 2026-11-15 are in its section 5.
     for its measurement.
 64. **After B44, the near-first gate** (2026-11-19, about 08:05 UTC): shown that B44 cut the start area to 11.7 s and offered four follow-ups
     (a near-first gate for far work, loading caps, a bigger group cache, a bigger mesh budget), the owner chose only the near-first gate: B45.
+
+## D-game-35: inventory and equipment (decided, 2026-11-15)
+
+*Numbered D-game-35 because `main` holds D-game-32 (the settlement series), D-game-33 is reserved on `feature/talk-sets` and
+`feature/biomes` holds D-game-34.*
+
+The owner asked to plan "a proper inventory system to the player. This will include armor slots, clothing slots, accessory slots and a
+backpack slot. Kind of like minecraft", and pointed to the Core Systems Design Document's section "Inventory and equipment". The plan is
+[the inventory plan](inventory-plan.md) (the I series, on `feature/inventory`); the owner's answers of 2026-11-15, given while it was
+planned, are in its section 5.
+
+**Decided** (the owner accepted the proposal as written, 2026-11-15, "Accept, but don't build yet"; the answers to its two
+questions are below). The owner said to build later the same day ("Work on the plan"); I00 registered the series. Asked whether to launch I01 beside the
+biomes session's agent while he games (D-game-34 item 17), the owner said "stop and wait for me to tell you to start": I01 and I06 wait
+for his word.
+
+1. **Armour gives an armour rating for combat**, which a later series adds. It reduces nothing now (not drowning, lava or cold); the
+   damage code is a pipeline whose causes and rules are data, so later causes need no code change.
+2. **Clothing is a warmth layer under armour** on head, body, legs and feet. A temperature from the time of day, the weather's channels,
+   shelter and a nearby fire (and later the biomes series' climate) is set against the clothes' warmth; cold slows the player and never
+   harms.
+3. **The bag:** the hotbar's 10 slots and 20 more (base 30, down from 40). The backpack slot's bag adds 10 or 20 (at most 50); a bag
+   cannot come off while its slots hold items.
+4. **Items as data first** (`game/items.json`), taking over the activities plan's W12; the item enum keeps only the members code needs
+   by behaviour.
+5. **Every gear item is craftable and buyable:** workbench recipes, and Pablo or Domingo by voice through `sell` rows.
+6. **Worn gear is drawn** on the third-person avatar (cosmetic over armour over clothing), and the first-person arm takes the sleeve's
+   colour.
+7. **Accessories:** three slots, no duplicates; the first effects are light at night, walk speed, slower hunger or thirst and more
+   stamina, each a row of data.
+8. **The extras:** an off-hand slot (shield, torch, lantern), cosmetic slots for the four body slots, durability for gear and tools
+   (taking over W13; a worn-out item is never lost, a recipe repairs it), a sort button and a trash slot.
+9. **Saves break:** each change of the save's shape takes the next version at its merge and refuses older saves; no migration (the rule
+   of 2026-11-04).
+
+**What it changes:** D-game-23 (c), proposed as "no combat; gear is for places", becomes "combat later"; the activities plan's W12 and
+W13 move to this series, and W26 keeps only the tailor and its voice trial.
+
+**The two questions, answered the same day:**
+
+10. **(a) The gear words:** "World words". The gear nouns on neither CEFR list (`chaqueta`, `abrigo`, `pantalones`, `botas`, `gorro`,
+    `mochila`, `escudo`, `tela`, `cuero`, `hierro`, `cinturón`, `collar`, `amuleto`, `farol`, the armour's leg piece and `saco`) join the
+    marked world-words block at the end of `cefr/a1.txt`, each with a one-line reason, in the milestone that first uses it (the rule of
+    `content/README.md`, as D-game-32 (e) did). Lessons and phrases stay at the A2 ceiling. The final list is settled at the plan's stop 3,
+    before I08a.
+11. **(b) The small bag:** "el saco". The small bag (10 slots) is `el saco`; the large one stays `la mochila` (20). «La bolsa» keeps
+    naming the whole inventory («Tu bolsa está llena»).
 
 ## Already decided
 

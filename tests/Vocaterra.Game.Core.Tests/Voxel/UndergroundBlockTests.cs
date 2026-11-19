@@ -37,7 +37,7 @@ public sealed class UndergroundBlockTests
         Assert.False(definition.Transparent);
         Assert.Null(BlockDefinition.FromName(definition.Name) is { } found && found.Id != id ? found : null);
         Assert.DoesNotContain(Enum.GetValues<ItemId>(), item => BlockDefinition.PlacedBy(item) == id);
-        Assert.DoesNotContain(ItemDefinition.All, item => string.Equals(item.Name, definition.Name, StringComparison.Ordinal));
+        Assert.DoesNotContain(TestItems.Catalogue.All, item => string.Equals(item.Name, definition.Name, StringComparison.Ordinal));
         Assert.Empty(TestGame.Nouns.NounsOfBlock(id));
     }
 

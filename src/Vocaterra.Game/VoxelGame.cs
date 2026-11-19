@@ -26,6 +26,7 @@ using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
@@ -48,6 +49,7 @@ using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
+using Vocaterra.Game.UI.Inventory;
 using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Game.UI.Menu;
 using Vocaterra.Game.UI.Overlays;
@@ -240,8 +242,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _debug.Visible = options.Dev; // U01: clean by default; --dev (or F3, not in a playtest) shows the overlay and the developer note
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
-        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
-        _arm = new ArmPresenter(_sim, _isSolid);
+        var gear = new PlayerGear(_sim.Equipment); // one appearance for the avatar and the arm (I09)
+        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs, gear);
+        _arm = new ArmPresenter(_sim, _isSolid, gear);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine) { BlurLevel = () => UnderwaterBlurSettings.Effective(_settings.Blur, _needsHud.EffectsOn) }; // the accessibility switch forces the blur off (H11)
         _drawer.ApplyQuality(_settings.Quality, _settings.ViewDistance); // the preset the renderer starts with; the menu changes it during the run
         ApplyFarSettings(); // B07d: the far view's detail settings, before the renderer is made
@@ -309,8 +312,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
         _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
         _settings.Changed += ApplySetting;
-        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
-        _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
+        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
+        _craftingPanel = new CraftingPanel(
+            _crafting,
+            session,
+            _sound,
+            (x, y) => CraftingLayoutNow(session).RowAt(x, y),
+            () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen,
+            () =>
+            {
+                var layout = CraftingLayoutNow(session);
+                return (layout.MaxScroll, layout.VisibleRows);
+            });
         _stationPanel = new StationPanel(
             _station,
             session,
@@ -348,7 +361,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         }
 
                         var result = session.EatItem(item);
-                        var healed = session.Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
+                        var healed = session.Data.Needs.FoodOf(session.Data.Items.Get(item).Name) is { Healing: > 0 } ? $", health {session.Needs.Value(NeedMeter.Health):0.#}" : string.Empty; // a food that heals shows the health too (N07)
                         Console.WriteLine($"eat: {result} ({item}), hunger {session.Needs.Value(NeedMeter.Hunger):0.#}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}{healed}");
                     },
                     () => Console.WriteLine($"drink: {session.DrinkByHand()}, thirst {session.Needs.Value(NeedMeter.Thirst):0.#}"),
@@ -361,8 +374,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     },
                     item =>
                     {
-                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
-                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
+                        var notGiven = session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine(GiveLine.Text(session.Data.Items.Get(item).Name, notGiven, session.Simulation.Inventory.Count(item)));
                     },
                     ground =>
                     {
@@ -386,8 +399,24 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         var hints = string.Join(" | ", session.PeekHints().Skip(hintsBefore));
                         Console.WriteLine($"camp: {result} at {x},{z} facing {facing}{(session.Camp is { } camp ? $", fire {camp.Fire.X},{camp.Fire.Y},{camp.Fire.Z}, bed {camp.Bed.X},{camp.Bed.Y},{camp.Bed.Z}, wake {camp.Wake.X},{camp.Wake.Y},{camp.Wake.Z}" : string.Empty)}{(hints.Length > 0 ? $" ({hints})" : string.Empty)}");
                     },
-                    BodyWorldReady);
-                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
+                    item =>
+                    {
+                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal leaves it in the bag (I10b)
+                        var equipment = session.Simulation.Equipment;
+                        var result = session.Simulation.WearFromStart(item, out var slot);
+                        var name = session.Data.Items.Get(item).Name;
+                        Console.WriteLine(result == Vocaterra.Game.Core.Items.Gear.EquipResult.Done && slot is { } worn
+                            ? $"equip: {name} worn in {equipment.Data.Groups[worn.Group].Id} {equipment.Data.Spec(worn).Name}"
+                            : $"equip: {name} refused ({result})");
+                    },
+                    BodyWorldReady,
+                    Wear: (item, amount) =>
+                    {
+                        // A test aid (I07): --wear item=n sets the item's wear (given first if none is carried or worn), clamped to its durability
+                        var set = session.Simulation.SetWear(item, amount);
+                        Console.WriteLine(set < 0 ? $"wear: {session.Data.Items.Get(item).Name} cannot wear out or has no room" : $"wear: {session.Data.Items.Get(item).Name} at {set}");
+                    });
+                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, session.Data.Items, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
         else
@@ -419,7 +448,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                         _toasts.Show(hint);
                     }
                 }),
-            ]);
+            ],
+            _inventoryPanel);
         _turns = new TurnPresenter(_pump, _sound, voice, _dialogue, _micCheck, Console.WriteLine);
 
         var (startWidth, startHeight) = options.StartsFullScreen ? DisplaySize() : (options.WindowWidth ?? StartWidth, options.WindowHeight ?? StartHeight);
@@ -531,6 +561,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _sim.ForceWeather(weather); // --weather holds the kind (E05); the program has checked the id against the bundle
         }
 
+        if (options.TemperatureTenths is { } tenths)
+        {
+            _session.Temperature.HeldTenths = tenths; // --temperature holds the place's temperature (I06); derived each tick, never saved
+        }
+
         if (options.TimeHour is { } hour)
         {
             _sim.FreezeClock(hour);
@@ -540,6 +575,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _sim.FreezeClock(SkyLook.DuskHour);
         }
     }
+
+    // The crafting panel's layout for the canvas and the rows as they are now, at the panel's scroll (the click and the keys use it, the layer draws the same).
+    private CraftingLayout CraftingLayoutNow(VoxelSession session) =>
+        new(_canvas.Width, _canvas.Height, CraftingScreen.Rows(session.Simulation, session.Recipes).Count, _crafting.Scroll);
 
     private void ClosePanels()
     {
@@ -824,6 +863,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Breath = BreathReading.Of(_sim); // the bubble meter (H04)
 
         var look = SkyLook.At(SkyLookInput.At(_sim.Atmosphere, _sim.Weather.Data.CloudAltitude)); // the day clock's hour, daylight and phase and the weather's channels for this frame (E02, E05)
+        _drawer.Renderer.SetPlayerLight(_session.Data.Light, StatRules.Read(_sim.Stats, StatKeys.Light), eye); // I05b: the worn items' light, drawn at the player's eye at night and underground
         _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights, look), look, _camera.CurrentEye);
         _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
@@ -1011,6 +1051,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (IsActive && _crafting.IsOpen && input.LeftClicked)
         {
             _craftingPanel.Click(input); // a row asks for one craft in the next tick
+        }
+
+        if (IsActive && _inventory.IsOpen && (input.LeftClicked || input.RightClicked))
+        {
+            _inventoryPanel.Click(input); // a bag cell, the sort button or the trash cell: left, right or shift-click (I02)
         }
 
         if (IsActive && _station.IsOpen && input.LeftClicked)

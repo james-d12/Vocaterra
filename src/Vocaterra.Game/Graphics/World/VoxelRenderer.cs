@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Light;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Core.Water.Currents;
@@ -280,6 +281,27 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     public LightBand Band => _band;
 
     private float _underwaterAmount;
+
+    private PlayerLightData? _playerLightData;
+    private double _playerLightStat;
+    private Vector3 _playerLightAt;
+
+    /// <summary>
+    /// Sets the light round the player for the frames that follow (I05b): the light's numbers, the sheet's sum of <c>light</c> and where the light is (the player's eye). It is drawn through the program only (<see cref="LightFrame"/>), at night or
+    /// underground; nothing is rebuilt and the world's light is untouched. A stat of 0 (nothing worn gives light) turns it off.
+    /// </summary>
+    /// <param name="data">The light's numbers (<c>game/light.json</c>).</param>
+    /// <param name="lightStat">The stat sheet's sum of <c>light</c>.</param>
+    /// <param name="position">The light's position in blocks.</param>
+    public void SetPlayerLight(PlayerLightData data, double lightStat, Vector3 position)
+    {
+        _playerLightData = data;
+        _playerLightStat = lightStat;
+        _playerLightAt = position;
+    }
+
+    /// <summary>The light round the player as it is drawn this frame (I05b): the stat and the data turned into a reach and a strength by the daylight at the eye (<see cref="PlayerLightGlow.Daylight"/>); <see cref="PlayerLight.Off"/> when nothing is worn or it is day.</summary>
+    public PlayerLight ActivePlayerLight => _playerLightData is { } data ? PlayerLight.Of(data, _playerLightStat, PlayerLightGlow.Daylight(WaterLight, _eyeSky)) : PlayerLight.Off;
 
     /// <summary>The share of the sky's light at the eye, 0 to 1 (B12, <see cref="SkyDepthLight"/>): 1 in the open, the cave minimum deep under the ground. 1 when the renderer has no height model.</summary>
     public float EyeSky => _eyeSky;
@@ -1289,7 +1311,13 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, GlowStrength);
             var pose = player.Moving ? FigureAnimation.Walking(player.WalkPhase) : FigureAnimation.Idle(tick, 3);
             pose = pose with { HeadPitch = Math.Clamp(-player.PitchRadians, -0.6f, 0.6f) };
-            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
+            var light = FigureLight(warm);
+            FigureMesher.Append(_figureBuffer, player.Gear?.Parts ?? NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, light);
+            if (player.Gear?.OffHand is { } offHand)
+            {
+                FigureMesher.AppendAttached(_figureBuffer, offHand, FigureGroup.ArmLeft, PlayerGear.OffHandOrigin, pose, player.X, player.Y, player.Z, player.YawRadians, light);
+            }
+
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
         }
@@ -1318,6 +1346,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var (glowR, glowG, glowB) = LanternGlow.PassColour(GlowStrength);
         var haze = _effects.HeightFog && _underwaterAmount <= 0f ? HeightFogDensity * (1f + (2f * _look.Fog)) : 0f; // thicker in fog and rain; none under water, where the water's own fog is
         var day = ChunkMesher.SunDirection;
+        var player = ActivePlayerLight;
+        var playerColour = PlayerLightGlow.Colour(player);
         return new GlLightFrame(
             eye,
             new Vector3(direction.X, direction.Y, direction.Z),
@@ -1329,7 +1359,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             1f / HeightFogScale,
             _effects.WaterShader,
             tick / (float)Vocaterra.Game.Core.Atmosphere.DayClock.TicksPerSecond,
-            WaterWave);
+            WaterWave,
+            _playerLightAt,
+            player.IsOn ? player.Radius : 0f,
+            new Vector3(playerColour.R, playerColour.G, playerColour.B));
     }
 
     /// <summary>The fog by height's density at its base height, per block (B17c): about 8 percent haze for a kilometre of the low land in the ray's way (half a percent at the near view's 60 blocks, 3 percent at its edge), more with distance: the far view lies in it.</summary>
@@ -1498,8 +1531,25 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _solid.DiffuseColor = new Vector3(frame.Light.R, frame.Light.G, frame.Light.B);
         _device.Indices = _indices;
         _solid.CurrentTechnique.Passes[0].Apply();
-        DrawDynamic(ArmMeshes.Arm());
-        var (body, glow) = ArmMeshes.Item(frame.Held);
+        DrawHand(ArmMeshes.Arm(frame.Sleeve), frame.Held, frame.Light);
+        if (frame.OffHand is { } offHand)
+        {
+            // The left arm (I09): the mirror of the right at the bottom left, resting (no swing of the gather), holding the off-hand item.
+            _solid.World = Matrix.CreateRotationX(ArmPitch) * Matrix.CreateRotationY(-ArmYaw) * Matrix.CreateTranslation(-ArmX - m.SwayX, ArmY + m.SwayY, ArmZ);
+            DrawHand(ArmMeshes.Arm(frame.Sleeve), offHand, frame.Light);
+        }
+
+        _solid.DiffuseColor = Vector3.One;
+        _solid.FogEnabled = true;
+    }
+
+    // One arm with what its hand holds: the body of the item lit like the arm, the flame of a torch at full brightness.
+    private void DrawHand(MeshBuffer arm, HeldChoice held, (float R, float G, float B) light)
+    {
+        _solid.DiffuseColor = new Vector3(light.R, light.G, light.B);
+        _solid.CurrentTechnique.Passes[0].Apply();
+        DrawDynamic(arm);
+        var (body, glow) = ArmMeshes.Item(held);
         DrawDynamic(body);
         if (glow.VertexCount > 0)
         {
@@ -1507,9 +1557,6 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             _solid.CurrentTechnique.Passes[0].Apply();
             DrawDynamic(glow);
         }
-
-        _solid.DiffuseColor = Vector3.One;
-        _solid.FogEnabled = true;
     }
 
     /// <inheritdoc />
@@ -1907,10 +1954,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
 /// <param name="PitchRadians">The look up (positive) or down.</param>
 /// <param name="WalkPhase">The stride, which grows with the distance walked.</param>
 /// <param name="Moving">Whether the player is walking.</param>
-public readonly record struct PlayerAvatar(float X, float Y, float Z, float YawRadians, float PitchRadians, float WalkPhase, bool Moving);
+public readonly record struct PlayerAvatar(float X, float Y, float Z, float YawRadians, float PitchRadians, float WalkPhase, bool Moving, PlayerGear? Gear = null);
 
 /// <summary>What the first-person arm is doing and holding this frame (S15).</summary>
 /// <param name="Held">The model of the selected item.</param>
 /// <param name="Motion">The sway and the swing.</param>
 /// <param name="Light">The scene's light on the arm (<see cref="ArmLight"/>).</param>
-public readonly record struct ArmFrame(HeldChoice Held, ArmMotion Motion, (float R, float G, float B) Light);
+/// <param name="Sleeve">The sleeve colour the worn gear gives (I09), or <see langword="null"/> for the player's plain sleeve.</param>
+/// <param name="OffHand">What the left hand holds (I09), or <see langword="null"/> for no second arm.</param>
+public readonly record struct ArmFrame(HeldChoice Held, ArmMotion Motion, (float R, float G, float B) Light, (byte R, byte G, byte B)? Sleeve = null, HeldChoice? OffHand = null);

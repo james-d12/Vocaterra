@@ -19,6 +19,7 @@ public sealed class FigureDirector : ITickObserver
     private readonly VoxelSimulation _sim;
     private readonly LookControl _look;
     private readonly DialogueModel _dialogue;
+    private readonly PlayerGear _gear;
     private double _walkDistance;
     private (double X, double Z)? _lastWalkPoint;
 
@@ -28,8 +29,10 @@ public sealed class FigureDirector : ITickObserver
     /// <param name="look">The player's look.</param>
     /// <param name="dialogue">The panel: the NPC it is open on is the one talking.</param>
     /// <param name="npcs">The NPCs' data (their labels and looks).</param>
-    public FigureDirector(Scene scene, VoxelSimulation sim, LookControl look, DialogueModel dialogue, NpcRoster npcs)
+    /// <param name="gear">What the worn gear looks like, or <see langword="null"/> to watch the simulation's own equipment.</param>
+    public FigureDirector(Scene scene, VoxelSimulation sim, LookControl look, DialogueModel dialogue, NpcRoster npcs, PlayerGear? gear = null)
     {
+        _gear = gear ?? new PlayerGear(sim.Equipment);
         Figures = NpcFigures.FromScene(scene, npcs);
         _sim = sim;
         _look = look;
@@ -91,6 +94,7 @@ public sealed class FigureDirector : ITickObserver
     {
         var body = _sim.Player;
         var moving = body.VelocityX != 0 || body.VelocityZ != 0;
+        _gear.Refresh();
         return new PlayerAvatar(
             (float)(body.CenterX / (double)VoxelPhysics.UnitsPerBlock),
             (float)(body.FeetY / (double)VoxelPhysics.UnitsPerBlock),
@@ -98,6 +102,7 @@ public sealed class FigureDirector : ITickObserver
             (float)(_look.YawSteps * Math.Tau / Angles.StepsPerTurn),
             (float)(_look.PitchSteps * Math.Tau / Angles.StepsPerTurn),
             (float)(_walkDistance * 2.6),
-            moving);
+            moving,
+            _gear.Appearance.IsNone ? null : _gear);
     }
 }

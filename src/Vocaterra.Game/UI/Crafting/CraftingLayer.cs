@@ -41,7 +41,7 @@ public sealed class CraftingLayer : IFrameLayer
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
         var rows = CraftingScreen.Rows(view.Voxel, view.Session.Recipes);
-        var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count);
+        var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count, view.Crafting.Scroll);
         var panel = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
@@ -55,18 +55,27 @@ public sealed class CraftingLayer : IFrameLayer
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, layout.RowWidth, 1), new Color(255, 214, 64, 120));
 
         var hovered = view.Mouse is { } mouse ? layout.RowAt(mouse.X, mouse.Y) : null;
-        foreach (var row in rows)
+        for (var place = layout.Scroll; place < Math.Min(rows.Count, layout.Scroll + layout.VisibleRows); place++)
         {
-            DrawRow(spriteBatch, view, font, layout, row, hovered == row.Index);
+            DrawRow(spriteBatch, view, font, layout, rows[place], place, hovered == place); // a row's place is its position on the panel: repair rows (I07) come and go, so it is not the recipe's index
+        }
+
+        if (layout.Scrolls)
+        {
+            // I10b: rows are off the panel, so a track and a thumb show where the window is (the wheel and Up, Down, Page Up and Page Down move it).
+            var (tx, ty, tw, th) = layout.Track;
+            spriteBatch.Draw(pixel, new Rectangle(tx, ty, tw, th), new Color(70, 70, 90));
+            var (hx, hy, hw, hh) = layout.Thumb;
+            spriteBatch.Draw(pixel, new Rectangle(hx, hy, hw, hh), Gold);
         }
 
         DrawHelpers.Text(spriteBatch, font, ui.Ui("craftingHints"), new Vector2(left, panel.Bottom - 26), Hints);
     }
 
-    private static void DrawRow(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, CraftingLayout layout, CraftingRow row, bool hovered)
+    private static void DrawRow(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, CraftingLayout layout, CraftingRow row, int place, bool hovered)
     {
         var pixel = view.Pixel;
-        var box = new Rectangle(layout.RowX, layout.RowY(row.Index), layout.RowWidth, layout.RowHeight);
+        var box = new Rectangle(layout.RowX, layout.RowY(place), layout.RowWidth, layout.RowHeight);
         spriteBatch.Draw(pixel, box, row.CanMake ? Ready : Dim);
         DrawHelpers.Border(spriteBatch, pixel, box, hovered && row.CanMake ? 2 : 1, row.CanMake ? (hovered ? Gold : Enough) : new Color(70, 70, 90));
         var middle = box.Center.Y - 8;
@@ -78,9 +87,11 @@ public sealed class CraftingLayer : IFrameLayer
         view.DrawIcon(spriteBatch, item, new Rectangle(box.Left + 8, box.Center.Y - (size / 2), size, size));
         var x = box.Left + 8 + Icon + 10;
         var name = view.Session.Nouns.LabelOf(item) ?? output.Lemma; // the item's own label (manzana asada), else the noun
-        var label = row.Recipe.OutputCount > 1
-            ? $"{name} x{row.Recipe.OutputCount.ToString(CultureInfo.InvariantCulture)}"
-            : name;
+        var label = row.Recipe.Rule.Repairs
+            ? $"{name} ({view.Session.Locale.Ui("craftRepair").ToLowerInvariant()})" // I07: a repair row names the item it mends
+            : row.Recipe.OutputCount > 1
+                ? $"{name} x{row.Recipe.OutputCount.ToString(CultureInfo.InvariantCulture)}"
+                : name;
         x = DrawWord(spriteBatch, font, label, x, middle, words.SaturationOf(output.Lemma), 130);
 
         for (var i = 0; i < row.Recipe.Ingredients.Count; i++)

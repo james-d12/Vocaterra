@@ -42,14 +42,15 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 9 (B05) keys the world edits by chunk coordinates (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the
-    /// dense chunk index, drops <c>world</c> (the chunk counts), and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only). It is the oldest this
-    /// code reads: the game is unreleased, so a save of an older version is refused and none is migrated.
+    /// The format version this code writes. Version 11 (I07) adds the optional <c>wear</c> of an inventory slot and of a worn item (left out at 0). Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
+    /// name and item name, and, with 11, is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, B05, keyed the world edits by chunk coordinates
+    /// (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the dense chunk index, dropped <c>world</c> (the chunk counts) and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only);
+    /// I01 stored an inventory slot's item by its name in place of the code's enum name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
-    public const int CurrentVersion = 9;
+    public const int CurrentVersion = 11;
 
-    /// <summary>The oldest format version this code reads: 9. The game is unreleased, so a save of an older version is refused and none is migrated (B05).</summary>
-    public const int OldestReadableVersion = 9;
+    /// <summary>The oldest format version this code reads: 11. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, B05, I01, I03b).</summary>
+    public const int OldestReadableVersion = 11;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -129,7 +130,12 @@ public static class SaveGame
             throw new InvalidOperationException("The game is not at rest: the guide is still thinking, the key words are on show or an opening waits. Save in a moment.");
         }
 
-        var state = session.Simulation.CaptureState();
+        if (!session.Simulation.ReturnHeld())
+        {
+            throw new InvalidOperationException("A stack is held at the cursor and the bag has no room for it: put it down (the inventory screen) and save again.");
+        }
+
+        var state = session.Simulation.CaptureState(); // nothing is held now: the held stack and the trash are not in a save (I02)
         return new SaveDocument(
             FormatName,
             CurrentVersion,
@@ -146,7 +152,7 @@ public static class SaveGame
             new GatherSave(state.GatherTarget, state.GatherBlock, state.GatherProgress),
             state.NoBottleHint,
             state.Player,
-            state.Slots.Select(static slot => new SlotSave(slot.Item, slot.Count)).ToArray(),
+            state.Slots.Select(slot => SlotSave.Of(slot, session.Data.Items)).ToArray(),
             session.ObjectiveCounts().Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
@@ -167,12 +173,13 @@ public static class SaveGame
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
-            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), session.CaptureSleep(), state.Atmosphere, session.CaptureLand()),
+            Systems: new SystemsSave(session.Needs.Capture(), session.CaptureChest(), session.CaptureBushes(), session.CaptureGifts(), session.CapturePlanted(), session.CaptureProcedures(), session.CaptureSleep(), state.Atmosphere, session.CaptureLand(), session.Temperature.Capture()),
             MetNpcs: session.MetNpcs,
             Air: state.Air == Vocaterra.Game.Core.Water.Breath.MaxAir ? null : state.Air,
             Flow: state.Flow is { Count: > 0 } ? state.Flow : null,
             DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null,
             GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null,
+            Worn: WornSave.Of(session.Simulation.Equipment),
             PassOpen: session.Pass.IsOpen && session.Pass.Locked);
     }
 
@@ -248,6 +255,7 @@ public static class SaveGame
         }
 
         VoxelSession session;
+        var repairs = new List<string>(); // what the load put right in the slots (an item the bundle lacks, a worn item its slot does not take); each is logged
         try
         {
             if (collector is null)
@@ -266,7 +274,7 @@ public static class SaveGame
                 document = SaveMigration.Adapt(document, session, collector);
             }
 
-            RestoreParts(session, document, migrating);
+            RestoreParts(session, document, migrating, repairs);
             if (collector is not null)
             {
                 KeepPlayerOutOfWalls(session, spawn, collector);
@@ -274,7 +282,7 @@ public static class SaveGame
         }
         catch (ArgumentException ex)
         {
-            throw new SaveException($"The save does not restore: {ex.Message}");
+            throw new SaveException($"The save does not restore. {PlainMessage(ex)}");
         }
 
         if (session.StoredTime.UnixSeconds != document.StoredTime)
@@ -284,9 +292,15 @@ public static class SaveGame
 
         var digest = session.Simulation.ComputeStateDigest();
         var digestMatched = string.Equals(digest, document.StateDigest, StringComparison.Ordinal);
-        if (!digestMatched && collector is null)
+        if (!digestMatched && collector is null && repairs.Count == 0)
         {
             throw new SaveException($"The restored world does not match the save's digest: the save is damaged or was made by another build (the restored digest is {digest}, the save says {document.StateDigest}).");
+        }
+
+        foreach (var repair in repairs)
+        {
+            // I10b, QA-2026-11-19-save-1: the digest was taken with what the load had to put right, so with a repair it is only reported, as across bundles; each repair is in the log.
+            session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.SaveRepaired, null, repair));
         }
 
         if (collector is not null)
@@ -346,7 +360,7 @@ public static class SaveGame
         }
 
         session.ClearUnsaved();
-        RestoreParts(session, document, migrating: false); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
+        RestoreParts(session, document, migrating: false, repairs: new List<string>()); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
         if (!collapse)
         {
             session.NoteSleptAt(); // Y02: after the restore, which brought back the save taken before this sleep; a sleep at no place and a collapse leave the last place as it was
@@ -361,9 +375,38 @@ public static class SaveGame
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
-    private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating)
+    private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating, List<string> repairs)
     {
-        var slots = document.Inventory.Select(static slot => new ItemStack(slot.Item, slot.Count)).ToArray();
+        var items = session.Data.Items;
+        for (var i = 0; i < document.Inventory.Count; i++)
+        {
+            var slot = document.Inventory[i];
+            if (!string.IsNullOrEmpty(slot.Item) && slot.Count <= 0 && !migrating)
+            {
+                throw new SaveException($"The save cannot be loaded: bag slot {i + 1} holds {slot.Item} but gives no count for it.");
+            }
+
+            if (!string.IsNullOrEmpty(slot.Item) && slot.Count > 0 && items.Find(slot.Item) is null)
+            {
+                repairs.Add($"bag slot {i + 1}: {slot.Item} is not in this bundle, the slot loads empty");
+            }
+        }
+
+        var slots = document.Inventory.Select(slot => slot.ToStack(items)).ToArray();
+        var load = WornSave.Resolve(document.Worn, session.Data.Equipment, items); // I03b: what the data lacks loads as nothing
+        var worn = load.Stacks;
+        repairs.AddRange(load.Dropped.Select(static line => line + ", the slot loads empty"));
+        foreach (var (stack, where) in load.Misfits)
+        {
+            var room = Array.FindIndex(slots, static s => s.IsEmpty);
+            if (room >= 0)
+            {
+                slots[room] = stack; // the fit check: an item worn where its slot does not take it goes to the bag
+            }
+
+            repairs.Add(room >= 0 ? $"{where}, moved to bag slot {room + 1}" : $"{where}, and the bag has no room for it");
+        }
+
         session.Simulation.Restore(new VoxelSimulationState(
             document.Tick,
             document.SelectedSlot,
@@ -375,7 +418,9 @@ public static class SaveGame
             slots,
             document.Air ?? Vocaterra.Game.Core.Water.Breath.MaxAir,
             document.Flow,
-            document.Systems?.Atmosphere)); // E01: a save without an entry starts the clock as a new game has it
+            document.Systems?.Atmosphere, // E01: a save without an entry starts the clock as a new game has it
+            worn));
+        session.Temperature.Restore(document.Systems?.Temperature); // I06c: the felt temperature (the band it falls in slows the walk and quickens the thirst)
         session.RestoreLand(document.Systems?.Land); // Y09: the pending plot and the owned one (the rules come from the scene)
         session.RestoreSleep(document.Systems?.Sleep); // Y02: the places made in play go back before anything that asks SleepPlaces (the objective's sleep line, the arrow)
         session.RestoreSkippedSeconds(document.SkippedSeconds);
@@ -439,6 +484,22 @@ public static class SaveGame
                 }
             }
         }
+    }
+
+    // An argument exception's message with the ".NET parameter name" suffix taken off, so a refusal reads as a sentence.
+    private static string PlainMessage(ArgumentException ex)
+    {
+        var message = ex.Message;
+        if (ex.ParamName is { Length: > 0 } name)
+        {
+            var suffix = $" (Parameter '{name}')";
+            if (message.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                message = message[..^suffix.Length];
+            }
+        }
+
+        return message;
     }
 
     private static int FloorDiv(int value, int divisor) => (int)Math.Floor(value / (double)divisor);

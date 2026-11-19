@@ -130,7 +130,7 @@ public sealed class ScenarioScriptTests
 
         var inventory = run.Session.Simulation.Inventory;
         Assert.Equal(1, inventory.Count(ItemId.Bottle));
-        Assert.Equal(1, inventory.Count(ItemId.Bread));
+        Assert.Equal(1, inventory.Count(TestItems.Bread));
         Assert.Contains(run.Dialogue.Lines, static l => l.Speaker == DialogueSpeaker.Guide && l.Text.Contains("botella", StringComparison.Ordinal));
         Assert.Equal(2, run.Dialogue.TurnCount);
         Assert.True(run.Dialogue.IsOpen); // the panel stays up at the end, for the screenshot

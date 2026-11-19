@@ -232,7 +232,7 @@ public sealed class ProcedureRunner
             return StartOutcome.Resumed;
         }
 
-        if (Items(procedure) is null)
+        if (Items(procedure, _nouns.Items) is null)
         {
             return StartOutcome.Unavailable;
         }
@@ -614,12 +614,12 @@ public sealed class ProcedureRunner
     }
 
     // The items of a procedure as inventory kinds, or null when the game does not have one of them.
-    internal static ProcedureItems? Items(ProcedureDefinition procedure)
+    internal static ProcedureItems? Items(ProcedureDefinition procedure, IItemCatalogue catalogue)
     {
         var uses = new List<(ItemId Item, int Count, ItemId? Leaves)>();
         foreach (var use in procedure.Uses)
         {
-            if (ItemOf(use.Item) is not { } item)
+            if (ItemOf(catalogue, use.Item) is not { } item)
             {
                 return null;
             }
@@ -627,7 +627,7 @@ public sealed class ProcedureRunner
             ItemId? leaves = null;
             if (use.Leaves is not null)
             {
-                if (ItemOf(use.Leaves) is not { } left)
+                if (ItemOf(catalogue, use.Leaves) is not { } left)
                 {
                     return null;
                 }
@@ -638,20 +638,19 @@ public sealed class ProcedureRunner
             uses.Add((item, use.Count, leaves));
         }
 
-        return ItemOf(procedure.Makes.Item) is { } made ? new ProcedureItems(uses, made) : null;
+        return ItemOf(catalogue, procedure.Makes.Item) is { } made ? new ProcedureItems(uses, made) : null;
     }
 
-    private string NounOf(ItemId item) => _nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name;
+    private string NounOf(ItemId item) => _nouns.ForItem(item)?.Lemma ?? _nouns.Items.Get(item).Name;
 
     private bool Names(string noun, ItemId item) => _nouns.ForLemma(noun)?.Items.Contains(item) == true;
 
-    private static ItemId? ItemOf(string name) =>
-        ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, name, StringComparison.Ordinal))?.Id;
+    private static ItemId? ItemOf(IItemCatalogue catalogue, string name) => catalogue.Find(name)?.Id;
 
     // The exchange (design 10.13): everything or nothing. An ingredient gone re-opens the step that used it; a full bag leaves the run ready to collect.
     private ActResult Exchange(ProcedureDefinition procedure, Run run, Inventory inventory, long time, ActOutcome outcome)
     {
-        var items = Items(procedure)!;
+        var items = Items(procedure, _nouns.Items)!;
         var missing = items.Uses.Where(u => inventory.Count(u.Item) < u.Count).Select(static u => u.Item).ToList();
         if (missing.Count > 0)
         {

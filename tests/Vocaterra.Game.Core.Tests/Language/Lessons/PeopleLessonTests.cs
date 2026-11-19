@@ -236,13 +236,13 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
 
             if (step.Id == "g3-lives")
             {
-                Assert.Equal((2, 0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Axe)));
+                Assert.Equal((2, 0, 0), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(TestItems.Axe)));
             }
 
             if (step.Id == "g4-back")
             {
                 // The goods went and the axe came, the moment the talk opened.
-                Assert.Equal((0, 0, 1), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Axe)));
+                Assert.Equal((0, 0, 1), (session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(TestItems.Axe)));
             }
         }
 
@@ -312,7 +312,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         }
 
         Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete);
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Axe));
         Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), static e => e.StepId == "g4-back" && e.Detail == "delivered before"); // made at its own step
     }
 
@@ -477,7 +477,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         Assert.True(early.HasOrder("axe-handle"));
         early.EndTalk();
         _ = early.OpenTalkForClass("smith"); // the next talk takes the goods, handed over in Spanish (D-game-27)
-        Assert.Equal((0, 0, 1), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin), early.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.Equal((0, 0, 1), (early.Simulation.Inventory.Count(ItemId.Wood), early.Simulation.Inventory.Count(ItemId.Coin), early.Simulation.Inventory.Count(TestItems.Axe)));
 
         var poor = TestGame.NewSessionWithShippedLessons().TakeOrders("axe-handle");
         poor.Day = 6;
@@ -488,7 +488,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         var short1 = poor.OpenTalkForClass("smith"); // one coin is not enough: nothing changes hands, he greets as usual
         Assert.False(short1.Delivered);
         Assert.Equal(["¡Hola!"], short1.Lines);
-        Assert.Equal((3, 1, 0), (poor.Simulation.Inventory.Count(ItemId.Wood), poor.Simulation.Inventory.Count(ItemId.Coin), poor.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.Equal((3, 1, 0), (poor.Simulation.Inventory.Count(ItemId.Wood), poor.Simulation.Inventory.Count(ItemId.Coin), poor.Simulation.Inventory.Count(TestItems.Axe)));
         Assert.DoesNotContain(poor.Events.OfType<WorldEvent>(), static e => e.Name is WorldEvents.ItemTaken or WorldEvents.OrderDelivered && e.Npc == "smith");
 
         var session = TestGame.NewSessionWithShippedLessons().TakeOrders("axe-handle");
@@ -504,7 +504,7 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         var turn = session.HandOverGoods()!; // «Aquí tienes la madera y las monedas.»
 
         Assert.Equal(["¡Gracias! Toma el hacha."], turn.FollowUp);
-        Assert.Equal((1, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(ItemId.Axe)));
+        Assert.Equal((1, 0, 1), (session.Simulation.Inventory.Count(ItemId.Wood), session.Simulation.Inventory.Count(ItemId.Coin), session.Simulation.Inventory.Count(TestItems.Axe)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.OrderDelivered && e.Npc == "smith" && e.Detail == "axe-handle");
         Assert.True(session.Objectives.Single(static o => o.Id == "axe-handle").Complete);
         Assert.Equal(1, session.ObjectiveStep("axe-handle.delivered")!.Count);
@@ -513,6 +513,6 @@ public sealed class PeopleLessonTests(ITestOutputHelper output)
         session.EndTalk();
         _ = session.Simulation.GrantItems(ItemId.Coin, 2);
         Assert.False(session.OpenTalkForClass("smith").Delivered);
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Axe));
     }
 }

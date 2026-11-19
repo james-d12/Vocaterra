@@ -43,7 +43,7 @@ public sealed class StationPanelTests
     public void WhatCanBeHeldIsTheBagTheToolsAndTheEmptyHandAndPagesByNine()
     {
         var rig = new StationRig();
-        _ = rig.Session.Simulation.Inventory.Add(ItemId.Apple, 3);
+        _ = rig.Session.Simulation.Inventory.Add(TestItems.Apple, 3);
         _ = rig.Session.Simulation.Inventory.Add(ItemId.Coin, 2);
         _ = rig.Panel.Open("horno");
         var view = rig.View;
@@ -57,7 +57,7 @@ public sealed class StationPanelTests
 
         // Twenty more kinds of thing would not fit: the list pages by nine, and Page Up and Page Down turn it.
         var crowded = new StationRig();
-        foreach (var item in ItemDefinition.All.Where(d => crowded.Session.Nouns.ForItem(d.Id) is not null).Take(14))
+        foreach (var item in TestItems.Catalogue.All.Where(d => crowded.Session.Nouns.ForItem(d.Id) is not null).Take(14))
         {
             _ = crowded.Session.Simulation.Inventory.Add(item.Id, 1);
         }
@@ -149,7 +149,7 @@ public sealed class StationPanelTests
         rig.Press(GameKey.D1); // sacar
         Assert.Equal(ProcedureState.Done, rig.View.State);
         Assert.Equal(StationNotice.Done, rig.View.Notice);
-        Assert.Equal(3, rig.Session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, rig.Session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public sealed class StationPanelTests
         rig.DoStep(order[1]);
         rig.DoStep(order[2]);
         Assert.Equal(StationNotice.Done, rig.View.Notice);
-        Assert.Equal(3, rig.Session.Simulation.Inventory.Count(ItemId.Bread)); // two, and one more: all three steps were right the first time
+        Assert.Equal(3, rig.Session.Simulation.Inventory.Count(TestItems.Bread)); // two, and one more: all three steps were right the first time
         Assert.Equal(1, rig.Session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Equal(0, rig.Session.Simulation.Inventory.Count(ItemId.Wood));
     }
@@ -371,12 +371,12 @@ public sealed class StationPanelTests
     {
         var rig = new StationRig();
         var bag = rig.Session.Simulation.Inventory;
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < bag.SlotCount; slot++)
         {
             bag.SetSlot(slot, default);
         }
 
-        for (var slot = 0; slot < Inventory.SlotCount - 3; slot++)
+        for (var slot = 0; slot < bag.SlotCount - 3; slot++)
         {
             bag.SetSlot(slot, new ItemStack(ItemId.Torch, 1));
         }
@@ -392,7 +392,7 @@ public sealed class StationPanelTests
 
         Assert.Equal(ProcedureState.ReadyToCollect, rig.View.State);
         Assert.Equal(StationNotice.BagFull, rig.View.Notice);
-        Assert.Equal(0, bag.Count(ItemId.Bread)); // nothing was used up
+        Assert.Equal(0, bag.Count(TestItems.Bread)); // nothing was used up
         rig.Press(GameKey.Enter);
         Assert.Equal(ProcedureState.ReadyToCollect, rig.View.State); // still no room
         Assert.True(bag.RemoveFromSlot(0, 1));
@@ -400,7 +400,7 @@ public sealed class StationPanelTests
         rig.Press(GameKey.Enter);
         Assert.Equal(ProcedureState.Done, rig.View.State);
         Assert.Equal(StationNotice.Done, rig.View.Notice);
-        Assert.Equal(3, bag.Count(ItemId.Bread));
+        Assert.Equal(3, bag.Count(TestItems.Bread));
     }
 
     [Fact]

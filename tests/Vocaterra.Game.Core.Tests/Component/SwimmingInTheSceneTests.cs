@@ -71,7 +71,7 @@ public sealed class SwimmingInTheSceneTests
         Assert.NotNull(column);
         var (x, z, floor, top) = column.Value;
         var surface = (top * U) + WaterSurface.Units(scene.Grid.GetWater(x, top, z), false);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         sim.TeleportTo(new BlockPos(x, floor + 1, z));
         var jump = new VoxelCommand(VoxelCommandKind.Jump);
 

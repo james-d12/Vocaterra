@@ -348,7 +348,7 @@ public sealed class ProcedureRunnerTests
     {
         var clean = new Rig();
         Assert.Equal(3, clean.Bake(T0).Made); // two loaves and one for three first-time steps
-        Assert.Equal(3, clean.Bag.Count(ItemId.Bread));
+        Assert.Equal(3, clean.Bag.Count(TestItems.Bread));
         Assert.Equal((1, 0, 0), (clean.Bag.Count(ItemId.Bottle), clean.Bag.Count(ItemId.WaterBottle), clean.Bag.Count(ItemId.Wood)));
 
         var slipped = new Rig();
@@ -386,7 +386,7 @@ public sealed class ProcedureRunnerTests
 
         Assert.Equal(ProcedureState.InRun, result.State);
         Assert.Equal(["madera"], result.Missing);
-        Assert.Equal(0, rig.Bag.Count(ItemId.Bread));
+        Assert.Equal(0, rig.Bag.Count(TestItems.Bread));
         Assert.Equal(1, rig.Bag.Count(ItemId.WaterBottle)); // nothing was used up
         Assert.Equal("madera", rig.Runner.View().StepId);
         _ = rig.Bag.Add(ItemId.Wood, 1);
@@ -397,8 +397,8 @@ public sealed class ProcedureRunnerTests
     [Fact]
     public void AFullBagLeavesTheBakeReadyToCollectAndItGrantsOnce()
     {
-        var rig = new Rig { Bag = new Inventory() };
-        for (var slot = 0; slot < Inventory.SlotCount - 3; slot++)
+        var rig = new Rig { Bag = new Inventory(TestItems.Catalogue) };
+        for (var slot = 0; slot < rig.Bag.SlotCount - 3; slot++)
         {
             rig.Bag.SetSlot(slot, new ItemStack(ItemId.Torch, 1));
         }
@@ -414,16 +414,16 @@ public sealed class ProcedureRunnerTests
         }
 
         Assert.Equal(ProcedureState.ReadyToCollect, last!.State);
-        Assert.Equal((0, 2, 1), (rig.Bag.Count(ItemId.Bread), rig.Bag.Count(ItemId.Wood), rig.Bag.Count(ItemId.WaterBottle))); // nothing was used up
+        Assert.Equal((0, 2, 1), (rig.Bag.Count(TestItems.Bread), rig.Bag.Count(ItemId.Wood), rig.Bag.Count(ItemId.WaterBottle))); // nothing was used up
         Assert.Equal(ProcedureState.ReadyToCollect, rig.Collect().State); // still no room
         Assert.DoesNotContain(rig.Runner.DrainEvents(), static e => e.Name == WorldEvents.ProcedureDone);
 
         Assert.True(rig.Bag.RemoveFromSlot(0, 1)); // a torch dropped
         var collected = rig.Collect();
         Assert.Equal((ProcedureState.Done, 3), (collected.State, collected.Made));
-        Assert.Equal((3, 1, 0, 1), (rig.Bag.Count(ItemId.Bread), rig.Bag.Count(ItemId.Wood), rig.Bag.Count(ItemId.WaterBottle), rig.Bag.Count(ItemId.Bottle)));
+        Assert.Equal((3, 1, 0, 1), (rig.Bag.Count(TestItems.Bread), rig.Bag.Count(ItemId.Wood), rig.Bag.Count(ItemId.WaterBottle), rig.Bag.Count(ItemId.Bottle)));
         Assert.Equal(ActOutcome.NotRunning, rig.Collect().Outcome); // collecting again grants nothing
-        Assert.Equal(3, rig.Bag.Count(ItemId.Bread));
+        Assert.Equal(3, rig.Bag.Count(TestItems.Bread));
         Assert.Single(rig.Runner.DrainEvents(), static e => e.Name == WorldEvents.ProcedureDone);
     }
 
@@ -472,7 +472,7 @@ public sealed class ProcedureRunnerTests
         _ = other.Act(order[1], T0 + Hour);
         var done = other.Act(order[2], T0 + Hour);
         Assert.Equal(ProcedureState.Done, done.State);
-        var breads = other.Bag.Count(ItemId.Bread);
+        var breads = other.Bag.Count(TestItems.Bread);
 
         var replay = new Rig();
         replay.Bag = other.Bag;
@@ -480,7 +480,7 @@ public sealed class ProcedureRunnerTests
         Assert.Equal(ProcedureState.Done, replay.Runner.State);
         Assert.Equal(ActOutcome.NotRunning, replay.Act(order[0], T0).Outcome);
         Assert.Equal(ActOutcome.NotRunning, replay.Collect().Outcome);
-        Assert.Equal(breads, replay.Bag.Count(ItemId.Bread));
+        Assert.Equal(breads, replay.Bag.Count(TestItems.Bread));
         Assert.Null(new Rig().Runner.Capture()); // nothing to save yet
     }
 

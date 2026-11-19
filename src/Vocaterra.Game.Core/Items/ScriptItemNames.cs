@@ -6,7 +6,10 @@ namespace Vocaterra.Game.Core.Items;
 public static class ScriptItemNames
 {
     /// <summary>The item <paramref name="name"/> names, or <see langword="null"/>.</summary>
-    public static ItemId? Resolve(NounCatalog nouns, string name)
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="items">The item catalogue (its keys, any case).</param>
+    /// <param name="name">A noun's lemma or an item's key.</param>
+    public static ItemId? Resolve(NounCatalog nouns, IItemCatalogue items, string name)
     {
         var noun = nouns.ForLemma(name);
         if (noun is not null && noun.Items.Count > 0)
@@ -14,7 +17,7 @@ public static class ScriptItemNames
             return noun.Items[0];
         }
 
-        foreach (var definition in ItemDefinition.All)
+        foreach (var definition in items.All)
         {
             if (string.Equals(definition.Name, name, StringComparison.OrdinalIgnoreCase))
             {

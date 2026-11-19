@@ -92,7 +92,7 @@ public sealed class BiomeTourSeedsTests
     {
         Assert.True(LaunchOptions.TryParse(BiomeTourTests.TourArguments(name), out var options, out _));
         var scene = Scene(seed);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var log = new List<string>();
         var steps = options.VoxelSteps.Where(static s => s.Kind is VoxelStepKind.Teleport or VoxelStepKind.TeleportTo).ToList();
         var script = new VoxelScript(sim, new LookControl(), steps, static _ => null, log.Add);

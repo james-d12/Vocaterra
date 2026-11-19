@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Items.Containers;
 
 namespace Vocaterra.Game.Core.Scripted;
 
@@ -37,6 +38,52 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
 
     /// <summary>Craft the recipe that makes the item (its Spanish noun or the item's key).</summary>
     public static VoxelStep Craft(string item) => new(VoxelStepKind.Craft, Item: item);
+
+    /// <summary>Repair the item at the workbench (its Spanish noun or the item's key; I07).</summary>
+    public static VoxelStep Repair(string item) => new(VoxelStepKind.Repair, Item: item);
+
+    /// <summary>A step that moves items by hand (I02): <paramref name="action"/> at a slot of a container (<see cref="ContainerIds"/>); the container and slot are ignored by sort and return.</summary>
+    public static VoxelStep SlotMove(MoveAction action, int container, int slot) => new(VoxelStepKind.SlotMove, X: container, Y: slot, Slot: (int)action);
+
+    /// <summary>
+    /// Reads <c>action[,container,slot]</c> (I02): the action is <c>left</c>, <c>right</c>, <c>shift</c>, <c>sort</c> or <c>return</c>; the container <c>bag</c>, <c>equip</c> or <c>trash</c>; the slot a number from 0 (the equipment's is its flat index).
+    /// Sort and return take no container and slot.
+    /// </summary>
+    /// <param name="value">The text after <c>--move</c>.</param>
+    /// <param name="step">The step, when the text is valid.</param>
+    public static bool TryParseMove(string value, out VoxelStep step)
+    {
+        step = null!;
+        var parts = value.Split(',', StringSplitOptions.TrimEntries);
+        MoveAction? action = parts[0] switch
+        {
+            "left" => MoveAction.LeftClick,
+            "right" => MoveAction.RightClick,
+            "shift" => MoveAction.QuickMove,
+            "sort" => MoveAction.Sort,
+            "return" => MoveAction.ReturnHeld,
+            _ => null,
+        };
+        if (action is not { } move)
+        {
+            return false;
+        }
+
+        if (move is MoveAction.Sort or MoveAction.ReturnHeld)
+        {
+            step = SlotMove(move, ContainerIds.Bag, 0);
+            return parts.Length == 1;
+        }
+
+        int? container = parts.Length == 3 ? parts[1] switch { "bag" => ContainerIds.Bag, "equip" => ContainerIds.Equipment, "trash" => ContainerIds.Trash, _ => null } : null;
+        if (container is not { } id || !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var slot))
+        {
+            return false;
+        }
+
+        step = SlotMove(move, id, slot);
+        return true;
+    }
 
     /// <summary>A step that pours a water source into a cell (a debug step).</summary>
     public static VoxelStep Pour(int x, int y, int z) => new(VoxelStepKind.Pour, X: x, Y: y, Z: z);

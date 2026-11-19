@@ -103,7 +103,7 @@ public sealed class HostActionTests
         var turn = session.Say(line);
 
         Assert.Equal("request_item", turn.Intent);
-        Assert.Equal(expected, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(expected, session.Simulation.Inventory.Count(TestItems.Bread));
         var given = Assert.Single(WorldEventsOf(session, WorldEvents.ItemGiven));
         Assert.Equal(("villager", "pan, request"), (given.Npc, given.Detail));
     }
@@ -115,21 +115,21 @@ public sealed class HostActionTests
 
         _ = session.Say("quiero dos panes, por favor");
 
-        Assert.Equal(3, session.Simulation.Inventory.Count(ItemId.Bread));
+        Assert.Equal(3, session.Simulation.Inventory.Count(TestItems.Bread));
     }
 
     [Fact]
     public void GiveItemGivesNothingWhenTheInventoryCannotTakeThemAll()
     {
         var session = AtVillager(WithVillagerGive(new JsonObject { ["kind"] = "give_item", ["item"] = "book", ["count"] = 1 }));
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, new ItemStack(ItemId.Book, 1)); // every slot full: the book stacks one
         }
 
         _ = session.Say("quiero pan, por favor");
 
-        Assert.Equal(Inventory.SlotCount, session.Simulation.Inventory.Count(ItemId.Book));
+        Assert.Equal(session.Simulation.Inventory.SlotCount, session.Simulation.Inventory.Count(ItemId.Book));
         Assert.Empty(WorldEventsOf(session, WorldEvents.ItemGiven)); // nothing is lost: the NPC keeps it
     }
 
@@ -155,6 +155,6 @@ public sealed class HostActionTests
     {
         var root = JsonNode.Parse(File.ReadAllText(Repo.Path("content", "game-v1", "game", "host-events.json")))!;
         root["events"]!.AsArray().First(e => e!["event"]!.GetValue<string>() == "villager.give")!["action"] = action;
-        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString()));
+        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString(), TestItems.Catalogue));
     }
 }

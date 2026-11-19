@@ -345,6 +345,75 @@ public enum BlockCell
 
     /// <summary>The icon of the camp kit (the item, Y11): a small green tent with a dark door and a rolled bedroll in front. Placed last, so no other cell moves.</summary>
     IconCampKit,
+
+    /// <summary>The icon of a folded bolt of pale blue cloth (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCloth,
+
+    /// <summary>The icon of a brown hide (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconLeather,
+
+    /// <summary>The icon of a grey iron ingot (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconIron,
+
+    /// <summary>The icon of a straw hat with a red band (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconHat,
+
+    /// <summary>The icon of an orange woolly cap with a pom-pom (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCap,
+
+    /// <summary>The icon of a cream shirt (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconShirt,
+
+    /// <summary>The icon of an olive jacket (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconJacket,
+
+    /// <summary>The icon of a wine-red coat (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconCoat,
+
+    /// <summary>The icon of blue trousers (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconTrousers,
+
+    /// <summary>The icon of a brown shoe (the item, I08a). Placed last, so no other cell moves.</summary>
+    IconShoes,
+
+    /// <summary>The icon of a steel helmet (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconHelmet,
+
+    /// <summary>The icon of a steel cuirass (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconCuirass,
+
+    /// <summary>The icon of a pair of steel greaves (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconGreaves,
+
+    /// <summary>The icon of a steel-capped boot (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBoots,
+
+    /// <summary>The icon of a gold ring with a red gem (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconRing,
+
+    /// <summary>The icon of a turquoise bracelet (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBracelet,
+
+    /// <summary>The icon of a brown belt with a gold buckle (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBelt,
+
+    /// <summary>The icon of a silver chain with a blue pendant (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconNecklace,
+
+    /// <summary>The icon of a gold medallion on a cord (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconAmulet,
+
+    /// <summary>The icon of a wine-red shield (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconShield,
+
+    /// <summary>The icon of an iron lantern (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconLantern,
+
+    /// <summary>The icon of a green backpack (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconBackpack,
+
+    /// <summary>The icon of a tan sack (the item, I08b). Placed last, so no other cell moves.</summary>
+    IconSack,
 }
 
 /// <summary>
@@ -361,7 +430,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 15; // B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
+    public const int ColourRows = 17; // I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b (which fit); B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -472,38 +541,68 @@ public static class BlockAtlasLayout
     /// <param name="row">The cell's row within the colour block (a grey copy's row minus <see cref="ColourRows"/>).</param>
     public static bool IsUiOnly(int column, int row) => (row * Columns) + column >= (int)BlockCell.IconBowl;
 
-    /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
-    public static BlockCell? IconFor(ItemId item) => item switch
+    // The art by icon key (I01): the keys of game/items.json and of the station fixtures (W07). An item's `icon` names one; a key with no art draws the fallback tile.
+    private static readonly Dictionary<string, BlockCell> IconCells = new(StringComparer.Ordinal)
     {
-        ItemId.Wood => BlockCell.IconWood,
-        ItemId.Berry => BlockCell.IconBerry,
-        ItemId.Torch => BlockCell.IconTorch,
-        ItemId.Bottle => BlockCell.IconBottle,
-        ItemId.WaterBottle => BlockCell.IconWaterBottle,
-        ItemId.Bread => BlockCell.IconBread,
-        ItemId.Book => BlockCell.IconBook,
-        ItemId.Coin => BlockCell.IconCoin,
-        ItemId.Apple => BlockCell.IconApple,
-        ItemId.Axe => BlockCell.IconAxe,
-        ItemId.RoastApple => BlockCell.IconRoastApple,
-        ItemId.Flour => BlockCell.IconFlour,
-        ItemId.Stake => BlockCell.IconStake,
-        ItemId.CampKit => BlockCell.IconCampKit,
-        _ => null,
+        ["wood"] = BlockCell.IconWood,
+        ["berry"] = BlockCell.IconBerry,
+        ["torch"] = BlockCell.IconTorch, // S15: a stick with its flame, not the flame's square
+        ["bottle"] = BlockCell.IconBottle,
+        ["water-bottle"] = BlockCell.IconWaterBottle,
+        ["bread"] = BlockCell.IconBread,
+        ["book"] = BlockCell.IconBook,
+        ["coin"] = BlockCell.IconCoin,
+        ["apple"] = BlockCell.IconApple,
+        ["axe"] = BlockCell.IconAxe,
+        ["roast-apple"] = BlockCell.IconRoastApple,
+        ["flour"] = BlockCell.IconFlour,
+        ["stake"] = BlockCell.IconStake,
+        ["camp-kit"] = BlockCell.IconCampKit,
+        ["cloth"] = BlockCell.IconCloth,
+        ["leather"] = BlockCell.IconLeather,
+        ["iron"] = BlockCell.IconIron,
+        ["hat"] = BlockCell.IconHat,
+        ["cap"] = BlockCell.IconCap,
+        ["shirt"] = BlockCell.IconShirt,
+        ["jacket"] = BlockCell.IconJacket,
+        ["coat"] = BlockCell.IconCoat,
+        ["trousers"] = BlockCell.IconTrousers,
+        ["shoes"] = BlockCell.IconShoes,
+        ["helmet"] = BlockCell.IconHelmet,
+        ["cuirass"] = BlockCell.IconCuirass,
+        ["greaves"] = BlockCell.IconGreaves,
+        ["boots"] = BlockCell.IconBoots,
+        ["ring"] = BlockCell.IconRing,
+        ["bracelet"] = BlockCell.IconBracelet,
+        ["belt"] = BlockCell.IconBelt,
+        ["necklace"] = BlockCell.IconNecklace,
+        ["amulet"] = BlockCell.IconAmulet,
+        ["shield"] = BlockCell.IconShield,
+        ["lantern"] = BlockCell.IconLantern,
+        ["backpack"] = BlockCell.IconBackpack,
+        ["sack"] = BlockCell.IconSack,
+        ["bowl"] = BlockCell.IconBowl,
+        ["spoon"] = BlockCell.IconSpoon,
+        ["oven"] = BlockCell.IconOven,
     };
 
-    /// <summary>
-    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
-    /// fixture added to the content never shows as a hole.
-    /// </summary>
-    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, or any other).</param>
-    public static BlockCell IconForKey(string key) => key switch
+    /// <summary>The icon keys the atlas has art for: what an item's <c>icon</c> in <c>game/items.json</c> may name (the content check reports any other).</summary>
+    public static IReadOnlySet<string> IconKeys { get; } = IconCells.Keys.ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>The cell that draws an item as an icon (the hotbar and the held item): the one its <see cref="ItemDefinition.Icon"/> key names, or the fallback tile (<see cref="BlockCell.IconPlain"/>) when the atlas has no art for the key.</summary>
+    /// <param name="item">The item's definition.</param>
+    public static BlockCell IconFor(ItemDefinition item)
     {
-        "bowl" => BlockCell.IconBowl,
-        "spoon" => BlockCell.IconSpoon,
-        "oven" => BlockCell.IconOven,
-        _ => ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, key, StringComparison.Ordinal)) is { } item && IconFor(item.Id) is { } cell ? cell : BlockCell.IconPlain,
-    };
+        ArgumentNullException.ThrowIfNull(item);
+        return IconForKey(item.Icon);
+    }
+
+    /// <summary>
+    /// The cell that draws an icon by its key (W07: a station fixture's <c>icon</c> in <c>stations.json</c>, an item's <c>icon</c> in <c>items.json</c>, or a made thing's noun). A key with no art of its own draws the plain tile, so a
+    /// fixture or an item added to the content never shows as a hole.
+    /// </summary>
+    /// <param name="key">The icon key (<c>bowl</c>, <c>spoon</c>, <c>oven</c>, an item's key, or any other).</param>
+    public static BlockCell IconForKey(string key) => IconCells.TryGetValue(key, out var cell) ? cell : BlockCell.IconPlain;
 
     /// <summary>The cell's rectangle in pixels of the atlas texture (x, y, width, height).</summary>
     public static (int X, int Y, int Width, int Height) PixelRectangle(BlockCell cell)

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Damage;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Water;
 
@@ -8,13 +9,16 @@ public sealed partial class VoxelSession
     private DrowningDamage? _drowning;
 
     // The drowning rule over the needs' health. It hurts only while the needs run in active play (off, like hunger and thirst, nothing takes health).
-    private DrowningDamage Drowning => _drowning ??= new DrowningDamage(new NeedsHealth(Needs, () => NeedsEnabled && PlayActive));
+    private DrowningDamage Drowning => _drowning ??= new DrowningDamage(Modified(new NeedsHealth(Needs, () => NeedsEnabled && PlayActive)));
+
+    // I05a: the health behind the damage pipeline, which runs the modifiers game/damage.json names for each cause over the stat sheet.
+    private ModifiedHealth Modified(IPlayerHealth inner) => new(inner, Data.Damage, DamageModifiers.Standard(() => Simulation.Wear), () => Simulation.Stats);
 
     /// <summary>The health the water hurts: <see cref="NeedsHealth"/> over the player's needs, unless a test puts another in.</summary>
     internal IPlayerHealth PlayerHealth
     {
         get => Drowning.Health;
-        set => Drowning.Health = value ?? throw new ArgumentNullException(nameof(value));
+        set => Drowning.Health = Modified(value ?? throw new ArgumentNullException(nameof(value)));
     }
 
     /// <summary>Feeds the tick's out-of-air events to the drowning rule.</summary>

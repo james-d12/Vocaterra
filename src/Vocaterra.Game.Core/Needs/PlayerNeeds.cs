@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Stats;
+
 namespace Vocaterra.Game.Core.Needs;
 
 /// <summary>
@@ -80,6 +82,15 @@ public sealed class PlayerNeeds
 
     /// <summary>The share of its rate each drive falls at: 1, or one half with the relaxed-needs setting (N05, design decision 17). A setting of the player, never saved with the meters.</summary>
     public double RateFactor { get; set; } = 1;
+
+    /// <summary>What a hot band multiplies the thirst's fall by (I06c, <see cref="Temperature.TemperatureBand.ThirstFactor"/>): 1 or more, on top of <see cref="RateFactor"/> and the stat sheet's drain. Set by the session each tick; never saved.</summary>
+    public double ThirstFactor { get; set; } = 1;
+
+    /// <summary>
+    /// The player's stat sheet, read live (I05a): <see cref="StatKeys.HungerDrain"/> and <see cref="StatKeys.ThirstDrain"/> slow or quicken that drive's fall on top of <see cref="RateFactor"/>, and
+    /// <see cref="StatKeys.MaxStamina"/> raises stamina's ceiling. Empty (no change) until the session points it at the simulation's sheet; never saved, so a load needs the equipment back first.
+    /// </summary>
+    public Func<StatSheet> Stats { get; set; } = static () => StatSheet.Empty;
 
     /// <summary>The value of a meter.</summary>
     /// <param name="meter">Which meter.</param>
@@ -196,7 +207,7 @@ public sealed class PlayerNeeds
         }
 
         var stamina = _data.Stamina;
-        var maximum = Math.Max(stamina.MinimumMaximum, stamina.Maximum - penalty);
+        var maximum = Math.Max(stamina.MinimumMaximum, stamina.Maximum - penalty + StatRules.Read(Stats(), StatKeys.MaxStamina)); // I05a: the gear's bonus is taken where the penalty is
         refill = Math.Max(stamina.MinimumRefillFactor, refill);
         var recovery = blocked || loss > 0 || RecoveryHeld ? 0 : (1 / _data.Health.RecoverySeconds) * (resting ? _data.Rest.RecoveryFactor : 1);
         return new NeedEffects(maximum, refill, stamina.RefillPerSecond * refill * (resting ? _data.Rest.RefillFactor : 1), walk, sprint, loss, blocked, recovery, views);
@@ -220,8 +231,9 @@ public sealed class PlayerNeeds
         var sprinting = activity == NeedActivity.Sprinting && CanSprint;
         var gathering = activity == NeedActivity.Gathering;
         var fallSeconds = seconds * RateFactor;
-        _hunger = Fall(_hunger, _data.Of(Drive.Hunger), fallSeconds, sprinting, gathering);
-        _thirst = Fall(_thirst, _data.Of(Drive.Thirst), fallSeconds, sprinting, gathering);
+        var sheet = Stats();
+        _hunger = Fall(_hunger, _data.Of(Drive.Hunger), fallSeconds * StatRules.Read(sheet, StatKeys.HungerDrain), sprinting, gathering);
+        _thirst = Fall(_thirst, _data.Of(Drive.Thirst), fallSeconds * StatRules.Read(sheet, StatKeys.ThirstDrain) * ThirstFactor, sprinting, gathering);
         _sleep = Fall(_sleep, _data.Of(Drive.Sleep), fallSeconds, sprinting, gathering);
 
         var effects = Effects(activity == NeedActivity.Resting);

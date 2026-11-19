@@ -103,12 +103,13 @@ var names = NpcRoster.Load(bundle).All.Where(static npc => npc.Name is not null)
 Inventory? bag = null;
 if (options.Bag is { } entries)
 {
-    bag = new Inventory();
+    var catalogue = ItemCatalogue.Load(bundle);
+    bag = new Inventory(catalogue);
     foreach (var entry in entries)
     {
-        if (ItemDefinition.All.FirstOrDefault(item => string.Equals(item.Name, entry.Item, StringComparison.Ordinal)) is not { } definition)
+        if (catalogue.Find(entry.Item) is not { } definition)
         {
-            Console.Error.WriteLine($"There is no item '{entry.Item}'. The items are: {string.Join(", ", ItemDefinition.All.Select(static item => item.Name))}.");
+            Console.Error.WriteLine($"There is no item '{entry.Item}'. The items are: {string.Join(", ", catalogue.All.Select(static item => item.Name))}.");
             return ExitUsage;
         }
 

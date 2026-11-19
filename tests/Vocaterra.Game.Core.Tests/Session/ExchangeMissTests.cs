@@ -38,7 +38,7 @@ public sealed class ExchangeMissTests
     // Fills every empty slot of the bag with one torch: nothing new fits, and a stack that is there still takes more.
     private static void FillTheBag(VoxelSession session)
     {
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             if (session.Simulation.Inventory.Slots[slot].IsEmpty)
             {
@@ -64,7 +64,7 @@ public sealed class ExchangeMissTests
     public void ACatalogueNounOfNoItemIsAnotherThingAndAWordTheCatalogueLacksOrNoItemIsTheNpcsOwn()
     {
         var nouns = TestGame.Data.Nouns;
-        var bread = NpcEffect.SellAt(ItemId.Bread, 2);
+        var bread = NpcEffect.SellAt(TestItems.Bread, 2);
 
         Assert.True(bread.ItemSaidIn(Slots(("item", "pan")), nouns));
         Assert.True(bread.ItemSaidIn(Slots(("qty", "2")), nouns)); // no item slot: the NPC's item, as the doc comment says
@@ -88,7 +88,7 @@ public sealed class ExchangeMissTests
         Assert.Equal(("request_item", word), (turn.Intent, turn.Slots["item"]));
         Assert.Empty(turn.Replies); // not "Aquí tienes el pan. ¡Gracias!"
         Assert.Equal(["Solo vendo pan."], turn.FollowUp);
-        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread)));
+        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread)));
         Assert.Equal("baker.wont_sell", LastHostEvent(session));
         NothingChangedHands(session);
     }
@@ -116,7 +116,7 @@ public sealed class ExchangeMissTests
 
         var bread = At("baker", (ItemId.Coin, 4));
         _ = bread.Say("quiero dos panes");
-        Assert.Equal((0, 2), (Count(bread, ItemId.Coin), Count(bread, ItemId.Bread)));
+        Assert.Equal((0, 2), (Count(bread, ItemId.Coin), Count(bread, TestItems.Bread)));
     }
 
     // ---- R8: no room in the bag
@@ -133,7 +133,7 @@ public sealed class ExchangeMissTests
         Assert.Equal("request_item", turn.Intent);
         Assert.Empty(turn.Replies); // not her sale's line: before V19 she said it and nothing was given
         Assert.Equal([Full], turn.FollowUp);
-        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread)));
+        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread)));
         Assert.Equal(records + 2, session.Conversation.RecordCount);
         Assert.Equal("baker.no_room", LastHostEvent(session));
         NothingChangedHands(session);
@@ -149,7 +149,7 @@ public sealed class ExchangeMissTests
 
         Assert.EndsWith("¡Gracias!", Assert.Single(turn.Replies), StringComparison.Ordinal);
         Assert.Empty(turn.FollowUp ?? []);
-        Assert.Equal((0, 3), (Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((0, 3), (Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
     }
 
     [Theory]
@@ -198,24 +198,24 @@ public sealed class ExchangeMissTests
         var turn = session.Say("quiero quince manzanas"); // five apples for five coins before V19, with the success line
 
         Assert.EndsWith("¡Gracias!", Assert.Single(turn.Replies), StringComparison.Ordinal);
-        Assert.Equal((0, 15), (Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((0, 15), (Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
 
         var poor = At("farmer", (ItemId.Coin, 12));
         var dear = poor.Say("quiero quince manzanas");
         Assert.Empty(dear.Replies);
         Assert.Equal(["Necesitas más monedas. Una manzana cuesta una moneda."], dear.FollowUp);
-        Assert.Equal((12, 0), (Count(poor, ItemId.Coin), Count(poor, ItemId.Apple)));
+        Assert.Equal((12, 0), (Count(poor, ItemId.Coin), Count(poor, TestItems.Apple)));
     }
 
     [Fact]
     public void ANumberOfTwelveDigitsOverflowsNothingItCostsMoreThanTheBagHolds()
     {
-        var bag = new Inventory();
+        var bag = new Inventory(TestItems.Catalogue);
         Assert.Equal(0, bag.Add(ItemId.Coin, 15));
         var huge = Slots(("item", "manzana"), ("qty", "1000000000000"));
 
-        Assert.Equal(NpcHostEvents.CantPay, NpcEffect.SellAt(ItemId.Apple, 1).ExchangeMiss(huge, bag, TestGame.Data.Nouns));
-        Assert.Equal(int.MaxValue, NpcEffect.SellAt(ItemId.Bread, 2).CostFor(huge));
+        Assert.Equal(NpcHostEvents.CantPay, NpcEffect.SellAt(TestItems.Apple, 1).ExchangeMiss(huge, bag, TestGame.Data.Nouns));
+        Assert.Equal(int.MaxValue, NpcEffect.SellAt(TestItems.Bread, 2).CostFor(huge));
         Assert.Equal(15, NpcEffect.BuyAt(ItemId.Wood, 1).SaleCountFor(huge, 15)); // a sale of twelve digits: what the bag holds
     }
 
@@ -233,7 +233,7 @@ public sealed class ExchangeMissTests
         Assert.Equal(("request_item", "0"), (turn.Intent, turn.Slots["qty"]));
         Assert.Empty(turn.Replies); // no success line: before V19 the baker sold one loaf
         Assert.Equal([answer], turn.FollowUp);
-        Assert.Equal((4, 0, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread), Count(session, ItemId.Apple)));
+        Assert.Equal((4, 0, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread), Count(session, TestItems.Apple)));
         Assert.Equal(hostEvent, LastHostEvent(session));
         NothingChangedHands(session);
     }

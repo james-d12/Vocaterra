@@ -82,10 +82,9 @@ public sealed class GreyscaleTests
         var coloured = 0;
         foreach (var noun in TestGame.Nouns.Nouns.Where(static n => n.Items.Count > 0))
         {
-            var cell = BlockAtlasLayout.IconFor(noun.Items[0]);
-            Assert.NotNull(cell);
-            var colour = Crop(atlas, BlockAtlasLayout.PixelRectangle(cell.Value));
-            var grey = Crop(atlas, BlockAtlasLayout.GreyPixelRectangle(cell.Value));
+            var cell = BlockAtlasLayout.IconFor(TestItems.Catalogue.Get(noun.Items[0]));
+            var colour = Crop(atlas, BlockAtlasLayout.PixelRectangle(cell));
+            var grey = Crop(atlas, BlockAtlasLayout.GreyPixelRectangle(cell));
             if (!colour.SequenceEqual(grey))
             {
                 coloured++;

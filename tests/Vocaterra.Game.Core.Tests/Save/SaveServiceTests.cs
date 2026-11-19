@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
@@ -32,6 +33,34 @@ public sealed class SaveServiceTests : IDisposable
         Assert.Equal(2, lines.Count);
         Assert.StartsWith($"save: {path} written on F6 (session 1, tick 0,", lines[0]);
         Assert.Equal(125, saves.Capture().Settings!.TextScale);
+    }
+
+    [Fact]
+    public void Given_AHeldStackAndAFullBag_When_TheGameIsSavedAtTheQuit_Then_NothingIsWrittenAndNothingIsThrown()
+    {
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
+        var sim = session.Simulation;
+        var limit = sim.Inventory.Items.Get(TestItems.Apple).MaxStack;
+        for (var slot = 0; slot < sim.Inventory.SlotCount; slot++)
+        {
+            sim.Inventory.SetSlot(slot, new ItemStack(TestItems.Apple, limit));
+        }
+
+        sim.Held.Put(0, new ItemStack(TestItems.Bread, 1));
+        sim.Held.SetOrigin(0, 5);
+        var lines = new List<string>();
+        var settings = new SaveSettings(new SoundVolumes(), 125);
+        var saves = new SaveService(session, () => settings, lines.Add);
+        Directory.CreateDirectory(_folder);
+        var path = Path.Combine(_folder, "game.save");
+
+        var written = saves.Write(path, "at the end of the run");
+
+        Assert.False(written);
+        Assert.False(File.Exists(path));
+        Assert.Single(lines);
+        Assert.Contains("held", lines[0]);
+        Assert.False(sim.Held.IsEmpty); // the stack stays held, never lost
     }
 
     [Fact]

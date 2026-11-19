@@ -26,6 +26,54 @@
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
+      "answerId": "iron",
+      "canonical": "quiero hierro",
+      "aliases": ["necesito hierro", "quiero el hierro"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "helmet",
+      "canonical": "quiero un casco",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "cuirass",
+      "canonical": "quiero una coraza",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "greaves",
+      "canonical": "quiero grebas",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "boots",
+      "canonical": "quiero botas",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "shield",
+      "canonical": "quiero un escudo",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "lantern",
+      "canonical": "quiero un farol",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "torch",
+      "canonical": "quiero una antorcha",
+      "aliases": [],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
       "answerId": "hello",
       "canonical": "hola",
       "aliases": ["buenos días", "buenas tardes", "buen día"],

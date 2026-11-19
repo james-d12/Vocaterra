@@ -1,0 +1,15 @@
+{
+  "$schema": "../../schema/equipment.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "Where gear is worn and what each place accepts (I03a, D-game-35, inventory-plan 3.4). Each group is a row: code never names a group, it follows the flags, so a seventh group is one more row here. A group has either `slots` (named body slots; the item's `wear` must equal the slot's name) or `count` with a `wear` kind (that many identical slots). `accepts` lists the item tags the group takes (an item with any of them fits). `layer` is where the avatar draws the group (1 under, 2 over, 3 looks only; left out for a group that is not a layer), `noDuplicates` allows one of a kind in the group, and `statsApply` says whether the worn items give their stats (false for the cosmetic layer). `heading` (a layered group) is the Spanish noun that heads its column in the panel (I04b); `labels` (or `label` for counted slots) is the Spanish noun the equipment panel (I04) names the slot with; a slot with no label waits for a word the lexicon has. `bagSlots` is the inventory with no bag worn (the hotbar's 10 and 20 more); a worn bag adds its `capacity` (items.json), and a bag with items in the slots it adds cannot come off (I03b). The order of the groups and of their slots is part of the bundle: commands and the digest carry indexes.",
+  "bagSlots": 30,
+  "groups": [
+    { "id": "clothing", "layer": 1, "heading": "ropa", "slots": ["head", "body", "legs", "feet"], "labels": { "head": "cabeza", "body": "cuerpo", "legs": "pierna", "feet": "pie" }, "accepts": ["clothing"], "noDuplicates": false, "statsApply": true },
+    { "id": "armour", "layer": 2, "heading": "armadura", "slots": ["head", "body", "legs", "feet"], "labels": { "head": "cabeza", "body": "cuerpo", "legs": "pierna", "feet": "pie" }, "accepts": ["armour"], "noDuplicates": false, "statsApply": true },
+    { "id": "cosmetic", "layer": 3, "heading": "apariencia", "slots": ["head", "body", "legs", "feet"], "labels": { "head": "cabeza", "body": "cuerpo", "legs": "pierna", "feet": "pie" }, "accepts": ["clothing", "armour"], "noDuplicates": false, "statsApply": false },
+    { "id": "accessories", "count": 3, "wear": "accessory", "accepts": ["accessory"], "noDuplicates": true, "statsApply": true },
+    { "id": "offhand", "count": 1, "wear": "offhand", "label": "mano", "accepts": ["offhand"], "noDuplicates": false, "statsApply": true },
+    { "id": "backpack", "count": 1, "wear": "back", "label": "espalda", "accepts": ["bag"], "noDuplicates": false, "statsApply": true }
+  ]
+}

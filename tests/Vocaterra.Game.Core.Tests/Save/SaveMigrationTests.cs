@@ -65,7 +65,7 @@ public sealed class SaveMigrationTests
         Assert.Equal(document.Words.Count, loaded.Words.Records.Count);
         Assert.Equal(CampSteps(document).Length, loaded.Objective.Steps.Count);
         Assert.Equal(CampSteps(document).Select(static o => o.Count), loaded.Objective.Steps.Select(static s => s.Count));
-        Assert.Equal(document.Inventory.Select(static s => (s.Item, s.Count)), loaded.Simulation.Inventory.Slots.Select(static s => (s.IsEmpty ? default : s.Item, s.Count)));
+        Assert.Equal(document.Inventory, loaded.Simulation.Inventory.Slots.Select(static s => SlotSave.Of(s, TestItems.Catalogue)));
         Assert.Equal(document.Learner!.History.Count, loaded.Learner.History.Count);
         Assert.Equal(document.Learner.Words.Count, loaded.Learner.Rows.Count);
         Assert.Equal(document.Session, loaded.Day); // bump off here: the session number is kept
@@ -319,7 +319,7 @@ public sealed class SaveMigrationTests
     [Fact]
     public void TheFixtureLoadsStrictAndAcrossBundles()
     {
-        var text = SaveFixture.Read("save-v9.json");
+        var text = SaveFixture.Read("save-v11.json");
 
         var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);

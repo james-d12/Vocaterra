@@ -142,7 +142,7 @@ public sealed class FirstPersonCameraTests
     public void ThePlayersEyeIsWhereTheSimulationPutsIt()
     {
         var scene = RouteScene.Build();
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), (int)Math.Round(LookControl.DegreesToSteps(-30)))]);
         var body = sim.Player;
         var camera = new FirstPersonCamera();

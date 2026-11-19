@@ -24,17 +24,17 @@ public sealed class GameTurnTests
     [Fact]
     public void AMissedGiftDropsTheOfferOfBreadWithAnEmptyBag()
     {
-        var bag = new Inventory();
+        var bag = new Inventory(GameContent.Data.Items);
 
         var lines = AgentLines(Agent("quiero madera", "stall-need", bag));
 
-        Assert.Equal(["No tengo eso. Tengo agua, pan y harina."], lines);
+        Assert.Equal(["No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares."], lines);
     }
 
     [Fact]
     public void AMissedGiftIsRefusedWithoutABagToo()
     {
-        Assert.Equal(["No tengo eso. Tengo agua, pan y harina."], AgentLines(Agent("quiero madera", "stall-need")));
+        Assert.Equal(["No tengo eso. Tengo agua, pan, harina, tela, cuero, ropa, bolsas, anillos y collares."], AgentLines(Agent("quiero madera", "stall-need")));
     }
 
     [Fact]

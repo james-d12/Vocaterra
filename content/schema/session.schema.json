@@ -43,18 +43,13 @@
     },
     "grants": {
       "type": "array",
-      "items": {
-        "enum": [
-          "wood",
-          "torch",
-          "berry",
-          "bottle",
-          "water-bottle",
-          "bread",
-          "book"
-        ]
-      },
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
       "description": "The items the learner starts with, one of each."
+    },
+    "wears": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "description": "The items the learner starts wearing, each put on in the first slot that takes it (I08a); each needs a wear slot."
     },
     "beaconStart": {
       "type": "string",

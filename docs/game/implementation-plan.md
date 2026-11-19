@@ -635,6 +635,38 @@ The design, the owner's answers and the progress table are in [the biomes plan](
 | B24a | The valley underground's threads and its timing test (codebase review C9; the test failed four full runs in a row at load 11 to 19 on 2026-11-17, passing alone in 8 s, B07e's and B20's gates): `ValleyUnderground.Lay` on at most two threads (or the host's degree) instead of `Parallel.For` on up to eight; `TheUndergroundCostsUnderOneSecond` measures something that holds under load (CPU time of the laying thread, or a count of cells visited, or marked slow with a wide bound), without hiding a real slowdown | B13 | S | Haiku 5.5 | done 2026-11-17 (`ef932990`) |
 
 The build order is the plan's section 4 "Order": each milestone starts once its dependencies are gated, up to four building agents at once (D-game-34 item 19) (owner, 2026-11-15, 17:27 UTC: "only have 1 agent max"; it was three earlier that day), the critical path first. The owner reviews at four stops, and only the work that depends on a stop waits for it: B02 (the maps, before tuning), B07 (the performance gate and the pictures), B08b (the pass) and B13 (caves and ores in the valley).
+### 4.15 Inventory and equipment (the I series; owner, 2026-11-15, D-game-35)
+
+Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefix `I<nn>:`. (Section 4.14 is the B series, biomes, on
+`feature/biomes`.) The design, the owner's answers, the build order and the owner-review stops are in
+[the inventory plan](inventory-plan.md); the statuses below follow its section 8.
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| I00 | The series registered: these rows, the activities plan's notes, D-game-23 (c) amended, the open items | acceptance | S | orchestrator | done, 2026-11-15 |
+| I01 | Items as data: `items.json` and its schema, `IItemCatalogue` in place of the static table, icons by key, the validator's item checks, the save's next version (W12 taken over) | I00 | L | Sonnet 5.5, high | done: gated at `e865a818` on `feature/inventory` (2026-11-15), 11543 passed |
+| I06 | Temperature and cold: `PlaceTemperature` and its terms, `temperature.json`, the cold bands and walk factor, the HUD's cold icon, «Tengo frío», `--temperature` | I00 | M | Sonnet 5.5, high | done: gated at `a9e5df38` on `feature/inventory` (2026-11-16), 11632 passed; owner-review stop 2 waits |
+| I03a | The equipment core: `equipment.json`, `Equipment`, the items' `wear`, `stats` and `look`, the equip rules, `StatSheet` and its contributors, the equip commands | I01 | L | Sonnet 5.5, high | done: gated at `1627482f` on `feature/inventory` (2026-11-16), 11751 passed |
+| I03b | The bag (base 30 plus the worn bag), the off-hand and cosmetic slots, the death rule, the state and digest, the save's next version | I03a | M | Sonnet 5.5, high | done: gated at `805b2c73` (11,819 passed); save version 10 |
+| I02 | Interaction: `ISlotContainer`, `InventoryOps`, the held stack, swap, merge, split, shift-click, sort and trash as commands | I03b | M | Sonnet 5.5, medium | done: gated at `95aedf89` (11,905 passed) |
+| I09 | Gear on the player: the avatar's layers, the bag on the back, the off-hand item, the sleeve's colour | I03b | M | Sonnet 5.5, medium | done: gated at `50ae2330` (11,996 passed); screenshots wait for the owner |
+| I05a | Stat consumers: walk speed, a drain factor per need, the stamina bonus, the `IDamageModifier` pipeline and `damage.json` | I03b, I06 | M | Sonnet 5.5, medium | done: gated at `b9aac8c9` (11,977 passed) |
+| I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | done (2026-11-18, `f0b6a882`, 13,359 passed, 9 skipped) |
+| I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | done: gated at `0cf31798` (12,102 passed); screenshots wait for the owner |
+| I04b | The panel's fixes from the first screenshots and the off-hand cell by the hotbar (owner, 2026-11-16) | I04 | S | Sonnet 5.5, high | done (2026-11-18, `3334359e`, 13,301 passed, 9 skipped) |
+| I10a | The close-out's documents and scripted runs | all | S | Sonnet 5.5, medium | done (2026-11-19, `38ad4243`, 13,796 passed, 9 skipped) |
+| I10b | The QA passes' fixes and colder nights (owner, 2026-11-19) | I10a | M | Sonnet 5.5, high | done (2026-11-19, `31bff0ab`, 13,871 passed, 9 skipped) |
+| I09b | The player's looks and the axe's durability (owner, 2026-11-19) | I09, I08b, I07 | S | Sonnet 5.5, medium | done (2026-11-19, `abec8f65`, 13,796 passed, 9 skipped) |
+| I06c | The temperature as a climate model (owner, 2026-11-18) | I06b | M | Sonnet 5.5, high | done (2026-11-18, `3e4f2fb9`, 13,517 passed, 9 skipped) |
+| I06b | The world's climate in the player's temperature (owner, 2026-11-18, stop 3) | I06 | S | Sonnet 5.5, medium | done (2026-11-18, `a773a307`, 13,330 passed, 9 skipped) |
+| I04c | The doll's headings as bare nouns (owner, 2026-11-18) | I04b | S | Sonnet 5.5, medium | done (2026-11-18, `b048d781`, 13,312 passed, 9 skipped) |
+| I-merge3 | Merge `main`'s world-next series (PR #72) into `feature/inventory` (owner, 2026-11-19) | I10b | S | Sonnet 5.5, medium | done (2026-11-19, `6c19e3ad`, 13,981 passed, 9 skipped) |
+| I-merge2 | Merge `main`'s throughput series (PR #70) into `feature/inventory` (owner, 2026-11-18) | I-merge | S | Sonnet 5.5, medium | done (2026-11-18, `c3bd3c2b`, 13,234 passed, 9 skipped; timing 23) |
+| I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | done (2026-11-18, gated with I-merge2 at `c3bd3c2b`) |
+| I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | done (2026-11-18, `1ed01a66`, 13,451 passed, 9 skipped) |
+| I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | done (2026-11-19, `73cb085e`, 13,659 passed, 9 skipped) |
+| I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | done (2026-11-19, `75b2494f`, 13,790 passed, 9 skipped) |
+| I10 | Close-out: the documents, the scripted runs, QA, the full gate, the screenshot tour, the pull request | all | S | Haiku 5.5 | todo |
 
 ## 5. Findings log
 

@@ -37,7 +37,7 @@ public sealed class CaveTourTests
         Assert.True(LaunchOptions.TryParse(TourArguments(), out var options, out _));
         var scene = StreamedWorlds.Scene();
         scene.Grid.Barrier = null; // the tour runs with --pass open: the valley's edge wall is lifted
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var places = scene.Places!;
         var log = new List<string>();
         var steps = options.VoxelSteps.Where(static s => s.Kind is VoxelStepKind.Teleport or VoxelStepKind.TeleportTo).ToList();

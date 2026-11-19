@@ -62,6 +62,31 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheMoveStepsCarryTheActionTheContainerAndTheSlot()
+    {
+        var options = Parse("--screenshot", "a.png", "--move", "left,bag,12", "--move", "shift,equip,3", "--move", "right,trash,0", "--move", "sort", "--move", "return");
+
+        var steps = options.VoxelSteps;
+        Assert.All(steps, static s => Assert.Equal(VoxelStepKind.SlotMove, s.Kind));
+        Assert.Equal((Vocaterra.Game.Core.Items.Containers.MoveAction.LeftClick, 0, 12), ((Vocaterra.Game.Core.Items.Containers.MoveAction)steps[0].Slot, steps[0].X, steps[0].Y));
+        Assert.Equal((Vocaterra.Game.Core.Items.Containers.MoveAction.QuickMove, 1, 3), ((Vocaterra.Game.Core.Items.Containers.MoveAction)steps[1].Slot, steps[1].X, steps[1].Y));
+        Assert.Equal((Vocaterra.Game.Core.Items.Containers.MoveAction.RightClick, 2, 0), ((Vocaterra.Game.Core.Items.Containers.MoveAction)steps[2].Slot, steps[2].X, steps[2].Y));
+        Assert.Equal(Vocaterra.Game.Core.Items.Containers.MoveAction.Sort, (Vocaterra.Game.Core.Items.Containers.MoveAction)steps[3].Slot);
+        Assert.Equal(Vocaterra.Game.Core.Items.Containers.MoveAction.ReturnHeld, (Vocaterra.Game.Core.Items.Containers.MoveAction)steps[4].Slot);
+    }
+
+    [Theory]
+    [InlineData("jump,bag,1")]
+    [InlineData("left,bag")]
+    [InlineData("left,chest,1")]
+    [InlineData("left,bag,x")]
+    [InlineData("sort,bag,1")]
+    public void AMoveStepThatIsNotAnActionAndAPlaceIsRefused(string value)
+    {
+        Assert.Contains("--move", Refuse("--screenshot", "a.png", "--move", value), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheStepsKeepTheOrderTheyWereGiven()
     {
         var options = Parse("--screenshot", "a.png", "--look", "120,-5", "--walk-to", "11,17", "--interact", "9,11,17", "--craft", "antorcha", "--place", "antorcha@21,12,21", "--select", "2");

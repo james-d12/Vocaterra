@@ -16,7 +16,7 @@ public sealed partial class VoxelSession
     private PlayerNeeds? _needs;
 
     /// <summary>The player's needs: five meters and the exhaustion timer, with their stages and effects worked out from them (<see cref="PlayerNeeds"/>).</summary>
-    public PlayerNeeds Needs => _needs ??= new PlayerNeeds(Data.Needs);
+    public PlayerNeeds Needs => _needs ??= new PlayerNeeds(Data.Needs) { Stats = () => Simulation.Stats }; // I05a: the gear's drain factors and stamina bonus
 
     /// <summary>
     /// Whether the needs run at all. Off (<c>--needs off</c>, a test aid) the meters stay where they are, full unless <c>--set-need</c> set one, so the language runs keep their

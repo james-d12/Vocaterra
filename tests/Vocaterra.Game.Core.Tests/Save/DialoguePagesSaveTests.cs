@@ -142,7 +142,7 @@ public sealed class DialoguePagesSaveTests : IDisposable
     [Fact]
     public void TheSaveFixtureHoldsTheShopkeepersPage()
     {
-        var document = SaveGame.Parse(SaveFixture.Read("save-v9.json"));
+        var document = SaveGame.Parse(SaveFixture.Read("save-v11.json"));
 
         var page = Assert.Single(document.DialoguePages!);
         Assert.Equal("shopkeeper", page.Npc);

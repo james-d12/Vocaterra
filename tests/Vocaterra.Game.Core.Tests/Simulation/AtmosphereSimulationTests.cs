@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.World;
 
@@ -31,7 +32,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ThePhaseEventIsRaisedOnceAtEachBoundaryAndNotOtherwise()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
 
         var events = PhaseEvents(sim, 1600);
 
@@ -41,7 +42,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ANewSimulationRaisesNoEventForTheStartingPhase()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
 
         Assert.Equal(DayPhase.Night, sim.Phase);
         sim.Step();
@@ -52,7 +53,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ASimulationBuiltWithoutGameDataUsesTheDefaultValues()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
 
         Assert.Equal(DayData.Default, sim.Clock.Data);
         Assert.Equal(8, sim.Clock.HourAt(sim.Tick), 6);
@@ -61,7 +62,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AWakeUpAndAHeldHourRaiseNoPhaseEventAndTheClockRunsOnFromThem()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelTestSupport.Run(sim, 100); // dawn
 
         sim.WakeUp();
@@ -78,8 +79,8 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void TwoSimulationsGivenTheSameCommandsHaveTheSameClockAndDigest()
     {
-        var a = VoxelSimulation.Create(Route(), Short);
-        var b = VoxelSimulation.Create(Route(), Short);
+        var a = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
+        var b = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         foreach (var sim in new[] { a, b })
         {
             VoxelTestSupport.Run(sim, 200, VoxelCommand.Move(1, 0), VoxelCommand.Look(Angles.FromDegrees(80), 0));
@@ -95,13 +96,13 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void ASimulationRestoredAfterAWakeUpHasTheSameHourAndContinuesTheSameWay()
     {
-        var sim = VoxelSimulation.Create(Route(), Short);
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelTestSupport.Run(sim, 250, VoxelCommand.Move(1, 0));
         sim.WakeUp();
         VoxelTestSupport.Run(sim, 40, VoxelCommand.Move(1, 0));
         var state = sim.CaptureState();
 
-        var restored = VoxelSimulation.Create(Route(), Short);
+        var restored = VoxelSimulation.Create(Route(), TestItems.Catalogue, Short);
         VoxelGridDiff.Apply(restored.Grid, VoxelGridDiff.Capture(sim.Grid));
         restored.Restore(state);
 
@@ -118,7 +119,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AStateOfADefaultClockCarriesNoClockAndRestoringItGivesTheDefault()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         VoxelTestSupport.Run(sim, 30);
 
         Assert.Null(sim.CaptureState().Atmosphere);
@@ -133,7 +134,7 @@ public sealed class AtmosphereSimulationTests
     public void TheDigestOfAClockNobodyMovedIsTheDigestBeforeTheClockExisted()
     {
         // The digest is pinned for a fresh route and for the route after 120 ticks of walking: both were taken before the clock was added to the digest.
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var fresh = sim.ComputeStateDigest();
         VoxelTestSupport.Run(sim, 120, VoxelCommand.Move(1, 0));
 
@@ -144,7 +145,7 @@ public sealed class AtmosphereSimulationTests
     [Fact]
     public void AMovedOrHeldClockChangesTheDigestAndMovingItBackRestoresIt()
     {
-        var sim = VoxelSimulation.Create(Route());
+        var sim = VoxelSimulation.Create(Route(), TestItems.Catalogue);
         var before = sim.ComputeStateDigest();
 
         sim.FreezeClock(12);
@@ -161,7 +162,7 @@ public sealed class AtmosphereSimulationTests
         Assert.Equal(before, sim.ComputeStateDigest());
     }
 
-    private const string PinnedFresh = "d9053e7941e0affacf12b554bdc3cb97ed331ea7a88336e8315a1ec3d2fddcf0"; // B02d: re-pinned (the generator version is 5); B11b: re-pinned (the generator version is 3 and the header carries the new underground.json); B05: re-pinned, the state digest is the header and the changed chunks (the route as built has none); B08a: re-pinned on the merged tree (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly); B11: re-pinned (underground.json joins the header's generation hash and the generator version is 2)
+    private const string PinnedFresh = "525b6cd5e0874fa80130d32e53165a6871b331d1738adb8c9c2d455263a9b1ec"; // I-merge: re-pinned on the merged tree (the biomes series moved the world, the inventory series the active slots: 30, I03b); B02d: re-pinned (the generator version is 5); B11b: re-pinned (the generator version is 3 and the header carries the new underground.json); B05: re-pinned, the state digest is the header and the changed chunks (the route as built has none); B08a: re-pinned on the merged tree (the pass through the east ring: its road, its cutting and the rockfall that closes it); Y08: re-pinned (the ledge lost its tent, chest, crate and ring; the inn got two-cell beds and a counter block); Y06m: re-pinned; the route's world now holds the settlement's inn, so the grid digest moved (the clock still adds nothing: the version 8 fixture's digest, taken before the merge, loads strictly); B11: re-pinned (underground.json joins the header's generation hash and the generator version is 2)
 
-    private const string PinnedAfterWalking = "9b1308d1e7061916f5fc33117c2df873e804d8e904641bf6bb125497a01708e3"; // B02d: re-pinned with the one above; B11b: re-pinned with the one above; B05: re-pinned with the one above; B08a: re-pinned on the merged tree with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above; B11: re-pinned with the one above
+    private const string PinnedAfterWalking = "78b1bc0386293fa7f11ddb902d823d802825da1c3f60d7e1c095a055abec1144"; // I-merge: re-pinned with the one above; B02d: re-pinned with the one above; B11b: re-pinned with the one above; B05: re-pinned with the one above; B08a: re-pinned on the merged tree with the one above; Y08: re-pinned with the one above; Y06m: re-pinned with the one above; B11: re-pinned with the one above
 }

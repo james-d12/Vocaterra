@@ -32,7 +32,7 @@ public sealed class PriceListSessionTests
             }
         }
 
-        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString()));
+        return TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString(), TestItems.Catalogue));
     }
 
     private static VoxelSession At(string npc, params (ItemId Item, int Count)[] held)
@@ -66,10 +66,10 @@ public sealed class PriceListSessionTests
         var session = At("baker", (ItemId.Coin, 10));
 
         _ = session.Say("quiero un pan");
-        Assert.Equal((8, 1, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread), Count(session, ItemId.Apple)));
+        Assert.Equal((8, 1, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread), Count(session, TestItems.Apple)));
 
         _ = session.Say("quiero una manzana");
-        Assert.Equal((7, 1, 1), (Count(session, ItemId.Coin), Count(session, ItemId.Bread), Count(session, ItemId.Apple)));
+        Assert.Equal((7, 1, 1), (Count(session, ItemId.Coin), Count(session, TestItems.Bread), Count(session, TestItems.Apple)));
     }
 
     [Fact]
@@ -78,10 +78,10 @@ public sealed class PriceListSessionTests
         var session = At("baker", (ItemId.Coin, 10));
 
         _ = session.Say("quiero dos panes");
-        Assert.Equal((6, 2), (Count(session, ItemId.Coin), Count(session, ItemId.Bread)));
+        Assert.Equal((6, 2), (Count(session, ItemId.Coin), Count(session, TestItems.Bread)));
 
         _ = session.Say("quiero dos manzanas");
-        Assert.Equal((4, 2), (Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((4, 2), (Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
     }
 
     [Fact]
@@ -91,12 +91,12 @@ public sealed class PriceListSessionTests
 
         _ = session.Say("quiero dos panes");
 
-        Assert.Equal((3, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Bread)));
+        Assert.Equal((3, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Bread)));
         Assert.Equal("baker.cant_pay", LastHostEvent(session));
         NothingChangedHands(session);
 
         _ = session.Say("quiero dos manzanas"); // the same coins buy the cheaper item
-        Assert.Equal((1, 2), (Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((1, 2), (Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class PriceListSessionTests
     public void AFullBagKeepsTheCoinsAndTheGoods()
     {
         var session = At("baker", (ItemId.Coin, 10));
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             if (session.Simulation.Inventory.Slots[slot].IsEmpty)
             {
@@ -126,7 +126,7 @@ public sealed class PriceListSessionTests
 
         _ = session.Say("quiero dos manzanas");
 
-        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, ItemId.Apple)));
+        Assert.Equal((10, 0), (Count(session, ItemId.Coin), Count(session, TestItems.Apple)));
         Assert.Equal("baker.no_room", LastHostEvent(session));
         NothingChangedHands(session);
     }
@@ -134,7 +134,7 @@ public sealed class PriceListSessionTests
     [Fact]
     public void APricedBuyPaysEachItemItsOwnPriceAndAnUnlistedOneIsWontBuy()
     {
-        var session = At("smith", (ItemId.Wood, 4), (ItemId.Berry, 2), (ItemId.Bread, 1));
+        var session = At("smith", (ItemId.Wood, 4), (ItemId.Berry, 2), (TestItems.Bread, 1));
 
         _ = session.Say("vendo madera");
         Assert.Equal((0, 4), (Count(session, ItemId.Wood), Count(session, ItemId.Coin)));
@@ -143,7 +143,7 @@ public sealed class PriceListSessionTests
         Assert.Equal((0, 10), (Count(session, ItemId.Berry), Count(session, ItemId.Coin)));
 
         _ = session.Say("vendo pan");
-        Assert.Equal((1, 10), (Count(session, ItemId.Bread), Count(session, ItemId.Coin)));
+        Assert.Equal((1, 10), (Count(session, TestItems.Bread), Count(session, ItemId.Coin)));
         Assert.Equal("smith.wont_buy", LastHostEvent(session));
     }
 }

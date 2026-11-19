@@ -22,6 +22,9 @@ namespace Vocaterra.Game.Core.Scripted;
 /// <param name="Act">An act at the open station, <c>use,on[,verb]</c> (W07, <c>--act</c>).</param>
 /// <param name="ProcHelp">Help at the open station (W07, <c>--proc-help</c>).</param>
 /// <param name="StationSay">A typed line to the teacher from the open station; returns whether it was sent (W08, <c>--station-say</c>).</param>
+/// <param name="PlaceCamp">Sets up the camp at a ground column facing a side (Y12, <c>--place-camp</c>).</param>
+/// <param name="Equip">Gives the item if the bag has none and wears it in the first slot that takes it, saying the slot or the refusal (I03a, <c>--equip</c>).</param>
+/// <param name="Wear">Sets the wear of an item, giving the item first when none is carried or worn (I07, <c>--wear</c>).</param>
 /// <param name="WorldReady">Whether the world round the body is made (B07b): a teleport's next step waits until it is, so a shot, a walk or a look after it runs in the new place and not before the streamed world has come. Null: always.</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
@@ -45,4 +48,6 @@ public sealed record ScenarioHooks(
     Action? ProcHelp = null,
     Func<string, bool>? StationSay = null,
     Action<int, int, World.Layout.Direction>? PlaceCamp = null,
-    Func<bool>? WorldReady = null);
+    Action<ItemId>? Equip = null,
+    Func<bool>? WorldReady = null,
+    Action<ItemId, int>? Wear = null);

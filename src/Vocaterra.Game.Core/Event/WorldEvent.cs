@@ -114,6 +114,12 @@ public static class WorldEvents
     /// <summary>An item was crafted (W01; the detail is the output's noun, or its name when it has none, and the amount is the count made).</summary>
     public const string ItemCrafted = "item_crafted";
 
+    /// <summary>A tool wore out (I07; the detail is the tool's noun, or its name when it has none). Raised once, the moment it reaches its durability; the HUD says a short line.</summary>
+    public const string ToolWorn = "tool_worn";
+
+    /// <summary>An item was repaired at the workbench (I07; the detail is the item's noun, or its name when it has none).</summary>
+    public const string ItemRepaired = "item_repaired";
+
     /// <summary>A first-time tip was shown (S16; the detail is the tip's id).</summary>
     public const string TipShown = "tip_shown";
 
@@ -155,6 +161,9 @@ public static class WorldEvents
 
     /// <summary>A test run was skipped to a later play session (V12c, <c>--skip-to-session</c>): the sessions before it were counted as done (the detail says so).</summary>
     public const string SessionSkipped = "session_skipped";
+
+    /// <summary>A save was loaded with something put right (I10b, QA-2026-11-19-save-1): an item the bundle lacks dropped from a slot, a worn item in a group that does not take it moved to the bag. One event for each; the detail says which.</summary>
+    public const string SaveRepaired = "save_repaired";
 
     /// <summary>The player ate a food (N01, design 9.6; raised from N02 on; the detail is the food's noun).</summary>
     public const string MealEaten = "meal_eaten";
@@ -224,7 +233,7 @@ public static class WorldEvents
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered, OrderAccepted, OrderDeclined,
-        Slept, SessionSkipped,
+        Slept, SessionSkipped, SaveRepaired,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,
@@ -233,5 +242,6 @@ public static class WorldEvents
         CampPlaced,
         DayPhase, WeatherChanged,
         PassOpened,
+        ToolWorn, ItemRepaired,
     ];
 }

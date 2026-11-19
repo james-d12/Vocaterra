@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.Items.Crafting;
@@ -13,7 +14,7 @@ public sealed class CraftingTests
     [Fact]
     public void TheTorchNeedsTwoWoodAndTheWorkbenchInReach()
     {
-        var inventory = new Inventory();
+        var inventory = new Inventory(TestItems.Catalogue);
         inventory.Add(ItemId.Wood, 2);
 
         Assert.Equal(CraftResult.MissingStation, CraftingRules.Check(Torch, inventory, stationInReach: false));
@@ -23,7 +24,7 @@ public sealed class CraftingTests
     [Fact]
     public void AMissingIngredientIsSaidBeforeTheStation()
     {
-        var inventory = new Inventory();
+        var inventory = new Inventory(TestItems.Catalogue);
         inventory.Add(ItemId.Wood, 1);
 
         Assert.Equal(CraftResult.MissingIngredients, CraftingRules.Check(Torch, inventory, stationInReach: false));
@@ -32,7 +33,7 @@ public sealed class CraftingTests
     [Fact]
     public void ACraftTakesTheIngredientsAndGivesTheOutputOnlyWhenItIsDone()
     {
-        var inventory = new Inventory();
+        var inventory = new Inventory(TestItems.Catalogue);
         inventory.Add(ItemId.Wood, 3);
 
         Assert.Equal(CraftResult.MissingStation, CraftingRules.Craft(Torch, inventory, stationInReach: false));
@@ -46,7 +47,7 @@ public sealed class CraftingTests
     [Fact]
     public void AFullInventoryCraftsWhenTheIngredientsFreeTheSlot()
     {
-        var inventory = new Inventory();
+        var inventory = new Inventory(TestItems.Catalogue);
         inventory.Add(ItemId.Wood, 2);
         inventory.Add(ItemId.Berry, ItemDefinition.DefaultStackLimit * 39);
         Assert.False(inventory.CanAdd(ItemId.Torch, 1));
@@ -57,8 +58,8 @@ public sealed class CraftingTests
     [Fact]
     public void AFullInventoryRefusesWhenNothingIsFreed()
     {
-        var inventory = new Inventory();
-        inventory.Add(ItemId.Berry, ItemDefinition.DefaultStackLimit * 40);
+        var inventory = new Inventory(TestItems.Catalogue);
+        inventory.Add(ItemId.Berry, ItemDefinition.DefaultStackLimit * inventory.SlotCount);
 
         Assert.Equal(CraftResult.InventoryFull, CraftingRules.Check(ByHand, inventory, stationInReach: true));
     }

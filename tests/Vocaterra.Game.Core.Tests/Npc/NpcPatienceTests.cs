@@ -60,6 +60,51 @@ public sealed class NpcPatienceTests
         Assert.Contains("shopkeeper.give", helped.Conversation.Records.Select(static r => r.HostTurn?.HostEvent));
     }
 
+    // I10b, QA-2026-11-19-progression-1: a sale asked for and made is no miss, so four purchases in a visit give four shirts and no bottle.
+    [Fact]
+    public void FourPurchasesInAVisitGiveFourItemsAndNoBottle()
+    {
+        var session = AtStall(Shipped);
+        _ = session.Simulation.GrantItems(ItemId.Coin, 12);
+
+        for (var i = 0; i < 4; i++)
+        {
+            Assert.False(session.Say("quiero una camisa").FailForward, $"purchase {i + 1}");
+        }
+
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Coin));
+        Assert.Equal(4, session.Simulation.Inventory.Count(session.Data.Items.Find("shirt")!.Id)); // the starting shirt is worn, so these are the four bought
+    }
+
+    [Fact]
+    public void ASaleBetweenMissesStartsTheCountOver()
+    {
+        var session = AtStall(Shipped);
+        _ = session.Simulation.GrantItems(ItemId.Coin, 3);
+
+        Assert.False(session.Say("zzz qqq").FailForward);
+        Assert.False(session.Say("zzz qqq").FailForward);
+        Assert.False(session.Say("zzz qqq").FailForward);
+        Assert.False(session.Say("quiero una camisa").FailForward); // the fourth line is a sale
+        Assert.False(session.Say("zzz qqq").FailForward); // one miss since the sale, not the fifth
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
+    }
+
+    [Fact]
+    public void FourLinesThatAskForNothingStillFailForward()
+    {
+        var session = AtStall(Shipped);
+
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.False(session.Say("zzz qqq").FailForward);
+        }
+
+        Assert.True(session.Say("zzz qqq").FailForward);
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
+    }
+
     [Fact]
     public void AnNpcWithNoRuleNeverFailsForward()
     {

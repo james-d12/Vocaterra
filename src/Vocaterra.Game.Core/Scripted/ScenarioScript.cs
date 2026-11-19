@@ -445,6 +445,31 @@ public sealed class ScenarioScript
 
                 _index++;
                 break;
+            case ScriptStepKind.Equip:
+                if (_resolveItem(step.Value) is { } worn)
+                {
+                    _hooks.Equip?.Invoke(worn);
+                }
+                else
+                {
+                    _log($"equip {step.Value}: no such item");
+                }
+
+                _index++;
+                break;
+            case ScriptStepKind.Wear:
+                var split = step.Value.IndexOf('=', StringComparison.Ordinal);
+                if (split > 0 && int.TryParse(step.Value.AsSpan(split + 1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var wearAmount) && _resolveItem(step.Value[..split].Trim()) is { } wearItem)
+                {
+                    _hooks.Wear?.Invoke(wearItem, wearAmount);
+                }
+                else
+                {
+                    _log($"wear {step.Value}: no such item or amount");
+                }
+
+                _index++;
+                break;
             case ScriptStepKind.Drink:
                 _hooks.Drink?.Invoke();
                 _index++;

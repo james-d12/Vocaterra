@@ -144,7 +144,7 @@ public sealed class PassRoadTests(ITestOutputHelper output)
     public void Given_ThePassOpened_When_AWalkerSetsOutFromTheVillageAndGoesToTheGateAndOn_Then_TheLegsTakeTheRoadAndNoDetour()
     {
         var scene = Opened();
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
         var look = new LookControl();
         look.Set(90, 0);
         var log = new List<string>();

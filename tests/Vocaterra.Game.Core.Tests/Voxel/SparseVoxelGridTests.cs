@@ -281,7 +281,7 @@ public sealed class SparseVoxelGridTests
         }
 
         var scene = new Scene("deep", 0, grid, new SpawnPoint(new BlockPos(100, -59, 100), 0), [], new SortedDictionary<string, BlockPos>(StringComparer.Ordinal), 0, 0);
-        var sim = VoxelSimulation.Create(scene);
+        var sim = VoxelSimulation.Create(scene, TestItems.Catalogue);
 
         sim.TeleportTo(new BlockPos(100, -57, 100));
         for (var tick = 0; tick < 120; tick++)

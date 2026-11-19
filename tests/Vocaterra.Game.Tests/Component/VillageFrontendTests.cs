@@ -108,7 +108,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         Assert.Contains(NpcFigures.PartsOf("shopkeeper"), static p => p.Box.Y1 > 37f); // the baker's hat above the head
         Assert.Contains(NpcFigures.PartsOf("villager"), static p => p.Box.X1 - p.Box.X0 > 15f); // the brim of the straw hat
         Assert.Contains(NpcFigures.PartsOf("guide"), static p => p.Special == BlockCell.Backpack); // the guide's pack
-        Assert.Contains(NpcFigures.PartsOf(NpcFigures.PlayerName), static p => p.Special == BlockCell.Backpack); // the player's backpack, seen over the shoulder
+        Assert.DoesNotContain(NpcFigures.PartsOf(NpcFigures.PlayerName), static p => p.Special == BlockCell.Backpack); // the player has no pack of its own (I09b): a worn bag draws it
         Assert.DoesNotContain(NpcFigures.PartsOf("villager"), static p => p.Special == BlockCell.Backpack);
     }
 
@@ -246,7 +246,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         var lights = new[] { new BlockPos(5, 5, 5), new BlockPos(9, 5, 9) };
         Func<int, int, int, bool> solid = static (x, y, z) => y < 4;
         var arm = ArmMeshes.Arm();
-        var item = HeldItems.For(false, ItemId.Torch);
+        var item = HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Torch, 1));
         ArmMeshes.Item(item);
 
         void Frame(long tick)
@@ -357,28 +357,28 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheHandHoldsALogATorchABottleOrASmallItemAndNothingWhenTheSlotIsEmpty()
     {
-        Assert.Equal(HeldKind.None, HeldItems.For(true, ItemId.Wood).Kind);
-        Assert.Equal(HeldChoice.Nothing, HeldItems.For(new ItemStack()));
-        Assert.Equal(HeldKind.Log, HeldItems.For(false, ItemId.Wood).Kind);
-        Assert.Equal(HeldKind.Torch, HeldItems.For(false, ItemId.Torch).Kind);
-        Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconBottle), HeldItems.For(false, ItemId.Bottle));
-        Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle), HeldItems.For(false, ItemId.WaterBottle));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry), HeldItems.For(false, ItemId.Berry));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBread), HeldItems.For(false, ItemId.Bread));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(false, ItemId.Coin)); // village-plan V05: their own pictures
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconApple), HeldItems.For(false, ItemId.Apple));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe), HeldItems.For(false, ItemId.Axe));
-        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBook), HeldItems.For(false, ItemId.Book)); // issue #44: the hand showed nothing
-        Assert.Equal(HeldKind.Torch, HeldItems.For(new ItemStack(ItemId.Torch, 1)).Kind);
+        Assert.Equal(HeldKind.None, HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Wood, 0)).Kind);
+        Assert.Equal(HeldChoice.Nothing, HeldItems.For(TestItems.Catalogue, new ItemStack()));
+        Assert.Equal(HeldKind.Log, HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Wood, 1)).Kind);
+        Assert.Equal(HeldKind.Torch, HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Torch, 1)).Kind);
+        Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconBottle), HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Bottle, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Bottle, BlockCell.IconWaterBottle), HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.WaterBottle, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBerry), HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Berry, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBread), HeldItems.For(TestItems.Catalogue, new ItemStack(TestItems.Bread, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconCoin), HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Coin, 1))); // village-plan V05: their own pictures
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconApple), HeldItems.For(TestItems.Catalogue, new ItemStack(TestItems.Apple, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconAxe), HeldItems.For(TestItems.Catalogue, new ItemStack(TestItems.Axe, 1)));
+        Assert.Equal(new HeldChoice(HeldKind.Sprite, BlockCell.IconBook), HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Book, 1))); // issue #44: the hand showed nothing
+        Assert.Equal(HeldKind.Torch, HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Torch, 1)).Kind);
     }
 
     [Fact]
     public void EveryItemInTheHandHasA3DModel()
     {
         // Issue #44: every item the game has is held as a model with depth, not as nothing or a flat card.
-        foreach (var definition in ItemDefinition.All)
+        foreach (var definition in TestItems.Catalogue.All)
         {
-            var held = HeldItems.For(false, definition.Id);
+            var held = HeldItems.For(TestItems.Catalogue, new ItemStack(definition.Id, 1));
             Assert.NotEqual(HeldKind.None, held.Kind);
             var (body, _) = ArmMeshes.Item(held);
             Assert.True(body.FaceCount > 0, $"{definition.Id} has no model");
@@ -444,11 +444,11 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheTorchInTheHandHasAFlameThatIsDrawnUnlitAndTheOtherItemsHaveNone()
     {
-        var torch = ArmMeshes.Item(HeldItems.For(false, ItemId.Torch));
+        var torch = ArmMeshes.Item(HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Torch, 1)));
         Assert.True(torch.Body.FaceCount > 0);
         Assert.True(torch.Glow.FaceCount > 0);
         Assert.All(torch.Glow.Vertices.ToArray(), static v => Assert.True((v.Color & 0xFF) >= 250)); // full brightness
-        var log = ArmMeshes.Item(HeldItems.For(false, ItemId.Wood));
+        var log = ArmMeshes.Item(HeldItems.For(TestItems.Catalogue, new ItemStack(ItemId.Wood, 1)));
         Assert.True(log.Body.FaceCount == 6);
         Assert.Equal(0, log.Glow.FaceCount);
         var empty = ArmMeshes.Item(HeldChoice.Nothing);
@@ -551,7 +551,8 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         var rows = CraftingScreen.Rows(session.Simulation, session.Recipes);
         Assert.Empty(RecipePanelModel.AtStation(rows, static _ => false));
         var shown = RecipePanelModel.AtStation(rows, static station => station == BlockId.Table);
-        Assert.Equal(ItemId.Torch, Assert.Single(shown).Output);
+        Assert.Equal(21, shown.Count()); // the torch, (I08a) the seven clothes and (I08b) the thirteen armour, accessory, off-hand and bag recipes: the workbench's recipes, never the roast apple's (the fire)
+        Assert.Equal(ItemId.Torch, shown.First().Output);
     }
 
     // ---- the speaker's bubble ----

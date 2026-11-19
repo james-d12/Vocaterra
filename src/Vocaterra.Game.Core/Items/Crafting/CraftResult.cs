@@ -17,4 +17,7 @@ public enum CraftResult
 
     /// <summary>The output would not fit after the ingredients are taken out.</summary>
     InventoryFull = 4,
+
+    /// <summary>A repair row, and the player has no worn stack of that item in the bag or on the body (I07).</summary>
+    NothingToRepair = 5,
 }

@@ -16,7 +16,7 @@ public sealed class NeedsRateTests
         var session = TestGame.NewSession();
         session.NeedsRate = rate;
         session.RelaxedNeeds = relaxed;
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, ItemStack.Empty);
         }

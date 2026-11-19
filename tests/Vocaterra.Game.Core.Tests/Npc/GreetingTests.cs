@@ -89,7 +89,7 @@ public sealed class GreetingTests
         Assert.Equal(line, turn.Line); // the turn keeps the line as it was said
         Assert.Empty(turn.Errors);
         Assert.EndsWith("¡Gracias!", Assert.Single(turn.Replies), StringComparison.Ordinal); // her sale's line, not her answer to a greeting (¿Qué quieres?)
-        Assert.Equal((2, 0), (session.Simulation.Inventory.Count(ItemId.Bread), session.Simulation.Inventory.Count(ItemId.Coin)));
+        Assert.Equal((2, 0), (session.Simulation.Inventory.Count(TestItems.Bread), session.Simulation.Inventory.Count(ItemId.Coin)));
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e is { Name: WorldEvents.ItemGiven, Npc: "baker", Detail: "pan, request" });
     }
 

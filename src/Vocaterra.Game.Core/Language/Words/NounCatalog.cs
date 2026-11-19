@@ -22,6 +22,7 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
 /// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
 /// <param name="Blocks">The 3D block kinds it names (<c>agua</c> and <c>río</c> both name the water). Several nouns may name one block; the first one by lemma is its noun.</param>
+/// <param name="PluralOnly">Whether the word is said in the plural for one thing (I08a: <c>los pantalones</c>, <c>los zapatos</c>, a pair): the articles are the plural ones and <see cref="WithDefinite"/> and <see cref="WithIndefinite"/> carry the plural form. The lemma stays the singular the lexicon knows (<c>pantalón</c>), which is what a line's slot and the prices name.</param>
 public sealed record NounEntry(
     string Lemma,
     string Gender,
@@ -31,13 +32,14 @@ public sealed record NounEntry(
     string Plural,
     bool Mass,
     IReadOnlyList<string> Sources,
-    IReadOnlyList<BlockId> Blocks)
+    IReadOnlyList<BlockId> Blocks,
+    bool PluralOnly = false)
 {
-    /// <summary>The noun with its definite article: <c>el árbol</c>.</summary>
-    public string WithDefinite => $"{Definite} {Lemma}";
+    /// <summary>The noun with its definite article: <c>el árbol</c>, and <c>los pantalones</c> for a <see cref="PluralOnly"/> noun.</summary>
+    public string WithDefinite => $"{Definite} {(PluralOnly ? Plural : Lemma)}";
 
-    /// <summary>The noun with its indefinite article: <c>un árbol</c>.</summary>
-    public string WithIndefinite => $"{Indefinite} {Lemma}";
+    /// <summary>The noun with its indefinite article: <c>un árbol</c>, and <c>unos pantalones</c> for a <see cref="PluralOnly"/> noun.</summary>
+    public string WithIndefinite => $"{Indefinite} {(PluralOnly ? Plural : Lemma)}";
 }
 
 /// <summary>
@@ -60,8 +62,9 @@ public sealed class NounCatalog
 
     private readonly Dictionary<ItemId, string> _labels;
 
-    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles, Dictionary<ItemId, string> labels, ITextNormalizer normalizer)
+    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles, Dictionary<ItemId, string> labels, ITextNormalizer normalizer, IItemCatalogue items)
     {
+        Items = items;
         _labels = labels;
         Normalizer = normalizer;
         Articles = articles;
@@ -94,6 +97,9 @@ public sealed class NounCatalog
         Nouns = nouns.OrderBy(static n => n.Lemma, StringComparer.Ordinal).ToList();
     }
 
+    /// <summary>The item catalogue the nouns' item names were resolved against (<c>game/items.json</c>).</summary>
+    public IItemCatalogue Items { get; }
+
     /// <summary>The bundle's text normalizer (its language pack's), which the word record reads a form's words with.</summary>
     public ITextNormalizer Normalizer { get; }
 
@@ -108,8 +114,9 @@ public sealed class NounCatalog
     /// manifest.
     /// </summary>
     /// <param name="bundle">The bundle, loaded with hash verification (the file must be a host file of it).</param>
+    /// <param name="catalogue">The item catalogue (<c>game/items.json</c>) the noun's item names are looked up in.</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, names an unknown item or block, or names a lemma with no noun reading.</exception>
-    public static NounCatalog Load(ContentBundle bundle)
+    public static NounCatalog Load(ContentBundle bundle, IItemCatalogue catalogue)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -118,15 +125,19 @@ public sealed class NounCatalog
                 $"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(bundle, Encoding.UTF8.GetString(bytes.Span));
+        return Parse(bundle, Encoding.UTF8.GetString(bytes.Span), catalogue);
     }
 
     /// <summary>Builds the catalogue from the file's text (the same format as <see cref="RelativePath"/>).</summary>
     /// <exception cref="InvalidDataException">The text is malformed, names an unknown item or block, or names a lemma with no noun reading.</exception>
-    public static NounCatalog Parse(ContentBundle bundle, string json)
+    /// <param name="bundle">The bundle (its lexicon and normaliser).</param>
+    /// <param name="json">The file's text.</param>
+    /// <param name="catalogue">The item catalogue the noun's item names are looked up in.</param>
+    public static NounCatalog Parse(ContentBundle bundle, string json, IItemCatalogue catalogue)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(json);
+        ArgumentNullException.ThrowIfNull(catalogue);
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
         if (root.GetProperty("schemaVersion").GetInt32() != 1)
@@ -140,7 +151,7 @@ public sealed class NounCatalog
         foreach (var item in root.GetProperty("nouns").EnumerateArray())
         {
             var lemma = item.GetProperty("lemma").GetString() ?? throw new InvalidDataException("A catalogue noun has no lemma.");
-            var items = item.GetProperty("items").EnumerateArray().Select(i => ItemNamed(i.GetString())).ToList();
+            var items = item.GetProperty("items").EnumerateArray().Select(i => ItemNamed(catalogue, i.GetString())).ToList();
             foreach (var kind in items)
             {
                 if (!claimedItems.Add(kind))
@@ -160,14 +171,15 @@ public sealed class NounCatalog
             {
                 foreach (var label in labelValues.EnumerateObject())
                 {
-                    var kind = ItemNamed(label.Name);
+                    var kind = ItemNamed(catalogue, label.Name);
                     labels[kind] = items.Contains(kind) && label.Value.GetString() is { Length: > 0 } text
                         ? text
                         : throw new InvalidDataException($"{RelativePath}: '{lemma}' labels '{label.Name}', which it does not name, or with no text.");
                 }
             }
 
-            nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources));
+            var pluralOnly = item.TryGetProperty("plural", out var pluralValue) && pluralValue.GetBoolean();
+            nouns.Add(Describe(bundle, lemma, items, blocks, mass, sources, pluralOnly));
         }
 
         var lemmas = nouns.Select(static n => n.Lemma).ToHashSet(StringComparer.Ordinal);
@@ -184,7 +196,7 @@ public sealed class NounCatalog
 
         // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (content-plan C05).
         var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
-        return new NounCatalog(nouns, articles, labels, bundle.Language.Normalizer);
+        return new NounCatalog(nouns, articles, labels, bundle.Language.Normalizer, catalogue);
     }
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>
@@ -221,18 +233,8 @@ public sealed class NounCatalog
     public NounEntry? ForReading(string? lemma, string? pos) =>
         lemma is not null && pos == "noun" ? ForLemma(lemma) : null;
 
-    private static ItemId ItemNamed(string? name)
-    {
-        foreach (var definition in ItemDefinition.All)
-        {
-            if (string.Equals(definition.Name, name, StringComparison.Ordinal))
-            {
-                return definition.Id;
-            }
-        }
-
-        throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
-    }
+    private static ItemId ItemNamed(IItemCatalogue catalogue, string? name) =>
+        (name is null ? null : catalogue.Find(name))?.Id ?? throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
 
     private static BlockId BlockNamed(string? name) =>
         BlockDefinition.FromName(name)?.Id ?? throw new InvalidDataException($"{RelativePath} names an unknown block '{name}'.");
@@ -243,22 +245,25 @@ public sealed class NounCatalog
         IReadOnlyList<ItemId> items,
         IReadOnlyList<BlockId> blocks,
         bool mass,
-        IReadOnlyList<string> sources)
+        IReadOnlyList<string> sources,
+        bool pluralOnly)
     {
         var gender = bundle.Lexicon.EntriesForLemma(lemma)
             .Select(static e => e.ToFeatures())
             .FirstOrDefault(static f => f.Pos == "noun" && f.Gender is not null)?.Gender
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
         var morphology = bundle.LanguageMorphology;
+        var number = pluralOnly ? "pl" : "sg";
         return new NounEntry(
             lemma,
             gender,
             items,
-            morphology.Article(Definiteness.Definite, gender, "sg", lemma),
-            morphology.Article(Definiteness.Indefinite, gender, "sg", lemma),
+            morphology.Article(Definiteness.Definite, gender, number, lemma),
+            morphology.Article(Definiteness.Indefinite, gender, number, lemma),
             morphology.Pluralize(lemma),
             mass,
             sources,
-            blocks);
+            blocks,
+            pluralOnly);
     }
 }

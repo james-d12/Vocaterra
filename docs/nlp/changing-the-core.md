@@ -181,7 +181,7 @@ Steps:
 
      A golden of another language (a bundle whose manifest has `"language"`) is read and recorded under `Data/<lang>/` (`GoldenFiles.cs`, M35); the Spanish
      goldens keep their paths.
-   - `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v9.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
+   - `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
      `content/game-v1/manifest.json` into it.
    - The grammar cache (`content/grammar/game-v1-*`, next section) when you added or changed Spanish text.
 

@@ -32,6 +32,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
 | [2026-11-19-2035-lod-lifecycle](2026-11-19-2035-lod-lifecycle.md) | The far view's LOD lifecycle after PR #72 (B49 to B55, from two reviews) on `feature/lod-lifecycle` (to cut from main) | The owner's merge of PR #72 and his flight and display checks |
+| [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | Stop 6: the owner plays the finished series; then the pull request (every milestone gated, 2026-11-19) |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.

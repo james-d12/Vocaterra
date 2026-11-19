@@ -35,7 +35,7 @@ public sealed class DeathTests
     private static VoxelSession Playing(double hunger = 100, double thirst = 100, double health = 100)
     {
         var session = TestGame.NewSession();
-        for (var slot = 0; slot < Inventory.SlotCount; slot++)
+        for (var slot = 0; slot < session.Simulation.Inventory.SlotCount; slot++)
         {
             session.Simulation.Inventory.SetSlot(slot, ItemStack.Empty);
         }
@@ -52,7 +52,7 @@ public sealed class DeathTests
         session.Simulation.Inventory.Add(ItemId.Wood, 12);
         session.Simulation.Inventory.Add(ItemId.Berry, 3);
         session.Simulation.Inventory.Add(ItemId.Book, 1);
-        session.Simulation.Inventory.Add(ItemId.Axe, 1);
+        session.Simulation.Inventory.Add(TestItems.Axe, 1);
         beforeDeath?.Invoke(session);
         Tick(session, Tps); // a quarter of a point a second at thirst's last stage
         return session;
@@ -221,7 +221,7 @@ public sealed class DeathTests
         Assert.InRange(Math.Abs(chest.Cell.X - before.X) + Math.Abs(chest.Cell.Z - before.Z), 0, 3);
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Wood));
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Book));
-        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Axe));
+        Assert.Equal(1, session.Simulation.Inventory.Count(TestItems.Axe));
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public sealed class DeathTests
     {
         var session = Dying();
         var bag = session.Simulation.Inventory;
-        for (var slot = 0; slot < Inventory.SlotCount - 1; slot++)
+        for (var slot = 0; slot < bag.SlotCount - 1; slot++)
         {
             if (bag.Slots[slot].IsEmpty)
             {

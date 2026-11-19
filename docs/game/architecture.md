@@ -113,7 +113,8 @@ Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), t
                   GameCommands, KeyBinding, KeyBindings, ControlTable: every control of the game with its keys, in one table, which InputKeys, the bindings, the panels and the menu's controls page read; InputKeys: the controls' keys by name, which the locale's {key:…} spells),
                   InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
                   (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
-Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
+Items/            Inventory (the active slots: base 30 and the worn bag's capacity, I03b), ItemDefinition (one row of game/items.json: name, id, stack, icon, held, tags, tool, wear, stats, look, capacity), IItemCatalogue and its loader ItemCatalogue (I01: the one source of
+                  items, read once into GameData.Items and passed to what needs an item), ItemHeld, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Activities/       the procedures at a station (W05 to W07): StationBook, ProcedureBook, ActionTable, ProcedureRunner (the run), and the station overlay: StationScreen (state and
                   the view it makes), StationView and StationCell (plain values: the strip, the fixtures, the targets, the page of what can be held, the selection, the verb
@@ -121,6 +122,10 @@ Activities/       the procedures at a station (W05 to W07): StationBook, Procedu
                   keys of design 10.8, every act to GuideSession.ActInProcedure with how the row was presented, the audio through IInstructionAudio, the OnTalk hook; TeacherTalk (W08: the learner's text box, recording and the teacher's answer on the station's talk line) and ProcedureCue (what her answer asks of the station)),
                   StationProps (E at a cell of a station's prop: Scene.PropCells, the cells each named stamp placed)
 Atmosphere/       the day and the weather as data and state (E01, E04): DayData (game/day.json), DayClock and DayPhase (the hour, the phase, the daylight), WeatherData, WeatherKind and WeatherChannels (game/weather.json: the kinds as rows of channels), WeatherSystem (the spells, drawn from the world seed), AtmosphereModel and AtmosphereSnapshot (the blended channels, one per tick, which every consumer reads)
+Temperature/      the temperature where the player stands and how it feels (I06): PlaceTemperature and its ITemperatureTerm terms (climate, day, weather, shelter, fire) built by TemperatureTermRegistry from the data's rows, ITemperatureContext and TemperatureContext (what terms read), TemperatureEnvironment (the ground, the biomes' rows), IWarmthSource and NoWarmth, PlayerTemperature (the feeling, the lag, the band, the line once), TemperatureData (game/temperature.json) and TemperatureValidator
+Stats/            the player's stats (I03a): StatSheet (read-only sums and factors by open key), StatBuilder, IStatContributor, StatPipeline (the contributors in order, built each tick) and StatKeys (the keys code reads by name), StatDisplay and StatChip (the stats line's rows, I04)
+  Gear/           what the player wears (I03a, under Items/; the folder is not called Equipment because the type is): EquipmentData (game/equipment.json), EquipmentGroup and EquipmentSlotSpec, EquipSlot (group and slot index), Equipment (the worn items), EquipRules and the IEquipRule classes, EquipResult (the reasons), EquipmentStats (the first IStatContributor), EquipmentValidator
+  Containers/     moving items by hand (I02, under Items/): ISlotContainer (one address scheme, a container id and a slot index, with read, can-put and put), BagContainer, EquipmentContainer (its accept check is the equip rules) and TrashContainer, HeldStack (the cursor, also a container), SlotContainers (the registry the commands name by id), InventoryOps (the moves), MoveAction, MoveReason and MoveResult (the reasons), IQuickTarget
 Land/             where the player may build and where land is bought (Y09, D-game-32 (c)): LandData (game/land.json) and LandValidator, LandRules (a mask per column built once from the scene and the file: protected, eligible; `CheckPlot` reads the grid for water, trees, the ground on top and the slope and answers a PlotCheck: yes or a PlotFault), Plot, Protection (village, camp, road), LandRegister (the pending and the owned plot, and the IBuildRules hook the simulation asks: protected columns refuse any block but a torch, planks come back only on owned land) and LandSave (`systems.land`)
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
                   TurnPresenter, GuideGreeting) and DialogueScreen (U06: the wheel scrolls the panel, `PanelScrollbar` computes the bar, `DialogueModel.Pages` keeps one page per NPC id)
@@ -179,7 +184,7 @@ Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
                   rain cover are keyed by VoxelChunkCoord, read by peeking (TryGetChunk, PeekBlock; nothing is generated for the picture) and listen to residency and block changes)
   Gl/             GlChunkPass (B17b: every chunk pass on the game's GLSL, one state scope a frame; B17c: the light as data, the fog by height, the water shader, and the far view's land in a scope of its own), GlLightFrame (the frame's sun, glow and haze for the shader), GlStateSaver (the scope's Capture and Restore), GlProgram, GlChunkBuffer (the vertex stream and the light stream of a mesh), GlFarBuffers, GlCardTimer (the card's time), GlInfo, GlLoader (Silk.NET.OpenGL on MonoGame's context), ShaderSources and Shaders/chunk.vert.glsl, chunk.frag.glsl
   Far/            FarViewSettings, FarTileKey, FarTileSelector (a quadtree of level-of-detail tiles), FarTileMesher (B07c: the faces of a footprint's stack of three-dimensional sections), FarNoise, FarPalette, FarView (tiles cached by key, built on the workers, made again when real chunks change their sections), FarTerrainRenderer (B07: the far land in a pass of its own, drawn after the sky and before the chunks, with its own depth range); Streaming/ holds FileLodPersistence, LodRing and LodEdits (B07c: the far world's sections on disk, the ring of real chunks, the player's edits); the store itself is Core's World/Lod
-  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
+  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter, PlayerGear, GearFigureParts
   Sky/            SkyModel, SkyRenderer, SkyLook (a pure function of a SkyLookInput: the dome, the clouds, the sun, the moon, the stars, the fog), SkyLookInput (`At` takes the snapshot), SkyKeyframe (the five keyframes: noon, golden, twilight, night, deep night), SkyBlend (their weights by the phase, the daylight and the sun's height), SkyArc, SkyWeather (the channels' effect on the look)
   Weather/        PrecipitationField (the drops in a box round the camera), PrecipitationRenderer, PrecipitationStyles (one row per precipitation kind), ColumnCover, PrecipitationState, Streak
 UI/
@@ -193,7 +198,7 @@ UI/
   Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
   Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
   Station/        StationLayer, StationLayout, InstructionStripLayer, InstructionStripLayout (the strip's boxes and text lines, for a box the caller gives)
-  Inventory/      InventoryLayer, InventoryLayout
+  Inventory/      InventoryLayer (the equipment panel's drawing), InventoryLayout (its geometry), StatIcons and StatLinePlacer (the stats line), HeadingText (a column heading as the room shrinks), HeldPlacement (where the held stack is drawn)
   Lesson/         LessonLayer, LessonStripLayout
   Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)
 ```
@@ -256,7 +261,7 @@ host events: `<npc>.accept_order` gives the order (`GiveOrder`, the world event 
 A talk that opens on an agent left in `offering_order` first raises `<npc>.offer_gone`. A class at the NPC is held back until the answer, as for the hand-over. A lesson
 step that tells an order gives it when it starts (`OnLessonStepStarted`, the objective's `lessonStep`), and while the teacher would offer that class
 (`LessonRunner.ClassOfferedAt`) the order is not offered on its own. The validator checks every order NPC's offer (`GameDataValidator.CheckOrderOffer`). The session's ending (S17) waits only for the objectives with no session that are not orders, so an order never holds back or brings back the closing
-moment. The three items of the economy (`ItemId.Coin`, `Apple`, `Axe`, V03) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
+moment. The three items of the economy (the coin, the apple and the axe, V03; only the coin has an `ItemId` member since I01, the others are rows of `game/items.json`) are ordinary items: the axe, held, makes a trunk take a quarter of its gather
 ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
 
 **The camp (Y12, D-game-32).** The camp kit (`camp-kit`, bought with the plot) sets up one piece on the owned plot: the scene layout's `camp` stamp (`game/scene.json`: a fire ring, a free row of ground, the tent's A-frame
@@ -354,6 +359,122 @@ Day one ends at the inn, day two offers land, and the land holds a camp (settlem
 | **The camp** (Y12): the kit sets up a fire ring, a tent and a bedroll on the owned plot, and can be packed back | `scene.json` stamp `camp` with its anchors, item `camp-kit` | `Land/CampPlan.cs`, `VoxelSession.Camp.cs`, `World/Layout/StampSpec.cs` (the turning); the section "The camp" above |
 
 The checklist `my-land` ("Mi terreno", from play session 2: `stake`, `buy`, `camp`, `fire`) never holds a session back; its steps are events (`item_picked_up`, `plot_bought`, `camp_placed`, `fire_lit` with the detail `camp.fire`), and `stake` counts the bag and one more once the plot is owned (`VoxelSession.HeldForSteps`: the mayor keeps the stake at the purchase, so the step stays done, in the run and after a load), and a load reads `buy`, `camp` and `fire` back from the save and the world (the restore hooks `plot-owned`, `camp-placed`, `camp-fire-lit`). The scripted runs that cover the series are r20 and r30 (the sleep), r40 to r43 (`scripted-runs.md`).
+
+## Inventory and equipment
+
+How the bag, the worn gear and everything gear changes fit together, and where each part is extended. Every kind in this section (an item, a slot group, a stat, a damage cause, a temperature term, a cause of wear) is a row of data in
+`content/game-v1/game/` or one small class with one registry line; `content/README.md` has the author's recipes ("Adding an item", "Adding a slot group"). The decisions are D-game-35 and `docs/game/inventory-plan.md`.
+
+### Items are data
+
+No code holds a table of items. `game/items.json` has one row per item (`name`, `id`, `stack`, `icon`, `held`, `tags`, and optionally `tool`, `wear`, `stats`, `look`, `capacity`, `durability`); `ItemCatalogue` reads it once into
+`GameData.Items`, an `IItemCatalogue` (by id, by name, in catalogue order, the largest bag capacity), and `Inventory` (stack limits), `VoxelSimulation` (a held tool's spec, the worn items), `NounCatalog`, `HostEventTable`, the sessions, the validator and the front-end's icons
+take it as a constructor or method argument. The loader refuses a malformed row, a duplicate name or id, an unknown held kind, icon material or colour, a stat outside its rule's range and a field on the wrong kind of item (a `capacity` off a bag, a `durability` on a stack of more than one).
+The `ItemId` enum keeps only the members that behaviour refers to (the log, the torch, the berry bush's drop, the bottle that fills, the book that opens, the coin that pays, the stake and the camp kit); the catalogue checks each against the row of the same id and name and stops the
+load on a mismatch, and an item that is a row alone (`(ItemId)100`) works everywhere: the bag, a noun, a recipe, a shop row, a save. The draw side takes the row's `icon` key (`BlockAtlasLayout.IconForKey`, a fallback tile for a key without art, reported by `GameDataValidator` when the
+front-end passes `BlockAtlasLayout.IconKeys`) and its `held` kind (`HeldItems`). A slot is saved by the item's name; the state digest keeps the numeric id. The three economy items (the coin, the apple, the axe) are ordinary rows: the axe, held, makes a trunk take a quarter of its
+gather ticks (`VoxelSimulation.GatherTicksOf`, which the HUD's bar reads too).
+
+### The bag and its containers
+
+`Inventory` is an array of `ItemStack(Item, Count, Wear)` sized to `MaxSlots` (the base and the catalogue's largest `capacity`), so it never grows; `BaseSlots` is `bagSlots` of `equipment.json` (30: the hotbar's 10 and 20 more) and `SlotCount` is the active count. `Slots` and every
+operation (add, remove, exchange, set, craft, buy) see only the active slots, and a slot past the count is always empty. A bag is an item with a `capacity` (only one tagged `bag` and worn on the `back` may have one); `Equipment.SyncBag` keeps the active count at the base plus the worn
+capacity after every equip, unequip and restore, and reads no group id. `BagCapacityRule` refuses to take a bag off, or swap it for a smaller one, while a slot it would drop holds an item (`EquipResult.BagNotEmpty`; a swap for a bag at least as large is always allowed); a bag that comes off
+goes into the slots that stay (`BagFull` when none is free). `VoxelSimulationState.Slots` holds the active slots, and the digest hashes them and states the count once a bag has changed it.
+
+`ISlotContainer` gives the bag (`BagContainer`), the worn equipment (`EquipmentContainer`: the flat slots in `equipment.json` order, its `CanPut` is the equip rules, so a refused put returns the `EquipResult`) and the trash (`TrashContainer`, one slot that keeps its last item) one address
+(`ContainerIds`: 0 bag, 1 equipment, 2 trash, and a slot index). `InventoryOps` does the moves over any registered container and the `HeldStack` (the cursor, which is itself a container that remembers where it was picked up): left click (pick up, put down, swap, or merge up to the item's limit),
+right click (the larger half; with a stack held, one down on an empty slot or a same-item stack), shift-click (a wearable of the bag goes to the slot an `IQuickTarget` claims for it, the old worn item taking its bag slot; a worn or other container's stack goes to the bag; otherwise hotbar to pack and back,
+merging first), sort (the pack, slots 10 up: same-item stacks merged, then catalogue order, then count; the hotbar is left alone) and the trash (a put replaces what was there). Every move runs through a `MoveTransaction`: each put is judged by its container against the state the earlier puts
+made, and a refusal undoes the puts made, so a move is all or nothing over any containers. It returns a `MoveResult`: a `MoveReason` (Done 0, NoSuchContainer 1, NoSuchSlot 2, NothingToMove 3, DifferentItem 4, SlotFull 5, NoRoom 6, StackTooLarge 7, SlotRefused 8, NoSuchAction 9; codes are
+appended, never renumbered) and, for a worn slot that refused, the `EquipResult`. `ItemStack.CanMergeWith` (same item, same wear) is the one test for two stacks sharing a slot, so a move carries the wear and a new item added to the bag never joins a worn stack.
+
+The held stack, the trash and the containers are simulation state (`VoxelSimulation.Held`, `Trash`, `Containers`, `Moves`). The command `VoxelCommandKind.SlotMove` (A the `MoveAction`: 0 left, 1 right, 2 shift, 3 sort, 4 return the held stack; B the container id; C the slot) is applied in the tick
+after the crafts and equips; a refusal raises `SimulationEventKind.MoveRefused` (Detail the reason, Amount the equipment reason, X container, Y slot, Z action), and an item that goes on or off raises `ItemEquipped` or `ItemUnequipped` and rebuilds the stats. The digest adds the held stack and the trash only
+when they hold something, so a run that moves things and puts them down has the digest of one that never moved them. `InventoryPanel` queues one command per click for the next tick and `ReturnHeld` when it closes (the stack goes back to its origin slot if empty, else the bag; **a full bag leaves it held**,
+and a save returns it first and refuses, like a session not at rest, while it cannot). **To add a container** (a chest): implement `ISlotContainer` (and `IQuickTarget` if shift-click should send items to it), give it a new id and `VoxelSimulation.Containers.Add` it; no move changes
+(`TestContainerTests` is the proof).
+
+### Equipment, rules and layers
+
+`game/equipment.json` lists the slot groups (clothing, armour, cosmetic, accessories, off-hand, backpack). `Items/Gear/Equipment` holds one stack of one in each slot; the commands `Equip` (bag slot, group, slot) and `Unequip` (group, slot, bag slot or -1) are applied in the tick beside `Place` and `Craft`
+and raise `ItemEquipped`, `ItemUnequipped` or `EquipRefused` (the reason an `EquipResult`). The save writes the worn items by group id, slot name and item name. What may be worn where is `EquipRules.Standard()`: `WearMatchesRule` (the item's `wear` is the slot's), `AcceptsTagRule`, `NoDuplicateRule`,
+`BagCapacityRule`; a refusal leaves the bag and the body as they were. A group is a row and code never names one: code reads kinds (`AppearanceRoles.BackWear`, `OffHandWear`, the `capacity` of the worn items), never an id. Death keeps what is worn, the worn bag included; `VoxelSession.LeaveBelongings` asks
+`DeathSpec.Keeps(item)` (`needs.json`'s `death.keepInBag`, `stacksOfOne`) and moves only the stackables to the belongings chest, so the kept stacks stay in their own slots.
+**To add a slot group:** one row at the end of `equipment.json` (the order is part of the bundle: commands and the digest carry indexes) and items with a matching `wear` and tag; the panel and the avatar pick it up from the data (below). **To add an equip rule:** one `IEquipRule` class and one entry in `EquipRules.Standard`.
+
+### Stats and their consumers
+
+Every stat comes through `Stats/StatPipeline`: each `IStatContributor` adds to a `StatBuilder` and the result is a read-only `StatSheet` (sums and factors by open string key), rebuilt at the end of every tick and when the equipment changes (`VoxelSimulation.Stats`). `EquipmentStats` is the first
+contributor: it adds each worn item's `stats`, only in groups whose `statsApply` is true and never for a worn-out item. `Stats/StatRules` holds one `StatRule` per key the code reads (sum or factor, the range one item may give, whole or not), so a key has one rule for both the contributors
+(`StatRules.Contribute`) and the readers (`StatRules.Read`), and `EquipmentValidator` refuses a value outside the range. The readers: `warmth` (tenths of a degree) in the temperature (`StatWarmth`); `walkSpeed` (a factor) in `VoxelSession.PrepareTick`, multiplied with the needs', the cold's and the sprint's and clamped in
+`WalkSpeed.Permille` (10% to 250%), also with `--needs off`; `hungerDrain` and `thirstDrain` (factors) in `PlayerNeeds.Step`, times the shared `RateFactor`; `maxStamina` (a sum) in `PlayerNeeds.Effects`, added to the ceiling where the stage penalties are taken off it (the HUD's bar scales when it is
+above 100); `armour` (a sum) in the damage pipeline; `light` (a sum) in the player light. `PlayerNeeds.Stats` reads the simulation's sheet live, so nothing is stored and no digest moves. **To add a stat key:** put it in an item's `stats`; a reader adds a constant to `StatKeys`, a row to `StatRules`
+if it has a range, and calls `Stats.Get(key)`. **To add a contributor** (a meal's buff, a spell): implement `IStatContributor` and register it with `VoxelSimulation.StatPipeline.Add`; the sheet and its readers are not edited (`StatContributorTests`).
+
+### Damage
+
+`DamageCause` is a data id (`drowning`). `IPlayerHealth` is decorated by `Damage/ModifiedHealth`, which runs the `IDamageModifier`s that `game/damage.json` names for the cause, in order (`DamageModifiers` registers them by id; `DamageValidator` refuses an unknown modifier or cause). `ArmourDamageModifier` takes
+4% off per point of `armour`, at most 80%, a hit never below 1; `WearDamageModifier` (id `wear`) wears the armour by the points of a hit. The shipped drowning row lists none, so nothing is reduced or worn yet. **To make armour apply to a cause:** add `"armour"` (and `"wear"`) to that cause's `modifiers`.
+**To add a cause:** a `DamageCause` constant where it is raised and a row. **To add a modifier:** one class and one line in `DamageModifiers.Standard`.
+
+### Temperature
+
+Core's `Temperature/` makes one number for where the player stands, in whole tenths of a degree Celsius, and reads it against the player's warmth. `PlaceTemperature` sums the `ITemperatureTerm`s it is given and knows none of them. A term reads an `ITemperatureContext`: the moment (`AtmosphereSnapshot`,
+the feet's block, the share of covered columns from `OverheadCover`, the `FireRings`) and what the place makes of it, worked out the first time a term asks (`TemperatureContext`): `Exposure` (how far the sky and the day reach: 1000 on the surface, falling to 0 below it), `Biome`, `ClimateTemperature`
+(the generator's value at the column and height), `Snows` and `GroundTenths`. The surface and the biome of the column come from `IPlaceInfo` through a one-column cache (`PlaceColumns`).
+**The terms are data.** `game/temperature.json` `terms` lists a row per term (its `id` and its own parameters); `TemperatureTermRegistry.Standard` maps each id to a factory that reads its row through `TermParameters` (a missing, out-of-range or unknown parameter is an error), `PlaceTemperature.From(data)`
+builds the place, and `TemperatureValidator` reports a bad row by building it. The terms: `climate` (the baseline: the generator's climate temperature through a `ClimateCurve`, plus the biome's offset; underground it is read at the natural surface and eases to the steady `ground.tenths`), `day` (plus or minus
+the amplitude by the daylight), `weather` (each channel of the sky times its coefficient, and more where precipitation snows), `shelter` (a roof's bonus in proportion to covered columns) and `fire` (a bonus near a lit ring). The day, the weather and the shelter multiply by `Exposure`, so a cave is the same at
+noon and at midnight. **Biomes** adjust by id from the data's `biomes` rows, and no source file names a biome (`NoBiomeIdsInSourceTests`).
+`PlayerTemperature` closes a share of the gap to the place's value each tick (`lag.secondsToSettle`, whole-number arithmetic, deterministic), adds the warmth (`IWarmthSource`; the session's source is `StatWarmth`, `NoWarmth` stays for tests), picks the **band** (warmest first: `walkFactor`, `chill`, `heat`,
+`thirstFactor`) and says the band's line («Tengo frío.», «Tengo calor.») once per entry into the cold or the heat. The session reads it once a tick in `PrepareTick` (`VoxelSession.Temperature.cs`): the band's walk factor multiplies `WalkPermille` and its thirst factor is set on `PlayerNeeds.ThirstFactor`.
+The felt value is saved (`systems.temperature`, `saves.md`) so a load continues as the saved game would, and it is outside the digest; the place's own value and the band's line are derived, never saved. `NeedsHud` shows the snowflake and the line, `VoxelDebugText` the F3 line (the felt value, `-> target` while the lag runs, the warmth, the feeling and band, and every term by name). `--temperature` holds the value for a run.
+**To add a term** (a season, a cave's pull): one class implementing `ITemperatureTerm` with a static `From(TermParameters)` (add a member to the interface and `TemperatureContext` only if it needs more of the world), one line in `TemperatureTermRegistry.Standard`, and a row in `terms` and in the schema's
+alternatives; `PlaceTemperature` and the other terms are not edited (`TemperatureTermRegistryTests`). **To tune a biome:** its row in `biomes`.
+
+### Light round the player
+
+The `light` stat (a sum, 0 to `PlayerLight.MaxLight` = 16 per item, the world's block light levels; the off-hand's and the accessories' alike) is the only input. The world's lighting is baked by the mesher and nothing there moves with the player, so the player's light is a draw-time term: `VoxelGame` hands the
+renderer `game/light.json`, the sheet's sum and the eye (`VoxelRenderer.SetPlayerLight`), `LightFrame` turns them into `PlayerLight` (`PlayerLight.Of`, Core, pure) and two uniforms, and `chunk.frag.glsl` adds the texel times the colour times a falloff times a facing term (0 for a face turned away) to every face within
+the reach. One branch on the uniform reach skips the whole term with nothing worn or by day; no chunk is meshed again and nothing is saved or digested. **Dark** is the daylight at the eye times the sky's share there (`PlayerLightGlow.Daylight`), so night and depth are one signal, and the light fades in between
+`darkAtDaylight` and `offAtDaylight`. **To tune it:** `game/light.json` (reach = `radiusBase` + `radiusPerPoint` x light, strength capped at `maxStrength`, the colour, the two thresholds). A new light item is an item with `wear` and `stats.light`, and no code. Only the GLSL path draws it (the MonoGame effects
+fallback for a context below OpenGL 3.3 has none).
+
+### Durability and repair
+
+The wear lives in the stacks. An item has wear only when its row has `durability: {max, source, rate}`. **What wears it** is an `IWearSource` in `Items/Wearing/`, registered by id in `WearSources.Standard()`: `use` (the tool in the selected hotbar slot, one occurrence per block gathered, `VoxelSimulation.StepGather`),
+`time` (every worn item, one occurrence per in-game hour: `StepWear` counts a twenty-fourth of the day cycle's ticks, so it is deterministic, and a sleep wears nothing) and `damage` (every worn item, by the points of a hit, through `WearDamageModifier`). The row names its source, not the group. `ItemWear` applies an
+occurrence (each stack the source reaches whose durability names it gains `rate x quantity`, clamped), and the engine tells once when a stack reaches the maximum (`WornOutNotice`). **Worn out** (`ItemDefinition.IsWornOut`) never loses the item: a tool works at bare hands' speed (`VoxelSimulation.ToolOn`), worn
+gear contributes no stats (so warmth, armour, light and an accessory's effect stop together), and a bag still holds its slots (`Equipment.CapacityOf` does not read wear, since dropping slots would drop items). `ToolWorn` or `GearWornOut` is raised once; the session logs `tool_worn` and queues the HUD line `wear.toolWorn`
+(«Necesito arreglar la herramienta.»). **Repair** is a row of `recipes.json` with `"repairs": true`: it uses its one material at the workbench and sets the most worn stack of the item, in the bag or worn, back to no wear (`ItemWear.Repair`, `CraftingRules.CheckRepair`; the event `ItemRepaired`, the world event
+`item_repaired`). `CraftingScreen.Rows` leaves a repair row out while nothing of its item is worn, so a row's place on the panel is not its recipe index (`CraftingPanel.Click` maps one to the other). **The wear bar** (`Items/Wearing/WearBar.Of`: the share left and a green to red colour, none at no wear) is placed by
+`UI/Common/WearBarLayout` and drawn by `DrawHelpers.WearBar` under the icon in the hotbar, the off-hand cell, the bag and the equipment cells. **To add a cause of wear:** an `IWearSource` class, one line in `WearSources.Standard`, and rows that name it. `--wear item=n` and `--repair item` are the test aids.
+
+### The panel and the HUD's off-hand cell
+
+The inventory screen is the paper doll on the left and the bag on the right. `EquipmentData.Shape` (`EquipmentShape.Of`, made once) reads the doll's grid from `equipment.json` alone: the groups with a `layer` are the columns in layer order, the body rows are the slot names in first-seen order, each row's noun is
+its slots' `label`, a layered group's `heading` heads its column, and the groups with no layer flow into the rows below. **A new group is a row of data and gets its cells with no code edit** (`EquipmentShapeTests`, `InventoryEquipmentLayoutTests`). `InventoryLayout(width, height, slots, needsRows, shape)` is the geometry,
+plain numbers, in three sizes, each the first that fits the canvas both ways: **regular** (64 x 80 bag cells, 44 px doll cells, a noun column; about 950 x 700 for 40 slots with the needs' list), **compact** (44 x 56 and 36 px, no noun column, the word on hover) and **tight** (36 x 50 and 30 px; the 533 x 400 canvas). `HeadingText` writes
+the bare noun, or a three-letter mark where it does not fit. The hotbar row is set apart; the sort button and the trash cell stand under the bag; `InventoryLayout.Hit` is the hit-test (`InventoryHitKind`: cell, equipment, sort, trash, heading), `InventoryLayer` only draws, and a click is the same `SlotMove` command through
+`InventoryPanel`. The stats line (`StatDisplay.Chips`) shows only stats not at their default, as a 7 x 7 icon (`StatIcons`) and a number with the Spanish noun where there is room; the layout reserves rows for every stat the panel can show, so it does not change size when gear is put on (`StatLinePlacer` keeps the chips
+inside the panel). **A new stat is a row of `StatDisplay.Defaults` and an icon.** The title is «la bolsa» with the English beside it. The footer shows, in this order, the refusal that just happened (`VoxelSession.MoveNotice`, `MoveRefusalText.KeyFor` from the reason to a locale key; the lines are `hudLines` `refuse.*` of
+`game/words.json` with English in the locale), else the hover (`InventoryHover.Of`: the noun with its article from `NounCatalog`, the English until the word is known), else the key hints. The held stack with no pointer is drawn beside its origin cell (`HeldPlacement`). Opening the panel marks the label, worn item and stat nouns read.
+**The off-hand cell:** while an item with the off-hand `wear` kind is worn, `HotbarLayer.OffHandBoxFor` is one slot left of the hotbar (or above its left end where there is no room), and the hotbar is drawn exactly as before; it is no hotbar slot (no key, no wheel, the bag's indexes do not move). `NeedsHudLayout.Place(..., offHand)` moves
+the needs block clear of it.
+
+### Gear on the avatar
+
+`Items/Gear/AppearanceBuilder.Of(equipment)` turns the worn items into an `Appearance`: one `LookColour` per body part, the sleeve colour, the item on the back and the item in the off-hand. **The layer order is data**: the groups that carry a `layer` are asked from the highest number down (cosmetic 3, armour 2, clothing 1), and for
+each part key (`head`, `body`, `legs`, `feet`, `sleeve`, an open word) the first worn item whose `look` covers it gives the colour; the sleeves are the `sleeve` part or, without one, the `body` part. `Equipment.Revision` moves on every change, so the front-end rebuilds only then. `Graphics/Figures/PlayerGear` keeps the `Appearance`
+and the figure's parts with the gear on them (`GearFigureParts.Dress`: each covered part is a slightly inflated box over the body in its colour, the head piece two boxes so the face stays bare, the bag a fixed pack box with the backpack flap picture tinted by the bag's `back` look, and the off-hand item extruded from its icon and
+carried with the left arm by `FigureMesher.AppendAttached`). Nothing worn gives the figure's own parts and no extra mesh; at most ten boxes are added. In first person `ArmMeshes.Arm(sleeve)` keeps one arm mesh per sleeve colour and `ArmFrame` carries the colour and the off-hand item, which `VoxelRenderer.DrawArm` shows as a mirrored
+left arm. The player's own figure has no pack unless a bag is worn (the NPCs keep theirs). **To add a layer:** a group row with a `layer` number above the others and items with a matching tag and `look`. **To make a new part visible:** one row in `GearFigureParts.Shapes` and items whose `look` names the key. **To give a bag its own
+shape:** replace the fixed pack box by a lookup on the bag's look or id.
+
+### Where the tests are
+
+`tests/Vocaterra.Game.Core.Tests/Items` (`Containers`, `Gear`, `Wearing`, the bag and the catalogue), `Stats`, `Temperature` and `Damage`; `Save/` for the worn items, the wear and the active bag; `tests/Vocaterra.Game.Tests/UI/Inventory` for the layout at every scale and slot count and `Graphics/Figures` for the avatar.
 
 ## Needs (N01)
 

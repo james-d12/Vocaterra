@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Blocks;
 
@@ -160,21 +161,23 @@ public sealed class BlockAtlasTests
     [Fact]
     public void ItemIconsExistForWhatTheVoxelWorldGivesThePlayer()
     {
-        Assert.Equal(BlockCell.IconWood, BlockAtlasLayout.IconFor(ItemId.Wood));
-        Assert.Equal(BlockCell.IconBerry, BlockAtlasLayout.IconFor(ItemId.Berry));
-        Assert.Equal(BlockCell.IconTorch, BlockAtlasLayout.IconFor(ItemId.Torch)); // S15: a stick with its flame, not the flame's square
-        Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
-        Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
-        Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));
-        Assert.Equal(BlockCell.IconCoin, BlockAtlasLayout.IconFor(ItemId.Coin)); // village-plan V05: drawn for them (V03 borrowed the lantern, the apples and the workbench)
-        Assert.Equal(BlockCell.IconApple, BlockAtlasLayout.IconFor(ItemId.Apple));
-        Assert.Equal(BlockCell.IconAxe, BlockAtlasLayout.IconFor(ItemId.Axe));
-        Assert.All(ItemDefinition.All, static d => Assert.NotNull(BlockAtlasLayout.IconFor(d.Id))); // every item draws something in the hotbar
-        var icons = ItemDefinition.All.Select(static d => BlockAtlasLayout.IconFor(d.Id)!.Value).ToList();
+        Assert.Equal(BlockCell.IconWood, Icon(ItemId.Wood));
+        Assert.Equal(BlockCell.IconBerry, Icon(ItemId.Berry));
+        Assert.Equal(BlockCell.IconTorch, Icon(ItemId.Torch)); // S15: a stick with its flame, not the flame's square
+        Assert.Equal(BlockCell.IconBottle, Icon(ItemId.Bottle));
+        Assert.Equal(BlockCell.IconWaterBottle, Icon(ItemId.WaterBottle));
+        Assert.Equal(BlockCell.IconBread, Icon(TestItems.Bread));
+        Assert.Equal(BlockCell.IconCoin, Icon(ItemId.Coin)); // village-plan V05: drawn for them (V03 borrowed the lantern, the apples and the workbench)
+        Assert.Equal(BlockCell.IconApple, Icon(TestItems.Apple));
+        Assert.Equal(BlockCell.IconAxe, Icon(TestItems.Axe));
+        Assert.All(TestItems.Catalogue.All, static d => Assert.NotEqual(BlockCell.IconPlain, BlockAtlasLayout.IconFor(d))); // every item draws something in the hotbar
+        var icons = TestItems.Catalogue.All.Select(static d => BlockAtlasLayout.IconFor(d)).ToList();
         Assert.Equal(icons.Count, icons.Distinct().Count()); // and a picture of its own
         Assert.DoesNotContain(icons, static cell => Enum.GetValues<BlockId>().Any(b => Enum.GetValues<BlockFace>().Any(f => BlockAtlasLayout.CellFor(b, f) == cell))); // none borrows a block's face
-        Assert.Null(BlockAtlasLayout.IconFor((ItemId)999));
+        Assert.Equal(BlockCell.IconPlain, BlockAtlasLayout.IconFor(new ItemDefinition((ItemId)999, "no-art", 1, "no-art", ItemHeld.Sprite, []))); // I01: a key with no art draws the fallback tile
     }
+
+    private static BlockCell Icon(ItemId item) => BlockAtlasLayout.IconFor(TestItems.Catalogue.Get(item));
 
     [Fact]
     public void TheBottleOfWaterIsBluerThanTheEmptyBottleAndTheBreadIsWarm()

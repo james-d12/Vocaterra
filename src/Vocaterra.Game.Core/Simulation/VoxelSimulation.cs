@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Atmosphere;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Items.Gear;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Physics;
@@ -39,10 +40,12 @@ public sealed partial class VoxelSimulation
     private IReadOnlyList<Recipe> _recipes = [];
     private BlockPos? _noBottleHint;
 
-    private VoxelSimulation(Scene scene)
+    private VoxelSimulation(Scene scene, IItemCatalogue items, EquipmentData equipment)
     {
         Scene = scene;
-        Inventory = new Inventory();
+        Inventory = new Inventory(items, equipment.BagSlots);
+        StartEquipment(items, equipment);
+        StartInteraction(items);
         var spawn = scene.Spawn.Feet;
         Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
         StartFlow();
@@ -58,7 +61,7 @@ public sealed partial class VoxelSimulation
     /// <summary>The player's body: position, velocity, facing and the eye. Read only for a front-end.</summary>
     public PlayerBody Player { get; }
 
-    /// <summary>The player's inventory: 40 slots, the first 10 the hotbar. It starts empty.</summary>
+    /// <summary>The player's inventory: the base slots of the bundle's <c>equipment.json</c> (30) and the worn bag's capacity, the first 10 the hotbar (I03b). It starts empty.</summary>
     public Inventory Inventory { get; }
 
     /// <summary>The number of ticks stepped so far. The game's time is this divided by <see cref="TicksPerSecond"/>.</summary>
@@ -109,13 +112,24 @@ public sealed partial class VoxelSimulation
     public int GatherTicksOf(BlockId block)
     {
         var definition = GatherDefinition(block);
-        if (definition.Gatherable && definition.Material != Material.None
-            && SelectedStack is { IsEmpty: false } held && ItemDefinition.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
+        if (definition.Gatherable && ToolOn(definition) is { } tool)
         {
             return Math.Max(1, definition.GatherTicks / tool.Speed);
         }
 
         return definition.GatherTicks;
+    }
+
+    // The selected hotbar slot's tool when it works on the block's material and is not worn out (I07: a worn-out tool works at bare hands' speed), else null.
+    private ToolSpec? ToolOn(BlockDefinition definition)
+    {
+        if (definition.Material != Material.None && SelectedStack is { IsEmpty: false } held
+            && Inventory.Items.Get(held.Item) is { Tool: { } tool } item && tool.Class == definition.Material && !item.IsWornOut(held.Wear))
+        {
+            return tool;
+        }
+
+        return null;
     }
 
     /// <summary>The recipes the player can craft; set by the host with <see cref="SetRecipes"/>.</summary>
@@ -129,14 +143,17 @@ public sealed partial class VoxelSimulation
 
     /// <summary>Starts a simulation on a scene, with the player standing at its spawn.</summary>
     /// <param name="scene">The scene.</param>
+    /// <param name="items">The item catalogue (<c>game/items.json</c>): the bag's stack limits and the tools' specs are read from it.</param>
     /// <param name="day">The bundle's day and night cycle (E01), or <see langword="null"/> for the default values (a test's simulation built without game data).</param>
     /// <param name="weather">The bundle's weather (E04), or <see langword="null"/> for the default data.</param>
     /// <param name="worldSeed">The world seed the weather's draws are keyed by.</param>
+    /// <param name="equipment">The bundle's slot groups (<c>game/equipment.json</c>, I03a), or <see langword="null"/> for none (a test's simulation built without game data: nothing can be worn).</param>
     /// <param name="stateHeader">What the state digest starts with (B05: the seed, the region template, the generator version and the world-generation data), or <see langword="null"/> for the scene's seed with no data (a test's simulation).</param>
-    public static VoxelSimulation Create(Scene scene, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0, WorldStateHeader? stateHeader = null)
+    public static VoxelSimulation Create(Scene scene, IItemCatalogue items, DayData? day = null, WeatherData? weather = null, ulong worldSeed = 0, EquipmentData? equipment = null, WorldStateHeader? stateHeader = null)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        var simulation = new VoxelSimulation(scene) { StateHeader = stateHeader ?? WorldStateHeader.Unkeyed(scene.Seed) };
+        ArgumentNullException.ThrowIfNull(items);
+        var simulation = new VoxelSimulation(scene, items, equipment ?? EquipmentData.Empty) { StateHeader = stateHeader ?? WorldStateHeader.Unkeyed(scene.Seed) };
         simulation.StartAtmosphere(day, weather, worldSeed);
         return simulation;
     }
@@ -201,6 +218,15 @@ public sealed partial class VoxelSimulation
                 case VoxelCommandKind.Craft:
                     Craft(commands[i].A);
                     break;
+                case VoxelCommandKind.Equip:
+                    Equip(commands[i].A, new EquipSlot(commands[i].B, commands[i].C));
+                    break;
+                case VoxelCommandKind.Unequip:
+                    Unequip(new EquipSlot(commands[i].A, commands[i].B), commands[i].C);
+                    break;
+                case VoxelCommandKind.SlotMove:
+                    ApplySlotMove(commands[i]);
+                    break;
                 default:
                     break;
             }
@@ -222,6 +248,8 @@ public sealed partial class VoxelSimulation
 
         StepWater();
         StepAtmosphere();
+        StepWear();
+        RefreshStats(); // the sheet of the end of this tick: the temperature and the walk read it on the next one
     }
 
     /// <summary>
@@ -311,7 +339,9 @@ public sealed partial class VoxelSimulation
         }
 
         var recipe = _recipes[recipeIndex];
-        return CraftingRules.Check(recipe, Inventory, RecipeStationInReach(recipe));
+        return recipe.Repairs
+            ? CraftingRules.CheckRepair(recipe, Inventory, RecipeStationInReach(recipe), Wear.NeedsRepair(recipe.Output))
+            : CraftingRules.Check(recipe, Inventory, RecipeStationInReach(recipe));
     }
 
     /// <summary>Crafts the recipe at <paramref name="recipeIndex"/> when <see cref="CanCraft"/> says so (the same as a <see cref="VoxelCommandKind.Craft"/> in a tick).</summary>
@@ -324,6 +354,19 @@ public sealed partial class VoxelSimulation
         }
 
         var recipe = _recipes[recipeIndex];
+        if (recipe.Repairs)
+        {
+            foreach (var ingredient in recipe.Ingredients)
+            {
+                Inventory.Remove(ingredient.Item, ingredient.Count);
+            }
+
+            _ = Wear.Repair(recipe.Output);
+            _events.Add(new SimulationEvent(SimulationEventKind.ItemRepaired, Tick, Detail: (int)recipe.Output));
+            RefreshStats(); // a repaired piece gives its stats again at once
+            return result;
+        }
+
         CraftingRules.Craft(recipe, Inventory, RecipeStationInReach(recipe));
         _events.Add(new SimulationEvent(SimulationEventKind.ItemCrafted, Tick, Detail: (int)recipe.Output, Amount: recipe.OutputCount));
         return result;
@@ -334,13 +377,13 @@ public sealed partial class VoxelSimulation
     /// </summary>
     public VoxelSimulationState CaptureState()
     {
-        var slots = new ItemStack[Inventory.SlotCount];
+        var slots = new ItemStack[Inventory.SlotCount]; // the active slots only: the state carries the active count as its length
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
             slots[i] = Inventory.Slots[i];
         }
 
-        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null);
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots, _breath.Air, _flow.Queue.Snapshot(), CaptureAtmosphere() is { IsDefault: false } atmosphere ? atmosphere : null, Equipment.IsEmpty ? null : Equipment.Capture());
     }
 
     /// <summary>
@@ -358,9 +401,10 @@ public sealed partial class VoxelSimulation
             throw new ArgumentOutOfRangeException(nameof(state), state.SelectedSlot, "The selected slot is not a hotbar slot.");
         }
 
-        if (state.Slots.Count != Inventory.SlotCount)
+        var active = Equipment.ActiveSlotsFor(Inventory, state.Worn); // the worn bag decides the size (I03b)
+        if (state.Slots.Count != active)
         {
-            throw new ArgumentException($"The inventory has {state.Slots.Count} slots, not {Inventory.SlotCount}.", nameof(state));
+            throw new ArgumentException($"The inventory has {state.Slots.Count} slots, not the {active} its worn items give.", nameof(state));
         }
 
         Tick = state.Tick;
@@ -375,15 +419,25 @@ public sealed partial class VoxelSimulation
         RestoreAtmosphere(state.Atmosphere);
         for (var i = 0; i < Inventory.SlotCount; i++)
         {
+            Inventory.SetSlot(i, ItemStack.Empty); // the bag that stands now may be larger than the one restored
+        }
+
+        Held.Clear(); // a save holds nothing and keeps no trash (I02)
+        Trash.Clear();
+        Equipment.Restore(state.Worn);
+        Equipment.SyncBag(Inventory);
+        for (var i = 0; i < Inventory.SlotCount; i++)
+        {
             Inventory.SetSlot(i, state.Slots[i]);
         }
 
+        RefreshStats();
         _events.Clear();
     }
 
     /// <summary>
-    /// A SHA-256 of the whole simulation state (the world's state digest, see <see cref="WorldStateDigest"/>: the header and the changed chunks; the tick, the body, the hotbar selection, the gathering progress and the
-    /// inventory) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
+    /// A SHA-256 of the whole simulation state (the world's state digest, see <see cref="WorldStateDigest"/>: the header and the changed chunks; the tick, the body, the hotbar selection, the gathering progress, the
+    /// inventory's active slots and the worn items) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
     /// </summary>
     public string ComputeStateDigest()
     {
@@ -417,6 +471,13 @@ public sealed partial class VoxelSimulation
         }
 
         hash.AppendData(rest);
+        if (Inventory.SlotCount != Inventory.BaseSlots)
+        {
+            Span<byte> active = stackalloc byte[4];
+            BinaryPrimitives.WriteInt32LittleEndian(active, Inventory.SlotCount); // the active count, said outright once a bag has changed it (I03b); with no bag worn it adds nothing
+            hash.AppendData(active);
+        }
+
         if (!_breath.IsFull)
         {
             Span<byte> air = stackalloc byte[4];
@@ -426,6 +487,9 @@ public sealed partial class VoxelSimulation
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
         AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
+        AppendWearDigest(hash); // nothing worn out or scuffed adds nothing (I07)
+        AppendEquipmentDigest(hash); // nothing worn adds nothing (the active count is in the inventory's slots above: its length follows the worn bag)
+        AppendInteractionDigest(hash); // nothing held and an empty trash add nothing (I02)
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
@@ -554,9 +618,15 @@ public sealed partial class VoxelSimulation
         }
 
         var drop = definition.Drop.Value;
+        var usedTool = ToolOn(definition) is not null;
         Grid.SetBlock(cell.X, cell.Y, cell.Z, definition.BecomesWhenGathered);
         Inventory.Add(drop, definition.DropCount);
         ResetGather();
+        if (usedTool)
+        {
+            Wear.Apply(Items.Wearing.UseWearSource.SourceId, 1); // W13: each block the tool gathered wears it once
+        }
+
         _events.Add(new SimulationEvent(SimulationEventKind.BlockRemoved, Tick, cell.X, cell.Y, cell.Z, (int)id));
         _events.Add(new SimulationEvent(SimulationEventKind.ItemPickedUp, Tick, cell.X, cell.Y, cell.Z, (int)drop, definition.DropCount));
     }

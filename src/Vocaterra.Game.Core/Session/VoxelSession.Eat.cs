@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Stats;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Session;
@@ -43,7 +44,7 @@ public sealed partial class VoxelSession
     /// <param name="item">The food.</param>
     public NeedActionResult EatItem(ItemId item)
     {
-        if (Simulation.Inventory.Count(item) < 1 || Data.Needs.FoodOf(ItemDefinition.Get(item).Name) is not { } food || Needs.IsDead)
+        if (Simulation.Inventory.Count(item) < 1 || Data.Needs.FoodOf(Data.Items.Get(item).Name) is not { } food || Needs.IsDead)
         {
             return NeedActionResult.Nothing;
         }
@@ -57,7 +58,7 @@ public sealed partial class VoxelSession
 
         Simulation.TakeItems(item, 1);
         var kept = item; // what stays in the bag, and names a drink in the event: the empty bottle after the water bottle
-        if (food.Leaves is { } leaves && ItemDefinition.All.FirstOrDefault(d => string.Equals(d.Name, leaves, StringComparison.Ordinal)) is { } left)
+        if (food.Leaves is { } leaves && Data.Items.Find(leaves) is { } left)
         {
             Simulation.GrantItems(left.Id, 1);
             kept = left.Id;
@@ -101,7 +102,7 @@ public sealed partial class VoxelSession
     }
 
     // The noun of an item for an event's detail: the catalogue's lemma, else the item's own key (as a pickup does).
-    private string NounOf(ItemId item) => Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name;
+    private string NounOf(ItemId item) => Nouns.ForItem(item)?.Lemma ?? Data.Items.Get(item).Name;
 
     // Where the water is: the well's label near the well's point, the lake's label near the lake's, else the river's noun.
     private string WaterPlaceAt(BlockPos water)
@@ -129,7 +130,9 @@ public sealed partial class VoxelSession
         var sprinting = SprintHeld && moving && (!NeedsEnabled || (PlayActive && Needs.CanSprint));
         var stamina = Data.Needs.Stamina;
         var walk = NeedsEnabled ? Needs.Effects().WalkFactor : 1.0;
-        Simulation.WalkPermille = (int)Math.Round(1000 * walk * (sprinting ? stamina.SprintSpeedFactor : 1.0));
+        var cold = ReadTemperature(); // I06: the band's walk factor, 1 unless the feeling is cold
+        var gear = StatRules.Read(Simulation.Stats, StatKeys.WalkSpeed); // I05a: the worn items' factor; it applies with --needs off too (it is gear, not a need, and nothing worn leaves 1)
+        Simulation.WalkPermille = WalkSpeed.Permille(walk * cold * gear * (sprinting ? stamina.SprintSpeedFactor : 1.0));
         Simulation.GatherPermille = NeedsEnabled && PlayActive && Needs.Value(NeedMeter.Stamina) <= 0 ? (int)Math.Round(1000 * stamina.GatherSlowFactor) : 1000;
         return sprinting;
     }
