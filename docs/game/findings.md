@@ -3175,3 +3175,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `SDL_DestroyWindow`. **B07e's "far buffers at shutdown" was not the cause.** Screenshot runs now set `SDL_VIDEO_X11_XRANDR=0`; any run with
   no display left exits without destroying the window. Proven by forcing `SDL_DelVideoDisplay(0)` under gdb (old crashes, new exits 0).
   Open: a player's interactive window can still crash mid-run if the last monitor goes away (a newer SDL, or avoiding the IBus path).
+- **B48, the crash during play (2026-11-19, merge `07818ce4`).** SDL 2.32.10 is the last SDL2 release and its branch tip keeps the same
+  unchecked display reads (IBus, fcitx, X11 window code); SDL's native Wayland driver failed to create a graphics device here and also
+  deletes displays when outputs go. The only X11 code that deletes a display is the RandR output handler, so a Wayland session now runs
+  SDL with `SDL_VIDEO_X11_XRANDR=0` (one display, the whole X screen, no mode lists; the game reads the size once and goes borderless full
+  screen). A plain X11 session keeps RandR. **Not verified with a live monitor** (it slept through the agent's session; XTEST input did not
+  reach the game): the owner checks full screen, F11 and typing `ñ`.
