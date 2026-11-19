@@ -3158,3 +3158,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   passed, 9 skipped. A lag on a value that changes walking and thirst is simulation state: without saving it a loaded game diverged
   (`ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession` caught it). Warmth adds in the heat too: with the warmest clothes a clear
   valley noon reads hot; for the owner at stop 2.
+- **I08b, armour, accessories, bags (2026-11-19, on `feature/inventory`).** Report `.claude/briefs/i08b-report.md`. Gated at `73cb085e`:
+  13,659 passed, 9 skipped. Answer-set aliases for a shop NPC change what the open decoder hears: Domingo's aliases failed the model-gated
+  `OpenFallbackMeasurementTests`, so his rows stay canonical. A wearable that stacks (the torch) needed the validator's stack rule lifted;
+  `Equip` still takes one at a time.
