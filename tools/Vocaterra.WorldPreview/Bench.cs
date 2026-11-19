@@ -641,6 +641,48 @@ internal static class Bench
                 var seaMs = Fastest(() => _ = sections.Stack(level, Side(sea.Cx), Side(sea.Cz), syMin, syMax));
                 Add($"far model stack L{level}, sea", seaMs, "ms per stack", 1);
             }
+
+            // Where level 3's time goes (B37): the same stack with its forests as layers (no crowns), and the tree pass alone over the stack's footprint with the crowns' blocks.
+            {
+                var (syMin, syMax) = LodWorld.SyRange(3, _world.MinY, _world.MaxY);
+                int Side3(int chunk) => (chunk << VoxelChunk.Shift) >> (LodSection.Shift + 3);
+                var layered = new LodModelSections(_far.Lod(3), _world.MinY, _world.MaxY);
+                var noCrowns = Fastest(() =>
+                {
+                    foreach (var (cx, cz) in spots)
+                    {
+                        _ = layered.Stack(3, Side3(cx), Side3(cz), syMin, syMax);
+                    }
+                }) / spots.Count;
+                Add("far model stack L3, land, forests as layers (no crowns)", noCrowns, "ms per stack", spots.Count);
+                var side = 1 << (LodSection.Shift + 3);
+                var plant = Fastest(() =>
+                {
+                    foreach (var (cx, cz) in spots)
+                    {
+                        var scope = _far.NewScope(side * side, false);
+                        _ = _far.PlantTrees(Side3(cx) * side, Side3(cz) * side, side, side, scope);
+                    }
+                }) / spots.Count;
+                Add("far tree plan over an L3 stack's footprint", plant, "ms per stack", spots.Count);
+
+                // The coarse levels with one column at the cell's centre and no merge of four (MergeLevels 3).
+                var single = new LodModelSections(_far.Lod(4, 3), _world.MinY, _world.MaxY);
+                for (var level = 4; level <= 7; level++)
+                {
+                    var (lMin, lMax) = LodWorld.SyRange(level, _world.MinY, _world.MaxY);
+                    var at = level;
+                    int SideL(int chunk) => (chunk << VoxelChunk.Shift) >> (LodSection.Shift + at);
+                    var ms = Fastest(() =>
+                    {
+                        foreach (var (cx, cz) in spots)
+                        {
+                            _ = single.Stack(at, SideL(cx), SideL(cz), lMin, lMax);
+                        }
+                    }) / spots.Count;
+                    Add($"far model stack L{level}, land, one column a cell (MergeLevels 3)", ms, "ms per stack", spots.Count);
+                }
+            }
         }
 
         private List<(int Cx, int Cz)> FarLand(List<(int Cx, int Cz)> land)

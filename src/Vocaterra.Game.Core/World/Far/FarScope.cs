@@ -17,6 +17,7 @@ internal sealed class FarScope
     private readonly ClimateSampler? _lattice; // the free world's climate, whose lattice corners are shared; null when the climate is some other kind (read column by column)
     private readonly RegionBlend? _blend;
     private readonly int _cell;
+    private readonly bool _coarse;
     private readonly Keys _columnKeys;
     private readonly byte[] _level; // per column slot: 0 nothing, 1 the climate, 2 the climate and the shape
     private readonly ClimateSample[] _climate;
@@ -28,9 +29,11 @@ internal sealed class FarScope
     /// <summary>Creates the scope of one call.</summary>
     /// <param name="world">The world.</param>
     /// <param name="samples">How many columns the call samples (the tables are sized from it; a call that reads more than they hold computes the surplus unshared, with the same result).</param>
-    public FarScope(GenerationWorld world, int samples)
+    /// <param name="coarse">Whether a column off the lattice takes the climate of the lattice point nearest it and not the blend of the four round it (B37: the coarse levels' samples lie on lattice points, where the two agree exactly; only the neighbours the cliff test and the water's levelling read differ).</param>
+    public FarScope(GenerationWorld world, int samples, bool coarse = false)
     {
         _world = world;
+        _coarse = coarse;
         var capacity = Keys.CapacityFor(samples);
         _columnKeys = new Keys(capacity);
         _level = new byte[capacity];
@@ -105,14 +108,21 @@ internal sealed class FarScope
             return _world.Climate.At(x, z);
         }
 
+        if (_coarse)
+        {
+            var nearest = Corner(IntMath.DivDown(x + (_cell / 2), _cell), IntMath.DivDown(z + (_cell / 2), _cell));
+            return _blend is null ? nearest : _blend.Bias(x, z, nearest);
+        }
+
         var ix = IntMath.DivDown(x, _cell);
         var iz = IntMath.DivDown(z, _cell);
-        var a = Corner(ix, iz);
-        var b = Corner(ix + 1, iz);
-        var c = Corner(ix, iz + 1);
-        var d = Corner(ix + 1, iz + 1);
         var fx = IntMath.Mod(x, _cell) * IntMath.One / _cell;
         var fz = IntMath.Mod(z, _cell) * IntMath.One / _cell;
+        // A corner that weighs nothing is not read (IntMath.Lerp with weight 0 is its first argument exactly): a column on a lattice line, as the coarse levels' cell centres are, needs one corner and not four.
+        var a = Corner(ix, iz);
+        var b = fx == 0 ? a : Corner(ix + 1, iz);
+        var c = fz == 0 ? a : Corner(ix, iz + 1);
+        var d = fx == 0 ? c : fz == 0 ? b : Corner(ix + 1, iz + 1);
         var sample = new ClimateSample(
             Blend(a.Temperature, b.Temperature, c.Temperature, d.Temperature, fx, fz),
             Blend(a.Humidity, b.Humidity, c.Humidity, d.Humidity, fx, fz),

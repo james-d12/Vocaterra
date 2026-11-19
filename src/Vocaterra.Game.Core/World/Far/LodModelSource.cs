@@ -6,7 +6,7 @@ namespace Vocaterra.Game.Core.World.Far;
 
 /// <summary>
 /// The far view's columns made from the generator's own model (B07c, D-game-34 item 25): for each column the height model's ground, its water and its snow, the biome's layers under the surface (the top block, the filler, the stone), the trees the
-/// tree pass places (the pure shared query, so every tree stands where the generator puts it, rasterised block by block as the tree pass writes it), and, inside a region, the region's own blocks read down its chunks. A level above 0 merges the
+/// tree pass places (the pure shared query, so every tree stands where the generator puts it, rasterised block by block as the tree pass writes it), and, inside a region, the region's own blocks read down its chunks. A level from 1 to <see cref="MergeLevels"/> merges the
 /// four columns of the finer cells it holds (<see cref="LodMerge"/>), the finer columns being taken straight from the model at their centres rather than from the levels beneath (a cell of 128 blocks holds 16,384 columns; four samples
 /// stand for them). Where the model makes columns it makes crowns only below <see cref="TreeLevels"/>; above, a forest is a layer of leaves on a short trunk as high as its trees' crowns on average. Pure and immutable: safe from any thread.
 /// </summary>
@@ -15,19 +15,31 @@ public sealed class LodModelSource : ILodColumnSource
     // A forest this thick (the biome's tree density, percent) is drawn as a layer of leaves where single trees are not.
     private const int CanopyFrom = 25;
 
+    /// <summary>The highest level that is a merge of four finer columns in the far view's own model: every level (B37 measured one column a cell from level 4: three to four times cheaper on levels 4 to 7, but 10 percent of the wet cells and nine tenths of the cliff rock were lost, so the merge stays).</summary>
+    public const int DefaultMergeLevels = 7;
+
+    /// <summary>The level from which a column's samples lie on the climate's lattice points (the cell is 8 blocks or more, the samples a quarter and half of it from its edge, the lattice 4): the climate is the lattice point's own, the neighbours the cliff test reads take the nearest point's and no river is pooled (B37; the levels below are made exactly as the sampler answers).</summary>
+    public const int DefaultCoarseFrom = 4;
+
+    // The columns the tree pass reads for each chunk's 16 candidates (a candidate that survives the spacing and its biome's density reads about a dozen columns, most of them shared with the next candidate's).
+    private const int TreeColumnsPerChunk = 96;
+
     private readonly FarTerrainSampler _sampler;
 
-    internal LodModelSource(FarTerrainSampler sampler, int treeLevels, int mergeLevels)
+    internal LodModelSource(FarTerrainSampler sampler, int treeLevels, int mergeLevels, int coarseFrom = DefaultCoarseFrom)
     {
+        CoarseFrom = coarseFrom;
         _sampler = sampler;
         TreeLevels = treeLevels;
         MergeLevels = mergeLevels;
     }
 
+    internal int CoarseFrom { get; }
+
     /// <summary>The levels below this get every tree as its blocks; the levels from it up get forests as layers.</summary>
     public int TreeLevels { get; }
 
-    /// <summary>The highest level that is a merge of four finer columns; the levels above it take one column at the cell's centre, a quarter of the work (the default merges every level).</summary>
+    /// <summary>The highest level that is a merge of four finer columns; the levels above it take one column at the cell's centre, a quarter of the work (the default is <see cref="DefaultMergeLevels"/>).</summary>
     public int MergeLevels { get; }
 
     /// <inheritdoc />
@@ -35,11 +47,20 @@ public sealed class LodModelSource : ILodColumnSource
     {
         ArgumentNullException.ThrowIfNull(grid);
         var cell = grid.Cell;
-        var scope = _sampler.NewScope(grid.Width * grid.Depth * (grid.Level == 0 || grid.Level > MergeLevels ? 1 : 4));
         var exact = grid.Level < TreeLevels;
+        var samples = grid.Width * grid.Depth * (grid.Level == 0 || grid.Level > MergeLevels ? 1 : 4);
+        if (exact)
+        {
+            // The tree pass's candidates look at the ground round each trunk: some columns a tree, shared with its neighbours' (a tree row of the scope's tables stands for several columns).
+            var reach = _sampler.World.Strategies.MaxCrownReach;
+            var chunks = (((grid.Width * cell) + (2 * reach)) / VoxelChunk.Size) + 2;
+            samples += chunks * (((grid.Depth * cell) + (2 * reach)) / VoxelChunk.Size + 2) * TreeColumnsPerChunk / 6;
+        }
+
+        var scope = _sampler.NewScope(samples, grid.Level >= CoarseFrom);
         if (grid.Level == 0)
         {
-            var trees = exact ? Trees(grid.X0, grid.Z0, grid.Width, grid.Depth) : null;
+            var trees = exact ? Trees(grid.X0, grid.Z0, grid.Width, grid.Depth, scope) : null;
             Span<LodSegment> column = stackalloc LodSegment[LodGrid.MaxSegments];
             for (var j = 0; j < grid.Depth; j++)
             {
@@ -54,7 +75,7 @@ public sealed class LodModelSource : ILodColumnSource
 
         if (grid.Level > MergeLevels)
         {
-            var single = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell) : null;
+            var single = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell, scope) : null;
             Span<LodSegment> one = stackalloc LodSegment[LodGrid.MaxSegments];
             for (var j = 0; j < grid.Depth; j++)
             {
@@ -62,7 +83,7 @@ public sealed class LodModelSource : ILodColumnSource
                 {
                     var (x, z) = (((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2));
                     var count = Direct(x, z, single, one, scope);
-                    if (cell >= 8 && _sampler.TryRiver(x, z, cell, scope, out var line) && !HasWater(one[..count]))
+                    if (PoolsRivers(grid.Level) && _sampler.TryRiver(x, z, cell, scope, out var line) && !HasWater(one[..count]))
                     {
                         count = FromSample(line, 0, 0, null, one);
                     }
@@ -78,7 +99,7 @@ public sealed class LodModelSource : ILodColumnSource
         var half = cell / 2;
         var childLevel = grid.Level - 1;
         var child = new LodGrid(childLevel, grid.X0 * 2, grid.Z0 * 2, grid.Width * 2, grid.Depth * 2);
-        var raster = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell) : null;
+        var raster = exact ? Trees(grid.X0 * cell, grid.Z0 * cell, grid.Width * cell, grid.Depth * cell, scope) : null;
         Span<LodSegment> scratch = stackalloc LodSegment[LodGrid.MaxSegments];
         for (var j = 0; j < child.Depth; j++)
         {
@@ -96,7 +117,7 @@ public sealed class LodModelSource : ILodColumnSource
             for (var i = 0; i < grid.Width; i++)
             {
                 var count = LodMerge.Merge(child.Column(2 * i, 2 * j), child.Column((2 * i) + 1, 2 * j), child.Column(2 * i, (2 * j) + 1), child.Column((2 * i) + 1, (2 * j) + 1), merged);
-                if (cell >= 8 && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, scope, out var river) && !HasWater(merged[..count]))
+                if (PoolsRivers(grid.Level) && _sampler.TryRiver(((grid.X0 + i) * cell) + (cell / 2), ((grid.Z0 + j) * cell) + (cell / 2), cell, scope, out var river) && !HasWater(merged[..count]))
                 {
                     count = FromSample(river, 0, 0, null, merged);
                 }
@@ -105,6 +126,10 @@ public sealed class LodModelSource : ILodColumnSource
             }
         }
     }
+
+    // The pooling of a river into a cell wide enough to miss it reads the climate's river field's zero line, which the drainage network's rivers (B02c) no longer follow: measured over seeds 42 and 2026 (B37), from level 4 up it
+    // fired in 4 cells of 10,240 and found a river in none, while three more lattice corners a cell made it a third of a coarse stack's time. Levels 3 and below keep it (their corners are shared).
+    private bool PoolsRivers(int level) => level is >= 3 && level < CoarseFrom;
 
     private static bool HasWater(ReadOnlySpan<LodSegment> column)
     {
@@ -253,11 +278,11 @@ public sealed class LodModelSource : ILodColumnSource
 
     // ---- the trees of a rectangle of columns, block by block, as the tree pass writes them
 
-    private TreeRaster Trees(int minX, int minZ, int width, int depth)
+    private TreeRaster Trees(int minX, int minZ, int width, int depth, FarScope scope)
     {
         var world = _sampler.World;
         var reach = world.Strategies.MaxCrownReach;
-        var planted = _sampler.PlantTrees(minX - reach, minZ - reach, width + (2 * reach), depth + (2 * reach));
+        var planted = _sampler.PlantTrees(minX - reach, minZ - reach, width + (2 * reach), depth + (2 * reach), scope);
         var raster = new TreeRaster(minX, minZ, width, depth);
         raster.Add(planted);
         return raster;

@@ -68,7 +68,10 @@ public sealed class FarTerrainSampler
     /// <summary>The far view's columns made from this model (B07c): the ground, water, snow, trees and a region's own blocks, merged coarser by level.</summary>
     /// <param name="treeLevels">The levels below this get every tree as its blocks, the levels from it up a forest as a layer of leaves.</param>
     /// <param name="mergeLevels">The highest level that is a merge of four finer columns; above it a cell is one column at its centre.</param>
-    public LodModelSource Lod(int treeLevels, int mergeLevels = 7) => new(this, treeLevels, mergeLevels);
+    public LodModelSource Lod(int treeLevels, int mergeLevels = LodModelSource.DefaultMergeLevels) => new(this, treeLevels, mergeLevels);
+
+    // The same with the level from which the coarse shortcuts apply given (a test passes a level past the last to get the exact columns of every level).
+    internal LodModelSource Lod(int treeLevels, int mergeLevels, int coarseFrom) => new(this, treeLevels, mergeLevels, coarseFrom);
 
     /// <summary>The far world over this model (B07c): a store of three-dimensional sections that the model fills where there is no real data, and real chunks replace.</summary>
     /// <param name="store">The store.</param>
@@ -130,7 +133,7 @@ public sealed class FarTerrainSampler
 
     internal FarSample AtCell(int x, int z, int cell, FarScope? scope) => TryRiver(x, z, cell, scope, out var river) ? river : At(x, z, scope);
 
-    internal FarScope NewScope(int samples) => new(_world, samples);
+    internal FarScope NewScope(int samples, bool coarse = false) => new(_world, samples, coarse);
 
     // The river that runs through a cell too wide to catch it at its centre: the sample on the river field's zero line when that lies within half a cell of the centre and holds water there.
     internal bool TryRiver(int x, int z, int cell, out FarSample river) => TryRiver(x, z, cell, null, out river);
@@ -167,13 +170,13 @@ public sealed class FarTerrainSampler
         return true;
     }
 
-    internal List<PlantedTree> PlantTrees(int minX, int minZ, int sizeX, int sizeZ)
+    internal List<PlantedTree> PlantTrees(int minX, int minZ, int sizeX, int sizeZ, FarScope? scope = null)
     {
         var maxX = minX + sizeX;
         var maxZ = minZ + sizeZ;
         var cx0 = minX >> VoxelChunk.Shift;
         var cz0 = minZ >> VoxelChunk.Shift;
-        return TreePlacement.Plan(_world, new FarGround(_world), cx0, cz0, ((maxX - 1) >> VoxelChunk.Shift) - cx0 + 1, ((maxZ - 1) >> VoxelChunk.Shift) - cz0 + 1, minX, minZ, maxX, maxZ);
+        return TreePlacement.Plan(_world, new FarGround(_world, scope), cx0, cz0, ((maxX - 1) >> VoxelChunk.Shift) - cx0 + 1, ((maxZ - 1) >> VoxelChunk.Shift) - cz0 + 1, minX, minZ, maxX, maxZ);
     }
 
     /// <summary>
