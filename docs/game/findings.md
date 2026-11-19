@@ -3306,3 +3306,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **I07, durability (2026-11-19, on `feature/inventory`).** Report `.claude/briefs/i07-report.md`. Gated at `75b2494f`: 13,790 passed, 9
   skipped. Save version 11. Appending wear to the state digest only where it is above zero kept every existing digest; worth copying for
   later optional state. Damage wear waits for a damage cause that lists the `wear` modifier.
+- **I-fuzz, CI's fuzz failure on PR #71 (2026-11-19).** Report `.claude/briefs/i-fuzz-report.md`. Since B29a the merge gate leaves the fuzz
+  suite to CI, so the series' content (new nouns shifting the generator's draws) failed only there: the sentence generator could draw the
+  noun «cuanto», which reads as the determiner cuánto. Fixed in the generator (`LexiconCatalog.ReadsAsDeterminer`), not the oracle. A content
+  milestone should run `scripts/test.sh ci` (or at least the fuzz project) before its pull request.
