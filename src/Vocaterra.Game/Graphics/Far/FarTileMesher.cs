@@ -42,6 +42,9 @@ public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Ve
 {
     private int _released;
 
+    /// <summary>B47: the order of the tile's quads by granule of ground (see <see cref="FarGranules"/>), so a stand-in can be drawn inside a set of windows only; <see langword="null"/> for a mesh made without (the tile is drawn whole).</summary>
+    public FarGranules? Granules { get; init; }
+
     /// <summary>The tile's vertices.</summary>
     public ArraySegment<VertexPositionColorTexture> Vertices => new(VertexArray, 0, VertexCount);
 
@@ -93,6 +96,7 @@ internal sealed class FarGeometry
 
     private readonly List<VertexPositionColorTexture>[] _vertices = [new(4096), new(256), new(256)];
     private readonly List<int>[] _indices = [new(8192), new(512), new(512)];
+    private readonly List<int>[] _granules = [new(1024), new(64), new(64)];
 
     /// <summary>This thread's geometry, emptied: a worker builds tile after tile and its lists keep their room (no new large arrays per tile). Only one use at a time per thread.</summary>
     public static FarGeometry Rent()
@@ -108,11 +112,16 @@ internal sealed class FarGeometry
             list.Clear();
         }
 
+        foreach (var list in geometry._granules)
+        {
+            list.Clear();
+        }
+
         return geometry;
     }
 
-    /// <summary>Adds a quad (four corners in order round it, with their texture coordinates) facing <paramref name="normal"/>.</summary>
-    public void Quad(FarBucket bucket, (Vector3 P, Vector2 T) a, (Vector3 P, Vector2 T) b, (Vector3 P, Vector2 T) c, (Vector3 P, Vector2 T) d, Color colour, Vector3 normal)
+    /// <summary>Adds a quad (four corners in order round it, with their texture coordinates) facing <paramref name="normal"/>, in the granule of ground <paramref name="granule"/> (row order).</summary>
+    public void Quad(FarBucket bucket, (Vector3 P, Vector2 T) a, (Vector3 P, Vector2 T) b, (Vector3 P, Vector2 T) c, (Vector3 P, Vector2 T) d, Color colour, Vector3 normal, int granule = 0)
     {
         if (Vector3.Dot(Vector3.Cross(b.P - a.P, c.P - a.P), normal) < 0)
         {
@@ -132,10 +141,15 @@ internal sealed class FarGeometry
         indices.Add(first);
         indices.Add(first + 2);
         indices.Add(first + 3);
+        _granules[(int)bucket].Add(granule);
     }
 
-    /// <summary>The tile made of what was added: its arrays are rented from the shared pools (see <see cref="FarTileMesh"/>).</summary>
-    public FarTileMesh Finish(FarTileKey key, double milliseconds, bool textured)
+    /// <summary>The tile made of what was added: its arrays are rented from the shared pools (see <see cref="FarTileMesh"/>). Each bucket's quads are written granule by granule (B47, <see cref="FarGranules"/>), the quads of a granule in the order they were added.</summary>
+    /// <param name="key">The tile.</param>
+    /// <param name="milliseconds">The time the work took.</param>
+    /// <param name="textured">Whether the tile is textured.</param>
+    /// <param name="shape">How the tile's ground is cut into granules (the quads were added with their granule), or <see langword="null"/> for a tile in one piece.</param>
+    public FarTileMesh Finish(FarTileKey key, double milliseconds, bool textured, FarGranules.Shape? shape = null)
     {
         var total = _vertices[0].Count + _vertices[1].Count + _vertices[2].Count;
         var count = _indices[0].Count + _indices[1].Count + _indices[2].Count;
@@ -144,22 +158,63 @@ internal sealed class FarGeometry
         var wide = narrow is null ? ArrayPool<int>.Shared.Rent(Math.Max(count, 1)) : null;
         var v = 0;
         var ix = 0;
+        var cells = shape is { } cut ? cut.Side * cut.Side : 1;
+        var starts = new int[3 * (cells + 1)];
+        var fill = new int[cells];
         for (var b = 0; b < 3; b++)
         {
-            _vertices[b].CopyTo(vertices, v);
-            foreach (var index in _indices[b])
+            var quads = _indices[b].Count / 6;
+            var source = _vertices[b];
+            var ofQuad = _granules[b];
+            var row = b * (cells + 1);
+            Array.Clear(fill);
+            for (var q = 0; q < quads; q++)
             {
+                fill[ofQuad[q]]++;
+            }
+
+            // The first index of each granule's quads (kept in starts), and where the next quad of each goes (fill).
+            var run = ix;
+            for (var g = 0; g < cells; g++)
+            {
+                starts[row + g] = run;
+                run += fill[g] * 6;
+                fill[g] = starts[row + g];
+            }
+
+            starts[row + cells] = run;
+            for (var q = 0; q < quads; q++)
+            {
+                var at = fill[ofQuad[q]];
+                fill[ofQuad[q]] += 6;
+                var first = v + (((at - ix) / 6) * 4);
+                for (var k = 0; k < 4; k++)
+                {
+                    vertices[first + k] = source[(q * 4) + k];
+                }
+
                 if (narrow is not null)
                 {
-                    narrow[ix++] = (ushort)(index + v);
+                    narrow[at] = (ushort)first;
+                    narrow[at + 1] = (ushort)(first + 1);
+                    narrow[at + 2] = (ushort)(first + 2);
+                    narrow[at + 3] = (ushort)first;
+                    narrow[at + 4] = (ushort)(first + 2);
+                    narrow[at + 5] = (ushort)(first + 3);
                 }
                 else
                 {
-                    wide![ix++] = index + v;
+                    wide![at] = first;
+                    wide[at + 1] = first + 1;
+                    wide[at + 2] = first + 2;
+                    wide[at + 3] = first;
+                    wide[at + 4] = first + 2;
+                    wide[at + 5] = first + 3;
                 }
             }
 
-            v += _vertices[b].Count;
+            ix += quads * 6;
+            v += source.Count;
         }
 
         var min = new Vector3(float.MaxValue);
@@ -175,7 +230,10 @@ internal sealed class FarGeometry
             min = max = Vector3.Zero;
         }
 
-        return new FarTileMesh(key, vertices, total, narrow, wide, count, _indices[0].Count, _indices[1].Count, new BoundingBox(min, max), milliseconds, textured);
+        return new FarTileMesh(key, vertices, total, narrow, wide, count, _indices[0].Count, _indices[1].Count, new BoundingBox(min, max), milliseconds, textured)
+        {
+            Granules = shape is { } made ? new FarGranules(made.OriginX, made.OriginZ, made.Blocks, made.Side, starts) : null,
+        };
     }
 }
 
@@ -205,14 +263,15 @@ public static class FarTileMesher
     /// <param name="settings">The far view's settings (the cells and the tile's size).</param>
     /// <param name="key">The tile.</param>
     /// <param name="greyKinds">The block kinds drawn grey (the greyscale view, <see cref="ChunkMesher.KindBit"/>): the land they make is drawn grey from afar too, so the seam with the chunks has one colour.</param>
-    public static FarTileMesh Build(ILodSectionSource source, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default)
+    /// <param name="cut">B47: whether the tile's ground is cut into granules (<see cref="FarGranules"/>): a run of faces never merges across a granule's edge, and the quads are written granule by granule, so the tile can stand in for finer leaves inside a set of windows. It costs quads (the tile merges less); the view asks for it of every tile.</param>
+    public static FarTileMesh Build(ILodSectionSource source, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, bool cut = false)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(settings);
         var started = MonotonicClock.Milliseconds();
         var stack = source.Stack(key.Level, key.Tx, key.Tz);
         LodStack?[] neighbours = [source.Stack(key.Level, key.Tx + 1, key.Tz), source.Stack(key.Level, key.Tx - 1, key.Tz), source.Stack(key.Level, key.Tx, key.Tz + 1), source.Stack(key.Level, key.Tx, key.Tz - 1)];
-        return Mesh(stack, settings, key, greyKinds, started, neighbours);
+        return Mesh(stack, settings, key, greyKinds, started, neighbours, cut);
     }
 
     /// <summary>The tile of a stack of sections.</summary>
@@ -222,14 +281,16 @@ public static class FarTileMesher
     /// <param name="greyKinds">The block kinds drawn grey.</param>
     /// <param name="started">The clock when the work began.</param>
     /// <param name="neighbours">The stacks of the four tiles at the same level beside it, +x, -x, +z, -z (a <see langword="null"/> entry or none: that side is open and gets a skirt from the tile's own ground): the tile's edge faces are culled against their voxels like faces inside, so no cliff on a border has a slot to look through.</param>
-    public static FarTileMesh Mesh(LodStack stack, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, double? started = null, LodStack?[]? neighbours = null)
+    /// <param name="cut">Whether the ground is cut into granules (see <see cref="Build"/>).</param>
+    public static FarTileMesh Mesh(LodStack stack, FarViewSettings settings, FarTileKey key, UInt128 greyKinds = default, double? started = null, LodStack?[]? neighbours = null, bool cut = false)
     {
         ArgumentNullException.ThrowIfNull(stack);
         ArgumentNullException.ThrowIfNull(settings);
         var begin = started ?? MonotonicClock.Milliseconds();
         var textured = key.Level < settings.TexturedLevels;
         var cell = settings.CellOf(key.Level);
-        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make(), settings.Ground);
+        var granuleCells = cut ? FarGranules.CellsOf(settings, key.Level) : LodSection.Size;
+        var context = new Context(new Volume(stack, cell, (settings.SkirtOf(key.Level) + cell - 1) / cell, neighbours), cell, key.MinX(settings), key.MinZ(settings), (settings.SkirtOf(key.Level) + cell - 1) / cell, textured, greyKinds, Lights.Make(), settings.Ground) { GranuleCells = granuleCells };
         var geometry = FarGeometry.Rent();
         for (var axis = 0; axis < 3; axis++)
         {
@@ -237,7 +298,7 @@ public static class FarTileMesher
             Sweep(geometry, context, axis, false);
         }
 
-        return geometry.Finish(key, MonotonicClock.Milliseconds() - begin, textured);
+        return geometry.Finish(key, MonotonicClock.Milliseconds() - begin, textured, cut ? new FarGranules.Shape(key.MinX(settings), key.MinZ(settings), granuleCells * cell, LodSection.Size / granuleCells) : null);
     }
 
     /// <summary>The colour a block's top face has in a light, with the sky light of the data and no other shading: the average of its atlas tile times the light.</summary>
@@ -510,7 +571,11 @@ public static class FarTileMesher
         }
     }
 
-    private sealed record Context(Volume Volume, int Cell, int X0, int Z0, int SkirtCells, bool Textured, UInt128 Grey, Lights Light, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null);
+    private sealed record Context(Volume Volume, int Cell, int X0, int Z0, int SkirtCells, bool Textured, UInt128 Grey, Lights Light, Func<int, int, int, (int Temperature, int Humidity)>? Ground = null)
+    {
+        /// <summary>B47: a granule's side in cells (see <see cref="FarGranules"/>): a merged run of faces never crosses its edge along the ground.</summary>
+        public int GranuleCells { get; init; } = LodSection.Size;
+    }
 
     // ---- colours
 
@@ -807,12 +872,16 @@ public static class FarTileMesher
                 var height = 1;
                 if (first.Merge)
                 {
-                    while (u + width < nu && !used[at + width] && mask[at + width] is { } next && next == first)
+                    // A run stops at the edge of a granule of ground (B47), along either horizontal axis of the plane (a wall's vertical axis is free).
+                    var gc = c.GranuleCells;
+                    var widest = ua == 1 ? int.MaxValue : gc - ((u0 + u) % gc);
+                    var highest = wa == 1 ? int.MaxValue : gc - ((w0 + w) % gc);
+                    while (u + width < nu && width < widest && !used[at + width] && mask[at + width] is { } next && next == first)
                     {
                         width++;
                     }
 
-                    while (w + height < nw && RowMatches(mask, used, nu, u, w + height, width, first))
+                    while (w + height < nw && height < highest && RowMatches(mask, used, nu, u, w + height, width, first))
                     {
                         height++;
                     }
@@ -870,6 +939,9 @@ public static class FarTileMesher
             1 => positive ? Vector3.UnitY : -Vector3.UnitY,
             _ => positive ? Vector3.UnitZ : -Vector3.UnitZ,
         };
+        // The granule of the voxel the face belongs to (the walls on a granule's edge are the granule of their own voxel; a wall of a column is one granule's).
+        var (gx, gz) = axis switch { 0 => (slice, u), 1 => (u, w), _ => (u, slice) };
+        var granule = ((gz / c.GranuleCells) * (LodSection.Size / c.GranuleCells)) + (gx / c.GranuleCells);
         var textured = c.Textured && made.Bucket != FarBucket.Water;
         if (textured)
         {
@@ -877,11 +949,11 @@ public static class FarTileMesher
             var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(BlockAtlasLayout.CellFor(made.Block, face), ChunkMesher.IsGrey(made.Block, c.Grey));
             if (axis == 1)
             {
-                geometry.Quad(made.Bucket, (a, new Vector2(u0, v0)), (b, new Vector2(u1, v0)), (e, new Vector2(u1, v1)), (d, new Vector2(u0, v1)), made.Colour, normal);
+                geometry.Quad(made.Bucket, (a, new Vector2(u0, v0)), (b, new Vector2(u1, v0)), (e, new Vector2(u1, v1)), (d, new Vector2(u0, v1)), made.Colour, normal, granule);
             }
             else
             {
-                geometry.Quad(made.Bucket, (a, new Vector2(u0, v1)), (b, new Vector2(u1, v1)), (e, new Vector2(u1, v0)), (d, new Vector2(u0, v0)), made.Colour, normal);
+                geometry.Quad(made.Bucket, (a, new Vector2(u0, v1)), (b, new Vector2(u1, v1)), (e, new Vector2(u1, v0)), (d, new Vector2(u0, v0)), made.Colour, normal, granule);
             }
 
             return;
@@ -890,6 +962,6 @@ public static class FarTileMesher
         // The noise: one texel to a voxel, wrapped.
         var span = 1f / (cell * NoiseSize);
         Vector2 Uv(Vector3 p) => axis == 1 ? new Vector2(p.X * span, p.Z * span) : axis == 0 ? new Vector2(p.Z * span, p.Y * span) : new Vector2(p.X * span, p.Y * span);
-        geometry.Quad(made.Bucket, (a, Uv(a)), (b, Uv(b)), (e, Uv(e)), (d, Uv(d)), made.Colour, normal);
+        geometry.Quad(made.Bucket, (a, Uv(a)), (b, Uv(b)), (e, Uv(e)), (d, Uv(d)), made.Colour, normal, granule);
     }
 }

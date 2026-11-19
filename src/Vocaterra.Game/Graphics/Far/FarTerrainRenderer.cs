@@ -50,6 +50,7 @@ public sealed class FarTerrainRenderer : IDisposable
     private readonly List<FarTile> _uploads = [];
     private readonly BoundingFrustum _frustum = new(Matrix.Identity);
     private readonly IEffectMatrices[] _matrices;
+    private readonly List<(int First, int Count)> _runs = [];
     private int _drawn;
 
     /// <summary>Creates the renderer of a far view.</summary>
@@ -196,9 +197,19 @@ public sealed class FarTerrainRenderer : IDisposable
                 continue;
             }
 
-            // Ground is never drawn twice (a stand-in is clipped to the leaves that wait under it, or is whole and the leaves under it wait), so no depth bias is needed or used.
+            // Ground is never drawn twice (a stand-in draws only the faces inside the leaves that wait under it, or is whole and the leaves under it wait), so no depth bias is needed or used.
+            tile.RunsOf(FarBucket.Opaque, _runs);
+            if (_runs.Count == 0)
+            {
+                continue;
+            }
+
             Bind(tile, tile.Textured, solid: true);
-            _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tile.Runs.Opaque / 3);
+            foreach (var (first, count) in _runs)
+            {
+                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+            }
+
             _drawn++;
         }
 
@@ -210,8 +221,15 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Lit > 0)
             {
-                Bind(tile, tile.Textured, solid: true);
-                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque, tile.Runs.Lit / 3);
+                tile.RunsOf(FarBucket.Lit, _runs);
+                if (_runs.Count > 0)
+                {
+                    Bind(tile, tile.Textured, solid: true);
+                    foreach (var (first, count) in _runs)
+                    {
+                        _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+                    }
+                }
             }
         }
 
@@ -223,8 +241,15 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
-                Bind(tile, false, solid: false);
-                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water / 3);
+                tile.RunsOf(FarBucket.Water, _runs);
+                if (_runs.Count > 0)
+                {
+                    Bind(tile, false, solid: false);
+                    foreach (var (first, count) in _runs)
+                    {
+                        _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+                    }
+                }
             }
         }
 
@@ -244,27 +269,38 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Opaque > 0)
             {
-                pass.SetFarClip(tile.Windows); // B42: a stand-in is drawn inside the footprints of the leaves that wait under it only
-                pass.SetFarTexture(tile.Textured);
-                pass.DrawFar(tile.GlBuffers!, 0, tile.Runs.Opaque);
-                _drawn++;
+                tile.RunsOf(FarBucket.Opaque, _runs); // B42, B47: a stand-in is drawn inside the footprints of the leaves that wait under it only
+                if (_runs.Count > 0)
+                {
+                    pass.SetFarTexture(tile.Textured);
+                    foreach (var (first, count) in _runs)
+                    {
+                        pass.DrawFar(tile.GlBuffers!, first, count);
+                    }
+
+                    _drawn++;
+                }
             }
         }
 
-        pass.SetFarClip(null);
         pass.Use(GlPassKind.FarLit);
         pass.SetDiffuse(Vector3.One);
         foreach (var tile in _visible)
         {
             if (tile.Runs.Lit > 0)
             {
-                pass.SetFarClip(tile.Windows);
-                pass.SetFarTexture(tile.Textured);
-                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque, tile.Runs.Lit);
+                tile.RunsOf(FarBucket.Lit, _runs);
+                if (_runs.Count > 0)
+                {
+                    pass.SetFarTexture(tile.Textured);
+                    foreach (var (first, count) in _runs)
+                    {
+                        pass.DrawFar(tile.GlBuffers!, first, count);
+                    }
+                }
             }
         }
 
-        pass.SetFarClip(null);
         pass.Use(GlPassKind.FarWater);
         pass.SetDiffuse(state.Tint);
         for (var i = _visible.Count - 1; i >= 0; i--)
@@ -272,12 +308,14 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
-                pass.SetFarClip(tile.Windows);
-                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water);
+                tile.RunsOf(FarBucket.Water, _runs);
+                foreach (var (first, count) in _runs)
+                {
+                    pass.DrawFar(tile.GlBuffers!, first, count);
+                }
             }
         }
 
-        pass.SetFarClip(null);
         pass.ClearDepth();
         pass.End();
     }

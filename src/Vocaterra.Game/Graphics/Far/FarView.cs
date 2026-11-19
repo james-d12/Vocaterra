@@ -13,11 +13,7 @@ namespace Vocaterra.Game.Graphics.Far;
 /// <param name="MinZ">The first block row.</param>
 /// <param name="MaxX">The block column after the last.</param>
 /// <param name="MaxZ">The block row after the last.</param>
-public readonly record struct FarWindow(int MinX, int MinZ, int MaxX, int MaxZ)
-{
-    /// <summary>The most windows a stand-in is clipped to (the shader's array); a stand-in with more is drawn whole.</summary>
-    public const int Most = 128;
-}
+public readonly record struct FarWindow(int MinX, int MinZ, int MaxX, int MaxZ);
 
 /// <summary>One far-view tile in the cache: its mesh as the worker made it until the renderer has uploaded it, and the buffer it became.</summary>
 public sealed class FarTile(FarTileKey key)
@@ -37,8 +33,11 @@ public sealed class FarTile(FarTileKey key)
     /// <summary>The tile's buffers in the game's own OpenGL program's form (B17c: the far view drawn through the chunks' program, <see cref="FarTerrainRenderer.DrawGl"/>), instead of <see cref="Buffer"/> and <see cref="Indices"/>; <see langword="null"/> when the tile is drawn with MonoGame's effects.</summary>
     public Gl.GlFarBuffers? GlBuffers { get; set; }
 
-    /// <summary>B42: while the tile stands in for leaves that wait, the footprints it is to be drawn inside (the renderer clips to them); <see langword="null"/> for a tile drawn whole.</summary>
+    /// <summary>B42: while the tile stands in for leaves that wait, the footprints it is to be drawn inside (the renderer draws only the runs of its indices that lie in them, B47: <see cref="Granules"/>); <see langword="null"/> for a tile drawn whole.</summary>
     public IReadOnlyList<FarWindow>? Windows { get; set; }
+
+    /// <summary>B47: the tile's faces sorted by granule of ground, so the faces inside a set of windows are a few runs of indices; <see langword="null"/> for a tile that has none (it is drawn whole).</summary>
+    public FarGranules? Granules { get; private set; }
 
     /// <summary>Whether the tile has vertices on the card, in either form.</summary>
     public bool HasBuffers => Buffer is not null || GlBuffers is not null;
@@ -75,6 +74,32 @@ public sealed class FarTile(FarTileKey key)
         Textured = mesh.Textured;
         Bytes = mesh.Bytes;
         Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
+        Granules = mesh.Granules;
+    }
+
+    /// <summary>The runs of the tile's indices to draw for a bucket (B47): the whole of it, or the faces inside <see cref="Windows"/> when the tile stands in for leaves that wait and has granules.</summary>
+    /// <param name="bucket">The bucket.</param>
+    /// <param name="into">Receives the runs (first index, index count), emptied first.</param>
+    public void RunsOf(FarBucket bucket, List<(int First, int Count)> into)
+    {
+        ArgumentNullException.ThrowIfNull(into);
+        if (Windows is { } windows && Granules is { } granules)
+        {
+            granules.Runs(bucket, windows, into);
+            return;
+        }
+
+        into.Clear();
+        var (first, count) = bucket switch
+        {
+            FarBucket.Opaque => (0, Runs.Opaque),
+            FarBucket.Lit => (Runs.Opaque, Runs.Lit),
+            _ => (Runs.Opaque + Runs.Lit, Runs.Water),
+        };
+        if (count > 0)
+        {
+            into.Add((first, count));
+        }
     }
 
     /// <summary>Whether a worker has made the tile.</summary>
@@ -136,6 +161,7 @@ public sealed class FarView
     private readonly List<FarTile> _below = [];
     private readonly Dictionary<FarTileKey, List<FarWindow>> _windows = [];
     private readonly HashSet<FarTileKey> _whole = [];
+    private readonly HashSet<FarTileKey> _unfit = [];
     private bool _clipStandIns = false;
     private readonly List<FarTile> _pending = [];
     private Func<int, int, bool>? _nearReady;
@@ -390,7 +416,7 @@ public sealed class FarView
         ArgumentNullException.ThrowIfNull(dispose);
         var changed = _glPath is { } before && before != gl;
         _glPath = gl;
-        _clipStandIns = gl; // only the game's own program clips a stand-in to its windows (B42)
+        _clipStandIns = true; // a stand-in is drawn inside its windows in either path (B42 in the game's own program, B47 in MonoGame's effects too)
         if (!changed)
         {
             return false;
@@ -684,7 +710,7 @@ public sealed class FarView
                 {
                     try
                     {
-                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey)));
+                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey, cut: true)));
                     }
                     catch (Exception ex) when (ex is not OutOfMemoryException)
                     {
@@ -830,7 +856,7 @@ public sealed class FarView
                 {
                     try
                     {
-                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey)));
+                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey, cut: true)));
                     }
                     catch (Exception ex) when (ex is not OutOfMemoryException)
                     {
@@ -842,8 +868,8 @@ public sealed class FarView
 
     // The draw list (B42). A leaf is drawn from its own tile once that is on the card. Until then, in this order: the tiles under it that are on the card and cover it whole (a leaf that merged from finer ones keeps showing them: no pop to
     // a coarser level and back); else the nearest coarser tile that is on the card, a stand-in. A stand-in used to hide every leaf under it that was already on the card until all of them were (so no face of a coarser tile was ever over a
-    // finer one's), and so it popped over the finished fine land again whenever a new leaf appeared under it: the flicker B42 found. Now, where the renderer can clip (the game's own program), a stand-in is drawn only inside the footprints of
-    // the leaves that wait under it (FarTile.Windows) and the leaves that are on the card are drawn as they are; where it cannot (MonoGame's effects, or too many windows), the stand-in is whole and the leaves under it wait for it, as before.
+    // finer one's), and so it popped over the finished fine land again whenever a new leaf appeared under it: the flicker B42 found. Now a stand-in is drawn only inside the footprints of
+    // the leaves that wait under it (FarTile.Windows; B47: the renderer draws the runs of its indices that lie in them, in either path) and the leaves that are on the card are drawn as they are; where it cannot (a window finer than a granule of the stand-in's ground), the stand-in is whole and the leaves under it wait for it, as before.
     // Either way no ground is drawn twice. A leaf that is not needed (it lies inside the voxel zone and its columns are drawn) is never given a stand-in.
     // A built tile waiting for the card is in PendingTiles, coarse levels first.
     private void Assemble()
@@ -927,6 +953,7 @@ public sealed class FarView
 
         // The windows of each stand-in: the footprints of the leaves under it that wait (not the ones that are on the card, not those the tiles below cover), and of those under the chunks.
         _windows.Clear();
+        _unfit.Clear();
         foreach (var key in _standIns)
         {
             _windows[key] = [];
@@ -943,6 +970,7 @@ public sealed class FarView
                 {
                     var under = Settings.SizeOf(key.Level);
                     _windows[backdrop].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + under, key.MinZ(Settings) + under));
+                    NoteFit(backdrop, key);
                 }
 
                 continue;
@@ -964,19 +992,21 @@ public sealed class FarView
             {
                 var size = Settings.SizeOf(key.Level);
                 _windows[stand].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + size, key.MinZ(Settings) + size));
+                NoteFit(stand, key);
                 continue;
             }
 
             uncovered++;
         }
 
-        // A stand-in with few enough windows is clipped to them; any other is whole and hides the leaves on the card under it, and the stand-ins nested in it are not drawn (its ground is all its own).
+        // A stand-in whose windows are whole granules of its own ground is drawn inside them (B47); any other (a leaf finer than four levels under it: a coarse tile picked by another leaf, while the nearer stand-ins are not on the card yet) is whole and hides the leaves on the card under it,
+        // and the stand-ins nested in it are not drawn (its ground is all its own).
         _whole.Clear();
         foreach (var key in _standIns)
         {
             var windows = _clipStandIns ? Merge(_windows[key]) : [];
             _windows[key] = windows;
-            if (!_clipStandIns || windows.Count > FarWindow.Most)
+            if (!_clipStandIns || _unfit.Contains(key) || _tiles[key].Granules is null)
             {
                 _ = _whole.Add(key);
             }
@@ -1041,6 +1071,15 @@ public sealed class FarView
         Uncovered = uncovered;
         NoteCoverage(needed, uncovered);
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
+    }
+
+    // Notes a stand-in whose window is finer than a granule of its ground (B47): it cannot be drawn inside its windows.
+    private void NoteFit(FarTileKey stand, FarTileKey leaf)
+    {
+        if (!FarGranules.Fits(Settings, stand.Level, leaf.Level))
+        {
+            _ = _unfit.Add(stand);
+        }
     }
 
     // Joins windows that meet along a whole side (runs of leaves in a row, then rows of runs), so a long edge of waiting leaves is a few rectangles.
