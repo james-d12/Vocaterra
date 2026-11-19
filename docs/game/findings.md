@@ -3181,3 +3181,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   SDL with `SDL_VIDEO_X11_XRANDR=0` (one display, the whole X screen, no mode lists; the game reads the size once and goes borderless full
   screen). A plain X11 session keeps RandR. **Not verified with a live monitor** (it slept through the agent's session; XTEST input did not
   reach the game): the owner checks full screen, F11 and typing `ñ`.
+- **The owner's videos of far-view holes (2026-11-19, `85b44233`, Shaders on; artifacts/tmp/owner-videos-2026-11-19/).** Flying at up to
+  190 blocks a second, seed 7900, High, far detail 200%, view distance 576: a regular grid of sky strips through the far land; 64-block
+  square holes in coarse far land under the player with the neighbours' stone skirts as walls; a sky-coloured stepped line where the real
+  chunks meet the far land. Suspected: B42 windows a stand-in only over leaves waiting for the ring and draws nothing elsewhere, while B45's
+  gate holds every far request at a start and after each jump, so held, unrequested or unbuilt leaves are neither drawn nor windowed.
+  Given to B47 (same code).
