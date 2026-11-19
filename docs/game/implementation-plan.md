@@ -640,7 +640,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | done (2026-11-18, gated with I-merge2 at `c3bd3c2b`) |
 | I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | done (2026-11-18, `1ed01a66`, 13,451 passed, 9 skipped) |
 | I08b | Gear content, second half: armour, accessories, the two bags, the shield and the lantern, Domingo's `sell` rows | I05a, I08a | L | Sonnet 5.5, high | done (2026-11-19, `73cb085e`, 13,659 passed, 9 skipped) |
-| I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | todo |
+| I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | done (2026-11-19, `75b2494f`, 13,790 passed, 9 skipped) |
 | I10 | Close-out: the documents, the scripted runs, QA, the full gate, the screenshot tour, the pull request | all | S | Haiku 5.5 | todo |
 
 ## 5. Findings log

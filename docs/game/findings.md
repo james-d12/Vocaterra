@@ -3162,3 +3162,6 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   13,659 passed, 9 skipped. Answer-set aliases for a shop NPC change what the open decoder hears: Domingo's aliases failed the model-gated
   `OpenFallbackMeasurementTests`, so his rows stay canonical. A wearable that stacks (the torch) needed the validator's stack rule lifted;
   `Equip` still takes one at a time.
+- **I07, durability (2026-11-19, on `feature/inventory`).** Report `.claude/briefs/i07-report.md`. Gated at `75b2494f`: 13,790 passed, 9
+  skipped. Save version 11. Appending wear to the state digest only where it is above zero kept every existing digest; worth copying for
+  later optional state. Damage wear waits for a damage cause that lists the `wear` modifier.
