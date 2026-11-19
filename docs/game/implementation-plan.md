@@ -660,6 +660,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I06c | The temperature as a climate model (owner, 2026-11-18) | I06b | M | Sonnet 5.5, high | done (2026-11-18, `3e4f2fb9`, 13,517 passed, 9 skipped) |
 | I06b | The world's climate in the player's temperature (owner, 2026-11-18, stop 3) | I06 | S | Sonnet 5.5, medium | done (2026-11-18, `a773a307`, 13,330 passed, 9 skipped) |
 | I04c | The doll's headings as bare nouns (owner, 2026-11-18) | I04b | S | Sonnet 5.5, medium | done (2026-11-18, `b048d781`, 13,312 passed, 9 skipped) |
+| I-merge3 | Merge `main`'s world-next series (PR #72) into `feature/inventory` (owner, 2026-11-19) | I10b | S | Sonnet 5.5, medium | done (2026-11-19, `6c19e3ad`, 13,981 passed, 9 skipped) |
 | I-merge2 | Merge `main`'s throughput series (PR #70) into `feature/inventory` (owner, 2026-11-18) | I-merge | S | Sonnet 5.5, medium | done (2026-11-18, `c3bd3c2b`, 13,234 passed, 9 skipped; timing 23) |
 | I-merge | Merge `main` (the biomes series, PR #69) into `feature/inventory` (owner, 2026-11-18) | I04 | M | Sonnet 5.5, high | done (2026-11-18, gated with I-merge2 at `c3bd3c2b`) |
 | I08a | Gear content, first half: the materials and the clothes, Pablo's `sell` rows, the starting clothes, warmth numbers | I03b, I06, stop 3 | L | Sonnet 5.5, high | done (2026-11-18, `1ed01a66`, 13,451 passed, 9 skipped) |
