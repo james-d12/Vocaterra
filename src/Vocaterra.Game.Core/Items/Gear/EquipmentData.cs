@@ -181,4 +181,16 @@ public sealed class EquipmentData
             row.GetProperty("statsApply").GetBoolean(),
             row.TryGetProperty("heading", out var heading) && heading.ValueKind == JsonValueKind.String ? heading.GetString() : null);
     }
+
+    /// <summary>Whether <paramref name="item"/> belongs in <paramref name="slot"/> by the slot's wear kind and its group's tags: the placement rules of <see cref="EquipRules.Standard"/> without the ones that read the other worn items (a load's fit check).</summary>
+    /// <param name="item">The item.</param>
+    /// <param name="slot">A slot of the data.</param>
+    public bool Fits(ItemDefinition item, EquipSlot slot)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return Contains(slot)
+            && item.Wear is not null
+            && string.Equals(item.Wear, Spec(slot).Wear, StringComparison.Ordinal)
+            && item.Tags.Any(Groups[slot.Group].AcceptsTag);
+    }
 }

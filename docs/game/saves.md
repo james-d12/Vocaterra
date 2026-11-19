@@ -67,6 +67,12 @@ The state digest changed with the first: it hashes the active slots (30 with no 
 a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json` is the biomes series' version 9 fixture (its chunk edits, its bundle hash) with
 its version, its items by name, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
 
+**A save of this bundle that names what the bundle lacks (I10b, no version change).** A bag slot or a worn entry whose item (or worn slot) the bundle lacks loads empty, as the paragraphs above say, and no longer fails the digest:
+the digest was taken with the item, so a load that put anything right reports the digest instead of requiring it (as a load across bundles does) and logs one `save_repaired` event for each change in the session log (the detail
+names the slot and the reason). The same happens to a worn item whose slot does not take it (the fit check: the slot's wear kind and its group's tags, `EquipmentData.Fits`): it goes to the first empty bag slot, and the log line
+says so (and says when the bag has no room). A bag slot with an item and no count is refused, by a message that names the slot (`bag slot 4 holds apple but gives no count for it`); a save with nothing to put right that does not match its digest is
+refused as before. The refusals read as sentences: the .NET parameter name no longer shows (`The save does not restore. The inventory has 30 slots, not the 40 its worn items give.`).
+
 **The held stack and the trash are not saved (I02, no version change).** Moving items by hand keeps the stack at the cursor (`VoxelSimulation.Held`) and the trash's stack in the simulation state and its digest, but `SaveGame.Capture` returns the held
 stack to its slot or the bag first (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go. The trash's item is not written: a loaded game starts
 with an empty trash, and `Restore` clears both. The save's shape and the format version are as before.
