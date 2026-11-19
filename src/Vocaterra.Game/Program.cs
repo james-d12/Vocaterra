@@ -200,6 +200,12 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
     return 1;
 }
 
+// B46: a scripted run (a screenshot) tells SDL not to follow the X server's outputs, so its display cannot vanish under it (see SdlDisplays); SDL starts in the game's constructor.
+if (options.IsScreenshotRun)
+{
+    _ = SdlDisplays.IgnoreRandRChanges();
+}
+
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
 using var game = new VoxelGame(options, session, scene, voice, savedSettings: savedSettings, savedDialogue: savedDialogue);
 crash.Attach(game.CrashSource); // the crash report, the last-chance save and the state come from the game (X05)
@@ -212,6 +218,14 @@ catch (Exception ex)
     // The game loop threw: the crash report and the last-chance save are written, the paths are printed, and the exit code is not zero (X05).
     crash.Handle(ex, "the game loop", stopped: true);
     return CrashHandler.ExitCode;
+}
+
+// B46: with no display left SDL's window destruction (the game's disposal, next) dies with SIGSEGV; the run is over and its output written, so the process ends here instead.
+if (SdlDisplays.NoneLeft())
+{
+    Console.Out.Flush();
+    Console.Error.Flush();
+    Environment.Exit(game.ExitCode);
 }
 
 return game.ExitCode;
