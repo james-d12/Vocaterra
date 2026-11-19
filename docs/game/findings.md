@@ -3112,3 +3112,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   unchanged, so seeds played before load from disk on both; and the series targeted generation, while the start area may be bound by
   meshing and uploads (about 5,962 meshes in 5 to 10 s in the spot checks) or by the new job order. B42 takes the flicker, B43 measures the
   start. The owner also asked for a fly mode for testing and withdrew it a minute later; the agent was stopped before committing anything.
+- **B43, which stage of chunk generation is the slowest (2026-11-19).** New permanent counters (`PipelineCounters`, a `pipeline:`
+  line of `--stream-stats`): per stage (generated, resident, meshed, on the card, drawn) the chunks counted once each and when 50/90/100%
+  of them got there. Measured on the owner's command (Release, High, 400 blocks, 16 km far view, 8 workers, 60 fps cap, fresh seeds and
+  far store, under limited.sh, load 6 to 17): at the start all 14,800 chunks are generated and resident by 8.8 s (1,700 a second), but
+  the 6,700 meshes take until 26 s (254 a second; the in-frustum chunks 50% drawn at 11 s, 90% at 20 s): **meshing is the slowest stage,
+  and it is bound by the game thread, not the workers** (mesh jobs 6 to 7 worker-seconds in all). The frame's 4 ms mesh budget is spent
+  80% on `SkyExposure.Tile` (an 18 x 18 tile of `NaturalSurfaceAt`, the full terrain shape, about 3.4 ms a new chunk column, 1 ms a
+  mesh): 6.6 of the 7.9 s of game-thread meshing. With the sky tile skipped (a probe) the whole view took 15.5 s instead of 26.4 s
+  (meshes 439 a second). After a 3 km teleport: resident 6.1 s, meshed 26 s, the same pattern. Upload and hand-off are not a limit
+  (on the card within a frame of the result). origin/main for the start: whole view 23.3 s against the branch's 26.4 s (resident 8.2 s
+  against 8.8 s): the series did not change the voxel start, which was never generation-bound; the branch's game thread spends 1.2 s
+  more in the streaming phase (the ring's resident-chunk copies, B38). Far view off: 24.4 s; holding all far work until the whole view
+  is made (an earlier probe at load 13 to 18): 34 against 51 s; B38's order reverted: no change to the voxel view, far coverage 22 to 40 s;
+  the workers' nice raise off: worse (63 against 51 s: the game thread is the bottleneck and the workers then take its processor).
