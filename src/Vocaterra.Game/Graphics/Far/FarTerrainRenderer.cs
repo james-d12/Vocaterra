@@ -196,7 +196,7 @@ public sealed class FarTerrainRenderer : IDisposable
                 continue;
             }
 
-            // Levels never overlap (a stand-in covers its leaves alone, until they are all on the card), so no depth bias is needed or used.
+            // Ground is never drawn twice (a stand-in is clipped to the leaves that wait under it, or is whole and the leaves under it wait), so no depth bias is needed or used.
             Bind(tile, tile.Textured, solid: true);
             _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tile.Runs.Opaque / 3);
             _drawn++;
@@ -244,23 +244,27 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Opaque > 0)
             {
+                pass.SetFarClip(tile.Windows); // B42: a stand-in is drawn inside the footprints of the leaves that wait under it only
                 pass.SetFarTexture(tile.Textured);
                 pass.DrawFar(tile.GlBuffers!, 0, tile.Runs.Opaque);
                 _drawn++;
             }
         }
 
+        pass.SetFarClip(null);
         pass.Use(GlPassKind.FarLit);
         pass.SetDiffuse(Vector3.One);
         foreach (var tile in _visible)
         {
             if (tile.Runs.Lit > 0)
             {
+                pass.SetFarClip(tile.Windows);
                 pass.SetFarTexture(tile.Textured);
                 pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque, tile.Runs.Lit);
             }
         }
 
+        pass.SetFarClip(null);
         pass.Use(GlPassKind.FarWater);
         pass.SetDiffuse(state.Tint);
         for (var i = _visible.Count - 1; i >= 0; i--)
@@ -268,10 +272,12 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
+                pass.SetFarClip(tile.Windows);
                 pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water);
             }
         }
 
+        pass.SetFarClip(null);
         pass.ClearDepth();
         pass.End();
     }
