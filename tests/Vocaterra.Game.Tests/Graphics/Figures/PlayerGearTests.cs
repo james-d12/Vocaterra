@@ -101,7 +101,7 @@ public sealed class PlayerGearTests
     }
 
     [Fact]
-    public void Given_APieceOnEveryPartAndABag_When_TheBoxesAreCounted_Then_NineAreAdded()
+    public void Given_APieceOnEveryPartAndABag_When_TheBoxesAreCounted_Then_TenAreAdded()
     {
         var equipment = Fresh();
         equipment.Set(Slot(equipment, "clothing", "body"), new ItemStack(Tunic, 1));
@@ -112,8 +112,8 @@ public sealed class PlayerGearTests
         var gear = new PlayerGear(equipment);
         gear.Refresh();
 
-        Assert.Equal(9, gear.BoxesAdded); // head 1, body 1, sleeves 2, legs 2, feet 2, pack 1
-        Assert.Equal(NpcFigures.PartsOf(NpcFigures.PlayerName).Length + 9, gear.Parts.Length);
+        Assert.Equal(10, gear.BoxesAdded); // head 2 (the cap), body 1, sleeves 2, legs 2, feet 2, pack 1
+        Assert.Equal(NpcFigures.PartsOf(NpcFigures.PlayerName).Length + 10, gear.Parts.Length);
     }
 
     [Fact]
@@ -214,5 +214,75 @@ public sealed class PlayerGearTests
         Assert.NotEqual(plain, tinted);
         Assert.Equal(ArmMeshes.Arm().VertexCount, ArmMeshes.Arm(frame.Sleeve).VertexCount);
         Assert.Same(ArmMeshes.Arm(frame.Sleeve), ArmMeshes.Arm(frame.Sleeve));
+    }
+
+    [Fact]
+    public void Given_NothingWorn_When_ThePlayersFigureIsBuilt_Then_ItHasNoPackBox()
+    {
+        var parts = NpcFigures.PartsOf(NpcFigures.PlayerName);
+
+        Assert.DoesNotContain(parts, static p => p.Special == BlockCell.Backpack);
+        Assert.DoesNotContain(parts, static p => p.Box.Z1 > 5f); // nothing sticks out behind the body
+    }
+
+    [Fact]
+    public void Given_ABagWorn_When_TheGearIsRead_Then_OnePackBoxShowsInTheBagsColour()
+    {
+        var equipment = Fresh();
+        equipment.Set(First(equipment, "back"), new ItemStack(Rucksack, 1));
+        var gear = new PlayerGear(equipment);
+        gear.Refresh();
+
+        var pack = Assert.Single(gear.Parts, static p => p.Special == BlockCell.Backpack);
+
+        Assert.Equal((0x10, 0xa0, 0x40), pack.Colour);
+    }
+
+    [Fact]
+    public void Given_TheShippedBags_When_TheirLooksAreRead_Then_EachHasItsOwnBackColour()
+    {
+        var items = TestItems.Catalogue;
+        var sack = items.Find("sack")!.Look!.Parts[GearFigureParts.BackKey];
+        var backpack = items.Find("backpack")!.Look!.Parts[GearFigureParts.BackKey];
+
+        Assert.NotEqual(sack, backpack);
+        Assert.True(sack.R > sack.B, "the sack is tan");
+        Assert.True(backpack.G > backpack.R && backpack.G > backpack.B, "the backpack is green");
+    }
+
+    [Fact]
+    public void Given_AHeadPiece_When_TheGearIsRead_Then_TheFaceOfTheHeadIsNotCovered()
+    {
+        var equipment = Fresh();
+        equipment.Set(First(equipment, "head"), new ItemStack(Cap, 1));
+        var gear = new PlayerGear(equipment);
+        gear.Refresh();
+        var baseParts = NpcFigures.PartsOf(NpcFigures.PlayerName);
+        var head = baseParts.First(static p => p.Special is not null && p.Group == FigureGroup.Head).Box;
+
+        var cap = gear.Parts.Skip(baseParts.Length).Where(static p => p.Group == FigureGroup.Head).ToArray();
+
+        Assert.NotEmpty(cap);
+        foreach (var piece in cap)
+        {
+            // Every cap box stays clear of the face: above the face's lower part at the front, or behind the middle of the head.
+            Assert.True(piece.Box.Y0 >= head.Y1 - 1.5f || piece.Box.Z0 >= (head.Z0 + head.Z1) / 2f);
+        }
+
+        Assert.DoesNotContain(cap, p => p.Box.Z0 <= head.Z0 && p.Box.Y0 < head.Y1 - 1.5f); // none reaches the front below the forehead
+    }
+
+    [Fact]
+    public void Given_TheShippedGear_When_TheAxeAndTheTorchAreRead_Then_TheAxeLastsThreeHundredAndFiftyAndTheTorchHasNoWear()
+    {
+        Assert.Equal(350, TestItems.Catalogue.Find("axe")!.Durability!.Max);
+        Assert.Null(TestItems.Catalogue.Find("torch")!.Durability);
+    }
+
+    [Fact]
+    public void Given_TheNpcFigures_When_TheyAreBuilt_Then_TheGuideKeepsItsPack()
+    {
+        Assert.Contains(NpcFigures.PartsOf("guide"), static p => p.Special == BlockCell.Backpack);
+        Assert.DoesNotContain(NpcFigures.PartsOf("villager"), static p => p.Special == BlockCell.Backpack);
     }
 }

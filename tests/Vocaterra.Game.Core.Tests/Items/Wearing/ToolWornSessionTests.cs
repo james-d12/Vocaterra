@@ -16,7 +16,7 @@ public sealed class ToolWornSessionTests
     {
         var session = TestGame.NewSession();
         var sim = session.Simulation;
-        Assert.Equal(199, sim.SetWear(TestItems.Axe, 199));
+        Assert.Equal(349, sim.SetWear(TestItems.Axe, 349));
         var slot = Enumerable.Range(0, sim.Inventory.SlotCount).First(i => sim.Inventory.Slots[i] is { IsEmpty: false } s && s.Item == TestItems.Axe);
         sim.Inventory.SetSlot(0, sim.Inventory.Slots[slot]);
         sim.Inventory.SetSlot(slot, ItemStack.Empty);

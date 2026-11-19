@@ -49,7 +49,7 @@ public sealed class RepairStepTests
     {
         var session = TestGame.NewSession();
 
-        Assert.Equal(200, session.Simulation.SetWear(TestItems.Axe, 9999));
+        Assert.Equal(350, session.Simulation.SetWear(TestItems.Axe, 9999));
     }
 
     [Fact]

@@ -110,7 +110,7 @@ public sealed class RepairTests
     public void Given_AWornOutAxe_When_ItIsRepaired_Then_ItWorksAtTheAxesSpeedAgain()
     {
         var session = AtTheTable();
-        _ = session.Simulation.SetWear(TestItems.Axe, 200);
+        _ = session.Simulation.SetWear(TestItems.Axe, 350);
         session.Simulation.Inventory.SetSlot(0, session.Simulation.Inventory.Slots.First(static s => !s.IsEmpty && s.Item == TestItems.Axe));
         session.Step([VoxelCommand.SelectSlot(0)]);
         Assert.Equal(BlockDefinition.TrunkGatherTicks, session.Simulation.GatherTicksOf(BlockId.Trunk));
