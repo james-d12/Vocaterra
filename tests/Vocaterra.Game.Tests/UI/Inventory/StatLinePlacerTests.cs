@@ -45,6 +45,6 @@ public sealed class StatLinePlacerTests
             Assert.Contains(rows, static row => row.Contains('#'));
         }
 
-        Assert.Same(StatIcons.Fallback, StatIcons.Of("light"));
+        Assert.Same(StatIcons.Fallback, StatIcons.Of("a-stat-nobody-drew"));
     }
 }

@@ -56,6 +56,11 @@ series' world edits; the tests read it with the current bundle's hash, so a cont
   (`SaveGame.Restore` puts the pass back and the edge wall follows; the rockfall's blocks are in the world edits).
 - **The state digest** hashes the active slots (30 with no bag) and says the active count outright once a bag has changed it; it then adds the worn slots, one entry (container, slot, item) each and nothing when none is worn; it appends one entry (container, slot, wear) for each bag slot and worn slot that has any wear and nothing when none has; and the held
   stack and the trash only when they hold something. So a run with no gear, no wear and nothing moved by hand has the digest of a run without those systems, apart from the 30-slot hash.
+- **A save of this bundle that names what the bundle lacks (I10b, no version change).** A bag slot or a worn entry whose item (or worn slot) the bundle lacks loads empty, and no longer fails the digest: the digest was taken with the
+  item, so a load that put anything right reports the digest instead of requiring it (as a load across bundles does) and logs one `save_repaired` event for each change in the session log (the detail names the slot and the reason).
+  The same happens to a worn item whose slot does not take it (the fit check: the slot's wear kind and its group's tags, `EquipmentData.Fits`): it goes to the first empty bag slot, and the log line says so (and says when the bag has no
+  room). A bag slot with an item and no count is refused, by a message that names the slot (`bag slot 4 holds apple but gives no count for it`); a save with nothing to put right that does not match its digest is refused as before.
+  The refusals read as sentences: the .NET parameter name no longer shows (`The save does not restore. The inventory has 30 slots, not the 40 its worn items give.`).
 - **Not saved: the held stack and the trash.** Moving items by hand keeps the stack at the cursor and the trash in the simulation state and its digest, but `SaveGame.Capture` first returns the held stack to its slot or the bag (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go.
   The trash's item is not written: a loaded game starts with an empty trash, and `Restore` clears both.
 

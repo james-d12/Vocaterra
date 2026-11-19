@@ -122,7 +122,11 @@ public sealed class Equipment
         return ItemStack.Empty;
     }
 
-    /// <summary>The first slot that would take <paramref name="item"/> now, an empty one before a worn one, or <see langword="null"/> when no slot would (the item is refused everywhere).</summary>
+    /// <summary>
+    /// The slot a quick wear (a shift-click, <c>--equip</c>) puts <paramref name="item"/> in, or <see langword="null"/> when no slot would take it. Only slots whose group applies its stats are candidates (I10b,
+    /// QA-2026-11-19-progression-3): an empty one first, else a worn one, swapped, so a coat put on over a shirt takes the shirt's place and counts. A group that gives no stats (the cosmetic layer) is never chosen here:
+    /// the player fills it by dropping an item on its cell (<see cref="CanWear"/> and <see cref="Equip"/> still accept it there). The rule is the group's <see cref="EquipmentGroup.StatsApply"/> flag, never a group's id.
+    /// </summary>
     /// <param name="bag">The bag the rules read.</param>
     /// <param name="item">The item.</param>
     public EquipSlot? FindSlotFor(Inventory bag, ItemDefinition item)
@@ -134,7 +138,7 @@ public sealed class Equipment
             foreach (var slot in Data.AllSlots())
             {
                 var worn = Get(slot);
-                if (worn.IsEmpty != wantEmpty)
+                if (worn.IsEmpty != wantEmpty || !Data.Groups[slot.Group].StatsApply)
                 {
                     continue;
                 }
@@ -147,6 +151,26 @@ public sealed class Equipment
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Why <see cref="FindSlotFor"/> found no slot for <paramref name="item"/>: the verdict at the first slot of its wear kind (a slot that applies its stats before one that does not), <see cref="EquipResult.NotWearable"/> for an item
+    /// with no wear kind, <see cref="EquipResult.WrongSlot"/> when no slot has its kind.
+    /// </summary>
+    /// <param name="bag">The bag the rules read.</param>
+    /// <param name="item">The item.</param>
+    public EquipResult RefusalFor(Inventory bag, ItemDefinition item)
+    {
+        ArgumentNullException.ThrowIfNull(bag);
+        ArgumentNullException.ThrowIfNull(item);
+        if (item.Wear is null)
+        {
+            return EquipResult.NotWearable;
+        }
+
+        var kind = Data.AllSlots().Where(s => string.Equals(Data.Spec(s).Wear, item.Wear, StringComparison.Ordinal)).OrderByDescending(s => Data.Groups[s.Group].StatsApply).Select(static s => (EquipSlot?)s).FirstOrDefault();
+        var verdict = kind is { } slot ? CanWear(bag, item, slot) : EquipResult.WrongSlot;
+        return verdict == EquipResult.Done ? EquipResult.WrongSlot : verdict; // only a slot that gives no stats takes it: a quick wear never fills one
     }
 
     /// <summary>Whether <paramref name="item"/> could be worn in <paramref name="slot"/> now, swapping with what is there: <see cref="EquipResult.Done"/>, or the first rule's reason. Nothing changes.</summary>

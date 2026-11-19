@@ -17,6 +17,7 @@ public sealed record StatDisplay(string Key, StatDisplayFormat Format, string? L
         new(StatKeys.HungerDrain, StatDisplayFormat.Percent, null),
         new(StatKeys.ThirstDrain, StatDisplayFormat.Percent, null),
         new(StatKeys.MaxStamina, StatDisplayFormat.Whole, null),
+        new(StatKeys.Light, StatDisplayFormat.Whole, null), // I10b, QA-2026-11-19-ui-2: the lantern's and the amulet's light (the sum of the worn items', 0 to 16)
     ];
 
     /// <summary>The chips of a stat sheet: every row whose stat is not at its default, in the table's order.</summary>

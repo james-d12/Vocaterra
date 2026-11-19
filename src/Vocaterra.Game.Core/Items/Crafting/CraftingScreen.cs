@@ -13,6 +13,14 @@ public sealed class CraftingScreen
     /// <summary>Whether the panel is shown. While it is, the player does not walk and the mouse does not mine or place.</summary>
     public bool IsOpen { get; private set; }
 
+    /// <summary>The first row on the panel when the rows do not all fit the window (I10b): the panel clamps what it draws, and <see cref="ScrollBy"/> keeps it in range.</summary>
+    public int Scroll { get; private set; }
+
+    /// <summary>Moves the scroll by some rows (down is positive), kept between 0 and <paramref name="max"/>.</summary>
+    /// <param name="rows">The rows to move.</param>
+    /// <param name="max">The largest scroll (the panel's layout knows it).</param>
+    public void ScrollBy(int rows, int max) => Scroll = Math.Clamp(Scroll + rows, 0, Math.Max(max, 0));
+
     /// <summary>Opens the panel and marks the given catalogue words as read, once each.</summary>
     /// <param name="words">The learner's word progress.</param>
     /// <param name="lemmas">The lemmas the panel shows (see <see cref="LemmasShown"/>); any other lemma is ignored by the progress.</param>
@@ -26,6 +34,7 @@ public sealed class CraftingScreen
         }
 
         IsOpen = true;
+        Scroll = 0;
     }
 
     /// <summary>Closes the panel.</summary>

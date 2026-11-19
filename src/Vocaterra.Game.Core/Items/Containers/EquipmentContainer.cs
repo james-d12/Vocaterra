@@ -87,8 +87,7 @@ public sealed class EquipmentContainer : IQuickTarget
             return true;
         }
 
-        var sameKind = _equipment.Data.AllSlots().Where(s => _equipment.Data.Spec(s).Wear == definition.Wear).Select(static s => (EquipSlot?)s).FirstOrDefault();
-        refusal = sameKind is { } kind ? MoveResult.FromEquip(_equipment.CanWear(_bag, definition, kind)) : MoveResult.FromEquip(EquipResult.WrongSlot);
+        refusal = MoveResult.FromEquip(_equipment.RefusalFor(_bag, definition));
         return true;
     }
 }

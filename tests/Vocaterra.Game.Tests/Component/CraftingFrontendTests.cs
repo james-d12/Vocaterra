@@ -61,6 +61,76 @@ public sealed class CraftingFrontendTests
         Assert.True(layout.Width <= 640);
     }
 
+    private static readonly (int Width, int Height)[] Windows = [(640, 480), (800, 600), (1024, 768), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160)];
+    private static readonly int[] Scales = [100, 125, 150];
+
+    public static TheoryData<int, int, int, int> ScrollCases
+    {
+        get
+        {
+            var data = new TheoryData<int, int, int, int>();
+            foreach (var (width, height) in Windows)
+            {
+                foreach (var scale in Scales)
+                {
+                    foreach (var rows in new[] { 24, 40 })
+                    {
+                        data.Add(width, height, scale, rows);
+                    }
+                }
+            }
+
+            return data;
+        }
+    }
+
+    // I10b, QA-2026-11-19-ui-1: at every window size and text scale the panel, its header and its footer are on the canvas, however many rows there are; the rows that do
+    // not fit are reached by scrolling, and every row has a place on the panel at some scroll.
+    [Theory]
+    [MemberData(nameof(ScrollCases))]
+    public void TheCraftingPanelStaysOnTheCanvasAtEverySizeAndScrollsItsRows(int windowWidth, int windowHeight, int scale, int rowCount)
+    {
+        var (width, height) = UiScale.Canvas(scale, windowWidth, windowHeight);
+        var shown = new HashSet<int>();
+        var first = new CraftingLayout(width, height, rowCount);
+        for (var scroll = 0; scroll <= first.MaxScroll; scroll++)
+        {
+            var layout = new CraftingLayout(width, height, rowCount, scroll);
+            Assert.True(layout.Y >= 0 && layout.Y + layout.Height <= height, $"{width}x{height}: the panel ({layout.Y}, {layout.Height}) is off the canvas at scroll {scroll}");
+            Assert.True(layout.X >= 0 && layout.X + layout.Width <= width);
+            Assert.True(layout.VisibleRows >= 1);
+            Assert.True(layout.RowHeight >= CraftingLayout.MinRowHeight);
+            var lastBottom = layout.RowY(layout.Scroll + layout.VisibleRows - 1) + layout.RowHeight;
+            Assert.True(lastBottom + CraftingLayout.RowGap + CraftingLayout.Padding + CraftingLayout.FooterHeight <= layout.Y + layout.Height + CraftingLayout.RowGap, "the last row runs into the footer");
+            for (var i = layout.Scroll; i < layout.Scroll + layout.VisibleRows; i++)
+            {
+                Assert.Equal(i, layout.RowAt(layout.RowX + 3, layout.RowY(i) + 1));
+                shown.Add(i);
+            }
+
+            Assert.Null(layout.RowAt(layout.RowX + 3, layout.RowY(layout.Scroll - 1)));
+            if (layout.Scrolls)
+            {
+                var track = layout.Track;
+                var thumb = layout.Thumb;
+                Assert.True(thumb.Y >= track.Y && thumb.Y + thumb.Height <= track.Y + track.Height, "the thumb is outside its track");
+                Assert.True(track.Y + track.Height <= layout.Y + layout.Height);
+            }
+        }
+
+        Assert.Equal(rowCount, shown.Count); // every row, the last repair row included, has its turn on the panel
+    }
+
+    [Fact]
+    public void ARoomyWindowShowsEveryRowWithNoScrollMark()
+    {
+        var layout = new CraftingLayout(1920, 1080, 24, scroll: 5);
+
+        Assert.False(layout.Scrolls);
+        Assert.Equal(24, layout.VisibleRows);
+        Assert.Equal(0, layout.Scroll); // nothing to scroll: the offset is held at the top
+    }
+
     [Fact]
     public void OpeningThePanelReadsEachShownWordOnceAndNeverCreditsASpokenUse()
     {

@@ -41,7 +41,7 @@ public sealed class CraftingLayer : IFrameLayer
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
         var rows = CraftingScreen.Rows(view.Voxel, view.Session.Recipes);
-        var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count);
+        var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count, view.Crafting.Scroll);
         var panel = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
@@ -55,9 +55,18 @@ public sealed class CraftingLayer : IFrameLayer
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, layout.RowWidth, 1), new Color(255, 214, 64, 120));
 
         var hovered = view.Mouse is { } mouse ? layout.RowAt(mouse.X, mouse.Y) : null;
-        for (var place = 0; place < rows.Count; place++)
+        for (var place = layout.Scroll; place < Math.Min(rows.Count, layout.Scroll + layout.VisibleRows); place++)
         {
             DrawRow(spriteBatch, view, font, layout, rows[place], place, hovered == place); // a row's place is its position on the panel: repair rows (I07) come and go, so it is not the recipe's index
+        }
+
+        if (layout.Scrolls)
+        {
+            // I10b: rows are off the panel, so a track and a thumb show where the window is (the wheel and Up, Down, Page Up and Page Down move it).
+            var (tx, ty, tw, th) = layout.Track;
+            spriteBatch.Draw(pixel, new Rectangle(tx, ty, tw, th), new Color(70, 70, 90));
+            var (hx, hy, hw, hh) = layout.Thumb;
+            spriteBatch.Draw(pixel, new Rectangle(hx, hy, hw, hh), Gold);
         }
 
         DrawHelpers.Text(spriteBatch, font, ui.Ui("craftingHints"), new Vector2(left, panel.Bottom - 26), Hints);

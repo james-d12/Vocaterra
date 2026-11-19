@@ -162,6 +162,9 @@ public static class WorldEvents
     /// <summary>A test run was skipped to a later play session (V12c, <c>--skip-to-session</c>): the sessions before it were counted as done (the detail says so).</summary>
     public const string SessionSkipped = "session_skipped";
 
+    /// <summary>A save was loaded with something put right (I10b, QA-2026-11-19-save-1): an item the bundle lacks dropped from a slot, a worn item in a group that does not take it moved to the bag. One event for each; the detail says which.</summary>
+    public const string SaveRepaired = "save_repaired";
+
     /// <summary>The player ate a food (N01, design 9.6; raised from N02 on; the detail is the food's noun).</summary>
     public const string MealEaten = "meal_eaten";
 
@@ -230,7 +233,7 @@ public static class WorldEvents
         TorchAtRing,
         WarmupOffered, WarmupStarted, WarmupEnded, WarmupSkipped, ReviewSkipped, ReviewAnswered,
         BeaconReached, PlaceAsked, ItemTaken, OrderDelivered, OrderAsked, OrderOffered, OrderAccepted, OrderDeclined,
-        Slept, SessionSkipped,
+        Slept, SessionSkipped, SaveRepaired,
         MealEaten, WaterDrunk, NeedStage, PlayerCollapsed, PlayerDied, PlayerWoke, BelongingsRecovered, BushPlanted,
         ProcedureStarted, ProcedureStep, ProcedureDone, ProcedureMastered,
         IngredientsGiven, RecipeTaught,

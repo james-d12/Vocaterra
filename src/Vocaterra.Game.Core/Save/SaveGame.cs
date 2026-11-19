@@ -255,6 +255,7 @@ public static class SaveGame
         }
 
         VoxelSession session;
+        var repairs = new List<string>(); // what the load put right in the slots (an item the bundle lacks, a worn item its slot does not take); each is logged
         try
         {
             if (collector is null)
@@ -273,7 +274,7 @@ public static class SaveGame
                 document = SaveMigration.Adapt(document, session, collector);
             }
 
-            RestoreParts(session, document, migrating);
+            RestoreParts(session, document, migrating, repairs);
             if (collector is not null)
             {
                 KeepPlayerOutOfWalls(session, spawn, collector);
@@ -281,7 +282,7 @@ public static class SaveGame
         }
         catch (ArgumentException ex)
         {
-            throw new SaveException($"The save does not restore: {ex.Message}");
+            throw new SaveException($"The save does not restore. {PlainMessage(ex)}");
         }
 
         if (session.StoredTime.UnixSeconds != document.StoredTime)
@@ -291,9 +292,15 @@ public static class SaveGame
 
         var digest = session.Simulation.ComputeStateDigest();
         var digestMatched = string.Equals(digest, document.StateDigest, StringComparison.Ordinal);
-        if (!digestMatched && collector is null)
+        if (!digestMatched && collector is null && repairs.Count == 0)
         {
             throw new SaveException($"The restored world does not match the save's digest: the save is damaged or was made by another build (the restored digest is {digest}, the save says {document.StateDigest}).");
+        }
+
+        foreach (var repair in repairs)
+        {
+            // I10b, QA-2026-11-19-save-1: the digest was taken with what the load had to put right, so with a repair it is only reported, as across bundles; each repair is in the log.
+            session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.SaveRepaired, null, repair));
         }
 
         if (collector is not null)
@@ -353,7 +360,7 @@ public static class SaveGame
         }
 
         session.ClearUnsaved();
-        RestoreParts(session, document, migrating: false); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
+        RestoreParts(session, document, migrating: false, repairs: new List<string>()); // the needs come back as a load's do; the night's changes on them follow (ApplyNight)
         if (!collapse)
         {
             session.NoteSleptAt(); // Y02: after the restore, which brought back the save taken before this sleep; a sleep at no place and a collapse leave the last place as it was
@@ -368,10 +375,38 @@ public static class SaveGame
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
-    private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating)
+    private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating, List<string> repairs)
     {
-        var slots = document.Inventory.Select(slot => slot.ToStack(session.Data.Items)).ToArray();
-        var worn = WornSave.ToStacks(document.Worn, session.Data.Equipment, session.Data.Items); // I03b: what the data lacks loads as nothing
+        var items = session.Data.Items;
+        for (var i = 0; i < document.Inventory.Count; i++)
+        {
+            var slot = document.Inventory[i];
+            if (!string.IsNullOrEmpty(slot.Item) && slot.Count <= 0 && !migrating)
+            {
+                throw new SaveException($"The save cannot be loaded: bag slot {i + 1} holds {slot.Item} but gives no count for it.");
+            }
+
+            if (!string.IsNullOrEmpty(slot.Item) && slot.Count > 0 && items.Find(slot.Item) is null)
+            {
+                repairs.Add($"bag slot {i + 1}: {slot.Item} is not in this bundle, the slot loads empty");
+            }
+        }
+
+        var slots = document.Inventory.Select(slot => slot.ToStack(items)).ToArray();
+        var load = WornSave.Resolve(document.Worn, session.Data.Equipment, items); // I03b: what the data lacks loads as nothing
+        var worn = load.Stacks;
+        repairs.AddRange(load.Dropped.Select(static line => line + ", the slot loads empty"));
+        foreach (var (stack, where) in load.Misfits)
+        {
+            var room = Array.FindIndex(slots, static s => s.IsEmpty);
+            if (room >= 0)
+            {
+                slots[room] = stack; // the fit check: an item worn where its slot does not take it goes to the bag
+            }
+
+            repairs.Add(room >= 0 ? $"{where}, moved to bag slot {room + 1}" : $"{where}, and the bag has no room for it");
+        }
+
         session.Simulation.Restore(new VoxelSimulationState(
             document.Tick,
             document.SelectedSlot,
@@ -449,6 +484,22 @@ public static class SaveGame
                 }
             }
         }
+    }
+
+    // An argument exception's message with the ".NET parameter name" suffix taken off, so a refusal reads as a sentence.
+    private static string PlainMessage(ArgumentException ex)
+    {
+        var message = ex.Message;
+        if (ex.ParamName is { Length: > 0 } name)
+        {
+            var suffix = $" (Parameter '{name}')";
+            if (message.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                message = message[..^suffix.Length];
+            }
+        }
+
+        return message;
     }
 
     private static int FloorDiv(int value, int divisor) => (int)Math.Floor(value / (double)divisor);

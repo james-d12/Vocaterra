@@ -311,7 +311,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
         _settings.Changed += ApplySetting;
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
-        _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, CraftingScreen.Rows(session.Simulation, session.Recipes).Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
+        _craftingPanel = new CraftingPanel(
+            _crafting,
+            session,
+            _sound,
+            (x, y) => CraftingLayoutNow(session).RowAt(x, y),
+            () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen,
+            () =>
+            {
+                var layout = CraftingLayoutNow(session);
+                return (layout.MaxScroll, layout.VisibleRows);
+            });
         _stationPanel = new StationPanel(
             _station,
             session,
@@ -362,8 +372,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     },
                     item =>
                     {
-                        session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
-                        Console.WriteLine($"give: {item}, bag {session.Simulation.Inventory.Count(item)}");
+                        var notGiven = session.Simulation.GrantItems(item, 1); // a test aid (N07): --give puts one in the bag
+                        Console.WriteLine(GiveLine.Text(session.Data.Items.Get(item).Name, notGiven, session.Simulation.Inventory.Count(item)));
                     },
                     ground =>
                     {
@@ -389,7 +399,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     },
                     item =>
                     {
-                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal gives nothing
+                        // A test aid (I03a): --equip gives the item if the bag has none and wears it in the first slot that takes it; a refusal leaves it in the bag (I10b)
                         var equipment = session.Simulation.Equipment;
                         var result = session.Simulation.WearFromStart(item, out var slot);
                         var name = session.Data.Items.Get(item).Name;
@@ -563,6 +573,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _sim.FreezeClock(SkyLook.DuskHour);
         }
     }
+
+    // The crafting panel's layout for the canvas and the rows as they are now, at the panel's scroll (the click and the keys use it, the layer draws the same).
+    private CraftingLayout CraftingLayoutNow(VoxelSession session) =>
+        new(_canvas.Width, _canvas.Height, CraftingScreen.Rows(session.Simulation, session.Recipes).Count, _crafting.Scroll);
 
     private void ClosePanels()
     {

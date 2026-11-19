@@ -341,7 +341,7 @@ public readonly record struct InventoryLayout
         {
             0 => new Metrics(64, 80, 6, 8, 44, 4, 66, 56, 70, 8, 16, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 18, 110, 18, false, 28, 6, 8),
             1 => new Metrics(44, 56, 4, 6, 36, 3, 39, 36, 0, 6, 10, 16, 44, 36, InventoryLayout.FooterHeight, 26, InventoryLayout.NeedsRowHeight, 10, 16, 52, 16, false, 24, 4, 8),
-            _ => new Metrics(36, 50, 2, 2, 30, 2, 32, 30, 0, 4, 8, 8, 30, 26, 26, 20, InventoryLayout.NeedsRowHeight - 2, 6, 14, 52, 14, true, 20, 2, 0),
+            _ => new Metrics(36, 50, 2, 2, 30, 2, 32, 30, 0, 4, 8, 8, 30, 26, 26, 20, InventoryLayout.NeedsRowHeight - 2, 6, 14, 46, 14, true, 20, 2, 0),
         };
     }
 }

@@ -195,23 +195,54 @@ public sealed class EquipmentSimulationTests
     }
 
     [Fact]
-    public void Given_ItemsThatCannotBeWornOrWornNoMore_When_TheStartAidIsAsked_Then_ItRefusesAndGivesNothing()
+    public void Given_AnItemThatCannotBeWorn_When_TheStartAidIsAsked_Then_ItRefusesAndLeavesItInTheBag()
     {
         var sim = GearItems.Sim();
 
+        Assert.Equal(EquipResult.NotWearable, sim.WearFromStart(TestItems.Apple, out _)); // I10b, QA-2026-11-19-ui-3: the help text says it is left in the bag
+        Assert.Equal(1, sim.Inventory.Count(TestItems.Apple));
         Assert.Equal(EquipResult.NotWearable, sim.WearFromStart(TestItems.Apple, out _));
-        Assert.Equal(0, sim.Inventory.Count(TestItems.Apple));
+        Assert.Equal(1, sim.Inventory.Count(TestItems.Apple)); // one is given only when the bag has none
     }
 
     [Fact]
-    public void Given_AnItemWhoseWearKindNoSlotHas_When_TheStartAidWearsIt_Then_ItIsRefusedWithNoSlotAndNothingIsGiven()
+    public void Given_AFullBag_When_TheStartAidIsAskedForAnItemItCannotGive_Then_ItIsBagFullForWornAndUnwornItemsAlike()
+    {
+        var sim = GearItems.Sim();
+        for (var i = 0; i < sim.Inventory.SlotCount; i++)
+        {
+            sim.Inventory.SetSlot(i, new ItemStack(TestItems.Bread, 1));
+        }
+
+        Assert.Equal(EquipResult.BagFull, sim.WearFromStart(TestItems.Apple, out _));
+        Assert.Equal(EquipResult.BagFull, sim.WearFromStart(GearItems.Scarf, out _)); // a swap needs the item in the bag first: a full bag refuses it
+        Assert.Equal(0, sim.Inventory.Count(GearItems.Scarf));
+    }
+
+    [Fact]
+    public void Given_AShirtWorn_When_TheStartAidWearsAnotherGarmentOfTheSameKind_Then_ItSwapsInTheStatsSlotAndTheShirtGoesToTheBag()
+    {
+        var sim = GearItems.Sim();
+        _ = sim.WearFromStart(GearItems.Shirt, out _);
+        _ = sim.WearFromStart(GearItems.Plate, out _);
+
+        Assert.Equal(EquipResult.Done, sim.WearFromStart(GearItems.Scarf, out var slot));
+
+        Assert.Equal(GearItems.Slot("clothing", "body"), slot);
+        Assert.Equal(GearItems.Scarf, sim.Equipment.Get(GearItems.Slot("clothing", "body")).Item);
+        Assert.Equal(1, sim.Inventory.Count(GearItems.Shirt));
+        Assert.True(sim.Equipment.Get(GearItems.Slot("cosmetic", "body")).IsEmpty);
+    }
+
+    [Fact]
+    public void Given_AnItemWhoseWearKindNoSlotHas_When_TheStartAidWearsIt_Then_ItIsRefusedWithNoSlotAndLeftInTheBag()
     {
         var items = TestItems.With(new ItemDefinition((ItemId)230, "test-wings", 1, "test-wings", ItemHeld.Sprite, ["clothing"], Wear: "wings"));
         var sim = VoxelSimulation.Create(VoxelTestSupport.FlatScene(), items, equipment: GearItems.Data);
 
         Assert.Equal(EquipResult.WrongSlot, sim.WearFromStart((ItemId)230, out var slot));
         Assert.Null(slot);
-        Assert.Equal(0, sim.Inventory.Count((ItemId)230));
+        Assert.Equal(1, sim.Inventory.Count((ItemId)230)); // I10b: refused items are left in the bag
     }
 
     [Fact]

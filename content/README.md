@@ -413,7 +413,7 @@ get colder, ids are unique. The loop is the usual one (`scripts/content-loop.sh 
 `game-v1/game/equipment.json` (`equipment.schema.json`; `EquipmentData`, checked by `EquipmentValidator` inside `GameDataValidator`) lists the slot groups gear is worn in, in this order: `clothing`,
 `armour`, `cosmetic` (each with the body slots `head`, `body`, `legs`, `feet`), `accessories` (3), `offhand` (1) and `backpack` (1). A group is a row and code never names one: it has `slots` (named; an
 item's `wear` must equal the slot's name) or `count` with a `wear` kind; `accepts`, the item tags the group takes; `noDuplicates` (one of a kind in the group, the accessories); `statsApply` (false for
-the cosmetic layer, whose items give nothing); `layer` (where the avatar draws it, left out when it is not a layer); and the Spanish noun of each slot (`labels`, or `label` for counted slots; left out
+the cosmetic layer, whose items give nothing, and which a quick wear, a shift-click or `--equip`, never fills: the player drops an item on its cell, I10b); `layer` (where the avatar draws it, left out when it is not a layer); and the Spanish noun of each slot (`labels`, or `label` for counted slots; left out
 when the lexicon has no word yet, as for the accessories). The order of the groups and slots is part of the bundle: commands and the digest carry indexes, so a new group goes at the end. A new group,
 say for a ring finger or a cape, is one more row (and an item tag it accepts); no code changes.
 
