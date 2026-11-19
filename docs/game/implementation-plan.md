@@ -633,6 +633,7 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I05b | Light round the player (a spike), the frame time measured | I03b | M | Sonnet 5.5, high | done (2026-11-18, `f0b6a882`, 13,359 passed, 9 skipped) |
 | I04 | The equipment panel: the paper doll, the bag grid, Spanish slot labels, the stats line, sort and trash, the compact layout | I02 | M | Sonnet 5.5, medium | done: gated at `0cf31798` (12,102 passed); screenshots wait for the owner |
 | I04b | The panel's fixes from the first screenshots and the off-hand cell by the hotbar (owner, 2026-11-16) | I04 | S | Sonnet 5.5, high | done (2026-11-18, `3334359e`, 13,301 passed, 9 skipped) |
+| I09b | The player's looks and the axe's durability (owner, 2026-11-19) | I09, I08b, I07 | S | Sonnet 5.5, medium | done (2026-11-19, `abec8f65`, 13,796 passed, 9 skipped) |
 | I06c | The temperature as a climate model (owner, 2026-11-18) | I06b | M | Sonnet 5.5, high | done (2026-11-18, `3e4f2fb9`, 13,517 passed, 9 skipped) |
 | I06b | The world's climate in the player's temperature (owner, 2026-11-18, stop 3) | I06 | S | Sonnet 5.5, medium | done (2026-11-18, `a773a307`, 13,330 passed, 9 skipped) |
 | I04c | The doll's headings as bare nouns (owner, 2026-11-18) | I04b | S | Sonnet 5.5, medium | done (2026-11-18, `b048d781`, 13,312 passed, 9 skipped) |
