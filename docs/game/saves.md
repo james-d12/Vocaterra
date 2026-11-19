@@ -36,6 +36,17 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
+## Format version 11: the wear of an item (I07)
+
+The current version is 11, and it is the only one read: a save of version 10 or older is refused with "The save is format version N; the oldest this game loads is 11 (it writes 11), and older saves are not migrated" (the game
+is unreleased, so no migration). One change, optional and left out at zero:
+
+- **`wear`, on an `inventory` entry and on a `worn` entry.** `{"item": "axe", "count": 1, "wear": 40}` and `{"group": "clothing", "slot": "body", "item": "shirt", "wear": 12}`: how worn the item is, a whole number from 0
+  up to the item's `durability.max` in `game/items.json`. A new or never-worn item has no `wear` key, so a save of a player whose gear is all new differs from version 10 only in its version. The load keeps the wear only for an
+  item that has a durability and clamps it into 0 to its maximum (`Save/Wears`), so a save made against other content (a migration) still loads. A worn-out item is saved as it is (wear equal to its maximum) and loads worn out.
+- **The state digest** appends one entry (container, slot, wear) for each bag slot and worn slot that has any wear, and nothing when none has, so every run without wear has the digest it had before. The fixture
+  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json` is the old `save-v10.json` with its version raised (renamed): it carries no wear (its digest is unchanged); the round trip of worn stacks is `WearSaveTests`.
+
 ## Format version 10: the active bag and the worn items (I03b), on the world edits by chunk coordinate (B05) and the items by name (I01)
 
 The current version is 10, and it is the only one read: a save of version 9 or older is refused with "The save is format version N; the oldest this game loads is 10 (it writes 10), and older saves are not
@@ -53,7 +64,7 @@ migrated." Before the two series met, "version 9" meant two different formats: t
 - **`passOpen`, optional (B08b, from the biomes series).** Written as `true` only while the pass through the east ring is open and its lock is in force (`session.Pass.IsOpen && session.Pass.Locked`); left out otherwise, so a save before the pass opened has no field and loads with the pass closed. It needs no version of its own: `SaveGame.Restore` puts the pass back (`Pass.Restore`) and the edge wall follows (`SyncPassBarrier`); the rockfall's blocks are in the world edits.
 
 The state digest changed with the first: it hashes the active slots (30 with no bag), and it adds the active count when a bag has changed it, then the worn slots as before (nothing worn adds nothing). Every digest
-a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v10.json` is the biomes series' version 9 fixture (its chunk edits, its bundle hash) with
+a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json` is the biomes series' version 9 fixture (its chunk edits, its bundle hash) with
 its version, its items by name, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
 
 **The held stack and the trash are not saved (I02, no version change).** Moving items by hand keeps the stack at the cursor (`VoxelSimulation.Held`) and the trash's stack in the simulation state and its digest, but `SaveGame.Capture` returns the held
