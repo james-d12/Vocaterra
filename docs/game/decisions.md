@@ -1030,6 +1030,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     interesting, as definately closer chunks are more important at least." Work near the player (the voxel zone's chunks and their meshes)
     takes priority over far work (far tiles, stand-ins, the ring). B43 measures a strict near-first order; the fix follows from its report.
     He also asked for a fly mode for testing and withdrew it ("dont add it pls").
+63. **B37's far picture approved; B43's fix 1 first** (2026-11-19, about 07:10 UTC): shown B37's before/after pictures (0.01 to 0.02% of pixels
+    differ; distant cliff-rock specks turn green), the owner chose "Approve" (not the stronger `MergeLevels` 3, which loses most distant cliff
+    rock). Shown B43's ranked fixes for the start area, he chose "Only fix 1 first": B44, the sky tile off the game thread; the others wait
+    for its measurement.
 
 ## Already decided
 

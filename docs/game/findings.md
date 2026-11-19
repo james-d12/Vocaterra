@@ -3134,3 +3134,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   generation done by 8.8 s. **The B35 to B40 series did not change the voxel start; the branch is about 3 s slower to the whole view** (B38's
   ring copies resident chunks on the game thread). A probe that skipped the sky tile: whole view 26.4 to 15.5 s. B40's nice raise helps the
   game thread (off: 63 against 51 s); B38's order helps far coverage (reverted: 40 against 22 s). The owner chose fix 1 (B44) alone first.
+- **B42, the flicker (2026-11-19, merge `8555ffcf`).** Not a z-fight with the chunks (the far pass clears depth first): a B35 stand-in was drawn
+  whole and hid every finished fine tile under it while any one leaf under it waited, and B38's ring waiting (up to 240 s) plus movement kept
+  adding waiting leaves, so finished ground swapped between level 0 and level 4. A walking-eye test counted 610 of 1,216 ground cells
+  flipping fine > coarse > fine before, 0 after. Stand-ins now draw only through windows over waiting leaves (`uClip` in the GL chunk
+  shader). The MonoGame-effects path (shaders off) cannot clip and still draws whole stand-ins. The flicker was not caught in a picture;
+  the owner's game check is the real test.
