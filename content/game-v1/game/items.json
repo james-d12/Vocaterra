@@ -12,7 +12,7 @@
     { "name": "book", "id": 29, "stack": 1, "icon": "book", "tags": ["book"] },
     { "name": "coin", "id": 30, "stack": 99, "icon": "coin", "tags": ["currency"] },
     { "name": "apple", "id": 31, "stack": 99, "icon": "apple", "tags": ["food"] },
-    { "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tags": ["tool"], "tool": { "class": "wood", "speed": 4 }, "durability": { "max": 200, "source": "use" } },
+    { "name": "axe", "id": 32, "stack": 1, "icon": "axe", "tags": ["tool"], "tool": { "class": "wood", "speed": 4 }, "durability": { "max": 350, "source": "use" } },
     { "name": "roast-apple", "id": 33, "stack": 99, "icon": "roast-apple", "tags": ["food"] },
     { "name": "flour", "id": 34, "stack": 99, "icon": "flour", "tags": ["material"] },
     { "name": "stake", "id": 35, "stack": 1, "icon": "stake", "tags": ["tool"] },
@@ -38,7 +38,7 @@
     { "name": "amulet", "id": 118, "stack": 1, "icon": "amulet", "tags": ["accessory"], "wear": "accessory", "stats": { "light": 5 }, "durability": { "max": 720, "source": "time" } },
     { "name": "shield", "id": 119, "stack": 1, "icon": "shield", "tags": ["offhand"], "wear": "offhand", "stats": { "armour": 3 }, "durability": { "max": 250, "source": "damage" } },
     { "name": "lantern", "id": 120, "stack": 1, "icon": "lantern", "tags": ["offhand"], "wear": "offhand", "stats": { "light": 12 }, "durability": { "max": 240, "source": "time" } },
-    { "name": "sack", "id": 121, "stack": 1, "icon": "sack", "tags": ["bag"], "wear": "back", "capacity": 10, "durability": { "max": 480, "source": "time" } },
-    { "name": "backpack", "id": 122, "stack": 1, "icon": "backpack", "tags": ["bag"], "wear": "back", "capacity": 20, "durability": { "max": 720, "source": "time" } }
+    { "name": "sack", "id": 121, "stack": 1, "icon": "sack", "tags": ["bag"], "wear": "back", "capacity": 10, "look": { "back": "#ecd29c" }, "durability": { "max": 480, "source": "time" } },
+    { "name": "backpack", "id": 122, "stack": 1, "icon": "backpack", "tags": ["bag"], "wear": "back", "capacity": 20, "look": { "back": "#7aaa5a" }, "durability": { "max": 720, "source": "time" } }
   ]
 }

@@ -7,7 +7,7 @@ using Vocaterra.Game.Graphics.World;
 namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>
-/// The boxes the player's gear adds to the figure (I09): for each covered body part, slightly inflated boxes over the body in the part's colour, and the worn bag as one box on the back. The shapes are a table of rows
+/// The boxes the player's gear adds to the figure (I09): for each covered body part, slightly inflated boxes over the body in the part's colour (a head piece is a cap that leaves the face bare), and the worn bag as one box on the back (the player's own figure has no pack, I09b). The shapes are a table of rows
 /// (<see cref="Shapes"/>): a new visible part is a new row and a new look key in the items, with no other code. A part key with no row draws nothing.
 /// </summary>
 public static class GearFigureParts
@@ -24,7 +24,8 @@ public static class GearFigureParts
     // Each row: the key, then the boxes in figure pixels with the group each moves with. About a quarter pixel larger than the body part it covers on every side.
     private static readonly Dictionary<string, (Box Box, FigureGroup Group)[]> Shapes = new(StringComparer.Ordinal)
     {
-        ["head"] = [(new Box(-5f, 29f, -5f, 5f, 33f, 5f), FigureGroup.Head)],
+        // A cap, not a box: a crown over the top, and a back-and-sides piece from the middle of the head to the back; the front's lower part (the face) stays bare.
+        ["head"] = [(new Box(-5f, 30.6f, -5f, 5f, 33f, 4.98f), FigureGroup.Head), (new Box(-4.95f, 28f, 0f, 4.95f, 32.95f, 5f), FigureGroup.Head)],
         ["body"] = [(new Box(-4.25f, 9.8f, -2.75f, 4.25f, 22.2f, 2.75f), FigureGroup.Body)],
         ["sleeve"] = [(new Box(-7.25f, 14.3f, -2.25f, -4.1f, 22.25f, 2.25f), FigureGroup.ArmLeft), (new Box(4.1f, 14.3f, -2.25f, 7.25f, 22.25f, 2.25f), FigureGroup.ArmRight)],
         ["legs"] = [(new Box(-4f, 2.95f, -2.25f, -0.15f, 10.25f, 2.25f), FigureGroup.LegLeft), (new Box(0.15f, 2.95f, -2.25f, 4f, 10.25f, 2.25f), FigureGroup.LegRight)],

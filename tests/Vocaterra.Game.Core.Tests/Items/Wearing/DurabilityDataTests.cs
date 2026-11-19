@@ -70,7 +70,7 @@ public sealed class DurabilityDataTests
         var shipped = TestItems.Catalogue;
         (string Source, int Max) Of(string name) => (shipped.Find(name)!.Durability!.Source, shipped.Find(name)!.Durability!.Max);
 
-        Assert.Equal(("use", 200), Of("axe"));
+        Assert.Equal(("use", 350), Of("axe"));
         foreach (var clothes in new[] { "hat", "cap", "shirt", "jacket", "coat", "trousers", "shoes" })
         {
             Assert.Equal(("time", 240), Of(clothes)); // ten in-game days worn

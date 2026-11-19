@@ -26,11 +26,11 @@ public sealed class WearBarTests
         Assert.Null(WearBar.Of(new ItemStack((ItemId)999, 1, 5), null));
 
     [Theory]
-    [InlineData(20, 0.9)]
-    [InlineData(100, 0.5)]
-    [InlineData(150, 0.25)]
-    [InlineData(200, 0.0)]
-    public void Given_AnAxeWornSomeOfItsTwoHundred_When_ItsBarIsAsked_Then_TheRemainingShareIsTheRestOfItsDurability(int wear, double remaining) =>
+    [InlineData(35, 0.9)]
+    [InlineData(175, 0.5)]
+    [InlineData(263, 0.248571)]
+    [InlineData(350, 0.0)]
+    public void Given_AnAxeWornSomeOfItsThreeHundredAndFifty_When_ItsBarIsAsked_Then_TheRemainingShareIsTheRestOfItsDurability(int wear, double remaining) =>
         Assert.Equal(remaining, WearBar.Of(new ItemStack(TestItems.Axe, 1, wear), Axe)!.Value.Remaining, 6);
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class WearBarTests
     [Fact]
     public void Given_HalfTheDurability_When_TheColourIsAsked_Then_ItIsYellow()
     {
-        var bar = WearBar.Of(new ItemStack(TestItems.Axe, 1, 100), Axe)!.Value;
+        var bar = WearBar.Of(new ItemStack(TestItems.Axe, 1, 175), Axe)!.Value;
 
         Assert.Equal((255, 255), (bar.Red, bar.Green));
     }
@@ -52,7 +52,7 @@ public sealed class WearBarTests
     [Fact]
     public void Given_AWornOutItem_When_TheColourIsAsked_Then_ItIsRed()
     {
-        var bar = WearBar.Of(new ItemStack(TestItems.Axe, 1, 200), Axe)!.Value;
+        var bar = WearBar.Of(new ItemStack(TestItems.Axe, 1, 350), Axe)!.Value;
 
         Assert.Equal((255, 0), (bar.Red, bar.Green));
     }
@@ -62,7 +62,7 @@ public sealed class WearBarTests
     {
         var previous = WearBar.Of(new ItemStack(TestItems.Axe, 1, 1), Axe)!.Value;
 
-        for (var wear = 2; wear <= 200; wear++)
+        for (var wear = 2; wear <= 350; wear++)
         {
             var bar = WearBar.Of(new ItemStack(TestItems.Axe, 1, wear), Axe)!.Value;
             Assert.True(bar.Red >= previous.Red && bar.Green <= previous.Green && bar.Remaining < previous.Remaining, $"wear {wear}");

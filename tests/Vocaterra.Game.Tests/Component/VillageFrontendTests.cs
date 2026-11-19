@@ -108,7 +108,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
         Assert.Contains(NpcFigures.PartsOf("shopkeeper"), static p => p.Box.Y1 > 37f); // the baker's hat above the head
         Assert.Contains(NpcFigures.PartsOf("villager"), static p => p.Box.X1 - p.Box.X0 > 15f); // the brim of the straw hat
         Assert.Contains(NpcFigures.PartsOf("guide"), static p => p.Special == BlockCell.Backpack); // the guide's pack
-        Assert.Contains(NpcFigures.PartsOf(NpcFigures.PlayerName), static p => p.Special == BlockCell.Backpack); // the player's backpack, seen over the shoulder
+        Assert.DoesNotContain(NpcFigures.PartsOf(NpcFigures.PlayerName), static p => p.Special == BlockCell.Backpack); // the player has no pack of its own (I09b): a worn bag draws it
         Assert.DoesNotContain(NpcFigures.PartsOf("villager"), static p => p.Special == BlockCell.Backpack);
     }
 
