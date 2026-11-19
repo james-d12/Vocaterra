@@ -3164,3 +3164,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   starts two headless game runs at once (`--far-view off`); one exited 139 (SIGSEGV) after 27 s and the test passed alone. The same exit hit a
   game-window test on 2026-11-16 (B07e put it down to far buffers at shutdown and disposed them; this run had no far view, so that was not
   the whole cause). An intermittent native crash in the game process: planned as B46 (proposed).
+- **A core fuzz seed on CI (2026-11-19, run 44480858083 on `d9c7e223`).** `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`,
+  seed `7SYSqZ_lbBR4` (`VocabUnknown`: "tú eres grandes besos" mutated to "tú eres grandes dipaneve", expected `vocab.unknown`). The next
+  run passed with other seeds. Core's to look at (an oracle fault is fixed in the fuzz project; an engine fix needs the owner's yes); not
+  planned yet, offered to the owner on 2026-11-19.
