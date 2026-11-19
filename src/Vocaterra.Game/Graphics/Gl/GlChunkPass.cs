@@ -349,7 +349,7 @@ public sealed unsafe class GlChunkPass : IDisposable
         _drawnQuads += indexCount / 6;
     }
 
-    /// <summary>B42: clips the far draws that follow to a set of rectangles of ground (a stand-in is drawn only inside the footprints of the leaves that wait under it): a fragment outside every one is discarded. <see langword="null"/> or none: no clip. The rectangles are a half block wider on every side, so no hairline is left between a stand-in and the tile beside it.</summary>
+    /// <summary>B42: clips the far draws that follow to a set of rectangles of ground (a stand-in is drawn only inside the footprints of the leaves that wait under it): a fragment outside every one is discarded. <see langword="null"/> or none: no clip. A fragment belongs to a stand-in or to the tile beside it by its centre, so there is neither a hairline nor an overlap along a window's edge.</summary>
     /// <param name="windows">The rectangles, at most <see cref="FarWindow.Most"/>.</param>
     public void SetFarClip(IReadOnlyList<FarWindow>? windows)
     {
@@ -369,10 +369,10 @@ public sealed unsafe class GlChunkPass : IDisposable
         for (var i = 0; i < count; i++)
         {
             var w = windows![i];
-            rects[(i * 4) + 0] = w.MinX - 0.5f;
-            rects[(i * 4) + 1] = w.MinZ - 0.5f;
-            rects[(i * 4) + 2] = w.MaxX + 0.5f;
-            rects[(i * 4) + 3] = w.MaxZ + 0.5f;
+            rects[(i * 4) + 0] = w.MinX;
+            rects[(i * 4) + 1] = w.MinZ;
+            rects[(i * 4) + 2] = w.MaxX;
+            rects[(i * 4) + 3] = w.MaxZ;
         }
 
         _gl.Uniform4(_uClip, rects[..(count * 4)]);

@@ -42,6 +42,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
             return frame >= at;
         }
 
+        _ = view.UsePath(true, static _ => { }); // the game's own program: stand-ins are clipped
         view.SetNearReady(Ready);
         var shown = new Dictionary<(int, int), List<int>>();
         var windowed = 0;
@@ -102,6 +103,16 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
             if (frame < 700)
             {
                 continue;
+            }
+
+            // B35's purpose kept: every fine leaf the chunks do not show has its ground drawn by its own tile or a stand-in (a coarse leaf entering at the horizon may wait for its build, as ever).
+            foreach (var leaf in FarTileSelector.Select(Wide, eyeX, eyeZ, Vox).Where(static l => l.Level < 4))
+            {
+                var (x0, z0, size) = (leaf.MinX(Wide), leaf.MinZ(Wide), Wide.SizeOf(leaf.Level));
+                if (!ChunksShow(x0, z0, x0 + size, z0 + size, eyeX, eyeZ, Ready))
+                {
+                    Assert.True(owner.ContainsKey((x0 / Cell, z0 / Cell)), $"frame {frame}: the fine leaf {leaf} is neither drawn nor stood in for (sky shows there)");
+                }
             }
 
             foreach (var (cellKey, key) in owner)

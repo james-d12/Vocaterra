@@ -750,7 +750,7 @@ public sealed class FarView
         List<FarTileKey>? keep = null;
         foreach (var key in _leaves)
         {
-            if (key.Level >= target || !IsNeeded(key) || (_tiles.TryGetValue(key, out var own) && own.IsBuilt) || InGrace(key) || CoverFromBelow(key, null))
+            if (key.Level >= target || !IsNeeded(key) || (_tiles.TryGetValue(key, out var own) && own.IsBuilt) || CoverFromBelow(key, null))
             {
                 continue;
             }
@@ -822,7 +822,7 @@ public sealed class FarView
     // a coarser level and back); else the nearest coarser tile that is on the card, a stand-in. A stand-in used to hide every leaf under it that was already on the card until all of them were (so no face of a coarser tile was ever over a
     // finer one's), and so it popped over the finished fine land again whenever a new leaf appeared under it: the flicker B42 found. Now, where the renderer can clip (the game's own program), a stand-in is drawn only inside the footprints of
     // the leaves that wait under it (FarTile.Windows) and the leaves that are on the card are drawn as they are; where it cannot (MonoGame's effects, or too many windows), the stand-in is whole and the leaves under it wait for it, as before.
-    // Either way no ground is drawn twice. A leaf wholly inside the voxel zone that is not needed (its columns are drawn) or is still in its grace is never given a stand-in, so a stand-in never shows over what the chunks show.
+    // Either way no ground is drawn twice. A leaf that is not needed (it lies inside the voxel zone and its columns are drawn) is never given a stand-in.
     // A built tile waiting for the card is in PendingTiles, coarse levels first.
     private void Assemble()
     {
@@ -853,7 +853,7 @@ public sealed class FarView
                 _pending.Add(tile);
             }
 
-            if (tile is { OnCard: true } || InGrace(key))
+            if (tile is { OnCard: true })
             {
                 continue;
             }
@@ -924,11 +924,6 @@ public sealed class FarView
             if (tile is { OnCard: true })
             {
                 continue;
-            }
-
-            if (InGrace(key))
-            {
-                continue; // left to the chunks for a moment (a normal arrival), as it always was
             }
 
             if (CoverFromBelow(key, _below))
@@ -1106,17 +1101,6 @@ public sealed class FarView
         }
 
         return true;
-    }
-
-    // B42: whether a leaf wholly inside the voxel zone, not yet made, is still within the moment the chunks are given to draw it (a normal arrival makes no far land there; see Request): a stand-in is neither asked for nor drawn for it.
-    private bool InGrace(FarTileKey key)
-    {
-        if (!IsInner(key) || (_tiles.TryGetValue(key, out var have) && have.IsBuilt))
-        {
-            return false;
-        }
-
-        return !_unready.TryGetValue(key, out var since) || MonotonicClock.Milliseconds() - since < InnerGraceMilliseconds;
     }
 
     /// <summary>How many needed leaves of the last <see cref="Update"/> have neither their own tile on the card nor a stand-in drawn: the sky-coloured gaps (B35).</summary>
