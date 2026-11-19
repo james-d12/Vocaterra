@@ -8,15 +8,15 @@ public enum NearHold
     /// <summary>Nothing: the gate is never closed (a dev run that wants the old order).</summary>
     Off = 0,
 
-    /// <summary>The ring's footprints and the far tiles of levels 0 to 3; the coarse tiles (level 4 and up) and B35's level-4 stand-ins go through, so the horizon is covered while the near view is made (the default).</summary>
+    /// <summary>The ring's footprints and the far tiles of levels 0 to 3; the coarse tiles (level 4 and up) and B35's level-4 stand-ins go through. Measured (B45): no gain over no gate, because the coarse tiles and stand-ins are most of the far work the workers take during the start.</summary>
     Fine = 1,
 
-    /// <summary>Every ring job and every far tile job, stand-ins included.</summary>
+    /// <summary>Every ring job and every far tile job, stand-ins included (the default: B45 measured the residency done at 5 s instead of 9 s, the 128-block view 1 to 3 s sooner, the sky gap 2 s longer at a start and the same after a jump).</summary>
     All = 2,
 }
 
 /// <summary>
-/// The gate of far work (B45, the owner's rule that nearer chunks are more important): at the start and after a jump of the eye, the ring's footprints and the far view's fine tiles are not handed to the workers until the near view
+/// The gate of far work (B45, the owner's rule that nearer chunks are more important): at the start and after a jump of the eye, the ring's footprints and the far view's tiles (the stand-ins and coarse tiles too, see <see cref="NearHold"/>) are not handed to the workers until the near view
 /// round the eye, <see cref="NearViewBlocks"/> blocks, is made (every chunk the residency wants there is resident and every chunk in view there has its mesh). Until then the workers do the residency's and the meshes' jobs only, where far
 /// jobs used to take a worker for a whole tile at a time between two of theirs and the game thread's time with them (B43 measured 145 to 160 worker-seconds of far work during the start, and the near view 3 s sooner with it held).
 /// The gate closes by <see cref="Arm"/> (the host's frame calls it when the eye starts an episode), opens by <see cref="Observe"/> when the near view is done or <see cref="TimeoutMilliseconds"/> have passed (a chunk that never meshes cannot
@@ -38,9 +38,10 @@ public sealed class NearFirstGate
     private int _armed;
     private int _timeouts;
     private double _lastHeld = double.NaN;
+    private readonly List<double> _held = [];
 
     /// <summary>Creates a gate that is open.</summary>
-    /// <param name="mode">What it holds while it is closed; <see cref="NearHold.Fine"/> by default, or the value of <c>VOCATERRA_NEAR_GATE</c> (<c>off</c>, <c>fine</c>, <c>all</c>) for a dev run.</param>
+    /// <param name="mode">What it holds while it is closed; <see cref="NearHold.All"/> by default, or the value of <c>VOCATERRA_NEAR_GATE</c> (<c>off</c>, <c>fine</c>, <c>all</c>) for a dev run.</param>
     public NearFirstGate(NearHold? mode = null) => Mode = mode ?? FromEnvironment();
 
     /// <summary>What the gate holds back while it is closed.</summary>
@@ -98,6 +99,7 @@ public sealed class NearFirstGate
 
         _closed = false;
         _lastHeld = now - _armedAt;
+        _held.Add(_lastHeld);
         if (timedOut)
         {
             _ = Interlocked.Increment(ref _timeouts);
@@ -107,12 +109,12 @@ public sealed class NearFirstGate
     }
 
     /// <summary>The line for <c>--stream-stats</c>.</summary>
-    public string Line => string.Create(CultureInfo.InvariantCulture, $"near gate: {Mode.ToString().ToLowerInvariant()}, closed {Armed} time(s), last held {(LastHeldMilliseconds is { } held ? $"{held / 1000:0.0} s" : "n/a")}, {Timeouts} timeout(s), {(_closed ? "closed now" : "open")}");
+    public string Line => string.Create(CultureInfo.InvariantCulture, $"near gate: {Mode.ToString().ToLowerInvariant()}, closed {Armed} time(s), held [{string.Join(", ", _held.Select(static ms => $"{ms / 1000:0.0} s"))}], {Timeouts} timeout(s), {(_closed ? "closed now" : "open")}");
 
     private static NearHold FromEnvironment() => Environment.GetEnvironmentVariable("VOCATERRA_NEAR_GATE")?.ToLowerInvariant() switch
     {
         "off" => NearHold.Off,
-        "all" => NearHold.All,
-        _ => NearHold.Fine,
+        "fine" => NearHold.Fine,
+        _ => NearHold.All,
     };
 }
