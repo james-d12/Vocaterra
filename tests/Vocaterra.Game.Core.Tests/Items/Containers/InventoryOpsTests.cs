@@ -183,6 +183,38 @@ public sealed class InventoryOpsTests
         Assert.Equal(GearItems.Scarf, rig.Sim.Equipment.Get(GearItems.Slot("armour", "body")).Item);
     }
 
+    // I10b, QA-2026-11-19-progression-3: a quick wear swaps into a slot that gives its stats, never into the cosmetic layer.
+    [Fact]
+    public void Given_ShirtAndPlateWorn_When_AScarfIsShiftClicked_Then_ItSwapsWithTheShirtAndTheCosmeticSlotStaysEmpty()
+    {
+        var rig = new MoveRig().With(12, GearItems.Shirt, 1).With(13, GearItems.Plate, 1).With(14, GearItems.Scarf, 1);
+        _ = rig.Ops.QuickMove(Bag, 12);
+        _ = rig.Ops.QuickMove(Bag, 13);
+
+        var result = rig.Ops.QuickMove(Bag, 14);
+
+        Assert.True(result.IsDone);
+        Assert.Equal(GearItems.Scarf, rig.Sim.Equipment.Get(MoveRig.Body).Item);
+        Assert.Equal(new ItemStack(GearItems.Shirt, 1), rig.Bag.Slots[14]); // the worn piece takes the place the new one left
+        Assert.True(rig.Sim.Equipment.Get(GearItems.Slot("cosmetic", "body")).IsEmpty);
+        rig.Sim.RefreshStats();
+        Assert.Equal(12, rig.Sim.Stats.GetWhole("warmth")); // the scarf's 7 and the plate's 5: the piece swapped in counts
+    }
+
+    [Fact]
+    public void Given_AHeldScarf_When_ItIsDroppedOnTheCosmeticBodyCell_Then_ItGoesThereAndGivesNoStats()
+    {
+        var rig = new MoveRig().With(12, GearItems.Shirt, 1).With(14, GearItems.Scarf, 1);
+        _ = rig.Ops.QuickMove(Bag, 12);
+        _ = rig.Ops.LeftClick(Bag, 14);
+
+        var result = rig.Ops.LeftClick(Worn, rig.Flat(GearItems.Slot("cosmetic", "body")));
+
+        Assert.True(result.IsDone);
+        Assert.Equal(GearItems.Scarf, rig.Sim.Equipment.Get(GearItems.Slot("cosmetic", "body")).Item);
+        Assert.Equal(GearItems.Shirt, rig.Sim.Equipment.Get(MoveRig.Body).Item);
+    }
+
     [Fact]
     public void Given_AHeldScarfAndAWornShirt_When_LeftClickedOnTheShirtSlot_Then_TheyAreSwapped()
     {

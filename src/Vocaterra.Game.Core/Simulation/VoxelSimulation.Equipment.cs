@@ -60,18 +60,23 @@ public sealed partial class VoxelSimulation
 
     /// <summary>
     /// A start aid for scripted runs and pictures (<c>--equip</c>): gives the player one of <paramref name="item"/> when the bag has none and wears it in the first slot that takes it (an empty slot before a worn one, groups in the
-    /// data's order). Like <see cref="GrantItems"/> it is a host action outside the command stream, and a refusal changes nothing (nothing is given).
+    /// data's order). Like <see cref="GrantItems"/> it is a host action outside the command stream. An item that cannot be worn is left in the bag as the help text says (I10b, QA-2026-11-19-ui-3), and so is
+    /// one the slot refused; a full bag has no room to give it and the result is <see cref="EquipResult.BagFull"/>.
     /// </summary>
     /// <param name="item">The item.</param>
-    /// <param name="slot">The slot it was worn in, or the slot of its kind it was refused at (<see langword="null"/> when no slot has its wear kind).</param>
+    /// <param name="slot">The slot it was worn in, or <see langword="null"/> when it was refused.</param>
     public EquipResult WearFromStart(ItemId item, out EquipSlot? slot)
     {
         var definition = Inventory.Items.Get(item);
         slot = Equipment.FindSlotFor(Inventory, definition);
         if (slot is null)
         {
-            slot = Equipment.Data.AllSlots().Where(s => definition.Wear is not null && Equipment.Data.Spec(s).Wear == definition.Wear).Select(static s => (EquipSlot?)s).FirstOrDefault();
-            return slot is { } kind ? Equipment.CanWear(Inventory, definition, kind) : definition.Wear is null ? EquipResult.NotWearable : EquipResult.WrongSlot;
+            if (Inventory.Count(item) < 1 && Inventory.Add(item, 1) != 0)
+            {
+                return EquipResult.BagFull;
+            }
+
+            return Equipment.RefusalFor(Inventory, definition);
         }
 
         if (Inventory.Count(item) < 1 && Inventory.Add(item, 1) != 0)
