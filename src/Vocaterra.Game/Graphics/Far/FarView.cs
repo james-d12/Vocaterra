@@ -128,6 +128,9 @@ public sealed class FarView
 {
     private const int FallbackSteps = 4;
 
+    // B47: how far ahead of a moving eye, in blocks at most, the leaves are asked for (half the voxel zone at the most).
+    private const double AheadBlocks = 160;
+
     // From this level up (cells of 16 blocks and more) tiles are made before the finer ones that are as near.
     private const int CoarseFirstFrom = 4;
     private const double InnerGraceMilliseconds = 700;
@@ -169,6 +172,8 @@ public sealed class FarView
     private int _unuploaded;
     private volatile HashSet<FarTileKey> _wanted = [];
     private IReadOnlyList<FarTileKey> _leaves = [];
+    private IReadOnlyList<FarTileKey> _askCoarse = [];
+    private IReadOnlyList<FarTileKey> _askFine = [];
     private (double X, double Z, int Voxel) _selectedFor = (double.NaN, 0, 0);
     private double _selectedReach = 1.0;
     private (double X, double Z) _eye;
@@ -472,10 +477,12 @@ public sealed class FarView
         _eye = (eyeX, eyeZ);
         if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance || Math.Abs(_reach - _selectedReach) > 0.05)
         {
+            var (fromX, fromZ) = (_selectedFor.X, _selectedFor.Z);
             _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance, _nearReady is not null, _reach);
             _selectedFor = (eyeX, eyeZ, voxelViewDistance);
             _selectedReach = _reach;
-            _wanted = [.. _leaves];
+            SelectAhead(fromX, fromZ, eyeX, eyeZ, voxelViewDistance);
+            _wanted = [.. _leaves, .. _askCoarse];
         }
 
         WarmDrainage(eyeX, eyeZ);
@@ -490,6 +497,46 @@ public sealed class FarView
 
         Assemble();
         Trim(eyeX, eyeZ, dispose);
+    }
+
+    // B47: the leaves a little ahead of the eye along the way it is going (the eye flying at 190 blocks a second reaches the ground a tile build takes, 50 to 300 ms, in 10 to 60 blocks): their coarse tiles are asked for now and their stand-ins (RequestStandIns) too,
+    // so what comes into view is covered the frame it does and the sky is not the first thing there. Only when the eye has moved since the last selection; a stationary view asks for nothing more.
+    private void SelectAhead(double fromX, double fromZ, double eyeX, double eyeZ, int voxelViewDistance)
+    {
+        var (dx, dz) = (eyeX - fromX, eyeZ - fromZ);
+        var length = Math.Sqrt((dx * dx) + (dz * dz));
+        if (double.IsNaN(fromX) || length < 1 || length > AheadBlocks)
+        {
+            _askCoarse = [];
+            _askFine = [];
+            return; // no way is known (the first selection) or the eye jumped (a teleport: the ground ahead of a jump is not where the eye goes)
+        }
+
+        var ahead = Math.Min(AheadBlocks, voxelViewDistance / 2.0);
+        var own = new HashSet<FarTileKey>(_leaves);
+        List<FarTileKey> coarse = [];
+        List<FarTileKey> fine = [];
+        foreach (var key in FarTileSelector.Select(Settings, eyeX + (dx / length * ahead), eyeZ + (dz / length * ahead), voxelViewDistance, _nearReady is not null, _reach))
+        {
+            if (own.Contains(key))
+            {
+                continue;
+            }
+
+            (key.Level >= CoarseFirstFrom ? coarse : fine).Add(key);
+        }
+
+        _askCoarse = coarse;
+        _askFine = fine;
+    }
+
+    /// <summary>Chooses what to draw again from the tiles now on the card (B47): the renderer calls it after a frame's uploads, so a tile the card just took covers its ground in this frame, not the next (a leaf with nothing over it for a frame is a flash of sky).</summary>
+    public void Reassemble()
+    {
+        if (Settings.Enabled && !double.IsNaN(_selectedFor.X))
+        {
+            Assemble();
+        }
     }
 
     // B40: the drainage network's landmasses within the far range are read on the workers ahead of the tiles (a first read is 0.12 to 0.53 s, and a tile that needs an unread landmass would read it itself): at the first update and when the eye
@@ -648,7 +695,7 @@ public sealed class FarView
         var source = World;
         var version = _version;
         _waiting.Clear();
-        foreach (var key in _leaves)
+        foreach (var key in _askCoarse.Count == 0 ? _leaves : _leaves.Concat(_askCoarse))
         {
             if (!IsNeeded(key))
             {
@@ -796,7 +843,7 @@ public sealed class FarView
         var target = Math.Min(CoarseFirstFrom, top);
         List<FarTileKey>? asked = null;
         List<FarTileKey>? keep = null;
-        foreach (var key in _leaves)
+        foreach (var key in _askFine.Count == 0 ? _leaves : _leaves.Concat(_askFine))
         {
             if (key.Level >= target || !IsNeeded(key) || (_tiles.TryGetValue(key, out var own) && own.IsBuilt) || CoverFromBelow(key, null))
             {
@@ -1311,6 +1358,7 @@ public sealed class FarView
         }
 
         _used.UnionWith(_wanted);
+        KeepAhead(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);
@@ -1325,6 +1373,25 @@ public sealed class FarView
         }
     }
 
+    // B47: the tiles asked for ahead of the eye (coarse leaves, and the ancestors a fine leaf ahead may be stood in for by) are kept like the wanted ones: built, they are not drawn yet, and must not be taken for tiles nobody uses.
+    private void KeepAhead(HashSet<FarTileKey> used)
+    {
+        foreach (var key in _askCoarse)
+        {
+            _ = used.Add(key);
+        }
+
+        foreach (var leaf in _askFine)
+        {
+            var ancestor = leaf;
+            for (var step = 0; step < FallbackSteps && ancestor.Level < Settings.TopLevel; step++)
+            {
+                ancestor = ancestor.GetParent();
+                _ = used.Add(ancestor);
+            }
+        }
+    }
+
     private void DropUnwantedPending(Action<FarTile> dispose)
     {
         _used.Clear();
@@ -1334,6 +1401,7 @@ public sealed class FarView
         }
 
         _used.UnionWith(_wanted);
+        KeepAhead(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);

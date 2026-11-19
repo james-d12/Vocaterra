@@ -141,7 +141,10 @@ public sealed class FarTerrainRenderer : IDisposable
             return; // the path changed (the Shaders switch): the tiles are built again for it
         }
 
-        UploadPending(settings.TopLevel, pass); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        if (UploadPending(settings.TopLevel, pass)) // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        {
+            _view.Reassemble(); // B47: the tiles just uploaded are drawn in this frame, not the next
+        }
         if (_view.Draw.Count == 0)
         {
             return;
@@ -324,13 +327,15 @@ public sealed class FarTerrainRenderer : IDisposable
     private static bool InForm(FarTile tile, GlChunkPass? pass) => pass is null ? tile.Buffer is not null : tile.GlBuffers is not null;
 
     // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
-    private void UploadPending(int topLevel, GlChunkPass? pass)
+    private bool UploadPending(int topLevel, GlChunkPass? pass)
     {
         FarUploads.Choose(_view.PendingTiles, topLevel, MaxUploadBytesPerFrame, _uploads);
         foreach (var tile in _uploads)
         {
             Upload(tile, pass);
         }
+
+        return _uploads.Count > 0;
     }
 
     private void Bind(FarTile tile, bool textured, bool solid)
