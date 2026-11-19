@@ -275,6 +275,7 @@ public sealed class SceneDrawer : IDisposable
         if (_options.StreamStats)
         {
             _renderer.SetCardTimer(GlCardTimer.TryCreate(_console)); // the card's time for the chunk passes, with either path (B17b)
+            _renderer.SetFarCardTimer(GlCardTimer.TryCreate(_console)); // and for the far view's pass (B47)
         }
 
         SwitchShaders();
