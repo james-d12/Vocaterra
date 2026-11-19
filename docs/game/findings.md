@@ -3146,3 +3146,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   L3 to L7 about 4 times cheaper (seed 42 402 to 106 ms, seed 2026 477 to 120). The picture moved in 0.01 to 0.02% of pixels (a few distant
   cliff-rock specks turn green); the owner approved (item 63). One column per cell at L4 and up (`MergeLevels` 3) would give about 6 times
   but keeps cliff rock in only 4 of 51 cells: not shipped. Model-built sections are never persisted, so no store version bump was needed.
+- **B44, the sky tile off the game thread (2026-11-19, merge `27891c86`).** The workers cut each column's 18x18 natural heights from the
+  group window (or make them alone) and the game thread's `SkyExposure.Tile` only looks them up and walks down; meshes identical (vertex for
+  vertex, before and after edits). On the owner's command at High, fresh seeds and far stores, medians of 3: the start area meshed in
+  11.7 s instead of 26.8, 90% visible in 10.1 s instead of 21.2, meshes 583 a second instead of 259, game-thread mesh time 2.5 s instead of
+  8.5; after a 3 km jump, all visible in 8.4 s instead of 27.2. **This is the first change of the speed work that moves the owner's start
+  time.** Meshing now trails residency by 2 to 3 s, so residency (100% at 7 to 11 s) is the limit. 30 to 60% of columns are made without a
+  group window because the 128-group cache evicts groups before generation reaches them.
