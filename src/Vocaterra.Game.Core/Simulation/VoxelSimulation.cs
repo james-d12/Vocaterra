@@ -103,13 +103,24 @@ public sealed partial class VoxelSimulation
     public int GatherTicksOf(BlockId block)
     {
         var definition = GatherDefinition(block);
-        if (definition.Gatherable && definition.Material != Material.None
-            && SelectedStack is { IsEmpty: false } held && Inventory.Items.Get(held.Item).Tool is { } tool && tool.Class == definition.Material)
+        if (definition.Gatherable && ToolOn(definition) is { } tool)
         {
             return Math.Max(1, definition.GatherTicks / tool.Speed);
         }
 
         return definition.GatherTicks;
+    }
+
+    // The selected hotbar slot's tool when it works on the block's material and is not worn out (I07: a worn-out tool works at bare hands' speed), else null.
+    private ToolSpec? ToolOn(BlockDefinition definition)
+    {
+        if (definition.Material != Material.None && SelectedStack is { IsEmpty: false } held
+            && Inventory.Items.Get(held.Item) is { Tool: { } tool } item && tool.Class == definition.Material && !item.IsWornOut(held.Wear))
+        {
+            return tool;
+        }
+
+        return null;
     }
 
     /// <summary>The recipes the player can craft; set by the host with <see cref="SetRecipes"/>.</summary>
@@ -222,6 +233,7 @@ public sealed partial class VoxelSimulation
 
         StepWater();
         StepAtmosphere();
+        StepWear();
         RefreshStats(); // the sheet of the end of this tick: the temperature and the walk read it on the next one
     }
 
@@ -312,7 +324,9 @@ public sealed partial class VoxelSimulation
         }
 
         var recipe = _recipes[recipeIndex];
-        return CraftingRules.Check(recipe, Inventory, RecipeStationInReach(recipe));
+        return recipe.Repairs
+            ? CraftingRules.CheckRepair(recipe, Inventory, RecipeStationInReach(recipe), Wear.NeedsRepair(recipe.Output))
+            : CraftingRules.Check(recipe, Inventory, RecipeStationInReach(recipe));
     }
 
     /// <summary>Crafts the recipe at <paramref name="recipeIndex"/> when <see cref="CanCraft"/> says so (the same as a <see cref="VoxelCommandKind.Craft"/> in a tick).</summary>
@@ -325,6 +339,19 @@ public sealed partial class VoxelSimulation
         }
 
         var recipe = _recipes[recipeIndex];
+        if (recipe.Repairs)
+        {
+            foreach (var ingredient in recipe.Ingredients)
+            {
+                Inventory.Remove(ingredient.Item, ingredient.Count);
+            }
+
+            _ = Wear.Repair(recipe.Output);
+            _events.Add(new SimulationEvent(SimulationEventKind.ItemRepaired, Tick, Detail: (int)recipe.Output));
+            RefreshStats(); // a repaired piece gives its stats again at once
+            return result;
+        }
+
         CraftingRules.Craft(recipe, Inventory, RecipeStationInReach(recipe));
         _events.Add(new SimulationEvent(SimulationEventKind.ItemCrafted, Tick, Detail: (int)recipe.Output, Amount: recipe.OutputCount));
         return result;
@@ -445,6 +472,7 @@ public sealed partial class VoxelSimulation
 
         AppendFlowDigest(hash); // a run with no water waiting adds nothing
         AppendAtmosphereDigest(hash); // a clock never moved by a sleep or held, and a weather in its first spell, add nothing
+        AppendWearDigest(hash); // nothing worn out or scuffed adds nothing (I07)
         AppendEquipmentDigest(hash); // nothing worn adds nothing (the active count is in the inventory's slots above: its length follows the worn bag)
         AppendInteractionDigest(hash); // nothing held and an empty trash add nothing (I02)
 
@@ -575,9 +603,15 @@ public sealed partial class VoxelSimulation
         }
 
         var drop = definition.Drop.Value;
+        var usedTool = ToolOn(definition) is not null;
         Grid.SetBlock(cell.X, cell.Y, cell.Z, definition.BecomesWhenGathered);
         Inventory.Add(drop, definition.DropCount);
         ResetGather();
+        if (usedTool)
+        {
+            Wear.Apply(Items.Wearing.UseWearSource.SourceId, 1); // W13: each block the tool gathered wears it once
+        }
+
         _events.Add(new SimulationEvent(SimulationEventKind.BlockRemoved, Tick, cell.X, cell.Y, cell.Z, (int)id));
         _events.Add(new SimulationEvent(SimulationEventKind.ItemPickedUp, Tick, cell.X, cell.Y, cell.Z, (int)drop, definition.DropCount));
     }

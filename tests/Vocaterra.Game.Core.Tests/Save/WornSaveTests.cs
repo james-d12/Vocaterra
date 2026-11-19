@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Core.Tests.Save;
 
-/// <summary>Save version 10 (I03b): the bag is saved at its active size and the worn items by group id, slot name and item name; what the data lacks loads as nothing, and a migration reports it.</summary>
+/// <summary>Save version 10 (I03b; 11 adds the wear): the bag is saved at its active size and the worn items by group id, slot name and item name; what the data lacks loads as nothing, and a migration reports it.</summary>
 public sealed class WornSaveTests
 {
     private const string OtherBundle = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -35,7 +35,7 @@ public sealed class WornSaveTests
     {
         var document = SaveGame.Capture(GearItems.Session());
 
-        Assert.Equal(10, document.Version);
+        Assert.Equal(11, document.Version);
         Assert.Equal(30, document.Inventory.Count);
         Assert.Null(document.Worn);
         Assert.DoesNotContain("\"worn\"", SaveGame.Serialize(document), StringComparison.Ordinal);

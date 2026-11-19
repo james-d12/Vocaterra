@@ -18,6 +18,7 @@
       "additionalProperties": false,
       "properties": {
         "output": { "type": "string", "minLength": 1, "description": "The noun made; it must name an item. One recipe per output." },
+        "repairs": { "type": "boolean", "description": "I07: when true the row repairs the output's item instead of making it: it uses the ingredients and takes the most worn stack of the item (in the bag or worn) back to no wear. It is shown only while something of the item is worn, and a repair row is separate from the item's recipe (one of each per output)." },
         "makes": { "type": "string", "minLength": 1, "description": "The item the recipe makes, by its key, when the output noun names several items (manzana names the apple and the roast apple); it must be one of the noun's items. Default: the noun's first item." },
         "count": { "type": "integer", "minimum": 1, "description": "How many one craft makes." },
         "ingredients": {

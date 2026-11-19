@@ -96,6 +96,7 @@ public static class GameDataValidator
         problems.AddRange(WeatherValidator.Validate(data.Weather)); // E04: the kinds' channels, spells and links
         problems.AddRange(TemperatureValidator.Validate(data.Temperature, data.Biomes.Rows.Select(static r => r.Id))); // I06: the terms' numbers, the bands in order, their walk factors
         problems.AddRange(EquipmentValidator.Validate(data.Equipment, data.Items)); // I03a: the slot groups, and every worn item has a slot and a group that accepts it
+        problems.AddRange(Items.Wearing.WearValidator.Validate(data.Items, data.Recipes, Items.Wearing.WearSources.Standard())); // I07: every durability names a wear source, every repair row repairs a durable item
         problems.AddRange(DamageValidator.Validate(data.Damage, DamageModifiers.Standard())); // I05a: the causes the code raises have rows, every modifier id is registered
         problems.AddRange(data.Light.Problems()); // I05b: the player light's reach, strength, colour and daylight thresholds
         problems.AddRange(LandValidator.Validate(data.Land, data.Scene)); // Y09: the sites the land rules name, the margins, the plot's size and price
@@ -330,6 +331,7 @@ public static class GameDataValidator
         keys.AddRange(data.Temperature.LineKeys); // I06: the line of a cold band
         keys.AddRange(GameWords.FixedHudKeys);
         keys.AddRange(Items.Containers.MoveRefusalText.AllKeys); // I04b: the inventory panel's refusal lines
+        keys.AddRange(Items.Wearing.WearText.AllKeys); // I07: the line of a tool that wore out
         return keys;
     }
 

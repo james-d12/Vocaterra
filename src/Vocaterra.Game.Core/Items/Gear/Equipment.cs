@@ -302,6 +302,18 @@ public sealed class Equipment
         _slots[flat] = stack;
     }
 
+    /// <summary>Sets the wear of what is worn in <paramref name="slot"/> (I07); nothing when the slot is empty. It leaves <see cref="Revision"/> alone: the look of an item does not change as it wears.</summary>
+    /// <param name="slot">A slot of the data.</param>
+    /// <param name="wear">The new wear.</param>
+    public void SetWear(EquipSlot slot, int wear)
+    {
+        var flat = Data.FlatIndex(slot);
+        if (!_slots[flat].IsEmpty)
+        {
+            _slots[flat] = _slots[flat].WithWear(wear);
+        }
+    }
+
     /// <summary>The slots as plain values, in <see cref="Slots"/> order (what a state keeps).</summary>
     public IReadOnlyList<ItemStack> Capture() => [.. _slots];
 

@@ -133,7 +133,7 @@ public sealed class DamagePipelineTests
     {
         var data = DamageData.Parse("""{ "schemaVersion": 1, "causes": [ { "id": "drowning", "modifiers": ["magic"] } ] }""");
 
-        Assert.Contains("game/damage.json: the cause 'drowning' names the modifier 'magic', which is not one of armour.", DamageValidator.Validate(data, DamageModifiers.Standard()));
+        Assert.Contains("game/damage.json: the cause 'drowning' names the modifier 'magic', which is not one of armour, wear.", DamageValidator.Validate(data, DamageModifiers.Standard()));
     }
 
     [Fact]

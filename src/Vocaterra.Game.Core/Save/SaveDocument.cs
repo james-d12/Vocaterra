@@ -381,12 +381,13 @@ public sealed record StepOutcomeSave(string StepId, StepOutcome Outcome);
 public sealed record GatherSave(BlockPos? Target, BlockId Block, int Progress);
 
 /// <summary>
-/// One inventory slot (version 9, I01): the item by its stable name (<see cref="ItemDefinition.Name"/>, a row of <c>game/items.json</c>) and how many. An empty slot is an empty name
+/// One inventory slot (version 9, I01): the item by its stable name (<see cref="ItemDefinition.Name"/>, a row of <c>game/items.json</c>), how many and, since version 11 (I07), how worn it is. An empty slot is an empty name
 /// and a count of 0.
 /// </summary>
 /// <param name="Item">The item's name, or empty for an empty slot.</param>
 /// <param name="Count">The count.</param>
-public sealed record SlotSave(string Item, int Count)
+/// <param name="Wear">The item's wear (version 11); 0, and left out of the file, for an item that is not worn.</param>
+public sealed record SlotSave(string Item, int Count, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int Wear = 0)
 {
     /// <summary>The slot of a stack: an empty stack is the empty slot.</summary>
     /// <param name="stack">The stack.</param>
@@ -394,15 +395,15 @@ public sealed record SlotSave(string Item, int Count)
     public static SlotSave Of(ItemStack stack, IItemCatalogue items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        return stack.IsEmpty ? new SlotSave(string.Empty, 0) : new SlotSave(items.Get(stack.Item).Name, stack.Count);
+        return stack.IsEmpty ? new SlotSave(string.Empty, 0) : new SlotSave(items.Get(stack.Item).Name, stack.Count, stack.Wear);
     }
 
-    /// <summary>The stack the slot holds: the empty stack for an empty slot or an item the catalogue does not have (a save of content that lost the item).</summary>
+    /// <summary>The stack the slot holds: the empty stack for an empty slot or an item the catalogue does not have (a save of content that lost the item). The wear is kept only for an item that has a durability, and never past it.</summary>
     /// <param name="items">The item catalogue.</param>
     public ItemStack ToStack(IItemCatalogue items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        return Count > 0 && items.Find(Item) is { } definition ? new ItemStack(definition.Id, Count) : ItemStack.Empty;
+        return Count > 0 && items.Find(Item) is { } definition ? new ItemStack(definition.Id, Count, Wears.Clamp(definition, Wear)) : ItemStack.Empty;
     }
 }
 

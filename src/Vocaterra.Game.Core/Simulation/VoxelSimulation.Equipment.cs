@@ -29,6 +29,7 @@ public sealed partial class VoxelSimulation
         Equipment = new Equipment(data, items);
         _stats = new StatPipeline();
         _stats.Add(new EquipmentStats(Equipment));
+        StartWear();
         RefreshStats();
     }
 

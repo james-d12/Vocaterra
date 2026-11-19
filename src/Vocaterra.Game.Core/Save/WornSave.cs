@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Gear;
 
@@ -11,14 +12,15 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Group">The group's id (<c>clothing</c>, <c>backpack</c>).</param>
 /// <param name="Slot">The slot's name inside the group (<c>body</c>, <c>accessory2</c>).</param>
 /// <param name="Item">The item's name.</param>
-public sealed record WornSave(string Group, string Slot, string Item)
+/// <param name="Wear">The item's wear (version 11, I07); 0, and left out of the file, for an item that is not worn.</param>
+public sealed record WornSave(string Group, string Slot, string Item, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int Wear = 0)
 {
     /// <summary>The worn items of an equipment in slot order, or <see langword="null"/> when nothing is worn (the save then leaves the entry out).</summary>
     /// <param name="equipment">The equipment.</param>
     public static IReadOnlyList<WornSave>? Of(Equipment equipment)
     {
         ArgumentNullException.ThrowIfNull(equipment);
-        var worn = equipment.Worn().Select(entry => new WornSave(equipment.Data.Groups[entry.Slot.Group].Id, equipment.Data.Spec(entry.Slot).Name, entry.Item.Name)).ToArray();
+        var worn = equipment.Worn().Select(entry => new WornSave(equipment.Data.Groups[entry.Slot.Group].Id, equipment.Data.Spec(entry.Slot).Name, entry.Item.Name, equipment.Get(entry.Slot).Wear)).ToArray();
         return worn.Length == 0 ? null : worn;
     }
 
@@ -77,7 +79,7 @@ public sealed record WornSave(string Group, string Slot, string Item)
         {
             if (entry.Find(data) is { } slot && items.Find(entry.Item) is { } item && stacks[data.FlatIndex(slot)].IsEmpty)
             {
-                stacks[data.FlatIndex(slot)] = new ItemStack(item.Id, 1);
+                stacks[data.FlatIndex(slot)] = new ItemStack(item.Id, 1, Wears.Clamp(item, entry.Wear));
                 any = true;
             }
         }

@@ -86,6 +86,8 @@ public sealed class HotbarLayer : IFrameLayer
                 {
                     DrawHelpers.Badge(spriteBatch, pixel, font, text, new Point(box.Right - 2, box.Bottom - 2));
                 }
+
+                DrawHelpers.WearBar(spriteBatch, pixel, new PixelBox(box.X, box.Y, box.Width, box.Height), stack, inventory.Items); // I07
             }
 
             // The key that selects the slot: 1 to 9, then 0 for the tenth.
@@ -113,5 +115,7 @@ public sealed class HotbarLayer : IFrameLayer
         {
             DrawHelpers.Badge(spriteBatch, view.Pixel, font, text, new Point(box.Right - 2, box.Bottom - 2));
         }
+
+        DrawHelpers.WearBar(spriteBatch, view.Pixel, new PixelBox(box.X, box.Y, box.Width, box.Height), stack, view.Voxel.Inventory.Items); // I07
     }
 }

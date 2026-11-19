@@ -100,7 +100,7 @@ public sealed class LandSaveTests
         var session = TestGame.NewSession(LandTestScene.Seed);
         _ = session.SetPendingPlot(Plot.X, Plot.Z);
 
-        Assert.Equal(10, SaveGame.Parse(SaveOf(session)).Version);
-        Assert.Equal(10, SaveGame.CurrentVersion);
+        Assert.Equal(11, SaveGame.Parse(SaveOf(session)).Version);
+        Assert.Equal(11, SaveGame.CurrentVersion);
     }
 }

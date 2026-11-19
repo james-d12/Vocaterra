@@ -151,7 +151,7 @@ the keys `BlockAtlasLayout.IconKeys` lists; an unknown key draws the plain fallb
 voxels; `log`, `torch` and `bottle` are modelled in code), `tags` (an open list of words: `tool`, `food`, `material`, `container`, `currency`, `placeable`) and, for a tool, `tool` (`class`, the material
 it works on, and `speed`, how many times faster than bare hands). The other files name an item by its `name` (the nouns' `items`, a shop row, a recipe, a gift, a procedure). The code's `ItemId` enum keeps
 only the items that behaviour refers to (the bottle fills, the book opens, coins pay, the stake and the camp kit place); the loader checks each against its row and stops on a mismatch, and an item
-that is a row alone works everywhere an item can. The gear fields `wear`, `stats`, `look` and `capacity` are described under "Equipment (I03a)" below; `durability` is added when the wear milestone needs it. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
+that is a row alone works everywhere an item can. The gear fields `wear`, `stats`, `look` and `capacity` are described under "Equipment (I03a)" below; `durability` (I07) is described under "Durability and repair" below. The full steps for adding an item (the picture, the noun, the word, the lexicon) are I10's.
 
 A content edit that needs only the hash, without the loop's checks, is `scripts/rehash-bundle.sh` (B29c): it runs `content.sh hash` and
 `content.sh validate` through `limited.sh` and prints the new bundle hash. A conflict in `game-v1/manifest.json` is resolved by taking either
@@ -465,6 +465,19 @@ A factor key multiplies so that two items never add up past what one could (two 
 `game-v1/game/damage.json` (`damage.schema.json`; `DamageData`, checked by `DamageValidator`) lists each cause the code raises (`drowning`) and, per cause, the ids of the damage modifiers that change its damage, in order.
 `modifiers: []` takes the damage as it is: armour applies to no cause today. **To make armour soften a cause**, put `"armour"` in that cause's `modifiers`; armour takes 4% per point off, at most 80%, and a hit
 is never reduced below 1. A new cause needs a constant where the code raises it (`DamageCause`) and a row; a new modifier is a class registered in `DamageModifiers.Standard`. Run the usual loop after an edit.
+
+## Durability and repair (I07)
+
+An item wears out only if its row in `game/items.json` has a `durability`: `{ "max": 240, "source": "time", "rate": 1 }`. It must stack to 1 (the loader refuses otherwise: the torch stacks, so it has none). `max` is the wear at which the item is
+worn out, and a worn-out item is never lost: a tool works at bare hands' speed, gear gives no stats (warmth, armour, light, an accessory's effect), a bag still holds its slots. `source` names what wears it and `rate` is the wear one unit of
+that source adds: `use` (one unit per block gathered with the tool in the selected hotbar slot), `time` (one unit per in-game hour worn, a twenty-fourth of the day cycle in `day.json`) and `damage` (one unit per point of damage taken while
+worn; a cause wears armour only if its row in `game/damage.json` lists the modifier `wear`, and drowning lists none). What ships: the axe 200 by use; clothes 240 by time (about ten in-game days worn), the ring, bracelet, belt and necklace
+480, the amulet 720, the sack 480, the backpack 720, the lantern 240; the helmet 150, cuirass 300, greaves 200, boots 150 and shield 250 by damage.
+
+**To make an item repairable** add a row to `game/recipes.json` with `"repairs": true`: `{ "output": "sombrero", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" }`. `output` is the noun of the item (one
+repair row per noun, beside the item's own recipe if it has one), there is exactly one material, and the station is the workbench; the row takes the most worn stack of the item in the bag or on the body back to no wear. The crafting panel lists
+it only while something of that item is worn. The validator (`WearValidator`) refuses a source the code lacks, and a repair row for an item with no durability. A new cause of wear is code (`IWearSource`, see `docs/game/architecture.md`),
+and a row that names it.
 
 ## Adding a weather kind
 

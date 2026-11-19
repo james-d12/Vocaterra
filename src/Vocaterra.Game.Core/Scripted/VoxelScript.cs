@@ -176,7 +176,9 @@ public sealed class VoxelScript
             case VoxelStepKind.Interact:
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
-                return CraftTick(step, commands);
+                return CraftTick(step, commands, repair: false);
+            case VoxelStepKind.Repair:
+                return CraftTick(step, commands, repair: true);
             case VoxelStepKind.SlotMove:
                 commands.Add(VoxelCommand.SlotMove((MoveAction)step.Slot, step.X, step.Y));
                 _log($"move: {(MoveAction)step.Slot} at container {step.X} slot {step.Y}");
@@ -202,19 +204,20 @@ public sealed class VoxelScript
         }
     }
 
-    // A craft is one command in its first tick; the next tick reports what it did. A recipe the simulation refuses is reported at once.
-    private bool CraftTick(VoxelStep step, List<VoxelCommand> commands)
+    // A craft (or a repair, I07: the same command with the item's repair row) is one command in its first tick; the next tick reports what it did. A recipe the simulation refuses is reported at once.
+    private bool CraftTick(VoxelStep step, List<VoxelCommand> commands, bool repair)
     {
+        var verb = repair ? "repair" : "craft";
         if (_resolveItem(step.Item) is not { } item)
         {
-            _log($"craft: no item called '{step.Item}'");
+            _log($"{verb}: no item called '{step.Item}'");
             return true;
         }
 
         var index = -1;
         for (var i = 0; i < _sim.Recipes.Count; i++)
         {
-            if (_sim.Recipes[i].Output == item)
+            if (_sim.Recipes[i].Output == item && _sim.Recipes[i].Repairs == repair)
             {
                 index = i;
                 break;
@@ -223,7 +226,7 @@ public sealed class VoxelScript
 
         if (index < 0)
         {
-            _log($"craft: no recipe makes {step.Item}");
+            _log(repair ? $"repair: no recipe repairs {step.Item}" : $"craft: no recipe makes {step.Item}");
             return true;
         }
 
@@ -233,7 +236,7 @@ public sealed class VoxelScript
             var result = _sim.CanCraft(index);
             if (result != CraftResult.Done)
             {
-                _log($"craft: {step.Item} refused ({result})");
+                _log($"{verb}: {step.Item} refused ({result})");
                 return true;
             }
 
@@ -241,7 +244,7 @@ public sealed class VoxelScript
             return false;
         }
 
-        _log($"craft: {step.Item} made ({step.Item} {_craftBefore} -> {_sim.Inventory.Count(item)})");
+        _log(repair ? $"repair: {step.Item} repaired, still worn: {_sim.Wear.NeedsRepair(item)}" : $"craft: {step.Item} made ({step.Item} {_craftBefore} -> {_sim.Inventory.Count(item)})");
         return true;
     }
 

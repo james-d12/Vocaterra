@@ -19,7 +19,7 @@ public sealed class CraftingFrontendTests
         var session = NewSession();
         var book = session.Recipes;
         var rows = CraftingScreen.Rows(session.Simulation, book);
-        Assert.Equal(book.Entries.Count, rows.Count);
+        Assert.Equal(book.Entries.Count(static e => !e.Rule.Repairs), rows.Count); // a repair row (I07) shows only while something of its item is worn
         Assert.All(rows, static r => Assert.False(r.CanMake));
         Assert.Equal("Missing material", rows[book.IndexOf("antorcha")].Status(RouteScene.Shipped.Locale));
 

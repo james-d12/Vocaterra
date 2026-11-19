@@ -27,7 +27,18 @@
         "wear": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The kind of slot the item is worn in (I03a): the `wear` of a slot of game/equipment.json (head, body, legs, feet, accessory, offhand, back). A worn item also carries a tag some slot group accepts. Clothes, armour and bags stack to 1; the torch stacks to 99 for placing, and is worn one at a time (I08b)." },
         "stats": { "$ref": "#/definitions/stats", "description": "What the item adds to the player's stat sheet while it is worn (counted only in a group whose statsApply is true)." },
         "look": { "$ref": "#/definitions/look", "description": "How the item looks on the body (I09 draws it; I03a only reads and checks it)." },
+        "durability": { "$ref": "#/definitions/durability", "description": "How the item wears out (I07). An item with a durability stacks to 1; at its maximum it is worn out (never lost): a tool works at bare hands' speed, gear gives no stats." },
         "capacity": { "type": "integer", "minimum": 1, "maximum": 100, "description": "The inventory slots a worn bag adds to the base (I03b: the small bag 10, the large one 20). Only an item tagged `bag` and worn on the `back` has one; the inventory is sized to the base plus the largest capacity here." }
+      }
+    },
+    "durability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max", "source"],
+      "properties": {
+        "max": { "type": "integer", "minimum": 1, "maximum": 100000, "description": "The wear at which the item is worn out." },
+        "source": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "What wears it: `use` (a gather with the tool in hand), `time` (an in-game hour worn) or `damage` (a point of damage taken while worn)." },
+        "rate": { "type": "integer", "minimum": 1, "description": "The wear one unit of the source adds (default 1)." }
       }
     },
     "stats": {

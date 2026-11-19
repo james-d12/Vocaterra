@@ -24,6 +24,27 @@
     { "output": "escudo", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }, { "item": "hierro", "count": 2 }], "station": "mesa" },
     { "output": "farol", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }, { "item": "antorcha", "count": 1 }], "station": "mesa" },
     { "output": "saco", "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
-    { "output": "mochila", "count": 1, "ingredients": [{ "item": "tela", "count": 3 }, { "item": "cuero", "count": 2 }], "station": "mesa" }
+    { "output": "mochila", "count": 1, "ingredients": [{ "item": "tela", "count": 3 }, { "item": "cuero", "count": 2 }], "station": "mesa" },
+    { "output": "hacha", "repairs": true, "count": 1, "ingredients": [{ "item": "madera", "count": 1 }], "station": "mesa" },
+    { "output": "sombrero", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "gorro", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "camisa", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "chaqueta", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "abrigo", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" },
+    { "output": "pantalón", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "zapato", "repairs": true, "count": 1, "ingredients": [{ "item": "cuero", "count": 1 }], "station": "mesa" },
+    { "output": "casco", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "coraza", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 2 }], "station": "mesa" },
+    { "output": "greba", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 2 }], "station": "mesa" },
+    { "output": "bota", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "anillo", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "pulsera", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "cinturón", "repairs": true, "count": 1, "ingredients": [{ "item": "cuero", "count": 1 }], "station": "mesa" },
+    { "output": "collar", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "amuleto", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "escudo", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "farol", "repairs": true, "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }], "station": "mesa" },
+    { "output": "saco", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 1 }], "station": "mesa" },
+    { "output": "mochila", "repairs": true, "count": 1, "ingredients": [{ "item": "tela", "count": 2 }], "station": "mesa" }
   ]
 }

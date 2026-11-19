@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Needs;
 /// <param name="Notches">The stage, 1 to 4: how many notches the icon shows.</param>
 public sealed record DriveIcon(Drive Drive, int Notches);
 
-/// <summary>A stage change on show (N05): the player's own line in Spanish with the English beneath, above the hotbar. The cold's line (I06) goes the same way.</summary>
+/// <summary>A stage change on show (N05): the player's own line in Spanish with the English beneath, above the hotbar. The cold's line (I06) and the line of a tool that wore out (I07) go the same way.</summary>
 /// <param name="Meter">The need that changed, or <see langword="null"/> for the line of the cold (I06), which is no need.</param>
 /// <param name="Stage">Its new stage (1 to 4 for a drive, 1 or 2 for health; 0 for the cold's line).</param>
 /// <param name="Spanish">The line in Spanish (<c>Tengo mucha sed.</c>).</param>
@@ -165,6 +165,14 @@ public sealed class NeedsHud
         if (_session.Temperature.TakeLine() is { } coldLine && _session.NeedsEnabled)
         {
             _waiting.Enqueue((null, 0, coldLine)); // I06: «Tengo frío», said once on the way into the cold, by the path the needs' lines take
+        }
+
+        while (_session.TakeWearLine() is { } wearLine)
+        {
+            if (_session.NeedsEnabled)
+            {
+                _waiting.Enqueue((null, 0, wearLine)); // I07: «Necesito arreglar la herramienta», said once when a tool wears out, by the path the cold's line takes
+            }
         }
 
         if (_current is { } shown && tick - shown.StartTick >= DisplayTicks)

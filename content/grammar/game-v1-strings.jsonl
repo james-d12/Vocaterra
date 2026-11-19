@@ -3815,6 +3815,7 @@
 {"id":"words.json:hudLines.refuse.wrongSlot","text":"Eso no va ahí.","kind":"npc"}
 {"id":"words.json:hudLines.temperature.cold","text":"Tengo frío.","kind":"npc"}
 {"id":"words.json:hudLines.temperature.hot","text":"Tengo calor.","kind":"npc"}
+{"id":"words.json:hudLines.wear.toolWorn","text":"Necesito arreglar la herramienta.","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
 {"id":"npcs/shopkeeper.json:label","text":"Tendero","kind":"npc"}

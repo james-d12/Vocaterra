@@ -8,11 +8,13 @@ public sealed class DamageModifiers
     /// <summary>The ids registered, in order.</summary>
     public IEnumerable<string> Ids => _byId.Keys;
 
-    /// <summary>The set the game uses: armour.</summary>
-    public static DamageModifiers Standard()
+    /// <summary>The set the game uses: armour, and the wear a hit puts on what is worn (I07).</summary>
+    /// <param name="wear">The wear engine the <c>wear</c> modifier wears items through, or <see langword="null"/> for a set with no wear (a test's, the validator's).</param>
+    public static DamageModifiers Standard(Func<Items.Wearing.ItemWear>? wear = null)
     {
         var set = new DamageModifiers();
         set.Add(new ArmourDamageModifier());
+        set.Add(new WearDamageModifier(wear));
         return set;
     }
 

@@ -431,6 +431,12 @@ public sealed partial class VoxelSession : GuideSession
                     LogWorld(WorldEvents.ItemCrafted, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
                     _eventAmount = 1;
                     break;
+                case SimulationEventKind.ToolWorn:
+                    NoteToolWorn((ItemId)e.Detail); // I07: tool_worn, once, and the line
+                    break;
+                case SimulationEventKind.ItemRepaired:
+                    LogWorld(WorldEvents.ItemRepaired, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? Data.Items.Get((ItemId)e.Detail).Name);
+                    break;
                 case SimulationEventKind.BlockRemoved:
                     NoteGathered((BlockId)e.Detail, e.X, e.Y, e.Z); // N06: a bush picked by hand grows back after the next night
                     break;
