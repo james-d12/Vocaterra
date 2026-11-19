@@ -3187,3 +3187,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   chunks meet the far land. Suspected: B42 windows a stand-in only over leaves waiting for the ring and draws nothing elsewhere, while B45's
   gate holds every far request at a start and after each jump, so held, unrequested or unbuilt leaves are neither drawn nor windowed.
   Given to B47 (same code).
+- **B47, the flicker with Shaders off and the flying holes (2026-11-19, merge `0c525ade`).** Far tiles are cut into 32-block granules and
+  a stand-in draws only its windows' index runs in both paths, so the GL shader clip is gone (cut tiles have about 1.4 times the quads).
+  The owner's holes: B45's gate held every far tile and stand-in until the 128-block near view was done, which an eye flying at 190 blocks
+  a second never lets happen, so the far land under it stayed held for the 20 s timeout (983 of 1,200 flight frames with sky in a test).
+  The gate now also opens when the eye is 128 blocks from where it closed; `FarView.SelectAhead` asks for coarse tiles and stand-ins up to
+  160 blocks ahead; a tile just uploaded covers its ground in that frame. Not proven for the 64-block holes; the owner flies again.
+  gl-compare's streamed views (meadow, cave) time out: its settle fills 16 km on 2 workers (pre-existing; the tool needs `--workers`).
