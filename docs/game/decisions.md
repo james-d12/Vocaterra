@@ -1034,6 +1034,8 @@ the owner's answers of 2026-11-15 are in its section 5.
     differ; distant cliff-rock specks turn green), the owner chose "Approve" (not the stronger `MergeLevels` 3, which loses most distant cliff
     rock). Shown B43's ranked fixes for the start area, he chose "Only fix 1 first": B44, the sky tile off the game thread; the others wait
     for its measurement.
+64. **After B44, the near-first gate** (2026-11-19, about 08:05 UTC): shown that B44 cut the start area to 11.7 s and offered four follow-ups
+    (a near-first gate for far work, loading caps, a bigger group cache, a bigger mesh budget), the owner chose only the near-first gate: B45.
 
 ## Already decided
 
