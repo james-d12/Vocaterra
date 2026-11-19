@@ -380,6 +380,7 @@ public sealed class SceneDrawer : IDisposable
         AdvanceUnderwater(camera);
         var amount = (float)_underwater.Amount;
         renderer.SetUnderwater(amount);
+        renderer.SetMolten((float)_molten.Amount); // lava's fog: with the eye in lava no face near it is drawn, and the view went through the rock
         _underwaterPass!.Begin(amount, BlurLevel());
         device.Clear(renderer.ClearColour);
         renderer.DrawWorld(camera, target, beacon, tick, avatar, arm, () => NpcLabelLayer.Draw(device, _spriteBatch!, View, camera), PlotOutlines(camera));
