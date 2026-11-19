@@ -3168,3 +3168,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   seed `7SYSqZ_lbBR4` (`VocabUnknown`: "tú eres grandes besos" mutated to "tú eres grandes dipaneve", expected `vocab.unknown`). The next
   run passed with other seeds. Core's to look at (an oracle fault is fixed in the fuzz project; an engine fix needs the owner's yes); not
   planned yet, offered to the owner on 2026-11-19.
+- **B46, the exit-139 crashes (2026-11-19, merge `42c69c9f`).** All 8 game core dumps since 2026-11-12 crash in MonoGame's bundled SDL 2.32.10
+  on the game thread, reading `->driverdata` from a NULL `SDL_GetDisplayForWindow`: SDL follows the X server's RandR outputs and drops a
+  display when its output goes away (GNOME on Wayland, Xwayland), and the dumps line up with monitor sleep and wake (`nvidia-modeset` HDMI
+  warnings 1 to 3 minutes before). Mid-run in `SDL_IBus_UpdateTextRect` (the event pump), or at exit in `X11_HideWindow` from
+  `SDL_DestroyWindow`. **B07e's "far buffers at shutdown" was not the cause.** Screenshot runs now set `SDL_VIDEO_X11_XRANDR=0`; any run with
+  no display left exits without destroying the window. Proven by forcing `SDL_DelVideoDisplay(0)` under gdb (old crashes, new exits 0).
+  Open: a player's interactive window can still crash mid-run if the last monitor goes away (a newer SDL, or avoiding the IBus path).
