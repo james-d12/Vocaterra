@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Vocaterra.Game.Graphics.Far;
 using Silk.NET.OpenGL;
+using Vocaterra.Game.Graphics.Far;
 using GlPrimitive = Silk.NET.OpenGL.PrimitiveType;
 
 namespace Vocaterra.Game.Graphics.Gl;
