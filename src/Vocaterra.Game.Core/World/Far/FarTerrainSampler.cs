@@ -59,7 +59,10 @@ public sealed class FarTerrainSampler
     /// <summary>The far view's columns made from this model (B07c): the ground, water, snow, trees and a region's own blocks, merged coarser by level.</summary>
     /// <param name="treeLevels">The levels below this get every tree as its blocks, the levels from it up a forest as a layer of leaves.</param>
     /// <param name="mergeLevels">The highest level that is a merge of four finer columns; above it a cell is one column at its centre.</param>
-    public LodModelSource Lod(int treeLevels, int mergeLevels = 7) => new(this, treeLevels, mergeLevels);
+    public LodModelSource Lod(int treeLevels, int mergeLevels = LodModelSource.DefaultMergeLevels) => new(this, treeLevels, mergeLevels);
+
+    // The same with the level from which the coarse shortcuts apply given (a test passes a level past the last to get the exact columns of every level).
+    internal LodModelSource Lod(int treeLevels, int mergeLevels, int coarseFrom) => new(this, treeLevels, mergeLevels, coarseFrom);
 
     /// <summary>The far world over this model (B07c): a store of three-dimensional sections that the model fills where there is no real data, and real chunks replace.</summary>
     /// <param name="store">The store.</param>

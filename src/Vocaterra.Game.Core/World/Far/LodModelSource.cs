@@ -6,7 +6,7 @@ namespace Vocaterra.Game.Core.World.Far;
 
 /// <summary>
 /// The far view's columns made from the generator's own model (B07c, D-game-34 item 25): for each column the height model's ground, its water and its snow, the biome's layers under the surface (the top block, the filler, the stone), the trees the
-/// tree pass places (the pure shared query, so every tree stands where the generator puts it, rasterised block by block as the tree pass writes it), and, inside a region, the region's own blocks read down its chunks. A level above 0 merges the
+/// tree pass places (the pure shared query, so every tree stands where the generator puts it, rasterised block by block as the tree pass writes it), and, inside a region, the region's own blocks read down its chunks. A level from 1 to <see cref="MergeLevels"/> merges the
 /// four columns of the finer cells it holds (<see cref="LodMerge"/>), the finer columns being taken straight from the model at their centres rather than from the levels beneath (a cell of 128 blocks holds 16,384 columns; four samples
 /// stand for them). Where the model makes columns it makes crowns only below <see cref="TreeLevels"/>; above, a forest is a layer of leaves on a short trunk as high as its trees' crowns on average. Pure and immutable: safe from any thread.
 /// </summary>
@@ -15,25 +15,31 @@ public sealed class LodModelSource : ILodColumnSource
     // A forest this thick (the biome's tree density, percent) is drawn as a layer of leaves where single trees are not.
     private const int CanopyFrom = 25;
 
-    // From this level on a column's samples lie on the climate's lattice points (the cell is 8 blocks or more and the samples a quarter and half of it from its edge, the lattice 4), so the climate is the lattice point's own and the neighbours the cliff test reads take the nearest point's (B37).
-    private const int CoarseFrom = 4;
+    /// <summary>The highest level that is a merge of four finer columns in the far view's own model: every level (B37 measured one column a cell from level 4: three to four times cheaper on levels 4 to 7, but 10 percent of the wet cells and nine tenths of the cliff rock were lost, so the merge stays).</summary>
+    public const int DefaultMergeLevels = 7;
+
+    /// <summary>The level from which a column's samples lie on the climate's lattice points (the cell is 8 blocks or more, the samples a quarter and half of it from its edge, the lattice 4): the climate is the lattice point's own, the neighbours the cliff test reads take the nearest point's and no river is pooled (B37; the levels below are made exactly as the sampler answers).</summary>
+    public const int DefaultCoarseFrom = 4;
 
     // The columns the tree pass reads for each chunk's 16 candidates (a candidate that survives the spacing and its biome's density reads about a dozen columns, most of them shared with the next candidate's).
     private const int TreeColumnsPerChunk = 96;
 
     private readonly FarTerrainSampler _sampler;
 
-    internal LodModelSource(FarTerrainSampler sampler, int treeLevels, int mergeLevels)
+    internal LodModelSource(FarTerrainSampler sampler, int treeLevels, int mergeLevels, int coarseFrom = DefaultCoarseFrom)
     {
+        CoarseFrom = coarseFrom;
         _sampler = sampler;
         TreeLevels = treeLevels;
         MergeLevels = mergeLevels;
     }
 
+    internal int CoarseFrom { get; }
+
     /// <summary>The levels below this get every tree as its blocks; the levels from it up get forests as layers.</summary>
     public int TreeLevels { get; }
 
-    /// <summary>The highest level that is a merge of four finer columns; the levels above it take one column at the cell's centre, a quarter of the work (the default merges every level).</summary>
+    /// <summary>The highest level that is a merge of four finer columns; the levels above it take one column at the cell's centre, a quarter of the work (the default is <see cref="DefaultMergeLevels"/>).</summary>
     public int MergeLevels { get; }
 
     /// <inheritdoc />
@@ -123,7 +129,7 @@ public sealed class LodModelSource : ILodColumnSource
 
     // The pooling of a river into a cell wide enough to miss it reads the climate's river field's zero line, which the drainage network's rivers (B02c) no longer follow: measured over seeds 42 and 2026 (B37), from level 4 up it
     // fired in 4 cells of 10,240 and found a river in none, while three more lattice corners a cell made it a third of a coarse stack's time. Levels 3 and below keep it (their corners are shared).
-    private static bool PoolsRivers(int level) => level is >= 3 and < CoarseFrom;
+    private bool PoolsRivers(int level) => level is >= 3 && level < CoarseFrom;
 
     private static bool HasWater(ReadOnlySpan<LodSegment> column)
     {
