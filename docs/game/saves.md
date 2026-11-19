@@ -36,58 +36,37 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
-## Format version 11: the wear of an item (I07)
+## Format version 11 (the current one)
 
-The current version is 11, and it is the only one read: a save of version 10 or older is refused with "The save is format version N; the oldest this game loads is 11 (it writes 11), and older saves are not migrated" (the game
-is unreleased, so no migration). One change, optional and left out at zero:
+The current version is 11, and it is the only one read: a save of version 10 or older is refused with "The save is format version N; the oldest this game loads is 11 (it writes 11), and older saves are not migrated" (`SaveGame.Parse`; the
+game is unreleased, so there is no migration code, and the code that read versions 1 to 10 is gone). The fixture the tests read is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json`: a scripted game's own output at Luna's lit fire (tick 4258), its items by name, its 30 slots, nothing worn and no wear, the biomes
+series' world edits; the tests read it with the current bundle's hash, so a content edit leaves it alone, and the round trips of worn items, worn bags and wear are `WornSaveTests` and `WearSaveTests`. What version 11 holds, by area:
 
-- **`wear`, on an `inventory` entry and on a `worn` entry.** `{"item": "axe", "count": 1, "wear": 40}` and `{"group": "clothing", "slot": "body", "item": "shirt", "wear": 12}`: how worn the item is, a whole number from 0
-  up to the item's `durability.max` in `game/items.json`. A new or never-worn item has no `wear` key, so a save of a player whose gear is all new differs from version 10 only in its version. The load keeps the wear only for an
-  item that has a durability and clamps it into 0 to its maximum (`Save/Wears`), so a save made against other content (a migration) still loads. A worn-out item is saved as it is (wear equal to its maximum) and loads worn out.
-- **The state digest** appends one entry (container, slot, wear) for each bag slot and worn slot that has any wear, and nothing when none has, so every run without wear has the digest it had before. The fixture
-  `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json` is the old `save-v10.json` with its version raised (renamed): it carries no wear (its digest is unchanged); the round trip of worn stacks is `WearSaveTests`.
+- **The items are saved by name.** `inventory[i].item` (and each stack of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), never an enum name or an index. **An empty slot is `{"item": "", "count": 0}`.** `SlotSave.Of`
+  and `SlotSave.ToStack` translate with the bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state digest still reads the item's numeric id.
+- **`inventory` holds the active slots only.** As many entries as the bag's active count: `bagSlots` of `game/equipment.json` (30) plus the `capacity` of the worn bag, so 30, 40 or 50. The simulation state (`VoxelSimulationState.Slots`) is the same list, and `SaveGame.Restore` refuses a save whose list does not match the count its worn items give.
+- **`worn`, optional.** The worn items, one entry per worn slot in the data's order: `{"group": "clothing", "slot": "body", "item": "shirt"}`, the group's `id` and the slot's name from `equipment.json` (a counted slot's name is its wear kind and number: `accessory2`) and the item's `name`. Nothing is an
+  index, so reordering the groups or the items does not scramble a save. The entry is left out while nothing is worn. A group, slot or item the data lacks loads as nothing (`WornSave.ToStacks`); across bundles `SaveMigration` reports them among the dropped `worn items`, resizes the bag to what the kept worn items give (a bag the bundle lost
+  shrinks it to the base) and reports the stacks in slots that no longer exist among the dropped `inventory slots`.
+- **`wear`, optional, on an `inventory` entry and on a `worn` entry.** `{"item": "axe", "count": 1, "wear": 40}` and `{"group": "clothing", "slot": "body", "item": "shirt", "wear": 12}`: how worn the item is, a whole number from 0 up to the item's `durability.max`. A new or never-worn item has no `wear` key. The load keeps the wear only for an item that has a
+  durability and clamps it into 0 to its maximum (`Save/Wears`), so a save made against other content still loads. A worn-out item is saved with its wear equal to its maximum and loads worn out.
+- **`systems.temperature`, optional: `{"felt"}`.** How far the temperature the player feels has got towards the place's (`PlayerTemperature`'s lag), in millionths of a tenth of a degree. It is state because the band the felt value falls in slows the walk and quickens the thirst, so a load that took the place's value at once would continue
+  differently from the game it was saved from (`SaveGameTests.ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession`). Left out when nothing lags; a save without it starts at the place's value. The place's own temperature and the band's line are never saved: they come from the stored time, the weather and the world. `--temperature` is a launch flag and is never saved.
+- **The biomes series' fields** (they share the version): `chunks`, one `ChunkEdit` per changed chunk by chunk coordinate (the next section), and `passOpen`, written as `true` only while the pass through the east ring is open and its lock is in force (`session.Pass.IsOpen && session.Pass.Locked`), left out otherwise, so a save from before the pass opened loads with it closed
+  (`SaveGame.Restore` puts the pass back and the edge wall follows; the rockfall's blocks are in the world edits).
+- **The state digest** hashes the active slots (30 with no bag) and says the active count outright once a bag has changed it; it then adds the worn slots, one entry (container, slot, item) each and nothing when none is worn; it appends one entry (container, slot, wear) for each bag slot and worn slot that has any wear and nothing when none has; and the held
+  stack and the trash only when they hold something. So a run with no gear, no wear and nothing moved by hand has the digest of a run without those systems, apart from the 30-slot hash.
+- **A save of this bundle that names what the bundle lacks (I10b, no version change).** A bag slot or a worn entry whose item (or worn slot) the bundle lacks loads empty, and no longer fails the digest: the digest was taken with the
+  item, so a load that put anything right reports the digest instead of requiring it (as a load across bundles does) and logs one `save_repaired` event for each change in the session log (the detail names the slot and the reason).
+  The same happens to a worn item whose slot does not take it (the fit check: the slot's wear kind and its group's tags, `EquipmentData.Fits`): it goes to the first empty bag slot, and the log line says so (and says when the bag has no
+  room). A bag slot with an item and no count is refused, by a message that names the slot (`bag slot 4 holds apple but gives no count for it`); a save with nothing to put right that does not match its digest is refused as before.
+  The refusals read as sentences: the .NET parameter name no longer shows (`The save does not restore. The inventory has 30 slots, not the 40 its worn items give.`).
+- **Not saved: the held stack and the trash.** Moving items by hand keeps the stack at the cursor and the trash in the simulation state and its digest, but `SaveGame.Capture` first returns the held stack to its slot or the bag (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go.
+  The trash's item is not written: a loaded game starts with an empty trash, and `Restore` clears both.
 
-## Format version 10: the active bag and the worn items (I03b), on the world edits by chunk coordinate (B05) and the items by name (I01)
+## The world edits by chunk coordinate (B05)
 
-The current version is 10, and it is the only one read: a save of version 9 or older is refused with "The save is format version N; the oldest this game loads is 10 (it writes 10), and older saves are not
-migrated." Before the two series met, "version 9" meant two different formats: the biomes series' (B05, the world edits by chunk coordinate, described below) and the inventory series' (I01, the items by name, described below). Version 10 holds both, and the equipment series' two changes (D-game-35):
-
-- **`inventory` holds the active slots only.** It was always 40 entries; it is now as long as the bag's active count, the `bagSlots` of `game/equipment.json` (30) plus the `capacity` of the worn bag, so 30, 40 or
-  50 entries with the small test bags of the plan. The simulation state (`VoxelSimulationState.Slots`) is the same list, so its length is the active count, and `SaveGame.Restore` refuses a save whose list does not match the count its
-  worn items give. (The belongings chest, `systems.chest`, is unchanged: it holds stacks, not slots.)
-- **`worn`, optional, new.** The worn items, one entry per worn slot in the data's order: `{"group": "clothing", "slot": "body", "item": "shirt"}`, the group's `id` and the slot's `name` from `equipment.json` (a counted slot's
-  name is its wear kind and number: `accessory2`) and the item's `name` from `items.json`. **Nothing is an index**, so reordering the groups or the items does not scramble a save. The entry is left out while nothing is
-  worn, so a save of a player in no gear differs from one of the same world before I03b only in the version and the 30 slots. A group, slot or item the data lacks loads as nothing (`WornSave.ToStacks`), exactly as an unknown item in a bag slot loads as an empty slot; across bundles
-  (`--load` of a save from another bundle) `SaveMigration` reports them among the dropped `worn items`, resizes the bag to what the kept worn items give (a bag the bundle lost shrinks it to the base) and
-  reports the stacks in slots that no longer exist among the dropped `inventory slots`.
-
-- **`passOpen`, optional (B08b, from the biomes series).** Written as `true` only while the pass through the east ring is open and its lock is in force (`session.Pass.IsOpen && session.Pass.Locked`); left out otherwise, so a save before the pass opened has no field and loads with the pass closed. It needs no version of its own: `SaveGame.Restore` puts the pass back (`Pass.Restore`) and the edge wall follows (`SyncPassBarrier`); the rockfall's blocks are in the world edits.
-
-The state digest changed with the first: it hashes the active slots (30 with no bag), and it adds the active count when a bag has changed it, then the worn slots as before (nothing worn adds nothing). Every digest
-a test or a scripted run recorded before I03b is therefore different once, because the bag is ten slots shorter. The fixture `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json` is the biomes series' version 9 fixture (its chunk edits, its bundle hash) with
-its version, its items by name, its 30 slots and its digest recorded again (no shipped item can be worn yet, so it wears nothing: the round trip with a worn bag is `WornSaveTests`).
-
-**A save of this bundle that names what the bundle lacks (I10b, no version change).** A bag slot or a worn entry whose item (or worn slot) the bundle lacks loads empty, as the paragraphs above say, and no longer fails the digest:
-the digest was taken with the item, so a load that put anything right reports the digest instead of requiring it (as a load across bundles does) and logs one `save_repaired` event for each change in the session log (the detail
-names the slot and the reason). The same happens to a worn item whose slot does not take it (the fit check: the slot's wear kind and its group's tags, `EquipmentData.Fits`): it goes to the first empty bag slot, and the log line
-says so (and says when the bag has no room). A bag slot with an item and no count is refused, by a message that names the slot (`bag slot 4 holds apple but gives no count for it`); a save with nothing to put right that does not match its digest is
-refused as before. The refusals read as sentences: the .NET parameter name no longer shows (`The save does not restore. The inventory has 30 slots, not the 40 its worn items give.`).
-
-**The held stack and the trash are not saved (I02, no version change).** Moving items by hand keeps the stack at the cursor (`VoxelSimulation.Held`) and the trash's stack in the simulation state and its digest, but `SaveGame.Capture` returns the held
-stack to its slot or the bag first (`ReturnHeld`), so a save always has nothing held, and refuses (as a session not at rest does) only when the bag is full and the stack has nowhere to go. The trash's item is not written: a loaded game starts
-with an empty trash, and `Restore` clears both. The save's shape and the format version are as before.
-
-## Items by name (I01, version 9 of the inventory series)
-
-On the inventory series this was version 9, the current version from I01 to I03b; it is part of version 10 now, and a save of version 9 is refused like every older one (the rule of version 8, below, holds: a save of an older version is refused and nothing migrates it). What changed is one thing, **how an inventory slot names its item**: `inventory[i].item` (and each stack
-of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), where version 8 wrote the code's enum name
-(`"Wood"`, `"WaterBottle"`). **An empty slot is `{"item": "", "count": 0}`**, where version 8 wrote `{"item": "Wood", "count": 0}`. `SlotSave.Of` and `SlotSave.ToStack` do the translation with the
-bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state
-digest still reads the item's numeric id, so no digest moved. The fixture of that time was `save-v9.json` (the version 8 one, with its version and its slots translated); it is `save-v10.json` now (above).
-
-## The world edits by chunk coordinate (B05, version 9 of the biomes series)
-
-A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a save of version 9 or later (10 now):
+A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a save (since the format change of the biomes series; version 11 now):
 
 - **`chunks`: one `ChunkEdit` per changed chunk**, `{"x", "y", "z", "runs", "water"}`, sorted by layer (`y`), then row (`z`), then column (`x`). The coordinates are chunk
   coordinates (block position divided by 16, rounded down), so `y` is negative below block 0. `runs` is the chunk's 4 096 blocks, run-length encoded in storage order
@@ -108,13 +87,13 @@ A save of the world holds only what the player changed, and the world itself is 
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
 Version 8 added the rule that only the current version is read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`) and nothing migrates it: the code that read
-versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split, the dense chunk index (B05)). The version 8 save the tests read was `save-v8.json`, then `save-v9.json`, now `save-v10.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split, the dense chunk index (B05)). The save the tests read is `save-v11.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
 `needs` (the five meters and two timers, N01), `chest` (the belongings a death left, N04), `bushes` (berry bushes picked since the last night, N06), `gifts` (today's gifts, N06), `planted` (the bushes planted at the
 camp or on the owned plot that still stand, N08), `procedures` (what the learner knows of the stations, W06), `sleep` (the inn's lodging, the place last slept at, the places made in play, the camp and the kit owed, Y02 and Y12),
-`atmosphere` (the day clock's offset and held hour, the weather's state, E01 and E04) and `land` (the pending and the owned plot, Y09 to Y11). The sections below describe each; the settlement series' are
+`atmosphere` (the day clock's offset and held hour, the weather's state, E01 and E04), `land` (the pending and the owned plot, Y09 to Y11) and `temperature` (the felt temperature, version 11). The sections below describe each; the settlement series' are
 `sleep` (with `camp` and `kitOwed` inside it) and `land`, the weather series' is `atmosphere`.
 
 **How the fixture is made:** a scripted game run, not by hand, so it is the game's own output. From the repository root, after a build (the camp route of `scripts/scripted-runs.sh`'s
@@ -146,10 +125,7 @@ and are not saved. `RestoreParts` puts the places made in play back first, befor
 - **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
   is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
 
-**The `temperature` entry (I06c).** `systems.temperature` is `{"felt"}`: how far the temperature the player feels has got towards the place's (`PlayerTemperature`'s lag), in millionths of a tenth of a
-degree. It is state because the band the felt value falls in slows the walk and quickens the thirst, so a load that took the place's value at once would continue differently from the game it was saved
-from (`SaveGameTests.ALoadedGameContinuesExactlyAsTheOriginalWouldInTheNextSession`). Left out when nothing lags; the entry is optional, so the version stays 8 and a save without it starts at the place's
-value (the fixtures keep loading). The place's own temperature and the band's line are never saved: they are derived from the stored time, the weather and the world.
+**The `temperature` entry** is described under version 11, above (`systems.temperature`: `{"felt"}`; optional, so a save without it starts at the place's value).
 
 **The `land` entry (Y09).** `systems.land` keeps the player's plots, both optional, the entry absent when neither exists: `pending` (the plot marked with a stake and not yet bought, Y10) and `owned` (the plot bought from
 the mayor, Y11), each `{"x", "z", "width", "depth"}`: the west-north corner and the size in blocks, along the world's axes (a plot is columns, not a volume). One plot of each kind at most. What is *not* saved is the rules: the
@@ -189,7 +165,7 @@ chest state as optional fields of the entry. Stages and their effects are never 
   given. The NPC whose gift is used answers its `<npc>.gift_used` with a line of its existing pools (the stall `shop_price`, the villager `villager_bye`, the guide `guide_offer_no`).
 - **Planted bushes (N08)** are the `planted` entry of `systems`, absent when none stands: `[{"x","y","z"}]`, the cells of the bushes the player planted at the camp (`planting` in `game/needs.json`) that still stand. Each is also in `bushes` until a night grows it back, so the picked list needs no change; the cap of planted bushes counts this list. A save with none loads with none.
 - **The day clock and the weather (E01, E04)** are the `atmosphere` entry of `systems`, with two parts. The entry is absent in a new game's default state (the clock
-  not held, the weather still in its first spell), so a save of a game that never slept or changed weather is byte for byte what it was (the version 8 fixture loads as it is); it is written when either part is not a new game's. The state digest adds nothing for the default state, and from the first change of weather
+  not held, the weather still in its first spell), so a save of a game that never slept or changed weather is byte for byte what it was (an older fixture loads as it is); it is written when either part is not a new game's. The state digest adds nothing for the default state, and from the first change of weather
   on the entry is part of the digest and the save. A load and a sleep's restore put the entry back before the digest check. The save is version 8 with it (main's weather series left the save at 7 and the settlement series' `systems.sleep` made 8; the entry is optional, so it changed no version): `systems` carries `sleep` and `atmosphere` side by side, and a load raises neither a `day_phase` nor a `weather_changed` event.
   - **The clock** is `{"offset", "frozenHour"}`. `offset` is the number of ticks added to the clock's position in the cycle (0 up to one cycle; a sleep or a collapse sets it so
     the hour is `wakeHour` in `game/day.json`), `frozenHour` the hour a test or a screenshot holds the clock at (absent when it runs). A save without the entry starts the clock at `startHour`.

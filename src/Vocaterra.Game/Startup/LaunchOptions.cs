@@ -111,6 +111,8 @@ public sealed record LaunchOptions
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
         + "  --equip <item>          give the item and wear it in the first slot that takes it (repeatable; a test aid, I03a); an item that cannot be worn is reported and left in the bag\n"
+        + "  --move <action>[,<place>,<slot>]  send the command a click on the inventory screen sends (I02): left, right or shift at bag, equip or trash and a slot from 0 (the equipment's is its flat index in\n"
+        + "                          equipment.json order), or sort, or return (the held stack goes back); repeatable; a step: --move shift,bag,3 wears a wearable, --move sort\n"
         + "  --wear <item>=<n>       set the wear of the item to n, clamped to its durability (the item is given first if none is carried or worn; repeatable; a test aid, I07): hacha=500 is a worn-out axe\n"
         + "  --repair <item>         repair the item at the workbench with the station in reach and the material in the bag (I07; like --craft: needs --screenshot, the console says the result)\n"
         + "  --place-camp x,z,face   set up the camp with the camp kit in the bag (Y12; give one with --give equipo): the fire ring's middle goes on the ground column x,z and the camp faces\n"
