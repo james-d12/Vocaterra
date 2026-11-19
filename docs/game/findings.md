@@ -3061,6 +3061,147 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Release run, from wall bounds of 100 to 3,000 ms; `ProceduralChunkTimeTests` already asserted on CPU time. No test now asserts on wall time
   except through `HangGuard`. The Haiku agent handed back once before its work was done (a timing run still in the background) and finished
   when told to.
+- **B36, the far sampler shares its work (2026-11-18, merge `c7970664`).** A per-call `FarScope` memoises lattice climate and each
+  column's climate and shape, read by the cliff test, `TryRiver` and `Even`; packed sections byte-identical (a digest test recorded on the
+  old code). Measured with the new `bench` command (seed 42, loaded machine): land stacks L0 52 to 8.5 ms, L1 150 to 25, L2 204 to 69, L3
+  517 to 277, L4 to L7 1.8 to 5.5 times. The review's prototype figure (8 to 14 times on L0 to L2) was not reached. By the review's tile
+  counts the far view's model work falls from about 231 to 87 worker-seconds, and levels 3 to 7 are now about 80% of it (L3 alone 47%),
+  so B37 is the next big win; the agent's lead for L3 is the tree raster (`PlantTrees` uses an unshared `FarGround`). The in-game fill time
+  was not measured (machine busy); fixed-size tables allocate 1 to 2 MB per stack on the large-object heap, a point for B40.
+- **B39, shared windows and the strata pass (2026-11-18, merge `3d354c90`).** `ColumnGroup` shapes one window for a 4x4 square of chunk
+  columns (residency) or one per ring footprint; each column cuts its own window from it, already shaped, and band and layers share it.
+  Residency column 1.92 to 0.62 ms, ring footprint 9.6 to 5.6 ms, `StrataPass` 114 to 61 µs a chunk (CPU time, seed 42, interleaved
+  base and branch runs); byte-identical: no golden, pin or save digest moved, and workers against inline give the same state digests. The
+  nearest column's group band job costs about 4 ms instead of 0.9, but no job waits on another. The ring is now bound by its 90x90-column
+  window (about 4 of 5.6 ms). The bench's new group rows read about 8 times high in one `--quick` run on a loaded machine, unexplained:
+  B40 should check them before relying on them. Spot check: a Release run at High after a teleport to (3000, -2000) settled with no
+  pending chunks and no errors.
+- **B35, stand-ins for the inner ring (2026-11-18, merge `12204191`).** A fine leaf with no ancestor built or requested within
+  `FallbackSteps` asks for its level-4 ancestor, and (beyond the brief) fine tiles now queue after every coarse tile, since stand-ins alone
+  left the horizon interleaved with fine tiles and coverage moved only from 115 s to 116 s. On a fresh 16 km High world (seed 42, 8
+  workers, one run each on a loaded machine) the last uncovered leaf went from 115 s to 33 s, levels 0 to 3 covered by 8 to 16 s, and the
+  full fill from 117 s to 82 s, with 3% more tiles. The first 4 s (the start's near-zone wait) are unchanged; stand-ins are blocky until the
+  fine tiles land. **Seen in its after picture** (`artifacts/b-series/b35/after-b.png`): a thin blue vertical line at the top left, over a
+  stand-in's edge; not in the before picture. To check in B38, which changes the same tiles.
+- **B40, the small ones (2026-11-18, merge `babb4edf`).** The bench's group rows read high because of tiered JIT (only `GenerateColumn` was
+  warmed); every row's path is now warmed for 2.5 s. Caller-owned window arrays (`ColumnScratch`, `ColumnScratchPool`): at 8 workers
+  bytes a column 353,400 to 187,400, gen-0 a second 105 to 58, columns a second +9%. `DOTNET_GCgen0size=0x6000000` (an environment
+  variable; the runtimeconfig keys had no clear effect) cut gen-0 to 23 a second for about +20% columns a second at 96 MB: not shipped, the
+  owner's choice. `ThreadPriority.BelowNormal` does nothing on Linux and a thread cannot lower its own nice value, so the workers now raise
+  theirs by 7 through `setpriority` (17 under limited.sh). Drainage reads a landmass under a lock per start node (two starts in one
+  landmass may both read it; the first publishes) and `FarView` warms the far range's drainage on the ring lane. `HighestBlock` skips
+  non-resident layers above the surface band (19.7 to 4.8 ms a new column). Spot check: the same teleport as B39 gives the same chunk and
+  face counts, no errors. Not yet measured in a game: the nice values live, the drainage warm-up, the teleport hitch.
+- **B38, no double builds (2026-11-18, merge `78568b56`).** Fine far tiles inside the ring's radius wait under their B35 stand-in for the
+  ring's real data and are built once (far tiles built 2,761 to 2,809 down to 2,069 to 2,084, deterministic); ring and tile jobs share one
+  nearest-first scale (the ring keeps its one-in-five floor); the ring copies unchanged resident chunks instead of generating them and
+  treats layers above a column's band as air (both rest on tests, not a proof). Its full suite caught a settle that ended before the
+  ring's last results were taken (89 tiles against 85 in the workers-count test); fixed. Median time to the real tile: under 400 blocks
+  51 to 31 s, 400 to 800 blocks 103 to 113 s down to 36 to 49 s, 800 to 1,000 blocks 115 to 52 s. Whole-fill wall times on the loaded
+  machine disagreed between two back-to-back pairs: not claimed. The blue line in B35's picture is a one-cell grey pillar with a water
+  face in a coarse stand-in (the far sampler at levels 4 and up), not a crack: passed to B37. B40's `WorkerPriorityTests` failed twice in
+  its runs (a thread exiting during the /proc enumeration): B40b.
+- **The near view's mesh time rose across three identical teleport spot checks** (seed 42, (3000, -2000), High, far view off, the same
+  14,782 chunks and 2,865,395 faces each time): 5.2 s after B39, 6.6 s after B40, 10.2 s after B38, at loads of about 14, 13 and 9. A
+  likely cause is B40's worker nice +7: under limited.sh (nice 10) the workers run at 17, below every other agent's build. To measure on
+  a quiet machine, with and without the raise, before the series closes.
+- **The owner's test of `feature/world-next` (2026-11-18, about 21:40 UTC).** "Performance improvement doesnt seem noticeable"; "heavy
+  flickering of the low LODs in chunks that are fully rendered"; with `--world streamed --seed 7200 --pass open` (a new seed, so a cold
+  world) "it still took about 10 - 15 seconds to render the beginning area". Two causes of a fair-looking test hiding the series' gains: the
+  far store (`~/.local/share/vocaterra/lod/<seed>-g<version>-<hash>/`, 5.3 GB) is shared by main and the branch, since the world version is
+  unchanged, so seeds played before load from disk on both; and the series targeted generation, while the start area may be bound by
+  meshing and uploads (about 5,962 meshes in 5 to 10 s in the spot checks) or by the new job order. B42 takes the flicker, B43 measures the
+  start. The owner also asked for a fly mode for testing and withdrew it a minute later; the agent was stopped before committing anything.
+- **B43, which stage of chunk generation is the slowest (2026-11-19).** New permanent counters (`PipelineCounters`, a `pipeline:`
+  line of `--stream-stats`): per stage (generated, resident, meshed, on the card, drawn) the chunks counted once each and when 50/90/100%
+  of them got there. Measured on the owner's command (Release, High, 400 blocks, 16 km far view, 8 workers, 60 fps cap, fresh seeds and
+  far store, under limited.sh, load 6 to 17): at the start all 14,800 chunks are generated and resident by 8.8 s (1,700 a second), but
+  the 6,700 meshes take until 26 s (254 a second; the in-frustum chunks 50% drawn at 11 s, 90% at 20 s): **meshing is the slowest stage,
+  and it is bound by the game thread, not the workers** (mesh jobs 6 to 7 worker-seconds in all). The frame's 4 ms mesh budget is spent
+  80% on `SkyExposure.Tile` (an 18 x 18 tile of `NaturalSurfaceAt`, the full terrain shape, about 3.4 ms a new chunk column, 1 ms a
+  mesh): 6.6 of the 7.9 s of game-thread meshing. With the sky tile skipped (a probe) the whole view took 15.5 s instead of 26.4 s
+  (meshes 439 a second). After a 3 km teleport: resident 6.1 s, meshed 26 s, the same pattern. Upload and hand-off are not a limit
+  (on the card within a frame of the result). origin/main for the start: whole view 23.3 s against the branch's 26.4 s (resident 8.2 s
+  against 8.8 s): the series did not change the voxel start, which was never generation-bound; the branch's game thread spends 1.2 s
+  more in the streaming phase (the ring's resident-chunk copies, B38). Far view off: 24.4 s; holding all far work until the whole view
+  is made (an earlier probe at load 13 to 18): 34 against 51 s; B38's order reverted: no change to the voxel view, far coverage 22 to 40 s;
+  the workers' nice raise off: worse (63 against 51 s: the game thread is the bottleneck and the workers then take its processor).
+- **B43, the slowest stage (2026-11-19, merge `c8715d4e`; Opus 5.5 high at the owner's request).** Permanent stage counters (generated,
+  resident, meshed, gpu-ready, visible) show the start area is bound by **meshing on the game thread**: about 1.1 ms of game-thread time per
+  mesh, almost all `SkyExposure.Tile` (an 18x18 tile of `NaturalSurfaceAt`, about 3.4 ms per new chunk column), within a 4 ms per-frame
+  budget, so about 254 meshes a second while the workers mesh for only 6 to 7 worker-seconds and spend 145 to 160 on far tiles. Start on the
+  owner's command (High, 8 workers, fresh seed and store): visible 50/90/100% at 11.1/20.3/24.7 s on the branch, 10.9/18.9/21.7 s on main;
+  generation done by 8.8 s. **The B35 to B40 series did not change the voxel start; the branch is about 3 s slower to the whole view** (B38's
+  ring copies resident chunks on the game thread). A probe that skipped the sky tile: whole view 26.4 to 15.5 s. B40's nice raise helps the
+  game thread (off: 63 against 51 s); B38's order helps far coverage (reverted: 40 against 22 s). The owner chose fix 1 (B44) alone first.
+- **B42, the flicker (2026-11-19, merge `8555ffcf`).** Not a z-fight with the chunks (the far pass clears depth first): a B35 stand-in was drawn
+  whole and hid every finished fine tile under it while any one leaf under it waited, and B38's ring waiting (up to 240 s) plus movement kept
+  adding waiting leaves, so finished ground swapped between level 0 and level 4. A walking-eye test counted 610 of 1,216 ground cells
+  flipping fine > coarse > fine before, 0 after. Stand-ins now draw only through windows over waiting leaves (`uClip` in the GL chunk
+  shader). The MonoGame-effects path (shaders off) cannot clip and still draws whole stand-ins. The flicker was not caught in a picture;
+  the owner's game check is the real test.
+- **B37, cheap coarse levels (2026-11-19, merge `d9dcaf72`).** Level 3's cost was the tree pass reading the ground unshared for every
+  candidate (230 to 49 ms a stack once it reads through B36's scope, byte-identical). Levels 4 to 7 now take lattice-point climate for the
+  cliff test's neighbours, read one corner on lattice lines and skip river pooling (it fired in 4 of 10,240 cells and found no river):
+  L3 to L7 about 4 times cheaper (seed 42 402 to 106 ms, seed 2026 477 to 120). The picture moved in 0.01 to 0.02% of pixels (a few distant
+  cliff-rock specks turn green); the owner approved (item 63). One column per cell at L4 and up (`MergeLevels` 3) would give about 6 times
+  but keeps cliff rock in only 4 of 51 cells: not shipped. Model-built sections are never persisted, so no store version bump was needed.
+- **B44, the sky tile off the game thread (2026-11-19, merge `27891c86`).** The workers cut each column's 18x18 natural heights from the
+  group window (or make them alone) and the game thread's `SkyExposure.Tile` only looks them up and walks down; meshes identical (vertex for
+  vertex, before and after edits). On the owner's command at High, fresh seeds and far stores, medians of 3: the start area meshed in
+  11.7 s instead of 26.8, 90% visible in 10.1 s instead of 21.2, meshes 583 a second instead of 259, game-thread mesh time 2.5 s instead of
+  8.5; after a 3 km jump, all visible in 8.4 s instead of 27.2. **This is the first change of the speed work that moves the owner's start
+  time.** Meshing now trails residency by 2 to 3 s, so residency (100% at 7 to 11 s) is the limit. 30 to 60% of columns are made without a
+  group window because the 128-group cache evicts groups before generation reaches them.
+- **B45, the near-first gate (2026-11-19, merge `763b07ec`).** At a start and after a jump over 64 blocks no far work (ring, tiles of any
+  level, stand-ins, drainage warm-up) is submitted until every planned column within 128 blocks is resident and meshed (or 20 s); B38's
+  resident-chunk copies moved to the ring's worker (references taken on the game thread; a fenced `VoxelChunk.HasBeenWritten` drops any
+  chunk edited before or during the copy). On the owner's command (fresh seeds and stores, 8 workers, medians of 3): near view 5.2 to 3.3 s,
+  generation done 8.2 to 5.3 s, whole view 11.5 to 9.3 s; far covered 11.1 to 12.6 s (the price), far filled unchanged (26 s); streaming
+  p99 9.6 to 12.4 ms down to 6.8 to 7.5. Letting level 4 and up through (`VOCATERRA_NEAR_GATE=fine`) gained nothing. One main run: whole view
+  20.6 s. Meshing now trails residency by about 4 s.
+- **Exit 139 in a game-window test again (2026-11-19, B45's gate).** `NamePlatesTests.TheBeaconsNpcBehindABuildingHasNoPlateDrawnAndInTheOpenShesGotOne`
+  starts two headless game runs at once (`--far-view off`); one exited 139 (SIGSEGV) after 27 s and the test passed alone. The same exit hit a
+  game-window test on 2026-11-16 (B07e put it down to far buffers at shutdown and disposed them; this run had no far view, so that was not
+  the whole cause). An intermittent native crash in the game process: planned as B46 (proposed).
+- **A core fuzz seed on CI (2026-11-19, run 44480858083 on `d9c7e223`).** `RecastLoopFuzzTests.Recast_RestoresTheCorrectedSentence_AndReAnalyzesClean`,
+  seed `7SYSqZ_lbBR4` (`VocabUnknown`: "tú eres grandes besos" mutated to "tú eres grandes dipaneve", expected `vocab.unknown`). The next
+  run passed with other seeds. Core's to look at (an oracle fault is fixed in the fuzz project; an engine fix needs the owner's yes); not
+  planned yet, offered to the owner on 2026-11-19.
+- **B46, the exit-139 crashes (2026-11-19, merge `42c69c9f`).** All 8 game core dumps since 2026-11-12 crash in MonoGame's bundled SDL 2.32.10
+  on the game thread, reading `->driverdata` from a NULL `SDL_GetDisplayForWindow`: SDL follows the X server's RandR outputs and drops a
+  display when its output goes away (GNOME on Wayland, Xwayland), and the dumps line up with monitor sleep and wake (`nvidia-modeset` HDMI
+  warnings 1 to 3 minutes before). Mid-run in `SDL_IBus_UpdateTextRect` (the event pump), or at exit in `X11_HideWindow` from
+  `SDL_DestroyWindow`. **B07e's "far buffers at shutdown" was not the cause.** Screenshot runs now set `SDL_VIDEO_X11_XRANDR=0`; any run with
+  no display left exits without destroying the window. Proven by forcing `SDL_DelVideoDisplay(0)` under gdb (old crashes, new exits 0).
+  Open: a player's interactive window can still crash mid-run if the last monitor goes away (a newer SDL, or avoiding the IBus path).
+- **B48, the crash during play (2026-11-19, merge `07818ce4`).** SDL 2.32.10 is the last SDL2 release and its branch tip keeps the same
+  unchecked display reads (IBus, fcitx, X11 window code); SDL's native Wayland driver failed to create a graphics device here and also
+  deletes displays when outputs go. The only X11 code that deletes a display is the RandR output handler, so a Wayland session now runs
+  SDL with `SDL_VIDEO_X11_XRANDR=0` (one display, the whole X screen, no mode lists; the game reads the size once and goes borderless full
+  screen). A plain X11 session keeps RandR. **Not verified with a live monitor** (it slept through the agent's session; XTEST input did not
+  reach the game): the owner checks full screen, F11 and typing `ñ`.
+- **The owner's videos of far-view holes (2026-11-19, `85b44233`, Shaders on; artifacts/tmp/owner-videos-2026-11-19/).** Flying at up to
+  190 blocks a second, seed 7900, High, far detail 200%, view distance 576: a regular grid of sky strips through the far land; 64-block
+  square holes in coarse far land under the player with the neighbours' stone skirts as walls; a sky-coloured stepped line where the real
+  chunks meet the far land. Suspected: B42 windows a stand-in only over leaves waiting for the ring and draws nothing elsewhere, while B45's
+  gate holds every far request at a start and after each jump, so held, unrequested or unbuilt leaves are neither drawn nor windowed.
+  Given to B47 (same code).
+- **B47, the flicker with Shaders off and the flying holes (2026-11-19, merge `0c525ade`).** Far tiles are cut into 32-block granules and
+  a stand-in draws only its windows' index runs in both paths, so the GL shader clip is gone (cut tiles have about 1.4 times the quads).
+  The owner's holes: B45's gate held every far tile and stand-in until the 128-block near view was done, which an eye flying at 190 blocks
+  a second never lets happen, so the far land under it stayed held for the 20 s timeout (983 of 1,200 flight frames with sky in a test).
+  The gate now also opens when the eye is 128 blocks from where it closed; `FarView.SelectAhead` asks for coarse tiles and stand-ins up to
+  160 blocks ahead; a tile just uploaded covers its ground in that frame. Not proven for the 64-block holes; the owner flies again.
+  gl-compare's streamed views (meadow, cave) time out: its settle fills 16 km on 2 workers (pre-existing; the tool needs `--workers`).
+- **Two reviews of the LOD work (2026-11-19, at `e3041981`; docs/research/2026-11-19-lod-transitions-review.md).** Generation (B36, B37,
+  B39, B40) is sound and byte-identical. The far-view lifecycle breaks "keep the old LOD until its replacement is on the card": a drawn
+  stand-in is disposed when its sections change (`Invalidate` keeps only tiles in `_wanted`, and a built stand-in leaves `_wanted`), which
+  fits the owner's 64-block holes better than B47's gate explanation; a re-selection race can leave a stand-in "being built" forever. The
+  drainage warm-up runs on the ring lane ahead of coarse tiles and stand-ins (no `FineBias`). Both checked against the code by the
+  orchestrator. The gates missed them because every `FarView` test runs without workers and with the ring radius equal to the voxel
+  radius; the current flight test still has 316 of 1,200 frames with an uncovered leaf with the real ring. Shared sea nodes depending on
+  publish order (`DrainageNetwork`) is a rare determinism crack, noted, not planned. Milestones B49 to B55 for the next PR.
 - **I01, items as data (2026-11-15, on `feature/inventory`).** Report `.claude/briefs/i01-report.md`. Gated at `e865a818`: 11,543
   passed, 3 skipped; no digest, golden or fuzz baseline moved. `items.json` holds the 14 items; `IItemCatalogue` replaces the static
   table in about 25 consumers; the enum keeps nine members code needs by behaviour, and a data-only item (id from 100) works in the bag,

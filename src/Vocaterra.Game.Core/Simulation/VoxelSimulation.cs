@@ -77,6 +77,15 @@ public sealed partial class VoxelSimulation
     public int WalkPermille { get; set; } = 1000;
 
     /// <summary>
+    /// Whether the player flies (the fly cheat): no gravity, the jump command rises and <see cref="VoxelCommandKind.Descend"/> sinks (<see cref="PlayerBody.StepFlying"/>). A host setting like
+    /// <see cref="WalkPermille"/>, set from the player's settings: not state, not in the digest; a simulation nobody sets walks.
+    /// </summary>
+    public bool Flying { get; set; }
+
+    /// <summary>The horizontal flying speed in units per tick (<see cref="VoxelPhysics.FlySpeedOf"/>; the settings' fly speed slider). A host setting like <see cref="Flying"/>.</summary>
+    public int FlySpeed { get; set; } = VoxelPhysics.FlySpeed;
+
+    /// <summary>
     /// How fast gathering a block goes, in thousandths: 1000 is full speed, a smaller number lets the progress grow only on the ticks that cross a whole step of it (a half: every
     /// other tick), so gathering slows and never stops (N02, at zero stamina). A host setting like <see cref="WalkPermille"/>; filling a bottle is not slowed.
     /// </summary>
@@ -166,6 +175,7 @@ public sealed partial class VoxelSimulation
         ArgumentNullException.ThrowIfNull(commands);
         _events.Clear();
         var jump = false;
+        var descend = false;
         BlockPos? interact = null;
         for (var i = 0; i < commands.Count; i++)
         {
@@ -177,6 +187,9 @@ public sealed partial class VoxelSimulation
                     break;
                 case VoxelCommandKind.Jump:
                     jump = true;
+                    break;
+                case VoxelCommandKind.Descend:
+                    descend = true;
                     break;
                 case VoxelCommandKind.SelectSlot:
                     if (Inventory.IsHotbarSlot(command.A))
@@ -220,7 +233,9 @@ public sealed partial class VoxelSimulation
         }
 
         var (intentX, intentZ) = WalkIntent(commands);
-        var (jumped, landed) = Player.Step(Grid, intentX, intentZ, jump, Scene.Currents, WalkPermille);
+        var (jumped, landed) = Flying
+            ? Player.StepFlying(Grid, intentX, intentZ, (jump ? 1 : 0) - (descend ? 1 : 0), FlySpeed, WalkPermille)
+            : Player.Step(Grid, intentX, intentZ, jump, Scene.Currents, WalkPermille);
         if (jumped)
         {
             _events.Add(new SimulationEvent(SimulationEventKind.PlayerJumped, Tick));

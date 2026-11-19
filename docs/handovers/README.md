@@ -31,8 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-18-1214-meta-improvements](2026-11-18-1214-meta-improvements.md) | The throughput changes (B29a, B29b, D-game-34 items 57 to 59) on `feature/meta_improvements` | Nothing: push the branch, open a draft pull request, launch B29a |
-| [2026-11-18-0409-world-next](2026-11-18-0409-world-next.md) | What the B series left for later (the chunk-speed series, B32 to B34, B23, B16, B19, caching, open findings; B29 moved to meta-improvements), on a new branch from `main` | The owner's merge of `feature/biomes` into `main` |
+| [2026-11-19-2035-lod-lifecycle](2026-11-19-2035-lod-lifecycle.md) | The far view's LOD lifecycle after PR #72 (B49 to B55, from two reviews) on `feature/lod-lifecycle` (to cut from main) | The owner's merge of PR #72 and his flight and display checks |
 | [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | Stop 6: the owner plays the finished series; then the pull request (every milestone gated, 2026-11-19) |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
@@ -42,6 +41,9 @@ The open pull request #51 (`feature/german`) carries its own state on its branch
 
 | Handover | Workstream | Closed |
 | --- | --- | --- |
+| [2026-11-18-1812-world-next](done/2026-11-18-1812-world-next.md) | The chunk-speed series B35 to B48 on `feature/world-next` | PR #72 ready to merge (2026-11-19); next: [2026-11-19-2035-lod-lifecycle](2026-11-19-2035-lod-lifecycle.md) |
+| [2026-11-18-1214-meta-improvements](done/2026-11-18-1214-meta-improvements.md) | The throughput changes (B29a to B29e, D-game-34 items 57 to 60) on `feature/meta_improvements` | PR #70 merged into `main` (2026-11-18) |
+| [2026-11-18-0409-world-next](done/2026-11-18-0409-world-next.md) | What the B series left for later (no branch yet) | Picked up 2026-11-18 18:12 by [2026-11-18-1812-world-next](done/2026-11-18-1812-world-next.md) on `feature/world-next` |
 | [2026-11-15-1417-biomes](done/2026-11-15-1417-biomes.md) | The B series (a tall procedural world round hand-crafted regions, D-game-34) on `feature/biomes` | Finished 2026-11-18 (B00 to B30, M96 to M101); offered to `main` by pull request |
 | [2026-11-11-1850-settlement](done/2026-11-11-1850-settlement.md) | The inn, bought land and the campsite (the Y series, D-game-32) on `feature/settlement` | PR #65 merged into `main` (2026-11-15); worktree and local branch removed 2026-11-15 by the owner's word, its artifacts kept in `artifacts/settlement/` of the main checkout |
 | [2026-11-10-1943-weather](done/2026-11-10-1943-weather.md) | The E series (day, night and weather) on `feature/weather` | PR #64 merged into `main` (2026-11-11); worktree and local branch removed 2026-11-15 by the owner's word |

@@ -37,22 +37,25 @@ public enum VoxelCommandKind
     /// <summary>Craft the recipe at index <see cref="VoxelCommand.A"/> of <see cref="VoxelSimulation.Recipes"/>. A press.</summary>
     Craft = 7,
 
+    /// <summary>The descend button is down this tick (the fly cheat): a flying body sinks while it is held; a walking body ignores it. A level.</summary>
+    Descend = 8,
+
     /// <summary>
     /// Wear the item in bag slot <see cref="VoxelCommand.A"/> in the equipment slot of group <see cref="VoxelCommand.B"/>, slot <see cref="VoxelCommand.C"/> (indexes into <c>game/equipment.json</c>), swapping with what is worn there:
     /// the old item takes the bag slot the new one left (I03a). A press; a refusal changes nothing and raises <see cref="Event.SimulationEventKind.EquipRefused"/>.
     /// </summary>
-    Equip = 8,
+    Equip = 9,
 
     /// <summary>
     /// Take off the item worn in group <see cref="VoxelCommand.A"/>, slot <see cref="VoxelCommand.B"/>, into bag slot <see cref="VoxelCommand.C"/>, or into the first free one when C is -1 (I03a). A press; a refusal (the bag is
     /// full, the slot asked for is taken) changes nothing and raises <see cref="Event.SimulationEventKind.EquipRefused"/>.
     /// </summary>
-    Unequip = 9,
+    Unequip = 10,
 
     /// <summary>
     /// Move items by hand (I02, <see cref="Items.Containers.InventoryOps"/>). <see cref="VoxelCommand.A"/> is the <see cref="Items.Containers.MoveAction"/> (0 left click, 1 right click, 2 shift-click, 3 sort, 4 return the held stack),
     /// <see cref="VoxelCommand.B"/> the container's id (<see cref="Items.Containers.ContainerIds"/>: 0 bag, 1 equipment, 2 trash) and <see cref="VoxelCommand.C"/> the slot in it (the equipment's is its flat index, group by group in
     /// <c>game/equipment.json</c> order). B and C are ignored by sort and return. A press; a refused move changes nothing and raises <see cref="Event.SimulationEventKind.MoveRefused"/>.
     /// </summary>
-    SlotMove = 10,
+    SlotMove = 11,
 }

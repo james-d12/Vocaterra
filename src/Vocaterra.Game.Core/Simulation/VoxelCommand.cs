@@ -28,6 +28,9 @@ public readonly record struct VoxelCommand(VoxelCommandKind Kind, int A = 0, int
     /// <summary>Jump button down.</summary>
     public static VoxelCommand Jump { get; } = new(VoxelCommandKind.Jump);
 
+    /// <summary>Descend button down (a flying body sinks).</summary>
+    public static VoxelCommand Descend { get; } = new(VoxelCommandKind.Descend);
+
     /// <summary>Gather the block at (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>) this tick.</summary>
     public static VoxelCommand Interact(int x, int y, int z) => new(VoxelCommandKind.Interact, x, y, z);
 

@@ -30,7 +30,7 @@ internal sealed class StrataTable : IStrataSelector
     private readonly BlockId _stone;
     private readonly BlockId _deep;
     private readonly BlockId[] _blobBlocks;
-    private readonly BlockId[][] _blobIn;
+    private readonly bool[][] _blobInMask; // per pocket row, by block id: whether the row may replace that base rock
     private readonly int[] _blobMinY;
     private readonly int[] _blobMaxY;
     private readonly int[] _blobThresholds;
@@ -49,7 +49,7 @@ internal sealed class StrataTable : IStrataSelector
         _deep = UndergroundWorld.BlockNamed(spec.Deep);
         _key = WorldRng.For(seed, "gen/strata").NextUInt64();
         _blobBlocks = [.. spec.Blobs.Select(static b => UndergroundWorld.BlockNamed(b.Block))];
-        _blobIn = [.. spec.Blobs.Select(b => b.In is null ? new[] { _stone } : b.In.Select(UndergroundWorld.BlockNamed).ToArray())];
+        _blobInMask = [.. spec.Blobs.Select(b => MaskOf(b.In is null ? [_stone] : [.. b.In.Select(UndergroundWorld.BlockNamed)]))];
         _blobMinY = [.. spec.Blobs.Select(static b => b.MinY)];
         _blobMaxY = [.. spec.Blobs.Select(static b => b.MaxY)];
         _blobThresholds = [.. spec.Blobs.Select(static b => FieldScale.FromThousandths(b.Threshold))];
@@ -81,7 +81,36 @@ internal sealed class StrataTable : IStrataSelector
     }
 
     // Whether a pocket row may replace this base rock at this height.
-    private bool Applies(int row, int y, BlockId baseRock) => y >= _blobMinY[row] && y <= _blobMaxY[row] && Array.IndexOf(_blobIn[row], baseRock) >= 0;
+    private bool Applies(int row, int y, BlockId baseRock) => y >= _blobMinY[row] && y <= _blobMaxY[row] && CanReplace(row, baseRock);
+
+    private bool CanReplace(int row, BlockId baseRock)
+    {
+        var mask = _blobInMask[row];
+        return (uint)baseRock < (uint)mask.Length && mask[(int)baseRock];
+    }
+
+    private static bool[] MaskOf(BlockId[] blocks)
+    {
+        var mask = new bool[blocks.Length == 0 ? 1 : blocks.Max(static b => (int)b) + 1];
+        foreach (var block in blocks)
+        {
+            mask[(int)block] = true;
+        }
+
+        return mask;
+    }
+
+    // Whether a pocket row can change any block of a chunk whose lowest row is y0: its band of heights meets the chunk's, and a base rock it replaces can lie there (the stone from the dither's start up, the deep rock
+    // under the dither's end), so a row that names only the deep rock is not sampled above the dither, nor a row of the stone under it.
+    private bool RowMeets(int row, int y0, int size)
+    {
+        if (y0 > _blobMaxY[row] || y0 + size - 1 < _blobMinY[row])
+        {
+            return false;
+        }
+
+        return (y0 + size - 1 >= _spec.DitherFromY && CanReplace(row, _stone)) || (y0 < _spec.DitherToY && CanReplace(row, _deep));
+    }
 
     /// <summary>
     /// The rocks of the 16 x 16 x 16 box whose first block is (x0, y0, z0) (a chunk: its corner is a multiple of 16), in <c>ChunkData</c> order, the blob noise evaluated once on the lattice and
@@ -91,10 +120,12 @@ internal sealed class StrataTable : IStrataSelector
     /// <param name="y0">The box's first y.</param>
     /// <param name="z0">The box's first z.</param>
     /// <param name="into">The rocks, at least 4 096 of them.</param>
-    public void Fill(int x0, int y0, int z0, Span<BlockId> into)
+    /// <returns>Whether any block of the box may be a rock other than the table's stone (<see langword="false"/>: all of them are the stone).</returns>
+    public bool Fill(int x0, int y0, int z0, Span<BlockId> into)
     {
         const int Size = VoxelChunk.Size;
         ArgumentOutOfRangeException.ThrowIfLessThan(into.Length, VoxelChunk.Volume);
+        var mayDiffer = y0 < _spec.DitherToY;
         if (y0 >= _spec.DitherToY)
         {
             into[..VoxelChunk.Volume].Fill(_stone);
@@ -120,7 +151,7 @@ internal sealed class StrataTable : IStrataSelector
 
         if (_blobFields.Length == 0)
         {
-            return;
+            return mayDiffer;
         }
 
         // The first pocket row that passes wins, so the rows are applied from the last to the first; a pocket replaces the base rocks of its row only, inside its band of heights.
@@ -130,7 +161,7 @@ internal sealed class StrataTable : IStrataSelector
         var cell = _spec.BlobLattice;
         for (var row = _blobFields.Length - 1; row >= 0; row--)
         {
-            if (y0 > _blobMaxY[row] || y0 + Size - 1 < _blobMinY[row])
+            if (!RowMeets(row, y0, Size))
             {
                 continue;
             }
@@ -153,7 +184,7 @@ internal sealed class StrataTable : IStrataSelector
 
         if (!any)
         {
-            return;
+            return mayDiffer;
         }
 
         for (var at = 0; at < VoxelChunk.Volume; at++)
@@ -163,6 +194,8 @@ internal sealed class StrataTable : IStrataSelector
                 into[at] = _blobBlocks[pick[at]];
             }
         }
+
+        return true;
     }
 
     // Marks the blocks of a lattice cell where a pocket row's noise passes its threshold, the base rock is one the row replaces and the height is in its band; whether it marked any.

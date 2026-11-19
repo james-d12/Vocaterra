@@ -34,6 +34,16 @@ public static class VoxelPhysics
     /// <summary>The upward speed a jump starts with; with <see cref="Gravity"/> it rises about 1.3 blocks, so one block can be jumped and two cannot.</summary>
     public const int JumpVelocity = 640;
 
+    /// <summary>The default flying speed (the fly cheat) in blocks per second: about seven times the walk. The settings' fly speed slider changes it.</summary>
+    public const int DefaultFlyBlocksPerSecond = 30;
+
+    /// <summary>The horizontal speed of a flying body at the default fly speed, in units per tick.</summary>
+    public const int FlySpeed = DefaultFlyBlocksPerSecond * UnitsPerBlock / TicksPerSecond;
+
+    /// <summary>A flying speed in blocks per second as units per tick (the collision sweep takes moves of more than a block a tick).</summary>
+    /// <param name="blocksPerSecond">The speed in blocks per second.</param>
+    public static int FlySpeedOf(int blocksPerSecond) => Math.Max(1, blocksPerSecond) * UnitsPerBlock / TicksPerSecond;
+
     /// <summary>The most a body can step up while walking on the ground: one block.</summary>
     public const int StepHeight = UnitsPerBlock;
 

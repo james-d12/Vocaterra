@@ -150,7 +150,7 @@ internal sealed class ValleyUnderground
         var changed = false;
 
         // The rock layers: the stone becomes the layer's rock.
-        _world.Strata.Fill(minX, minY, minZ, scratch.Rocks);
+        _ = _world.Strata.Fill(minX, minY, minZ, scratch.Rocks);
         LayRock(reach, sizeX, minX, minY, minZ, work, scratch.Rocks, _world.Strata.Stone, ref changed);
 
         // The caves, and the lava in the deepest of them.

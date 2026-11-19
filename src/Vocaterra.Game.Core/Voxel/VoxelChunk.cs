@@ -103,6 +103,13 @@ public sealed class VoxelChunk
     public bool IsChanged => _pristine is not null && !_pristine.AsSpan().SequenceEqual(ComputeDigest());
 
     /// <summary>
+    /// Whether the chunk has been written since it was installed (since the last <see cref="VoxelGrid.SealPristine"/>), safe to ask from another thread (B45): the mark is set, with a full fence, before the first write of an edit touches the blocks,
+    /// so a thread that copies the blocks and finds the mark still false after the copy (<c>Interlocked.MemoryBarrier()</c> between the two reads) has copied the chunk as it was installed. A chunk whose edits were all undone still reads true: the
+    /// caller then makes the chunk again, which gives the same blocks.
+    /// </summary>
+    public bool HasBeenWritten => Volatile.Read(ref _pristineRecorded);
+
+    /// <summary>
     /// The digest the chunk had just before its first write (recorded lazily, so reading and installing cost nothing), or the current digest while it has never
     /// been written. <see cref="IsChanged"/> is whether it differs from <see cref="ComputeDigest"/>.
     /// </summary>
@@ -347,6 +354,7 @@ public sealed class VoxelChunk
     {
         _pristine = ComputeDigest();
         _pristineRecorded = true;
+        Interlocked.MemoryBarrier(); // B45: the mark is visible to another thread before the first write that follows it (see HasBeenWritten)
     }
 
     private void ClearLevel(int index)

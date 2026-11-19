@@ -20,6 +20,7 @@ internal static class Cli
           drainage  the heights with the drainage network drawn over them (B02c): every reach of river as a line, thicker the more ground drains into it; with --basin-x --basin-z (a point on a river) that river's whole basin in orange
           sites     where the drainage network has something worth a picture in the area (B02c): confluences of large rivers, the steepest stretches of river, lakes with the river that leaves them; text only
           views     good places to stand to look at a point (--x --z): dry ground a sixth of --size to half of it (default 50 to 150 blocks) from it, the highest first, with the yaw that faces the point (B02c, for pictures taken in the game); text only
+          bench     (B36) the generation bench: how long a chunk, a column, a residency column, a ring footprint, a far model stack per level and a stage of a column take, fastest of --passes; text on stdout and a JSON file (--json); --quick for a run of under 30 s; --seed (default 42), --content; single-threaded, never in the suite
           entrances the cave entrances of a square area (B11), one pixel a block: the ground in grey and every column cut open to a cave in red; give a --size of at most 2048
 
         options:
@@ -52,6 +53,11 @@ internal static class Cli
         }
 
         var command = args[0];
+        if (command == "bench")
+        {
+            return Bench.Run(args[1..], output, error);
+        }
+
         if (command is not ("biomes" or "heights" or "maps" or "slice" or "stats" or "entrances" or "river" or "drainage" or "sites" or "views"))
         {
             error.WriteLine($"Unknown command '{command}'.");
@@ -242,7 +248,7 @@ internal static class Cli
         return GameData.Load(bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(bundleDirectory)).Text(LocaleBundle.DefaultCode));
     }
 
-    private static string FindBundle()
+    internal static string FindBundle()
     {
         foreach (var start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
         {

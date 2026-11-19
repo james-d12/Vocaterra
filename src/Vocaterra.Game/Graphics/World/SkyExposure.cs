@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Graphics.World;
 
@@ -17,6 +18,9 @@ public sealed class SkyExposure : IChunkResidencyListener, IBlockChangeListener
     private readonly VoxelGrid _grid;
     private readonly Func<int, int, int> _natural;
     private readonly Dictionary<(int X, int Z), SkySurface> _tiles = [];
+    private ColumnNaturalHeights? _heights;
+    private long _fromHeights;
+    private long _computed;
 
     /// <summary>Creates the exposure over a grid and the pure height model, and listens for evictions.</summary>
     /// <param name="grid">The world.</param>
@@ -46,6 +50,16 @@ public sealed class SkyExposure : IChunkResidencyListener, IBlockChangeListener
         return taken;
     }
 
+    /// <summary>
+    /// Gives the exposure the natural surface heights the residency's workers made with each column (B44): a tile of a column that holds them is built from lookups, with no evaluation of the height model on the game thread; a column that does not (a chunk a
+    /// read generated, a column the plan let go of) is computed here as before. <see langword="null"/> computes them all.
+    /// </summary>
+    /// <param name="heights">The residency's store, or <see langword="null"/>.</param>
+    public void SetNaturalHeights(ColumnNaturalHeights? heights) => _heights = heights;
+
+    /// <summary>How many tiles were built from the workers' heights, and how many had to evaluate the height model on this thread (B44).</summary>
+    public (long FromHeights, long Computed) TileSources => (_fromHeights, _computed);
+
     /// <summary>How many chunk columns have a tile now.</summary>
     public int TileCount => _tiles.Count;
 
@@ -71,15 +85,25 @@ public sealed class SkyExposure : IChunkResidencyListener, IBlockChangeListener
             _tiles.Clear();
         }
 
+        if (_heights is not null && _heights.TryGet(chunkX, chunkZ, out var natural))
+        {
+            _fromHeights++;
+            var (originX, originZ) = ((chunkX << VoxelChunk.Shift) - 1, (chunkZ << VoxelChunk.Shift) - 1);
+            return _tiles[(chunkX, chunkZ)] = new SkySurface(chunkX, chunkZ, (x, z) => SurfaceBelow(x, z, natural[((z - originZ) * ColumnNaturalHeights.Side) + (x - originX)]));
+        }
+
+        _computed++;
         return _tiles[(chunkX, chunkZ)] = new SkySurface(chunkX, chunkZ, SurfaceOf);
     }
 
     /// <summary>The surface y of the block column (x, z): the natural surface, or where an opening in it lets the sky down to an opaque block.</summary>
     /// <param name="x">The block's x.</param>
     /// <param name="z">The block's z.</param>
-    public int SurfaceOf(int x, int z)
+    public int SurfaceOf(int x, int z) => SurfaceBelow(x, z, _natural(x, z));
+
+    // The same from the natural surface of the column, however it was found.
+    private int SurfaceBelow(int x, int z, int natural)
     {
-        var natural = _natural(x, z);
         var y = natural;
         VoxelChunk? chunk = null;
         var chunkY = int.MinValue;

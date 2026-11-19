@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Lod;
 using Vocaterra.Game.Core.World.Streaming;
 
@@ -23,9 +25,11 @@ public sealed class LodRing
     private const int Margin = 2;
 
     private readonly LodWorld _world;
+    private readonly ColumnScratchPool _scratch; // B40: the window arrays of the columns the workers make, reused
     private readonly StreamedWorld _streamed;
     private readonly JobPool _pool;
     private readonly ColumnBandCache? _bands;
+    private readonly VoxelGrid? _zone;
     private readonly ConcurrentDictionary<long, byte> _finished = new();
     private readonly ConcurrentDictionary<long, byte> _flying = new();
     private readonly ConcurrentQueue<(long Key, bool Ok)> _results = new();
@@ -37,16 +41,23 @@ public sealed class LodRing
     private long _done;
     private long _skippedLayers;
     private long _madeLayers;
+    private long _takenLayers;
+    private long _airLayers;
+    private (double X, double Z) _eye = (double.NaN, 0);
+    private int _radius;
 
     /// <summary>Creates the ring of a far world.</summary>
     /// <param name="world">The far world the chunks are ingested into.</param>
     /// <param name="streamed">The world whose chunks they are.</param>
     /// <param name="pool">The workers.</param>
     /// <param name="bands">The surface bands of the chunk columns (the residency's cache), or <see langword="null"/> to make the whole column as the ring did before B07d.</param>
-    public LodRing(LodWorld world, StreamedWorld streamed, JobPool pool, ColumnBandCache? bands = null)
+    /// <param name="zone">The voxel grid whose resident chunks a footprint takes as they are instead of generating them again (B38), or <see langword="null"/> to generate every chunk.</param>
+    public LodRing(LodWorld world, StreamedWorld streamed, JobPool pool, ColumnBandCache? bands = null, VoxelGrid? zone = null)
     {
+        _zone = zone;
         _world = world;
         _streamed = streamed;
+        _scratch = new ColumnScratchPool(streamed.CreateScratch);
         _pool = pool;
         _bands = bands;
     }
@@ -56,6 +67,33 @@ public sealed class LodRing
 
     /// <summary>How many chunk layers the ring generated, and how many it did not need to (stone under the layers the far view draws).</summary>
     public (long Made, long Skipped) Layers => (Interlocked.Read(ref _madeLayers), Interlocked.Read(ref _skippedLayers));
+
+    /// <summary>How many chunk layers a footprint took from the voxel zone, and how many it knew to be air over a column's band, instead of generating them (B38).</summary>
+    public (long Resident, long Air) Reused => (Interlocked.Read(ref _takenLayers), Interlocked.Read(ref _airLayers));
+
+    /// <summary>Asked each frame by <see cref="Update"/>: true holds the ring back (no plan, no job) until it answers false (B45: the near-first gate; <see langword="null"/> never holds).</summary>
+    public Func<bool>? Hold { get; set; }
+
+    /// <summary>Added to a footprint job's priority so it sits on the same scale as the fine far tiles' (B38: the ring's jobs and the tiles that wait for them are taken nearest first); the host sets it to the far view's <see cref="Graphics.Far.FarView.FineBias"/>.</summary>
+    public long PriorityOffset { get; set; }
+
+    /// <summary>
+    /// Whether the footprint is one the ring will still make real (B38): within the ring's radius of the eye and not made yet (or being made). A far tile over it waits for the ring's data instead of being built from the model and again
+    /// from the real chunks. Before the first plan every footprint in the radius counts, and a radius of 0 means no ring.
+    /// </summary>
+    /// <param name="sx">The footprint's x, in sections.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public bool Awaits(int sx, int sz)
+    {
+        var radius = _radius;
+        if (radius <= 0 || double.IsNaN(_eye.X))
+        {
+            return false;
+        }
+
+        var (ex, ez) = (((sx + 0.5) * LodSection.Size) - _eye.X, ((sz + 0.5) * LodSection.Size) - _eye.Z);
+        return Math.Sqrt((ex * ex) + (ez * ez)) <= radius && !_finished.ContainsKey(KeyOf(sx, sz));
+    }
 
     /// <summary>How many footprints are planned or being made, and a plan that is being made counts as one more (so the ring is not idle before it knows its work).</summary>
     public int Pending => _plan.Count + Volatile.Read(ref _inFlight) + Volatile.Read(ref _planning) + _planned.Count;
@@ -72,7 +110,7 @@ public sealed class LodRing
     private static long KeyOf(int sx, int sz) => ((long)sx << 32) ^ (uint)sz;
 
     /// <summary>Whether the ring has nothing left to do within its radius.</summary>
-    public bool IsIdle => Pending == 0;
+    public bool IsIdle => Pending == 0 && _results.IsEmpty; // a result not yet taken is work: the footprint is not marked made (and the tiles that wait for it not released) until the next Update takes it (B38)
 
     /// <summary>Whether the plan is made on a worker (the default; a dev run may turn it off to measure what it costs the game thread).</summary>
     public bool PlanOnWorker { get; set; } = true;
@@ -86,6 +124,8 @@ public sealed class LodRing
     /// <param name="radius">The radius in blocks (0 for no ring).</param>
     public void Update(double eyeX, double eyeZ, int radius)
     {
+        _eye = (eyeX, eyeZ);
+        _radius = radius;
         while (_results.TryDequeue(out var result))
         {
             _ = _flying.TryRemove(result.Key, out _);
@@ -108,6 +148,11 @@ public sealed class LodRing
         {
             _plan.Clear();
             return;
+        }
+
+        if (Hold?.Invoke() == true)
+        {
+            return; // B45: the near view is not made yet: no plan, no footprint goes to a worker (the results above are still taken, and the plan of the last place stays as it was)
         }
 
         if (Volatile.Read(ref _planning) == 0 && (double.IsNaN(_plannedFor.X) || Math.Abs(eyeX - _plannedFor.X) >= LodSection.Size || Math.Abs(eyeZ - _plannedFor.Z) >= LodSection.Size || radius != _plannedFor.Radius))
@@ -149,12 +194,13 @@ public sealed class LodRing
             }
 
             _ = Interlocked.Increment(ref _inFlight);
-            _pool.Submit(JobLane.Ring, next.Distance, static () => false, () =>
+            var resident = CaptureResident(sx, sz); // on the game thread: the grid is the game thread's, so only the chunks' references are taken here (B45); the worker copies them
+            _pool.Submit(JobLane.Ring, next.Distance + PriorityOffset, static () => false, () =>
             {
                 var ok = false;
                 try
                 {
-                    Ingest(sx, sz);
+                    Ingest(sx, sz, CopyResident(resident));
                     ok = true;
                 }
                 finally
@@ -204,7 +250,13 @@ public sealed class LodRing
     /// <summary>The lowest chunk layer a footprint's columns are made from: two layers under the lowest layer that meets the ground in the 4 x 4 chunk columns round it (so a cliff face next to a lower column is made from its foot); a column a region owns, or no bands, makes the whole column.</summary>
     /// <param name="sx">The footprint's x.</param>
     /// <param name="sz">The footprint's z.</param>
-    public int LowestLayerOf(int sx, int sz)
+    public int LowestLayerOf(int sx, int sz) => LowestLayerOf(sx, sz, null);
+
+    /// <summary>The same layer, with the bands that are not held made from the shaped window of a group (B39) when one is given.</summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    public int LowestLayerOf(int sx, int sz, ColumnGroup? group)
     {
         var floor = _streamed.Source.MinChunkY;
         if (_bands is null || !SurfaceOnly)
@@ -223,7 +275,7 @@ public sealed class LodRing
                     return floor; // a region's chunks are its own; its columns and their neighbours are made whole
                 }
 
-                var band = _bands.Get(cx, cz);
+                var band = _bands.Get(cx, cz, group);
                 if (!band.IsEmpty)
                 {
                     lowest = Math.Min(lowest, band.MinLayer);
@@ -234,18 +286,193 @@ public sealed class LodRing
         return lowest == int.MaxValue ? floor : Math.Max(floor, lowest - Margin);
     }
 
+    // The shaped window a footprint is made from (B39), once for everything it reads: the 4 x 4 chunk columns round the footprint's own 2 x 2 when three or more bands of the ring round it are not held yet (the footprint's bands and its four columns
+    // are all cut from it), or the own 2 x 2 alone when at most two are (the one or two bands are made from their own windows, a quarter of the wide window each), or when the bands are not read. A window is about 0.5 MB for the 4 x 4 and 0.25 MB
+    // for the 2 x 2, and a job holds one while it runs.
+    private ColumnGroup ShapeFor(int sx, int sz)
+    {
+        if (_bands is not null && SurfaceOnly)
+        {
+            var missing = 0;
+            for (var dz = -1; dz <= 2; dz++)
+            {
+                for (var dx = -1; dx <= 2; dx++)
+                {
+                    if ((dx is < 0 or > 1 || dz is < 0 or > 1) && !_bands.TryGet((2 * sx) + dx, (2 * sz) + dz, out _))
+                    {
+                        missing++;
+                    }
+                }
+            }
+
+            if (missing > 2)
+            {
+                return _streamed.Bands.ShapeGroup((2 * sx) - 1, (2 * sz) - 1, 4);
+            }
+        }
+
+        return _streamed.Bands.ShapeGroup(2 * sx, 2 * sz, 2);
+    }
+
+    /// <summary>The four chunk columns of a footprint, the layers the far view draws, and the lowest layer made (what <see cref="Ingest"/> takes in): the footprint's bands and columns all come from one shaped window.</summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    /// <param name="resident">The chunks of the footprint that the voxel zone holds (<see cref="TakeResident"/>), or <see langword="null"/> to generate them all (B38).</param>
+    public (IReadOnlyList<ChunkData>[] Columns, int First) MakeColumns(int sx, int sz, ChunkData?[]?[]? resident = null)
+    {
+        var max = _streamed.Source.MaxChunkY - 1;
+        var group = ShapeFor(sx, sz);
+        var first = LowestLayerOf(sx, sz, group);
+        var columns = new IReadOnlyList<ChunkData>[4];
+        var scratch = _scratch.Rent();
+        try
+        {
+            for (var k = 0; k < 4; k++)
+            {
+                var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
+                columns[k] = resident?[k] is { } held ? FromResident(cx, cz, first, max, group, held, scratch) : _streamed.GenerateLayers(cx, cz, first, max, group, scratch);
+            }
+        }
+        finally
+        {
+            _scratch.Return(scratch);
+        }
+
+        return (columns, first);
+    }
+
+    /// <summary>
+    /// The footprint's chunks that the voxel zone holds and nobody has written (B45; the game thread's call: the grid is read there, and only the references are taken, a few dozen lookups, no copy). <see cref="CopyResident"/> makes the copies on the
+    /// worker. A chunk that has been written is left out (its edits reach the store by their own way); a column with no chunk held is <see langword="null"/>. The chunks are indexed by layer less the source's lowest.
+    /// </summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public VoxelChunk?[]?[]? CaptureResident(int sx, int sz)
+    {
+        if (_zone is null)
+        {
+            return null;
+        }
+
+        var (min, max) = (_streamed.Source.MinChunkY, _streamed.Source.MaxChunkY - 1);
+        VoxelChunk?[]?[]? held = null;
+        for (var k = 0; k < 4; k++)
+        {
+            var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
+            for (var cy = min; cy <= max; cy++)
+            {
+                if (_zone.TryGetChunk(new VoxelChunkCoord(cx, cy, cz), out var chunk) && !chunk.HasBeenWritten)
+                {
+                    held ??= new VoxelChunk?[4][];
+                    (held[k] ??= new VoxelChunk?[max - min + 1])[cy - min] = chunk;
+                }
+            }
+        }
+
+        return held;
+    }
+
+    /// <summary>
+    /// Copies the chunks <see cref="CaptureResident"/> took (B45; on a worker). A chunk is a plain object that the grid no longer holds once evicted but nothing reuses, and it is written only by an edit, which marks it (<see cref="VoxelChunk.HasBeenWritten"/>,
+    /// with a fence) before it touches a block: the copy is taken, a fence follows, and a chunk that is marked then (an edit began before or during the copy) is dropped, so the worker generates it instead, which gives the same blocks as the unwritten chunk had.
+    /// Every copy that is kept is therefore the chunk as the generator made it, byte for byte.
+    /// </summary>
+    /// <param name="captured">What <see cref="CaptureResident"/> returned, or <see langword="null"/>.</param>
+    public ChunkData?[]?[]? CopyResident(VoxelChunk?[]?[]? captured)
+    {
+        if (captured is null)
+        {
+            return null;
+        }
+
+        var held = new ChunkData?[4][];
+        var any = false;
+        for (var k = 0; k < 4; k++)
+        {
+            if (captured[k] is not { } layers)
+            {
+                continue;
+            }
+
+            var copies = new ChunkData?[layers.Length];
+            for (var i = 0; i < layers.Length; i++)
+            {
+                if (layers[i] is not { } chunk || chunk.HasBeenWritten)
+                {
+                    continue;
+                }
+
+                var copy = ChunkData.From(chunk.Coord, chunk.Blocks, default);
+                Interlocked.MemoryBarrier(); // the copy's reads are done before the mark is read again
+                if (!chunk.HasBeenWritten)
+                {
+                    copies[i] = copy;
+                    any = true;
+                }
+            }
+
+            held[k] = copies;
+        }
+
+        return any ? held : null;
+    }
+
+    /// <summary>
+    /// The footprint's unchanged chunks that the voxel zone holds, copied: <see cref="CaptureResident"/> and <see cref="CopyResident"/> together on the calling thread (the tests; the ring itself copies on its worker since B45).
+    /// </summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public ChunkData?[]?[]? TakeResident(int sx, int sz) => CopyResident(CaptureResident(sx, sz));
+
+    // One column's layers from the first: a chunk the zone held is taken as it is, a layer over the column's band is air (the band is the layers that can hold anything), and the runs between are generated from the shared window.
+    private ChunkData[] FromResident(int cx, int cz, int first, int max, ColumnGroup? group, ChunkData?[] held, ColumnScratch scratch)
+    {
+        var min = _streamed.Source.MinChunkY;
+        var chunks = new ChunkData[max - first + 1];
+        var band = _bands is not null && _streamed.Regions.ColumnOwner(cx, cz) is null ? _bands.Get(cx, cz, group) : default;
+        var hasBand = _bands is not null && !band.IsEmpty;
+        var layer = first;
+        while (layer <= max)
+        {
+            if (held[layer - min] is { } chunk)
+            {
+                chunks[layer - first] = chunk;
+                _ = Interlocked.Increment(ref _takenLayers);
+                layer++;
+            }
+            else if (hasBand && layer > band.MaxLayer)
+            {
+                chunks[layer - first] = ChunkData.Empty(new VoxelChunkCoord(cx, layer, cz));
+                _ = Interlocked.Increment(ref _airLayers);
+                layer++;
+            }
+            else
+            {
+                var last = layer;
+                while (last < max && held[last + 1 - min] is null && !(hasBand && last + 1 > band.MaxLayer))
+                {
+                    last++;
+                }
+
+                var made = _streamed.GenerateLayers(cx, cz, layer, last, group, scratch);
+                for (var i = 0; i < made.Count; i++)
+                {
+                    chunks[layer - first + i] = made[i];
+                }
+
+                layer = last + 1;
+            }
+        }
+
+        return chunks;
+    }
+
     // On a worker: the four chunk columns of a footprint, the layers the far view draws, into real level-0 sections.
-    private void Ingest(int sx, int sz)
+    private void Ingest(int sx, int sz, ChunkData?[]?[]? resident)
     {
         var source = _streamed.Source;
         var (min, max) = (source.MinChunkY, source.MaxChunkY - 1);
-        var first = LowestLayerOf(sx, sz);
-        var columns = new IReadOnlyList<ChunkData>[4];
-        for (var k = 0; k < 4; k++)
-        {
-            columns[k] = _streamed.GenerateLayers((2 * sx) + (k & 1), (2 * sz) + (k >> 1), first, max);
-        }
-
+        var (columns, first) = MakeColumns(sx, sz, resident);
         _ = Interlocked.Add(ref _madeLayers, 4L * (max - first + 1));
         _ = Interlocked.Add(ref _skippedLayers, 4L * (first - min));
         _world.IngestStack(sx, sz, (cx, cy, cz) =>

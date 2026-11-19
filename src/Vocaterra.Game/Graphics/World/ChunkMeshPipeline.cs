@@ -59,6 +59,9 @@ public sealed class ChunkMeshResult
     /// <summary>The job threw (the exception is <see cref="ChunkMeshPipeline.Failure"/>).</summary>
     public bool Failed { get; set; }
 
+    /// <summary>The clock in milliseconds when the job finished (the meshed stage of the B43 counters is timed by it, not by when the game thread took the result).</summary>
+    public double FinishedAt { get; set; }
+
     /// <summary>The opaque mesh.</summary>
     public MeshPart Opaque { get; set; }
 
@@ -832,7 +835,8 @@ public sealed class ChunkMeshPipeline : IBlockChangeListener, IChunkResidencyLis
         }
         finally
         {
-            result.Milliseconds = MonotonicClock.Milliseconds() - started;
+            result.FinishedAt = MonotonicClock.Milliseconds();
+            result.Milliseconds = result.FinishedAt - started;
             Return(snapshot);
         }
 

@@ -52,8 +52,8 @@ public sealed class FarViewReshapeTests(ITestOutputHelper output) : FarViewTests
         Assert.Equal(0, view.Stats.Built);
         Assert.True(SettleGuard.Settle(limit => view.Settle(192, 192, Voxel, Release, limit), () => view.Stats.Built), "the view settles (no slice without progress)");
 
-        var leaves = FarTileSelector.Select(reshaped, 192, 192, Voxel).Count;
-        Assert.Equal(leaves, view.Stats.Built);
+        var leaves = FarTileSelector.Select(reshaped, 192, 192, Voxel);
+        Assert.Equal(leaves.Count + view.Cache.Keys.Count(k => !leaves.Contains(k)), view.Stats.Built); // each leaf once, and the B35 stand-ins once
         Assert.Equal(0, view.Stale);
     }
 
