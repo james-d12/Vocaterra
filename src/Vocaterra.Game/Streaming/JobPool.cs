@@ -235,6 +235,7 @@ public sealed class JobPool : IDisposable
 
     private void Work(int index)
     {
+        _ = WorkerPriority.LowerCurrentThread(); // B40: BelowNormal does nothing on Linux
         while (true)
         {
             Job? job;
@@ -266,7 +267,7 @@ public sealed class JobPool : IDisposable
         }
     }
 
-    // Takes the next job (the residency lane first, then the tiles'; but after RingEvery tile jobs in a row the ring's gets one, so a stream of tiles never starves it); the lock is held.
+    // Takes the next job (the residency lane first, then the tiles' and the ring's by priority, nearest first; after RingEvery tile jobs in a row the ring's gets one whatever its priority, so a stream of tiles never starves it); the lock is held.
     private Job? TakeLocked()
     {
         // A mesh job first (an edit's mesh, the view's fill), but not more than MeshRun in a row while a residency job waits.
@@ -284,7 +285,11 @@ public sealed class JobPool : IDisposable
             return first;
         }
 
-        if (_sinceRing >= RingEvery && _queues[(int)JobLane.Ring].TryDequeue(out var ring, out _))
+        // B38: a ring job that is nearer the player than the best tile job (their priorities are on one scale: a distance) goes before it, so the footprints the fine tiles wait for are made nearest first, with the tiles; otherwise
+        // the ring still gets one job in RingEvery + 1 while tiles queue.
+        var ringFirst = _queues[(int)JobLane.Ring].TryPeek(out _, out var ringPriority)
+            && (_sinceRing >= RingEvery || !_queues[(int)JobLane.Tiles].TryPeek(out _, out var tilePriority) || ringPriority < tilePriority);
+        if (ringFirst && _queues[(int)JobLane.Ring].TryDequeue(out var ring, out _))
         {
             _sinceRing = 0;
             _running++;

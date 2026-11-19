@@ -50,6 +50,7 @@ public sealed class FarTerrainRenderer : IDisposable
     private readonly List<FarTile> _uploads = [];
     private readonly BoundingFrustum _frustum = new(Matrix.Identity);
     private readonly IEffectMatrices[] _matrices;
+    private readonly List<(int First, int Count)> _runs = [];
     private int _drawn;
 
     /// <summary>Creates the renderer of a far view.</summary>
@@ -140,7 +141,10 @@ public sealed class FarTerrainRenderer : IDisposable
             return; // the path changed (the Shaders switch): the tiles are built again for it
         }
 
-        UploadPending(settings.TopLevel, pass); // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        if (UploadPending(settings.TopLevel, pass)) // before the empty check: with nothing on the card yet the draw list is empty, and only an upload fills it
+        {
+            _view.Reassemble(); // B47: the tiles just uploaded are drawn in this frame, not the next
+        }
         if (_view.Draw.Count == 0)
         {
             return;
@@ -196,9 +200,19 @@ public sealed class FarTerrainRenderer : IDisposable
                 continue;
             }
 
-            // Levels never overlap (a stand-in covers its leaves alone, until they are all on the card), so no depth bias is needed or used.
+            // Ground is never drawn twice (a stand-in draws only the faces inside the leaves that wait under it, or is whole and the leaves under it wait), so no depth bias is needed or used.
+            tile.RunsOf(FarBucket.Opaque, _runs);
+            if (_runs.Count == 0)
+            {
+                continue;
+            }
+
             Bind(tile, tile.Textured, solid: true);
-            _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tile.Runs.Opaque / 3);
+            foreach (var (first, count) in _runs)
+            {
+                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+            }
+
             _drawn++;
         }
 
@@ -210,8 +224,15 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Lit > 0)
             {
-                Bind(tile, tile.Textured, solid: true);
-                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque, tile.Runs.Lit / 3);
+                tile.RunsOf(FarBucket.Lit, _runs);
+                if (_runs.Count > 0)
+                {
+                    Bind(tile, tile.Textured, solid: true);
+                    foreach (var (first, count) in _runs)
+                    {
+                        _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+                    }
+                }
             }
         }
 
@@ -223,8 +244,15 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
-                Bind(tile, false, solid: false);
-                _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water / 3);
+                tile.RunsOf(FarBucket.Water, _runs);
+                if (_runs.Count > 0)
+                {
+                    Bind(tile, false, solid: false);
+                    foreach (var (first, count) in _runs)
+                    {
+                        _device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, first, count / 3);
+                    }
+                }
             }
         }
 
@@ -244,9 +272,17 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Opaque > 0)
             {
-                pass.SetFarTexture(tile.Textured);
-                pass.DrawFar(tile.GlBuffers!, 0, tile.Runs.Opaque);
-                _drawn++;
+                tile.RunsOf(FarBucket.Opaque, _runs); // B42, B47: a stand-in is drawn inside the footprints of the leaves that wait under it only
+                if (_runs.Count > 0)
+                {
+                    pass.SetFarTexture(tile.Textured);
+                    foreach (var (first, count) in _runs)
+                    {
+                        pass.DrawFar(tile.GlBuffers!, first, count);
+                    }
+
+                    _drawn++;
+                }
             }
         }
 
@@ -256,8 +292,15 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             if (tile.Runs.Lit > 0)
             {
-                pass.SetFarTexture(tile.Textured);
-                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque, tile.Runs.Lit);
+                tile.RunsOf(FarBucket.Lit, _runs);
+                if (_runs.Count > 0)
+                {
+                    pass.SetFarTexture(tile.Textured);
+                    foreach (var (first, count) in _runs)
+                    {
+                        pass.DrawFar(tile.GlBuffers!, first, count);
+                    }
+                }
             }
         }
 
@@ -268,7 +311,11 @@ public sealed class FarTerrainRenderer : IDisposable
             var tile = _visible[i];
             if (tile.Runs.Water > 0)
             {
-                pass.DrawFar(tile.GlBuffers!, tile.Runs.Opaque + tile.Runs.Lit, tile.Runs.Water);
+                tile.RunsOf(FarBucket.Water, _runs);
+                foreach (var (first, count) in _runs)
+                {
+                    pass.DrawFar(tile.GlBuffers!, first, count);
+                }
             }
         }
 
@@ -280,13 +327,15 @@ public sealed class FarTerrainRenderer : IDisposable
     private static bool InForm(FarTile tile, GlChunkPass? pass) => pass is null ? tile.Buffer is not null : tile.GlBuffers is not null;
 
     // Uploads what the workers made, within the frame's bytes (see FarUploads.Choose).
-    private void UploadPending(int topLevel, GlChunkPass? pass)
+    private bool UploadPending(int topLevel, GlChunkPass? pass)
     {
         FarUploads.Choose(_view.PendingTiles, topLevel, MaxUploadBytesPerFrame, _uploads);
         foreach (var tile in _uploads)
         {
             Upload(tile, pass);
         }
+
+        return _uploads.Count > 0;
     }
 
     private void Bind(FarTile tile, bool textured, bool solid)

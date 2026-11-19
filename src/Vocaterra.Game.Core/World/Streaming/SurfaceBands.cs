@@ -35,6 +35,24 @@ public sealed class SurfaceBands
     public ColumnBand Of(int chunkX, int chunkZ) =>
         _regions.ColumnOwner(chunkX, chunkZ) is { } owner ? OfRegion(owner, chunkX, chunkZ) : _procedural.SurfaceBand(chunkX, chunkZ);
 
+    /// <summary>The band of a chunk column of a group, from the group's shaped window (B39) when the column is procedural (a region's column is read from the region and needs no window).</summary>
+    /// <param name="chunkX">The chunk column.</param>
+    /// <param name="chunkZ">The chunk row.</param>
+    /// <param name="group">The group's shaped window.</param>
+    public ColumnBand Of(int chunkX, int chunkZ, ColumnGroup group) =>
+        _regions.ColumnOwner(chunkX, chunkZ) is { } owner ? OfRegion(owner, chunkX, chunkZ) : _procedural.SurfaceBand(chunkX, chunkZ, group);
+
+    /// <summary>Whether the band of a chunk column comes from the procedural world's window (false for a column a region owns).</summary>
+    /// <param name="chunkX">The chunk column.</param>
+    /// <param name="chunkZ">The chunk row.</param>
+    public bool IsProcedural(int chunkX, int chunkZ) => _regions.ColumnOwner(chunkX, chunkZ) is null;
+
+    /// <summary>The shaped window of a square of chunk columns (see <see cref="ProceduralChunkSource.ShapeGroup"/>).</summary>
+    /// <param name="minChunkX">The first chunk column's x.</param>
+    /// <param name="minChunkZ">The first chunk column's z.</param>
+    /// <param name="span">How many chunk columns the square spans on a side.</param>
+    public ColumnGroup ShapeGroup(int minChunkX, int minChunkZ, int span) => _procedural.ShapeGroup(minChunkX, minChunkZ, span);
+
     private static ColumnBand OfRegion(IRegion owner, int chunkX, int chunkZ)
     {
         var bounds = owner.Bounds;

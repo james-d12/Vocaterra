@@ -29,20 +29,42 @@ internal sealed class StrataPass : IChunkDecorator
             return; // all stone already
         }
 
-        Span<BlockId> rocks = stackalloc BlockId[VoxelChunk.Volume];
-        strata.Fill(chunk.MinX, chunk.MinY, chunk.MinZ, rocks);
-        for (var z = chunk.MinZ; z < chunk.MinZ + VoxelChunk.Size; z++)
+        // How high the stone reaches in each column of the chunk: a chunk that holds no stone of any column (the air over the ground, the topsoil's layers) is left alone before any rock is sampled.
+        Span<int> tops = stackalloc int[VoxelChunk.Size * VoxelChunk.Size];
+        var reaches = false;
+        for (var lz = 0; lz < VoxelChunk.Size; lz++)
         {
-            for (var x = chunk.MinX; x < chunk.MinX + VoxelChunk.Size; x++)
+            for (var lx = 0; lx < VoxelChunk.Size; lx++)
             {
-                var column = ctx.SurfaceAt(x, z);
+                var column = ctx.SurfaceAt(chunk.MinX + lx, chunk.MinZ + lz);
                 var top = Math.Min(column.Height - column.FillerDepth - 1, chunk.MaxY);
-                for (var y = chunk.MinY; y <= top; y++)
+                tops[(lz * VoxelChunk.Size) + lx] = top;
+                reaches |= top >= chunk.MinY;
+            }
+        }
+
+        if (!reaches)
+        {
+            return;
+        }
+
+        Span<BlockId> rocks = stackalloc BlockId[VoxelChunk.Volume];
+        if (!strata.Fill(chunk.MinX, chunk.MinY, chunk.MinZ, rocks) && strata.Stone == BlockId.Stone)
+        {
+            return; // every block is the stone the stone pass wrote
+        }
+
+        for (var lz = 0; lz < VoxelChunk.Size; lz++)
+        {
+            for (var lx = 0; lx < VoxelChunk.Size; lx++)
+            {
+                var top = tops[(lz * VoxelChunk.Size) + lx];
+                for (var ly = 0; ly <= top - chunk.MinY; ly++)
                 {
-                    var rock = rocks[ChunkData.Index(x - chunk.MinX, y - chunk.MinY, z - chunk.MinZ)];
+                    var rock = rocks[ChunkData.Index(lx, ly, lz)];
                     if (rock != BlockId.Stone)
                     {
-                        chunk.Set(x, y, z, rock);
+                        chunk.Set(chunk.MinX + lx, chunk.MinY + ly, chunk.MinZ + lz, rock);
                     }
                 }
             }

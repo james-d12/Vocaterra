@@ -1020,6 +1020,22 @@ the owner's answers of 2026-11-15 are in its section 5.
     the gate holds one slot and takes about 10 minutes, so neither pays. Two follow-ups run on `feature/meta_improvements`: B29d, the four
     timing classes still timed with a wall `Stopwatch` (`ChunkIndexTests`, `RegionTimeTests`, `ProceduralTimingTests`,
     `ProceduralChunkTimeTests`) move to `CpuTime`; B29e, the polling hook lets a command that only quotes `sleep` text pass.
+61. **The chunk-speed series goes ahead** (2026-11-18, about 18:10 UTC; after the speed review
+    `docs/research/2026-11-18-chunk-generation-speed.md` was explained in plain terms): "Yeah, let's go ahead with these changes. So we'll
+    make it on a new Git work tree off of main, push to a new feature branch, and clean up the docs." The review's milestones are B35 to
+    B40 (game plan 4.14) on `feature/world-next`, cut from `main` at `ae30d65b`, before B32 to B34. B37 (cheap coarse levels) still needs
+    the owner's sign-off on before/after pictures, and server GC in B40 his yes (it raises memory). B36 commits a generation bench so each
+    step is measured against the same baseline.
+62. **Nearer chunks first** (2026-11-18, about 22:00 UTC; after his test of `feature/world-next` and B43's suspects): "the job order is
+    interesting, as definately closer chunks are more important at least." Work near the player (the voxel zone's chunks and their meshes)
+    takes priority over far work (far tiles, stand-ins, the ring). B43 measures a strict near-first order; the fix follows from its report.
+    He also asked for a fly mode for testing and withdrew it ("dont add it pls").
+63. **B37's far picture approved; B43's fix 1 first** (2026-11-19, about 07:10 UTC): shown B37's before/after pictures (0.01 to 0.02% of pixels
+    differ; distant cliff-rock specks turn green), the owner chose "Approve" (not the stronger `MergeLevels` 3, which loses most distant cliff
+    rock). Shown B43's ranked fixes for the start area, he chose "Only fix 1 first": B44, the sky tile off the game thread; the others wait
+    for its measurement.
+64. **After B44, the near-first gate** (2026-11-19, about 08:05 UTC): shown that B44 cut the start area to 11.7 s and offered four follow-ups
+    (a near-first gate for far work, loading caps, a bigger group cache, a bigger mesh budget), the owner chose only the near-first gate: B45.
 
 ## Already decided
 

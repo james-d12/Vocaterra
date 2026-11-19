@@ -109,6 +109,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private readonly AlphaTestEffect _solid;
     private GlChunkPass? _glPass;
     private GlCardTimer? _card;
+    private GlCardTimer? _farCard;
     private readonly SkyRenderer _sky;
     private MeshOptions _meshOptions;
     private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
@@ -138,6 +139,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private readonly HashSet<VoxelChunkCoord> _resident = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
     private readonly ChunkMeshPipeline _pipeline;
+    private PipelineCounters? _counters;
     private readonly List<VoxelChunkCoord> _greyScratch = [];
     private readonly GrassOrder _grassOrder;
     private long _meshVersion;
@@ -520,6 +522,20 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _card = timer;
     }
 
+    /// <summary>Gives the renderer a second timer for the card's time round the far view's pass (B47, <c>--stream-stats</c>); <see langword="null"/> for none. The renderer disposes it with itself.</summary>
+    /// <param name="timer">The timer, or <see langword="null"/>.</param>
+    public void SetFarCardTimer(GlCardTimer? timer)
+    {
+        _farCard?.Dispose();
+        _farCard = timer;
+    }
+
+    /// <summary>The processor time each frame spent on the far view's pass (B47: the uploads, the choice of the visible tiles and the draw calls, through the effects or through the GLSL program), for the comparison of the two paths.</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats FarPassTimes { get; } = new();
+
+    /// <summary>The card's time each frame spent on the far view's pass, from a GL timer query (B47), or <see langword="null"/> when there is no timer.</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats? FarCardTimes => _farCard?.Times;
+
     /// <summary>The processor time each frame spent submitting the chunk passes (the draw calls, through the effects or through the GLSL program, the figures not counted; the card's own time is <see cref="CardTimes"/>), for the comparison of the two paths (B17a, B17b).</summary>
     public Vocaterra.Game.Core.Reporting.BusyFrameStats ChunkPassTimes { get; } = new();
 
@@ -767,6 +783,17 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private float FogStartOf(float end) => end * (_farRange > 0 ? FarFogStartFraction : FogStartFraction);
 
     private int MeshCap(QualityPreset preset) => _grid.IsStreamed ? preset.MaxMeshedChunks : int.MaxValue;
+
+    /// <summary>Gives the renderer the voxel zone's stage counters (B43): it adds the chunks it meshes, uploads and draws for the first time, or nothing with <see langword="null"/>.</summary>
+    /// <param name="counters">The counters, or <see langword="null"/>.</param>
+    public void SetPipelineCounters(PipelineCounters? counters) => _counters = counters;
+
+    /// <summary>Gives the sky's exposure the natural surface heights the residency's workers made (B44), so a mesh's sky tile needs no evaluation of the height model on the game thread.</summary>
+    /// <param name="heights">The residency's store, or <see langword="null"/>.</param>
+    public void SetNaturalHeights(ColumnNaturalHeights? heights) => _skyExposure?.SetNaturalHeights(heights);
+
+    /// <summary>The sky tiles built from the workers' heights and the ones that evaluated the height model on the game thread (B44).</summary>
+    internal (long FromHeights, long Computed) SkyTileSources => _skyExposure?.TileSources ?? (0, 0);
 
     /// <summary>
     /// Gives the renderer the far view to draw beyond the chunks (B07), or <see langword="null"/> for none (the bounded valley, or the far view off): the haze and the far plane follow its range. Call after
@@ -1023,7 +1050,15 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
                 }
             }
 
+            var farStarted = MonotonicClock.Milliseconds();
+            _farCard?.NextFrame();
+            _farCard?.Begin();
             _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]), farGl);
+            _farCard?.End();
+            if (_farRenderer.DrawnTiles > 0)
+            {
+                FarPassTimes.Record(MonotonicClock.Milliseconds() - farStarted);
+            }
         }
 
         _device.DepthStencilState = DepthStencilState.Default;
@@ -1042,6 +1077,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
 
         _visible.Clear();
         Array.Clear(_bandChunks);
+        var firstSeen = 0;
         foreach (var coord in _wanted)
         {
             var chunk = GpuOf(coord);
@@ -1049,8 +1085,15 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             {
                 _visible.Add(chunk);
                 _bandChunks[(int)chunk.Band]++;
+                if (!chunk.SeenCounted)
+                {
+                    chunk.SeenCounted = true;
+                    firstSeen++;
+                }
             }
         }
+
+        _counters?.Add(PipelineStage.Visible, firstSeen, MonotonicClock.Milliseconds());
 
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
@@ -1485,6 +1528,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
 
         _card?.Dispose();
+        _farCard?.Dispose();
         _glPass?.Dispose();
         _indices.Dispose();
         _effect.Dispose();
@@ -1532,6 +1576,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var coord = result.Coord;
         var gpu = GpuOf(coord);
         _meshVersion++;
+        if (!gpu.MeshCounted)
+        {
+            gpu.MeshCounted = true;
+            _counters?.Add(PipelineStage.Meshed, 1, result.FinishedAt);
+        }
+
         if (result.Buried)
         {
             gpu.Release();
@@ -1576,6 +1626,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         if (gpu.HasMesh)
         {
             _resident.Add(coord);
+            if (!gpu.UploadCounted)
+            {
+                gpu.UploadCounted = true;
+                _counters?.Add(PipelineStage.GpuReady, 1, MonotonicClock.Milliseconds());
+            }
         }
         else
         {
@@ -1791,6 +1846,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         public int[]? GrassStart;
         public int[]? GrassCumulative;
         public bool GrassBuilt;
+        public bool MeshCounted; // the B43 stage counters have counted this chunk's first mesh, upload and draw
+        public bool UploadCounted;
+        public bool SeenCounted;
         public LightBand Band;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;

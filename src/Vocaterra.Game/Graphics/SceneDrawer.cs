@@ -275,6 +275,7 @@ public sealed class SceneDrawer : IDisposable
         if (_options.StreamStats)
         {
             _renderer.SetCardTimer(GlCardTimer.TryCreate(_console)); // the card's time for the chunk passes, with either path (B17b)
+            _renderer.SetFarCardTimer(GlCardTimer.TryCreate(_console)); // and for the far view's pass (B47)
         }
 
         SwitchShaders();
@@ -282,6 +283,8 @@ public sealed class SceneDrawer : IDisposable
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, WorkersAtStart(), StreamedWorldHost.LodWorldName(_session.Simulation.StateHeader));
         _streaming?.SetClimateColours(_effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
         _renderer.SetFarView(_streaming?.Far);
+        _renderer.SetPipelineCounters(_streaming?.Pipeline);
+        _renderer.SetNaturalHeights(_streaming?.NaturalHeights);
         _meshPool = _streaming is null ? new JobPool(WorkersAtStart()) : null; // the bounded valley has no streaming host: its meshes get a pool of their own
         _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
@@ -330,6 +333,12 @@ public sealed class SceneDrawer : IDisposable
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
             var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
             var phaseStart = MonotonicClock.Milliseconds();
+            if (streaming.Pipeline.Track(eye.X, eye.Z, phaseStart)) // the start, or a jump: the stage counters' times count from this frame (B43)
+            {
+                streaming.NearGate.Arm(phaseStart, eye.X, eye.Z); // B45: far work waits until the near view is made
+                streaming.Far.BeginCoverage();
+            }
+
             nearZoneMade = false;
             if (_options.IsScreenshotRun && !_options.NoSettle)
             {
@@ -348,6 +357,12 @@ public sealed class SceneDrawer : IDisposable
         renderer.Remesh(camera.Eye, camera.Frustum, nearZoneMade ? NearZoneMeshMilliseconds : _streaming is { IsCatchingUp: true } ? StreamedWorldHost.CatchUpMeshBudgetMilliseconds : _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
         var remeshEnd = MonotonicClock.Milliseconds();
         _remeshTimes.Record(remeshEnd - remeshStart);
+        if (_streaming is { } gated && gated.NearGate.IsClosed)
+        {
+            var eyeNow = streamEye ?? camera.Eye;
+            _ = gated.NearGate.Observe(remeshEnd, () => gated.Residency.IsResidentAround(eyeNow.X, eyeNow.Y, eyeNow.Z, NearFirstGate.NearViewChunks) && renderer.IsMeshedAround(eyeNow, NearFirstGate.NearViewChunks), (eyeNow.X, eyeNow.Z)); // B47: an eye that has left the place opens it too. B45: the near view, resident and meshed, opens the gate for the next frame
+        }
+
         _phaseAllocated += GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
         _phaseFrames++;
         if (_streaming is { } probed && _options.StreamStats)
@@ -356,6 +371,10 @@ public sealed class SceneDrawer : IDisposable
             if (_moves.Observe(remeshEnd, frameBegan, at.X, at.Z, probed.IsNearReady(at.X, at.Y, at.Z), renderer.IsMeshedAround(at, NearViewChunks), probed.Residency.IsSettled && renderer.PendingChunks == 0) is { } line)
             {
                 _console(line); // --stream-stats: how long a start or a move took to show the world round the body (B07b)
+                if (_moves.ViewCompleted)
+                {
+                    _console(probed.Pipeline.Line(remeshEnd)); // and how fast each stage of the chunks' way to the screen went (B43)
+                }
             }
         }
         AdvanceUnderwater(camera);

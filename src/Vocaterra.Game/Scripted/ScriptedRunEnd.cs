@@ -195,12 +195,37 @@ public sealed class ScriptedRunEnd
         if (streaming is not null && _options.StreamStats)
         {
             _console(StreamLine(renderer, streaming, timings, phases, allocations));
+            _console(streaming.Pipeline.Line(MonotonicClock.Milliseconds()));
+            _console(streaming.NearGate.Line); // B45: how long far work was held for the near view
+            var history = streaming.Far.CoverageHistory;
+            for (var episode = 0; episode < history.Count; episode++)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far coverage (episode {episode + 1}): no uncovered leaf after {history[episode].Covered?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {history[episode].Filled?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms"));
+            }
+
+            _console(string.Create(CultureInfo.InvariantCulture, $"far coverage: no uncovered leaf after {streaming.Far.CoveredAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {streaming.Far.FilledAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms ({streaming.Far.Uncovered} uncovered now)"));
+            foreach (var band in streaming.Far.FineBuildBands())
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far fine tiles {band.From}-{(band.To == int.MaxValue ? "up" : band.To.ToString(CultureInfo.InvariantCulture))} blocks: {band.Count} built, first build median {band.FirstMedian / 1000:0.0} s p90 {band.FirstP90 / 1000:0.0} s, last build median {band.LastMedian / 1000:0.0} s p90 {band.LastP90 / 1000:0.0} s"));
+            }
+
         }
 
         if (_options.StreamStats)
         {
             var chunks = renderer.ChunkPassTimes;
             _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time to submit): {chunks.Count} frames, median {chunks.Median:0.00} ms, p95 {chunks.Percentile(95):0.00} ms, p99 {chunks.Percentile(99):0.00} ms, longest {chunks.Longest:0.00} ms"));
+            var far = renderer.FarPassTimes;
+            if (far.Count > 0)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far pass ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time): {far.Count} frames, median {far.Median:0.00} ms, p95 {far.Percentile(95):0.00} ms, p99 {far.Percentile(99):0.00} ms, longest {far.Longest:0.00} ms"));
+            }
+
+            if (renderer.FarCardTimes is { Count: > 0 } farCard)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far pass ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {farCard.Count} frames, median {farCard.Median:0.00} ms, p95 {farCard.Percentile(95):0.00} ms, p99 {farCard.Percentile(99):0.00} ms, longest {farCard.Longest:0.00} ms"));
+            }
+
             if (renderer.CardTimes is { } card)
             {
                 _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {card.Count} frames, median {card.Median:0.00} ms, p95 {card.Percentile(95):0.00} ms, p99 {card.Percentile(99):0.00} ms, longest {card.Longest:0.00} ms"));
@@ -228,7 +253,7 @@ public sealed class ScriptedRunEnd
         var allocation = allocations is { Frames: > 0 } a ? $"; allocation: streaming and meshing phases {a.Bytes / 1024.0 / a.Frames:0.0} KB a frame on the game thread ({a.Bytes / (1024.0 * 1024.0):0.0} MB in {a.Frames} frames), whole process {a.ProcessMegabytesPerSecond:0.00} MB/s, collections gen 0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}, {GC.GetTotalPauseDuration().TotalMilliseconds:0} ms paused" : string.Empty;
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; store [{streaming.LodStoreSummary}]; settles [{string.Join(", ", streaming.SettleMilliseconds.Select(static ms => ms.ToString("0", System.Globalization.CultureInfo.InvariantCulture)))}] ms; process {Environment.WorkingSet / (1024.0 * 1024.0):0} MB working set, {GC.GetTotalMemory(false) / (1024.0 * 1024.0):0} MB managed; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms{allocation}; {renderer.MeshingSummary}; {renderer.ChunksGeneratedByReads} chunks generated by reads on the game thread");
+            $"stream: {renderer.Stats.Summary()}; resident {residency.Resident} chunks ({residency.PlannedColumns} columns planned, {residency.Installed} installed, {residency.Evicted} evicted, {residency.Dropped} dropped, {residency.Plans} plans, {residency.GenerateMilliseconds:0} ms generating); far view to {renderer.FarRange} blocks: {far.Cached} tiles cached ({streaming.Far.Failed} failed, {streaming.Far.Unuploaded} not on the card), {far.Drawn} listed, {renderer.DrawnFarTiles} drawn, {far.Triangles} triangles, {far.Built} built in {far.BuildMilliseconds:0} ms (longest {far.LongestBuildMilliseconds:0.0} ms), {far.Bytes / (1024.0 * 1024.0):0.0} MB; by level [{streaming.Far.LevelSummary}]; lod: {streaming.LodSections} sections ({streaming.LodBytes / (1024.0 * 1024.0):0.0} MB packed), ring {streaming.Ring.Done} footprints real ({streaming.Ring.Pending} pending), {streaming.EditedChunksTaken} edited chunks taken in; store [{streaming.LodStoreSummary}]; settles [{string.Join(", ", streaming.SettleMilliseconds.Select(static ms => ms.ToString("0", System.Globalization.CultureInfo.InvariantCulture)))}] ms; process {Environment.WorkingSet / (1024.0 * 1024.0):0} MB working set, {GC.GetTotalMemory(false) / (1024.0 * 1024.0):0} MB managed; {streaming.Pool.Workers} worker thread(s), {streaming.Pool.Completed} jobs; frames p50 {timings.Frames.Median:0.0} ms, p95 {timings.Frames.Percentile(95):0.0} ms, p99 {timings.Frames.Percentile(99):0.0} ms, {timings.Frames.CountOver(16.7)} over 16.7 ms and {timings.Frames.CountOver(33.4)} over 33.4 ms of {timings.Frames.Count}; worst frames (tick:ms) [{timings.WorstFrames()}]; streaming update p50 {phases?.Streaming.Median:0.00} p99 {phases?.Streaming.Percentile(99):0.0} max {phases?.Streaming.Longest:0.0} ms, remesh p50 {phases?.Remesh.Median:0.00} p99 {phases?.Remesh.Percentile(99):0.0} max {phases?.Remesh.Longest:0.0} ms{allocation}; {renderer.MeshingSummary}; {renderer.ChunksGeneratedByReads} chunks generated by reads on the game thread; sky tiles {renderer.SkyTileSources.FromHeights} from the workers' heights and {renderer.SkyTileSources.Computed} computed on the game thread, natural heights of {streaming.NaturalHeights.Count} columns ({streaming.NaturalHeights.Bytes / (1024.0 * 1024.0):0.0} MB; {streaming.Residency.NaturalHeightSources.Cut} cut from a group window, {streaming.Residency.NaturalHeightSources.Computed} made alone)");
     }
 
     // The final picture waits for the frames asked for, a settled run, the models, no turn on the worker and none about to be sent, and a mic check
