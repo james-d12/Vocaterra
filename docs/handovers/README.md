@@ -33,7 +33,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 | --- | --- | --- |
 | [2026-11-18-1214-meta-improvements](2026-11-18-1214-meta-improvements.md) | The throughput changes (B29a, B29b, D-game-34 items 57 to 59) on `feature/meta_improvements` | Nothing: push the branch, open a draft pull request, launch B29a |
 | [2026-11-18-0409-world-next](2026-11-18-0409-world-next.md) | What the B series left for later (the chunk-speed series, B32 to B34, B23, B16, B19, caching, open findings; B29 moved to meta-improvements), on a new branch from `main` | The owner's merge of `feature/biomes` into `main` |
-| [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | The screenshots for stop 4 (I04b gated 2026-11-18, after the merges with main); I04b's WIP (`90e614e7`, untested) waits behind it, also kept as a patch in `.claude/briefs/`; I01, I06, I03a, I03b, I02, I05a, I09, I04 gated; stops 2, 3 wait for the owner; stop 2 (the cold's feel) waits for the owner |
+| [2026-11-15-1436-inventory](2026-11-15-1436-inventory.md) | The I series (inventory and equipment, D-game-35) on `feature/inventory` | Stop 6: the owner plays the finished series; then the pull request (every milestone gated, 2026-11-19) |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
 The open pull request #51 (`feature/german`) carries its own state on its branch.
