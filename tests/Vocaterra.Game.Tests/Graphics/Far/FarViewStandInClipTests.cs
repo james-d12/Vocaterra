@@ -7,7 +7,7 @@ namespace Vocaterra.Game.Tests.Graphics.Far;
 
 /// <summary>
 /// B42: a stand-in used to hide every leaf under it that was already on the card, so a coarse tile of 512 blocks popped over finished fine land whenever a new leaf appeared under it (the owner's "heavy flickering of the low LODs in chunks that
-/// are fully rendered"). A stand-in is now drawn only where leaves wait, never over a leaf that is on the card nor over what the chunks show, and what a ground cell shows never goes coarse and fine again.
+/// are fully rendered"). A stand-in is now drawn only where leaves wait, never over a leaf that is on the card nor over what the chunks show (checked every frame since a stand-in's coarse cells showed over a near ridge, 2026-11-19), and what a ground cell shows never goes coarse and fine again.
 /// </summary>
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewTestsBase(output)
@@ -119,6 +119,23 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
 
             view.Update(eyeX, eyeZ, Vox, static _ => { }, 0.0);
 
+            // The cells whose ground the chunks show: no stand-in may draw there (the far pass is drawn before the chunks with its depth cleared for them, so a coarse cell standing above the blocks shows against the sky over them).
+            var underChunks = new HashSet<(int, int)>();
+            foreach (var leaf in FarTileSelector.Select(Wide, eyeX, eyeZ, Vox, includeInner: true))
+            {
+                var (lx, lz, ls) = (leaf.MinX(Wide), leaf.MinZ(Wide), Wide.SizeOf(leaf.Level));
+                if (ChunksShow(lx, lz, lx + ls, lz + ls, eyeX, eyeZ, Ready))
+                {
+                    for (var gz = lz / Cell; gz < (lz + ls) / Cell; gz++)
+                    {
+                        for (var gx = lx / Cell; gx < (lx + ls) / Cell; gx++)
+                        {
+                            _ = underChunks.Add((gx, gz));
+                        }
+                    }
+                }
+            }
+
             // Who draws each cell of ground this frame: a tile's whole footprint, or a stand-in's windows. A cell with two owners is ground drawn twice.
             var owner = new Dictionary<(int, int), FarTileKey>();
             for (var i = 0; i < view.Draw.Count; i++)
@@ -146,6 +163,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
                         for (var gx = x0 / Cell; gx < x1 / Cell; gx++)
                         {
                             Assert.True(owner.TryAdd((gx, gz), tile.Key), $"frame {frame}: the cell {gx},{gz} is drawn by {owner.GetValueOrDefault((gx, gz))} and by {tile.Key}");
+                            Assert.False(standIn && underChunks.Contains((gx, gz)), $"frame {frame}: the stand-in {tile.Key} draws the cell {gx},{gz}, whose ground the chunks show");
                         }
                     }
                 }
@@ -176,7 +194,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
             {
                 var (cx, cz) = cellKey;
                 var (cdx, cdz) = (((cx * Cell) + 16) - eyeX, ((cz * Cell) + 16) - eyeZ);
-                if (Math.Abs(cdx) < 500 && Math.Abs(cdz) < 500 && (cdx * cdx) + (cdz * cdz) > 1.2 * Vox * 1.2 * Vox) // outside the chunks' zone: under them a stand-in's backdrop comes and goes unseen
+                if (Math.Abs(cdx) < 500 && Math.Abs(cdz) < 500 && (cdx * cdx) + (cdz * cdz) > 1.2 * Vox * 1.2 * Vox) // outside the chunks' zone: under them the far land only fills columns that are not drawn yet
                 {
                     if (!shown.TryGetValue(cellKey, out var levels))
                     {
