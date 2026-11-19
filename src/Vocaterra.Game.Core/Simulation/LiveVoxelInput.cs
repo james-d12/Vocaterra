@@ -14,6 +14,7 @@ public sealed class LiveVoxelInput
     private int _strafe;
     private int _forward;
     private bool _jump;
+    private bool _descend;
     private BlockPos? _gather;
     private (ItemId Item, BlockPos At)? _place;
     private int? _slot;
@@ -25,8 +26,10 @@ public sealed class LiveVoxelInput
     /// <param name="gatherBlock">The block under the crosshair while the gather button is held, or <see langword="null"/>.</param>
     /// <param name="placement">The item and the empty cell it goes in, when the place button was pressed this frame; or <see langword="null"/>.</param>
     /// <param name="selectSlot">The hotbar slot (0 to 9) a number key or the wheel picked this frame, or <see langword="null"/>.</param>
-    public void SetFrame(int strafe, int forward, bool jump, BlockPos? gatherBlock, (ItemId Item, BlockPos At)? placement, int? selectSlot)
+    /// <param name="descend">Whether the descend key is down (a flying body sinks).</param>
+    public void SetFrame(int strafe, int forward, bool jump, BlockPos? gatherBlock, (ItemId Item, BlockPos At)? placement, int? selectSlot, bool descend = false)
     {
+        _descend = descend;
         _strafe = Math.Clamp(strafe, -1, 1);
         _forward = Math.Clamp(forward, -1, 1);
         _jump = jump;
@@ -60,6 +63,11 @@ public sealed class LiveVoxelInput
         if (_jump)
         {
             commands.Add(VoxelCommand.Jump);
+        }
+
+        if (_descend)
+        {
+            commands.Add(VoxelCommand.Descend);
         }
 
         if (_gather is { } block)

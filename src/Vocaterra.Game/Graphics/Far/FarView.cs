@@ -8,6 +8,13 @@ using Vocaterra.Game.Streaming;
 
 namespace Vocaterra.Game.Graphics.Far;
 
+/// <summary>A rectangle of ground in blocks, the edges included on the minimum side only (B42): where a stand-in is drawn.</summary>
+/// <param name="MinX">The first block column.</param>
+/// <param name="MinZ">The first block row.</param>
+/// <param name="MaxX">The block column after the last.</param>
+/// <param name="MaxZ">The block row after the last.</param>
+public readonly record struct FarWindow(int MinX, int MinZ, int MaxX, int MaxZ);
+
 /// <summary>One far-view tile in the cache: its mesh as the worker made it until the renderer has uploaded it, and the buffer it became.</summary>
 public sealed class FarTile(FarTileKey key)
 {
@@ -25,6 +32,12 @@ public sealed class FarTile(FarTileKey key)
 
     /// <summary>The tile's buffers in the game's own OpenGL program's form (B17c: the far view drawn through the chunks' program, <see cref="FarTerrainRenderer.DrawGl"/>), instead of <see cref="Buffer"/> and <see cref="Indices"/>; <see langword="null"/> when the tile is drawn with MonoGame's effects.</summary>
     public Gl.GlFarBuffers? GlBuffers { get; set; }
+
+    /// <summary>B42: while the tile stands in for leaves that wait, the footprints it is to be drawn inside (the renderer draws only the runs of its indices that lie in them, B47: <see cref="Granules"/>); <see langword="null"/> for a tile drawn whole.</summary>
+    public IReadOnlyList<FarWindow>? Windows { get; set; }
+
+    /// <summary>B47: the tile's faces sorted by granule of ground, so the faces inside a set of windows are a few runs of indices; <see langword="null"/> for a tile that has none (it is drawn whole).</summary>
+    public FarGranules? Granules { get; private set; }
 
     /// <summary>Whether the tile has vertices on the card, in either form.</summary>
     public bool HasBuffers => Buffer is not null || GlBuffers is not null;
@@ -61,6 +74,32 @@ public sealed class FarTile(FarTileKey key)
         Textured = mesh.Textured;
         Bytes = mesh.Bytes;
         Runs = (mesh.OpaqueIndices, mesh.LitIndices, mesh.WaterIndices);
+        Granules = mesh.Granules;
+    }
+
+    /// <summary>The runs of the tile's indices to draw for a bucket (B47): the whole of it, or the faces inside <see cref="Windows"/> when the tile stands in for leaves that wait and has granules.</summary>
+    /// <param name="bucket">The bucket.</param>
+    /// <param name="into">Receives the runs (first index, index count), emptied first.</param>
+    public void RunsOf(FarBucket bucket, List<(int First, int Count)> into)
+    {
+        ArgumentNullException.ThrowIfNull(into);
+        if (Windows is { } windows && Granules is { } granules)
+        {
+            granules.Runs(bucket, windows, into);
+            return;
+        }
+
+        into.Clear();
+        var (first, count) = bucket switch
+        {
+            FarBucket.Opaque => (0, Runs.Opaque),
+            FarBucket.Lit => (Runs.Opaque, Runs.Lit),
+            _ => (Runs.Opaque + Runs.Lit, Runs.Water),
+        };
+        if (count > 0)
+        {
+            into.Add((first, count));
+        }
     }
 
     /// <summary>Whether a worker has made the tile.</summary>
@@ -89,9 +128,16 @@ public sealed class FarView
 {
     private const int FallbackSteps = 4;
 
+    // B47: how far ahead of a moving eye, in blocks at most, the leaves are asked for (half the voxel zone at the most).
+    private const double AheadBlocks = 160;
+
     // From this level up (cells of 16 blocks and more) tiles are made before the finer ones that are as near.
     private const int CoarseFirstFrom = 4;
     private const double InnerGraceMilliseconds = 700;
+
+    // B38: a leaf of levels 0 to 2 over footprints the ring will still make real waits for them (its stand-in is drawn meanwhile) and is built once from the real data; a footprint that never comes (a failed job) is given up on after this long.
+    private const int RingWaitMaxLevel = 2;
+    private const double RingWaitLimitMilliseconds = 240_000;
 
     private readonly FarTerrainSampler _sampler;
     private readonly LodStore _store;
@@ -102,6 +148,9 @@ public sealed class FarView
     private readonly HashSet<FarTileKey> _building = [];
     private readonly HashSet<FarTileKey> _bad = [];
     private readonly HashSet<FarTileKey> _standIns = [];
+    private readonly HashSet<FarTileKey> _waiting = [];
+    private readonly Dictionary<FarTileKey, double> _waitingSince = [];
+    private Func<int, int, bool>? _awaitsRing;
     private readonly HashSet<FarTileKey> _used = [];
     private readonly Dictionary<FarTileKey, double> _unready = [];
     private readonly List<FarTileKey> _idle = [];
@@ -112,15 +161,23 @@ public sealed class FarView
     private int _version;
     private readonly List<FarTile> _draw = [];
     private readonly List<FarTile> _fallbacks = [];
+    private readonly List<FarTile> _below = [];
+    private readonly Dictionary<FarTileKey, List<FarWindow>> _windows = [];
+    private readonly HashSet<FarTileKey> _whole = [];
+    private readonly HashSet<FarTileKey> _unfit = [];
+    private bool _clipStandIns = false;
     private readonly List<FarTile> _pending = [];
     private Func<int, int, bool>? _nearReady;
     private double _reach = 1.0;
     private int _unuploaded;
     private volatile HashSet<FarTileKey> _wanted = [];
     private IReadOnlyList<FarTileKey> _leaves = [];
+    private IReadOnlyList<FarTileKey> _askCoarse = [];
+    private IReadOnlyList<FarTileKey> _askFine = [];
     private (double X, double Z, int Voxel) _selectedFor = (double.NaN, 0, 0);
     private double _selectedReach = 1.0;
     private (double X, double Z) _eye;
+    private (double X, double Z) _warmedFor = (double.NaN, 0);
     private UInt128 _grey;
     private long _built;
     private double _buildTicks;
@@ -182,7 +239,38 @@ public sealed class FarView
     /// <summary>How many of the first tiles of <see cref="Draw"/> are fallbacks (ancestors standing in for leaves that are not built).</summary>
     public int FallbackCount => _fallbacks.Count;
 
-    /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet.</summary>
+    /// <summary>The keys asked for and not built yet (leaves and B35's stand-ins), for the tests.</summary>
+    public IReadOnlyCollection<FarTileKey> Requested => _building;
+
+    /// <summary>The cached tiles by key, for the tests.</summary>
+    public IReadOnlyDictionary<FarTileKey, FarTile> Cache => _tiles;
+
+    /// <summary>
+    /// Tells the far view which level-0 footprints (x, z in sections) the ring will still make real (B38): a fine leaf (levels 0 to 2) over one waits for it, drawn from its stand-in meanwhile, and is built once from the real data instead of from the
+    /// model first. <see langword="null"/> (the default) builds every leaf at once, as before.
+    /// </summary>
+    /// <param name="awaits">Whether the ring has yet to make the footprint real.</param>
+    public void SetRingWait(Func<int, int, bool>? awaits) => _awaitsRing = awaits;
+
+    /// <summary>
+    /// Asked each frame (B45, the near-first gate): true holds back every tile of levels 0 to 3 (the fine tiles, which the ring's footprints are for) and the drainage warm-up, so the workers make the near view first; their leaves are asked for when it answers false,
+    /// and B35's level-4 stand-ins cover the ground meanwhile. <see langword="null"/> never holds.
+    /// </summary>
+    public Func<bool>? HoldFine { get; set; }
+
+    /// <summary>Asked each frame (B45): true holds back the coarse tiles (level 4 and up) and B35's stand-ins as well, a gate that holds all far work; <see langword="null"/> never holds.</summary>
+    public Func<bool>? HoldCoarse { get; set; }
+
+    // Whether a tile of the level is held back this frame.
+    private bool IsHeld(int level) => level < CoarseFirstFrom ? HoldFine?.Invoke() == true : HoldCoarse?.Invoke() == true;
+
+    /// <summary>The priority bias of the fine tiles (and so of the ring's footprints they wait for): every coarse tile and stand-in goes before it (B35), and the ring's jobs sit on the same scale (B38).</summary>
+    public long FineBias => Settings.Range / 4;
+
+    /// <summary>The leaves that wait for the ring's data and are not asked for yet (B38).</summary>
+    public int Waiting => _waiting.Count;
+
+    /// <summary>The leaf tiles of the last <see cref="Update"/> that are not built yet, not counting those that wait for the ring (<see cref="Waiting"/>).</summary>
     public int Missing
     {
         get
@@ -190,7 +278,7 @@ public sealed class FarView
             var missing = 0;
             foreach (var key in _leaves)
             {
-                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key) && !IsInner(key))
+                if (!(_tiles.TryGetValue(key, out var tile) && tile.IsBuilt) && !_bad.Contains(key) && !IsInner(key) && !_waiting.Contains(key))
                 {
                     missing++;
                 }
@@ -333,6 +421,7 @@ public sealed class FarView
         ArgumentNullException.ThrowIfNull(dispose);
         var changed = _glPath is { } before && before != gl;
         _glPath = gl;
+        _clipStandIns = true; // a stand-in is drawn inside its windows in either path (B42 in the game's own program, B47 in MonoGame's effects too)
         if (!changed)
         {
             return false;
@@ -388,12 +477,15 @@ public sealed class FarView
         _eye = (eyeX, eyeZ);
         if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance || Math.Abs(_reach - _selectedReach) > 0.05)
         {
+            var (fromX, fromZ) = (_selectedFor.X, _selectedFor.Z);
             _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance, _nearReady is not null, _reach);
             _selectedFor = (eyeX, eyeZ, voxelViewDistance);
             _selectedReach = _reach;
-            _wanted = [.. _leaves];
+            SelectAhead(fromX, fromZ, eyeX, eyeZ, voxelViewDistance);
+            _wanted = [.. _leaves, .. _askCoarse];
         }
 
+        WarmDrainage(eyeX, eyeZ);
         Invalidate(dispose);
         Collect();
         Request(eyeX, eyeZ);
@@ -405,6 +497,74 @@ public sealed class FarView
 
         Assemble();
         Trim(eyeX, eyeZ, dispose);
+    }
+
+    // B47: the leaves a little ahead of the eye along the way it is going (the eye flying at 190 blocks a second reaches the ground a tile build takes, 50 to 300 ms, in 10 to 60 blocks): their coarse tiles are asked for now and their stand-ins (RequestStandIns) too,
+    // so what comes into view is covered the frame it does and the sky is not the first thing there. Only when the eye has moved since the last selection; a stationary view asks for nothing more.
+    private void SelectAhead(double fromX, double fromZ, double eyeX, double eyeZ, int voxelViewDistance)
+    {
+        var (dx, dz) = (eyeX - fromX, eyeZ - fromZ);
+        var length = Math.Sqrt((dx * dx) + (dz * dz));
+        if (double.IsNaN(fromX) || length < 1 || length > AheadBlocks)
+        {
+            _askCoarse = [];
+            _askFine = [];
+            return; // no way is known (the first selection) or the eye jumped (a teleport: the ground ahead of a jump is not where the eye goes)
+        }
+
+        var ahead = Math.Min(AheadBlocks, voxelViewDistance / 2.0);
+        var own = new HashSet<FarTileKey>(_leaves);
+        List<FarTileKey> coarse = [];
+        List<FarTileKey> fine = [];
+        foreach (var key in FarTileSelector.Select(Settings, eyeX + (dx / length * ahead), eyeZ + (dz / length * ahead), voxelViewDistance, _nearReady is not null, _reach))
+        {
+            if (own.Contains(key))
+            {
+                continue;
+            }
+
+            (key.Level >= CoarseFirstFrom ? coarse : fine).Add(key);
+        }
+
+        _askCoarse = coarse;
+        _askFine = fine;
+    }
+
+    /// <summary>Chooses what to draw again from the tiles now on the card (B47): the renderer calls it after a frame's uploads, so a tile the card just took covers its ground in this frame, not the next (a leaf with nothing over it for a frame is a flash of sky).</summary>
+    public void Reassemble()
+    {
+        if (Settings.Enabled && !double.IsNaN(_selectedFor.X))
+        {
+            Assemble();
+        }
+    }
+
+    // B40: the drainage network's landmasses within the far range are read on the workers ahead of the tiles (a first read is 0.12 to 0.53 s, and a tile that needs an unread landmass would read it itself): at the first update and when the eye
+    // has moved a quarter of the range from where it was last done (a teleport; a walk is covered by the overlap). One job a row, nearest the eye first, behind every tile and chunk job; never with no worker (a run on one thread keeps its order).
+    private void WarmDrainage(double eyeX, double eyeZ)
+    {
+        var range = Settings.Range;
+        if (_pool.Workers == 0 || range <= 0 || HoldFine?.Invoke() == true || (!double.IsNaN(_warmedFor.X) && Math.Abs(eyeX - _warmedFor.X) < range / 4 && Math.Abs(eyeZ - _warmedFor.Z) < range / 4))
+        {
+            return;
+        }
+
+        var step = _sampler.DrainageRowStep;
+        _warmedFor = (eyeX, eyeZ);
+        if (step <= 0)
+        {
+            return;
+        }
+
+        var (x0, x1) = ((int)Math.Floor(eyeX) - range, (int)Math.Floor(eyeX) + range);
+        var sampler = _sampler;
+        var stamp = (eyeX, eyeZ);
+        var first = (int)Math.Floor((eyeZ - range) / step) * step;
+        for (var z = first; z <= eyeZ + range; z += step)
+        {
+            var row = z;
+            _pool.Submit(JobLane.Ring, (long)Math.Abs(row - eyeZ), () => _warmedFor != stamp, () => sampler.WarmDrainageRow(row, x0, x1));
+        }
     }
 
     /// <summary>Runs until every leaf is built (a scripted run's settle step, and the tests).</summary>
@@ -512,6 +672,15 @@ public sealed class FarView
                 tile.Adopt(mesh); // a tile made again keeps its old buffers and their counts until the renderer swaps them
             }
 
+            if (_wanted.Contains(mesh.Key) && !_leaves.Contains(mesh.Key))
+            {
+                // A stand-in (B35) that is built is an ordinary cached tile: it leaves the wanted set, so it is drawn while a leaf under it waits and dropped like any tile once none does.
+                var rest = new HashSet<FarTileKey>(_wanted);
+                _ = rest.Remove(mesh.Key);
+                _wanted = rest;
+            }
+
+            NoteFineBuilt(mesh.Key);
             _built++;
             _buildTicks += TimeSpan.FromMilliseconds(mesh.BuildMilliseconds).Ticks;
             _longest = Math.Max(_longest, mesh.BuildMilliseconds);
@@ -525,7 +694,8 @@ public sealed class FarView
         var grey = _grey;
         var source = World;
         var version = _version;
-        foreach (var key in _leaves)
+        _waiting.Clear();
+        foreach (var key in _askCoarse.Count == 0 ? _leaves : _leaves.Concat(_askCoarse))
         {
             if (!IsNeeded(key))
             {
@@ -549,10 +719,23 @@ public sealed class FarView
                 }
             }
 
-            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || !_building.Add(key))
+            if (_bad.Contains(key) || (_tiles.TryGetValue(key, out var tile) && tile.IsBuilt && !_dirty.Contains(key)) || _building.Contains(key))
             {
                 continue;
             }
+
+            if (!(tile?.IsBuilt ?? false) && !IsInner(key) && WaitsForRing(key))
+            {
+                _ = _waiting.Add(key); // the stand-in covers it (RequestStandIns); asked for when the ring's data is in
+                continue;
+            }
+
+            if (IsHeld(key.Level))
+            {
+                continue; // B45: the near view is not made yet; asked for in the frame the gate opens
+            }
+
+            _ = _building.Add(key);
 
             if (_dirty.Remove(key))
             {
@@ -561,6 +744,10 @@ public sealed class FarView
 
             // The coarse levels are cheap and cover the horizon: they are made early (their distance counts a sixteenth), so a view that has just begun shows the far land at once and the detail comes in from the near out.
             var distance = (long)key.NearestDistance(settings, eyeX, eyeZ) / (key.Level >= CoarseFirstFrom ? 16 : 1);
+            if (key.Level < CoarseFirstFrom)
+            {
+                distance += FineBias; // B35: every coarse tile and stand-in (a sixteenth of a distance of at most 1.6 ranges) goes before every fine one: the whole view is covered first, the detail comes in from the near out
+            }
             var captured = key;
             _pool.Submit(
                 JobLane.Tiles,
@@ -570,7 +757,7 @@ public sealed class FarView
                 {
                     try
                     {
-                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey)));
+                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey, cut: true)));
                     }
                     catch (Exception ex) when (ex is not OutOfMemoryException)
                     {
@@ -578,6 +765,20 @@ public sealed class FarView
                     }
                 });
         }
+
+        if (_waitingSince.Count > 0)
+        {
+            _idle.Clear();
+            _idle.AddRange(_waitingSince.Keys.Where(k => !_waiting.Contains(k)));
+            foreach (var done in _idle)
+            {
+                _ = _waitingSince.Remove(done);
+            }
+
+            _idle.Clear();
+        }
+
+        RequestStandIns(eyeX, eyeZ);
 
         if (_unready.Count > 0 && _unready.Count > _leaves.Count)
         {
@@ -591,14 +792,145 @@ public sealed class FarView
         }
     }
 
-    // The draw list: a leaf's own tile once it is on the card; until then the nearest coarser tile that is stands in for it, and while one does every leaf under it waits and the stand-in alone covers the ground (levels never overlap: a swap
-    // is whole, when all the leaves under a stand-in are on the card, so no face of a coarser tile is ever behind or in front of a finer one's). A built tile waiting for the card is in PendingTiles, coarse levels first.
+    // B38: whether a leaf over footprints the ring will still make real is held back (a level 0 to 2 leaf, for at most RingWaitLimitMilliseconds).
+    private bool WaitsForRing(FarTileKey key)
+    {
+        if (_awaitsRing is not { } awaits || key.Level > RingWaitMaxLevel)
+        {
+            return false;
+        }
+
+        var (x0, z0) = (key.MinX(Settings), key.MinZ(Settings));
+        var size = Settings.SizeOf(key.Level);
+        var (fx0, fz0) = (x0 >> LodSection.Shift, z0 >> LodSection.Shift);
+        var (fx1, fz1) = ((x0 + size - 1) >> LodSection.Shift, (z0 + size - 1) >> LodSection.Shift);
+        var waits = false;
+        for (var fz = fz0; fz <= fz1 && !waits; fz++)
+        {
+            for (var fx = fx0; fx <= fx1 && !waits; fx++)
+            {
+                waits = awaits(fx, fz);
+            }
+        }
+
+        if (!waits)
+        {
+            return false;
+        }
+
+        var now = MonotonicClock.Milliseconds();
+        if (!_waitingSince.TryGetValue(key, out var since))
+        {
+            _waitingSince[key] = now;
+            return true;
+        }
+
+        return now - since < RingWaitLimitMilliseconds;
+    }
+
+    // B35: a fine leaf (below CoarseFirstFrom) whose ancestors within FallbackSteps are neither built nor asked for gets its level-4 ancestor (the coarsest level of the fine range; the top level when the view has fewer) asked
+    // for at the coarse priority, so on a fresh world the ring between the near zone and the horizon is covered within seconds instead of when the fine tiles land. Rendering only: the tile is an ordinary tile of the
+    // store's sections. It joins the wanted set while a leaf needs it and is dropped like any other tile when none does.
+    private void RequestStandIns(double eyeX, double eyeZ)
+    {
+        if (HoldCoarse?.Invoke() == true)
+        {
+            return; // B45: a gate that holds everything holds the stand-ins too (the default lets them through)
+        }
+
+        var settings = Settings;
+        var top = settings.TopLevel;
+        var target = Math.Min(CoarseFirstFrom, top);
+        List<FarTileKey>? asked = null;
+        List<FarTileKey>? keep = null;
+        foreach (var key in _askFine.Count == 0 ? _leaves : _leaves.Concat(_askFine))
+        {
+            if (key.Level >= target || !IsNeeded(key) || (_tiles.TryGetValue(key, out var own) && own.IsBuilt) || CoverFromBelow(key, null))
+            {
+                continue;
+            }
+
+            var ancestor = key;
+            var covered = false;
+            FarTileKey? stand = null;
+            for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
+            {
+                ancestor = ancestor.GetParent();
+                if (_building.Contains(ancestor) && !_wanted.Contains(ancestor))
+                {
+                    (keep ??= []).Add(ancestor); // asked for earlier and left out of the wanted set by a re-selection: its job must not be dropped as stale
+                }
+
+                if (_building.Contains(ancestor) || _bad.Contains(ancestor) || (_tiles.TryGetValue(ancestor, out var have) && have.IsBuilt))
+                {
+                    covered = true;
+                    break;
+                }
+
+                if (ancestor.Level == target)
+                {
+                    stand = ancestor;
+                }
+            }
+
+            if (!covered && stand is { } wanted && _building.Add(wanted))
+            {
+                (asked ??= []).Add(wanted);
+            }
+        }
+
+        if (asked is null && keep is null)
+        {
+            return;
+        }
+
+        var grey = _grey;
+        var source = World;
+        var version = _version;
+        var set = new HashSet<FarTileKey>(_wanted);
+        set.UnionWith(asked ?? []);
+        set.UnionWith(keep ?? []);
+
+        _wanted = set; // the workers read the set: replaced whole, never changed in place
+        foreach (var key in asked ?? [])
+        {
+            var captured = key;
+            _pool.Submit(
+                JobLane.Tiles,
+                (long)key.NearestDistance(settings, eyeX, eyeZ) / 16,
+                () => !_wanted.Contains(captured),
+                () =>
+                {
+                    try
+                    {
+                        _done.Enqueue((version, FarTileMesher.Build(source, settings, captured, grey, cut: true)));
+                    }
+                    catch (Exception ex) when (ex is not OutOfMemoryException)
+                    {
+                        _failed.Enqueue((version, captured));
+                    }
+                });
+        }
+    }
+
+    // The draw list (B42). A leaf is drawn from its own tile once that is on the card. Until then, in this order: the tiles under it that are on the card and cover it whole (a leaf that merged from finer ones keeps showing them: no pop to
+    // a coarser level and back); else the nearest coarser tile that is on the card, a stand-in. A stand-in used to hide every leaf under it that was already on the card until all of them were (so no face of a coarser tile was ever over a
+    // finer one's), and so it popped over the finished fine land again whenever a new leaf appeared under it: the flicker B42 found. Now a stand-in is drawn only inside the footprints of
+    // the leaves that wait under it (FarTile.Windows; B47: the renderer draws the runs of its indices that lie in them, in either path) and the leaves that are on the card are drawn as they are; where it cannot (a window finer than a granule of the stand-in's ground), the stand-in is whole and the leaves under it wait for it, as before.
+    // Either way no ground is drawn twice. A leaf that is not needed (it lies inside the voxel zone and its columns are drawn) is never given a stand-in.
+    // A built tile waiting for the card is in PendingTiles, coarse levels first.
     private void Assemble()
     {
+        foreach (var old in _fallbacks)
+        {
+            old.Windows = null;
+        }
+
         _draw.Clear();
         _fallbacks.Clear();
         _standIns.Clear();
         _pending.Clear();
+        _below.Clear();
         _unuploaded = 0;
         long triangles = 0;
         var top = Settings.TopLevel;
@@ -617,6 +949,11 @@ public sealed class FarView
             }
 
             if (tile is { OnCard: true })
+            {
+                continue;
+            }
+
+            if (CoverFromBelow(key, null))
             {
                 continue;
             }
@@ -641,16 +978,123 @@ public sealed class FarView
             }
         }
 
+        if (_standIns.Count > 1 && !_clipStandIns)
+        {
+            // A coarser stand-in (B35's level-4 tile, still cached from an earlier need) covers a finer one that another leaf picked: only the coarsest is drawn, so no two stand-ins overlap. (Clipped stand-ins may nest: each waiting leaf is in the window of the finest one over it.)
+            _idle.Clear();
+            foreach (var key in _standIns)
+            {
+                if (HasStandInAbove(key, top))
+                {
+                    _idle.Add(key);
+                }
+            }
+
+            foreach (var key in _idle)
+            {
+                _ = _standIns.Remove(key);
+            }
+
+            _idle.Clear();
+        }
+
+        // The windows of each stand-in: the footprints of the leaves under it that wait (not the ones that are on the card, not those the tiles below cover), and of those under the chunks.
+        _windows.Clear();
+        _unfit.Clear();
+        foreach (var key in _standIns)
+        {
+            _windows[key] = [];
+        }
+
+        var uncovered = 0;
+        var needed = 0;
+        foreach (var key in _leaves)
+        {
+            if (!IsNeeded(key))
+            {
+                // Under the chunks (their columns are drawn): a stand-in that is drawn anyway keeps its ground there, as it always did, the backdrop that shows through water and foliage; the chunks draw over it with a depth buffer of their own, so it never fights them.
+                if (StandInOf(key, top) is { } backdrop)
+                {
+                    var under = Settings.SizeOf(key.Level);
+                    _windows[backdrop].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + under, key.MinZ(Settings) + under));
+                    NoteFit(backdrop, key);
+                }
+
+                continue;
+            }
+
+            needed++;
+            _tiles.TryGetValue(key, out var tile);
+            if (tile is { OnCard: true })
+            {
+                continue;
+            }
+
+            if (CoverFromBelow(key, _below))
+            {
+                continue;
+            }
+
+            if (StandInOf(key, top) is { } stand)
+            {
+                var size = Settings.SizeOf(key.Level);
+                _windows[stand].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + size, key.MinZ(Settings) + size));
+                NoteFit(stand, key);
+                continue;
+            }
+
+            uncovered++;
+        }
+
+        // A stand-in whose windows are whole granules of its own ground is drawn inside them (B47); any other (a leaf finer than four levels under it: a coarse tile picked by another leaf, while the nearer stand-ins are not on the card yet) is whole and hides the leaves on the card under it,
+        // and the stand-ins nested in it are not drawn (its ground is all its own).
+        _whole.Clear();
+        foreach (var key in _standIns)
+        {
+            var windows = _clipStandIns ? Merge(_windows[key]) : [];
+            _windows[key] = windows;
+            if (!_clipStandIns || _unfit.Contains(key) || _tiles[key].Granules is null)
+            {
+                _ = _whole.Add(key);
+            }
+        }
+
+        if (_clipStandIns && _whole.Count > 0)
+        {
+            _idle.Clear();
+            foreach (var key in _standIns)
+            {
+                if (HasWholeAbove(key, top))
+                {
+                    _idle.Add(key);
+                }
+            }
+
+            foreach (var key in _idle)
+            {
+                _ = _standIns.Remove(key);
+                _ = _whole.Remove(key);
+            }
+
+            _idle.Clear();
+        }
+
         foreach (var key in _standIns)
         {
             var stand = _tiles[key];
+            if (!_whole.Contains(key) && _windows[key].Count == 0)
+            {
+                continue; // nothing waits under it (every leaf under it is on the card or covered from below): it draws nothing
+            }
+
+            stand.Windows = _whole.Contains(key) ? null : _windows[key];
             _fallbacks.Add(stand);
             triangles += stand.Triangles;
         }
 
         foreach (var key in _leaves)
         {
-            if (!_tiles.TryGetValue(key, out var tile) || !tile.OnCard || !IsNeeded(key) || CoveredByStandIn(key, top))
+            if (!IsNeeded(key) || !_tiles.TryGetValue(key, out var tile) || !tile.OnCard || CoveredByWholeStandIn(key, top))
             {
                 continue;
             }
@@ -659,19 +1103,228 @@ public sealed class FarView
             triangles += tile.Triangles;
         }
 
+        foreach (var tile in _below)
+        {
+            if (CoveredByWholeStandIn(tile.Key, top))
+            {
+                continue; // a whole stand-in over it (too many windows) is all the ground's drawing
+            }
+
+            _draw.Add(tile);
+            triangles += tile.Triangles;
+        }
+
         _draw.InsertRange(0, _fallbacks);
+        Uncovered = uncovered;
+        NoteCoverage(needed, uncovered);
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
     }
 
-    private bool CoveredByStandIn(FarTileKey key, int top)
+    // Notes a stand-in whose window is finer than a granule of its ground (B47): it cannot be drawn inside its windows.
+    private void NoteFit(FarTileKey stand, FarTileKey leaf)
+    {
+        if (!FarGranules.Fits(Settings, stand.Level, leaf.Level))
+        {
+            _ = _unfit.Add(stand);
+        }
+    }
+
+    // Joins windows that meet along a whole side (runs of leaves in a row, then rows of runs), so a long edge of waiting leaves is a few rectangles.
+    private static List<FarWindow> Merge(List<FarWindow> windows)
+    {
+        for (var round = 0; round < 2 && windows.Count > 1; round++)
+        {
+            windows.Sort(round == 0 ? static (a, b) => a.MinZ != b.MinZ ? a.MinZ.CompareTo(b.MinZ) : a.MinX.CompareTo(b.MinX) : static (a, b) => a.MinX != b.MinX ? a.MinX.CompareTo(b.MinX) : a.MinZ.CompareTo(b.MinZ));
+            var merged = new List<FarWindow>(windows.Count);
+            foreach (var w in windows)
+            {
+                if (merged.Count > 0 && merged[^1] is var last && (round == 0 ? last.MinZ == w.MinZ && last.MaxZ == w.MaxZ && last.MaxX == w.MinX : last.MinX == w.MinX && last.MaxX == w.MaxX && last.MaxZ == w.MinZ))
+                {
+                    merged[^1] = round == 0 ? last with { MaxX = w.MaxX } : last with { MaxZ = w.MaxZ };
+                }
+                else
+                {
+                    merged.Add(w);
+                }
+            }
+
+            windows = merged;
+        }
+
+        return windows;
+    }
+
+    // The stand-in (in this frame's set) that covers a leaf, or null.
+    private FarTileKey? StandInOf(FarTileKey key, int top)
     {
         if (_standIns.Count == 0)
+        {
+            return null;
+        }
+
+        var ancestor = key;
+        while (ancestor.Level < top)
+        {
+            ancestor = ancestor.GetParent();
+            if (_standIns.Contains(ancestor))
+            {
+                return ancestor; // any level up: a coarser stand-in may have taken the place of the one this leaf picked
+            }
+        }
+
+        return null;
+    }
+
+    private bool CoveredByWholeStandIn(FarTileKey key, int top) => _whole.Count > 0 && StandInOf(key, top) is { } stand && _whole.Contains(stand);
+
+    // B42: whether the tiles under a leaf that are on the card cover it whole (down to FallbackSteps levels), and they are put in the list when one is given. A leaf that merged from finer ones (the eye moved away) keeps showing them until its own tile lands.
+    private bool CoverFromBelow(FarTileKey key, List<FarTile>? into)
+    {
+        if (key.Level == 0)
         {
             return false;
         }
 
+        var found = into is null ? null : new List<FarTile>();
+        if (!Below(key, FallbackSteps, found))
+        {
+            return false;
+        }
+
+        if (into is not null)
+        {
+            into.AddRange(found!);
+        }
+
+        return true;
+    }
+
+    private bool Below(FarTileKey key, int depth, List<FarTile>? into)
+    {
+        if (depth <= 0 || key.Level == 0)
+        {
+            return false;
+        }
+
+        var start = into?.Count ?? 0;
+        foreach (var child in key.Children())
+        {
+            if (_tiles.TryGetValue(child, out var tile) && tile.OnCard && !_dirty.Contains(child))
+            {
+                into?.Add(tile);
+            }
+            else if (!Below(child, depth - 1, into))
+            {
+                into?.RemoveRange(start, into.Count - start);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>How many needed leaves of the last <see cref="Update"/> have neither their own tile on the card nor a stand-in drawn: the sky-coloured gaps (B35).</summary>
+    public int Uncovered { get; private set; }
+
+    /// <summary>The wall-clock milliseconds from the first update with leaves until no needed leaf was uncovered, or <see langword="null"/> while some are (B35, for the run's report).</summary>
+    public double? CoveredAfterMilliseconds { get; private set; }
+
+    /// <summary>The wall-clock milliseconds from the first update with leaves until every needed leaf was on the card, or <see langword="null"/> while some are not (B35, for the run's report).</summary>
+    public double? FilledAfterMilliseconds { get; private set; }
+
+    private double? _firstLeaves;
+    private readonly List<(double? Covered, double? Filled)> _coverageHistory = [];
+
+    /// <summary>The coverage and fill times of the episodes before the one in progress (B45: the start, then each jump begins a new one with <see cref="BeginCoverage"/>), in milliseconds, <see langword="null"/> for one that never came.</summary>
+    public IReadOnlyList<(double? Covered, double? Filled)> CoverageHistory => _coverageHistory;
+
+    /// <summary>The eye started an episode (the start is the first, a jump the next): the times above count from the next update with leaves, and those of the episode that ends are kept in <see cref="CoverageHistory"/> (B45, for the run's report).</summary>
+    public void BeginCoverage()
+    {
+        if (_firstLeaves is not null)
+        {
+            _coverageHistory.Add((CoveredAfterMilliseconds, FilledAfterMilliseconds));
+        }
+
+        _firstLeaves = null;
+        CoveredAfterMilliseconds = null;
+        FilledAfterMilliseconds = null;
+    }
+    private readonly Dictionary<FarTileKey, (double First, double Last, int Distance)> _fineBuilds = [];
+
+    // B38: when each fine leaf (level 0 to 2) was first built and last built, and how far from the eye it was when first built, for the run's report of how long a stand-in stays on screen.
+    private void NoteFineBuilt(FarTileKey key)
+    {
+        if (key.Level > 2 || _firstLeaves is not { } first)
+        {
+            return;
+        }
+
+        var now = MonotonicClock.Milliseconds() - first;
+        _fineBuilds[key] = _fineBuilds.TryGetValue(key, out var seen) ? (seen.First, now, seen.Distance) : (now, now, (int)key.NearestDistance(Settings, _eye.X, _eye.Z));
+    }
+
+    /// <summary>Per distance band (blocks from the eye when the leaf was first built) the fine leaves (levels 0 to 2) built: how many, and the median and 90th percentile of the milliseconds from the first leaves to the first build and to the last build (B38, for the run's report).</summary>
+    public IReadOnlyList<(int From, int To, int Count, double FirstMedian, double FirstP90, double LastMedian, double LastP90)> FineBuildBands()
+    {
+        var edges = new[] { 0, 400, 500, 600, 700, 800, 1000, 1500, int.MaxValue };
+        var rows = new List<(int, int, int, double, double, double, double)>();
+        for (var i = 0; i + 1 < edges.Length; i++)
+        {
+            var inBand = _fineBuilds.Values.Where(v => v.Distance >= edges[i] && v.Distance < edges[i + 1]).ToList();
+            if (inBand.Count == 0)
+            {
+                continue;
+            }
+
+            static double At(List<double> sorted, int percent) => sorted[Math.Min(sorted.Count - 1, sorted.Count * percent / 100)];
+            var first = inBand.Select(static v => v.First).Order().ToList();
+            var last = inBand.Select(static v => v.Last).Order().ToList();
+            rows.Add((edges[i], edges[i + 1], inBand.Count, At(first, 50), At(first, 90), At(last, 50), At(last, 90)));
+        }
+
+        return rows;
+    }
+
+    private void NoteCoverage(int needed, int uncovered)
+    {
+        if (needed == 0)
+        {
+            return;
+        }
+
+        var now = MonotonicClock.Milliseconds();
+        _firstLeaves ??= now;
+        if (CoveredAfterMilliseconds is null && uncovered == 0)
+        {
+            CoveredAfterMilliseconds = now - _firstLeaves.Value;
+        }
+
+        if (FilledAfterMilliseconds is null && Missing == 0 && _waiting.Count == 0 && _unuploaded == 0 && _building.Count == 0)
+        {
+            FilledAfterMilliseconds = now - _firstLeaves.Value;
+        }
+    }
+
+    private bool HasWholeAbove(FarTileKey key, int top)
+    {
         var ancestor = key;
-        for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
+        while (ancestor.Level < top)
+        {
+            ancestor = ancestor.GetParent();
+            if (_whole.Contains(ancestor))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasStandInAbove(FarTileKey key, int top)
+    {
+        var ancestor = key;
+        while (ancestor.Level < top)
         {
             ancestor = ancestor.GetParent();
             if (_standIns.Contains(ancestor))
@@ -705,6 +1358,7 @@ public sealed class FarView
         }
 
         _used.UnionWith(_wanted);
+        KeepAhead(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);
@@ -719,6 +1373,25 @@ public sealed class FarView
         }
     }
 
+    // B47: the tiles asked for ahead of the eye (coarse leaves, and the ancestors a fine leaf ahead may be stood in for by) are kept like the wanted ones: built, they are not drawn yet, and must not be taken for tiles nobody uses.
+    private void KeepAhead(HashSet<FarTileKey> used)
+    {
+        foreach (var key in _askCoarse)
+        {
+            _ = used.Add(key);
+        }
+
+        foreach (var leaf in _askFine)
+        {
+            var ancestor = leaf;
+            for (var step = 0; step < FallbackSteps && ancestor.Level < Settings.TopLevel; step++)
+            {
+                ancestor = ancestor.GetParent();
+                _ = used.Add(ancestor);
+            }
+        }
+    }
+
     private void DropUnwantedPending(Action<FarTile> dispose)
     {
         _used.Clear();
@@ -728,6 +1401,7 @@ public sealed class FarView
         }
 
         _used.UnionWith(_wanted);
+        KeepAhead(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);

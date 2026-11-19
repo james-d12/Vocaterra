@@ -85,6 +85,7 @@ public static class ControlTable
         new("walkRight", ControlGroup.Moving, [GameKey.D, GameKey.Right]),
         new("jump", ControlGroup.Moving, [GameKey.Space]),
         new("sprint", ControlGroup.Moving, [GameKey.LeftShift]), // held: walk about 1.6 times as fast while stamina lasts (N02)
+        new("flyDown", ControlGroup.Moving, [GameKey.LeftControl]), // held while the fly cheat is on: sink (Space rises)
         new("look", ControlGroup.Moving, [], MouseControl.Move),
         new("gather", ControlGroup.Moving, [], MouseControl.LeftButton),
         new("place", ControlGroup.Moving, [], MouseControl.RightButton),

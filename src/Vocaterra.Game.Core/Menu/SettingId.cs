@@ -91,4 +91,10 @@ public enum SettingId
 
     /// <summary>The window's antialiasing (B22, moved into the Graphics group by B17c): the index of 0, 2, 4 or 8 samples a pixel (the default 4); read when the window opens, so a change takes effect at the next start.</summary>
     Msaa,
+
+    /// <summary>The fly cheat: 0 off, 1 on. On, the player flies: no gravity, the jump key rises and the descend key sinks, the sprint key flies faster.</summary>
+    Fly,
+
+    /// <summary>The flying speed in blocks per second, 10 to 500 in steps of 10 (the default 30, about seven times the walk). At the top speeds the world may not stream in fast enough to keep up.</summary>
+    FlySpeed,
 }

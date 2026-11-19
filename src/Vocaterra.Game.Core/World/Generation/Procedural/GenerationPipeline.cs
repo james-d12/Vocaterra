@@ -61,6 +61,8 @@ internal sealed class GenerationPipeline
         {
             shaper.Shape(ctx);
         }
+
+        ctx.Shaped = true;
     }
 
     /// <summary>Runs the decorators into one chunk of a shaped column.</summary>

@@ -18,6 +18,7 @@ using Vocaterra.Game.Core.Menu;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Needs;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Screens;
@@ -215,6 +216,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
+        ApplyFly(); // the fly cheat and its speed (the settings' Cheats group)
         HoldTheClock(options);
         (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout, scene.Places);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
@@ -1203,10 +1205,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _session.PassCheat = _settings.PassCheat;
                 Console.WriteLine($"pass cheat: {(_settings.PassCheat ? "on" : "off")}; pass {(_session.Pass.IsOpen ? "open" : "closed")}");
                 break;
+            case SettingId.Fly:
+            case SettingId.FlySpeed:
+                ApplyFly();
+                Console.WriteLine($"fly: {(_settings.Fly ? "on" : "off")} at {_settings.FlySpeed} blocks/s");
+                break;
             default:
                 Console.WriteLine($"setting {id}: {_settings.Get(id)}"); // the mouse and the field of view are read each frame
                 break;
         }
+    }
+
+    // The fly cheat: the simulation flies (no gravity; jump rises, the descend key sinks) at the slider's speed.
+    private void ApplyFly()
+    {
+        _sim.Flying = _settings.Fly;
+        _sim.FlySpeed = VoxelPhysics.FlySpeedOf(_settings.FlySpeed);
     }
 
     // The testing section of the settings page (never in a playtest): each row is a thin wrapper over something the game already had as a flag or a key, and none is saved.
