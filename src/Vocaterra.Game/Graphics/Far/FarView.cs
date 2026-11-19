@@ -221,6 +221,18 @@ public sealed class FarView
     /// <param name="awaits">Whether the ring has yet to make the footprint real.</param>
     public void SetRingWait(Func<int, int, bool>? awaits) => _awaitsRing = awaits;
 
+    /// <summary>
+    /// Asked each frame (B45, the near-first gate): true holds back every tile of levels 0 to 3 (the fine tiles, which the ring's footprints are for) and the drainage warm-up, so the workers make the near view first; their leaves are asked for when it answers false,
+    /// and B35's level-4 stand-ins cover the ground meanwhile. <see langword="null"/> never holds.
+    /// </summary>
+    public Func<bool>? HoldFine { get; set; }
+
+    /// <summary>Asked each frame (B45): true holds back the coarse tiles (level 4 and up) and B35's stand-ins as well, a gate that holds all far work; <see langword="null"/> never holds.</summary>
+    public Func<bool>? HoldCoarse { get; set; }
+
+    // Whether a tile of the level is held back this frame.
+    private bool IsHeld(int level) => level < CoarseFirstFrom ? HoldFine?.Invoke() == true : HoldCoarse?.Invoke() == true;
+
     /// <summary>The priority bias of the fine tiles (and so of the ring's footprints they wait for): every coarse tile and stand-in goes before it (B35), and the ring's jobs sit on the same scale (B38).</summary>
     public long FineBias => Settings.Range / 4;
 
@@ -459,7 +471,7 @@ public sealed class FarView
     private void WarmDrainage(double eyeX, double eyeZ)
     {
         var range = Settings.Range;
-        if (_pool.Workers == 0 || range <= 0 || (!double.IsNaN(_warmedFor.X) && Math.Abs(eyeX - _warmedFor.X) < range / 4 && Math.Abs(eyeZ - _warmedFor.Z) < range / 4))
+        if (_pool.Workers == 0 || range <= 0 || HoldFine?.Invoke() == true || (!double.IsNaN(_warmedFor.X) && Math.Abs(eyeX - _warmedFor.X) < range / 4 && Math.Abs(eyeZ - _warmedFor.Z) < range / 4))
         {
             return;
         }
@@ -645,6 +657,11 @@ public sealed class FarView
                 continue;
             }
 
+            if (IsHeld(key.Level))
+            {
+                continue; // B45: the near view is not made yet; asked for in the frame the gate opens
+            }
+
             _ = _building.Add(key);
 
             if (_dirty.Remove(key))
@@ -743,6 +760,11 @@ public sealed class FarView
     // store's sections. It joins the wanted set while a leaf needs it and is dropped like any other tile when none does.
     private void RequestStandIns(double eyeX, double eyeZ)
     {
+        if (HoldCoarse?.Invoke() == true)
+        {
+            return; // B45: a gate that holds everything holds the stand-ins too (the default lets them through)
+        }
+
         var settings = Settings;
         var top = settings.TopLevel;
         var target = Math.Min(CoarseFirstFrom, top);
@@ -1125,6 +1147,23 @@ public sealed class FarView
     public double? FilledAfterMilliseconds { get; private set; }
 
     private double? _firstLeaves;
+    private readonly List<(double? Covered, double? Filled)> _coverageHistory = [];
+
+    /// <summary>The coverage and fill times of the episodes before the one in progress (B45: the start, then each jump begins a new one with <see cref="BeginCoverage"/>), in milliseconds, <see langword="null"/> for one that never came.</summary>
+    public IReadOnlyList<(double? Covered, double? Filled)> CoverageHistory => _coverageHistory;
+
+    /// <summary>The eye started an episode (the start is the first, a jump the next): the times above count from the next update with leaves, and those of the episode that ends are kept in <see cref="CoverageHistory"/> (B45, for the run's report).</summary>
+    public void BeginCoverage()
+    {
+        if (_firstLeaves is not null)
+        {
+            _coverageHistory.Add((CoveredAfterMilliseconds, FilledAfterMilliseconds));
+        }
+
+        _firstLeaves = null;
+        CoveredAfterMilliseconds = null;
+        FilledAfterMilliseconds = null;
+    }
     private readonly Dictionary<FarTileKey, (double First, double Last, int Distance)> _fineBuilds = [];
 
     // B38: when each fine leaf (level 0 to 2) was first built and last built, and how far from the eye it was when first built, for the run's report of how long a stand-in stays on screen.

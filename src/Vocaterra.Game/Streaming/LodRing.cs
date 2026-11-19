@@ -71,6 +71,9 @@ public sealed class LodRing
     /// <summary>How many chunk layers a footprint took from the voxel zone, and how many it knew to be air over a column's band, instead of generating them (B38).</summary>
     public (long Resident, long Air) Reused => (Interlocked.Read(ref _takenLayers), Interlocked.Read(ref _airLayers));
 
+    /// <summary>Asked each frame by <see cref="Update"/>: true holds the ring back (no plan, no job) until it answers false (B45: the near-first gate; <see langword="null"/> never holds).</summary>
+    public Func<bool>? Hold { get; set; }
+
     /// <summary>Added to a footprint job's priority so it sits on the same scale as the fine far tiles' (B38: the ring's jobs and the tiles that wait for them are taken nearest first); the host sets it to the far view's <see cref="Graphics.Far.FarView.FineBias"/>.</summary>
     public long PriorityOffset { get; set; }
 
@@ -147,6 +150,11 @@ public sealed class LodRing
             return;
         }
 
+        if (Hold?.Invoke() == true)
+        {
+            return; // B45: the near view is not made yet: no plan, no footprint goes to a worker (the results above are still taken, and the plan of the last place stays as it was)
+        }
+
         if (Volatile.Read(ref _planning) == 0 && (double.IsNaN(_plannedFor.X) || Math.Abs(eyeX - _plannedFor.X) >= LodSection.Size || Math.Abs(eyeZ - _plannedFor.Z) >= LodSection.Size || radius != _plannedFor.Radius))
         {
             _plannedFor = (eyeX, eyeZ, radius);
@@ -186,13 +194,13 @@ public sealed class LodRing
             }
 
             _ = Interlocked.Increment(ref _inFlight);
-            var resident = TakeResident(sx, sz); // on the game thread: the grid is the game thread's, the workers get copies
+            var resident = CaptureResident(sx, sz); // on the game thread: the grid is the game thread's, so only the chunks' references are taken here (B45); the worker copies them
             _pool.Submit(JobLane.Ring, next.Distance + PriorityOffset, static () => false, () =>
             {
                 var ok = false;
                 try
                 {
-                    Ingest(sx, sz, resident);
+                    Ingest(sx, sz, CopyResident(resident));
                     ok = true;
                 }
                 finally
@@ -334,12 +342,12 @@ public sealed class LodRing
     }
 
     /// <summary>
-    /// Copies the footprint's unchanged chunks that the voxel zone holds, for <see cref="MakeColumns"/> (B38; the game thread's call: the grid is read there, and the workers get the copies). A changed chunk is left out (its edits reach the store
-    /// by their own way); a column with no chunk held is <see langword="null"/>. The chunks are indexed by layer less the source's lowest.
+    /// The footprint's chunks that the voxel zone holds and nobody has written (B45; the game thread's call: the grid is read there, and only the references are taken, a few dozen lookups, no copy). <see cref="CopyResident"/> makes the copies on the
+    /// worker. A chunk that has been written is left out (its edits reach the store by their own way); a column with no chunk held is <see langword="null"/>. The chunks are indexed by layer less the source's lowest.
     /// </summary>
     /// <param name="sx">The footprint's x.</param>
     /// <param name="sz">The footprint's z.</param>
-    public ChunkData?[]?[]? TakeResident(int sx, int sz)
+    public VoxelChunk?[]?[]? CaptureResident(int sx, int sz)
     {
         if (_zone is null)
         {
@@ -347,23 +355,74 @@ public sealed class LodRing
         }
 
         var (min, max) = (_streamed.Source.MinChunkY, _streamed.Source.MaxChunkY - 1);
-        ChunkData?[]?[]? held = null;
+        VoxelChunk?[]?[]? held = null;
         for (var k = 0; k < 4; k++)
         {
             var (cx, cz) = ((2 * sx) + (k & 1), (2 * sz) + (k >> 1));
             for (var cy = min; cy <= max; cy++)
             {
-                var coord = new VoxelChunkCoord(cx, cy, cz);
-                if (_zone.TryGetChunk(coord, out var chunk) && !chunk.IsChanged)
+                if (_zone.TryGetChunk(new VoxelChunkCoord(cx, cy, cz), out var chunk) && !chunk.HasBeenWritten)
                 {
-                    held ??= new ChunkData?[4][];
-                    (held[k] ??= new ChunkData?[max - min + 1])[cy - min] = ChunkData.From(coord, chunk.Blocks, default);
+                    held ??= new VoxelChunk?[4][];
+                    (held[k] ??= new VoxelChunk?[max - min + 1])[cy - min] = chunk;
                 }
             }
         }
 
         return held;
     }
+
+    /// <summary>
+    /// Copies the chunks <see cref="CaptureResident"/> took (B45; on a worker). A chunk is a plain object that the grid no longer holds once evicted but nothing reuses, and it is written only by an edit, which marks it (<see cref="VoxelChunk.HasBeenWritten"/>,
+    /// with a fence) before it touches a block: the copy is taken, a fence follows, and a chunk that is marked then (an edit began before or during the copy) is dropped, so the worker generates it instead, which gives the same blocks as the unwritten chunk had.
+    /// Every copy that is kept is therefore the chunk as the generator made it, byte for byte.
+    /// </summary>
+    /// <param name="captured">What <see cref="CaptureResident"/> returned, or <see langword="null"/>.</param>
+    public ChunkData?[]?[]? CopyResident(VoxelChunk?[]?[]? captured)
+    {
+        if (captured is null)
+        {
+            return null;
+        }
+
+        var held = new ChunkData?[4][];
+        var any = false;
+        for (var k = 0; k < 4; k++)
+        {
+            if (captured[k] is not { } layers)
+            {
+                continue;
+            }
+
+            var copies = new ChunkData?[layers.Length];
+            for (var i = 0; i < layers.Length; i++)
+            {
+                if (layers[i] is not { } chunk || chunk.HasBeenWritten)
+                {
+                    continue;
+                }
+
+                var copy = ChunkData.From(chunk.Coord, chunk.Blocks, default);
+                Interlocked.MemoryBarrier(); // the copy's reads are done before the mark is read again
+                if (!chunk.HasBeenWritten)
+                {
+                    copies[i] = copy;
+                    any = true;
+                }
+            }
+
+            held[k] = copies;
+        }
+
+        return any ? held : null;
+    }
+
+    /// <summary>
+    /// The footprint's unchanged chunks that the voxel zone holds, copied: <see cref="CaptureResident"/> and <see cref="CopyResident"/> together on the calling thread (the tests; the ring itself copies on its worker since B45).
+    /// </summary>
+    /// <param name="sx">The footprint's x.</param>
+    /// <param name="sz">The footprint's z.</param>
+    public ChunkData?[]?[]? TakeResident(int sx, int sz) => CopyResident(CaptureResident(sx, sz));
 
     // One column's layers from the first: a chunk the zone held is taken as it is, a layer over the column's band is air (the band is the layers that can hold anything), and the runs between are generated from the shared window.
     private ChunkData[] FromResident(int cx, int cz, int first, int max, ColumnGroup? group, ChunkData?[] held, ColumnScratch scratch)

@@ -59,6 +59,9 @@ public sealed class StreamedWorldHost : IDisposable
         _radius = RingRadius(preset);
         _ring = new LodRing(Far.World, _world, _pool, Bands, _grid) { PlanOnWorker = Environment.GetEnvironmentVariable("VOCATERRA_RING_PLAN") != "game", SurfaceOnly = Environment.GetEnvironmentVariable("VOCATERRA_RING_SURFACE") != "off" };
         Far.SetRingWait(_ring.Awaits); // B38: the fine tiles over footprints the ring has yet to make wait for it
+        Far.HoldFine = () => NearGate.HoldsFine; // B45: far work waits for the near view (the gate is open until the drawer arms it)
+        Far.HoldCoarse = () => NearGate.HoldsCoarse;
+        _ring.Hold = () => NearGate.HoldsFine;
         _persistence?.Compact(); // the region files that hold much dead data are rewritten in the background, a file at a time between the writes
 
         // The far store's edits are the loaded save's (B07f): what the last run left in the sections and this world does not hold is dropped (the ring makes those footprints again from the generator), and every chunk this world has changed is queued to be taken in, so a save's buildings stand in the far view at the start.
@@ -160,6 +163,9 @@ public sealed class StreamedWorldHost : IDisposable
 
     /// <summary>The band cache.</summary>
     public ColumnBandCache Bands { get; }
+
+    /// <summary>The gate of far work (B45): closed by the scene's frame when the eye starts an episode, it holds the ring and the far view's fine tiles until the near view is made; open for a host that nobody arms.</summary>
+    public NearFirstGate NearGate { get; } = new();
 
     /// <summary>The voxel zone's stage counters (B43): the residency adds the chunks it generates and installs, the renderer those it meshes, uploads and draws; <c>--stream-stats</c> prints them.</summary>
     public PipelineCounters Pipeline { get; } = new();
@@ -294,6 +300,7 @@ public sealed class StreamedWorldHost : IDisposable
     public bool Settle(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose, double? limitMilliseconds = null)
     {
         var settleBegan = MonotonicClock.Milliseconds();
+        NearGate.Open(); // a settle waits for everything, near and far: nothing is held (B45)
         var chunks = limitMilliseconds is { } given ? _residency.Settle(eyeX, eyeY, eyeZ, given) : _residency.Settle(eyeX, eyeY, eyeZ);
         var started = MonotonicClock.Milliseconds();
         var tiles = false;

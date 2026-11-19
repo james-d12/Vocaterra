@@ -332,7 +332,12 @@ public sealed class SceneDrawer : IDisposable
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
             var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
             var phaseStart = MonotonicClock.Milliseconds();
-            _ = streaming.Pipeline.Track(eye.X, eye.Z, phaseStart); // the start, or a jump: the stage counters' times count from this frame (B43)
+            if (streaming.Pipeline.Track(eye.X, eye.Z, phaseStart)) // the start, or a jump: the stage counters' times count from this frame (B43)
+            {
+                streaming.NearGate.Arm(phaseStart); // B45: far work waits until the near view is made
+                streaming.Far.BeginCoverage();
+            }
+
             nearZoneMade = false;
             if (_options.IsScreenshotRun && !_options.NoSettle)
             {
@@ -351,6 +356,12 @@ public sealed class SceneDrawer : IDisposable
         renderer.Remesh(camera.Eye, camera.Frustum, nearZoneMade ? NearZoneMeshMilliseconds : _streaming is { IsCatchingUp: true } ? StreamedWorldHost.CatchUpMeshBudgetMilliseconds : _options.NoSettle ? Preset.MeshBudgetMilliseconds : _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? Preset.MeshBudgetMilliseconds : 30);
         var remeshEnd = MonotonicClock.Milliseconds();
         _remeshTimes.Record(remeshEnd - remeshStart);
+        if (_streaming is { } gated && gated.NearGate.IsClosed)
+        {
+            var eyeNow = streamEye ?? camera.Eye;
+            _ = gated.NearGate.Observe(remeshEnd, () => gated.Residency.IsResidentAround(eyeNow.X, eyeNow.Y, eyeNow.Z, NearFirstGate.NearViewChunks) && renderer.IsMeshedAround(eyeNow, NearFirstGate.NearViewChunks)); // B45: the near view, resident and meshed, opens the gate for the next frame
+        }
+
         _phaseAllocated += GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
         _phaseFrames++;
         if (_streaming is { } probed && _options.StreamStats)
