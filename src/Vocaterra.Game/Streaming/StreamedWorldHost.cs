@@ -167,6 +167,9 @@ public sealed class StreamedWorldHost : IDisposable
     /// <summary>The voxel chunks' residency.</summary>
     public ChunkResidency Residency => _residency;
 
+    /// <summary>The natural surface heights of the resident columns (B44), made by the residency's workers, for the renderer's sky tiles.</summary>
+    public ColumnNaturalHeights NaturalHeights => _residency.NaturalHeights;
+
     /// <summary>The far view's tiles.</summary>
     public FarView Far { get; }
 

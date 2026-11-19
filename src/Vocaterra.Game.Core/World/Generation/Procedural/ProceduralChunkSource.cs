@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Biomes;
+using Vocaterra.Game.Core.World.Climate;
 using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
 using Vocaterra.Game.Core.World.Underground;
@@ -156,9 +157,40 @@ public sealed class ProceduralChunkSource : IChunkSource
     public ColumnGroup ShapeGroup(int minChunkX, int minChunkZ, int span)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(span, 1);
-        var ctx = new ColumnContext(_world, minChunkX, minChunkZ, span);
+        var ctx = new ColumnContext(_world, minChunkX, minChunkZ, span, keepNatural: true);
         _pipeline.Shape(ctx);
         return new ColumnGroup(ctx, minChunkX, minChunkZ, span);
+    }
+
+    /// <summary>
+    /// The height model's own height (<c>IPlaceInfo.NaturalSurfaceAt</c>) of the 18 x 18 block columns round a chunk column, row by row (x fastest) from the block column one short of its corner (B44): what the sky's exposure needs of a column.
+    /// Cut from the group's window when one that holds the column is given (no height is computed again), else made here with one climate fill and the height model. Pure, so a worker thread may make it.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="group">The shaped window of a group that holds the column, or <see langword="null"/>.</param>
+    public int[] NaturalTile(int chunkX, int chunkZ, ColumnGroup? group)
+    {
+        if (group?.NaturalTile(chunkX, chunkZ) is { } cut)
+        {
+            return cut;
+        }
+
+        const int side = VoxelChunk.Size + 2;
+        var (x0, z0) = ((chunkX << VoxelChunk.Shift) - 1, (chunkZ << VoxelChunk.Shift) - 1);
+        var climate = new ClimateSample[side * side];
+        _world.Climate.Fill(x0, z0, side, side, climate);
+        var tile = new int[side * side];
+        for (var j = 0; j < side; j++)
+        {
+            for (var i = 0; i < side; i++)
+            {
+                var k = (j * side) + i;
+                tile[k] = _world.Height.Shape(x0 + i, z0 + j, climate[k]).Height;
+            }
+        }
+
+        return tile;
     }
 
     /// <summary>The chunk made by running every pass, with no shortcut for the chunks that are all air or all stone: the tests compare it with <see cref="Generate"/>.</summary>

@@ -283,6 +283,7 @@ public sealed class SceneDrawer : IDisposable
         _streaming?.SetClimateColours(_effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
         _renderer.SetFarView(_streaming?.Far);
         _renderer.SetPipelineCounters(_streaming?.Pipeline);
+        _renderer.SetNaturalHeights(_streaming?.NaturalHeights);
         _meshPool = _streaming is null ? new JobPool(WorkersAtStart()) : null; // the bounded valley has no streaming host: its meshes get a pool of their own
         _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);

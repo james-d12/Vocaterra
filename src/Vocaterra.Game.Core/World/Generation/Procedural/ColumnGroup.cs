@@ -12,12 +12,13 @@ namespace Vocaterra.Game.Core.World.Generation.Procedural;
 /// </summary>
 public sealed class ColumnGroup
 {
-    private const int BytesPerWindowColumn = 24 + 32 + 4 + 4; // a ClimateSample, a ColumnShape (padded), a height, a water level
+    private const int BytesPerWindowColumn = 24 + 32 + 4 + 4 + 4; // a ClimateSample, a ColumnShape (padded), a height, a water level, a natural height
 
     private readonly ClimateSample[] _climate;
     private readonly ColumnShape[] _shapes;
     private readonly int[] _heights;
     private readonly int[] _wet;
+    private readonly int[]? _natural;
     private readonly int _size;
     private readonly int _originX;
     private readonly int _originZ;
@@ -36,6 +37,7 @@ public sealed class ColumnGroup
         _shapes = shaped.Shapes;
         _heights = shaped.Heights;
         _wet = shaped.Wet;
+        _natural = shaped.NaturalHeights;
     }
 
     /// <summary>The first chunk column's x.</summary>
@@ -68,6 +70,30 @@ public sealed class ColumnGroup
             Array.Copy(_heights, from, heights, to, size);
             Array.Copy(_wet, from, wet, to, size);
         }
+    }
+
+    /// <summary>
+    /// The height model's own height (<c>IPlaceInfo.NaturalSurfaceAt</c>: the ground before any shaper, tree or edit) of the 18 x 18 block columns that cover a chunk column of the group and the ring round it (B44), row by row (x fastest) from the
+    /// block column one short of the chunk's own corner: what the sky's exposure reads, cut from the window the group made, so no height is computed again. <see langword="null"/> for a column the group does not hold or a group made without them.
+    /// </summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    public int[]? NaturalTile(int chunkX, int chunkZ)
+    {
+        if (_natural is null || !Contains(chunkX, chunkZ) || _margin < 1)
+        {
+            return null;
+        }
+
+        const int side = VoxelChunk.Size + 2;
+        var tile = new int[side * side];
+        var from0 = (((chunkZ << VoxelChunk.Shift) - 1 - _originZ) * _size) + ((chunkX << VoxelChunk.Shift) - 1 - _originX);
+        for (var j = 0; j < side; j++)
+        {
+            Array.Copy(_natural, from0 + (j * _size), tile, j * side, side);
+        }
+
+        return tile;
     }
 
     /// <summary>The highest shaped height in the window of a chunk column of the group (what <see cref="ColumnContext.HighestInWindow"/> says of a context cut from it).</summary>
