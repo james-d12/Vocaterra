@@ -90,7 +90,7 @@
 {"path":"game/day.json","sha256":"7b21f1b9cd2460c5cf9f3e029d0c826f88b883ab5ce34fd0a8cd94f983bc5508","bytes":830},
 {"path":"game/equipment.json","sha256":"5b467962132a7a2d0703033543124dac8d6b7ee43e06e9035d8eeee6dede5ad8","bytes":2572},
 {"path":"game/host-events.json","sha256":"8abd41876013b44337749762f49ed8cb4eb4b2e9e04184ac3ae538eab5b4ad18","bytes":7274},
-{"path":"game/items.json","sha256":"cf8ad8c4dab400b7449e956c713a8ef0848fd5ae5eaeddee79a478841a89a951","bytes":5895},
+{"path":"game/items.json","sha256":"85b062007c4944eddab3a2f692a1beee0c1ad76aff5786e2887532f064983ed1","bytes":5895},
 {"path":"game/land.json","sha256":"26300fd7a08c3a0f6b983b075cb77fc731bff3028aa49ade835d01a0fdc52f3f","bytes":1582},
 {"path":"game/lessons.json","sha256":"6a2856b0a0d4440291a3a2458f72c063eabd5af1aaa8c86ac6c55aa28adcde99","bytes":1751},
 {"path":"game/lessons/ayer-en-el-pueblo.json","sha256":"c5084170028ae59f4725a9123c7daa135223202e47e7b41a1913c74fd2eab703","bytes":4133},
@@ -1885,4 +1885,4 @@
 {"path":"speech/villager/villager_wont_sell.1.wav","sha256":"3265f9782c9ad6140cb0111fff9faa2deaf07a0c6ebb5b798f8df03c9d25b1b9","bytes":67244},
 {"path":"speech/villager/villager_yes.1.slow.wav","sha256":"c89db269d94d9525b8b6e1294b6edfef8682dfd5fb5522ac7d2de7539b546c42","bytes":38444},
 {"path":"speech/villager/villager_yes.1.wav","sha256":"b7de709cd242f8181619ba356c6a8223d9a489231b934e1ee81f522f1d0442a3","bytes":30044}
-],"bundleHash":"81b07e67966cb6150e59dcd5a685dd83b13a4d420a674a3399926ebec3d80d04"}
+],"bundleHash":"e946c4495ef5bc29ccc5d7e901c28e6da564ff2d7b0eeb2c4d445df006907dc9"}
