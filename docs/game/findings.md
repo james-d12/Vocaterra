@@ -3140,3 +3140,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   flipping fine > coarse > fine before, 0 after. Stand-ins now draw only through windows over waiting leaves (`uClip` in the GL chunk
   shader). The MonoGame-effects path (shaders off) cannot clip and still draws whole stand-ins. The flicker was not caught in a picture;
   the owner's game check is the real test.
+- **B37, cheap coarse levels (2026-11-19, merge `d9dcaf72`).** Level 3's cost was the tree pass reading the ground unshared for every
+  candidate (230 to 49 ms a stack once it reads through B36's scope, byte-identical). Levels 4 to 7 now take lattice-point climate for the
+  cliff test's neighbours, read one corner on lattice lines and skip river pooling (it fired in 4 of 10,240 cells and found no river):
+  L3 to L7 about 4 times cheaper (seed 42 402 to 106 ms, seed 2026 477 to 120). The picture moved in 0.01 to 0.02% of pixels (a few distant
+  cliff-rock specks turn green); the owner approved (item 63). One column per cell at L4 and up (`MergeLevels` 3) would give about 6 times
+  but keeps cliff rock in only 4 of 51 cells: not shipped. Model-built sections are never persisted, so no store version bump was needed.
