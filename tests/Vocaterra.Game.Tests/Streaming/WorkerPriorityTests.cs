@@ -5,21 +5,17 @@ namespace Vocaterra.Game.Tests.Streaming;
 /// <summary>The workers' nice value (B40): on Linux a thread that asks for it is nicer than the thread that made it, as /proc says, and the other threads are not changed.</summary>
 public sealed class WorkerPriorityTests
 {
-    private static int? NiceOf(string name)
+    /// <summary>The nice value of one thread, read from its own /proc entry. Only the two test threads are read (each by its own tid), so a
+    /// thread of the test host that exits meanwhile cannot make the read fail (B40b).</summary>
+    private static int NiceOf(int tid)
     {
-        foreach (var dir in Directory.GetDirectories("/proc/self/task"))
-        {
-            var stat = File.ReadAllText(Path.Combine(dir, "stat"));
-            var open = stat.IndexOf('(', StringComparison.Ordinal);
-            var close = stat.LastIndexOf(')');
-            if (stat[(open + 1)..close] == name)
-            {
-                return int.Parse(stat[(close + 2)..].Split(' ')[16], System.Globalization.CultureInfo.InvariantCulture);
-            }
-        }
-
-        return null;
+        var stat = File.ReadAllText($"/proc/self/task/{tid}/stat");
+        var close = stat.LastIndexOf(')');
+        return int.Parse(stat[(close + 2)..].Split(' ')[16], System.Globalization.CultureInfo.InvariantCulture);
     }
+
+    /// <summary>The calling thread's tid: /proc/thread-self links to "pid/task/tid" (no P/Invoke needed in the test project).</summary>
+    private static int CurrentTid() => int.Parse(Path.GetFileName(new FileInfo("/proc/thread-self").LinkTarget!), System.Globalization.CultureInfo.InvariantCulture);
 
     [Fact]
     public void Given_ALinuxWorkerThread_When_ItLowersItsPriority_Then_ItsNiceValueRisesAndAnotherThreadsDoesNot()
@@ -31,26 +27,34 @@ public sealed class WorkerPriorityTests
         }
 
         int? returned = null;
-        using var asked = new ManualResetEventSlim();
+        int plainTid = 0;
+        int niceTid = 0;
+        using var ready = new CountdownEvent(2);
         using var release = new ManualResetEventSlim();
-        var plain = new Thread(() => release.Wait()) { Name = "b40-plain", IsBackground = true };
+        var plain = new Thread(() =>
+        {
+            plainTid = CurrentTid();
+            ready.Signal();
+            release.Wait();
+        })
+        { Name = "b40-plain", IsBackground = true };
         var nice = new Thread(() =>
         {
             returned = WorkerPriority.LowerCurrentThread();
-            asked.Set();
+            niceTid = CurrentTid();
+            ready.Signal();
             release.Wait();
         })
         { Name = "b40-nice", IsBackground = true };
         plain.Start();
         nice.Start();
-        asked.Wait();
-        var (plainNice, niceNice) = (NiceOf("b40-plain"), NiceOf("b40-nice"));
+        ready.Wait();
+        var (plainNice, niceNice) = (NiceOf(plainTid), NiceOf(niceTid));
         release.Set();
         plain.Join();
         nice.Join();
 
-        Assert.NotNull(plainNice);
         Assert.Equal(returned, niceNice);
-        Assert.Equal(Math.Min(19, plainNice!.Value + WorkerPriority.Raise), niceNice);
+        Assert.Equal(Math.Min(19, plainNice + WorkerPriority.Raise), niceNice);
     }
 }

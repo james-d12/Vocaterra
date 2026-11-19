@@ -162,6 +162,9 @@ public sealed class ChunkResidency
     /// <summary>How many column jobs were handed to the workers and whose packages the game loop has not taken yet, of every epoch (after a jump the old place's are still counted until they come back).</summary>
     public int Flying => _flying;
 
+    /// <summary>The stage counters the residency adds the chunks it generates and installs to (B43), or <see langword="null"/>.</summary>
+    public PipelineCounters? Counters { get; set; }
+
     /// <summary>How many columns were made, on a worker or inline, over every plan: a column made for a place the player had left, or made twice, shows here (the tests compare it with the columns resident).</summary>
     public long ColumnsGenerated => Interlocked.Read(ref _columnsGenerated);
 
@@ -368,6 +371,7 @@ public sealed class ChunkResidency
 
             if (plan is not null && plan.TryGetLayers(package.ChunkX, package.ChunkZ, out var min, out var max))
             {
+                var before = installs;
                 foreach (var chunk in package.Layers)
                 {
                     if (chunk.Coord.Y >= min && chunk.Coord.Y <= max && GridResidency.Install(_grid, chunk))
@@ -376,6 +380,8 @@ public sealed class ChunkResidency
                         installs++;
                     }
                 }
+
+                Counters?.Add(PipelineStage.Resident, installs - before, MonotonicClock.Milliseconds());
             }
             else
             {
@@ -445,13 +451,17 @@ public sealed class ChunkResidency
             if (_pool.Workers == 0)
             {
                 var layers = Generate(column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer);
+                var installed = 0;
                 foreach (var chunk in layers)
                 {
                     if (GridResidency.Install(_grid, chunk))
                     {
                         _installed++;
+                        installed++;
                     }
                 }
+
+                Counters?.Add(PipelineStage.Resident, installed, MonotonicClock.Milliseconds());
 
                 _cursor++;
                 continue;
@@ -504,7 +514,9 @@ public sealed class ChunkResidency
             _scratch.Return(scratch);
         }
 
-        _ = Interlocked.Add(ref _generateMicroseconds, (long)((MonotonicClock.Milliseconds() - started) * 1000));
+        var finished = MonotonicClock.Milliseconds();
+        _ = Interlocked.Add(ref _generateMicroseconds, (long)((finished - started) * 1000));
+        Counters?.Add(PipelineStage.Generated, layers.Count, finished);
         return layers;
     }
 

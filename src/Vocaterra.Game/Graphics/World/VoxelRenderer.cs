@@ -138,6 +138,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private readonly HashSet<VoxelChunkCoord> _resident = [];
     private IReadOnlyList<VoxelChunkCoord> _wanted = [];
     private readonly ChunkMeshPipeline _pipeline;
+    private PipelineCounters? _counters;
     private readonly List<VoxelChunkCoord> _greyScratch = [];
     private readonly GrassOrder _grassOrder;
     private long _meshVersion;
@@ -768,6 +769,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
 
     private int MeshCap(QualityPreset preset) => _grid.IsStreamed ? preset.MaxMeshedChunks : int.MaxValue;
 
+    /// <summary>Gives the renderer the voxel zone's stage counters (B43): it adds the chunks it meshes, uploads and draws for the first time, or nothing with <see langword="null"/>.</summary>
+    /// <param name="counters">The counters, or <see langword="null"/>.</param>
+    public void SetPipelineCounters(PipelineCounters? counters) => _counters = counters;
+
     /// <summary>
     /// Gives the renderer the far view to draw beyond the chunks (B07), or <see langword="null"/> for none (the bounded valley, or the far view off): the haze and the far plane follow its range. Call after
     /// <see cref="SetPreset"/> when the range changes.
@@ -1042,6 +1047,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
 
         _visible.Clear();
         Array.Clear(_bandChunks);
+        var firstSeen = 0;
         foreach (var coord in _wanted)
         {
             var chunk = GpuOf(coord);
@@ -1049,8 +1055,15 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             {
                 _visible.Add(chunk);
                 _bandChunks[(int)chunk.Band]++;
+                if (!chunk.SeenCounted)
+                {
+                    chunk.SeenCounted = true;
+                    firstSeen++;
+                }
             }
         }
+
+        _counters?.Add(PipelineStage.Visible, firstSeen, MonotonicClock.Milliseconds());
 
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
@@ -1532,6 +1545,12 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         var coord = result.Coord;
         var gpu = GpuOf(coord);
         _meshVersion++;
+        if (!gpu.MeshCounted)
+        {
+            gpu.MeshCounted = true;
+            _counters?.Add(PipelineStage.Meshed, 1, result.FinishedAt);
+        }
+
         if (result.Buried)
         {
             gpu.Release();
@@ -1576,6 +1595,11 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         if (gpu.HasMesh)
         {
             _resident.Add(coord);
+            if (!gpu.UploadCounted)
+            {
+                gpu.UploadCounted = true;
+                _counters?.Add(PipelineStage.GpuReady, 1, MonotonicClock.Milliseconds());
+            }
         }
         else
         {
@@ -1791,6 +1815,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         public int[]? GrassStart;
         public int[]? GrassCumulative;
         public bool GrassBuilt;
+        public bool MeshCounted; // the B43 stage counters have counted this chunk's first mesh, upload and draw
+        public bool UploadCounted;
+        public bool SeenCounted;
         public LightBand Band;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
