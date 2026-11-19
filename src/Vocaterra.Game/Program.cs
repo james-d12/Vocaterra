@@ -200,10 +200,11 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
     return 1;
 }
 
-// B46: a scripted run (a screenshot) tells SDL not to follow the X server's outputs, so its display cannot vanish under it (see SdlDisplays); SDL starts in the game's constructor.
-if (options.IsScreenshotRun)
+// B46, B48: a scripted run (a screenshot) and any run in a Wayland session tell SDL not to follow the X server's outputs, so its display cannot vanish under it when the monitor
+// sleeps (see SdlDisplays); SDL starts in the game's constructor.
+if (SdlDisplays.IgnoreRandRChangesIfNeeded(options.IsScreenshotRun) && !options.IsScreenshotRun)
 {
-    _ = SdlDisplays.IgnoreRandRChanges();
+    Console.WriteLine($"display: SDL does not follow the X server's outputs ({SdlDisplays.RandRVariable}=0; a Wayland session, B48)");
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
