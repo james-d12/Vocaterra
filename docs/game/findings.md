@@ -3126,3 +3126,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   more in the streaming phase (the ring's resident-chunk copies, B38). Far view off: 24.4 s; holding all far work until the whole view
   is made (an earlier probe at load 13 to 18): 34 against 51 s; B38's order reverted: no change to the voxel view, far coverage 22 to 40 s;
   the workers' nice raise off: worse (63 against 51 s: the game thread is the bottleneck and the workers then take its processor).
+- **B43, the slowest stage (2026-11-19, merge `c8715d4e`; Opus 5.5 high at the owner's request).** Permanent stage counters (generated,
+  resident, meshed, gpu-ready, visible) show the start area is bound by **meshing on the game thread**: about 1.1 ms of game-thread time per
+  mesh, almost all `SkyExposure.Tile` (an 18x18 tile of `NaturalSurfaceAt`, about 3.4 ms per new chunk column), within a 4 ms per-frame
+  budget, so about 254 meshes a second while the workers mesh for only 6 to 7 worker-seconds and spend 145 to 160 on far tiles. Start on the
+  owner's command (High, 8 workers, fresh seed and store): visible 50/90/100% at 11.1/20.3/24.7 s on the branch, 10.9/18.9/21.7 s on main;
+  generation done by 8.8 s. **The B35 to B40 series did not change the voxel start; the branch is about 3 s slower to the whole view** (B38's
+  ring copies resident chunks on the game thread). A probe that skipped the sky tile: whole view 26.4 to 15.5 s. B40's nice raise helps the
+  game thread (off: 63 against 51 s); B38's order helps far coverage (reverted: 40 against 22 s). The owner chose fix 1 (B44) alone first.
