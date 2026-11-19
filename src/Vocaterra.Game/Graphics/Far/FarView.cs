@@ -165,6 +165,9 @@ public sealed class FarView
     private readonly Dictionary<FarTileKey, List<FarWindow>> _windows = [];
     private readonly HashSet<FarTileKey> _whole = [];
     private readonly HashSet<FarTileKey> _unfit = [];
+    private HashSet<FarTileKey> _shownLast = [];
+    private HashSet<FarTileKey> _shownNow = [];
+    private readonly Dictionary<FarTileKey, double> _relapsed = [];
     private bool _clipStandIns = false;
     private readonly List<FarTile> _pending = [];
     private Func<int, int, bool>? _nearReady;
@@ -917,7 +920,9 @@ public sealed class FarView
     // a coarser level and back); else the nearest coarser tile that is on the card, a stand-in. A stand-in used to hide every leaf under it that was already on the card until all of them were (so no face of a coarser tile was ever over a
     // finer one's), and so it popped over the finished fine land again whenever a new leaf appeared under it: the flicker B42 found. Now a stand-in is drawn only inside the footprints of
     // the leaves that wait under it (FarTile.Windows; B47: the renderer draws the runs of its indices that lie in them, in either path) and the leaves that are on the card are drawn as they are; where it cannot (a window finer than a granule of the stand-in's ground), the stand-in is whole and the leaves under it wait for it, as before.
-    // Either way no ground is drawn twice. A leaf that is not needed (it lies inside the voxel zone and its columns are drawn) is never given a stand-in.
+    // Either way no ground is drawn twice. A leaf that is not needed (it lies inside the voxel zone and its columns are drawn) is never given a stand-in, and no stand-in draws its ground there: the far pass is drawn before the chunks and its
+    // depth is cleared for them, so a coarse cell that stands higher than the blocks under it would show against the sky above them (the owner's video of 2026-11-19: flat grey boxes over a near mountain's ridge for two frames). A leaf whose
+    // columns were drawn and are not for a moment (a chunk the view newly wants in a column, the others still drawn) is held the same way for InnerGraceMilliseconds (ShownByChunks).
     // A built tile waiting for the card is in PendingTiles, coarse levels first.
     private void Assemble()
     {
@@ -934,9 +939,10 @@ public sealed class FarView
         _unuploaded = 0;
         long triangles = 0;
         var top = Settings.TopLevel;
+        NoteRelapses(MonotonicClock.Milliseconds());
         foreach (var key in _leaves)
         {
-            if (!IsNeeded(key))
+            if (ShownByChunks(key))
             {
                 continue;
             }
@@ -998,7 +1004,8 @@ public sealed class FarView
             _idle.Clear();
         }
 
-        // The windows of each stand-in: the footprints of the leaves under it that wait (not the ones that are on the card, not those the tiles below cover), and of those under the chunks.
+        // The windows of each stand-in: the footprints of the leaves under it that wait (not the ones that are on the card, not those the tiles below cover). None under the chunks: a stand-in drawn there used to keep its ground as a backdrop
+        // (the chunks draw over it with a depth buffer of their own), but its coarse cells stand above the blocks in places and showed against the sky, and the backdrop leaf could make the stand-in unfit, so whole (the LOD review's finding 9).
         _windows.Clear();
         _unfit.Clear();
         foreach (var key in _standIns)
@@ -1010,16 +1017,8 @@ public sealed class FarView
         var needed = 0;
         foreach (var key in _leaves)
         {
-            if (!IsNeeded(key))
+            if (ShownByChunks(key))
             {
-                // Under the chunks (their columns are drawn): a stand-in that is drawn anyway keeps its ground there, as it always did, the backdrop that shows through water and foliage; the chunks draw over it with a depth buffer of their own, so it never fights them.
-                if (StandInOf(key, top) is { } backdrop)
-                {
-                    var under = Settings.SizeOf(key.Level);
-                    _windows[backdrop].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + under, key.MinZ(Settings) + under));
-                    NoteFit(backdrop, key);
-                }
-
                 continue;
             }
 
@@ -1087,14 +1086,14 @@ public sealed class FarView
                 continue; // nothing waits under it (every leaf under it is on the card or covered from below): it draws nothing
             }
 
-            stand.Windows = _whole.Contains(key) ? null : _windows[key];
+            stand.Windows = _whole.Contains(key) ? OutsideTheChunks(stand, top) : _windows[key];
             _fallbacks.Add(stand);
             triangles += stand.Triangles;
         }
 
         foreach (var key in _leaves)
         {
-            if (!IsNeeded(key) || !_tiles.TryGetValue(key, out var tile) || !tile.OnCard || CoveredByWholeStandIn(key, top))
+            if (ShownByChunks(key) || !_tiles.TryGetValue(key, out var tile) || !tile.OnCard || CoveredByWholeStandIn(key, top))
             {
                 continue;
             }
@@ -1127,6 +1126,114 @@ public sealed class FarView
         {
             _ = _unfit.Add(stand);
         }
+    }
+
+    // Notes which leaves the chunks drew in this assembly (not needed) and since when a leaf that they drew in the last one has been needed again. Inside the zone a column stops being drawn whole for a frame or two when the view newly wants a
+    // chunk in it (a layer the surface band adds as the eye climbs or goes down) while its other chunks are still drawn: no ground is missing there, and a stand-in would only put coarse cells over the blocks. Request holds such a leaf's own
+    // tile back for InnerGraceMilliseconds; the draw list holds back its stand-in as long.
+    private void NoteRelapses(double now)
+    {
+        _shownNow.Clear();
+        foreach (var key in _leaves)
+        {
+            if (!IsNeeded(key))
+            {
+                _ = _shownNow.Add(key);
+                _ = _relapsed.Remove(key);
+            }
+            else if (_shownLast.Contains(key) && IsInner(key))
+            {
+                _ = _relapsed.TryAdd(key, now);
+            }
+        }
+
+        (_shownLast, _shownNow) = (_shownNow, _shownLast);
+        if (_relapsed.Count > 0)
+        {
+            _idle.Clear();
+            foreach (var (key, since) in _relapsed)
+            {
+                if (now - since >= InnerGraceMilliseconds || !IsInner(key))
+                {
+                    _idle.Add(key);
+                }
+            }
+
+            foreach (var key in _idle)
+            {
+                _ = _relapsed.Remove(key);
+            }
+
+            _idle.Clear();
+        }
+    }
+
+    // Whether the chunks show a leaf's ground: its columns are drawn (IsNeeded is false), or they were in the last moment and a column is only waiting for a chunk the view newly wants (NoteRelapses). The far view draws nothing there.
+    private bool ShownByChunks(FarTileKey key) => !IsNeeded(key) || _relapsed.ContainsKey(key);
+
+    // The windows a stand-in that is drawn whole is drawn inside: every granule of its ground but those that the chunks show entirely (a coarse cell standing above the blocks would show against the sky over them, see Assemble); null when
+    // there are none of those (or the tile has no granules), so it is drawn whole. Its nested stand-ins are gone (HasWholeAbove), so every leaf under it that the chunks show is one of its own.
+    private List<FarWindow>? OutsideTheChunks(FarTile stand, int top)
+    {
+        if (stand.Granules is not { } granules)
+        {
+            return null;
+        }
+
+        var (side, blocks) = (granules.Side, granules.Blocks);
+        long[]? shown = null;
+        foreach (var key in _leaves)
+        {
+            if (!ShownByChunks(key) || StandInOf(key, top) != stand.Key)
+            {
+                continue;
+            }
+
+            // The leaf's footprint, in blocks from the stand-in's corner: it lies wholly inside the stand-in's, and leaves and granules are squares of powers of two, so the leaf covers whole granules or lies inside one.
+            var size = Settings.SizeOf(key.Level);
+            var (x0, z0) = (key.MinX(Settings) - granules.OriginX, key.MinZ(Settings) - granules.OriginZ);
+            shown ??= new long[side * side];
+            for (var gz = Math.Max(0, z0 / blocks); gz < Math.Min(side, (z0 + size + blocks - 1) / blocks); gz++)
+            {
+                for (var gx = Math.Max(0, x0 / blocks); gx < Math.Min(side, (x0 + size + blocks - 1) / blocks); gx++)
+                {
+                    var w = Math.Min(x0 + size, (gx + 1) * blocks) - Math.Max(x0, gx * blocks);
+                    var h = Math.Min(z0 + size, (gz + 1) * blocks) - Math.Max(z0, gz * blocks);
+                    shown[(gz * side) + gx] += (long)w * h;
+                }
+            }
+        }
+
+        var full = (long)blocks * blocks;
+        if (shown is null || !shown.Any(a => a >= full))
+        {
+            return null;
+        }
+
+        // A run of granules along each row that the chunks do not show entirely; Merge joins the rows.
+        var windows = new List<FarWindow>();
+        for (var gz = 0; gz < side; gz++)
+        {
+            var gx = 0;
+            while (gx < side)
+            {
+                if (shown[(gz * side) + gx] >= full)
+                {
+                    gx++;
+                    continue;
+                }
+
+                var start = gx;
+                while (gx < side && shown[(gz * side) + gx] < full)
+                {
+                    gx++;
+                }
+
+                windows.Add(new FarWindow(granules.OriginX + (start * blocks), granules.OriginZ + (gz * blocks), granules.OriginX + (gx * blocks), granules.OriginZ + ((gz + 1) * blocks)));
+            }
+        }
+
+        return Merge(windows);
     }
 
     // Joins windows that meet along a whole side (runs of leaves in a row, then rows of runs), so a long edge of waiting leaves is a few rectangles.
