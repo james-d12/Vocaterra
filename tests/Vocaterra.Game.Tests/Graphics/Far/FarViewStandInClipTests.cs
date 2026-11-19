@@ -18,7 +18,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
     private const int Meshing = 20; // frames a chunk column takes to be drawn once it is in the voxel zone
 
     [Fact]
-    public void Given_AFreshFillAndAWalkOfTheEye_When_EveryFrameIsAssembled_Then_NoGroundIsDrawnTwiceNoStandInShowsOverReadyChunksAndNoCellGoesFineCoarseFine()
+    public void Given_AFreshFillAndAWalkOfTheEye_When_EveryFrameIsAssembled_Then_NoGroundIsDrawnTwiceNoFineLeafLosesItsGroundAndNoCellGoesFineCoarseFine()
     {
         using var pool = new JobPool(0);
         var view = Make(pool, Wide);
@@ -85,11 +85,6 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
                 var rects = standIn && tile.Windows is { } windows ? windows.Select(static w => (w.MinX, w.MinZ, w.MaxX, w.MaxZ)).ToList() : [(tile.Key.MinX(Wide), tile.Key.MinZ(Wide), tile.Key.MinX(Wide) + Wide.SizeOf(tile.Key.Level), tile.Key.MinZ(Wide) + Wide.SizeOf(tile.Key.Level))];
                 foreach (var (x0, z0, x1, z1) in rects)
                 {
-                    if (standIn && tile.Windows is not null)
-                    {
-                        Assert.False(ChunksShow(x0, z0, x1, z1, eyeX, eyeZ, Ready), $"frame {frame}: the stand-in {tile.Key} is drawn over {x0},{z0} to {x1},{z1}, which the chunks show");
-                    }
-
                     for (var gz = z0 / Cell; gz < z1 / Cell; gz++)
                     {
                         for (var gx = x0 / Cell; gx < x1 / Cell; gx++)
@@ -100,25 +95,32 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
                 }
             }
 
-            if (frame < 700)
-            {
-                continue;
-            }
-
-            // B35's purpose kept: every fine leaf the chunks do not show has its ground drawn by its own tile or a stand-in (a coarse leaf entering at the horizon may wait for its build, as ever).
+            // B35's purpose kept: every fine leaf the chunks do not show, whose level-4 stand-in is on the card, has its ground drawn by its own tile or a stand-in (nothing shows sky there).
             foreach (var leaf in FarTileSelector.Select(Wide, eyeX, eyeZ, Vox).Where(static l => l.Level < 4))
             {
+                var stand = leaf;
+                while (stand.Level < 4)
+                {
+                    stand = stand.GetParent();
+                }
+
                 var (x0, z0, size) = (leaf.MinX(Wide), leaf.MinZ(Wide), Wide.SizeOf(leaf.Level));
-                if (!ChunksShow(x0, z0, x0 + size, z0 + size, eyeX, eyeZ, Ready))
+                if (view.Cache.TryGetValue(stand, out var standTile) && standTile.OnCard && !ChunksShow(x0, z0, x0 + size, z0 + size, eyeX, eyeZ, Ready))
                 {
                     Assert.True(owner.ContainsKey((x0 / Cell, z0 / Cell)), $"frame {frame}: the fine leaf {leaf} is neither drawn nor stood in for (sky shows there)");
                 }
             }
 
+            if (frame < 700)
+            {
+                continue;
+            }
+
             foreach (var (cellKey, key) in owner)
             {
                 var (cx, cz) = cellKey;
-                if (Math.Abs(((cx * Cell) + 16) - eyeX) < 500 && Math.Abs(((cz * Cell) + 16) - eyeZ) < 500)
+                var (cdx, cdz) = (((cx * Cell) + 16) - eyeX, ((cz * Cell) + 16) - eyeZ);
+                if (Math.Abs(cdx) < 500 && Math.Abs(cdz) < 500 && (cdx * cdx) + (cdz * cdz) > 1.2 * Vox * 1.2 * Vox) // outside the chunks' zone: under them a stand-in's backdrop comes and goes unseen
                 {
                     if (!shown.TryGetValue(cellKey, out var levels))
                     {
@@ -135,6 +137,11 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
 
         var flicker = shown.Where(static kv => HasRevisit(kv.Value)).Select(static kv => $"{kv.Key}: {string.Join(">", kv.Value)}").ToList();
         Output.WriteLine($"{shown.Count} cells watched over the walk; stand-in draws windowed {windowed}, whole {whole}; cells that went to a level and back: {flicker.Count}");
+        foreach (var line in flicker.Take(8))
+        {
+            Output.WriteLine(line);
+        }
+
         Assert.Empty(flicker.Take(5));
         Assert.True(windowed > 0, "the walk made stand-ins to clip");
     }

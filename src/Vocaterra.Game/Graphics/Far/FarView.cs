@@ -903,7 +903,7 @@ public sealed class FarView
             _idle.Clear();
         }
 
-        // The windows of each stand-in: the footprints of the needed leaves under it that wait (not the ones that are on the card, not those the tiles below cover, not those still in their grace).
+        // The windows of each stand-in: the footprints of the leaves under it that wait (not the ones that are on the card, not those the tiles below cover), and of those under the chunks.
         _windows.Clear();
         foreach (var key in _standIns)
         {
@@ -916,6 +916,13 @@ public sealed class FarView
         {
             if (!IsNeeded(key))
             {
+                // Under the chunks (their columns are drawn): a stand-in that is drawn anyway keeps its ground there, as it always did, the backdrop that shows through water and foliage; the chunks draw over it with a depth buffer of their own, so it never fights them.
+                if (StandInOf(key, top) is { } backdrop)
+                {
+                    var under = Settings.SizeOf(key.Level);
+                    _windows[backdrop].Add(new FarWindow(key.MinX(Settings), key.MinZ(Settings), key.MinX(Settings) + under, key.MinZ(Settings) + under));
+                }
+
                 continue;
             }
 
@@ -976,6 +983,11 @@ public sealed class FarView
         foreach (var key in _standIns)
         {
             var stand = _tiles[key];
+            if (!_whole.Contains(key) && _windows[key].Count == 0)
+            {
+                continue; // nothing waits under it (every leaf under it is on the card or covered from below): it draws nothing
+            }
+
             stand.Windows = _whole.Contains(key) ? null : _windows[key];
             _fallbacks.Add(stand);
             triangles += stand.Triangles;
