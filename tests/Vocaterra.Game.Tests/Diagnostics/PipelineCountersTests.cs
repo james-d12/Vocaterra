@@ -118,7 +118,7 @@ public sealed class PipelineCountersTests
         using var pool = new JobPool(2);
         var residency = new ChunkResidency(scene.Grid, scene.Streaming!, new BandStreamPolicy(5, 7, 2, 3), pool, scene.Places) { Counters = new PipelineCounters() };
         var (x, y, z) = (scene.Spawn.Feet.X + 0.5f, scene.Spawn.Feet.Y + 1.6f, scene.Spawn.Feet.Z + 0.5f);
-        _ = residency.Counters.Track(x, z, MonotonicClock.Milliseconds());
+        _ = residency.Counters.Track(x, z, 0); // the times land in the last bucket: only the counts are checked here
 
         HangGuard.Settled(limit => residency.Settle(x, y, z, limit));
 
