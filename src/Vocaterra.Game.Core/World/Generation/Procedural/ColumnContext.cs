@@ -28,30 +28,19 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     private readonly bool[] _classified;
     private readonly ColumnSurface[] _surfaces;
     private readonly bool[] _surfaced;
+    private readonly bool[] _shaped = new bool[1]; // whether the shapers have run (an array: the pure folders keep every field readonly, and a context is never shared between threads)
     private readonly Lazy<List<PlantedTree>> _trees;
     private readonly Lazy<CavePlan> _caves;
     private readonly Lazy<IReadOnlyList<EntranceRamp>> _ramps;
 
-    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ)
+    /// <summary>A chunk column's own window, climate and shapes made here (the context of a chunk made alone), or, with a <paramref name="span"/> over one, the window of a whole group of chunk columns (see <see cref="ColumnGroup"/>).</summary>
+    /// <param name="world">The world being generated.</param>
+    /// <param name="chunkX">The chunk column's x (the group's first).</param>
+    /// <param name="chunkZ">The chunk column's z (the group's first).</param>
+    /// <param name="span">How many chunk columns the window's own area spans on a side.</param>
+    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span = 1)
+        : this(world, chunkX, chunkZ, span, allocate: true)
     {
-        World = world;
-        ChunkX = chunkX;
-        ChunkZ = chunkZ;
-        Size = VoxelChunk.Size + (2 * world.Margin);
-        OriginX = (chunkX << VoxelChunk.Shift) - world.Margin;
-        OriginZ = (chunkZ << VoxelChunk.Shift) - world.Margin;
-        var count = Size * Size;
-        _climate = new ClimateSample[count];
-        _shapes = new ColumnShape[count];
-        _heights = new int[count];
-        _wet = new int[count];
-        _biomes = new BiomeColumn[count];
-        _classified = new bool[count];
-        _surfaces = new ColumnSurface[count];
-        _surfaced = new bool[count];
-        _trees = new Lazy<List<PlantedTree>>(() => TreePass.Plan(this));
-        _caves = new Lazy<CavePlan>(() => CavePlan.Build(this));
-        _ramps = new Lazy<IReadOnlyList<EntranceRamp>>(() => world.Entrances is null ? [] : world.Entrances.Near(OriginX, OriginZ, OriginX + Size - 1, OriginZ + Size - 1));
         world.Climate.Fill(OriginX, OriginZ, Size, Size, _climate);
         for (var j = 0; j < Size; j++)
         {
@@ -64,6 +53,79 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
             }
         }
     }
+
+    /// <summary>
+    /// A chunk column's context whose climate, shapes and shaped heights are cut from a group's window (B39): the same numbers the column's own window would hold wherever a pass reads them (a window wider than
+    /// the margin changes no chunk), with nothing computed again. It is already shaped; its biomes, surfaces, trees and caves are its own, made on demand.
+    /// </summary>
+    /// <param name="world">The world being generated.</param>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="group">The shaped window of a group that holds the column.</param>
+    /// <param name="scratch">The caller's window arrays to use instead of new ones (B40), or <see langword="null"/>; they must be given back only when the context and everything made from it is done with.</param>
+    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, ColumnGroup group, ColumnScratch? scratch = null)
+        : this(world, chunkX, chunkZ, 1, allocate: true, scratch)
+    {
+        group.CopyWindowTo(OriginX, OriginZ, Size, _climate, _shapes, _heights, _wet);
+        Shaped = true;
+    }
+
+    private ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span, bool allocate, ColumnScratch? scratch = null)
+    {
+        _ = allocate;
+        World = world;
+        ChunkX = chunkX;
+        ChunkZ = chunkZ;
+        Size = (VoxelChunk.Size * span) + (2 * world.Margin);
+        OriginX = (chunkX << VoxelChunk.Shift) - world.Margin;
+        OriginZ = (chunkZ << VoxelChunk.Shift) - world.Margin;
+        var count = Size * Size;
+        if (scratch is not null && scratch.Count == count)
+        {
+            // B40: the caller's arrays (a window cut from a group overwrites climate, shapes, heights and wet whole; the flags are the only state that must start clear; biomes and surfaces are read only after their flag is set).
+            _climate = scratch.Climate;
+            _shapes = scratch.Shapes;
+            _heights = scratch.Heights;
+            _wet = scratch.Wet;
+            _biomes = scratch.Biomes;
+            _classified = scratch.Classified;
+            _surfaces = scratch.Surfaces;
+            _surfaced = scratch.Surfaced;
+            Array.Clear(_classified);
+            Array.Clear(_surfaced);
+        }
+        else
+        {
+            _climate = new ClimateSample[count];
+            _shapes = new ColumnShape[count];
+            _heights = new int[count];
+            _wet = new int[count];
+            _biomes = new BiomeColumn[count];
+            _classified = new bool[count];
+            _surfaces = new ColumnSurface[count];
+            _surfaced = new bool[count];
+        }
+
+        _trees = new Lazy<List<PlantedTree>>(() => TreePass.Plan(this));
+        _caves = new Lazy<CavePlan>(() => CavePlan.Build(this));
+        _ramps = new Lazy<IReadOnlyList<EntranceRamp>>(() => world.Entrances is null ? [] : world.Entrances.Near(OriginX, OriginZ, OriginX + Size - 1, OriginZ + Size - 1));
+    }
+
+    /// <summary>Whether the shapers have run over the window (a context cut from a group's shaped window starts so).</summary>
+    public bool Shaped
+    {
+        get => _shaped[0];
+        set => _shaped[0] = value;
+    }
+
+    /// <summary>The window's climate, row by row (x fastest): a group keeps it.</summary>
+    public ClimateSample[] Climate => _climate;
+
+    /// <summary>The height model's shapes of the window, row by row (x fastest): a group keeps them.</summary>
+    public ColumnShape[] Shapes => _shapes;
+
+    /// <summary>The water's top in each column of the window, row by row (x fastest), or -1: a group keeps it.</summary>
+    public int[] Wet => _wet;
 
     /// <summary>The world being generated.</summary>
     public GenerationWorld World { get; }

@@ -36,5 +36,8 @@ public enum VoxelCommandKind
 
     /// <summary>Craft the recipe at index <see cref="VoxelCommand.A"/> of <see cref="VoxelSimulation.Recipes"/>. A press.</summary>
     Craft = 7,
+
+    /// <summary>The descend button is down this tick (the fly cheat): a flying body sinks while it is held; a walking body ignores it. A level.</summary>
+    Descend = 8,
 }
 

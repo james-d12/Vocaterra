@@ -57,7 +57,8 @@ public sealed class StreamedWorldHost : IDisposable
         _persistence = lodWorld is null && lodFolder is null ? null : new FileLodPersistence(lodFolder ?? FileLodPersistence.FolderFor(lodWorld!), "lod-format-" + LodFormat + "; " + lodWorld);
         Far = new FarView(_world.Far, FarSettings(preset), _pool, new LodStore(_persistence, maxRealBytes: MaxRealBytes()));
         _radius = RingRadius(preset);
-        _ring = new LodRing(Far.World, _world, _pool, Bands) { PlanOnWorker = Environment.GetEnvironmentVariable("VOCATERRA_RING_PLAN") != "game", SurfaceOnly = Environment.GetEnvironmentVariable("VOCATERRA_RING_SURFACE") != "off" };
+        _ring = new LodRing(Far.World, _world, _pool, Bands, _grid) { PlanOnWorker = Environment.GetEnvironmentVariable("VOCATERRA_RING_PLAN") != "game", SurfaceOnly = Environment.GetEnvironmentVariable("VOCATERRA_RING_SURFACE") != "off" };
+        Far.SetRingWait(_ring.Awaits); // B38: the fine tiles over footprints the ring has yet to make wait for it
         _persistence?.Compact(); // the region files that hold much dead data are rewritten in the background, a file at a time between the writes
 
         // The far store's edits are the loaded save's (B07f): what the last run left in the sections and this world does not hold is dropped (the ring makes those footprints again from the generator), and every chunk this world has changed is queued to be taken in, so a save's buildings stand in the far view at the start.
@@ -159,6 +160,9 @@ public sealed class StreamedWorldHost : IDisposable
 
     /// <summary>The band cache.</summary>
     public ColumnBandCache Bands { get; }
+
+    /// <summary>The voxel zone's stage counters (B43): the residency adds the chunks it generates and installs, the renderer those it meshes, uploads and draws; <c>--stream-stats</c> prints them.</summary>
+    public PipelineCounters Pipeline { get; } = new();
 
     /// <summary>The voxel chunks' residency.</summary>
     public ChunkResidency Residency => _residency;
@@ -271,6 +275,7 @@ public sealed class StreamedWorldHost : IDisposable
     public void Update(float eyeX, float eyeY, float eyeZ, Action<FarTile> dispose)
     {
         _residency.Update(eyeX, eyeY, eyeZ, _pool.Workers == 0 ? InlineBudgetMilliseconds : IsCatchingUp ? CatchUpInstallBudgetMilliseconds : InstallBudgetMilliseconds);
+        _ring.PriorityOffset = Far.FineBias;
         _ring.Update(eyeX, eyeZ, _radius);
         _edits.Update();
         Far.Update(eyeX, eyeZ, _viewDistance, dispose, InlineBudgetMilliseconds);
@@ -292,10 +297,11 @@ public sealed class StreamedWorldHost : IDisposable
         // The ring's real chunks come into the store and the tiles over them are made again: a picture waits for both (a scripted run only; a live game's frames go on).
         while (true)
         {
+            _ring.PriorityOffset = Far.FineBias;
             _ring.Update(eyeX, eyeZ, _radius);
             _edits.Update();
             tiles = limitMilliseconds is { } far ? Far.Settle(eyeX, eyeZ, _viewDistance, dispose, far) : Far.Settle(eyeX, eyeZ, _viewDistance, dispose);
-            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
+            if ((_ring.IsIdle && _edits.IsIdle && Far.Stale == 0 && Far.Waiting == 0 && tiles) || MonotonicClock.Milliseconds() - started > (limitMilliseconds ?? SettleLimitMilliseconds))
             {
                 break;
             }
@@ -405,7 +411,7 @@ public sealed class StreamedWorldHost : IDisposable
     }
 
     private ChunkResidency MakeResidency(QualityPreset preset) =>
-        new(_grid, _world, PolicyFor(preset.ViewDistance), _pool, _places, preset.MaxResidentChunks, Bands);
+        new(_grid, _world, PolicyFor(preset.ViewDistance), _pool, _places, preset.MaxResidentChunks, Bands) { Counters = Pipeline };
 }
 
 /// <summary>

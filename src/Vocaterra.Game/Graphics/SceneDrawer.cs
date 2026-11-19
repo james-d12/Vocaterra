@@ -282,6 +282,7 @@ public sealed class SceneDrawer : IDisposable
         _streaming = StreamedWorldHost.For(_session.Scene, Preset, WorkersAtStart(), StreamedWorldHost.LodWorldName(_session.Simulation.StateHeader));
         _streaming?.SetClimateColours(_effects.ClimateColours, VoxelRenderer.ReleaseFarTile);
         _renderer.SetFarView(_streaming?.Far);
+        _renderer.SetPipelineCounters(_streaming?.Pipeline);
         _meshPool = _streaming is null ? new JobPool(WorkersAtStart()) : null; // the bounded valley has no streaming host: its meshes get a pool of their own
         _renderer.SetMeshPool(_streaming?.Pool ?? _meshPool);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
@@ -330,6 +331,7 @@ public sealed class SceneDrawer : IDisposable
             // The chunks and the far land round the eye (B07): a live frame installs a few within its budget, a scripted one has everything in place before its picture.
             var eye = streamEye ?? camera.Eye; // the body's own eye, not the camera's between two ticks: the world is made for where the body is, which matters while the simulation waits for it
             var phaseStart = MonotonicClock.Milliseconds();
+            _ = streaming.Pipeline.Track(eye.X, eye.Z, phaseStart); // the start, or a jump: the stage counters' times count from this frame (B43)
             nearZoneMade = false;
             if (_options.IsScreenshotRun && !_options.NoSettle)
             {
@@ -356,6 +358,10 @@ public sealed class SceneDrawer : IDisposable
             if (_moves.Observe(remeshEnd, frameBegan, at.X, at.Z, probed.IsNearReady(at.X, at.Y, at.Z), renderer.IsMeshedAround(at, NearViewChunks), probed.Residency.IsSettled && renderer.PendingChunks == 0) is { } line)
             {
                 _console(line); // --stream-stats: how long a start or a move took to show the world round the body (B07b)
+                if (_moves.ViewCompleted)
+                {
+                    _console(probed.Pipeline.Line(remeshEnd)); // and how fast each stage of the chunks' way to the screen went (B43)
+                }
             }
         }
         AdvanceUnderwater(camera);

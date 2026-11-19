@@ -46,6 +46,7 @@ public sealed class VoxelGrid : IVoxelWriter
     // The chunks of air that were asked for from the generator, without installing, by HighestBlock (what the generator makes is the same whenever it is asked, so it is asked once).
     private readonly HashSet<VoxelChunkCoord> _generatedAir = [];
     private long _readGenerated;
+    private readonly Dictionary<long, int> _possibleLayers = []; // B40: the highest layer that can hold a block, for each column HighestBlock was asked about
 
     /// <summary>Creates a bounded grid: the box from (0, 0, 0), a positive multiple of 16 blocks in every direction.</summary>
     internal VoxelGrid(int sizeX, int sizeY, int sizeZ)
@@ -288,6 +289,7 @@ public sealed class VoxelGrid : IVoxelWriter
 
         var (cx, cz) = (x >> VoxelChunk.Shift, z >> VoxelChunk.Shift);
         var (lx, lz) = (x & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1));
+        int? possible = null; // B40: the highest layer the generator can have anything in, asked once and only for a column with a layer that is not resident
         for (var cy = _limits.EndChunkY - 1; cy >= _limits.MinChunkY; cy--)
         {
             if (_streamed)
@@ -295,6 +297,12 @@ public sealed class VoxelGrid : IVoxelWriter
                 var resident = Find(cx, cy, cz);
                 if (resident is null)
                 {
+                    possible ??= HighestPossibleLayer(cx, cz);
+                    if (cy > possible)
+                    {
+                        continue; // air: no need to make the chunk to learn it
+                    }
+
                     if (PeekGenerated(new VoxelChunkCoord(cx, cy, cz), lx, lz) is { } top)
                     {
                         return top;
@@ -337,6 +345,25 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         return null;
+    }
+
+    // The highest layer of a column the generator can have a block in (cached, bounded like the remembered air), or the grid's top when it cannot say.
+    private int HighestPossibleLayer(int cx, int cz)
+    {
+        var key = ((long)cx << 32) ^ (uint)cz;
+        if (_possibleLayers.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        var layer = _generator?.HighestPossibleLayer(cx, cz) ?? (_limits.EndChunkY - 1);
+        if (_possibleLayers.Count >= MaxRememberedAir)
+        {
+            _possibleLayers.Clear();
+        }
+
+        _possibleLayers[key] = layer;
+        return layer;
     }
 
     // The highest block of a column of a chunk that is not resident, from what the generator makes for it (never installed); chunks it makes as air are remembered.

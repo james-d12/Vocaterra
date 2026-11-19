@@ -1026,6 +1026,10 @@ the owner's answers of 2026-11-15 are in its section 5.
     B40 (game plan 4.14) on `feature/world-next`, cut from `main` at `ae30d65b`, before B32 to B34. B37 (cheap coarse levels) still needs
     the owner's sign-off on before/after pictures, and server GC in B40 his yes (it raises memory). B36 commits a generation bench so each
     step is measured against the same baseline.
+62. **Nearer chunks first** (2026-11-18, about 22:00 UTC; after his test of `feature/world-next` and B43's suspects): "the job order is
+    interesting, as definately closer chunks are more important at least." Work near the player (the voxel zone's chunks and their meshes)
+    takes priority over far work (far tiles, stand-ins, the ring). B43 measures a strict near-first order; the fix follows from its report.
+    He also asked for a fly mode for testing and withdrew it ("dont add it pls").
 
 ## Already decided
 
