@@ -51,6 +51,12 @@ public sealed class CompositeChunkSource : IChunkSource
     /// <param name="span">How many chunk columns the square spans on a side.</param>
     public ColumnGroup ShapeGroup(int minChunkX, int minChunkZ, int span) => _procedural.ShapeGroup(minChunkX, minChunkZ, span);
 
+    /// <summary>The natural surface heights of the 18 x 18 block columns round a chunk column (B44; see <see cref="ProceduralChunkSource.NaturalTile"/>), from the group's window when it holds the column.</summary>
+    /// <param name="chunkX">The chunk column's x.</param>
+    /// <param name="chunkZ">The chunk column's z.</param>
+    /// <param name="group">The shaped window of a group that holds the column, or <see langword="null"/>.</param>
+    public int[] NaturalTile(int chunkX, int chunkZ, ColumnGroup? group) => _procedural.NaturalTile(chunkX, chunkZ, group);
+
     /// <inheritdoc />
     public ChunkData Generate(VoxelChunkCoord coord)
     {

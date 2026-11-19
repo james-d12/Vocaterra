@@ -23,6 +23,7 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     private readonly ClimateSample[] _climate;
     private readonly ColumnShape[] _shapes;
     private readonly int[] _heights;
+    private readonly int[]? _natural; // the height model's heights as the window was made, before any shaper moved one (kept only when asked for: a group's)
     private readonly int[] _wet; // the water's top in each column, or -1: the height model's decision, kept apart from the heights so a bank cut under a river's level does not flood
     private readonly BiomeColumn[] _biomes;
     private readonly bool[] _classified;
@@ -38,7 +39,8 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
     /// <param name="chunkX">The chunk column's x (the group's first).</param>
     /// <param name="chunkZ">The chunk column's z (the group's first).</param>
     /// <param name="span">How many chunk columns the window's own area spans on a side.</param>
-    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span = 1)
+    /// <param name="keepNatural">Whether to keep a copy of the height model's heights before the shapers run (<see cref="NaturalHeights"/>, B44).</param>
+    public ColumnContext(GenerationWorld world, int chunkX, int chunkZ, int span = 1, bool keepNatural = false)
         : this(world, chunkX, chunkZ, span, allocate: true)
     {
         world.Climate.Fill(OriginX, OriginZ, Size, Size, _climate);
@@ -51,6 +53,11 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
                 _heights[k] = _shapes[k].Height;
                 _wet[k] = _shapes[k].Water ? _shapes[k].WaterLevel : -1;
             }
+        }
+
+        if (keepNatural)
+        {
+            _natural = (int[])_heights.Clone();
         }
     }
 
@@ -117,6 +124,9 @@ internal sealed class ColumnContext : ITreeGround, IRockGround
         get => _shaped[0];
         set => _shaped[0] = value;
     }
+
+    /// <summary>The height model's heights of the window as made (before the shapers), row by row (x fastest), when the context was asked to keep them (B44); else <see langword="null"/>.</summary>
+    public int[]? NaturalHeights => _natural;
 
     /// <summary>The window's climate, row by row (x fastest): a group keeps it.</summary>
     public ClimateSample[] Climate => _climate;

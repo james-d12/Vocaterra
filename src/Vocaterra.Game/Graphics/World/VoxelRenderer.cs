@@ -773,6 +773,13 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     /// <param name="counters">The counters, or <see langword="null"/>.</param>
     public void SetPipelineCounters(PipelineCounters? counters) => _counters = counters;
 
+    /// <summary>Gives the sky's exposure the natural surface heights the residency's workers made (B44), so a mesh's sky tile needs no evaluation of the height model on the game thread.</summary>
+    /// <param name="heights">The residency's store, or <see langword="null"/>.</param>
+    public void SetNaturalHeights(ColumnNaturalHeights? heights) => _skyExposure?.SetNaturalHeights(heights);
+
+    /// <summary>The sky tiles built from the workers' heights and the ones that evaluated the height model on the game thread (B44).</summary>
+    internal (long FromHeights, long Computed) SkyTileSources => _skyExposure?.TileSources ?? (0, 0);
+
     /// <summary>
     /// Gives the renderer the far view to draw beyond the chunks (B07), or <see langword="null"/> for none (the bounded valley, or the far view off): the haze and the far plane follow its range. Call after
     /// <see cref="SetPreset"/> when the range changes.

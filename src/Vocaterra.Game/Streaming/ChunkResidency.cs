@@ -43,6 +43,7 @@ public sealed class ChunkResidency
     private readonly ColumnScratchPool _scratch; // B40: the window arrays of the columns the workers make, reused
     private BandStreamer _streamer;
     private readonly ColumnBandCache _bands;
+    private readonly ColumnNaturalHeights _natural = new();
     private readonly JobPool _pool;
     private readonly IPlaceInfo? _places;
     private int _maxResident;
@@ -71,6 +72,8 @@ public sealed class ChunkResidency
     private long _plans;
     private long _generateMicroseconds;
     private long _columnsGenerated;
+    private long _naturalCut;
+    private long _naturalMade;
 
     /// <summary>Creates the driver of a streamed grid.</summary>
     /// <param name="grid">The streamed grid; only the game loop's thread touches it.</param>
@@ -122,6 +125,12 @@ public sealed class ChunkResidency
 
     /// <summary>The band cache.</summary>
     public ColumnBandCache Bands => _bands;
+
+    /// <summary>The natural surface heights of the resident columns (B44), made by the column jobs on the workers and put here when a column is installed, for the sky's exposure on the game thread.</summary>
+    public ColumnNaturalHeights NaturalHeights => _natural;
+
+    /// <summary>How many columns' natural heights were cut from the group window the column was generated from, and how many were computed on the worker for want of one (B44).</summary>
+    public (long Cut, long Computed) NaturalHeightSources => (Interlocked.Read(ref _naturalCut), Interlocked.Read(ref _naturalMade));
 
     /// <summary>The plan in force, or <see langword="null"/> before the first one is made.</summary>
     public BandPlan? Plan => _planNow;
@@ -372,6 +381,11 @@ public sealed class ChunkResidency
             if (plan is not null && plan.TryGetLayers(package.ChunkX, package.ChunkZ, out var min, out var max))
             {
                 var before = installs;
+                if (package.Heights is not null)
+                {
+                    _natural.Put(package.ChunkX, package.ChunkZ, package.Heights);
+                }
+
                 foreach (var chunk in package.Layers)
                 {
                     if (chunk.Coord.Y >= min && chunk.Coord.Y <= max && GridResidency.Install(_grid, chunk))
@@ -450,7 +464,8 @@ public sealed class ChunkResidency
 
             if (_pool.Workers == 0)
             {
-                var layers = Generate(column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer);
+                var layers = Generate(column.ChunkX, column.ChunkZ, column.MinLayer, column.MaxLayer, out var heights);
+                _natural.Put(column.ChunkX, column.ChunkZ, heights);
                 var installed = 0;
                 foreach (var chunk in layers)
                 {
@@ -477,7 +492,7 @@ public sealed class ChunkResidency
                 JobLane.Residency,
                 distance,
                 static () => false,
-                () => _done.Enqueue(new ColumnPackage(cx, cz, epoch, epoch != Volatile.Read(ref _epoch) || _planNow is not { } current || !current.TryGetLayers(cx, cz, out _, out _) ? [] : Generate(cx, cz, lo, hi))));
+                () => _done.Enqueue(Make(cx, cz, lo, hi, epoch)));
             submitted++;
             _cursor++;
         }
@@ -498,7 +513,19 @@ public sealed class ChunkResidency
         return true;
     }
 
-    private IReadOnlyList<ChunkData> Generate(int chunkX, int chunkZ, int minLayer, int maxLayer)
+    // The worker's job: the column's chunks and, with them, the natural heights the sky's exposure will need (B44), or an empty package for a column nobody wants any more.
+    private ColumnPackage Make(int chunkX, int chunkZ, int minLayer, int maxLayer, int epoch)
+    {
+        if (epoch != Volatile.Read(ref _epoch) || _planNow is not { } current || !current.TryGetLayers(chunkX, chunkZ, out _, out _))
+        {
+            return new ColumnPackage(chunkX, chunkZ, epoch, []);
+        }
+
+        var layers = Generate(chunkX, chunkZ, minLayer, maxLayer, out var heights);
+        return new ColumnPackage(chunkX, chunkZ, epoch, layers, heights);
+    }
+
+    private IReadOnlyList<ChunkData> Generate(int chunkX, int chunkZ, int minLayer, int maxLayer, out int[] heights)
     {
         var started = MonotonicClock.Milliseconds();
         _ = Interlocked.Increment(ref _columnsGenerated);
@@ -514,6 +541,8 @@ public sealed class ChunkResidency
             _scratch.Return(scratch);
         }
 
+        heights = _world.NaturalTile(chunkX, chunkZ, group);
+        _ = Interlocked.Increment(ref group is not null && group.Contains(chunkX, chunkZ) ? ref _naturalCut : ref _naturalMade);
         var finished = MonotonicClock.Milliseconds();
         _ = Interlocked.Add(ref _generateMicroseconds, (long)((finished - started) * 1000));
         Counters?.Add(PipelineStage.Generated, layers.Count, finished);
@@ -544,6 +573,10 @@ public sealed class ChunkResidency
             {
                 _evicted++;
                 dropped++;
+                if (!plan.TryGetLayers(chunk.X, chunk.Z, out _, out _))
+                {
+                    _natural.Remove(chunk.X, chunk.Z); // the plan holds nothing of the column any more
+                }
             }
         }
     }
@@ -568,5 +601,5 @@ public sealed class ChunkResidency
         return [.. list.Select(static t => (t.Dx, t.Dz))];
     }
 
-    private sealed record ColumnPackage(int ChunkX, int ChunkZ, int Epoch, IReadOnlyList<ChunkData> Layers);
+    private sealed record ColumnPackage(int ChunkX, int ChunkZ, int Epoch, IReadOnlyList<ChunkData> Layers, int[]? Heights = null);
 }

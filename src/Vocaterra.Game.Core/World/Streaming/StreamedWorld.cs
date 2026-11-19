@@ -53,6 +53,12 @@ public sealed class StreamedWorld
     /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
     public IReadOnlyList<ChunkData> GenerateLayers(int chunkX, int chunkZ, int minLayer, int maxLayer, ColumnGroup? group) => Source.GenerateLayers(chunkX, chunkZ, minLayer, maxLayer, group);
 
+    /// <summary>The natural surface heights (<c>IPlaceInfo.NaturalSurfaceAt</c>) of the 18 x 18 block columns round a chunk column, row by row from the block column one short of its corner (B44), for the sky's exposure; cut from the group's window when it holds the column.</summary>
+    /// <param name="chunkX">The chunk column.</param>
+    /// <param name="chunkZ">The chunk row.</param>
+    /// <param name="group">The group's shaped window, or <see langword="null"/>.</param>
+    public int[] NaturalTile(int chunkX, int chunkZ, ColumnGroup? group) => Source.NaturalTile(chunkX, chunkZ, group);
+
     /// <summary>Arrays for the window of one chunk column (B40), for the overload that takes them.</summary>
     public ColumnScratch CreateScratch() => Source.CreateScratch();
 
