@@ -3194,3 +3194,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   The gate now also opens when the eye is 128 blocks from where it closed; `FarView.SelectAhead` asks for coarse tiles and stand-ins up to
   160 blocks ahead; a tile just uploaded covers its ground in that frame. Not proven for the 64-block holes; the owner flies again.
   gl-compare's streamed views (meadow, cave) time out: its settle fills 16 km on 2 workers (pre-existing; the tool needs `--workers`).
+- **Two reviews of the LOD work (2026-11-19, at `e3041981`; docs/research/2026-11-19-lod-transitions-review.md).** Generation (B36, B37,
+  B39, B40) is sound and byte-identical. The far-view lifecycle breaks "keep the old LOD until its replacement is on the card": a drawn
+  stand-in is disposed when its sections change (`Invalidate` keeps only tiles in `_wanted`, and a built stand-in leaves `_wanted`), which
+  fits the owner's 64-block holes better than B47's gate explanation; a re-selection race can leave a stand-in "being built" forever. The
+  drainage warm-up runs on the ring lane ahead of coarse tiles and stand-ins (no `FineBias`). Both checked against the code by the
+  orchestrator. The gates missed them because every `FarView` test runs without workers and with the ring radius equal to the voxel
+  radius; the current flight test still has 316 of 1,200 frames with an uncovered leaf with the real ring. Shared sea nodes depending on
+  publish order (`DrainageNetwork`) is a rare determinism crack, noted, not planned. Milestones B49 to B55 for the next PR.
