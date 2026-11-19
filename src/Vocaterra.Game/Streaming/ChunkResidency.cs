@@ -145,7 +145,17 @@ public sealed class ChunkResidency
     /// <param name="x">The place's x in blocks.</param>
     /// <param name="y">The place's y.</param>
     /// <param name="z">The place's z.</param>
-    public bool IsNearReady(float x, float y, float z)
+    public bool IsNearReady(float x, float y, float z) => IsResidentAround(x, y, z, NearReadyRadius);
+
+    /// <summary>
+    /// Whether the chunks round a place are resident out to a radius (B45, the near-first gate's rule; <see cref="IsNearReady"/> is this with <see cref="NearReadyRadius"/>): the plan is for the chunk column the place is in and every column within
+    /// <paramref name="chunks"/> of it that the plan holds has all the layers the plan wants of it.
+    /// </summary>
+    /// <param name="x">The place's x in blocks.</param>
+    /// <param name="y">The place's y.</param>
+    /// <param name="z">The place's z.</param>
+    /// <param name="chunks">The radius in chunks (a square round the place's column).</param>
+    public bool IsResidentAround(float x, float y, float z, int chunks)
     {
         var plan = _planNow;
         var chunk = VoxelChunkCoord.FromBlock((int)MathF.Floor(x), (int)MathF.Floor(y), (int)MathF.Floor(z));
@@ -154,9 +164,9 @@ public sealed class ChunkResidency
             return false;
         }
 
-        for (var dz = -NearReadyRadius; dz <= NearReadyRadius; dz++)
+        for (var dz = -chunks; dz <= chunks; dz++)
         {
-            for (var dx = -NearReadyRadius; dx <= NearReadyRadius; dx++)
+            for (var dx = -chunks; dx <= chunks; dx++)
             {
                 if (plan.TryGetLayers(chunk.X + dx, chunk.Z + dz, out var min, out var max) && !AllResident(new WantedColumn(chunk.X + dx, chunk.Z + dz, min, max)))
                 {

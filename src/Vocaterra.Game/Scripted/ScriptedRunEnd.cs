@@ -196,6 +196,13 @@ public sealed class ScriptedRunEnd
         {
             _console(StreamLine(renderer, streaming, timings, phases, allocations));
             _console(streaming.Pipeline.Line(MonotonicClock.Milliseconds()));
+            _console(streaming.NearGate.Line); // B45: how long far work was held for the near view
+            var history = streaming.Far.CoverageHistory;
+            for (var episode = 0; episode < history.Count; episode++)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far coverage (episode {episode + 1}): no uncovered leaf after {history[episode].Covered?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {history[episode].Filled?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms"));
+            }
+
             _console(string.Create(CultureInfo.InvariantCulture, $"far coverage: no uncovered leaf after {streaming.Far.CoveredAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms, every leaf on the card after {streaming.Far.FilledAfterMilliseconds?.ToString("0", CultureInfo.InvariantCulture) ?? "never"} ms ({streaming.Far.Uncovered} uncovered now)"));
             foreach (var band in streaming.Far.FineBuildBands())
             {
