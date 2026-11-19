@@ -67,9 +67,18 @@ public sealed class StatDisplayTests
     [Fact]
     public void Given_ANewRow_When_ATableWithItIsUsed_Then_TheLineShowsItWithNoEditToTheCode()
     {
-        IReadOnlyList<StatDisplay> rows = [.. StatDisplay.Defaults, new StatDisplay("light", StatDisplayFormat.Whole, null)];
-        var sheet = Sheet(static b => b.Add("light", 4));
+        IReadOnlyList<StatDisplay> rows = [.. StatDisplay.Defaults, new StatDisplay("stealth", StatDisplayFormat.Whole, null)];
+        var sheet = Sheet(static b => b.Add("stealth", 4));
 
-        Assert.Equal([new StatChip("light", "+4", null)], StatDisplay.Chips(sheet, rows));
+        Assert.Equal([new StatChip("stealth", "+4", null)], StatDisplay.Chips(sheet, rows));
+    }
+
+    [Fact]
+    public void Given_ALightAboveZero_When_TheChipsAreMade_Then_ALightChipShowsItsLevel()
+    {
+        var chips = StatDisplay.Chips(Sheet(static b => b.Add(StatKeys.Light, 12)));
+
+        Assert.Equal([new StatChip(StatKeys.Light, "+12", null)], chips);
+        Assert.Empty(StatDisplay.Chips(Sheet(static b => b.Add(StatKeys.Light, 0))));
     }
 }
