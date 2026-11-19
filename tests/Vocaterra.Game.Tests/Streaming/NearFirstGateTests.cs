@@ -55,6 +55,32 @@ public sealed class NearFirstGateTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Given_AnEyeThatFliesOnFromWhereTheGateWasClosed_When_ItHasLeftTheNearView_Then_TheGateOpensAtOnceAndNotAtTheTimeout()
+    {
+        // B47: the near view round the eye cannot be finished by an eye that outruns the chunks, so the gate held every far tile (the stand-ins too) for the whole timeout while the eye flew over land with no far tile under it.
+        var gate = new NearFirstGate(NearHold.All);
+        gate.Arm(1_000, 500, 500);
+
+        Assert.False(gate.Observe(1_100, static () => false, (500 + NearFirstGate.LeaveBlocks - 1, 500)));
+        Assert.True(gate.IsClosed);
+        Assert.True(gate.Observe(1_200, static () => false, (500, 500 + NearFirstGate.LeaveBlocks)));
+        Assert.False(gate.IsClosed);
+        Assert.Equal(1, gate.Left);
+        Assert.Equal(0, gate.Timeouts);
+        Assert.Equal(200, gate.LastHeldMilliseconds);
+    }
+
+    [Fact]
+    public void Given_AnEyeThatWalksOnAFewBlocks_When_TheNearViewIsNotDone_Then_TheGateStaysClosed()
+    {
+        var gate = new NearFirstGate(NearHold.All);
+        gate.Arm(0, 100, 100);
+
+        Assert.False(gate.Observe(10_000, static () => false, (140, 130)));
+        Assert.True(gate.IsClosed);
+    }
+
+    [Fact]
     public void Given_AnOpenGate_When_TheEyeJumps_Then_ItClosesAgainAndItsClockStartsOver()
     {
         var gate = new NearFirstGate(NearHold.Fine);

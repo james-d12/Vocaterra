@@ -30,11 +30,17 @@ public sealed class NearFirstGate
     /// <summary>The same radius in chunks.</summary>
     public const int NearViewChunks = NearViewBlocks / 16;
 
+    /// <summary>B47: how far the eye may go from where the gate was closed, in blocks, before the gate opens: the near view it waits for is the view of a place the eye has left (flying at 190 blocks a second the near view is never done, and every far tile, the stand-ins too, was held for the whole timeout: sky through the far land). Walking never reaches it within the timeout.</summary>
+    public const double LeaveBlocks = NearViewBlocks;
+
     /// <summary>The longest the gate holds, in milliseconds from <see cref="Arm"/>: a near view that takes longer than this (a machine with one worker, a chunk that fails) lets the far work go on beside it.</summary>
     public const double TimeoutMilliseconds = 20_000;
 
     private volatile bool _closed;
     private double _armedAt;
+    private double _armedX;
+    private double _armedZ;
+    private int _left;
     private int _armed;
     private int _timeouts;
     private double _lastHeld = double.NaN;
@@ -59,6 +65,9 @@ public sealed class NearFirstGate
     /// <summary>How many times the gate was closed (the start, and each jump).</summary>
     public int Armed => Volatile.Read(ref _armed);
 
+    /// <summary>How many times the eye leaving the place the gate was closed at opened it (B47).</summary>
+    public int Left => Volatile.Read(ref _left);
+
     /// <summary>How many times the timeout opened it.</summary>
     public int Timeouts => Volatile.Read(ref _timeouts);
 
@@ -67,9 +76,13 @@ public sealed class NearFirstGate
 
     /// <summary>Closes the gate: a start or a jump has begun at <paramref name="now"/>. A gate already closed stays closed and its clock starts again.</summary>
     /// <param name="now">The clock in milliseconds.</param>
-    public void Arm(double now)
+    /// <param name="eyeX">The eye's x in blocks (B47: where the gate is closed; with <see cref="Observe"/>'s eye it opens the gate when the eye leaves by <see cref="LeaveBlocks"/>).</param>
+    /// <param name="eyeZ">The eye's z in blocks.</param>
+    public void Arm(double now, double eyeX = 0, double eyeZ = 0)
     {
         _armedAt = now;
+        _armedX = eyeX;
+        _armedZ = eyeZ;
         _closed = true;
         _ = Interlocked.Increment(ref _armed);
     }
@@ -82,8 +95,9 @@ public sealed class NearFirstGate
     /// </summary>
     /// <param name="now">The clock in milliseconds, after the frame's meshing.</param>
     /// <param name="nearViewDone">Whether the near view is resident and meshed (asked only while closed).</param>
+    /// <param name="eye">B47: the eye's x and z in blocks, or <see langword="null"/> for a caller that does not say (the gate then opens only when the near view is done or the time is out).</param>
     /// <returns>Whether the gate opened in this call.</returns>
-    public bool Observe(double now, Func<bool> nearViewDone)
+    public bool Observe(double now, Func<bool> nearViewDone, (double X, double Z)? eye = null)
     {
         ArgumentNullException.ThrowIfNull(nearViewDone);
         if (!_closed)
@@ -92,7 +106,8 @@ public sealed class NearFirstGate
         }
 
         var timedOut = now - _armedAt >= TimeoutMilliseconds;
-        if (!timedOut && !nearViewDone())
+        var left = eye is { } at && Math.Sqrt(((at.X - _armedX) * (at.X - _armedX)) + ((at.Z - _armedZ) * (at.Z - _armedZ))) >= LeaveBlocks;
+        if (!timedOut && !left && !nearViewDone())
         {
             return false;
         }
@@ -104,12 +119,16 @@ public sealed class NearFirstGate
         {
             _ = Interlocked.Increment(ref _timeouts);
         }
+        else if (left)
+        {
+            _ = Interlocked.Increment(ref _left);
+        }
 
         return true;
     }
 
     /// <summary>The line for <c>--stream-stats</c>.</summary>
-    public string Line => string.Create(CultureInfo.InvariantCulture, $"near gate: {Mode.ToString().ToLowerInvariant()}, closed {Armed} time(s), held [{string.Join(", ", _held.Select(static ms => $"{ms / 1000:0.0} s"))}], {Timeouts} timeout(s), {(_closed ? "closed now" : "open")}");
+    public string Line => string.Create(CultureInfo.InvariantCulture, $"near gate: {Mode.ToString().ToLowerInvariant()}, closed {Armed} time(s), held [{string.Join(", ", _held.Select(static ms => $"{ms / 1000:0.0} s"))}], {Timeouts} timeout(s), {Left} left behind, {(_closed ? "closed now" : "open")}");
 
     private static NearHold FromEnvironment() => Environment.GetEnvironmentVariable("VOCATERRA_NEAR_GATE")?.ToLowerInvariant() switch
     {

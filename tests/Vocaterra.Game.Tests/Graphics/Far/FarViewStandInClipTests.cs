@@ -17,8 +17,60 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
     private const int Cell = 32; // the finest tile's side: every footprint of every level is a whole number of cells
     private const int Meshing = 20; // frames a chunk column takes to be drawn once it is in the voxel zone
 
-    [Fact]
-    public void Given_AFreshFillAndAWalkOfTheEye_When_EveryFrameIsAssembled_Then_NoGroundIsDrawnTwiceNoFineLeafLosesItsGroundAndNoCellGoesFineCoarseFine()
+    // B47: the windows are not only what the view hands the renderer: both paths draw the runs of a stand-in's indices that RunsOf gives, so what is checked here is the geometry those runs draw. Every quad drawn lies inside a window, and
+    // every flat top whose middle is inside a window is drawn (nothing shows sky there); a stand-in that has windows has its granules (without them it would be drawn whole).
+    private static void AssertDrawsOnlyItsWindows(FarTile tile, FarTileMesh mesh, HashSet<string> checkedBefore)
+    {
+        var windows = tile.Windows!;
+        var signature = $"{tile.Key}:{string.Join(';', windows)}";
+        if (!checkedBefore.Add(signature))
+        {
+            return;
+        }
+
+        Assert.NotNull(tile.Granules);
+        var runs = new List<(int First, int Count)>();
+        var drawn = new HashSet<int>();
+        foreach (var bucket in new[] { FarBucket.Opaque, FarBucket.Lit, FarBucket.Water })
+        {
+            tile.RunsOf(bucket, runs);
+            var (first, end) = tile.Granules!.Bucket(bucket);
+            foreach (var (at, count) in runs)
+            {
+                Assert.InRange(at, first, end);
+                Assert.InRange(at + count, first, end);
+                for (var i = at; i < at + count; i += 6)
+                {
+                    var quad = mesh.IndexAt(i) / 4;
+                    Assert.True(drawn.Add(quad), $"{tile.Key}: a quad is drawn twice");
+                    var corners = Enumerable.Range(0, 4).Select(k => mesh.VertexArray[(quad * 4) + k].Position).ToArray();
+                    var (minX, maxX, minZ, maxZ) = (corners.Min(static c => c.X), corners.Max(static c => c.X), corners.Min(static c => c.Z), corners.Max(static c => c.Z));
+                    Assert.True(windows.Any(w => minX >= w.MinX && maxX <= w.MaxX && minZ >= w.MinZ && maxZ <= w.MaxZ), $"{tile.Key}: a quad at x {minX}..{maxX}, z {minZ}..{maxZ} is drawn outside every window");
+                }
+            }
+        }
+
+        var opaque = mesh.OpaqueIndices / 6;
+        for (var q = 0; q < opaque; q++)
+        {
+            var corners = Enumerable.Range(0, 4).Select(k => mesh.VertexArray[(q * 4) + k].Position).ToArray();
+            if (corners.Max(static c => c.Y) != corners.Min(static c => c.Y) || corners.Max(static c => c.X) == corners.Min(static c => c.X))
+            {
+                continue; // a top or a bottom only: a flat quad with an area
+            }
+
+            var (mx, mz) = ((corners.Min(static c => c.X) + corners.Max(static c => c.X)) / 2, (corners.Min(static c => c.Z) + corners.Max(static c => c.Z)) / 2);
+            if (windows.Any(w => mx > w.MinX && mx < w.MaxX && mz > w.MinZ && mz < w.MaxZ))
+            {
+                Assert.True(drawn.Contains(q), $"{tile.Key}: a flat quad at {mx},{mz} is inside a window and not drawn");
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Given_AFreshFillAndAWalkOfTheEye_When_EveryFrameIsAssembled_Then_NoGroundIsDrawnTwiceNoFineLeafLosesItsGroundAndNoCellGoesFineCoarseFine(bool gl)
     {
         using var pool = new JobPool(0);
         var view = Make(pool, Wide);
@@ -42,7 +94,9 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
             return frame >= at;
         }
 
-        _ = view.UsePath(true, static _ => { }); // the game's own program: stand-ins are clipped
+        _ = view.UsePath(gl, static _ => { }); // the game's own program or MonoGame's effects (B47): stand-ins are drawn inside their windows in both
+        var meshes = new Dictionary<FarTileKey, FarTileMesh>();
+        var verified = new HashSet<string>();
         view.SetNearReady(Ready);
         var shown = new Dictionary<(int, int), List<int>>();
         var windowed = 0;
@@ -52,6 +106,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
         {
             foreach (var tile in view.PendingTiles.ToList())
             {
+                meshes[tile.Key] = tile.Pending!;
                 tile.Adopt(tile.Pending!);
                 tile.Pending = null;
                 tile.OnCard = true;
@@ -79,6 +134,7 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
                     else
                     {
                         windowed++;
+                        AssertDrawsOnlyItsWindows(tile, meshes[tile.Key], verified);
                     }
                 }
 

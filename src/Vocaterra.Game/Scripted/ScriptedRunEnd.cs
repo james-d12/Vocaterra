@@ -215,6 +215,17 @@ public sealed class ScriptedRunEnd
         {
             var chunks = renderer.ChunkPassTimes;
             _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time to submit): {chunks.Count} frames, median {chunks.Median:0.00} ms, p95 {chunks.Percentile(95):0.00} ms, p99 {chunks.Percentile(99):0.00} ms, longest {chunks.Longest:0.00} ms"));
+            var far = renderer.FarPassTimes;
+            if (far.Count > 0)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far pass ({(renderer.GlPass is null ? "effects" : "GLSL")}, processor time): {far.Count} frames, median {far.Median:0.00} ms, p95 {far.Percentile(95):0.00} ms, p99 {far.Percentile(99):0.00} ms, longest {far.Longest:0.00} ms"));
+            }
+
+            if (renderer.FarCardTimes is { Count: > 0 } farCard)
+            {
+                _console(string.Create(CultureInfo.InvariantCulture, $"far pass ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {farCard.Count} frames, median {farCard.Median:0.00} ms, p95 {farCard.Percentile(95):0.00} ms, p99 {farCard.Percentile(99):0.00} ms, longest {farCard.Longest:0.00} ms"));
+            }
+
             if (renderer.CardTimes is { } card)
             {
                 _console(string.Create(CultureInfo.InvariantCulture, $"chunk passes ({(renderer.GlPass is null ? "effects" : "GLSL")}, the card's time, GL timer query): {card.Count} frames, median {card.Median:0.00} ms, p95 {card.Percentile(95):0.00} ms, p99 {card.Percentile(99):0.00} ms, longest {card.Longest:0.00} ms"));

@@ -109,6 +109,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     private readonly AlphaTestEffect _solid;
     private GlChunkPass? _glPass;
     private GlCardTimer? _card;
+    private GlCardTimer? _farCard;
     private readonly SkyRenderer _sky;
     private MeshOptions _meshOptions;
     private readonly Func<int, int, int, (int Temperature, int Humidity)>? _ground;
@@ -520,6 +521,20 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         _card?.Dispose();
         _card = timer;
     }
+
+    /// <summary>Gives the renderer a second timer for the card's time round the far view's pass (B47, <c>--stream-stats</c>); <see langword="null"/> for none. The renderer disposes it with itself.</summary>
+    /// <param name="timer">The timer, or <see langword="null"/>.</param>
+    public void SetFarCardTimer(GlCardTimer? timer)
+    {
+        _farCard?.Dispose();
+        _farCard = timer;
+    }
+
+    /// <summary>The processor time each frame spent on the far view's pass (B47: the uploads, the choice of the visible tiles and the draw calls, through the effects or through the GLSL program), for the comparison of the two paths.</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats FarPassTimes { get; } = new();
+
+    /// <summary>The card's time each frame spent on the far view's pass, from a GL timer query (B47), or <see langword="null"/> when there is no timer.</summary>
+    public Vocaterra.Game.Core.Reporting.BusyFrameStats? FarCardTimes => _farCard?.Times;
 
     /// <summary>The processor time each frame spent submitting the chunk passes (the draw calls, through the effects or through the GLSL program, the figures not counted; the card's own time is <see cref="CardTimes"/>), for the comparison of the two paths (B17a, B17b).</summary>
     public Vocaterra.Game.Core.Reporting.BusyFrameStats ChunkPassTimes { get; } = new();
@@ -1035,7 +1050,15 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
                 }
             }
 
+            var farStarted = MonotonicClock.Milliseconds();
+            _farCard?.NextFrame();
+            _farCard?.Begin();
             _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]), farGl);
+            _farCard?.End();
+            if (_farRenderer.DrawnTiles > 0)
+            {
+                FarPassTimes.Record(MonotonicClock.Milliseconds() - farStarted);
+            }
         }
 
         _device.DepthStencilState = DepthStencilState.Default;
@@ -1505,6 +1528,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
 
         _card?.Dispose();
+        _farCard?.Dispose();
         _glPass?.Dispose();
         _indices.Dispose();
         _effect.Dispose();

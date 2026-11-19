@@ -275,6 +275,7 @@ public sealed class SceneDrawer : IDisposable
         if (_options.StreamStats)
         {
             _renderer.SetCardTimer(GlCardTimer.TryCreate(_console)); // the card's time for the chunk passes, with either path (B17b)
+            _renderer.SetFarCardTimer(GlCardTimer.TryCreate(_console)); // and for the far view's pass (B47)
         }
 
         SwitchShaders();
@@ -334,7 +335,7 @@ public sealed class SceneDrawer : IDisposable
             var phaseStart = MonotonicClock.Milliseconds();
             if (streaming.Pipeline.Track(eye.X, eye.Z, phaseStart)) // the start, or a jump: the stage counters' times count from this frame (B43)
             {
-                streaming.NearGate.Arm(phaseStart); // B45: far work waits until the near view is made
+                streaming.NearGate.Arm(phaseStart, eye.X, eye.Z); // B45: far work waits until the near view is made
                 streaming.Far.BeginCoverage();
             }
 
@@ -359,7 +360,7 @@ public sealed class SceneDrawer : IDisposable
         if (_streaming is { } gated && gated.NearGate.IsClosed)
         {
             var eyeNow = streamEye ?? camera.Eye;
-            _ = gated.NearGate.Observe(remeshEnd, () => gated.Residency.IsResidentAround(eyeNow.X, eyeNow.Y, eyeNow.Z, NearFirstGate.NearViewChunks) && renderer.IsMeshedAround(eyeNow, NearFirstGate.NearViewChunks)); // B45: the near view, resident and meshed, opens the gate for the next frame
+            _ = gated.NearGate.Observe(remeshEnd, () => gated.Residency.IsResidentAround(eyeNow.X, eyeNow.Y, eyeNow.Z, NearFirstGate.NearViewChunks) && renderer.IsMeshedAround(eyeNow, NearFirstGate.NearViewChunks), (eyeNow.X, eyeNow.Z)); // B47: an eye that has left the place opens it too. B45: the near view, resident and meshed, opens the gate for the next frame
         }
 
         _phaseAllocated += GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
