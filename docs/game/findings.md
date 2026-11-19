@@ -3153,3 +3153,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   8.5; after a 3 km jump, all visible in 8.4 s instead of 27.2. **This is the first change of the speed work that moves the owner's start
   time.** Meshing now trails residency by 2 to 3 s, so residency (100% at 7 to 11 s) is the limit. 30 to 60% of columns are made without a
   group window because the 128-group cache evicts groups before generation reaches them.
+- **B45, the near-first gate (2026-11-19, merge `763b07ec`).** At a start and after a jump over 64 blocks no far work (ring, tiles of any
+  level, stand-ins, drainage warm-up) is submitted until every planned column within 128 blocks is resident and meshed (or 20 s); B38's
+  resident-chunk copies moved to the ring's worker (references taken on the game thread; a fenced `VoxelChunk.HasBeenWritten` drops any
+  chunk edited before or during the copy). On the owner's command (fresh seeds and stores, 8 workers, medians of 3): near view 5.2 to 3.3 s,
+  generation done 8.2 to 5.3 s, whole view 11.5 to 9.3 s; far covered 11.1 to 12.6 s (the price), far filled unchanged (26 s); streaming
+  p99 9.6 to 12.4 ms down to 6.8 to 7.5. Letting level 4 and up through (`VOCATERRA_NEAR_GATE=fine`) gained nothing. One main run: whole view
+  20.6 s. Meshing now trails residency by about 4 s.
+- **Exit 139 in a game-window test again (2026-11-19, B45's gate).** `NamePlatesTests.TheBeaconsNpcBehindABuildingHasNoPlateDrawnAndInTheOpenShesGotOne`
+  starts two headless game runs at once (`--far-view off`); one exited 139 (SIGSEGV) after 27 s and the test passed alone. The same exit hit a
+  game-window test on 2026-11-16 (B07e put it down to far buffers at shutdown and disposed them; this run had no far view, so that was not
+  the whole cause). An intermittent native crash in the game process: planned as B46 (proposed).
