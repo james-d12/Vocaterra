@@ -124,7 +124,7 @@ Captured once on `feature/inventory` at `1924d061` (a Release build, `GAME_BIN` 
 - **r26-death:** the stacks of one stay (the book, the axe) and the worn clothes stay worn; the chest holds the five stackables as before (`chest 5 items at 155,73,115`); the player wakes at Luna's fire (`174,43,188`, Y08; the row's older `152,73,106` was stale).
 - **r42-camp:** the death's chest holds one item (`chest 1 items`), as the row says.
 - **r10-playtest, r20, r30, r40** and the other session routes: the same events and the same check order as before; their timings differ only in the order-only way described above.
-- **r44, r45 and r46** are new (rows above). Findings: none. (r44: the second shirt goes to the appearance slot, not over the worn one, because an empty slot is chosen first; `--equip abrigo` in r45 therefore needs the shirt taken off first.)
+- **r44, r45 and r46** are new (rows above). Findings: none. Since I10b a quick wear never fills a group that gives no stats: in r44 the second shirt swaps with the worn one (the first goes to the bag), and in r45 `--equip abrigo` alone would swap the coat in; the `--move shift,equip,1` step stays harmless. I10b also widened the day's swing from 6 to 7 degrees, so r45's readings and the F3 examples here are about one degree colder at night and warmer at noon than recorded (`day -7.0` at night).
 - **The tours** (r50 to r53) ran to the end (r51 21 pictures, r52 and r53 17 each, r50 its cave stops); they were not compared with older captures.
 
 ## Steps after a teleport (B07b)
