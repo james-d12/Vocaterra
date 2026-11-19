@@ -101,6 +101,23 @@ public static class DrawHelpers
         spriteBatch.DrawString(font, text, new Vector2(plate.X + 3, plate.Y + 1), new Color(front.R, front.G, front.B));
     }
 
+    /// <summary>Draws an item's wear bar in its cell (I07): a dark track along the bottom and the share left in green to red. Nothing for an item with no durability or no wear.</summary>
+    /// <param name="spriteBatch">The batch.</param>
+    /// <param name="pixel">A one-pixel white texture.</param>
+    /// <param name="cell">The slot's cell.</param>
+    /// <param name="stack">The stack in the slot.</param>
+    /// <param name="items">The item catalogue.</param>
+    public static void WearBar(SpriteBatch spriteBatch, Texture2D pixel, Vocaterra.Game.UI.Common.PixelBox cell, Core.Items.ItemStack stack, Core.Items.IItemCatalogue items)
+    {
+        if (Vocaterra.Game.UI.Common.WearBarLayout.Of(cell, Core.Items.Wearing.WearBar.Of(stack, items.Find(stack.Item))) is not { } layout)
+        {
+            return;
+        }
+
+        spriteBatch.Draw(pixel, new Rectangle(layout.Track.X, layout.Track.Y, layout.Track.Width, layout.Track.Height), new Color(10, 10, 20));
+        spriteBatch.Draw(pixel, new Rectangle(layout.Fill.X, layout.Fill.Y, layout.Fill.Width, layout.Fill.Height), new Color(layout.Red, layout.Green, layout.Blue));
+    }
+
     /// <summary>The text cut to <paramref name="maxWidth"/> pixels, ending in "..." when it is cut (a last resort for one line that has no room to wrap).</summary>
     public static string Fit(SpriteFontBase font, string text, int maxWidth)
     {

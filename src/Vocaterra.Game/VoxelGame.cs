@@ -311,7 +311,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
         _settings.Changed += ApplySetting;
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
-        _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
+        _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, CraftingScreen.Rows(session.Simulation, session.Recipes).Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         _stationPanel = new StationPanel(
             _station,
             session,
@@ -397,7 +397,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                             ? $"equip: {name} worn in {equipment.Data.Groups[worn.Group].Id} {equipment.Data.Spec(worn).Name}"
                             : $"equip: {name} refused ({result})");
                     },
-                    BodyWorldReady);
+                    BodyWorldReady,
+                    Wear: (item, amount) =>
+                    {
+                        // A test aid (I07): --wear item=n sets the item's wear (given first if none is carried or worn), clamped to its durability
+                        var set = session.Simulation.SetWear(item, amount);
+                        Console.WriteLine(set < 0 ? $"wear: {session.Data.Items.Get(item).Name} cannot wear out or has no room" : $"wear: {session.Data.Items.Get(item).Name} at {set}");
+                    });
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, session.Data.Items, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }

@@ -135,6 +135,7 @@ public sealed class InventoryLayer : IFrameLayer
             {
                 var size = Math.Min(Icon, box.Width - 4);
                 view.DrawIcon(spriteBatch, stack.Item, new Rectangle(box.X + ((box.Width - size) / 2), box.Y + ((box.Height - size) / 2), size, size));
+                DrawHelpers.WearBar(spriteBatch, pixel, new PixelBox(rect.X, rect.Y, rect.Width, rect.Height), stack, view.Session.Data.Items); // I07
             }
             else if (layout.HasLabelColumn && cell.Row >= shape.BodyRows && cell.Label is { } lemma)
             {
@@ -309,5 +310,7 @@ public sealed class InventoryLayer : IFrameLayer
         {
             DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, compact ? box.Top + (tight ? 34 : 36) : box.Bottom - 3)); // a short slot puts the count over the icon's corner, clear of the name (X08)
         }
+
+        DrawHelpers.WearBar(spriteBatch, pixel, new PixelBox(box.X, box.Y, box.Width, box.Height), stack, view.Session.Data.Items); // I07
     }
 }

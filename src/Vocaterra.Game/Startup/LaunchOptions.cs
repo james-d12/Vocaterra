@@ -111,6 +111,8 @@ public sealed record LaunchOptions
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
         + "  --equip <item>          give the item and wear it in the first slot that takes it (repeatable; a test aid, I03a); an item that cannot be worn is reported and left in the bag\n"
+        + "  --wear <item>=<n>       set the wear of the item to n, clamped to its durability (the item is given first if none is carried or worn; repeatable; a test aid, I07): hacha=500 is a worn-out axe\n"
+        + "  --repair <item>         repair the item at the workbench with the station in reach and the material in the bag (I07; like --craft: needs --screenshot, the console says the result)\n"
         + "  --place-camp x,z,face   set up the camp with the camp kit in the bag (Y12; give one with --give equipo): the fire ring's middle goes on the ground column x,z and the camp faces\n"
         + "                          north, east, south or west as given; the kit's use on that ground: the console says the answer and a refusal's reason, nothing changes on a refusal\n"
         + "  --plant x,y,z           plant the held berry on the grass or dirt block at that cell as a right click on it does (N08; a berry bush at the camp, within 8 blocks of its fire)\n"
@@ -792,7 +794,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
+                or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--wear" or "--repair" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
@@ -1624,6 +1626,15 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Equip, Value: value.Trim()));
                     break;
+                case "--wear":
+                    if (!value.Contains('=', StringComparison.Ordinal) || value.IndexOf('=', StringComparison.Ordinal) == 0 || !int.TryParse(value.AsSpan(value.IndexOf('=', StringComparison.Ordinal) + 1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out _))
+                    {
+                        error = "--wear needs an item and a wear, like hacha=400.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Wear, Value: value.Trim()));
+                    break;
                 case "--give":
                     if (value.Trim().Length == 0)
                     {
@@ -1681,6 +1692,17 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--repair":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--repair needs an item, like hacha.";
+                        return false;
+                    }
+
+                    steps.Add(VoxelStep.Repair(value.Trim()));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 default:
                     break;
             }
@@ -1688,7 +1710,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --move, --station, --station-say, --act, --proc-help, --eat, --equip, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --teleport-to, --interact, --place, --place-camp, --pour, --set-time, --set-weather, --select, --craft, --move, --station, --station-say, --act, --proc-help, --eat, --equip, --wear, --repair, --drink, --take-belongings, --need, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --sleep, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
