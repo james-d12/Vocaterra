@@ -291,6 +291,16 @@ public sealed class HomographRerollTests
         Assert.True(realised > 5000, $"Only {realised} of 20000 draws were realised.");
     }
 
+    // I-fuzz (PR #71's CI, seed 1892 of the test above): «sueño biblias 1 cuanto transporta por favor» is clean, but M97's re-roll covered only a next noun, so cuanto
+    // stayed in the noun pool and was drawn before a verb once the inventory content moved the pool. A noun that reads as the quantifier cuánto is now not in the pool.
+    [Fact]
+    public void TheNounCuantoIsNoLongerInTheNounPool()
+    {
+        Assert.DoesNotContain(Harness.Words.Nouns, static n => n.Lemma is "cuanto" or "cuánto");
+        Assert.DoesNotContain(Harness.Words.PlainNouns, static n => n.Lemma is "cuanto" or "cuánto");
+        Assert.True(Harness.Words.Diagnostics.GetValueOrDefault("nouns:excluded-reads-as-article-numeral-or-determiner") > 0);
+    }
+
     // (7) M98, O3 seed 7q7l8dSNG6n6 (found on feature/biomes, 2026-11-17): [ADV]? [NOUN:item]? [VERB:aclarar] [VERB] realised «alrededor aclara construir» with alrededor
     // (a masculine noun, «los alrededores», and an adverb) as the item noun. The matcher gives the word to the optional [ADV] (clean either way) and yields no item slot.
     // The lexicon's noun reading is right and the analyzer's binding is a valid one, so the fault is the realiser's expectation: a noun that is also an adverb is

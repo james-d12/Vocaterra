@@ -640,13 +640,15 @@ public sealed class LexiconCatalog
     }
 
     // A noun spelled like an article, a numeral or a determiner adjective (poca, "a bit", next to poco) is read as the determiner by the analyzer, which is a
-    // property of the lexicon (the word is a homograph), so the generators never build a noun phrase around it.
+    // property of the lexicon (the word is a homograph), so the generators never build a noun phrase around it. I-fuzz: that includes cuanto (a noun, "a quantum", and
+    // the quantifier cuánto, adjective lemma cuanto), which is no entry of DeterminerAdjectiveLemmas (those mirror the analyzer's determiners and feed the generators
+    // that spell one); M97 re-rolled it only right before another noun, so it still reached the pool and was drawn elsewhere (before a verb: «1 cuanto transporta»).
     private bool ReadsAsDeterminer(string form)
     {
         foreach (var reading in Lexicon.Lookup(form))
         {
             if (reading.Pos is LexiconSchema.Article or LexiconSchema.Numeral
-                || (reading.Pos == LexiconSchema.Adjective && DeterminerAdjectiveLemmas.Contains(reading.Lemma)))
+                || (reading.Pos == LexiconSchema.Adjective && (DeterminerAdjectiveLemmas.Contains(reading.Lemma) || reading.Lemma is "cuanto" or "cuánto")))
             {
                 return true;
             }
