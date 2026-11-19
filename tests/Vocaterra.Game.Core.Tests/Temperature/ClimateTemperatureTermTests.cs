@@ -82,10 +82,10 @@ public sealed class ClimateTemperatureTermTests
     }
 
     [Fact]
-    public void Given_TheValleysFloor_When_TheFeelIsTakenNowAndAsTheOldModelHadIt_Then_ItIsWithinHalfADegreeAtNoonAndAtNight()
+    public void Given_TheValleysFloor_When_TheFeelIsTakenNowAndAsTheFlatModelWithTheOwnersSwingHasIt_Then_ItIsWithinHalfADegreeAtNoonAndAtNight()
     {
-        // The old model: a base of 14 degrees, the day's swing and the weather's cooling, and a climate term that was 0 to -0.5 in the valley.
-        var old = new PlaceTemperature([new FixedTerm(140), new DayTemperatureTerm(60), new WeatherTemperatureTerm(20, 60, 50)]);
+        // The flat model with the owner's swing of 7 degrees (I10b, QA-2026-11-19-progression-4; the swing was 6 before): a base of 14 degrees, the day's swing and the weather's cooling, and a climate term that is 0 to -0.5 in the valley.
+        var old = new PlaceTemperature([new FixedTerm(140), new DayTemperatureTerm(70), new WeatherTemperatureTerm(20, 60, 50)]);
 
         foreach (var (x, z) in new[] { (176, 186), (292, 218), (200, 200) })
         {

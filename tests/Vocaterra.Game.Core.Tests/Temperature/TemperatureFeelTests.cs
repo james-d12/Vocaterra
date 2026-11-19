@@ -21,10 +21,10 @@ public sealed class TemperatureFeelTests
         var fires = TemperatureRig.Ring(lit: true);
         var rainyNightByAFire = Place(TemperatureRig.Beside(TemperatureRig.Sky(0, "rain"), fires, 2));
 
-        Assert.Equal((182, "warm"), (noon, Band(noon)));
-        Assert.Equal((62, "cool"), (clearNight, Band(clearNight)));
-        Assert.Equal((-18, "cold"), (rainyNight, Band(rainyNight)));
-        Assert.Equal((132, "warm"), (rainyNightByAFire, Band(rainyNightByAFire)));
+        Assert.Equal((192, "warm"), (noon, Band(noon))); // I10b: the owner chose colder nights and hotter days (the day swing 6 to 7 degrees)
+        Assert.Equal((52, "cool"), (clearNight, Band(clearNight)));
+        Assert.Equal((-28, "cold"), (rainyNight, Band(rainyNight)));
+        Assert.Equal((122, "warm"), (rainyNightByAFire, Band(rainyNightByAFire)));
         Assert.Equal("warm", Band(Place(TemperatureRig.Beside(TemperatureRig.Sky(0, "sunny"), fires, 2))));
     }
 
