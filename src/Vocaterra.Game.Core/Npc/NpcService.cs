@@ -746,7 +746,8 @@ public sealed partial class NpcService
 
         var hostEvents = HostEventsOf(result);
         var followUp = new List<string>();
-        var unsaid = AnswerMisses(agent, result, NpcEffect.CountedSlots(verdict.Slots, line, _words), scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
+        var countedSlots = NpcEffect.CountedSlots(verdict.Slots, line, _words);
+        var unsaid = AnswerMisses(agent, result, countedSlots, scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         Note(agent, string.Empty, hostEvents); // after the misses: a gift the NPC refused (V21) is not an event of the turn
         var understood = verdict.Communicated && !string.Equals(verdict.Intent.Value, "unknown", StringComparison.Ordinal);
         var composed = NpcTurnRules.Compose(
@@ -788,7 +789,7 @@ public sealed partial class NpcService
         // W03: the fail-forward is the NPC's own rule (patience in its file), counted at the prompt it names.
         if (!offPrompt && _patience.TryGetValue(npc, out var patience) && string.Equals(promptId, patience.Prompt, StringComparison.Ordinal))
         {
-            failForward = FailForward(patience, agent, verdict, result, now, hostStateHash, hostEvents, followUp);
+            failForward = FailForward(patience, agent, verdict, result, now, hostStateHash, hostEvents, followUp, productive: ExchangeMade(agent, hostEvents, countedSlots, scene));
         }
 
         var step = offPrompt ? null : result.Repair; // V27: no repair line of any kind after an off-prompt reply
@@ -885,7 +886,23 @@ public sealed partial class NpcService
         _ => null,
     };
 
-    // The fail-forward (rule 8; the stall's, W03 made it data). After a line at the rule's prompt that did not ask for anything (the repair ladder's next
+    // Whether the turn's line asked for an exchange (a sale, a purchase, a gift) that the world of the turn can make (I10b): its host event is in the turn's list and no miss answers it. A sale reaches the list by the
+    // miss path (the stall's «quiero una camisa» is the bottle's event answered by the sale), so the test is on the final events, each judged again as a miss is.
+    private bool ExchangeMade(Agent agent, IReadOnlyList<string> hostEvents, IReadOnlyDictionary<string, string> slots, GuideScene scene)
+    {
+        foreach (var hostEvent in hostEvents)
+        {
+            var effect = _hostEvents.Of(agent.Id, hostEvent);
+            if (effect.Kind is NpcEffectKind.Sell or NpcEffectKind.Buy or NpcEffectKind.GiveItem or NpcEffectKind.SellPlot && Miss(agent.Id, effect, slots, scene, scene.Facts ?? _worldFacts) is null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The fail-forward (rule 8; the stall's, W03 made it data). A line at the rule's prompt that asked for something and got it (productive) resets the count (I10b). After a line at the rule's prompt that did not ask for anything (the repair ladder's next
     // step, a help request, a thanks), count it; when the exchange has run out of road the NPC raises the rule's event to its agent (the shopkeeper hands the
     // bottle over with the core's own line), as a host turn.
     private bool FailForward(
@@ -896,10 +913,18 @@ public sealed partial class NpcService
         StoredTimestamp now,
         string hostStateHash,
         List<string> hostEvents,
-        List<string> followUp)
+        List<string> followUp,
+        bool productive)
     {
         if (rule.Once && agent.BottleGiven)
         {
+            return false;
+        }
+
+        if (productive)
+        {
+            // I10b, QA-2026-11-19-progression-1: a line that asked for something and got it (a sale) is not a miss, and ends the run of misses: the fail-forward counts lines that asked for nothing.
+            agent.Unproductive = 0;
             return false;
         }
 
