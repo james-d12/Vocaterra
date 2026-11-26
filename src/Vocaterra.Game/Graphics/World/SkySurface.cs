@@ -24,6 +24,7 @@ public sealed class SkySurface
         OriginZ = (chunkZ << VoxelChunk.Shift) - 1;
         _surface = new int[Side * Side];
         var max = int.MinValue;
+        var min = int.MaxValue;
         for (var dz = 0; dz < Side; dz++)
         {
             for (var dx = 0; dx < Side; dx++)
@@ -31,10 +32,12 @@ public sealed class SkySurface
                 var y = surfaceOf(OriginX + dx, OriginZ + dz);
                 _surface[(dz * Side) + dx] = y;
                 max = Math.Max(max, y);
+                min = Math.Min(min, y);
             }
         }
 
         Highest = max;
+        Lowest = min;
     }
 
     /// <summary>The x of the first block column held.</summary>
@@ -45,6 +48,9 @@ public sealed class SkySurface
 
     /// <summary>The highest surface among the columns: a cell above it is open to the sky whatever column it is in.</summary>
     public int Highest { get; }
+
+    /// <summary>The lowest surface among the columns (a shaft open to the sky counts at its bottom): an eye well under it in every column round it is buried (<see cref="BuriedEye"/>).</summary>
+    public int Lowest { get; }
 
     /// <summary>The surface y of the block column (x, z), which lies within one block of the chunk column.</summary>
     /// <param name="x">The block's x.</param>

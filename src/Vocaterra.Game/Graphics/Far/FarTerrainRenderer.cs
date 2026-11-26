@@ -125,7 +125,8 @@ public sealed class FarTerrainRenderer : IDisposable
     /// <param name="camera">The camera of the frame.</param>
     /// <param name="state">The light and the haze.</param>
     /// <param name="gl">B17c: the game's own GLSL program and the frame's light to draw through (the far view in the chunks' sun and fog), or <see langword="null"/> for MonoGame's effects with the day's baked light.</param>
-    public void Draw(FirstPersonCamera camera, in FarDrawState state, FarGlDraw? gl = null)
+    /// <param name="hidden">Whether nothing is drawn this frame (the fog is complete before the far land begins, or the eye is buried in a cave): the tiles the workers made are still uploaded, so the view is whole when it is drawn again.</param>
+    public void Draw(FirstPersonCamera camera, in FarDrawState state, FarGlDraw? gl = null, bool hidden = false)
     {
         _drawn = 0;
         _visible.Clear();
@@ -145,13 +146,14 @@ public sealed class FarTerrainRenderer : IDisposable
         {
             _view.Reassemble(); // B47: the tiles just uploaded are drawn in this frame, not the next
         }
-        if (_view.Draw.Count == 0)
+
+        _view.ReachScale = ReachFor(camera);
+        if (hidden || _view.Draw.Count == 0)
         {
-            return;
+            return; // nothing drawn, so the depth buffer is as the frame's clear left it
         }
 
         var projection = ProjectionFor(camera, settings.Range, NearPlaneFor(_view.VoxelViewDistance));
-        _view.ReachScale = ReachFor(camera);
         _frustum.Matrix = camera.View * projection;
         for (var i = 0; i < _view.Draw.Count; i++)
         {

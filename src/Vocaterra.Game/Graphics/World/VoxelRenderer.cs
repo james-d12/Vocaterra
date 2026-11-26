@@ -281,6 +281,10 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     public LightBand Band => _band;
 
     private float _underwaterAmount;
+    private float _moltenAmount;
+
+    // Whether the eye is buried: well under the lowest surface of the land round it (BuriedEye), so no way out to the far land is near and the far pass is not drawn.
+    private bool _buried;
 
     private PlayerLightData? _playerLightData;
     private double _playerLightStat;
@@ -332,6 +336,25 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     }
 
     /// <summary>
+    /// Sets how far in lava the view is: the fog, the clear colour and the sky blend from the ones round the eye to the lava's by <paramref name="amount"/> (<see cref="LavaFog.Blend"/>), over the water's. Lava is an opaque cube, so with the eye
+    /// inside it nothing near is drawn: without its fog the view went through the rock to the caves and the land above. At 0 everything is as it was.
+    /// </summary>
+    /// <param name="amount">How far in lava, 0 to 1.</param>
+    public void SetMolten(float amount)
+    {
+        if (amount == _moltenAmount)
+        {
+            return;
+        }
+
+        _moltenAmount = amount;
+        ApplyFogState();
+    }
+
+    // The fog round the eye is that of water or lava (the view is veiled: no sky, no fog by height, no rain) by the larger of the two amounts.
+    private float Veiled => Math.Max(_underwaterAmount, _moltenAmount);
+
+    /// <summary>
     /// Takes the sky's look of this frame (E02), in place of the old dusk switch: the clear colour and the fog follow the look's horizon colour, the sky is drawn in it, and the
     /// world's light follows its sun light by the tints each band is drawn with. A change of the look's light band makes the meshes of the other bands stale: <see cref="Remesh"/>
     /// builds them again in the background within its budget, the old ones staying on screen (tinted to the same light) until each is replaced. It composes with
@@ -366,6 +389,8 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             return;
         }
 
+        _buried = BuriedEye.Next(_buried, (int)MathF.Floor(eye.Y), LowestSurfaceAround(eye, _skyExposure));
+
         var share = _skyExposure.FactorAt(eye.X, eye.Y, eye.Z);
         if (MathF.Abs(share - _eyeSky) < 0.002f)
         {
@@ -388,17 +413,24 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
     }
 
-    // The dry fog blended with the water's by the amount under water, applied to both effects, the clear colour and the sky's haze.
+    // The dry fog blended with the water's by the amount under water, then with the lava's by the amount in lava, applied to both effects, the clear colour and the sky's haze.
     private void ApplyFogState()
     {
         var fog = UnderwaterFog.Blend(DryFog, _underwaterAmount);
         var t = Math.Clamp(_underwaterAmount, 0f, 1f);
         var dim = (WaterLight - 1f) * t; // the water's share of the blend, dimmed by the light: dry * (1 - t) + water * t becomes dry * (1 - t) + water * light * t
         var colour = new Vector3(fog.Red + (dim * UnderwaterFog.WaterRed), fog.Green + (dim * UnderwaterFog.WaterGreen), fog.Blue + (dim * UnderwaterFog.WaterBlue)) * _eyeSky;
-        ClearColour = _underwaterAmount <= 0f ? new Color(new Vector3(_look.FogColour.R, _look.FogColour.G, _look.FogColour.B) / 255f * _eyeSky) : new Color(colour);
+        var molten = Math.Clamp(_moltenAmount, 0f, 1f);
+        if (molten > 0f)
+        {
+            fog = LavaFog.Blend(fog, molten);
+            colour = Vector3.Lerp(colour, new Vector3(LavaFog.LavaRed, LavaFog.LavaGreen, LavaFog.LavaBlue), molten); // the lava glows: neither the day's light nor the cave's dark takes its colour
+        }
+
+        ClearColour = Veiled <= 0f ? new Color(new Vector3(_look.FogColour.R, _look.FogColour.G, _look.FogColour.B) / 255f * _eyeSky) : new Color(colour);
         ApplyFog(_effect, colour, fog);
         ApplyFog(_solid, colour, fog);
-        _sky.SetHaze(ClearColour, _underwaterAmount);
+        _sky.SetHaze(ClearColour, Veiled);
     }
 
     private static void ApplyFog(IEffectFog effect, Vector3 colour, FogParameters fog)
@@ -859,6 +891,28 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     /// <summary>The far view's range in blocks now (0: none).</summary>
     public int FarRange => (int)_farRange;
 
+    /// <summary>
+    /// Whether the far pass draws nothing this frame (its tiles are still uploaded, so they are there when it draws again): the fog is complete before the far land begins (under water, in lava, in the thickest weather), or the eye is buried
+    /// (<see cref="BuriedEye"/>: deep under all the land round it, in a cave, where no way out to the far land is near).
+    /// </summary>
+    public bool FarHidden => _buried || (_far is { } far && _effect.FogEnd <= far.Settings.InnerFraction * Preset.ViewDistance);
+
+    // The lowest surface of the land in the chunk columns round the eye (BuriedEye.Reach of them on each side): their sky tiles are the ones the meshes of the near chunks are made with, so they are there already.
+    private static int LowestSurfaceAround(Vector3 eye, SkyExposure sky)
+    {
+        var (cx, cz) = ((int)MathF.Floor(eye.X) >> VoxelChunk.Shift, (int)MathF.Floor(eye.Z) >> VoxelChunk.Shift);
+        var lowest = int.MaxValue;
+        for (var dz = -BuriedEye.Reach; dz <= BuriedEye.Reach; dz++)
+        {
+            for (var dx = -BuriedEye.Reach; dx <= BuriedEye.Reach; dx++)
+            {
+                lowest = Math.Min(lowest, sky.Tile(cx + dx, cz + dz).Lowest);
+            }
+        }
+
+        return lowest;
+    }
+
     /// <summary>How many far tiles the last <see cref="DrawWorld"/> drew.</summary>
     public int DrawnFarTiles => _farRenderer?.DrawnTiles ?? 0;
 
@@ -1075,7 +1129,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             var farStarted = MonotonicClock.Milliseconds();
             _farCard?.NextFrame();
             _farCard?.Begin();
-            _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]), farGl);
+            _farRenderer.Draw(camera, new FarDrawState(_effect.FogColor, _effect.FogStart, _effect.FogEnd, _tints[(int)LightBand.Day]), farGl, hidden: FarHidden);
             _farCard?.End();
             if (_farRenderer.DrawnTiles > 0)
             {
@@ -1135,7 +1189,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
         }
 
         // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
-        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, _underwaterAmount);
+        _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, Veiled);
         _device.RasterizerState = RasterizerState.CullClockwise;
         _device.Indices = _indices;
 
@@ -1344,7 +1398,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     {
         var direction = SunModel.ShadingDirection(_look, _effects.SunFollowsHour);
         var (glowR, glowG, glowB) = LanternGlow.PassColour(GlowStrength);
-        var haze = _effects.HeightFog && _underwaterAmount <= 0f ? HeightFogDensity * (1f + (2f * _look.Fog)) : 0f; // thicker in fog and rain; none under water, where the water's own fog is
+        var haze = _effects.HeightFog && Veiled <= 0f ? HeightFogDensity * (1f + (2f * _look.Fog)) : 0f; // thicker in fog and rain; none under water or in lava, where their own fog is
         var day = ChunkMesher.SunDirection;
         var player = ActivePlayerLight;
         var playerColour = PlayerLightGlow.Colour(player);
