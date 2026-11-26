@@ -30,7 +30,7 @@ public sealed class WorldGenDataTests
         Assert.Equal(new NoiseSpec(4096, 3, 4500, 1300), world.Climate.Continentalness);
         Assert.Equal(new ContinentSpec(8000, 800, 2, 1, 560, 340, 1800, 3600, 720, 6000, 23, 1800, 800, 6), world.Climate.Continents);
         Assert.Equal(new NoiseSpec(12288, 2, 0, 0), world.Climate.Erosion);
-        Assert.Equal(new SplinePoint(-1000, -58), world.Height.Base[0]);
+        Assert.Equal(new SplinePoint(-1000, -54), world.Height.Base[0]);
         Assert.Equal(Shipped.Height.Coast, world.Height.Coast);
         Assert.NotNull(world.Height.CoastData); // the coast fades the peaks and calms the hills
         Assert.Equal(4, world.Height.Terraces.Step);
