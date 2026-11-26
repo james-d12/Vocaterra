@@ -99,8 +99,9 @@ public sealed class LiveVoxelInput
     /// <summary>
     /// The block the interact button works on: the one under the crosshair when it can be gathered, or when it is water (S6: with a bottle in the
     /// inventory the simulation fills it, without one it only says so), or when it is planks (Y09: the simulation takes them back on owned land and says why it cannot elsewhere), or when it is a block of the player's camp (Y12: holding on it packs the camp),
-    /// otherwise <see langword="null"/>.
+    /// or, under the break-all cheat, when it is any block the cheat breaks (<see cref="VoxelSimulation.BreaksUnderCheat"/>), otherwise <see langword="null"/>.
     /// </summary>
-    public static BlockPos? GatherFor(BlockRayHit? target, Land.IBuildRules? rules = null) =>
-        target is { } hit && (BlockDefinition.Get(hit.Id).Gatherable || hit.Id is BlockId.Water or BlockId.Planks || rules?.IsCampBlock(hit.Block) == true) ? hit.Block : null;
+    public static BlockPos? GatherFor(BlockRayHit? target, Land.IBuildRules? rules = null, bool breakAll = false) =>
+        target is { } hit && (BlockDefinition.Get(hit.Id).Gatherable || hit.Id is BlockId.Water or BlockId.Planks || rules?.IsCampBlock(hit.Block) == true
+            || (breakAll && VoxelSimulation.BreaksUnderCheat(hit.Id))) ? hit.Block : null;
 }

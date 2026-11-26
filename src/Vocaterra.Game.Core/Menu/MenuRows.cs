@@ -56,6 +56,7 @@ public static class MenuRows
             MenuRow.Of(settings, SettingId.PassCheat),
             MenuRow.Of(settings, SettingId.Fly),
             MenuRow.Of(settings, SettingId.FlySpeed),
+            MenuRow.Of(settings, SettingId.BreakAll),
         };
         if (testing is not null)
         {
