@@ -36,11 +36,16 @@ public sealed class GlShaderTests
     {
         var vertex = ShaderSources.Load(ShaderSources.ChunkVertex);
         var fragment = ShaderSources.Load(ShaderSources.ChunkFragment);
-        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUv;", "float vFog;", "vec3 vWorld;" })
+        foreach (var varying in new[] { "vec4 vColour;", "vec2 vUvGrad;", "float vFog;", "vec3 vWorld;" })
         {
             Assert.Contains("out " + varying, vertex, StringComparison.Ordinal);
             Assert.Contains("in " + varying, fragment, StringComparison.Ordinal);
         }
+
+        // The atlas coordinate is interpolated at the centroid, so that a multisampled pixel on a face's edge never samples the neighbouring cell of the atlas (the dotted seams along the rocks' edges).
+        Assert.Contains("centroid out vec2 vUv;", vertex, StringComparison.Ordinal);
+        Assert.Contains("centroid in vec2 vUv;", fragment, StringComparison.Ordinal);
+        Assert.Contains("textureGrad(uAtlas, vUv, dFdx(vUvGrad), dFdy(vUvGrad))", fragment, StringComparison.Ordinal);
 
         // The vertex layout is MeshVertex's: a position, a colour and a coordinate at locations 0, 1 and 2.
         Assert.Contains("layout(location = 0) in vec3 aPosition", vertex, StringComparison.Ordinal);

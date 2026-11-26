@@ -31,7 +31,11 @@ uniform float uTime;        // seconds of game time, for the surface's movement
 uniform float uWaveAmount;  // the surface's movement in blocks
 
 out vec4 vColour;
-out vec2 vUv;
+// The atlas coordinate twice. Under multisampling a pixel the face only partly covers is still shaded once, and without `centroid` at the pixel's centre even when that centre lies outside the face: the
+// coordinate is then extrapolated past the face's edge, out of the cell's 0.02-texel inset and into the neighbouring cell of the atlas, which drew dotted lines of a neighbour's colour along the blocks' edges. `centroid` keeps the
+// point inside the covered part of the pixel, so vUv stays in the cell; vUvGrad is the same coordinate without it, whose derivatives are smooth across the face, for the choice of the mip level.
+centroid out vec2 vUv;
+out vec2 vUvGrad;
 out float vFog;
 out vec3 vWorld;
 
@@ -95,6 +99,7 @@ void main()
     gl_Position.y = gl_Position.y * uFlipY;
     vColour = vec4((aColour.rgb * factor) + glow, aColour.a);
     vUv = aUv;
+    vUvGrad = aUv;
     vWorld = p;
     float fog = clamp(dot(position, uFogVector), 0.0, 1.0);
     if (uHeightFog.x > 0.0)
