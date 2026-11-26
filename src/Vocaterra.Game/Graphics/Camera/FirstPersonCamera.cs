@@ -47,6 +47,9 @@ public sealed class FirstPersonCamera
     /// <summary>The camera-to-clip matrix.</summary>
     public Matrix Projection { get; private set; } = Matrix.Identity;
 
+    /// <summary>The far plane of <see cref="Projection"/> in blocks (the one <see cref="Update"/> was given).</summary>
+    public float FarDistance { get; private set; } = FarPlane;
+
     /// <summary>The viewing frustum, for skipping chunks that cannot be seen.</summary>
     public BoundingFrustum Frustum { get; private set; } = new(Matrix.Identity);
 
@@ -73,6 +76,7 @@ public sealed class FirstPersonCamera
         Up = ToVector(basis.Up);
         View = Matrix.CreateLookAt(eye, eye + Forward, Up);
         var aspect = width / (float)Math.Max(1, height);
+        FarDistance = farPlane;
         Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfView), aspect, NearPlane, farPlane);
         Frustum = new BoundingFrustum(View * Projection);
         Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfView, Math.Max(1, screenWidth ?? width), Math.Max(1, screenHeight ?? height));

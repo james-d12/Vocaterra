@@ -418,6 +418,7 @@
     "ui.settingsPass": "Open the pass (cheat)",
     "ui.settingsFly": "Fly (cheat)",
     "ui.settingsFlySpeed": "Fly speed (blocks/s)",
+    "ui.settingsBreakAll": "Break all blocks (cheat)",
     "ui.qualityLow": "low",
     "ui.qualityMedium": "medium",
     "ui.qualityHigh": "high",

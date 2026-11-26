@@ -1188,6 +1188,9 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
             _device.Indices = _indices;
         }
 
+        // The clouds the eye is above: after the water, over the ground and the sea beneath them, reading the chunks' depth; they leave the water's blend and depth states for the rain.
+        _sky.DrawCloudsOverWorld(camera);
+
         // The rain (E06): after the water, in the water's blend and depth states (alpha, depth read only), fogged like the world, and not under water.
         _rain.Draw(camera, tick, _precipitation, Preset.RainDrops, _sunLight, _effect.FogColor, _effect.FogStart, _effect.FogEnd, Veiled);
         _device.RasterizerState = RasterizerState.CullClockwise;

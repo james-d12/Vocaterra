@@ -3310,3 +3310,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   suite to CI, so the series' content (new nouns shifting the generator's draws) failed only there: the sentence generator could draw the
   noun «cuanto», which reads as the determiner cuánto. Fixed in the generator (`LexiconCatalog.ReadsAsDeterminer`), not the oracle. A content
   milestone should run `scripts/test.sh ci` (or at least the fuzz project) before its pull request.
+- **The rocks' dotted seams (2026-11-26, on `feature/atlas-seams`).** The owner's cave pictures showed dotted pale, blue and yellow lines
+  along the blocks' edges. The cause was multisampling (on at High, 4 samples): a pixel a face only partly covers is shaded once, at the
+  pixel's centre even when the centre lies outside the face, so the atlas coordinate was extrapolated past the cell's 0.02-texel inset into
+  the neighbouring cell (granite's neighbours are limestone and the coin icon, slate's the bedroll's foot: the seams' colours). Not cracks:
+  the mesher draws one quad per face with shared corners. Fixed in `chunk.vert.glsl` and `chunk.frag.glsl`: the coordinate is `centroid`,
+  and a second copy without it gives `textureGrad` its derivatives, since a centroid value's derivatives are unreliable on the edge. Seed 42's
+  cavern (504,-30,176, `--msaa 4 --far-view off`) before and after: 781 pixels differ, all on block edges, 565 of them seams gone. The
+  effects fallback (below OpenGL 3.3) keeps the seams under multisampling; a wider inset or an atlas gutter would cover it too.

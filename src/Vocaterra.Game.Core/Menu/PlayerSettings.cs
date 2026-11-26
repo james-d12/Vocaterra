@@ -5,7 +5,7 @@ namespace Vocaterra.Game.Core.Menu;
 
 /// <summary>
 /// The player's settings as the game holds them while it runs (the menu issue): the four volumes, the graphics quality, the text size, the underwater blur, the needs' view effects,
-/// the mouse sensitivity and Invert Y, the field of view, the draw distance, the drive rate, the relaxed needs and the cheats (the pass, flying and its speed). The menu changes them through <see cref="Set"/>, which limits a value to its range and
+/// the mouse sensitivity and Invert Y, the field of view, the draw distance, the drive rate, the relaxed needs and the cheats (the pass, flying and its speed, breaking every block). The menu changes them through <see cref="Set"/>, which limits a value to its range and
 /// its steps (<see cref="Spec"/>), and <see cref="Changed"/> tells the front-end to apply the one that moved (the mixer, the canvas, the camera). They are kept in the save's settings
 /// (<see cref="ToSave"/>, <see cref="FromSave"/>); a launch option wins over the save for the run (<see cref="LaunchSettings"/>). Nothing here reaches the simulation but the drive rate
 /// and the relaxed needs, which the session already has as its settings (N05, N09).
@@ -37,6 +37,7 @@ public sealed class PlayerSettings
         new(SettingId.PassCheat, SettingKind.Toggle, 0, 1, 1, 0, "settingsPass", ChoiceKeys: OnOff),
         new(SettingId.Fly, SettingKind.Toggle, 0, 1, 1, 0, "settingsFly", ChoiceKeys: OnOff),
         new(SettingId.FlySpeed, SettingKind.Slider, 10, 500, 10, Physics.VoxelPhysics.DefaultFlyBlocksPerSecond, "settingsFlySpeed"),
+        new(SettingId.BreakAll, SettingKind.Toggle, 0, 1, 1, 0, "settingsBreakAll", ChoiceKeys: OnOff),
         new(SettingId.Grass, SettingKind.Slider, 0, 100, 10, DefaultGrass, "settingsGrass", "%"),
         new(SettingId.Workers, SettingKind.Slider, 0, 8, 1, 0, "settingsWorkers", MinKey: "settingsAuto"),
         new(SettingId.FarDistance, SettingKind.Slider, 0, 16, 1, 0, "settingsFarDistance", " km", MinKey: "settingsAuto"),
@@ -126,6 +127,9 @@ public sealed class PlayerSettings
 
     /// <summary>The flying speed in blocks per second.</summary>
     public int FlySpeed => Get(SettingId.FlySpeed);
+
+    /// <summary>Whether the break-all cheat is on: the gather button breaks any block but bedrock and the liquids.</summary>
+    public bool BreakAll => Get(SettingId.BreakAll) == 1;
 
     /// <summary>The decorative grass's density, 0 (none) to 1 (every grass column in the lushest biome).</summary>
     public double Grass => Get(SettingId.Grass) / 100.0;
@@ -219,6 +223,7 @@ public sealed class PlayerSettings
             settings._values[(int)SettingId.Msaa] = SaveSettings.MsaaLevels.ToList().IndexOf(clean.EffectiveMsaa);
             settings._values[(int)SettingId.Fly] = clean.FlyCheat ? 1 : 0;
             settings._values[(int)SettingId.FlySpeed] = clean.EffectiveOf(SettingId.FlySpeed);
+            settings._values[(int)SettingId.BreakAll] = clean.BreakAllCheat ? 1 : 0;
         }
 
         if (launch.SfxVolume is { } sfx)
@@ -389,7 +394,8 @@ public sealed class PlayerSettings
         FarLightOff: !FarLight,
         Msaa: Msaa,
         FlyCheat: Fly,
-        FlySpeed: SaveSettings.OmitDefault(SettingId.FlySpeed, FlySpeed)).Clamped();
+        FlySpeed: SaveSettings.OmitDefault(SettingId.FlySpeed, FlySpeed),
+        BreakAllCheat: BreakAll).Clamped();
 
     /// <summary>The drive rate as the menu and the console write it (<c>×1.25</c>).</summary>
     /// <param name="rate">The rate.</param>
