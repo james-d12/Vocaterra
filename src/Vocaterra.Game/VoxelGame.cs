@@ -217,6 +217,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _sim = session.Simulation;
         ApplyFly(); // the fly cheat and its speed (the settings' Cheats group)
+        _sim.BreakAll = _settings.BreakAll; // the break-all cheat: the gather button breaks any block but bedrock and the liquids
         HoldTheClock(options);
         (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, _settings.Volumes, layout, scene.Places);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
@@ -1209,6 +1210,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             case SettingId.FlySpeed:
                 ApplyFly();
                 Console.WriteLine($"fly: {(_settings.Fly ? "on" : "off")} at {_settings.FlySpeed} blocks/s");
+                break;
+            case SettingId.BreakAll:
+                _sim.BreakAll = _settings.BreakAll;
+                Console.WriteLine($"break all: {(_settings.BreakAll ? "on" : "off")}");
                 break;
             default:
                 Console.WriteLine($"setting {id}: {_settings.Get(id)}"); // the mouse and the field of view are read each frame

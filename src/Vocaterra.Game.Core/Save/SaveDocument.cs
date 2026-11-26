@@ -140,6 +140,7 @@ public sealed record SaveDocument(
 /// <param name="Msaa">The window's antialiasing in samples a pixel (0, 2, 4 or 8; B22, the menu's Graphics group since B17c); no field is the default (4). Written only when not 4, so 0 (none) is written.</param>
 /// <param name="FlyCheat">True when the player turned the fly cheat on (no gravity; jump rises, the descend key sinks). Written only when true.</param>
 /// <param name="FlySpeed">The flying speed in blocks per second (the fly cheat's slider); no field is the default (<see cref="Physics.VoxelPhysics.DefaultFlyBlocksPerSecond"/>). Written only when not the default.</param>
+/// <param name="BreakAllCheat">True when the player turned the break-all cheat on (the gather button breaks any block but bedrock and the liquids). Written only when true.</param>
 public sealed record SaveSettings(
     SoundVolumes Sound,
     int TextScale = 100,
@@ -168,7 +169,8 @@ public sealed record SaveSettings(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FarLightOff = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Msaa = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool FlyCheat = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FlySpeed = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? FlySpeed = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool BreakAllCheat = false)
 {
     /// <summary>The window's samples a pixel in the save's settings of a new game (B22).</summary>
     public const int DefaultMsaa = 4;
@@ -306,7 +308,8 @@ public sealed record SaveSettings(
         FarLightOff,
         EffectiveMsaa == DefaultMsaa ? null : EffectiveMsaa,
         FlyCheat,
-        OmitDefault(Menu.SettingId.FlySpeed, EffectiveOf(Menu.SettingId.FlySpeed)));
+        OmitDefault(Menu.SettingId.FlySpeed, EffectiveOf(Menu.SettingId.FlySpeed)),
+        BreakAllCheat);
 }
 
 /// <summary>

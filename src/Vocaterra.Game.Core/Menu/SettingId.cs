@@ -97,4 +97,7 @@ public enum SettingId
 
     /// <summary>The flying speed in blocks per second, 10 to 500 in steps of 10 (the default 30, about seven times the walk). At the top speeds the world may not stream in fast enough to keep up.</summary>
     FlySpeed,
+
+    /// <summary>The break-all cheat: 0 off, 1 on. On, the gather button breaks any block in reach (but bedrock and the liquids): a block that gives nothing, or whose drop does not fit, goes in a short hold and gives nothing.</summary>
+    BreakAll,
 }

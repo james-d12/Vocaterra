@@ -85,6 +85,23 @@ public sealed partial class VoxelSimulation
     /// <summary>The horizontal flying speed in units per tick (<see cref="VoxelPhysics.FlySpeedOf"/>; the settings' fly speed slider). A host setting like <see cref="Flying"/>.</summary>
     public int FlySpeed { get; set; } = VoxelPhysics.FlySpeed;
 
+    /// <summary>The ticks of holding it takes to break a block under the break-all cheat when the block is not gathered (a sixth of a second).</summary>
+    public const int BreakAllTicks = 10;
+
+    /// <summary>
+    /// Whether the break-all cheat is on: holding <see cref="VoxelCommandKind.Interact"/> breaks any block <see cref="BreaksUnderCheat"/> allows. A block that gathers as usual (its drop
+    /// fits) still gathers; any other goes to air after <see cref="BreakAllTicks"/> and gives nothing, and the land rules do not refuse a plank. A host setting like <see cref="Flying"/>.
+    /// </summary>
+    public bool BreakAll { get; set; }
+
+    /// <summary>Whether the break-all cheat breaks blocks of kind <paramref name="id"/>: every block but air, the liquids (water, lava), undergrowth and bedrock (<see cref="BlockDefinition.Indestructible"/>: the floor of the world stays).</summary>
+    /// <param name="id">The block kind.</param>
+    public static bool BreaksUnderCheat(BlockId id)
+    {
+        var definition = BlockDefinition.Get(id);
+        return id != BlockId.Air && !definition.Liquid && !definition.Decor && !definition.Indestructible;
+    }
+
     /// <summary>
     /// How fast gathering a block goes, in thousandths: 1000 is full speed, a smaller number lets the progress grow only on the ticks that cross a whole step of it (a half: every
     /// other tick), so gathering slows and never stops (N02, at zero stamina). A host setting like <see cref="WalkPermille"/>; filling a bottle is not slowed.
@@ -112,6 +129,11 @@ public sealed partial class VoxelSimulation
     public int GatherTicksOf(BlockId block)
     {
         var definition = GatherDefinition(block);
+        if (!definition.Gatherable && BreakAll && BreaksUnderCheat(block))
+        {
+            return BreakAllTicks;
+        }
+
         if (definition.Gatherable && ToolOn(definition) is { } tool)
         {
             return Math.Max(1, definition.GatherTicks / tool.Speed);
@@ -592,7 +614,9 @@ public sealed partial class VoxelSimulation
         }
 
         var definition = GatherDefinition(id);
-        if (TakeBackRefused(id, cell) || !definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
+        var gathers = definition.Gatherable && Inventory.CanAdd(definition.Drop!.Value, definition.DropCount);
+        var breaks = !gathers && BreakAll && BreaksUnderCheat(id); // the break-all cheat: what does not gather breaks, and gives nothing
+        if ((!BreakAll && TakeBackRefused(id, cell)) || (!gathers && !breaks))
         {
             ResetGather();
             return;
@@ -610,14 +634,22 @@ public sealed partial class VoxelSimulation
             _gatherProgress++;
         }
 
-        var ticks = GatherTicksOf(id); // the held tool's speed on its own material (W02; the axe on a trunk, V03)
+        var ticks = breaks ? BreakAllTicks : GatherTicksOf(id); // the held tool's speed on its own material (W02; the axe on a trunk, V03)
         _events.Add(new SimulationEvent(SimulationEventKind.GatherProgress, Tick, cell.X, cell.Y, cell.Z, _gatherProgress, ticks));
         if (_gatherProgress < ticks)
         {
             return;
         }
 
-        var drop = definition.Drop.Value;
+        if (breaks)
+        {
+            Grid.SetBlock(cell.X, cell.Y, cell.Z, BlockId.Air);
+            ResetGather();
+            _events.Add(new SimulationEvent(SimulationEventKind.BlockRemoved, Tick, cell.X, cell.Y, cell.Z, (int)id));
+            return;
+        }
+
+        var drop = definition.Drop!.Value; // gathers: the block is gatherable
         var usedTool = ToolOn(definition) is not null;
         Grid.SetBlock(cell.X, cell.Y, cell.Z, definition.BecomesWhenGathered);
         Inventory.Add(drop, definition.DropCount);
