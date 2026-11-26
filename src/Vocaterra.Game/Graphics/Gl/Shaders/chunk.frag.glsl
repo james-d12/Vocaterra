@@ -3,7 +3,8 @@
 // step of slack as MonoGame has; a reference below 0 is no test, as for the water, which BasicEffect drew), the far view's light (the baked day's face shade brought to the sun of the moment by the face's own direction), the water's edge at
 // grazing angles, and the fog towards the fog colour (premultiplied by alpha, as both effects do).
 in vec4 vColour;
-in vec2 vUv;
+centroid in vec2 vUv; // inside the face even where the face only partly covers the pixel (chunk.vert.glsl)
+in vec2 vUvGrad;      // the same, not centroid: its derivatives choose the mip level
 in float vFog;
 in vec3 vWorld;
 
@@ -39,7 +40,7 @@ vec3 facetNormal()
 
 void main()
 {
-    vec4 texel = texture(uAtlas, vUv);
+    vec4 texel = textureGrad(uAtlas, vUv, dFdx(vUvGrad), dFdy(vUvGrad));
     vec4 colour = texel * vColour;
     if (colour.a <= uAlphaReference + 0.5 / 255.0)
     {
