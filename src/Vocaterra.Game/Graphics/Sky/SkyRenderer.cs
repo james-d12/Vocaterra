@@ -9,7 +9,8 @@ namespace Vocaterra.Game.Graphics.Sky;
 /// Draws the sky behind the world (S14, E02) from a <see cref="SkyLook"/>: a dome round the eye with a gradient (by day deep blue overhead and pale at the horizon, where it meets
 /// the fog), square stars that fade in with the night, a square sun with a stepped halo that follows its arc over the day (<see cref="SkyArc"/>), a square moon in the night sky, and
 /// a layer of flat blocky clouds (<see cref="CloudField"/>) that fade into the haze with distance. The dome is coloured again only when the look's three dome colours have moved,
-/// in place, so a frame allocates nothing for the sky. It writes no depth and is drawn before the world, so the world covers it.
+/// in place, so a frame allocates nothing for the sky. It writes no depth and is drawn before the world, so the world covers it; the clouds the eye is above are the exception: they
+/// lie between the eye and the ground, so <see cref="DrawCloudsOverWorld"/> draws them after the world, tested against its depth.
 /// </summary>
 public sealed class SkyRenderer : IDisposable
 {
@@ -32,7 +33,11 @@ public sealed class SkyRenderer : IDisposable
     private readonly byte[] _starBrightness = new byte[StarCount];
     private readonly short[] _starIndices;
     private readonly List<CloudBox> _boxes = [];
-    private VertexPositionColor[] _clouds = new VertexPositionColor[6 * 5 * 128];
+    private readonly FarthestFirst _farthestFirst = new();
+    private VertexPositionColor[] _clouds = new VertexPositionColor[6 * 6 * 128];
+    private bool _cloudsReady; // the boxes of this frame are generated and sorted (the sky pass ran with clouds on and not fully under water)
+    private Vector3 _clampEye;
+    private float _clampReach = float.PositiveInfinity;
     private SkyLook _look;
     private bool _domeColoured;
     private float _starAmount = -1f;
@@ -65,7 +70,7 @@ public sealed class SkyRenderer : IDisposable
     /// <summary>The look the sky is drawn in now.</summary>
     public SkyLook Look => _look;
 
-    /// <summary>The number of vertices the last frame's clouds used (0 when clouds are off).</summary>
+    /// <summary>The number of vertices the last frame's clouds used, in both passes (0 when clouds are off).</summary>
     public int CloudVertices { get; private set; }
 
     /// <summary>
@@ -84,9 +89,10 @@ public sealed class SkyRenderer : IDisposable
     public void Draw(FirstPersonCamera camera, long tick, bool clouds)
     {
         ArgumentNullException.ThrowIfNull(camera);
+        CloudVertices = 0;
+        _cloudsReady = false;
         if (_hazeAmount >= 1f)
         {
-            CloudVertices = 0;
             return; // fully under water: the sky is not visible, the target is already the water's colour
         }
 
@@ -105,10 +111,10 @@ public sealed class SkyRenderer : IDisposable
         DrawStars();
         DrawBodies();
 
-        CloudVertices = 0;
         if (clouds)
         {
-            DrawClouds(camera, projection, tick);
+            PrepareClouds(camera.Eye, tick);
+            DrawClouds(camera.View, projection, BuildClouds(camera.Eye, overWorld: false, float.PositiveInfinity));
         }
 
         if (_hazeAmount > 0f)
@@ -117,6 +123,27 @@ public sealed class SkyRenderer : IDisposable
         }
 
         _device.BlendState = BlendState.Opaque;
+    }
+
+    /// <summary>
+    /// Draws the clouds the eye is above (their undersides below it), which <see cref="Draw"/> left out: after the world's opaque faces and its water, with the world's projection, reading
+    /// the depth the chunks wrote, so a cloud below the eye covers the ground and the sea beneath it and a hill in front of it still hides it. A cloud past the camera's far plane is drawn
+    /// pulled in along the rays from the eye to just inside it, which keeps its picture on the screen the same (the chunks all lie nearer, and the far view keeps no depth after its pass).
+    /// Nothing is drawn when <see cref="Draw"/> drew no clouds this frame. Leaves the blend state alpha and the depth state read-only, as the water does.
+    /// </summary>
+    /// <param name="camera">The camera of this frame (the one <see cref="Draw"/> was given).</param>
+    public void DrawCloudsOverWorld(FirstPersonCamera camera)
+    {
+        ArgumentNullException.ThrowIfNull(camera);
+        if (!_cloudsReady)
+        {
+            return;
+        }
+
+        _device.DepthStencilState = DepthStencilState.DepthRead;
+        _device.RasterizerState = RasterizerState.CullNone;
+        _device.BlendState = BlendState.NonPremultiplied;
+        DrawClouds(camera.View, camera.Projection, BuildClouds(camera.Eye, overWorld: true, camera.FarDistance * 0.995f));
     }
 
     /// <summary>
@@ -321,19 +348,36 @@ public sealed class SkyRenderer : IDisposable
         return quads + 1;
     }
 
-    private void DrawClouds(FirstPersonCamera camera, Matrix projection, long tick)
+    // The boxes of this frame, generated round the eye and sorted farthest first, for both passes.
+    private void PrepareClouds(Vector3 eye, long tick)
     {
-        CloudField.Generate(camera.Eye.X, camera.Eye.Z, tick, _boxes, _look.CloudCover, _look.CloudAltitude);
-        var needed = _boxes.Count * 5 * 6;
+        CloudField.Generate(eye.X, eye.Z, tick, _boxes, _look.CloudCover, _look.CloudAltitude);
+        _farthestFirst.Eye = eye;
+        _boxes.Sort(_farthestFirst);
+        var needed = _boxes.Count * 6 * 6;
         if (_clouds.Length < needed)
         {
             _clouds = new VertexPositionColor[needed];
         }
 
+        _cloudsReady = true;
+    }
+
+    // Fills the cloud vertices with one pass's boxes, farthest first (the sky's pass: the boxes whose underside is above the eye; the pass over the world: the rest) and returns their count.
+    // A box's faces turned away from the eye go first and the faces towards it last, so with no depth among the clouds a near face is never painted over by the box's far side (from above,
+    // the top over the underside). Each corner farther from the eye than reach is drawn pulled in along its ray to reach.
+    private int BuildClouds(Vector3 eye, bool overWorld, float reach)
+    {
+        _clampEye = eye;
+        _clampReach = reach;
         var count = 0;
-        var eye = camera.Eye;
         foreach (var box in _boxes)
         {
+            if ((eye.Y > box.Y) != overWorld)
+            {
+                continue;
+            }
+
             var centre = new Vector3(box.X + (box.Width / 2f), box.Y, box.Z + (box.Depth / 2f));
             var distance = Vector3.Distance(centre, eye);
             // Far clouds melt into the haze: colour towards the fog's, and fainter at the very edge of the field.
@@ -343,29 +387,71 @@ public sealed class SkyRenderer : IDisposable
             var top = ToColor(SkyPalette.Blend(_look.CloudTop, horizon, haze), fade);
             var side = ToColor(SkyPalette.Blend(_look.CloudSide, horizon, haze), fade);
             var bottom = ToColor(SkyPalette.Blend(_look.CloudBottom, horizon, haze), fade);
-            float x0 = box.X, x1 = box.X + box.Width, z0 = box.Z, z1 = box.Z + box.Depth, y0 = box.Y, y1 = box.Y + box.Thickness;
+            count = BoxFaces(count, box, eye, towardEye: false, top, side, bottom);
+            count = BoxFaces(count, box, eye, towardEye: true, top, side, bottom);
+        }
+
+        return count;
+    }
+
+    // Adds the faces of a box that are turned towards the eye (or away from it).
+    private int BoxFaces(int count, in CloudBox box, Vector3 eye, bool towardEye, Color top, Color side, Color bottom)
+    {
+        float x0 = box.X, x1 = box.X + box.Width, z0 = box.Z, z1 = box.Z + box.Depth, y0 = box.Y, y1 = box.Y + box.Thickness;
+        if (eye.Y > y1 == towardEye)
+        {
             count = Quad(count, new Vector3(x0, y1, z1), new Vector3(x1, y1, z1), new Vector3(x1, y1, z0), new Vector3(x0, y1, z0), top);
+        }
+
+        if (eye.Y < y0 == towardEye)
+        {
             count = Quad(count, new Vector3(x0, y0, z0), new Vector3(x1, y0, z0), new Vector3(x1, y0, z1), new Vector3(x0, y0, z1), bottom);
+        }
+
+        if (eye.Z > z1 == towardEye)
+        {
             count = Quad(count, new Vector3(x0, y0, z1), new Vector3(x1, y0, z1), new Vector3(x1, y1, z1), new Vector3(x0, y1, z1), side);
+        }
+
+        if (eye.Z < z0 == towardEye)
+        {
             count = Quad(count, new Vector3(x1, y0, z0), new Vector3(x0, y0, z0), new Vector3(x0, y1, z0), new Vector3(x1, y1, z0), side);
+        }
+
+        if (eye.X > x1 == towardEye)
+        {
             count = Quad(count, new Vector3(x1, y0, z1), new Vector3(x1, y0, z0), new Vector3(x1, y1, z0), new Vector3(x1, y1, z1), side);
         }
 
+        if (eye.X < x0 == towardEye)
+        {
+            count = Quad(count, new Vector3(x0, y0, z0), new Vector3(x0, y0, z1), new Vector3(x0, y1, z1), new Vector3(x0, y1, z0), side);
+        }
+
+        return count;
+    }
+
+    private void DrawClouds(Matrix view, Matrix projection, int count)
+    {
         if (count == 0)
         {
             return;
         }
 
         _effect.World = Matrix.Identity;
-        _effect.View = camera.View;
+        _effect.View = view;
         _effect.Projection = projection;
         _effect.CurrentTechnique.Passes[0].Apply();
         _device.DrawUserPrimitives(PrimitiveType.TriangleList, _clouds, 0, count / 3);
-        CloudVertices = count;
+        CloudVertices += count;
     }
 
     private int Quad(int count, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Color colour)
     {
+        a = Clamp(a);
+        b = Clamp(b);
+        c = Clamp(c);
+        d = Clamp(d);
         _clouds[count++] = new VertexPositionColor(a, colour);
         _clouds[count++] = new VertexPositionColor(b, colour);
         _clouds[count++] = new VertexPositionColor(c, colour);
@@ -373,5 +459,23 @@ public sealed class SkyRenderer : IDisposable
         _clouds[count++] = new VertexPositionColor(c, colour);
         _clouds[count++] = new VertexPositionColor(d, colour);
         return count;
+    }
+
+    // A point moved along its ray from the eye to at most the reach away (a point on the same ray projects to the same place on the screen, and so does a straight edge between two).
+    private Vector3 Clamp(Vector3 point)
+    {
+        var offset = point - _clampEye;
+        var length = offset.Length();
+        return length > _clampReach ? _clampEye + (offset * (_clampReach / length)) : point;
+    }
+
+    // Orders the boxes from the farthest from the eye to the nearest (by the middle of the underside), so nearer clouds are painted over farther ones.
+    private sealed class FarthestFirst : IComparer<CloudBox>
+    {
+        public Vector3 Eye { get; set; }
+
+        public int Compare(CloudBox a, CloudBox b) => DistanceSquared(b).CompareTo(DistanceSquared(a));
+
+        private float DistanceSquared(in CloudBox box) => Vector3.DistanceSquared(new Vector3(box.X + (box.Width / 2f), box.Y, box.Z + (box.Depth / 2f)), Eye);
     }
 }
