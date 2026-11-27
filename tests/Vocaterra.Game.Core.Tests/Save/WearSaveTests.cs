@@ -32,10 +32,10 @@ public sealed class WearSaveTests
         SaveGame.Load(SaveGame.Serialize(document), origin.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false, migrate: migrate);
 
     [Fact]
-    public void Given_TheSaveFormat_When_ItsVersionIsRead_Then_ItIsEleven()
+    public void Given_TheSaveFormat_When_ItsVersionIsRead_Then_ItIsTwelve()
     {
-        Assert.Equal(11, SaveGame.CurrentVersion);
-        Assert.Equal(11, SaveGame.OldestReadableVersion);
+        Assert.Equal(12, SaveGame.CurrentVersion);
+        Assert.Equal(12, SaveGame.OldestReadableVersion);
     }
 
     [Fact]

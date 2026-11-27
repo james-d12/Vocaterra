@@ -33,6 +33,8 @@ public sealed class VoxelChunk
     private int _nonAir;
     private byte[]? _water;
     private int _flowing;
+    private byte[]? _states;
+    private int _stated;
     private UInt128 _kinds;
     private bool _kindsValid;
 
@@ -92,6 +94,18 @@ public sealed class VoxelChunk
     /// </summary>
     public ReadOnlySpan<byte> WaterLevels => _flowing > 0 && _water is not null ? _water : default;
 
+    /// <summary>Whether any cell of the chunk holds a state other than 0 (K01). A chunk the scene builds never does, and then it carries no state layer at all.</summary>
+    public bool HasStates => _stated > 0;
+
+    /// <summary>
+    /// The state byte of every cell in storage order (0 for a cell with none), or an empty span while no cell holds a state other than 0 (<see cref="HasStates"/>). What a state means
+    /// depends on the block's id (the K series' layouts); the chunk only stores it. A save compares and writes it.
+    /// </summary>
+    public ReadOnlySpan<byte> States => _stated > 0 && _states is not null ? _states : default;
+
+    /// <summary>The state array itself, or <see langword="null"/> while no cell holds one: never written through (the mesher's snapshot copies from it).</summary>
+    internal byte[]? StateArray => _stated > 0 ? _states : null;
+
     /// <summary>The block at the chunk-local position.</summary>
     public BlockId this[int localX, int localY, int localZ] => _blocks is null ? BlockId.Air : _blocks[Index(localX, localY, localZ)];
 
@@ -118,7 +132,8 @@ public sealed class VoxelChunk
     /// <summary>
     /// The SHA-256 of the chunk: its 4 096 block ids, each a 16-bit little-endian integer, in storage order. When the chunk holds a water
     /// level other than source (<see cref="HasWaterLevels"/>), its 4 096 level bytes follow in the same order; otherwise the digest is exactly
-    /// what it was before levels existed. Cached until the next edit.
+    /// what it was before levels existed. When the chunk holds a state other than 0 (<see cref="HasStates"/>), its 4 096 state bytes follow the level bytes (which are then
+    /// written as zeros if there is no level layer, so the two layouts never collide); a chunk with no state digests exactly as it did before states existed. Cached until the next edit.
     /// </summary>
     public byte[] ComputeDigest()
     {
@@ -133,10 +148,16 @@ public sealed class VoxelChunk
         }
 
         var blockBytes = Volume * sizeof(ushort);
-        var buffer = new byte[HasWaterLevels ? blockBytes + Volume : blockBytes];
+        var layers = HasStates ? 2 : HasWaterLevels ? 1 : 0;
+        var buffer = new byte[blockBytes + (layers * Volume)];
         if (_flowing > 0 && _water is { } levels)
         {
             levels.CopyTo(buffer.AsSpan(blockBytes));
+        }
+
+        if (_stated > 0 && _states is { } states)
+        {
+            states.CopyTo(buffer.AsSpan(blockBytes + Volume));
         }
 
         for (var i = 0; i < Volume; i++)
@@ -155,6 +176,10 @@ public sealed class VoxelChunk
     public WaterLevel GetWater(int localX, int localY, int localZ) =>
         _water is null ? WaterLevel.Source : WaterLevel.FromEncoded(_water[Index(localX, localY, localZ)]);
 
+    /// <summary>The state byte at the chunk-local position: 0 when the chunk has no state layer or the cell holds none.</summary>
+    public byte GetState(int localX, int localY, int localZ) =>
+        _states is null ? (byte)0 : _states[Index(localX, localY, localZ)];
+
     /// <summary>
     /// A copy with its own blocks and the same version and counts. The cached digest is shared: an edit replaces it and never writes into it.
     /// </summary>
@@ -168,6 +193,8 @@ public sealed class VoxelChunk
         copy._nonAir = _nonAir;
         copy._water = (byte[]?)_water?.Clone();
         copy._flowing = _flowing;
+        copy._states = (byte[]?)_states?.Clone();
+        copy._stated = _stated;
         copy._kinds = _kinds;
         copy._kindsValid = _kindsValid;
         copy.Version = Version;
@@ -182,6 +209,8 @@ public sealed class VoxelChunk
     {
         _blocks = content.Blocks;
         _water = content.WaterLevels;
+        _states = content.States;
+        _stated = 0;
         _nonAir = 0;
         foreach (var block in _blocks)
         {
@@ -208,6 +237,22 @@ public sealed class VoxelChunk
             }
         }
 
+        if (_states is not null)
+        {
+            foreach (var state in _states)
+            {
+                if (state != 0)
+                {
+                    _stated++;
+                }
+            }
+
+            if (_stated == 0)
+            {
+                _states = null;
+            }
+        }
+
         if (_nonAir == 0)
         {
             _blocks = null; // a chunk of air keeps no array
@@ -224,12 +269,21 @@ public sealed class VoxelChunk
         _pristineRecorded = false;
     }
 
-    /// <summary>Writes a block at the chunk-local position; returns whether it changed. A bedrock cell is never changed (<see cref="BlockDefinition.Indestructible"/>).</summary>
-    internal bool Set(int localX, int localY, int localZ, BlockId block)
+    /// <summary>
+    /// Writes a block and its state at the chunk-local position; returns whether it changed (a different block or a different state). The state is part of the write: a call without one writes 0,
+    /// so a replaced block never inherits the old block's facing; air always holds state 0. A bedrock cell is never changed (<see cref="BlockDefinition.Indestructible"/>).
+    /// </summary>
+    internal bool Set(int localX, int localY, int localZ, BlockId block, byte state = 0)
     {
         var index = Index(localX, localY, localZ);
         var old = _blocks is null ? BlockId.Air : _blocks[index];
-        if (old == block || old == BlockId.Bedrock)
+        if (block == BlockId.Air)
+        {
+            state = 0;
+        }
+
+        var oldState = _states is null ? (byte)0 : _states[index];
+        if ((old == block && oldState == state) || old == BlockId.Bedrock)
         {
             return false; // bedrock is never removed or replaced, by any edit (B10); only a chunk's install (generation) writes it
         }
@@ -251,6 +305,7 @@ public sealed class VoxelChunk
             ClearLevel(index);
         }
 
+        StoreState(index, oldState, state);
         _digest = null;
         _kindsValid = false;
         Version++;
@@ -311,6 +366,14 @@ public sealed class VoxelChunk
                     changed++;
                 }
 
+                // Filling a block over itself writes state 0 too, as a placement without a state does.
+                if (_states is not null && _states[index] != 0)
+                {
+                    RecordPristine();
+                    StoreState(index, _states[index], 0);
+                    changed++;
+                }
+
                 continue;
             }
 
@@ -326,6 +389,11 @@ public sealed class VoxelChunk
 
             blocks[index] = block;
             ClearLevel(index);
+            if (_states is not null && _states[index] != 0)
+            {
+                StoreState(index, _states[index], 0);
+            }
+
             changed++;
         }
 
@@ -355,6 +423,27 @@ public sealed class VoxelChunk
         _pristine = ComputeDigest();
         _pristineRecorded = true;
         Interlocked.MemoryBarrier(); // B45: the mark is visible to another thread before the first write that follows it (see HasBeenWritten)
+    }
+
+    // Keeps the state layer and its count in step with one write: allocated by the first non-zero state, and dropped again when the last one is cleared.
+    private void StoreState(int index, byte oldState, byte state)
+    {
+        if (oldState == state)
+        {
+            return;
+        }
+
+        if (state != 0)
+        {
+            _states ??= new byte[Volume];
+        }
+
+        _states![index] = state;
+        _stated += (state != 0 ? 1 : 0) - (oldState != 0 ? 1 : 0);
+        if (_stated == 0)
+        {
+            _states = null;
+        }
     }
 
     private void ClearLevel(int index)

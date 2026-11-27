@@ -36,12 +36,13 @@ dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --lo
 dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
-## Format version 11 (the current one)
+## Format version 12 (the current one)
 
-The current version is 11, and it is the only one read: a save of version 10 or older is refused with "The save is format version N; the oldest this game loads is 11 (it writes 11), and older saves are not migrated" (`SaveGame.Parse`; the
-game is unreleased, so there is no migration code, and the code that read versions 1 to 10 is gone). The fixture the tests read is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v11.json`: a scripted game's own output at Luna's lit fire (tick 4258), its items by name, its 30 slots, nothing worn and no wear, the biomes
-series' world edits; the tests read it with the current bundle's hash, so a content edit leaves it alone, and the round trips of worn items, worn bags and wear are `WornSaveTests` and `WearSaveTests`. What version 11 holds, by area:
+The current version is 12, and it is the only one read: a save of version 11 or older is refused with "The save is format version N; the oldest this game loads is 12 (it writes 12), and older saves are not migrated" (`SaveGame.Parse`; the
+game is unreleased, so there is no migration code, and the code that read versions 1 to 10 is gone). The fixture the tests read is `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v12.json`: a scripted game's own output at Luna's lit fire (tick 4258), its items by name, its 30 slots, nothing worn and no wear, the biomes
+series' world edits; the tests read it with the current bundle's hash, so a content edit leaves it alone, and the round trips of worn items, worn bags and wear are `WornSaveTests` and `WearSaveTests`. What version 12 holds, by area:
 
+- **`states` on a `ChunkEdit` (K01, the only change of 12).** The per-cell state byte of the building series (`VoxelChunk.States`: a lazily allocated `byte[4096]`, absent while every state in the chunk is 0). A chunk that holds a state saves it as `"states"`: runs `{"start", "length", "state"}` of equal non-zero state bytes (1 to 255) in storage order, the same shape as `water`; a cell no run covers holds state 0, and the entry is left out of the file for a chunk with no state (every chunk of a world nobody has built a stateful block in, which is every world until the K02 blocks). The load refuses a run that is out of order, overlaps, leaves the chunk or lies on air (`VoxelGridDiff.Apply`). A state means nothing on its own; the block's id says how to read it. A chunk's digest takes the state bytes only while it holds one, so the chunk digests and the `stateDigest` of every world with no state are what they were at 11. A state-only change (the same block, a new state) makes the chunk a changed chunk. A save across bundles (`SaveMigration`) applies blocks by position and carries no state.
 - **The items are saved by name.** `inventory[i].item` (and each stack of the belongings chest, `systems.chest.stacks[i].item`) is the item's stable `name` from `game/items.json` (`"wood"`, `"water-bottle"`, `"camp-kit"`), never an enum name or an index. **An empty slot is `{"item": "", "count": 0}`.** `SlotSave.Of`
   and `SlotSave.ToStack` translate with the bundle's `IItemCatalogue`; a slot whose name the catalogue lacks (a save of content that lost the item) loads as an empty slot, and a migration reports it among the dropped inventory slots. The state digest still reads the item's numeric id.
 - **`inventory` holds the active slots only.** As many entries as the bag's active count: `bagSlots` of `game/equipment.json` (30) plus the `capacity` of the worn bag, so 30, 40 or 50. The simulation state (`VoxelSimulationState.Slots`) is the same list, and `SaveGame.Restore` refuses a save whose list does not match the count its worn items give.
@@ -66,11 +67,11 @@ series' world edits; the tests read it with the current bundle's hash, so a cont
 
 ## The world edits by chunk coordinate (B05)
 
-A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a save (since the format change of the biomes series; version 11 now):
+A save of the world holds only what the player changed, and the world itself is rebuilt, not stored. The parts of the world in a save (since the format change of the biomes series; version 12 now):
 
-- **`chunks`: one `ChunkEdit` per changed chunk**, `{"x", "y", "z", "runs", "water"}`, sorted by layer (`y`), then row (`z`), then column (`x`). The coordinates are chunk
+- **`chunks`: one `ChunkEdit` per changed chunk**, `{"x", "y", "z", "runs", "water", "states"}`, sorted by layer (`y`), then row (`z`), then column (`x`). The coordinates are chunk
   coordinates (block position divided by 16, rounded down), so `y` is negative below block 0. `runs` is the chunk's 4 096 blocks, run-length encoded in storage order
-  (x fastest, then z, then y); `water` holds the cells whose level is not source, as runs `{"start", "length", "level"}`, and is left out when there are none. The dense
+  (x fastest, then z, then y); `water` holds the cells whose level is not source, as runs `{"start", "length", "level"}`, and is left out when there are none; `states` holds the cells whose state byte is not 0 the same way (`{"start", "length", "state"}`, K01). The dense
   chunk index and the `world` entry (the chunk counts, X01) are gone, and so is the second copy of the world the first save used to build (0.6 to 0.7 s and about 38 MB).
 - **A changed chunk** is one whose content differs from what it held just before its first write (`VoxelChunk.IsChanged`: each chunk records its own pristine digest lazily, and
   `VoxelGrid.SealPristine()` at the end of the scene build makes the built world the pristine one). A block gathered and put back is not a change.
@@ -87,7 +88,7 @@ A save of the world holds only what the player changed, and the world itself is 
 ## Format version 8: the `systems` map, the needs, the water and the sleep entry (Y02)
 
 Version 8 added the rule that only the current version is read. The game is unreleased, so a save of an older version is **refused** (`SaveGame.Parse`) and nothing migrates it: the code that read
-versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split, the dense chunk index (B05)). The save the tests read is `save-v11.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
+versions 1 to 7 is gone (the branches on the version number, the version 2 word rows, the first-words split, the dense chunk index (B05)). The save the tests read is `save-v12.json` (above). The weather's volume (E09) is `settings.sound.weather` (0 to 1, the default 0.6; a save from before E09 has no field and takes the default, with no version change).
 
 
 **What version 8's `systems` map holds (checked against `SystemsSave` in `SaveDocument.cs`, Y13).** Every entry is optional and left out when it is the new game's state, so the version stayed 8 as each was added:
@@ -125,7 +126,7 @@ and are not saved. `RestoreParts` puts the places made in play back first, befor
 - **Across bundles** (`SaveMigration.Adapt`) the entry is kept: the lodging and the places made in play stay (a place whose cell is outside the new world is dropped), and a last place that
   is neither a place of the new bundle nor a place kept is let go (reported as `place last slept at`).
 
-**The `temperature` entry** is described under version 11, above (`systems.temperature`: `{"felt"}`; optional, so a save without it starts at the place's value).
+**The `temperature` entry** is described under the current version, above (`systems.temperature`: `{"felt"}`; optional, so a save without it starts at the place's value).
 
 **The `land` entry (Y09).** `systems.land` keeps the player's plots, both optional, the entry absent when neither exists: `pending` (the plot marked with a stake and not yet bought, Y10) and `owned` (the plot bought from
 the mayor, Y11), each `{"x", "z", "width", "depth"}`: the west-north corner and the size in blocks, along the world's axes (a plot is columns, not a volume). One plot of each kind at most. What is *not* saved is the rules: the

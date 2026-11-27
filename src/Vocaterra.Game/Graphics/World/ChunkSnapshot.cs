@@ -17,6 +17,7 @@ public sealed class ChunkSnapshot : IBlockSource
 
     private readonly BlockId[] _blocks = new BlockId[Edge * Edge * Edge];
     private readonly byte[] _levels = new byte[Edge * Edge * Edge];
+    private byte[]? _states; // K01: allocated by the first snapshot that meets a state, then reused; only read while HasStates
     private readonly BlockId[] _under = new BlockId[Under * Size * Size];
     private readonly VoxelChunk?[] _around = new VoxelChunk?[27];
     private readonly Dictionary<BlockPos, BlockId> _extras = [];
@@ -33,6 +34,12 @@ public sealed class ChunkSnapshot : IBlockSource
 
     /// <summary>How many blocks of the chunk are not air (what <see cref="ChunkMesher.IsBuried(IBlockSource, VoxelChunkCoord, int, UInt128)"/> asks).</summary>
     public int NonAirCount { get; private set; }
+
+    /// <summary>
+    /// Whether any cell of the 18 x 18 x 18 block holds a state byte other than 0 (K01). While false the snapshot holds no state array at all (<see cref="GetState"/> answers 0), so the scene's
+    /// chunks, which carry no state, pay nothing for it.
+    /// </summary>
+    public bool HasStates { get; private set; }
 
     /// <summary>The block kinds the chunk holds, one bit each.</summary>
     public UInt128 KindMask { get; private set; }
@@ -103,6 +110,21 @@ public sealed class ChunkSnapshot : IBlockSource
             }
         }
 
+        HasStates = false;
+        foreach (var around in _around)
+        {
+            if (around is not null && around.HasStates)
+            {
+                HasStates = true;
+                break;
+            }
+        }
+
+        if (HasStates)
+        {
+            _states ??= new byte[Edge * Edge * Edge];
+        }
+
         var minY = grid.Limits.MinY;
         for (var j = 0; j < Edge; j++)
         {
@@ -111,6 +133,11 @@ public sealed class ChunkSnapshot : IBlockSource
             {
                 Array.Fill(_blocks, BlockId.Stone, layer, Edge * Edge); // the floor under the world reads as stone, so the underside of the world is not meshed
                 Array.Clear(_levels, layer, Edge * Edge);
+                if (HasStates)
+                {
+                    Array.Clear(_states!, layer, Edge * Edge);
+                }
+
                 continue;
             }
 
@@ -130,10 +157,26 @@ public sealed class ChunkSnapshot : IBlockSource
                 {
                     Array.Clear(_blocks, row + 1, Size);
                     Array.Clear(_levels, row + 1, Size);
+                    if (HasStates)
+                    {
+                        Array.Clear(_states!, row + 1, Size);
+                    }
                 }
                 else
                 {
                     middle.Blocks.Slice(source, Size).CopyTo(_blocks.AsSpan(row + 1, Size));
+                    if (HasStates)
+                    {
+                        if (middle.HasStates)
+                        {
+                            middle.States.Slice(source, Size).CopyTo(_states.AsSpan(row + 1, Size));
+                        }
+                        else
+                        {
+                            Array.Clear(_states!, row + 1, Size);
+                        }
+                    }
+
                     if (middle.HasWaterLevels)
                     {
                         middle.WaterLevels.Slice(source, Size).CopyTo(_levels.AsSpan(row + 1, Size));
@@ -192,11 +235,20 @@ public sealed class ChunkSnapshot : IBlockSource
         {
             _blocks[destination] = BlockId.Air;
             _levels[destination] = 0;
+            if (HasStates)
+            {
+                _states![destination] = 0;
+            }
+
             return;
         }
 
         _blocks[destination] = chunk.Blocks[index];
         _levels[destination] = chunk.HasWaterLevels ? chunk.WaterLevels[index] : (byte)0;
+        if (HasStates)
+        {
+            _states![destination] = chunk.HasStates ? chunk.States[index] : (byte)0;
+        }
     }
 
     /// <inheritdoc />
@@ -214,6 +266,23 @@ public sealed class ChunkSnapshot : IBlockSource
         }
 
         return _extras.Count > 0 && _extras.TryGetValue(new BlockPos(x, y, z), out var id) ? id : BlockId.Air;
+    }
+
+    /// <summary>The state byte of a cell of the 18 x 18 x 18 block (K01): 0 for a cell outside it and while the snapshot holds no state (<see cref="HasStates"/>).</summary>
+    /// <param name="x">The block's x.</param>
+    /// <param name="y">The block's y.</param>
+    /// <param name="z">The block's z.</param>
+    public byte GetState(int x, int y, int z)
+    {
+        if (!HasStates)
+        {
+            return 0;
+        }
+
+        int lx = x - _x0, ly = y - _y0, lz = z - _z0;
+        return (uint)(lx + 1) < Edge && (uint)(ly + 1) < Edge && (uint)(lz + 1) < Edge
+            ? _states![((((ly + 1) * Edge) + (lz + 1)) * Edge) + lx + 1]
+            : (byte)0;
     }
 
     /// <inheritdoc />
@@ -245,6 +314,8 @@ public sealed class ChunkSnapshot : IBlockSource
         public bool InBounds(int x, int y, int z) => throw new NotSupportedException("The flow does not ask where the world ends.");
 
         public BlockId GetBlock(int x, int y, int z) => snapshot.Get(x, y, z);
+
+        public byte GetState(int x, int y, int z) => snapshot.GetState(x, y, z);
 
         public WaterLevel GetWater(int x, int y, int z) => snapshot.GetWater(x, y, z);
 

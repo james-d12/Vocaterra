@@ -35,7 +35,7 @@ public sealed class WornSaveTests
     {
         var document = SaveGame.Capture(GearItems.Session());
 
-        Assert.Equal(11, document.Version);
+        Assert.Equal(12, document.Version);
         Assert.Equal(30, document.Inventory.Count);
         Assert.Null(document.Worn);
         Assert.DoesNotContain("\"worn\"", SaveGame.Serialize(document), StringComparison.Ordinal);

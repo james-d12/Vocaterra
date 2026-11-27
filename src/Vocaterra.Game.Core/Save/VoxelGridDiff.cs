@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Core.Save;
 /// </summary>
 public static class VoxelGridDiff
 {
-    /// <summary>The changed chunks of <paramref name="grid"/>, sorted by coordinate, each as runs of its blocks and of its water levels.</summary>
+    /// <summary>The changed chunks of <paramref name="grid"/>, sorted by coordinate, each as runs of its blocks, of its water levels and of its states.</summary>
     /// <param name="grid">The grid, bounded or streamed.</param>
     public static IReadOnlyList<ChunkEdit> Capture(VoxelGrid grid)
     {
@@ -17,7 +17,7 @@ public static class VoxelGridDiff
         var edits = new List<ChunkEdit>();
         foreach (var chunk in grid.ChangedChunks())
         {
-            edits.Add(new ChunkEdit(chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z, Runs(chunk.Blocks), WaterRuns(chunk.WaterLevels)));
+            edits.Add(new ChunkEdit(chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z, Runs(chunk.Blocks), WaterRuns(chunk.WaterLevels), StateRuns(chunk.States)));
         }
 
         return edits;
@@ -27,7 +27,7 @@ public static class VoxelGridDiff
     /// Writes the chunks of a diff over <paramref name="target"/>, a world built as a new game builds it. A chunk the target does not hold yet (a streamed grid) is generated
     /// first, by the grid's chunk generator, and then overwritten. Refuses a diff that does not fit the grid:
     /// a chunk outside the grid's limits, a run of an unknown block, runs that do not add up to one chunk, a water run that covers a cell that is not water or holds
-    /// no valid level, or a chunk listed twice.
+    /// no valid level, a state run that covers air or lies outside the chunk, or a chunk listed twice.
     /// </summary>
     /// <exception cref="ArgumentException">The diff does not fit the grid.</exception>
     public static void Apply(VoxelGrid target, IReadOnlyList<ChunkEdit> edits)
@@ -67,6 +67,7 @@ public static class VoxelGridDiff
             }
 
             ApplyWater(target, origin, edit);
+            ApplyStates(target, origin, edit);
         }
     }
 
@@ -113,6 +114,66 @@ public static class VoxelGridDiff
 
             covered = run.Start + run.Length;
         }
+    }
+
+    // Sets the states of a chunk's state runs once its blocks are in place: a state is written with its cell's own block (the same block, so only the state changes).
+    private static void ApplyStates(VoxelGrid target, VoxelChunkCoord origin, ChunkEdit edit)
+    {
+        var covered = 0;
+        foreach (var run in edit.States ?? [])
+        {
+            if (run.Start < covered || run.Length < 1 || run.State is < 1 or > byte.MaxValue || run.Start + run.Length > VoxelChunk.Volume)
+            {
+                throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has a bad state run.", nameof(edit));
+            }
+
+            for (var position = run.Start; position < run.Start + run.Length; position++)
+            {
+                var x = (origin.X << VoxelChunk.Shift) + (position & (VoxelChunk.Size - 1));
+                var z = (origin.Z << VoxelChunk.Shift) + ((position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1));
+                var y = (origin.Y << VoxelChunk.Shift) + (position >> (2 * VoxelChunk.Shift));
+                var block = target.GetBlock(x, y, z);
+                if (block == BlockId.Air)
+                {
+                    throw new ArgumentException($"Chunk ({edit.X}, {edit.Y}, {edit.Z}) has a state on a cell that is air.", nameof(edit));
+                }
+
+                _ = target.SetBlock(x, y, z, block, (byte)run.State);
+            }
+
+            covered = run.Start + run.Length;
+        }
+    }
+
+    // The cells holding a state other than 0, as runs of equal states; null when there are none.
+    private static List<StateRun>? StateRuns(ReadOnlySpan<byte> states)
+    {
+        if (states.IsEmpty)
+        {
+            return null;
+        }
+
+        var runs = new List<StateRun>();
+        var i = 0;
+        while (i < states.Length)
+        {
+            if (states[i] == 0)
+            {
+                i++;
+                continue;
+            }
+
+            var start = i;
+            var state = states[i];
+            while (i < states.Length && states[i] == state)
+            {
+                i++;
+            }
+
+            runs.Add(new StateRun(start, i - start, state));
+        }
+
+        return runs;
     }
 
     // The cells holding a level other than source, as runs of equal levels; null when there are none.
