@@ -490,6 +490,14 @@ bytes only when the chunk holds a non-zero state, so the digests and the save's 
 unchanged. `ChunkSnapshot` copies the states of its 18-cell neighbourhood (and holds no array while none is set) so the mesher can read
 them off the main thread. Saves (format 12) write the states of a changed chunk as run-length `StateRun`s, omitted when there are none.
 
+**Shapes (K02).** `BlockShapes.Of(id, state[, reader, x, y, z])` in `Voxel` is the one pure definition of a block's boxes, in sixteenths
+of a block (`ShapeBox`; y reaches 24 only for a fence's or a closed gate's collision). A `VoxelShape` holds `Drawn` (the mesher and the
+ray), `Collides` (bodies) and the `FaceCover` of each face worked out from the drawn boxes; the mesher hides a neighbour's face only
+behind a `Full` cover. Shapes are cached (the full cube shared, the 16 fence arm shapes, a table by oak id and state), so a call
+allocates nothing. The state layouts are in `BlockState` (log axis, stairs, slab, gate, door, trapdoor); horizontal directions are
+`Facing` (north is -Z, then clockwise); `BlockState.IsValid` says which states a block may hold. A block with no shape of its own is the
+full cube when solid and empty otherwise. The orientation rules are in the doc comment of `BlockShapes`.
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
