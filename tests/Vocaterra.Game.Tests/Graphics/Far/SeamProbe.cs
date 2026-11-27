@@ -186,4 +186,14 @@ internal static class SeamProbe
 
         return new Seam(where, samples, open, worst, at, underPositive, underNegative);
     }
+
+    /// <summary>
+    /// How far a stand-in's wall at one place on the edge of a window stops short of the ground beside it: the stand-in's curtain is open when its land stands above <paramref name="besideTop"/> and its lowest wall face is still above it (the sky shows through the slot);
+    /// 0 when it is closed, or when the stand-in stands lower there (the other side's own skirt closes that, see the tests).
+    /// </summary>
+    internal static float OpenBeside(List<Quad> standIn, GroundMap ground, bool alongX, float c, int side, float p, float besideTop)
+    {
+        var curtain = Curtain(standIn, ground, alongX, c, side, p);
+        return curtain is { } k && k.Top > besideTop && k.Bottom > besideTop ? k.Bottom - besideTop : 0f;
+    }
 }

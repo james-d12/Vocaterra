@@ -895,7 +895,7 @@ public sealed class VoxelRenderer : IDisposable, IChunkResidencyListener, IChunk
     /// Whether the far pass draws nothing this frame (its tiles are still uploaded, so they are there when it draws again): the fog is complete before the far land begins (under water, in lava, in the thickest weather), or the eye is buried
     /// (<see cref="BuriedEye"/>: deep under all the land round it, in a cave, where no way out to the far land is near).
     /// </summary>
-    public bool FarHidden => _buried || (_far is { } far && _effect.FogEnd <= far.Settings.InnerFraction * Preset.ViewDistance);
+    public bool FarHidden => _buried || (_far is { } far && _effect.FogEnd <= far.Settings.InnerRadius(Preset.ViewDistance));
 
     // The lowest surface of the land in the chunk columns round the eye (BuriedEye.Reach of them on each side): their sky tiles are the ones the meshes of the near chunks are made with, so they are there already.
     private static int LowestSurfaceAround(Vector3 eye, SkyExposure sky)

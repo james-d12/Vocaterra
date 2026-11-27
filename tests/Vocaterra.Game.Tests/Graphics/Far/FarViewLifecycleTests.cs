@@ -34,6 +34,7 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
         public double EyeZ { get; set; } = 192;
         public int Frame { get; private set; }
         public int JobsPerFrame { get; set; } = 2;
+        public Dictionary<FarTileKey, FarTileMesh> Meshes { get; } = [];
 
         public Rig(List<FarTile> released, bool ring, Func<int, int, bool>? awaits = null)
         {
@@ -78,6 +79,7 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
         {
             foreach (var tile in View.PendingTiles.ToList())
             {
+                Meshes[tile.Key] = tile.Pending!;
                 tile.Adopt(tile.Pending!);
                 tile.Pending = null;
                 tile.OnCard = true;
@@ -141,6 +143,131 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
 
         Output.WriteLine($"covered at frame {covered}; flight of {2 * Out} frames; frames with an uncovered leaf: {uncovered.Count}: {string.Join(", ", uncovered.Take(20).Select(static u => $"{u.Frame}:{u.Leaves}"))}; tiles built {rig.View.Stats.Built}, cached {rig.View.Stats.Cached}, released {_released.Count}");
         Assert.Empty(uncovered);
+    }
+
+    // B51: the stand-ins drawn inside windows in this frame: along every edge of every window the stand-in's wall must reach below the ground beside it (the neighbouring drawn tile's, or, where nothing far is drawn there because the chunks show it, the real
+    // blocks' at level 0), or the sky shows through the slot between them. Returns the blocks of window edge looked at and the ones left open.
+    private static (int Samples, int Open, string First, float Worst) OpenWindowEdges(Rig rig, Dictionary<FarTileKey, SeamProbe.GroundMap> grounds)
+    {
+        SeamProbe.GroundMap GroundOf(FarTileKey key)
+        {
+            if (!grounds.TryGetValue(key, out var map))
+            {
+                grounds[key] = map = new SeamProbe.GroundMap(rig.View.World, Game, key);
+            }
+
+            return map;
+        }
+
+        var (samples, open, first, worst) = (0, 0, "", 0f);
+        var drawn = rig.View.Draw;
+        foreach (var stand in drawn.Where(static t => t.Windows is { Count: > 0 }))
+        {
+            if (!rig.Meshes.TryGetValue(stand.Key, out var mesh) || mesh.Granules is null)
+            {
+                continue;
+            }
+
+            var standGround = GroundOf(stand.Key);
+            foreach (var w in stand.Windows!)
+            {
+                var quads = SeamProbe.Quads(mesh, SeamProbe.Drawn(mesh, w));
+                foreach (var (alongX, c, side, from, to) in new[] { (true, (float)w.MinX, 1, w.MinZ, w.MaxZ), (true, (float)w.MaxX, -1, w.MinZ, w.MaxZ), (false, (float)w.MinZ, 1, w.MinX, w.MaxX), (false, (float)w.MaxZ, -1, w.MinX, w.MaxX) })
+                {
+                    for (var p = from; p < to; p += 2)
+                    {
+                        // The block just outside the window on this side.
+                        var (bx, bz) = alongX ? (c - (side * 0.5f), p + 0.5f) : (p + 0.5f, c - (side * 0.5f));
+                        var beside = drawn.FirstOrDefault(t => t != stand && Covers(t, Game, bx, bz));
+                        var besideKey = beside?.Key ?? new FarTileKey(0, (int)Math.Floor(bx / Game.SizeOf(0)), (int)Math.Floor(bz / Game.SizeOf(0)));
+                        if (beside is null && Math.Sqrt(((bx - rig.EyeX) * (bx - rig.EyeX)) + ((bz - rig.EyeZ) * (bz - rig.EyeZ))) > Vox + 16)
+                        {
+                            continue; // nothing is drawn there at all: the leaf is not asked for yet (the coverage tests own that)
+                        }
+
+                        var top = GroundOf(besideKey).TopAt(bx, bz);
+                        if (top is null)
+                        {
+                            continue;
+                        }
+
+                        samples++;
+                        var gap = SeamProbe.OpenBeside(quads, standGround, alongX, c, side, p, top.Value);
+                        if (gap > 0.01f)
+                        {
+                            open++;
+                            worst = Math.Max(worst, gap);
+                            first = gap < worst ? first : $"frame {rig.Frame}: stand-in {stand.Key} window {w} edge {(alongX ? "x" : "z")}={c} at {p}: wall stops {gap} blocks above the ground beside it ({(beside is null ? "chunks" : beside.Key.ToString())})";
+                        }
+                    }
+                }
+            }
+        }
+
+        return (samples, open, first, worst);
+    }
+
+    // Whether a drawn tile draws the ground at a block: inside its footprint and, when it stands in inside windows, inside one of them.
+    private static bool Covers(FarTile tile, FarViewSettings settings, float x, float z)
+    {
+        var size = settings.SizeOf(tile.Key.Level);
+        var (x0, z0) = (tile.Key.MinX(settings), tile.Key.MinZ(settings));
+        return x >= x0 && x < x0 + size && z >= z0 && z < z0 + size && (tile.Windows is null || tile.Windows.Any(w => x >= w.MinX && x < w.MaxX && z >= w.MinZ && z < w.MaxZ));
+    }
+
+    [Fact]
+    public void Given_AFlightOverAFillingView_When_EveryFrameIsAssembled_Then_NoStandInWindowEdgeLeavesASlotToTheSkyAndTheZoneEdgeIsCoveredByFarLand()
+    {
+        using var rig = new Rig(_released, ring: true);
+        rig.JobsPerFrame = 2;
+        var grounds = new Dictionary<FarTileKey, SeamProbe.GroundMap>();
+        long samples = 0;
+        long open = 0;
+        long standInFrames = 0;
+        var worstGap = 0f;
+        var first = "";
+        var zoneUncovered = new List<string>();
+        var inner = Game.InnerRadius(Vox);
+        Assert.True(inner <= Vox - 16, "the far land starts a chunk or more inside the voxel zone's edge");
+        for (var i = 0; i < 700; i++)
+        {
+            if (i >= 60)
+            {
+                rig.EyeX += 3.0;
+            }
+
+            rig.Step();
+            if (rig.View.CoveredAfterMilliseconds is null || i % 7 != 0)
+            {
+                continue;
+            }
+
+            // The ground just outside the radius the far land starts at, all round the eye: some drawn tile draws it, whether the chunks are drawn there or not (the far land is behind them).
+            for (var a = 0; a < 90; a++)
+            {
+                var angle = a * Math.PI / 45;
+                var (x, z) = (rig.EyeX + ((inner + 3) * Math.Cos(angle)), rig.EyeZ + ((inner + 3) * Math.Sin(angle)));
+                if (!rig.View.Draw.Any(t => Covers(t, Game, (float)x, (float)z)) && zoneUncovered.Count < 5)
+                {
+                    zoneUncovered.Add($"frame {rig.Frame}: nothing far is drawn at {x:0},{z:0}, {inner + 3:0} blocks from the eye");
+                }
+            }
+
+            var (s, o, f, w) = OpenWindowEdges(rig, grounds);
+            samples += s;
+            open += o;
+            if (w > worstGap)
+            {
+                (worstGap, first) = (w, f);
+            }
+
+            standInFrames += rig.View.Draw.Any(static t => t.Windows is { Count: > 0 }) ? 1 : 0;
+        }
+
+        Output.WriteLine($"{standInFrames} sampled frames with stand-ins inside windows; {samples} blocks of window edge looked at, {open} open (worst {worstGap} blocks); worst: {first}; zone edge: {zoneUncovered.Count} uncovered samples");
+        Assert.True(standInFrames > 0, "the flight must show stand-ins inside windows, or it checks nothing");
+        Assert.True(open == 0, $"{open} of {samples} blocks of window edge are open; first: {first}");
+        Assert.Empty(zoneUncovered);
     }
 
     [Fact]

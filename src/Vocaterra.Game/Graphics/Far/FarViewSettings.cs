@@ -22,6 +22,13 @@ public sealed record FarViewSettings(int Range, int Levels = 8, double BandScale
     /// <summary>Where each level starts, in voxel view distances: level 0 is the ring just past the voxel zone (to 1.1), then each level is used out to the start of the next.</summary>
     public static IReadOnlyList<double> BandStarts { get; } = [0, 1.1, 1.5, 2.5, 4.5, 8.5, 16.5, 32.5];
 
+    /// <summary>
+    /// B51: the radius, in blocks from the eye, inside which no far land is drawn where the chunks are drawn: <see cref="InnerFraction"/> of the voxel zone's radius, but no nearer its edge than a chunk (16 blocks), so the far land always lies under the outermost chunk of the zone
+    /// (drawn before the chunks, which always draw over it): a chunk that is missing or lower at the zone's edge shows far ground there, not the sky. At 400 blocks and more the fraction already leaves a chunk; below it the zone is small and the margin was a few blocks.
+    /// </summary>
+    /// <param name="voxelViewDistance">The voxel zone's radius in blocks.</param>
+    public double InnerRadius(int voxelViewDistance) => Math.Min(InnerFraction * voxelViewDistance, voxelViewDistance - 16.0);
+
     /// <summary>The cells along a tile's side: a section's voxels, so a tile is the stack of sections of its footprint (the same at every level).</summary>
     public int TileCells => LodSection.Size;
 

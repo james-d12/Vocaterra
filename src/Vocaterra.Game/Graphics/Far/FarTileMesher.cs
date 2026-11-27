@@ -265,7 +265,7 @@ public static class FarTileMesher
     // A cave is drawn only this far (in blocks) under the ground over it: further down nothing outside sees it.
     private const int CaveDepth = 24;
 
-    // B51: how many cells deep the wall at a cut edge hangs below the neighbouring column's ground in a textured tile (a quad a face: the cost grows with the depth); a flat tile merges the wall's quads, so it hangs as deep as a tile's outer skirt.
+    // B51: how many cells deep the wall at a cut edge hangs below the neighbouring column's ground in a textured tile (a quad a face: the cost grows with the depth); a flat tile merges the wall's quads (a deeper wall costs almost nothing), so it hangs twice as deep as a tile's outer skirt.
     private const int TexturedCutSkirtCells = 2;
 
     /// <summary>Builds a tile.</summary>
@@ -720,12 +720,22 @@ public static class FarTileMesher
                     pos[ua] = u;
                     pos[wa] = w;
                     var block = v.BlockAt(pos[0], pos[1], pos[2]);
+                    var at = (pos[0], pos[1], pos[2]);
+                    var to = (pos[0] + (Axes[axis].X * step), pos[1] + (Axes[axis].Y * step), pos[2] + (Axes[axis].Z * step));
+                    var hollow = false;
                     if (block == BlockId.Air)
                     {
-                        continue;
+                        // B51: a cut edge's wall also closes the hollow under an overhang of the coarse data (a plate of ground over air, as a mip makes at a cliff), or the finer ground beside it, lower than the plate, is seen through the hollow.
+                        if (axis == 1 || c.GranuleCells >= LodSection.Size || !CrossesGranule(c, at, to, axis) || v.Ground(at.Item1, at.Item3) <= at.Item2)
+                        {
+                            continue;
+                        }
+
+                        block = v.BlockAt(at.Item1, v.Ground(at.Item1, at.Item3), at.Item3);
+                        hollow = true;
                     }
 
-                    var made = FaceAt(c, block, (pos[0], pos[1], pos[2]), (pos[0] + (Axes[axis].X * step), pos[1] + (Axes[axis].Y * step), pos[2] + (Axes[axis].Z * step)), axis, positive, face, tint);
+                    var made = FaceAt(c, block, at, to, axis, positive, face, tint, hollow);
                     if (made is not null)
                     {
                         mask[((w - lo[wa]) * nu) + (u - lo[ua])] = made;
@@ -742,13 +752,13 @@ public static class FarTileMesher
     }
 
     // The face of the voxel at `at` looking at the neighbour `to`, or null when it is not seen.
-    private static Face? FaceAt(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint)
+    private static Face? FaceAt(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint, bool hollow = false)
     {
-        var made = FaceAtCore(c, block, at, to, axis, positive, face, tint, out var skirt);
-        return skirt && made is { } wall ? (wall.Bucket == FarBucket.Opaque ? wall with { Bucket = FarBucket.Skirt } : null) : made;
+        var made = FaceAtCore(c, block, at, to, axis, positive, face, tint, hollow, out var skirt);
+        return hollow && !skirt ? null : skirt && made is { } wall ? (wall.Bucket is FarBucket.Opaque or FarBucket.Lit ? wall with { Bucket = FarBucket.Skirt } : null) : made;
     }
 
-    private static Face? FaceAtCore(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint, out bool skirt)
+    private static Face? FaceAtCore(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint, bool hollow, out bool skirt)
     {
         skirt = false;
         var v = c.Volume;
@@ -786,12 +796,12 @@ public static class FarTileMesher
                 return null; // no tile beside it: a skirt from its own ground
             }
         }
-        else if (inside && block != BlockId.Water && other != BlockId.Air && axis != 1 && CrossesGranule(c, at, to, axis) && (other != BlockId.Water || DeepBed(c, to)))
+        else if (inside && block != BlockId.Water && axis != 1 && CrossesGranule(c, at, to, axis) && (hollow || (other == BlockId.Air ? !v.IsOpen(to.X, to.Y, to.Z) : other != BlockId.Water || DeepBed(c, to))))
         {
-            // B51: a granule's edge inside the tile is where a stand-in is cut for the finer leaves (or the chunks) beside it, so it gets the skirt a tile's outer edge has: a wall of the ground voxels (beside a crown or the water over the neighbour's bed too) under the neighbouring column's ground, as deep as a skirt and no deeper
+            // B51: a granule's edge inside the tile is where a stand-in is cut for the finer leaves (or the chunks) beside it, so it gets the skirt a tile's outer edge has: a wall of the ground voxels (beside a crown, the water over the neighbour's bed or air sealed under its ground too) hanging a skirt's depth under the lower of the two columns' ground
             // (hidden inside the ground when both granules are drawn). Without it the slot between the cut edge's last face and the finer ground beside it is open to the sky.
             // Ground only: a crown or a trunk beside a crown is not what keeps the sky out, and a ground voxel beside a crown of the neighbouring column is drawn too (the finer leaf there may have no crown).
-            if (CrownOrTrunk(block) || at.Y < v.Ground(to.X, to.Z) - (c.Textured ? TexturedCutSkirtCells : c.SkirtCells))
+            if (CrownOrTrunk(block) || at.Y < Math.Min(v.Ground(to.X, to.Z), v.Ground(at.X, at.Z)) - (c.Textured ? TexturedCutSkirtCells : 2 * c.SkirtCells))
             {
                 return null;
             }

@@ -24,7 +24,7 @@ public static class FarTileSelector
             return [];
         }
 
-        var inner = includeInner ? -1 : settings.InnerFraction * voxelViewDistance;
+        var inner = includeInner ? -1 : settings.InnerRadius(voxelViewDistance);
         var reach = settings.Range * Math.Max(1.0, reachScale);
         var top = settings.TopLevel;
         var size = settings.SizeOf(top);
