@@ -498,6 +498,18 @@ allocates nothing. The state layouts are in `BlockState` (log axis, stairs, slab
 `Facing` (north is -Z, then clockwise); `BlockState.IsValid` says which states a block may hold. A block with no shape of its own is the
 full cube when solid and empty otherwise. The orientation rules are in the doc comment of `BlockShapes`.
 
+**Body collision, steps and the ray (K03).** `VoxelCollider` meets the true shapes: a plain solid cell is one full box; a block with a
+shape of its own (`BlockShapes.HasShape`) contributes its `Collides` boxes, in units (a sixteenth is 256). A cell is visited together with
+the block below it, so the part of a fence or closed gate above 16/16 is met from the cell above; a `Tall` block still blocks the whole
+cell above it, and lava still collides with nothing. `PlayerBody.MoveWithStepUp` lifts a grounded, non-rising body onto the top of the
+highest box it would overlap at the target that reaches down to its feet, when that top is at most one block up and the body fits
+there: a slab, a stair step and a block climb; a ceiling, a top slab or an upside-down stair never does. `BodyCollision` holds the shared
+planning rules that `VoxelGrid` and `SleepWalk.WalkView` call: a cell with any collision box blocks planning, only a full-cube
+collision can be stood on, and the cell above a fence or a `Tall` block is blocked (NPCs never use the oak pieces). `BlockRay` keeps its
+cell walk and, on a shaped cell, runs an exact-integer slab test against the drawn boxes, walking on when it misses;
+`BlockRayHit.{HitX, HitY, HitZ}` are 1/4096-block units within the cell, and `Adjacent` is the cell itself when the face hit lies
+inside the cell (the top of a bottom slab) and the neighbour when it is on the cell boundary.
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
