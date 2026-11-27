@@ -59,6 +59,11 @@ public sealed record GridBlockSource(VoxelGrid Grid, RiverCurrents? Currents = n
 
         public BlockId GetBlock(int x, int y, int z) => grid.PeekBlock(x, y, z);
 
+        public byte GetState(int x, int y, int z) =>
+            grid.InBounds(x, y, z) && grid.TryGetChunk(VoxelChunkCoord.FromBlock(x, y, z), out var chunk)
+                ? chunk.GetState(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1))
+                : (byte)0;
+
         public WaterLevel GetWater(int x, int y, int z) =>
             grid.InBounds(x, y, z) && grid.TryGetChunk(VoxelChunkCoord.FromBlock(x, y, z), out var chunk)
                 ? chunk.GetWater(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1))

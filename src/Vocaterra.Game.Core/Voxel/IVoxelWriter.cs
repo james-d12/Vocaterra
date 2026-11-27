@@ -3,9 +3,13 @@ namespace Vocaterra.Game.Core.Voxel;
 /// <summary>The write side of a voxel world, internal to the simulation and the generation passes: every call that changes something is an edit.</summary>
 internal interface IVoxelWriter : IVoxelReader
 {
-    /// <summary>Writes a block; returns whether the world changed.</summary>
+    /// <summary>Writes a block with state 0; returns whether the world changed.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The position lies outside the limits.</exception>
     bool SetBlock(int x, int y, int z, BlockId block);
+
+    /// <summary>Writes a block and its state together (K01); returns whether the world changed (a different block, or the same block with a different state). Air always holds state 0.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The position lies outside the limits.</exception>
+    bool SetBlock(int x, int y, int z, BlockId block, byte state);
 
     /// <summary>Writes the level of a water cell; returns whether it changed.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The position lies outside the limits.</exception>

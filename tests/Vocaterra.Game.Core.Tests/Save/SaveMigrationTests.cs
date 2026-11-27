@@ -319,7 +319,7 @@ public sealed class SaveMigrationTests
     [Fact]
     public void TheFixtureLoadsStrictAndAcrossBundles()
     {
-        var text = SaveFixture.Read("save-v11.json");
+        var text = SaveFixture.Read("save-v12.json");
 
         var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);
