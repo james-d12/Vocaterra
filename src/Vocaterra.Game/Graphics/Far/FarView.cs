@@ -328,7 +328,7 @@ public sealed class FarView
     }
 
     // Whether a leaf lies wholly inside the zone the voxel chunks cover.
-    private bool IsInner(FarTileKey key) => _nearReady is not null && key.FarthestDistance(Settings, _eye.X, _eye.Z) < Settings.InnerRadius(_selectedFor.Voxel);
+    private bool IsInner(FarTileKey key) => _nearReady is not null && key.FarthestDistance(Settings, _eye.X, _eye.Z) < Settings.InnerFraction * _selectedFor.Voxel;
 
     // Whether a leaf has to be drawn: not when it lies wholly inside the zone whose chunk columns are all drawn.
     private bool IsNeeded(FarTileKey key)

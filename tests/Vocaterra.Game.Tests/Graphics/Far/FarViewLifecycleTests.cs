@@ -227,8 +227,8 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
         var worstGap = 0f;
         var first = "";
         var zoneUncovered = new List<string>();
-        var inner = Game.InnerRadius(Vox);
-        Assert.True(inner <= Vox - 16, "the far land starts a chunk or more inside the voxel zone's edge");
+        var inner = Game.InnerFraction * Vox;
+        Assert.True(inner <= Vox - 16, "the far land starts a chunk or more inside the voxel zone's edge (at the game's 400 blocks and more)");
         for (var i = 0; i < 700; i++)
         {
             if (i >= 60)
