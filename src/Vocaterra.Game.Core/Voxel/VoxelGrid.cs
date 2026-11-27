@@ -217,9 +217,9 @@ public sealed class VoxelGrid : IVoxelWriter
 
     /// <summary>
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
-    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
+    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), a block with a shape of its own whose collision has any box (K03, <see cref="BodyCollision"/>: the planning rule), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || BodyCollision.BlocksBody(this, x, y, z);
 
     /// <inheritdoc />
     public bool IsWalled(int x, int z) => Barrier is { } barrier && barrier.Blocks(x, z);
@@ -228,7 +228,7 @@ public sealed class VoxelGrid : IVoxelWriter
     public BodyBarrier? Barrier { get; internal set; }
 
     /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
-    public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+    public bool CanStandOn(int x, int y, int z) => BodyCollision.CanStandOn(this, x, y, z);
 
     /// <summary>
     /// The chunk at the given chunk coordinates, resident afterwards: a streamed grid generates it (or makes an empty one without a generator) and installs it when it

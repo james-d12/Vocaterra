@@ -37,6 +37,9 @@ public static class BlockShapes
     private static readonly VoxelShape[] Oak = BuildOak();
     private static readonly VoxelShape[] Fences = BuildFences();
 
+    /// <summary>Whether the block has shapes of its own (the oak blocks, K02). Any other block is the full cube when solid and empty when not, and nothing needs a lookup for it.</summary>
+    public static bool HasShape(BlockId id) => (uint)((int)id - FirstOak) < OakCount;
+
     /// <summary>The shape of a block in a state, with no neighbours known (a fence then has no arms).</summary>
     /// <param name="id">The block.</param>
     /// <param name="state">Its state byte.</param>
