@@ -33,7 +33,7 @@ and lakes at the mountain spot (-200,1600), before and after: not investigated (
 Measurements: skirt quads per tile (memory only) level 1 385 (+16%), level 3 about 750, level 4 about 1,250 to 2,170; whole-tile drawn
 quads unchanged within 1 to 3. Scripted run (seed 7900, High, view distance 576, far detail 200%, 8 workers, `--no-settle`, fresh store):
 last-frame scope 1,118,457 quads before and after; far pass processor median GLSL 6.41 to 7.08 ms, effects 7.39 to 8.54 ms; card 4.91 to
-5.04 ms (GLSL), 3.72 to 3.96 ms (effects); noisy, covers the whole fill. Pictures `artifacts/b-series/b51/` in the b51 worktree (not committed).
+5.04 ms (GLSL), 3.72 to 3.96 ms (effects); noisy, covers the whole fill. Pictures `/home/james/Dev/Vocaterra/artifacts/b-series/b51/` (outside git).
 
 Text for docs/game/architecture.md (far view): "A stand-in drawn inside windows has no wall along a window's edge in its ground data, so
 the mesher of a tile built cut (`cut: true`) hangs a wall of ground voxels under every granule edge inside the tile, a skirt's depth under

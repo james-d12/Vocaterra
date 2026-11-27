@@ -3325,3 +3325,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   a lifecycle test needs real workers and the game's ring ratio. Finding 9 was already fixed by main's `dcc56e8a`. A test that reads
   `Stopwatch` fails `WallClockRulesTests`: briefs now say so. Not fixed: a dirty stand-in still drawn is not rebuilt (old coarse data until
   its leaves are drawn); the owner's real flight (190 blocks a second, 8 workers) is still to be flown.
+- **B51, LOD seams (2026-11-27, on `feature/lod-lifecycle`).** Report `.claude/briefs/b51-report.md`. Gated at `e67f07fa`: 14,012 passed,
+  0 failed, 9 skipped; timing 23. The owner's sky line at the near land's edge was not a missing overlap (leaves outside 0.96 of the voxel
+  radius already draw whole behind the chunks at 400 blocks and more) but the cut edge of a stand-in drawn by windows (B47), which had no
+  wall: 54,254 of 97,344 edge blocks open on the old mesher (worst 64 blocks at level 6), 0 after. Still open: a fine leaf higher than a
+  stand-in 3 or more levels coarser (its own skirt too short; up to 40% of edge blocks at level 6 over 2, worst 24 blocks); per-side skirt
+  buckets drawn only beside a different level would close it (proposed, not planned). A wider `InnerRadius` for small zones broke B42's rule
+  and was reverted. The agent's "floating pale slabs" in its pictures are the cloud layer seen from a mountain top (PR #79), not a bug.
+  `FarViewFlightTests` took 160 s in this gate against 95 s in B49's (B50's agent was building at the same time).
