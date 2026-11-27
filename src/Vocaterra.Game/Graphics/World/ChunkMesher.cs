@@ -235,6 +235,7 @@ public static class ChunkMesher
         BlockId.Wheat => BlockShape.Cross,
         BlockId.Door => BlockShape.Door,
         BlockId.Fence => BlockShape.Fence,
+        BlockId.OakLog or BlockId.OakStairs or BlockId.OakSlab or BlockId.OakFence or BlockId.OakFenceGate or BlockId.OakDoor or BlockId.OakTrapdoor => BlockShape.Cube, // K02: temporary, K04 draws their boxes
         _ => BlockShape.Cube,
     };
 

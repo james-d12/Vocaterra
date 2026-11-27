@@ -137,6 +137,13 @@ public sealed record BlockDefinition(
         new(BlockId.TinOre, "tin-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.CopperOre, "copper-ore", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
         new(BlockId.Basalt, "basalt", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Stone),
+        new(BlockId.OakLog, "oak-log", true, false, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakStairs, "oak-stairs", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakSlab, "oak-slab", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakFence, "oak-fence", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakFenceGate, "oak-fence-gate", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakDoor, "oak-door", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
+        new(BlockId.OakTrapdoor, "oak-trapdoor", true, true, false, 0, null, 0, BlockId.Air, Material: Material.Wood),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

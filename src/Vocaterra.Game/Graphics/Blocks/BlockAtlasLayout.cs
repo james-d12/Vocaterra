@@ -494,6 +494,8 @@ public static class BlockAtlasLayout
             BlockId.Lantern => BlockCell.Lantern,
             BlockId.Crate => up || down ? BlockCell.CrateTop : BlockCell.CrateSide,
             BlockId.Counter => up ? BlockCell.Planks : BlockCell.CrateSide,
+            BlockId.OakLog => up || down ? BlockCell.TrunkEnd : BlockCell.TrunkSide, // K02: temporary, K04 turns it to its axis
+            BlockId.OakStairs or BlockId.OakSlab or BlockId.OakFence or BlockId.OakFenceGate or BlockId.OakDoor or BlockId.OakTrapdoor => BlockCell.Planks, // K02: temporary, K04 draws the real art
             BlockId.Slate => BlockCell.Slate,
             BlockId.Granite => BlockCell.Granite,
             BlockId.Limestone => BlockCell.Limestone,

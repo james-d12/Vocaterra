@@ -157,7 +157,7 @@ public sealed class VoxelGridTests
         }
 
         Assert.Equal(Enum.GetValues<BlockId>().Length, BlockDefinition.All.Count);
-        Assert.Equal(67, BlockDefinition.All.Count);
+        Assert.Equal(74, BlockDefinition.All.Count); // K02 appended the seven oak blocks (67 to 73)
 
         // The values are hashed into every golden: pinned here so a reorder cannot go unnoticed.
         Assert.Equal(0, (int)BlockId.Air);
