@@ -135,10 +135,10 @@ public sealed class TerrainTuningTests(ITestOutputHelper output) : TerrainTuning
         Output.WriteLine($"seed {seed}: mean ground on land within 128 blocks of the shore {landNear:0.0}, 128 to 512 {landFar:0.0}; at sea within 64 blocks {seaNear:0.0}, 128 to 384 {seaMid:0.0}, over 1024 {seaFar:0.0}; {deep:0.0}% of the sea is at y 0 or below");
 
         Assert.InRange(landNear, 32, 44); // B02: 37 to 61 within the first 128 blocks (it rose to 61)
-        Assert.InRange(seaNear, 24, 32); // the floor is under the sea level but barely
-        Assert.True(seaMid < seaNear - 3, $"the floor deepens: {seaNear:0.0} at the shore, {seaMid:0.0} 128 to 384 blocks out");
-        Assert.True(seaFar <= 0, $"far offshore the floor is at y {seaFar:0.0}"); // B02: no floor under y 10
-        Assert.True(deep >= 20, $"{deep:0.0}% of the sea is at y 0 or below");
+        Assert.InRange(seaNear, 14, 28); // a shallow strip by the beach, not a cliff, but already several blocks deep (the deep sea, 2026-11-26: it was 24 to 32, barely under the sea level)
+        Assert.True(seaMid <= 0, $"the floor drops away: {seaNear:0.0} at the shore, {seaMid:0.0} 128 to 384 blocks out");
+        Assert.True(seaFar <= -40, $"far offshore the floor is at y {seaFar:0.0}"); // B02: no floor under y 10; then y 0 or below; now 70 blocks of water or more
+        Assert.True(deep >= 75, $"{deep:0.0}% of the sea is at y 0 or below");
     }
 
     [Theory]
