@@ -37,7 +37,7 @@ public sealed class AtmosphereSaveTests
     }
 
     [Fact]
-    public void TheSaveVersionIsEleven() => Assert.Equal(11, SaveGame.CurrentVersion);
+    public void TheSaveVersionIsTwelve() => Assert.Equal(12, SaveGame.CurrentVersion);
 
     [Fact]
     public void ASleepWritesTheOffsetAndALoadRestoresTheSameHourAndContinuesTheSameWay()
@@ -119,6 +119,6 @@ public sealed class AtmosphereSaveTests
         Assert.Null(loaded.Migration); // the fixture is read with this bundle's hash (SaveFixture), so the load is strict: its digest (recorded again for the 30-slot bag, I03b) is checked and still the world's
         Assert.Null(SaveGame.Parse(text).Systems?.Atmosphere);
         Assert.True(loaded.Simulation.Clock.State.IsDefault);
-        Assert.Equal(11, SaveGame.Parse(SaveOf(loaded)).Version);
+        Assert.Equal(12, SaveGame.Parse(SaveOf(loaded)).Version);
     }
 }

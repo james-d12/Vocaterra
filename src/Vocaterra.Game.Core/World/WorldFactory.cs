@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.World.Far;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Generation.Procedural;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Core.World.Options;
 using Vocaterra.Game.Core.World.Regions;
 using Vocaterra.Game.Core.World.Streaming;
 
@@ -26,11 +27,14 @@ public static class WorldFactory
     /// <param name="mode">The kind of grid.</param>
     /// <param name="layout">The valley's layout when it is not the bundle's own (the game's <c>--scene</c>), or <see langword="null"/>.</param>
     /// <param name="towns">Regions on procedural ground to add to the valley (B15), or <see langword="null"/> for none; only a streamed world can hold them. B16 reads them from <c>world.json</c>.</param>
+    /// <param name="options">The terrain options (Q02: <see cref="TerrainOptionData.Create"/>), or <see langword="null"/> for the defaults; they are laid over <c>world.json</c>'s numbers for the whole world (the streamed and the bounded grid), and the scene carries them.</param>
     /// <returns>The scene: the valley's spawn, NPCs, points and labels on the grid of the mode, with <see cref="Scene.Places"/> and <see cref="Scene.TemplateDigest"/> set.</returns>
     /// <exception cref="ArgumentException">A bounded world was asked for towns, or the regions overlap, crowd each other or leave the world (<see cref="RegionCatalog.Validate"/>).</exception>
-    public static Scene Create(GameData data, ulong seed, WorldMode mode, SceneLayout? layout = null, IReadOnlyList<ProceduralReliefRegion>? towns = null)
+    public static Scene Create(GameData data, ulong seed, WorldMode mode, SceneLayout? layout = null, IReadOnlyList<ProceduralReliefRegion>? towns = null, WorldOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(data);
+        var chosen = options ?? WorldOptions.Default;
+        data = chosen.IsDefault ? data : data.WithWorldGen(data.TerrainOptions.Apply(data.WorldGen, chosen)); // Q02: the options are laid over the world's numbers once, here; the defaults leave the data as it is
         towns ??= [];
         if (towns.Count > 0 && mode == WorldMode.Bounded)
         {
@@ -58,12 +62,12 @@ public static class WorldFactory
         var composition = Compose(data, seed, catalog);
         if (mode == WorldMode.Bounded)
         {
-            return built.WithWorld(built.Grid, composition.Places, region.TemplateDigest, null);
+            return built.WithWorld(built.Grid, composition.Places, region.TemplateDigest, null, null, chosen);
         }
 
         var grid = StreamedGrid(data, composition.Source);
         grid.Barrier = new BodyBarrier(region.Bounds.MinX, region.Bounds.MinZ, region.Bounds.MaxX, region.Bounds.MaxZ); // B07: the valley's edge is a wall for the body while the pass is closed
-        return built.WithWorld(grid, composition.Places, TemplateDigestOf(region, towns), composition.Source, composition.World);
+        return built.WithWorld(grid, composition.Places, TemplateDigestOf(region, towns), composition.Source, composition.World, chosen);
     }
 
     // The valley's digest alone while the world has no town (so a world without one keeps its digest); with towns, the SHA-256 of the valley's and then each town's, in the order given.

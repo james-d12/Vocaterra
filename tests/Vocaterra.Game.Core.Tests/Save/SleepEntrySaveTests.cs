@@ -272,8 +272,8 @@ public sealed class SleepEntrySaveTests
 
         Assert.Contains("version 7", error.Message, StringComparison.Ordinal);
         Assert.Contains("loads is 11", error.Message, StringComparison.Ordinal);
-        Assert.Equal(11, SaveGame.OldestReadableVersion);
-        Assert.Equal(11, SaveGame.CurrentVersion);
+        Assert.Equal(12, SaveGame.OldestReadableVersion);
+        Assert.Equal(12, SaveGame.CurrentVersion);
     }
 
     [Fact]

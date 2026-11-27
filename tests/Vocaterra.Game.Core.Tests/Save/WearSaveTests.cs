@@ -34,8 +34,8 @@ public sealed class WearSaveTests
     [Fact]
     public void Given_TheSaveFormat_When_ItsVersionIsRead_Then_ItIsEleven()
     {
-        Assert.Equal(11, SaveGame.CurrentVersion);
-        Assert.Equal(11, SaveGame.OldestReadableVersion);
+        Assert.Equal(12, SaveGame.CurrentVersion);
+        Assert.Equal(12, SaveGame.OldestReadableVersion);
     }
 
     [Fact]

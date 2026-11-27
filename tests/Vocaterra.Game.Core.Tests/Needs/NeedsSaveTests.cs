@@ -32,8 +32,8 @@ public sealed class NeedsSaveTests
 
         var document = SaveGame.Capture(session);
 
-        Assert.Equal(11, SaveGame.CurrentVersion);
-        Assert.Equal(11, document.Version);
+        Assert.Equal(12, SaveGame.CurrentVersion);
+        Assert.Equal(12, document.Version);
         Assert.Equal(session.Needs.Capture(), document.Systems?.Needs);
         Assert.Contains("\"systems\":{\"needs\":{", SaveGame.Serialize(document), StringComparison.Ordinal);
     }

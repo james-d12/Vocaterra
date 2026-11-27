@@ -218,6 +218,11 @@ public sealed class GameData
     /// <summary>The light round the player: how the <c>light</c> stat becomes a radius and a strength, and the daylight it fades between (<c>game/light.json</c>, I05b). Read on first use; a bundle without the file does not load it.</summary>
     public PlayerLightData Light => _light ??= PlayerLightData.Load(Bundle);
 
+    private Vocaterra.Game.Core.World.Options.TerrainOptionData? _terrainOptions;
+
+    /// <summary>The terrain options of the New game page: the sliders over a few of <c>game/world.json</c>'s generator values, with today's values as defaults (<c>game/world-options.json</c>, Q02). Read on first use.</summary>
+    public Vocaterra.Game.Core.World.Options.TerrainOptionData TerrainOptions => _terrainOptions ??= Vocaterra.Game.Core.World.Options.TerrainOptionData.Load(Bundle);
+
     private Vocaterra.Game.Core.World.Pass.PassData? _pass;
 
     /// <summary>The lock of the pass through the east ring: the required lessons, the rockfall prop and the edge site (the <c>pass</c> section of <c>game/world.json</c>, B08b).</summary>

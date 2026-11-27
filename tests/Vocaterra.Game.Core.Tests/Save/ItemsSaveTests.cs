@@ -88,7 +88,7 @@ public sealed class ItemsSaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 
         Assert.Equal("The save is format version 10; the oldest this game loads is 11 (it writes 11), and older saves are not migrated.", error.Message);
-        Assert.Equal(11, SaveGame.OldestReadableVersion);
+        Assert.Equal(12, SaveGame.OldestReadableVersion);
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Data, Pristine));
     }
 }

@@ -130,10 +130,17 @@ public sealed class StreamedWorldHost : IDisposable
     private static long MaxRealBytes() =>
         long.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_MEMORY_MB"), out var megabytes) ? (megabytes <= 0 ? long.MaxValue : megabytes * 1024 * 1024) : LodStore.DefaultMaxRealBytes;
 
-    /// <summary>The name of the folder a world's far sections are kept in on disk (its seed, generator version and world-generation hash), so another seed or a changed world starts again.</summary>
+    /// <summary>
+    /// The name of the folder a world's far sections are kept in on disk (its seed, generator version and world-generation hash, and, when a terrain option is off its default, <c>-t</c> and the options' digest, Q02),
+    /// so another seed, other terrain options or a changed world start again. A world at the defaults keeps the name it had before the options, so its sections stay valid.
+    /// </summary>
     /// <param name="header">The world's header.</param>
-    public static string LodWorldName(WorldStateHeader header) =>
-        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
+    public static string LodWorldName(WorldStateHeader header)
+    {
+        ArgumentNullException.ThrowIfNull(header);
+        var name = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{header.Seed}-g{header.GeneratorVersion}-{Convert.ToHexString(header.GenerationDataHash)[..12].ToLowerInvariant()}");
+        return header.TerrainKey.Length == 0 ? name : name + "-t" + header.TerrainKey[..12];
+    }
 
     // The ring's radius: the preset's, or VOCATERRA_LOD_RING (blocks, 0 for none) for a dev run that wants the model alone.
     private static int RingRadius(QualityPreset preset) => int.TryParse(Environment.GetEnvironmentVariable("VOCATERRA_LOD_RING"), out var forced) ? Math.Max(0, forced) : preset.Far.RealRadius;
