@@ -25,11 +25,11 @@ public sealed class FarGranules
     /// <param name="originZ">The tile's first block row.</param>
     /// <param name="blocks">A granule's side in blocks.</param>
     /// <param name="side">How many granules there are along a side.</param>
-    /// <param name="starts">For each bucket (opaque, lit, water) and each granule in row order, the index at which its quads start, and after them the index after the bucket's last: <c>3 * (side * side + 1)</c> entries.</param>
+    /// <param name="starts">For each bucket (opaque, lit, water, and B51 the cut edges' walls) and each granule in row order, the index at which its quads start, and after them the index after the bucket's last: <c>4 * (side * side + 1)</c> entries.</param>
     public FarGranules(int originX, int originZ, int blocks, int side, int[] starts)
     {
         ArgumentNullException.ThrowIfNull(starts);
-        if (starts.Length != 3 * ((side * side) + 1))
+        if (starts.Length != 4 * ((side * side) + 1))
         {
             throw new ArgumentException("a start for each granule of each bucket and the end of each bucket", nameof(starts));
         }
@@ -90,11 +90,16 @@ public sealed class FarGranules
     /// <param name="bucket">The bucket.</param>
     /// <param name="windows">The windows, in blocks.</param>
     /// <param name="into">Receives the runs (first index, index count), emptied first.</param>
-    public void Runs(FarBucket bucket, IReadOnlyList<FarWindow> windows, List<(int First, int Count)> into)
+    /// <param name="append">Whether to add to <paramref name="into"/> instead of emptying it first (B51: the opaque land's runs, then the cut edges' walls).</param>
+    public void Runs(FarBucket bucket, IReadOnlyList<FarWindow> windows, List<(int First, int Count)> into, bool append = false)
     {
         ArgumentNullException.ThrowIfNull(windows);
         ArgumentNullException.ThrowIfNull(into);
-        into.Clear();
+        if (!append)
+        {
+            into.Clear();
+        }
+
         var width = (Side * Side) + 1;
         var baseAt = (int)bucket * width;
         for (var i = 0; i < windows.Count; i++)
