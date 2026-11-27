@@ -206,4 +206,25 @@ public enum BlockId : ushort
 
     /// <summary>Basalt: dark, fine-grained underground rock in columns, a darker stone laid among the slate (solid, not gatherable). Appended in B11b.</summary>
     Basalt = 66,
+
+    /// <summary>An oak log (solid, opaque; its state is the axis it lies along, <see cref="BlockState.Log"/>). Appended in K02; nothing places it before K06.</summary>
+    OakLog = 67,
+
+    /// <summary>Oak stairs (solid; state: facing and upside down, <see cref="BlockState.Stairs"/>). Appended in K02.</summary>
+    OakStairs = 68,
+
+    /// <summary>An oak slab (solid; state: bottom, top or double, <see cref="BlockState.Slab"/>). Appended in K02.</summary>
+    OakSlab = 69,
+
+    /// <summary>An oak fence (solid; no state, its arms follow its neighbours). Not <see cref="BlockDefinition.Tall"/>: its 1.5-block collision height comes from its shape. Appended in K02.</summary>
+    OakFence = 70,
+
+    /// <summary>An oak fence gate (state: facing and open, <see cref="BlockState.Gate"/>). Appended in K02.</summary>
+    OakFenceGate = 71,
+
+    /// <summary>An oak door, one id for both of its cells (state: facing, open, hinge and upper half, <see cref="BlockState.Door"/>). Appended in K02.</summary>
+    OakDoor = 72,
+
+    /// <summary>An oak trapdoor (state: facing, top and open, <see cref="BlockState.Trapdoor"/>). Appended in K02.</summary>
+    OakTrapdoor = 73,
 }
