@@ -108,7 +108,7 @@ public sealed partial class VoxelSession
 
         var plan = CampPlan.Around(shape, ground.X, ground.Z, groundY, facing);
         var fault = plan.Check(grid, IsOwned);
-        if (fault == CampFault.None && plan.Blocks.Any(b => BlockDefinition.IsSolid(b.Block) && Simulation.OverlapsPlayer(b.Cell)))
+        if (fault == CampFault.None && plan.Blocks.Any(b => BlockDefinition.IsSolid(b.Block) && Simulation.OverlapsPlayer(b.Cell, b.Block)))
         {
             _hints.Add(Locale.Ui(CampPlayerHint));
             return CampResult.Refused;

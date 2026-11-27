@@ -14,21 +14,29 @@ internal static class SleepWalk
     /// </summary>
     /// <param name="grid">The world.</param>
     /// <param name="changed">The cells read as other blocks, or <see langword="null"/> for none.</param>
-    internal readonly struct WalkView(VoxelGrid grid, IReadOnlyDictionary<BlockPos, BlockId>? changed = null)
+    internal readonly struct WalkView(VoxelGrid grid, IReadOnlyDictionary<BlockPos, BlockId>? changed = null) : IVoxelReader
     {
         public static implicit operator WalkView(VoxelGrid grid) => new(grid);
+
+        public WorldLimits Limits => grid.Limits;
 
         public bool InBounds(int x, int y, int z) => grid.InBounds(x, y, z);
 
         public BlockId GetBlock(int x, int y, int z) =>
             changed is not null && changed.TryGetValue(new BlockPos(x, y, z), out var id) && grid.InBounds(x, y, z) ? id : grid.GetBlock(x, y, z);
 
-        // As VoxelGrid reads them (outside the grid is solid; a tall block collides in the cell above it too; nothing stands on a tall block).
-        public bool BlocksBody(int x, int y, int z) => IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+        public byte GetState(int x, int y, int z) => grid.GetState(x, y, z);
 
-        public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+        public WaterLevel GetWater(int x, int y, int z) => grid.GetWater(x, y, z);
 
-        private bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
+        public int HighestBlock(int x, int z) => grid.HighestBlock(x, z);
+
+        // The rules are the grid's (BodyCollision: outside the grid is solid; a tall block, a fence or a closed gate collides in the cell above it; nothing stands on a tall block or a partial shape), on the blocks as this view reads them.
+        public bool BlocksBody(int x, int y, int z) => BodyCollision.BlocksBody(this, x, y, z);
+
+        public bool CanStandOn(int x, int y, int z) => BodyCollision.CanStandOn(this, x, y, z);
+
+        public bool IsSolid(int x, int y, int z) => !InBounds(x, y, z) || BlockDefinition.IsSolid(GetBlock(x, y, z));
     }
 
     private static readonly (int Dx, int Dz)[] Directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];

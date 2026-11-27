@@ -8,7 +8,7 @@ namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The player's body in the 3D world: an axis-aligned box of 0.6 x 1.8 x 0.6 blocks (<see cref="VoxelPhysics"/>), integer positions in
-/// 1/4096 block, gravity, walking, jumping, a one-block step-up while walking on the ground, and the facing (yaw and pitch, see
+/// 1/4096 block, gravity, walking, jumping, a step-up of up to one block onto the top of the box met (a slab, a stair, a block) while walking on the ground, and the facing (yaw and pitch, see
 /// <see cref="Angles"/>). A front-end reads it; <see cref="VoxelSimulation"/> steps it. All arithmetic is integer, so replays are
 /// bit-identical.
 /// </summary>
@@ -164,7 +164,22 @@ public sealed partial class PlayerBody
     // A speed scaled by the host's permille (1000 leaves it as it is, bit for bit).
     private static int Scaled(int speed, int speedPermille) => speedPermille == 1000 ? speed : (int)((long)speed * speedPermille / 1000);
 
-    /// <summary>The move of one tick on X, Z and then Y with the one-block step-up (only for a body that was grounded and is not rising); sets the new position, the stopped velocities and <see cref="Grounded"/>.</summary>
+    /// <summary>
+    /// The lift of a step-up (K03, building plan 3.3): the body at (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>) was stopped moving to (<paramref name="targetX"/>, <paramref name="targetZ"/>). The lift is the height of
+    /// the top of the highest box it would overlap there that reaches down to its feet (a slab, a stair step, a block, a trapdoor on the floor), when that is at most one block and the body fits on it, both where it stopped and
+    /// at the target; otherwise 0. A box that starts above the feet (a ceiling, an upside-down stair, a top slab) is never climbed.
+    /// </summary>
+    private static int StepLift(IVoxelReader grid, int x, int y, int z, int targetX, int targetZ)
+    {
+        var lift = VoxelCollider.StepLift(grid, targetX, y, targetZ);
+        return lift > 0 && lift <= VoxelPhysics.StepHeight
+            && VoxelCollider.IsFree(grid, x, y + lift, z)
+            && VoxelCollider.IsFree(grid, targetX, y + lift, targetZ)
+            ? lift
+            : 0;
+    }
+
+    /// <summary>The move of one tick on X, Z and then Y with the step-up (up to one block, onto the top of the box met) (only for a body that was grounded and is not rising); sets the new position, the stopped velocities and <see cref="Grounded"/>.</summary>
     private void MoveWithStepUp(IVoxelReader grid, bool wasGrounded)
     {
         var x = MinX;
@@ -176,10 +191,10 @@ public sealed partial class PlayerBody
         if (VoxelCollider.MoveX(grid, ref x, y, z, VelocityX))
         {
             var target = startX + VelocityX;
-            if (steppingAllowed && !SteppedUp && VoxelCollider.IsFree(grid, x, y + VoxelPhysics.StepHeight, z)
-                && VoxelCollider.IsFree(grid, target, y + VoxelPhysics.StepHeight, z))
+            var lift = steppingAllowed && !SteppedUp ? StepLift(grid, x, y, z, target, z) : 0;
+            if (lift > 0)
             {
-                y += VoxelPhysics.StepHeight;
+                y += lift;
                 x = target;
                 SteppedUp = true;
             }
@@ -193,10 +208,10 @@ public sealed partial class PlayerBody
         if (VoxelCollider.MoveZ(grid, x, y, ref z, VelocityZ))
         {
             var target = startZ + VelocityZ;
-            if (steppingAllowed && !SteppedUp && VoxelCollider.IsFree(grid, x, y + VoxelPhysics.StepHeight, z)
-                && VoxelCollider.IsFree(grid, x, y + VoxelPhysics.StepHeight, target))
+            var lift = steppingAllowed && !SteppedUp ? StepLift(grid, x, y, z, x, target) : 0;
+            if (lift > 0)
             {
-                y += VoxelPhysics.StepHeight;
+                y += lift;
                 z = target;
                 SteppedUp = true;
             }

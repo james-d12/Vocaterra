@@ -127,8 +127,154 @@ public static class BlockRay
                 _ => stepZ > 0 ? BlockFace.North : BlockFace.South,
             };
             var block = new BlockPos(cx, cy, cz);
-            return new BlockRayHit(block, id, face, block.Offset(face), (int)(n * Angles.One / a));
+
+            // The origin relative to the cell's minimum corner, in units: where the ray meets the cell is worked out in these.
+            long rx = originX - ((long)cx * U);
+            long ry = originY - ((long)cy * U);
+            long rz = originZ - ((long)cz * U);
+            if (BlockShapes.HasShape(id))
+            {
+                var shape = BlockShapes.Of(id, grid.GetState(cx, cy, cz), grid, cx, cy, cz);
+                if (!shape.IsDrawnCube)
+                {
+                    var boxHit = HitBoxes(shape, rx, ry, rz, dx, dy, dz, reachUnits);
+                    if (boxHit.Distance == PastReach)
+                    {
+                        return null; // the nearest box is beyond the reach, and every later cell is farther
+                    }
+
+                    if (boxHit.Distance == Missed)
+                    {
+                        continue; // the ray went through the empty part of the cell: an open gate's gap, the open half of a slab
+                    }
+
+                    var adjacent = boxHit.OnCellBoundary ? block.Offset(boxHit.Face) : block;
+                    return new BlockRayHit(block, id, boxHit.Face, adjacent, boxHit.Distance, boxHit.X, boxHit.Y, boxHit.Z);
+                }
+            }
+
+            var plane = axis switch
+            {
+                0 => stepX > 0 ? 0 : U,
+                1 => stepY > 0 ? 0 : U,
+                _ => stepZ > 0 ? 0 : U,
+            };
+            var (hitX, hitY, hitZ) = PointAt(rx, ry, rz, dx, dy, dz, n, a, axis, plane);
+            return new BlockRayHit(block, id, face, block.Offset(face), (int)(n * Angles.One / a), hitX, hitY, hitZ);
         }
     }
-}
 
+    private const int PastReach = -1;
+    private const int Missed = -2;
+
+    private readonly record struct BoxHit(int Distance, BlockFace Face, bool OnCellBoundary, int X, int Y, int Z);
+
+    // Where the ray is when it has gone num / den of the way along the axis it entered through: the entry axis is exactly on its plane, the others follow the direction (truncated), all kept inside the cell.
+    private static (int X, int Y, int Z) PointAt(long rx, long ry, long rz, int dx, int dy, int dz, long num, long den, int axis, long plane)
+    {
+        var x = axis == 0 ? plane : rx + (dx * num / den);
+        var y = axis == 1 ? plane : ry + (dy * num / den);
+        var z = axis == 2 ? plane : rz + (dz * num / den);
+        return ((int)Math.Clamp(x, 0, U), (int)Math.Clamp(y, 0, U), (int)Math.Clamp(z, 0, U));
+    }
+
+    // The slab method in exact arithmetic: for each box the ray's distance to the entry plane and to the exit plane on each axis is a fraction (units along the axis over |direction|), compared by cross-multiplying.
+    // The nearest box the ray enters wins; the face is the one of its entry axis (ties: x, then y, then z).
+    private static BoxHit HitBoxes(VoxelShape shape, long rx, long ry, long rz, int dx, int dy, int dz, long reachUnits)
+    {
+        const int Sixteenth = U / 16;
+        var found = false;
+        long bestNum = 0;
+        long bestDen = 1;
+        var bestAxis = 0;
+        long bestPlane = 0;
+        foreach (var box in shape.Drawn)
+        {
+            if (box.Volume == 0)
+            {
+                continue;
+            }
+
+            long enterNum = 0;
+            long enterDen = 1;
+            var enterAxis = -1;
+            long enterPlane = 0;
+            long exitNum = 0;
+            long exitDen = 1;
+            var exitSet = false;
+            var inside = true;
+            for (var axis = 0; axis < 3 && inside; axis++)
+            {
+                var (r, d, lo, hi) = axis switch
+                {
+                    0 => (rx, dx, (long)box.MinX * Sixteenth, (long)box.MaxX * Sixteenth),
+                    1 => (ry, dy, (long)box.MinY * Sixteenth, (long)box.MaxY * Sixteenth),
+                    _ => (rz, dz, (long)box.MinZ * Sixteenth, (long)box.MaxZ * Sixteenth),
+                };
+                if (d == 0)
+                {
+                    inside = r >= lo && r < hi; // moving parallel to the slab: it must already be between its planes
+                    continue;
+                }
+
+                long ad = Math.Abs((long)d);
+                var near = d > 0 ? lo - r : r - hi;
+                var far = d > 0 ? hi - r : r - lo;
+                if (enterAxis < 0 || near * enterDen > enterNum * ad)
+                {
+                    enterNum = near;
+                    enterDen = ad;
+                    enterAxis = axis;
+                    enterPlane = d > 0 ? lo : hi;
+                }
+
+                if (!exitSet || far * exitDen < exitNum * ad)
+                {
+                    exitNum = far;
+                    exitDen = ad;
+                    exitSet = true;
+                }
+            }
+
+            if (!inside || enterAxis < 0 || exitNum <= 0 || enterNum * exitDen >= exitNum * enterDen)
+            {
+                continue; // misses, or only grazes an edge, or lies behind
+            }
+
+            if (!found || enterNum * bestDen < bestNum * enterDen)
+            {
+                found = true;
+                bestNum = enterNum;
+                bestDen = enterDen;
+                bestAxis = enterAxis;
+                bestPlane = enterPlane;
+            }
+        }
+
+        if (!found)
+        {
+            return new BoxHit(Missed, BlockFace.Up, false, 0, 0, 0);
+        }
+
+        if (bestNum * Angles.One > reachUnits * bestDen)
+        {
+            return new BoxHit(PastReach, BlockFace.Up, false, 0, 0, 0);
+        }
+
+        var positive = bestAxis switch
+        {
+            0 => dx > 0,
+            1 => dy > 0,
+            _ => dz > 0,
+        };
+        var face = bestAxis switch
+        {
+            0 => positive ? BlockFace.West : BlockFace.East,
+            1 => positive ? BlockFace.Down : BlockFace.Up,
+            _ => positive ? BlockFace.North : BlockFace.South,
+        };
+        var (x, y, z) = PointAt(rx, ry, rz, dx, dy, dz, bestNum, bestDen, bestAxis, bestPlane);
+        var onBoundary = bestPlane == (positive ? 0 : U);
+        return new BoxHit((int)(bestNum * Angles.One / bestDen), face, onBoundary, x, y, z);
+    }
+}

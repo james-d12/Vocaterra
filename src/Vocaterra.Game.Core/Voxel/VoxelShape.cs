@@ -15,6 +15,13 @@ public sealed class VoxelShape
         _drawn = drawn;
         _collides = collides;
         _covers = new FaceCover[6];
+        IsDrawnCube = drawn.Length == 1 && drawn[0] == ShapeBox.Full;
+        CollidesAsCube = collides.Length == 1 && collides[0] == ShapeBox.Full;
+        foreach (var box in collides)
+        {
+            ReachesAboveCell |= box.MaxY > 16;
+        }
+
         foreach (var face in Enum.GetValues<BlockFace>())
         {
             _covers[(int)face] = ComputeCover(drawn, face);
@@ -32,6 +39,15 @@ public sealed class VoxelShape
 
     /// <summary>The boxes a body bumps into (empty for an open gate and for a block nothing collides with).</summary>
     public ReadOnlySpan<ShapeBox> Collides => _collides;
+
+    /// <summary>Whether the drawn shape is exactly the full cube (K03: the block ray then takes the cell's own face without testing boxes).</summary>
+    public bool IsDrawnCube { get; }
+
+    /// <summary>Whether the collision is exactly the full cube (K03: the body then stands on the cell as on any solid block).</summary>
+    public bool CollidesAsCube { get; }
+
+    /// <summary>Whether a collision box reaches above the cell's top (a fence or a closed gate, 24 sixteenths): the cell above is then partly blocked too.</summary>
+    public bool ReachesAboveCell { get; }
 
     /// <summary>How much of the cell's face the drawn boxes cover.</summary>
     public FaceCover CoverOf(BlockFace face) => _covers[(int)face];
