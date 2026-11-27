@@ -86,6 +86,11 @@ public sealed class FarTile(FarTileKey key)
         if (Windows is { } windows && Granules is { } granules)
         {
             granules.Runs(bucket, windows, into);
+            if (bucket == FarBucket.Opaque)
+            {
+                granules.Runs(FarBucket.Skirt, windows, into, append: true); // B51: the walls under the cut edges, drawn with the land inside the windows
+            }
+
             return;
         }
 

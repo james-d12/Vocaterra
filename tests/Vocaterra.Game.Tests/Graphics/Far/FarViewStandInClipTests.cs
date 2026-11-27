@@ -35,12 +35,14 @@ public sealed class FarViewStandInClipTests(ITestOutputHelper output) : FarViewT
         {
             tile.RunsOf(bucket, runs);
             var (first, end) = tile.Granules!.Bucket(bucket);
+
+            // B51: the land's runs are followed by the runs of the walls under the cut edges, drawn with it.
+            var (skirtFirst, skirtEnd) = tile.Granules.Bucket(FarBucket.Skirt);
             foreach (var (at, count) in runs)
             {
-                Assert.InRange(at, first, end);
-                Assert.InRange(at + count, first, end);
                 for (var i = at; i < at + count; i += 6)
                 {
+                    Assert.True((i >= first && i + 6 <= end) || (bucket == FarBucket.Opaque && i >= skirtFirst && i + 6 <= skirtEnd), $"{tile.Key}: index {i} is in no run of the bucket");
                     var quad = mesh.IndexAt(i) / 4;
                     Assert.True(drawn.Add(quad), $"{tile.Key}: a quad is drawn twice");
                     var corners = Enumerable.Range(0, 4).Select(k => mesh.VertexArray[(quad * 4) + k].Position).ToArray();
