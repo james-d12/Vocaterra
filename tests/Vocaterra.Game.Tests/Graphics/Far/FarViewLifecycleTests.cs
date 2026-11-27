@@ -186,8 +186,105 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
             Assert.Equal(0, rig.View.Uncovered);
         }
 
+        for (var i = 0; i < 3; i++)
+        {
+            rig.Step(); // a changed tile is retired by the first update that finds it undrawn: the last frame's uploads drew the leaves
+        }
+
+        Output.WriteLine($"settled: cached {rig.View.Cache.Count}, released {_released.Count}, stale {rig.View.Stale}");
         Assert.Equal(0, rig.View.Missing);
         Assert.Equal(0, rig.View.Stale);
-        Assert.True(rig.View.Cache.Count <= Game.MaxTiles);
+        // Memory stays bounded: a changed stand-in that was kept for drawing is freed once its leaves are drawn (it is not kept as a stale tile).
+        Assert.All(stand, tile => Assert.Contains(tile, _released));
+    }
+
+    private static readonly FarViewSettings Small192 = new(2048, MaxTiles: 400, TreeLevels: 1, RealRadius: 192);
+
+    [Fact]
+    public void Given_StandInsBeingBuilt_When_TheEyeMovesAndTheLeavesAreChosenAgain_Then_EveryOneThatStandsInForANewLeafStaysWanted()
+    {
+        // Finding 2: the old re-selection reset the wanted set without them, and a worker that reached the job before the stand-ins were asked for again dropped it as stale, leaving its key "being built" for good.
+        using var pool = new JobPool(0);
+        var view = Make(pool, Small192);
+        view.Update(192, 192, 192, Release, 0);
+        var leaves = FarTileSelector.Select(Small192, 192, 192, 192, false, 1.0).ToHashSet();
+        var inFlight = view.Requested.Where(k => !leaves.Contains(k) && k.Level >= 4).ToList();
+        Assert.NotEmpty(inFlight);
+
+        view.Reselect(208, 192, 192);
+
+        var standing = new HashSet<FarTileKey>();
+        foreach (var leaf in FarTileSelector.Select(Small192, 208, 192, 192, false, 1.0))
+        {
+            var ancestor = leaf;
+            for (var step = 0; step < 4 && ancestor.Level < Small192.TopLevel; step++)
+            {
+                ancestor = ancestor.GetParent();
+                _ = standing.Add(ancestor);
+            }
+        }
+
+        var kept = inFlight.Where(standing.Contains).ToList();
+        Output.WriteLine($"{inFlight.Count} stand-ins in flight, {kept.Count} stand in for a leaf of the new selection");
+        Assert.NotEmpty(kept);
+        Assert.All(kept, key => Assert.True(view.IsWanted(key), $"{key} was dropped from the wanted set while in flight"));
+    }
+
+    [Fact]
+    public void Given_ATinyCacheAndAFlightOverWaitingLeaves_When_TheViewIsTrimmed_Then_NoTileThatCanStandInForAWaitingLeafIsEvicted()
+    {
+        // Finding 8: Trim kept what was drawn, wanted or pending, so a built stand-in that drew nothing at the moment (every leaf under it covered by a nearer tile) was evicted, and the next leaf to wait under it found only sky.
+        var tiny = Small192 with { MaxTiles = 8 };
+        using var pool = new JobPool(0);
+        var view = Make(pool, tiny);
+        view.SetRingWait(static (_, _) => true); // the fine leaves wait: stand-ins draw for them
+        var (eyeX, eyeZ) = (192.0, 192.0);
+        var selectedAt = (X: double.NaN, Z: 0.0);
+        var checkedFrames = 0;
+        for (var frame = 0; frame < 500; frame++)
+        {
+            if (frame >= 150)
+            {
+                eyeX += 3;
+            }
+
+            var before = view.Cache.Keys.ToHashSet();
+            view.Update(eyeX, eyeZ, 192, Release, 2.0);
+            if (double.IsNaN(selectedAt.X) || Math.Abs(eyeX - selectedAt.X) >= 8)
+            {
+                selectedAt = (eyeX, eyeZ);
+            }
+
+            foreach (var leaf in FarTileSelector.Select(tiny, selectedAt.X, selectedAt.Z, 192, false, 1.0))
+            {
+                if (view.Cache.TryGetValue(leaf, out var own) && own.OnCard)
+                {
+                    continue;
+                }
+
+                var ancestor = leaf;
+                for (var step = 0; step < 4 && ancestor.Level < tiny.TopLevel; step++)
+                {
+                    ancestor = ancestor.GetParent();
+                    if (before.Contains(ancestor))
+                    {
+                        Assert.True(view.Cache.ContainsKey(ancestor), $"frame {frame}: {ancestor} stands in for the waiting leaf {leaf} and was evicted");
+                        checkedFrames++;
+                    }
+                }
+            }
+
+            foreach (var tile in view.PendingTiles.ToList())
+            {
+                tile.Adopt(tile.Pending!);
+                tile.Pending = null;
+                tile.OnCard = true;
+            }
+
+            view.Reassemble();
+        }
+
+        Output.WriteLine($"{checkedFrames} ancestor checks");
+        Assert.True(checkedFrames > 0);
     }
 }
