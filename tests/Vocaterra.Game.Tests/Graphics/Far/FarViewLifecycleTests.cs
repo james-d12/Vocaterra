@@ -35,9 +35,6 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
         public int Frame { get; private set; }
         public int JobsPerFrame { get; set; } = 2;
 
-        /// <summary>The game thread's milliseconds of far-view work in each frame (the update, the uploads and the assembly after them), for the report.</summary>
-        public List<double> FarMilliseconds { get; } = [];
-
         public Rig(List<FarTile> released, bool ring, Func<int, int, bool>? awaits = null)
         {
             _released = released;
@@ -94,11 +91,9 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
             Upload();
             _ = _gate.Observe(Frame * 16.7, () => Enumerable.Range(-8, 17).All(dz => Enumerable.Range(-8, 17).All(dx => Ready(((int)EyeX >> 4) + dx, ((int)EyeZ >> 4) + dz))), (EyeX, EyeZ));
             _ring?.Update(EyeX, EyeZ, Game.RealRadius);
-            var clock = System.Diagnostics.Stopwatch.StartNew();
             View.Update(EyeX, EyeZ, Vox, _released.Add, null);
             Upload();
             View.Reassemble();
-            FarMilliseconds.Add(clock.Elapsed.TotalMilliseconds);
 
             // The frame lasts until the workers have done a few jobs; the guard is a hang guard, not a speed check.
             var until = HangGuard.DeadlineAfter(60_000);
@@ -144,8 +139,6 @@ public sealed class FarViewLifecycleTests(ITestOutputHelper output) : FarViewTes
             }
         }
 
-        var times = rig.FarMilliseconds.Skip(covered).Order().ToList();
-        Output.WriteLine($"far view work a frame in the flight (game thread, workers running): p50 {times[times.Count / 2]:0.00} ms, p99 {times[times.Count * 99 / 100]:0.00} ms, max {times[^1]:0.00} ms");
         Output.WriteLine($"covered at frame {covered}; flight of {2 * Out} frames; frames with an uncovered leaf: {uncovered.Count}: {string.Join(", ", uncovered.Take(20).Select(static u => $"{u.Frame}:{u.Leaves}"))}; tiles built {rig.View.Stats.Built}, cached {rig.View.Stats.Cached}, released {_released.Count}");
         Assert.Empty(uncovered);
     }
