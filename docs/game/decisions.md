@@ -37,6 +37,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
 | D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | decided (owner, 2026-11-15): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); the pass opens once every lesson listed in `world.json` (all of today's) is complete, or at once with a cheat setting, and until then a rockfall closes it and the valley's edge stays a wall; no lesson uses the new land; nothing new can be gathered (no digging, no ore items or nouns); lava blocks the body and does no harm | nothing |
 | D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | decided (owner, 2026-11-15; building started the same day with I00; I01 waits for the owner's word): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag (`el saco` 10, `la mochila` 20) adds slots; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; gear nouns above A2 join the world words; saves break; amends D-game-23 (c) | I00 to I10 |
+| D-game-37 | The main menu and new worlds (the Q series, `docs/game/implementation-plan.md` section 4.17) | decided (owner, 2026-11-27): a main menu with Load game, New game, Settings and Quit; New game shows the world generation options: name, seed, world type and terrain sliders; saves kept one folder per world | Q01 to Q04 |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -1097,3 +1098,23 @@ W13 move to this series, and W26 keeps only the tailor and its voice trial.
 - **The content tool** is the core's ContentBuilder run from source, through the root `scripts/content.sh`.
 - **Model policy** (the owner, 2026-11-06): Haiku 5.5 for small tasks; Sonnet 5.5 at medium effort for medium tasks, at high for large or design-heavy ones; Opus only when the owner asks or a decision names it.
 - **One orchestrator** for both halves since D-game-7 (before it, one per repository); it never lets a game milestone edit `nlp/`.
+
+## D-game-37: the main menu and new worlds (decided, 2026-11-27)
+
+*Numbered D-game-37 because `feature/building` holds D-game-36 (the K series).*
+
+The owner asked: "Add in a main menu to the game with load save, new game, quit and settings pls", and added: "the new game allows world
+generation options to appear." Asked two questions on 2026-11-27, he answered:
+
+1. **The New game page offers the world name, the seed, the world type and terrain sliders** (the larger of the offered choices: the
+   sliders are over a few of `world.json`'s generator values, so those values become per world and the generator, the far store's cache
+   and the save carry them).
+2. **Saves are kept one folder per world** under `~/.local/share/vocaterra/saves/<world>/`; that world's autosave and Exit save go
+   there, and Load lists the worlds by name, seed and last-played time, with a Delete. Session logs stay under `sessions/`.
+
+The orchestrator's choices within it (the owner may overrule them): the title screen opens only for an interactive run without a start
+flag (`--seed`, `--load`, `--world`, `--playtest`, a scripted run), so tests and agents start as today; the player's settings (sound,
+graphics, controls) move out of the save into one global settings file, since they belong to the machine and the main menu edits them
+before any world exists (saves break, no migration: the game is unreleased); the Esc menu gains "Main menu"; a typed seed that is not a
+number is hashed to one, stably.
+

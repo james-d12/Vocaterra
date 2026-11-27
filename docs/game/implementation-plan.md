@@ -668,6 +668,19 @@ Branch `feature/inventory`, worktree `.claude/worktrees/inventory`, commit prefi
 | I07 | Durability: `Wear` on the stack, `IWearSource`s, repair recipes, the wear bar, `tool_worn`, the save's next version (W13 taken over) | I04, I05a, I08b | M | Sonnet 5.5, medium | done (2026-11-19, `75b2494f`, 13,790 passed, 9 skipped) |
 | I10 | Close-out: the documents, the scripted runs, QA, the full gate, the screenshot tour, the pull request | all | S | Haiku 5.5 | todo |
 
+### 4.17 The main menu and new worlds (the Q series; owner, 2026-11-27, D-game-37)
+
+Branch `feature/main-menu`, worktree `.claude/worktrees/main-menu`, commit prefix `Q<nn>:`. (Section 4.16 is the K series, building, on
+`feature/building`.) The owner asked for a main menu with Load game, New game, Settings and Quit, whose New game shows the world
+generation options, terrain sliders included; saves are kept one folder per world (D-game-37).
+
+| ID | What | Depends on | Size | Model | Status |
+| --- | --- | --- | --- | --- | --- |
+| Q01 | The main menu: an interactive run without a start flag opens a title screen (New game, Load game, Settings, Quit) before any world is built; New game asks a world name, a seed (typed or random) and the world type (streamed or valley); one folder per world under `~/.local/share/vocaterra/saves/<world>/` with its save and a small metadata file, the autosave and the Exit save written there; Load lists the worlds (name, seed, type, last played) with Delete behind a confirmation; Settings is the existing settings page, the player's settings moved out of the save into one global settings file; the Esc menu gains "Main menu" (saves, closes the world, back to the title); scripted runs and runs with a start flag skip the title as today, and flags open each title page for screenshots | none | L | Sonnet 5.5, high | todo |
+| Q02 | Terrain options per world: a few of `world.json`'s generator values (chosen from what the generator reads, with ranges as data) become per-world options with today's values as defaults; the generator, the far store's cache key and the save carry them; `--terrain <id>=<value>,...`; at the defaults the world is unchanged to the block | none | M | Sonnet 5.5, high | todo |
+| Q03 | The terrain sliders on the New game page, reading Q02's option rows; a "Defaults" button; the chosen values in the world's metadata and shown in the Load list | Q01, Q02 | S/M | Sonnet 5.5, medium | todo |
+| Q04 | Close-out: QA (ui and save), the documents, the pull request | Q03 | S | Haiku 5.5 | todo |
+
 ## 5. Findings log
 
 The findings log is in [findings.md](findings.md) (moved out on 2026-11-09; "section 5" in other documents means that file). Record a
