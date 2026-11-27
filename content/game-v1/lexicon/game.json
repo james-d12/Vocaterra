@@ -56,6 +56,16 @@
     {"form":"posada","lemma":"posada","pos":"noun","features":{"number":"sg","gender":"f"}},
     {"form":"posadas","lemma":"posada","pos":"noun","features":{"number":"pl","gender":"f"}},
     {"form":"estaca","lemma":"estaca","pos":"noun","features":{"number":"sg","gender":"f"}},
-    {"form":"estacas","lemma":"estaca","pos":"noun","features":{"number":"pl","gender":"f"}}
+    {"form":"estacas","lemma":"estaca","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"tronco","lemma":"tronco","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"troncos","lemma":"tronco","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"losa","lemma":"losa","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"losas","lemma":"losa","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"valla","lemma":"valla","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"vallas","lemma":"valla","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"portón","lemma":"portón","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"portones","lemma":"portón","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"trampilla","lemma":"trampilla","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"trampillas","lemma":"trampilla","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }

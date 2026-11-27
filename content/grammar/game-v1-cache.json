@@ -739,6 +739,23 @@
       "matches": []
     },
     {
+      "key": "10e16c51bf7ed8c4a3b377aa4f1822efc7aca70f976efb1da7161ffb7e742a45",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la trampilla",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "110ad414e7042ab18952a02c33f263ab1e6d0cc4d8712685bd4881175b1056ce",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Fui al río",
@@ -4049,6 +4066,23 @@
       "matches": []
     },
     {
+      "key": "56634e69b86370a6bf76a2a6f0019afca3827402ce84b4a893129612a2ce590a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el portón",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "56a28f0ecd86057f8521257e3091040113d79afc61735716c243360349570a10",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Este es mi campo.",
@@ -7100,6 +7134,23 @@
       "matches": []
     },
     {
+      "key": "93c24d664c5ee3c62fbae58cf05029a83533863b980d184067e00ad4a4eed588",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la escalera",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "93ca5b41a4e29a114b7691b828f99859664c0521b927fe7cbe1e8f4b99e2e464",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está allí, espada, a un espada.",
@@ -7912,6 +7963,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí bebí agua",
       "matches": []
+    },
+    {
+      "key": "a1d4bc08ca2f2b48f127408a399c069d5187b6e01c759ef82e7ff81fceaf50c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la valla",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "a1ddd7aaba9ec1e4e234473491ddd0b898c4a80844385027164d229279df42be",
@@ -10008,6 +10076,23 @@
       "matches": []
     },
     {
+      "key": "ce5d0561f0578c8612194fb61fda8e0bd5ce3e20307a6d96dc55e1167584513b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el tronco",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "ceb46b1e0e2626e6358c3159c45ca0e28a708a0cbcd57f18dec7b62bed6d4dbf",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer comí pan de Luz. ¡Me gustó mucho!",
@@ -11879,6 +11964,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira mis manzanas. Son rojas y grandes.",
       "matches": []
+    },
+    {
+      "key": "f160c42a09df70305da313cff256763bc0e98cc8ee13d85c0037c840a931d378",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la losa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "f170fe60060d52b8042a61944b2037a6a464c06283eae592800a67c06fa5b1ec",

@@ -414,6 +414,27 @@ public enum BlockCell
 
     /// <summary>The icon of a tan sack (the item, I08b). Placed last, so no other cell moves.</summary>
     IconSack,
+
+    /// <summary>The icon of an oak log on its side (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakLog,
+
+    /// <summary>The icon of oak stairs (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakStairs,
+
+    /// <summary>The icon of an oak slab (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakSlab,
+
+    /// <summary>The icon of an oak fence (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakFence,
+
+    /// <summary>The icon of an oak fence gate (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakFenceGate,
+
+    /// <summary>The icon of an oak door (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakDoor,
+
+    /// <summary>The icon of an oak trapdoor (the item, K05). Placed last, so no other cell moves.</summary>
+    IconOakTrapdoor,
 }
 
 /// <summary>
@@ -430,7 +451,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 17; // I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b (which fit); B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
+    public const int ColourRows = 18; // K05: 18 rows (144 cells), for the seven oak pieces' icons; I08b: I08a: 17 rows (136 cells), for the ten gear icons and the thirteen of I08b (which fit); B11b: 15 rows, so basalt fits (113 cells); B10 had 14 rows for the nine underground blocks; Y03 had 13 rows for the bed and the bedroll (97 cells)
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -583,6 +604,13 @@ public static class BlockAtlasLayout
         ["lantern"] = BlockCell.IconLantern,
         ["backpack"] = BlockCell.IconBackpack,
         ["sack"] = BlockCell.IconSack,
+        ["oak-log"] = BlockCell.IconOakLog,
+        ["oak-stairs"] = BlockCell.IconOakStairs,
+        ["oak-slab"] = BlockCell.IconOakSlab,
+        ["oak-fence"] = BlockCell.IconOakFence,
+        ["oak-fence-gate"] = BlockCell.IconOakFenceGate,
+        ["oak-door"] = BlockCell.IconOakDoor,
+        ["oak-trapdoor"] = BlockCell.IconOakTrapdoor,
         ["bowl"] = BlockCell.IconBowl,
         ["spoon"] = BlockCell.IconSpoon,
         ["oven"] = BlockCell.IconOven,
