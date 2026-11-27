@@ -476,6 +476,20 @@ shape:** replace the fixed pack box by a lookup on the bag's look or id.
 
 `tests/Vocaterra.Game.Core.Tests/Items` (`Containers`, `Gear`, `Wearing`, the bag and the catalogue), `Stats`, `Temperature` and `Damage`; `Save/` for the worn items, the wear and the active bag; `tests/Vocaterra.Game.Tests/UI/Inventory` for the layout at every scale and slot count and `Graphics/Figures` for the avatar.
 
+## Building: the state byte and shaped blocks (the K series)
+
+The design is [the building plan](building-plan.md) (D-game-36).
+
+**The per-cell state byte (K01).** Besides its block id and water level, a cell may hold one state byte. It lives in `VoxelChunk` as a
+lazily allocated `byte[4096]` that stays null while every state in the chunk is 0 (like the water levels), so the built scene pays
+nothing. It is read with `IVoxelReader.GetState` (0 outside the world and where nothing is stored) and written with
+`SetBlock(x, y, z, id, state)`; `SetBlock(x, y, z, id)` writes state 0, so a replaced block never inherits the old block's facing, and
+air always holds 0. A state means nothing on its own: the block's id says how to read it (the `BlockState` layouts, K02). A state-only
+change is an edit: it bumps the chunk version and `BlockChange` carries `OldState` and `NewState`. The chunk digest takes the state
+bytes only when the chunk holds a non-zero state, so the digests and the save's `stateDigest` of every world without states are
+unchanged. `ChunkSnapshot` copies the states of its 18-cell neighbourhood (and holds no array while none is set) so the mesher can read
+them off the main thread. Saves (format 12) write the states of a changed chunk as run-length `StateRun`s, omitted when there are none.
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:

@@ -676,12 +676,12 @@ review stops are in [the building plan](building-plan.md).
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | K00 | The series registered: the building plan, D-game-36, this section, the open items, the handover | the owner's request | S | orchestrator | done, 2026-11-27 |
-| K01 | The state byte: the chunk's lazy state array, `GetState` and `SetBlock` with a state, the snapshot, the digest rule, `StateRun`s, the save's next version | K00 | M | Sonnet 5.5, medium | todo |
+| K01 | The state byte: the chunk's lazy state array, `GetState` and `SetBlock` with a state, the snapshot, the digest rule, `StateRun`s, the save's next version | K00 | M | Sonnet 5.5, medium | done (2026-11-27, `d5bfbb3e`, 14,038 passed, 9 skipped; timing 23); save version 12 |
 | K02 | The oak blocks' ids and state layouts, `BlockShapes.Of` and the covers, the per-block tables except art and the mesher | K01 | M | Sonnet 5.5, medium | todo |
 | K03 | Collision, the ray and steps on shapes (the half-block step, the ray's box test and hit point); timing before and after | K02 | L | Sonnet 5.5, high | todo |
 | K04 | Drawing: boxes and cropped faces, culling by cover, ambient occlusion, sky exposure, the far view, the art; screenshots (owner review) | K02 | L | Sonnet 5.5, high | todo |
 | K05 | Items, nouns and recipes: `ItemId` members, `items.json` rows and icons, nouns and lexicon entries, the `mesa` recipes, the re-hash | K02 | M | Sonnet 5.5, medium | todo |
-| K06 | Placing and breaking: state from the yaw and the hit point, double slabs, the two-cell door, the true-shape overlap, the land rules (valley only), the item back on breaking | K03, K05 | M/L | Sonnet 5.5, high | todo |
+| K06 | Placing and breaking: state from the yaw and the hit point, double slabs, the two-cell door, the true-shape overlap, the land rules (valley only), the item back on breaking, `SaveMigration` carrying the state (K01 left it ids only) | K03, K05 | M/L | Sonnet 5.5, high | todo |
 | K07 | Opening doors, gates and trapdoors with the use key | K04, K06 | M | Sonnet 5.5, medium | todo |
 | K08 | Close-out: a scripted hut, the screenshot tour, the shared documents, QA, the pull request | all | S | Haiku 5.5 | todo |
 
