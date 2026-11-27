@@ -3,7 +3,7 @@
 *Two read-only reviews of `feature/world-next` at `e3041981` (B35 to B48, PR #72), asked for by the owner after his flights showed sky holes,
 and set against his `~/Downloads/Vocaterra_LOD_Transitions_High_Level_Summary.md`. Saved by the orchestrator, who checked findings 1 and 3
 against the code (both confirmed). The milestones they lead to are B49 to B53 in the game plan's section 4.14 and the handover
-[2026-11-19-2035-lod-lifecycle](../handovers/2026-11-19-2035-lod-lifecycle.md).*
+[2026-11-19-2035-lod-lifecycle](../handovers/done/2026-11-19-2035-lod-lifecycle.md).*
 
 ## Review 1 (Claude, three reviewers by slice: far generation, far-view drawing, streaming and scheduling)
 
