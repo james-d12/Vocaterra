@@ -3318,3 +3318,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   and a second copy without it gives `textureGrad` its derivatives, since a centroid value's derivatives are unreliable on the edge. Seed 42's
   cavern (504,-30,176, `--msaa 4 --far-view off`) before and after: 781 pixels differ, all on block edges, 565 of them seams gone. The
   effects fallback (below OpenGL 3.3) keeps the seams under multisampling; a wider inset or an atlas gutter would cover it too.
+- **Q02, terrain options per world (2026-11-28, on `feature/main-menu`).** Five options (mountains, hills, ocean, continents, rivers)
+  over `world.json`, bounded by `WorldGenValidator` (peaks under 384 blocks cap mountains at 150 percent; the smallest valid continent cell
+  caps continents at 50). Temperature and the snow line were left out: they feed the cold needs through `TemperatureContext.Snows`, so
+  they would change play in the valley. The far-view pictures at the extremes were not taken: a cold 16 km far view took over 900 s per
+  run, so whether the far view follows the options is untested in pictures (it reads the same composed generator). `--teleport` outside
+  the valley finds no ground unless `--pass open` (the wall holds the body; existing behaviour).
