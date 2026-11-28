@@ -14,7 +14,7 @@ public sealed class RecipeBookTests
     {
         Assert.True(TestGame.Bundle.TryReadHostFile(RecipeBook.RelativePath, out var bytes));
         Assert.True(bytes.Length > 0);
-        Assert.Equal(43, Book.Entries.Count); // (I07) a repair row for each of the 21 pieces that wear, the workbench torch, (N07) the roast apple at the fire, (I08a) the seven clothes and (I08b) the thirteen armour, accessory, off-hand and bag recipes at the workbench
+        Assert.Equal(50, Book.Entries.Count); // (K05) the seven oak pieces at the workbench, (I07) a repair row for each of the 21 pieces that wear, the workbench torch, (N07) the roast apple at the fire, (I08a) the seven clothes and (I08b) the thirteen armour, accessory, off-hand and bag recipes at the workbench
         Assert.Equal("antorcha", Book.Entries[0].Output.Lemma);
         Assert.Equal(1, Book.Entries[0].OutputCount);
         Assert.Equal("mesa", Book.Entries[0].Station!.Lemma);

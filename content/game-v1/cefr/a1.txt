@@ -460,3 +460,13 @@ farol
 saco
 # mochila: the backpack, the large bag worn on the back that adds twenty slots (I08b); in neither of the core's lists.
 mochila
+# tronco: the oak log, the trunk's piece you hold (K05, building plan 3.7), provisional until the language review (D-game-12); in neither of the core's lists.
+tronco
+# losa: the oak slab, a half block (K05, building plan 3.7), provisional until the language review (D-game-12); in neither of the core's lists.
+losa
+# valla: the oak fence, said also of the scene's fence (K05, building plan 3.7), provisional until the language review (D-game-12); in neither of the core's lists.
+valla
+# portón: the oak fence gate, said «los portones» (K05, building plan 3.7), provisional until the language review (D-game-12); in neither of the core's lists.
+portón
+# trampilla: the oak trapdoor, a hatch in the floor (K05, building plan 3.7), provisional until the language review (D-game-12); in neither of the core's lists.
+trampilla

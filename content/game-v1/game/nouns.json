@@ -9,7 +9,7 @@
     { "lemma": "piedra", "items": [], "blocks": ["stone", "mossy-stone", "cobble"], "mass": true, "sources": ["piedra"] },
     { "lemma": "arena", "items": [], "blocks": ["sand"], "mass": true, "sources": ["arena"] },
     { "lemma": "madera", "items": ["wood"], "blocks": ["planks"], "mass": true, "sources": ["árbol"] },
-    { "lemma": "puerta", "items": [], "blocks": ["door"] },
+    { "lemma": "puerta", "items": ["oak-door"], "blocks": ["door", "oak-door"] },
     { "lemma": "mesa", "items": [], "blocks": ["table"] },
     { "lemma": "antorcha", "items": ["torch"], "blocks": ["torch"] },
     { "lemma": "agua", "items": ["water-bottle"], "blocks": ["water"] },
@@ -68,6 +68,12 @@
     {"lemma": "escudo", "items": ["shield"], "blocks": []},
     {"lemma": "farol", "items": ["lantern"], "blocks": []},
     {"lemma": "saco", "items": ["sack"], "blocks": []},
-    {"lemma": "mochila", "items": ["backpack"], "blocks": []}
+    {"lemma": "mochila", "items": ["backpack"], "blocks": []},
+    {"lemma": "tronco", "items": ["oak-log"], "blocks": ["oak-log"]},
+    {"lemma": "escalera", "items": ["oak-stairs"], "blocks": ["oak-stairs"]},
+    {"lemma": "losa", "items": ["oak-slab"], "blocks": ["oak-slab"]},
+    {"lemma": "valla", "items": ["oak-fence"], "blocks": ["fence", "oak-fence"]},
+    {"lemma": "portón", "items": ["oak-fence-gate"], "blocks": ["oak-fence-gate"]},
+    {"lemma": "trampilla", "items": ["oak-trapdoor"], "blocks": ["oak-trapdoor"]}
   ]
 }

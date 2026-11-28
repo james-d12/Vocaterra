@@ -58,6 +58,18 @@ public sealed class CheckBankTests
     }
 
     [Fact]
+    public void TheOakPiecesOfTheBuildingSeriesAreLessonFreeSoNoCheckItemSaysThem()
+    {
+        // K05: the log, stairs, slab, fence, gate, door and trapdoor are items and words with no lesson and no check in this series (building plan 3.7).
+        var words = new[] { "tronco", "escalera", "losa", "valla", "portón", "puerta", "trampilla" };
+        foreach (var item in Bank)
+        {
+            var text = string.Join(' ', item.Id, item.Phrase, item.Spanish, item.Line, item.Prompt).ToLowerInvariant();
+            Assert.DoesNotContain(words, w => System.Text.RegularExpressions.Regex.IsMatch(text, $@"\b{w}s?\b"));
+        }
+    }
+
+    [Fact]
     public void EveryItemBelongsToALessonOrIsOneOfTheFreeRunsEight()
     {
         // village-plan V07: read from each item's phrase and the lessons' steps. Eight belong to no lesson: the stall's exchange and the villager's directions of the

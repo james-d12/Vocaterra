@@ -3872,6 +3872,7 @@
 {"id":"speech:card.cuero","text":"el cuero","kind":"npc"}
 {"id":"speech:card.cuerpo","text":"el cuerpo","kind":"npc"}
 {"id":"speech:card.equipo","text":"el equipo","kind":"npc"}
+{"id":"speech:card.escalera","text":"la escalera","kind":"npc"}
 {"id":"speech:card.escudo","text":"el escudo","kind":"npc"}
 {"id":"speech:card.espalda","text":"la espalda","kind":"npc"}
 {"id":"speech:card.estaca","text":"la estaca","kind":"npc"}
@@ -3886,6 +3887,7 @@
 {"id":"speech:card.hierro","text":"el hierro","kind":"npc"}
 {"id":"speech:card.horno","text":"el horno","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}
+{"id":"speech:card.losa","text":"la losa","kind":"npc"}
 {"id":"speech:card.madera","text":"la madera","kind":"npc"}
 {"id":"speech:card.mano","text":"la mano","kind":"npc"}
 {"id":"speech:card.manzana","text":"la manzana","kind":"npc"}
@@ -3897,6 +3899,7 @@
 {"id":"speech:card.pantalon","text":"los pantalones","kind":"npc"}
 {"id":"speech:card.pie","text":"el pie","kind":"npc"}
 {"id":"speech:card.pierna","text":"la pierna","kind":"npc"}
+{"id":"speech:card.porton","text":"el portón","kind":"npc"}
 {"id":"speech:card.puente","text":"el puente","kind":"npc"}
 {"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
 {"id":"speech:card.pulsera","text":"la pulsera","kind":"npc"}
@@ -3907,4 +3910,7 @@
 {"id":"speech:card.terreno","text":"el terreno","kind":"npc"}
 {"id":"speech:card.tienda","text":"la tienda","kind":"npc"}
 {"id":"speech:card.tierra","text":"la tierra","kind":"npc"}
+{"id":"speech:card.trampilla","text":"la trampilla","kind":"npc"}
+{"id":"speech:card.tronco","text":"el tronco","kind":"npc"}
+{"id":"speech:card.valla","text":"la valla","kind":"npc"}
 {"id":"speech:card.zapato","text":"los zapatos","kind":"npc"}

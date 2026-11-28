@@ -61,6 +61,12 @@
     "noun.escudo": "shield",
     "noun.farol": "lantern",
     "noun.saco": "sack",
-    "noun.mochila": "backpack"
+    "noun.mochila": "backpack",
+    "noun.tronco": "log",
+    "noun.escalera": "stairs",
+    "noun.losa": "slab",
+    "noun.valla": "fence",
+    "noun.portón": "fence gate",
+    "noun.trampilla": "trapdoor"
   }
 }
