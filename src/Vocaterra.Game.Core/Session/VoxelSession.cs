@@ -70,7 +70,7 @@ public sealed partial class VoxelSession : GuideSession
     {
         Scene = scene;
         Places = ScenePlaces.Of(scene);
-        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed, data.Equipment, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest));
+        Simulation = VoxelSimulation.Create(scene, data.Items, data.Day, data.Weather, worldSeed, data.Equipment, WorldStateHeader.For(data.Bundle, scene.Seed, scene.TemplateDigest, scene.TerrainOptions));
         foreach (var item in data.Objectives.Grants)
         {
             Simulation.GrantItems(item, 1); // the learner starts with the book (S20, D-game-16; game/session.json, C07); a loaded save puts its own slots back

@@ -10,6 +10,7 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Options;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 
@@ -42,15 +43,26 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 11 (I07) adds the optional <c>wear</c> of an inventory slot and of a worn item (left out at 0). Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
+    /// The format version this code writes. Version 12 (Q02) adds the optional <c>terrain</c>, the world's terrain options by id and value (left out at the defaults). Version 11 (I07) adds the optional <c>wear</c> of an inventory slot and of a worn item (left out at 0). Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
     /// name and item name, and, with 11, is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, B05, keyed the world edits by chunk coordinates
     /// (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the dense chunk index, dropped <c>world</c> (the chunk counts) and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only);
     /// I01 stored an inventory slot's item by its name in place of the code's enum name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 12;
 
-    /// <summary>The oldest format version this code reads: 11. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, B05, I01, I03b).</summary>
-    public const int OldestReadableVersion = 11;
+    /// <summary>The oldest format version this code reads: 12. The game is unreleased, so a save of an older version is refused and none is migrated (Q02, Y02, B05, I01, I03b).</summary>
+    public const int OldestReadableVersion = 12;
+
+    /// <summary>The terrain options of the world a save was made on (Q02), in this game's option table: the options to build the scene with before <see cref="Restore"/>.</summary>
+    /// <param name="document">The save.</param>
+    /// <param name="data">The game's content (its <see cref="GameData.TerrainOptions"/> rows).</param>
+    /// <exception cref="SaveException">The save names an option this content lacks or a value off its grid.</exception>
+    public static WorldOptions TerrainOptionsOf(SaveDocument document, GameData data)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(data);
+        return TerrainOptionSave.ToOptions(document.Terrain, data.TerrainOptions);
+    }
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -180,7 +192,8 @@ public static class SaveGame
             DialoguePages: dialoguePages is { Count: > 0 } ? dialoguePages : null,
             GivenOrders: session.GivenOrders is { Count: > 0 } given ? given : null,
             Worn: WornSave.Of(session.Simulation.Equipment),
-            PassOpen: session.Pass.IsOpen && session.Pass.Locked);
+            PassOpen: session.Pass.IsOpen && session.Pass.Locked,
+            Terrain: TerrainOptionSave.Of(session.Scene.TerrainOptions));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -252,6 +265,11 @@ public static class SaveGame
         if (scene.Seed != document.WorldSeed || !string.Equals(scene.Name, document.SceneName, StringComparison.Ordinal))
         {
             throw new SaveException("The scene was not built from this save's seed and layout.");
+        }
+
+        if (!scene.TerrainOptions.Equals(TerrainOptionsOf(document, data)))
+        {
+            throw new SaveException($"The scene was not built with this save's terrain options ({TerrainOptionsOf(document, data)}; the scene has {scene.TerrainOptions}).");
         }
 
         VoxelSession session;

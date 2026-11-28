@@ -136,7 +136,7 @@ public sealed class WeatherSaveTests
 
         Assert.Null(loaded.Migration);
         Assert.True(loaded.Simulation.Weather.IsInitial);
-        Assert.Equal(11, SaveGame.CurrentVersion);
+        Assert.Equal(12, SaveGame.CurrentVersion);
         Assert.DoesNotContain("weather", SaveOf(loaded), StringComparison.Ordinal);
     }
 }

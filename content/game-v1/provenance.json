@@ -113,6 +113,7 @@
     { "path": "game/light.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/land.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/world.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/world-options.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/biomes.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/underground.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/words.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },

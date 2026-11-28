@@ -11,8 +11,9 @@ namespace Vocaterra.Game.Core.World;
 /// <param name="Seed">The world seed.</param>
 /// <param name="TemplateDigest">The digest of the region template the world copies its settlement from (32 bytes); all zero while the world has none (B06 supplies it).</param>
 /// <param name="GeneratorVersion">The <see cref="ProceduralGenerator.Version"/> the world was generated with.</param>
-/// <param name="GenerationDataHash">The SHA-256 of the world-generation data files only (<see cref="GenerationFiles"/>), so editing a phrase does not move the digest (32 bytes).</param>
-public sealed record WorldStateHeader(ulong Seed, byte[] TemplateDigest, int GeneratorVersion, byte[] GenerationDataHash)
+/// <param name="GenerationDataHash">The SHA-256 of the world-generation data files only (<see cref="GenerationFiles"/>), so editing a phrase does not move the digest (32 bytes); with terrain options off their defaults (Q02) it also covers their text, so another world is another hash.</param>
+/// <param name="TerrainKey">The terrain options' digest as hex (<see cref="Options.WorldOptions.Key"/>) when any option is off its default, else empty: the far store's cache is named by it besides the seed.</param>
+public sealed record WorldStateHeader(ulong Seed, byte[] TemplateDigest, int GeneratorVersion, byte[] GenerationDataHash, string TerrainKey = "")
 {
     /// <summary>The length of a digest field in bytes.</summary>
     public const int DigestLength = 32;
@@ -93,7 +94,8 @@ public sealed record WorldStateHeader(ulong Seed, byte[] TemplateDigest, int Gen
     /// <param name="bundle">The bundle (loaded with hash verification).</param>
     /// <param name="seed">The world seed.</param>
     /// <param name="templateDigest">The region template's digest, or <see langword="null"/> for none.</param>
-    public static WorldStateHeader For(ContentBundle bundle, ulong seed, byte[]? templateDigest = null)
+    /// <param name="options">The terrain options of the world (Q02), or <see langword="null"/> for the defaults, which add nothing: the header of a world at the defaults is what it was before the options.</param>
+    public static WorldStateHeader For(ContentBundle bundle, ulong seed, byte[]? templateDigest = null, Options.WorldOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -110,6 +112,14 @@ public sealed record WorldStateHeader(ulong Seed, byte[] TemplateDigest, int Gen
             hash.AppendData([0]);
         }
 
-        return new WorldStateHeader(seed, templateDigest ?? new byte[DigestLength], ProceduralGenerator.Version, hash.GetHashAndReset());
+        if (options is { IsDefault: false })
+        {
+            hash.AppendData(System.Text.Encoding.UTF8.GetBytes("terrain-options"));
+            hash.AppendData([0]);
+            hash.AppendData(System.Text.Encoding.UTF8.GetBytes(options.Canonical));
+            hash.AppendData([0]);
+        }
+
+        return new WorldStateHeader(seed, templateDigest ?? new byte[DigestLength], ProceduralGenerator.Version, hash.GetHashAndReset(), options is { IsDefault: false } ? options.Key : string.Empty);
     }
 }

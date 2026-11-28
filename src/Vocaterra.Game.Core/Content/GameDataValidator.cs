@@ -107,6 +107,7 @@ public static class GameDataValidator
             problems.AddRange(UndergroundValidator.Validate(underground, data.WorldGen, data.Scene)); // B11: the rock layers, ores, caves, entrances and lava
         }
 
+        problems.AddRange(Vocaterra.Game.Core.World.Options.TerrainOptionValidator.Validate(data.TerrainOptions, data.WorldGen, data.Biomes)); // Q02: the terrain options' grids, targets and the worlds every value gives
         problems.AddRange(Vocaterra.Game.Core.World.Pass.PassValidator.Validate(data)); // B08b: the required lessons exist, the rockfall prop and the edge site are the scene's
         CheckRenewal(data, problems);
         CheckPlanting(data, problems);

@@ -1,0 +1,66 @@
+{
+  "$schema": "../../schema/world-options.schema.json",
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "about": "The terrain options of a new world (Q02, D-game-37): the sliders of the New game page. Each row is one slider over a few of game/world.json's generator values; every default is today's value, so a world at the defaults is the shipped world to the block. min, max and step are whole numbers on a grid. The effects say what the value does to a target (a path in game/world.json, one of the code's): scale puts the target through the value as a percent (100 leaves it), scaleInverse divides by it (the value rises as the target falls), offset adds the value (0 leaves it), set replaces the target (the default is then the file's own value). The options never name the vertical range, the sea level or the regionBlend section, so the valley, its pass and the land that eases into its edge stay as they are at every value; the land round the valley is held to land by regionBlend.landBias, whatever the continents. GameDataValidator checks every row, and that world.json's own checks accept the numbers at every stop and with all the options at their lowest and at their highest together.",
+  "options": [
+    {
+      "id": "mountains",
+      "label": "Mountain height",
+      "hint": "How high the ranges rise above the hills. The valley and the land round it are unchanged.",
+      "unit": "%",
+      "min": 25,
+      "max": 150,
+      "step": 25,
+      "default": 100,
+      "effects": [{ "target": "height.peaks", "mode": "scale" }]
+    },
+    {
+      "id": "hills",
+      "label": "Hill roughness",
+      "hint": "How much the ground rolls: none is smooth plains, the most is steep, rolling country.",
+      "unit": "%",
+      "min": 0,
+      "max": 200,
+      "step": 25,
+      "default": 100,
+      "effects": [
+        { "target": "height.detail.calmAmplitude", "mode": "scale" },
+        { "target": "height.detail.ruggedAmplitude", "mode": "scale" }
+      ]
+    },
+    {
+      "id": "ocean",
+      "label": "Ocean",
+      "hint": "How much of the world is sea: of every four continent cells, none to three are open ocean (the channels between the lands stay).",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "default": 1,
+      "labels": ["Narrow seas", "Normal", "Wide seas", "Mostly ocean"],
+      "effects": [{ "target": "climate.continents.seaPerBlock", "mode": "set" }]
+    },
+    {
+      "id": "continents",
+      "label": "Continent size",
+      "hint": "How wide the lands are: small continents are many islands of lowland, large ones have a great inland.",
+      "unit": "%",
+      "min": 50,
+      "max": 150,
+      "step": 25,
+      "default": 100,
+      "effects": [{ "target": "climate.continents.cell", "mode": "scale" }]
+    },
+    {
+      "id": "rivers",
+      "label": "Rivers",
+      "hint": "How many rivers run to the sea: a low value is a few great rivers, a high one is many streams.",
+      "unit": "%",
+      "min": 25,
+      "max": 200,
+      "step": 25,
+      "default": 100,
+      "effects": [{ "target": "height.drainage.sourceArea", "mode": "scaleInverse" }]
+    }
+  ]
+}
