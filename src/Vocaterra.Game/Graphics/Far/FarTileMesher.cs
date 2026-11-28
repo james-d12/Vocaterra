@@ -9,7 +9,7 @@ using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Graphics.Far;
 
-/// <summary>Which of a tile's three lists a face goes into: the opaque land, the self-lit blocks (lava, lanterns: drawn in no light tint, so they glow at night) and the translucent water.</summary>
+/// <summary>Which of a tile's lists a face goes into: the opaque land, the self-lit blocks (lava, lanterns: drawn in no light tint, so they glow at night), the translucent water and (B51) the walls at the cut edges.</summary>
 public enum FarBucket
 {
     /// <summary>The land and the trees.</summary>
@@ -20,6 +20,9 @@ public enum FarBucket
 
     /// <summary>Water.</summary>
     Water,
+
+    /// <summary>B51: the walls that hang under a granule's edge inside the tile (see <see cref="FarGranules"/>), made only for a tile cut into granules: they close the slot between a stand-in cut for the finer leaves beside it and the ground of those leaves, so they are drawn only when the tile is drawn inside windows (a tile drawn whole has no such edge, and they lie inside its ground). Drawn with the opaque land.</summary>
+    Skirt,
 }
 
 /// <summary>
@@ -45,6 +48,9 @@ public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Ve
     /// <summary>B47: the order of the tile's quads by granule of ground (see <see cref="FarGranules"/>), so a stand-in can be drawn inside a set of windows only; <see langword="null"/> for a mesh made without (the tile is drawn whole).</summary>
     public FarGranules? Granules { get; init; }
 
+    /// <summary>B51: how many indices at the end are the cut edges' walls (<see cref="FarBucket.Skirt"/>): drawn only inside windows, never with the tile whole.</summary>
+    public int SkirtIndices { get; init; }
+
     /// <summary>The tile's vertices.</summary>
     public ArraySegment<VertexPositionColorTexture> Vertices => new(VertexArray, 0, VertexCount);
 
@@ -54,11 +60,11 @@ public sealed record FarTileMesh(FarTileKey Key, VertexPositionColorTexture[] Ve
     /// <summary>The triangles' indices when it has not, otherwise <see langword="null"/>.</summary>
     public ArraySegment<int>? Indices32 => Index32Array is null ? default(ArraySegment<int>?) : new ArraySegment<int>(Index32Array, 0, IndexCount);
 
-    /// <summary>How many triangles the tile has.</summary>
-    public int Triangles => IndexCount / 3;
+    /// <summary>How many triangles the tile has when it is drawn whole (the cut edges' walls are not).</summary>
+    public int Triangles => (IndexCount - SkirtIndices) / 3;
 
     /// <summary>How many indices the water has.</summary>
-    public int WaterIndices => IndexCount - OpaqueIndices - LitIndices;
+    public int WaterIndices => IndexCount - OpaqueIndices - LitIndices - SkirtIndices;
 
     /// <summary>The bytes the vertices and indices take.</summary>
     public long Bytes => ((long)VertexCount * VertexPositionColorTexture.VertexDeclaration.VertexStride) + (Index16Array is not null ? IndexCount * sizeof(ushort) : IndexCount * sizeof(int));
@@ -94,9 +100,9 @@ internal sealed class FarGeometry
     [ThreadStatic]
     private static FarGeometry? _rented;
 
-    private readonly List<VertexPositionColorTexture>[] _vertices = [new(4096), new(256), new(256)];
-    private readonly List<int>[] _indices = [new(8192), new(512), new(512)];
-    private readonly List<int>[] _granules = [new(1024), new(64), new(64)];
+    private readonly List<VertexPositionColorTexture>[] _vertices = [new(4096), new(256), new(256), new(256)];
+    private readonly List<int>[] _indices = [new(8192), new(512), new(512), new(512)];
+    private readonly List<int>[] _granules = [new(1024), new(64), new(64), new(64)];
 
     /// <summary>This thread's geometry, emptied: a worker builds tile after tile and its lists keep their room (no new large arrays per tile). Only one use at a time per thread.</summary>
     public static FarGeometry Rent()
@@ -151,17 +157,17 @@ internal sealed class FarGeometry
     /// <param name="shape">How the tile's ground is cut into granules (the quads were added with their granule), or <see langword="null"/> for a tile in one piece.</param>
     public FarTileMesh Finish(FarTileKey key, double milliseconds, bool textured, FarGranules.Shape? shape = null)
     {
-        var total = _vertices[0].Count + _vertices[1].Count + _vertices[2].Count;
-        var count = _indices[0].Count + _indices[1].Count + _indices[2].Count;
+        var total = _vertices[0].Count + _vertices[1].Count + _vertices[2].Count + _vertices[3].Count;
+        var count = _indices[0].Count + _indices[1].Count + _indices[2].Count + _indices[3].Count;
         var vertices = ArrayPool<VertexPositionColorTexture>.Shared.Rent(Math.Max(total, 1));
         var narrow = total <= ushort.MaxValue ? ArrayPool<ushort>.Shared.Rent(Math.Max(count, 1)) : null;
         var wide = narrow is null ? ArrayPool<int>.Shared.Rent(Math.Max(count, 1)) : null;
         var v = 0;
         var ix = 0;
         var cells = shape is { } cut ? cut.Side * cut.Side : 1;
-        var starts = new int[3 * (cells + 1)];
+        var starts = new int[4 * (cells + 1)];
         var fill = new int[cells];
-        for (var b = 0; b < 3; b++)
+        for (var b = 0; b < 4; b++)
         {
             var quads = _indices[b].Count / 6;
             var source = _vertices[b];
@@ -232,6 +238,7 @@ internal sealed class FarGeometry
 
         return new FarTileMesh(key, vertices, total, narrow, wide, count, _indices[0].Count, _indices[1].Count, new BoundingBox(min, max), milliseconds, textured)
         {
+            SkirtIndices = _indices[3].Count,
             Granules = shape is { } made ? new FarGranules(made.OriginX, made.OriginZ, made.Blocks, made.Side, starts) : null,
         };
     }
@@ -257,6 +264,9 @@ public static class FarTileMesher
 
     // A cave is drawn only this far (in blocks) under the ground over it: further down nothing outside sees it.
     private const int CaveDepth = 24;
+
+    // B51: how many cells deep the wall at a cut edge hangs below the neighbouring column's ground in a textured tile (a quad a face: the cost grows with the depth); a flat tile merges the wall's quads (a deeper wall costs almost nothing), so it hangs twice as deep as a tile's outer skirt.
+    private const int TexturedCutSkirtCells = 2;
 
     /// <summary>Builds a tile.</summary>
     /// <param name="source">The sections.</param>
@@ -318,6 +328,7 @@ public static class FarTileMesher
         private static Buffers? _buffers;
 
         private readonly int[] _surface = new int[LodSection.Size * LodSection.Size];
+        private readonly int[] _ground = new int[LodSection.Size * LodSection.Size];
         private readonly int[] _queue;
         private readonly int _length;
 
@@ -335,6 +346,7 @@ public static class FarTileMesher
             Top = int.MinValue;
             Bottom = int.MaxValue;
             Array.Fill(_surface, int.MaxValue);
+            Array.Fill(_ground, int.MaxValue);
             for (var s = 0; s < stack.Sections.Length; s++)
             {
                 var section = stack.Sections[s];
@@ -535,16 +547,24 @@ public static class FarTileMesher
         // The y of the highest solid voxel of a column that is not a crown or a trunk: the ground, from which a skirt hangs.
         public int Ground(int x, int z)
         {
+            ref var found = ref _ground[(z << 5) | x];
+            if (found != int.MaxValue)
+            {
+                return found;
+            }
+
+            found = int.MinValue / 2;
             for (var y = Top; y >= Bottom; y--)
             {
                 var block = Blocks[At(x, y, z)];
                 if (block != BlockId.Air && block != BlockId.Water && !BlockDefinition.IsLeaves(block) && !BlockDefinition.IsTrunk(block))
                 {
-                    return y;
+                    found = y;
+                    break;
                 }
             }
 
-            return int.MinValue / 2;
+            return found;
         }
 
         // The y of the highest solid voxel of a column (found once).
@@ -700,12 +720,22 @@ public static class FarTileMesher
                     pos[ua] = u;
                     pos[wa] = w;
                     var block = v.BlockAt(pos[0], pos[1], pos[2]);
+                    var at = (pos[0], pos[1], pos[2]);
+                    var to = (pos[0] + (Axes[axis].X * step), pos[1] + (Axes[axis].Y * step), pos[2] + (Axes[axis].Z * step));
+                    var hollow = false;
                     if (block == BlockId.Air)
                     {
-                        continue;
+                        // B51: a cut edge's wall also closes the hollow under an overhang of the coarse data (a plate of ground over air, as a mip makes at a cliff), or the finer ground beside it, lower than the plate, is seen through the hollow.
+                        if (axis == 1 || c.GranuleCells >= LodSection.Size || !CrossesGranule(c, at, to, axis) || v.Ground(at.Item1, at.Item3) <= at.Item2)
+                        {
+                            continue;
+                        }
+
+                        block = v.BlockAt(at.Item1, v.Ground(at.Item1, at.Item3), at.Item3);
+                        hollow = true;
                     }
 
-                    var made = FaceAt(c, block, (pos[0], pos[1], pos[2]), (pos[0] + (Axes[axis].X * step), pos[1] + (Axes[axis].Y * step), pos[2] + (Axes[axis].Z * step)), axis, positive, face, tint);
+                    var made = FaceAt(c, block, at, to, axis, positive, face, tint, hollow);
                     if (made is not null)
                     {
                         mask[((w - lo[wa]) * nu) + (u - lo[ua])] = made;
@@ -722,11 +752,19 @@ public static class FarTileMesher
     }
 
     // The face of the voxel at `at` looking at the neighbour `to`, or null when it is not seen.
-    private static Face? FaceAt(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint)
+    private static Face? FaceAt(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint, bool hollow = false)
     {
+        var made = FaceAtCore(c, block, at, to, axis, positive, face, tint, hollow, out var skirt);
+        return hollow && !skirt ? null : skirt && made is { } wall ? (wall.Bucket is FarBucket.Opaque or FarBucket.Lit ? wall with { Bucket = FarBucket.Skirt } : null) : made;
+    }
+
+    private static Face? FaceAtCore(Context c, BlockId block, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis, bool positive, BlockFace face, (float R, float G, float B) tint, bool hollow, out bool skirt)
+    {
+        skirt = false;
         var v = c.Volume;
         var inside = v.In(to.X, to.Y, to.Z);
         var other = v.BlockAt(to.X, to.Y, to.Z);
+        var cutSkirt = false;
         if (!inside && to.Y >= 0 && to.Y < v.Height)
         {
             if (block == BlockId.Water)
@@ -741,7 +779,9 @@ public static class FarTileMesher
                 var k = axis == 0 ? at.Z : at.X;
                 other = v.BorderAt(border, at.Y, k);
                 var ground = v.BorderGround(border, k);
-                if (at.Y < ground - c.SkirtCells || (other is not (BlockId.Air or BlockId.Water) && at.Y > ground))
+                // B51: a crown or a trunk of the neighbour's column does not hide a ground voxel's face (the leaf drawn there may be coarser and have no crown): only ground the neighbour has over this ground's top, or a crown's own face, is culled.
+                var overGround = other is not (BlockId.Air or BlockId.Water) && at.Y > ground && (CrownOrTrunk(block) || !CrownOrTrunk(other));
+                if (at.Y < ground - c.SkirtCells || overGround)
                 {
                     return null;
                 }
@@ -756,13 +796,27 @@ public static class FarTileMesher
                 return null; // no tile beside it: a skirt from its own ground
             }
         }
+        else if (inside && block != BlockId.Water && axis != 1 && CrossesGranule(c, at, to, axis) && (hollow || (other == BlockId.Air ? !v.IsOpen(to.X, to.Y, to.Z) : other != BlockId.Water || DeepBed(c, to))))
+        {
+            // B51: a granule's edge inside the tile is where a stand-in is cut for the finer leaves (or the chunks) beside it, so it gets the skirt a tile's outer edge has: a wall of the ground voxels (beside a crown, the water over the neighbour's bed or air sealed under its ground too) hanging a skirt's depth under the lower of the two columns' ground
+            // (hidden inside the ground when both granules are drawn). Without it the slot between the cut edge's last face and the finer ground beside it is open to the sky.
+            // Ground only: a crown or a trunk beside a crown is not what keeps the sky out, and a ground voxel beside a crown of the neighbouring column is drawn too (the finer leaf there may have no crown).
+            if (CrownOrTrunk(block) || at.Y < Math.Min(v.Ground(to.X, to.Z), v.Ground(at.X, at.Z)) - (c.Textured ? TexturedCutSkirtCells : 2 * c.SkirtCells))
+            {
+                return null;
+            }
 
-        if (other == BlockId.Air && inside && !v.IsOpen(to.X, to.Y, to.Z))
+            other = BlockId.Air;
+            cutSkirt = true;
+            skirt = true;
+        }
+
+        if (other == BlockId.Air && inside && !cutSkirt && !v.IsOpen(to.X, to.Y, to.Z))
         {
             return null; // air sealed under the ground: nothing outside sees it
         }
 
-        var nearLight = inside ? v.Light[v.At(to.X, to.Y, to.Z)] : LodSection.SkyFull;
+        var nearLight = inside && !cutSkirt ? v.Light[v.At(to.X, to.Y, to.Z)] : LodSection.SkyFull;
         if (block == BlockId.Water)
         {
             if (other != BlockId.Air || (axis == 1 && !positive))
@@ -808,6 +862,12 @@ public static class FarTileMesher
         var flat = side ? Covered(v, c, block, at) : Rgb(block, false, c.Grey);
         return new Face(Pack((flat.R * land.R, flat.G * land.G, flat.B * land.B), tint, shade * NoiseGain), FarBucket.Opaque, BlockId.Air, true);
     }
+
+    private static bool CrownOrTrunk(BlockId block) => BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block);
+
+    // Whether a face looking from a voxel to the next one along a horizontal axis leaves its granule (see FarGranules): only a tile built cut has granules inside it.
+    private static bool CrossesGranule(Context c, (int X, int Y, int Z) at, (int X, int Y, int Z) to, int axis) =>
+        c.GranuleCells < LodSection.Size && (axis == 0 ? at.X / c.GranuleCells != to.X / c.GranuleCells : at.Z / c.GranuleCells != to.Z / c.GranuleCells);
 
     // The colour of a flat level's side face: a cliff of a snow-topped column is mostly snow seen from afar (the cap would otherwise be a one-voxel line on a grey wall, and a far mountain grey), so its stone is mixed with the snow's white.
     private static (float R, float G, float B) Covered(Volume v, Context c, BlockId block, (int X, int Y, int Z) at)

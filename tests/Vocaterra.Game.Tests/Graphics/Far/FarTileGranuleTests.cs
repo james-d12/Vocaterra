@@ -70,24 +70,26 @@ public sealed class FarTileGranuleTests(ITestOutputHelper output)
                 output.WriteLine($"level {level}: {whole.VertexCount / 4} quads whole, {cut.VertexCount / 4} cut ({side} x {side} granules of {blocks} blocks)");
 
                 // The surface is the same: the area of each facing and bucket (a cut quad is a piece of a whole one).
-                foreach (var bucket in new[] { FarBucket.Opaque, FarBucket.Lit, FarBucket.Water })
+                foreach (var bucket in new[] { FarBucket.Opaque, FarBucket.Lit, FarBucket.Water, FarBucket.Skirt })
                 {
                     var (a0, a1) = granules.Bucket(bucket);
-                    Assert.Equal(bucket == FarBucket.Opaque ? cut.OpaqueIndices : bucket == FarBucket.Lit ? cut.LitIndices : cut.WaterIndices, a1 - a0);
+                    Assert.Equal(bucket == FarBucket.Opaque ? cut.OpaqueIndices : bucket == FarBucket.Lit ? cut.LitIndices : bucket == FarBucket.Water ? cut.WaterIndices : cut.SkirtIndices, a1 - a0);
                 }
 
                 var cutQuadList = Quads(cut);
+                var skirtQuads = cut.SkirtIndices / 6; // B51: the walls under the granules' edges are the last quads; the whole tile has none of them, and the surface compared is the rest
+                Assert.Equal(0, whole.SkirtIndices);
                 var wholeQuadList = Quads(whole);
                 foreach (var facing in new[] { Vector3.UnitX, -Vector3.UnitX, Vector3.UnitY, -Vector3.UnitY, Vector3.UnitZ, -Vector3.UnitZ })
                 {
-                    var areaCut = cutQuadList.Where(q => Vector3.Dot(q.Normal, facing) > 0.99f).Sum(static q => (double)q.Area);
+                    var areaCut = cutQuadList.Take(cutQuadList.Count - skirtQuads).Where(q => Vector3.Dot(q.Normal, facing) > 0.99f).Sum(static q => (double)q.Area);
                     var areaWhole = wholeQuadList.Where(q => Vector3.Dot(q.Normal, facing) > 0.99f).Sum(static q => (double)q.Area);
                     Assert.Equal(areaWhole, areaCut, Math.Max(1.0, areaWhole * 1e-6));
                 }
 
                 // Each granule's run holds quads that lie inside its square (a wall on the edge belongs to the granule of its voxel and may lie on either edge).
                 var seen = new HashSet<int>();
-                foreach (var bucket in new[] { FarBucket.Opaque, FarBucket.Lit, FarBucket.Water })
+                foreach (var bucket in new[] { FarBucket.Opaque, FarBucket.Lit, FarBucket.Water, FarBucket.Skirt })
                 {
                     var runs = new List<(int First, int Count)>();
                     for (var gz = 0; gz < side; gz++)

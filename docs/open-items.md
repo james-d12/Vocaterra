@@ -54,7 +54,7 @@ Deferred by the owner and not to be raised: core D1's remainder and D4, and D-ga
 
 | Series | Items | State | Detail |
 | --- | --- | --- | --- |
-| After the B series | On `feature/world-next` (cut from `main` 2026-11-18, D-game-34 item 61): the chunk-speed series B35 to B40 first, then B32 to B34, B23 (propagated light), B16 (regions), B19 (documented only; the owner's go), the caching ideas, and the open findings (cave mouths rare near the start, far-view seams on water, spruce leaf seams, the taiga's trees, and more) | after PR #72 | [handover](handovers/2026-11-19-2035-lod-lifecycle.md) |
+| After the B series | On `feature/world-next` (cut from `main` 2026-11-18, D-game-34 item 61): the chunk-speed series B35 to B40 first, then B32 to B34, B23 (propagated light), B16 (regions), B19 (documented only; the owner's go), the caching ideas, and the open findings (cave mouths rare near the start, far-view seams on water, spruce leaf seams, the taiga's trees, and more) | after PR #72 | [handover](handovers/2026-11-27-1705-lod-lifecycle.md) |
 | Core | M86, O9's double silent h (fuzz seed `8HYgz_I9Ysn1`; a silent-h failure of `PronunciationFuzzTests` on "oh hundan", seed `9MOxzRBVGLK4`, was seen once on 2026-11-10 and may be the same family; the same day `PipelineFuzzTests.OpenFallback...` once had `fallback:second-chosen` at 4 against its minimum of 5, a thin margin) | open: launched 2026-11-08, nothing landed | [core plan](nlp/implementation-plan.md) §5 |
 | Core | M27b, M27c: content layering, format de-duplication | todo | [core plan](nlp/implementation-plan.md) §10 |
 | Core | M27a2, M28b, M28c, M28d, M29a, M29b, M29d, M29i | proposed | [core plan](nlp/implementation-plan.md) §5 |

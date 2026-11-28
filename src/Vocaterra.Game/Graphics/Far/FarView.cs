@@ -86,6 +86,11 @@ public sealed class FarTile(FarTileKey key)
         if (Windows is { } windows && Granules is { } granules)
         {
             granules.Runs(bucket, windows, into);
+            if (bucket == FarBucket.Opaque)
+            {
+                granules.Runs(FarBucket.Skirt, windows, into, append: true); // B51: the walls under the cut edges, drawn with the land inside the windows
+            }
+
             return;
         }
 
@@ -165,6 +170,8 @@ public sealed class FarView
     private readonly Dictionary<FarTileKey, List<FarWindow>> _windows = [];
     private readonly HashSet<FarTileKey> _whole = [];
     private readonly HashSet<FarTileKey> _unfit = [];
+    // B49: the keys of the tiles the last assembly draws, and of the stand-ins it chose (one with every leaf under it covered otherwise draws nothing but is kept for the next leaf that waits): what a changed section must not retire.
+    private readonly HashSet<FarTileKey> _shown = [];
     private HashSet<FarTileKey> _shownLast = [];
     private HashSet<FarTileKey> _shownNow = [];
     private readonly Dictionary<FarTileKey, double> _relapsed = [];
@@ -222,11 +229,12 @@ public sealed class FarView
     {
         get
         {
-            // A changed tile that is not needed (its columns are drawn by the chunks) is made again when it is, not now: it never holds a settle up (B07f).
+            // A changed tile that is not needed (its columns are drawn by the chunks) is made again when it is, not now: it never holds a settle up (B07f). A changed stand-in that is still drawn (B49) is neither wanted nor asked for: it is retired when the leaves
+            // under it are drawn, and does not count.
             var stale = _rebuilding.Count;
             foreach (var key in _dirty)
             {
-                if (IsNeeded(key))
+                if ((_wanted.Contains(key) || _building.Contains(key)) && IsNeeded(key))
                 {
                     stale++;
                 }
@@ -480,12 +488,7 @@ public sealed class FarView
         _eye = (eyeX, eyeZ);
         if (double.IsNaN(_selectedFor.X) || Math.Abs(eyeX - _selectedFor.X) >= step || Math.Abs(eyeZ - _selectedFor.Z) >= step || _selectedFor.Voxel != voxelViewDistance || Math.Abs(_reach - _selectedReach) > 0.05)
         {
-            var (fromX, fromZ) = (_selectedFor.X, _selectedFor.Z);
-            _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance, _nearReady is not null, _reach);
-            _selectedFor = (eyeX, eyeZ, voxelViewDistance);
-            _selectedReach = _reach;
-            SelectAhead(fromX, fromZ, eyeX, eyeZ, voxelViewDistance);
-            _wanted = [.. _leaves, .. _askCoarse];
+            Reselect(eyeX, eyeZ, voxelViewDistance);
         }
 
         WarmDrainage(eyeX, eyeZ);
@@ -499,7 +502,69 @@ public sealed class FarView
         }
 
         Assemble();
+        RetireChanged(dispose);
         Trim(eyeX, eyeZ, dispose);
+    }
+
+    // Chooses the leaves for an eye and the set of keys the workers may build (_wanted): the leaves, the tiles asked for ahead, and (B49, the LOD review's finding 2) every stand-in still being built that stands in for one of the leaves. The old code reset the set
+    // without them, so a worker that reached the job in the moment before RequestStandIns put the key back dropped it as stale and the key stayed in _building for good: the ancestor counted as covered and was never asked for again.
+    /// <summary>Chooses the leaves for an eye again and the keys the workers may build (also what <see cref="Update"/> does when the eye has moved a cell); public for the tests.</summary>
+    /// <param name="eyeX">The eye's x.</param>
+    /// <param name="eyeZ">The eye's z.</param>
+    /// <param name="voxelViewDistance">The voxel zone's radius in blocks.</param>
+    public void Reselect(double eyeX, double eyeZ, int voxelViewDistance)
+    {
+        var (fromX, fromZ) = (_selectedFor.X, _selectedFor.Z);
+        _leaves = FarTileSelector.Select(Settings, eyeX, eyeZ, voxelViewDistance, _nearReady is not null, _reach);
+        _selectedFor = (eyeX, eyeZ, voxelViewDistance);
+        _selectedReach = _reach;
+        SelectAhead(fromX, fromZ, eyeX, eyeZ, voxelViewDistance);
+        var wanted = new HashSet<FarTileKey>(_leaves);
+        wanted.UnionWith(_askCoarse);
+        if (_building.Count > 0)
+        {
+            HashSet<FarTileKey>? ancestors = null;
+            foreach (var key in _building)
+            {
+                if (wanted.Contains(key))
+                {
+                    continue;
+                }
+
+                ancestors ??= AncestorsOf(_leaves, _askFine);
+                if (ancestors.Contains(key))
+                {
+                    _ = wanted.Add(key);
+                }
+            }
+        }
+
+        _wanted = wanted; // the workers read the set: replaced whole, never changed in place
+    }
+
+    /// <summary>Whether a key may be built by the workers now (the leaves, the tiles asked for ahead and the stand-ins in flight), for the tests.</summary>
+    /// <param name="key">The tile.</param>
+    public bool IsWanted(FarTileKey key) => _wanted.Contains(key);
+
+    // The ancestors, FallbackSteps levels up at the most, of the given leaves: the tiles that can stand in for them.
+    private HashSet<FarTileKey> AncestorsOf(IReadOnlyList<FarTileKey> first, IReadOnlyList<FarTileKey> second)
+    {
+        var top = Settings.TopLevel;
+        var set = new HashSet<FarTileKey>();
+        foreach (var leaves in new[] { first, second })
+        {
+            foreach (var leaf in leaves)
+            {
+                var ancestor = leaf;
+                for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
+                {
+                    ancestor = ancestor.GetParent();
+                    _ = set.Add(ancestor);
+                }
+            }
+        }
+
+        return set;
     }
 
     // B47: the leaves a little ahead of the eye along the way it is going (the eye flying at 190 blocks a second reaches the ground a tile build takes, 50 to 300 ms, in 10 to 60 blocks): their coarse tiles are asked for now and their stand-ins (RequestStandIns) too,
@@ -600,7 +665,8 @@ public sealed class FarView
         }
     }
 
-    // The tiles whose sections the store changed (real chunks came in): a tile that is wanted is made again, one that is not is dropped.
+    // The tiles whose sections the store changed (real chunks came in): a tile that is wanted is made again; one that the last assembly draws (a stand-in, a leaf or a tile below one) keeps drawing as it is until what replaces it is drawn and is retired then
+    // (B49, RetireChanged: the LOD review's finding 1, a built stand-in leaves the wanted set and was disposed while on screen: a tile-sized hole); the others are dropped.
     private void Invalidate(Action<FarTile> dispose)
     {
         while (_store.Changed.TryDequeue(out var section))
@@ -618,7 +684,7 @@ public sealed class FarView
                 continue;
             }
 
-            if (_wanted.Contains(key) && IsNeeded(key))
+            if ((_wanted.Contains(key) && IsNeeded(key)) || IsShown(key, tile))
             {
                 _ = _dirty.Add(key);
             }
@@ -628,6 +694,37 @@ public sealed class FarView
                 _ = _tiles.Remove(key);
             }
         }
+    }
+
+    // Whether the last assembly draws the tile, or chose it for a stand-in (a tile that is only waiting for the card is not drawn: disposing it loses nothing on screen).
+    private bool IsShown(FarTileKey key, FarTile tile) => tile.OnCard && _shown.Contains(key);
+
+    // B49: a changed tile that is kept for drawing (Invalidate) and is not asked for (a stand-in, a tile below a leaf) is freed in the first assembly that does not draw it, so what is kept for drawing is bounded by what is on screen. One that is wanted and needed is
+    // made again by Request (the old tile keeps drawing until the renderer swaps the new mesh in), and one being built, or built and waiting for the card, is dealt with once it is on the card.
+    private void RetireChanged(Action<FarTile> dispose)
+    {
+        if (_dirty.Count == 0)
+        {
+            return;
+        }
+
+        _idle.Clear();
+        foreach (var key in _dirty)
+        {
+            if (_tiles.TryGetValue(key, out var tile) && tile.OnCard && tile.Pending is null && !_building.Contains(key) && !_shown.Contains(key) && !(_wanted.Contains(key) && IsNeeded(key)))
+            {
+                _idle.Add(key);
+            }
+        }
+
+        foreach (var key in _idle)
+        {
+            dispose(_tiles[key]);
+            _ = _tiles.Remove(key);
+            _ = _dirty.Remove(key);
+        }
+
+        _idle.Clear();
     }
 
     // Takes the tiles the workers finished into the cache.
@@ -1114,6 +1211,13 @@ public sealed class FarView
         }
 
         _draw.InsertRange(0, _fallbacks);
+        _shown.Clear();
+        foreach (var tile in _draw)
+        {
+            _ = _shown.Add(tile.Key);
+        }
+
+        _shown.UnionWith(_standIns);
         Uncovered = uncovered;
         NoteCoverage(needed, uncovered);
         _drawnTriangles = (int)Math.Min(triangles, int.MaxValue);
@@ -1316,7 +1420,7 @@ public sealed class FarView
         var start = into?.Count ?? 0;
         foreach (var child in key.Children())
         {
-            if (_tiles.TryGetValue(child, out var tile) && tile.OnCard && !_dirty.Contains(child))
+            if (_tiles.TryGetValue(child, out var tile) && tile.OnCard)
             {
                 into?.Add(tile);
             }
@@ -1466,6 +1570,7 @@ public sealed class FarView
 
         _used.UnionWith(_wanted);
         KeepAhead(_used);
+        KeepCovering(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);
@@ -1499,6 +1604,27 @@ public sealed class FarView
         }
     }
 
+    // B49 (the LOD review's finding 8): a leaf that is not on the card may be stood in for by any tile within FallbackSteps above it, the tiles that draw nothing now included (a stand-in whose leaves are all drawn otherwise): the next leaf to wait under one would find it
+    // evicted and show sky until its own tile was built. Those ancestors are kept like the wanted tiles.
+    private void KeepCovering(HashSet<FarTileKey> used)
+    {
+        var top = Settings.TopLevel;
+        foreach (var leaf in _leaves)
+        {
+            if ((_tiles.TryGetValue(leaf, out var own) && own.OnCard) || ShownByChunks(leaf))
+            {
+                continue;
+            }
+
+            var ancestor = leaf;
+            for (var step = 0; step < FallbackSteps && ancestor.Level < top; step++)
+            {
+                ancestor = ancestor.GetParent();
+                _ = used.Add(ancestor);
+            }
+        }
+    }
+
     private void DropUnwantedPending(Action<FarTile> dispose)
     {
         _used.Clear();
@@ -1509,6 +1635,7 @@ public sealed class FarView
 
         _used.UnionWith(_wanted);
         KeepAhead(_used);
+        KeepCovering(_used);
         foreach (var tile in _pending)
         {
             _ = _used.Add(tile.Key);
