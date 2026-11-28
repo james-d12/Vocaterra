@@ -3324,3 +3324,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   they would change play in the valley. The far-view pictures at the extremes were not taken: a cold 16 km far view took over 900 s per
   run, so whether the far view follows the options is untested in pictures (it reads the same composed generator). `--teleport` outside
   the valley finds no ground unless `--pass open` (the wall holds the body; existing behaviour).
+- **Q01, the main menu (2026-11-28, on `feature/main-menu`).** A second MonoGame `Game` window never starts its loop, so the title and
+  every world share one window (`AppGame`). The first agent waited about 11 hours for a `limited.sh` slot: all three were held by other
+  sessions' processes (a merge gate hung in `dotnet test` for 15 hours and two forgotten game windows); `limited.sh` has no limit on how
+  long a command may hold a slot, so a hung command blocks every session. The Load page cuts a long refusal line with an ellipsis (the
+  version-3 fixture's message), to be looked at in Q04's QA.

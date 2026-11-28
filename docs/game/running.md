@@ -3,6 +3,22 @@
 The 3D world, its command-line options and the demo runs that show each part of it, then the playtest. Run every command from the
 repository root. The scripted regression runs are in [scripted-runs.md](scripted-runs.md), the facilitator's script in [playtest.md](playtest.md).
 
+## The title screen and worlds (Q01, D-game-37)
+
+A run with no start flag opens the title screen: New game, Load game (greyed with no worlds), Settings and Quit. The start flags, which
+skip it and start a world as before, are `--seed`, `--world`, `--terrain`, `--load`, `--save`, `--session`, `--skip-to-session`,
+`--check`, `--playtest`, `--pregen`, `--session-dir`, `--own-plot`, `--mark-plot`, `--lodging`, `--set-need`, `--needs off`,
+`--assume-known`, `--strict-save` and `--debug-crash-after`. A scripted `--screenshot` run never opens it unless `--title` or
+`--title-page main|new|load|settings|delete` is given (`--title-name <text>` and `--title-seed <text>` fill the New game page). New game
+asks a world name (default "World N"; refused when empty or taken), a seed (a number as is, other text hashed stably, blank or Random
+for a random one) and the world type. Each world lives in `~/.local/share/vocaterra/saves/<slug>/` as `world.json` (name, seed, type,
+times, terrain) and `world.save` (written by the autosave and by Exit); `--saves-dir <dir>` or `VOCATERRA_SAVES_DIR` points elsewhere.
+Load lists the worlds newest played first, with Delete behind a confirmation; a world whose save cannot load says why. The player's
+settings are no longer in the save but in `~/.local/share/vocaterra/settings.json` (`--settings-file`, `VOCATERRA_SETTINGS_FILE`),
+edited from the title's and the Esc menu's settings pages; launch flags still override them for the run, and a scripted run reads and
+writes no settings file unless `--settings-file` is given. The Esc menu's "Main menu" saves, closes the world and returns to the title.
+Session logs stay under `sessions/`. Saves are version 12 (no `settings`, optional `terrain`); older saves are refused.
+
 ## The 3D world (S2 to S4)
 
 The prototype's world is the first-person voxel scene: it loads the world from the bundle (`content/game-v1/game/scene.json`, S13: generator

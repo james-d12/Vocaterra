@@ -8,6 +8,8 @@ The game is a **Minecraft-inspired 3D voxel game**, played from a first-person p
 
 The game is split across `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender`, keeping the underlying simulation and game logic separate from the MonoGame rendering and host layers.
 
+The game opens on a title screen with New game (a world name, a seed, the world type and the terrain options), Load game, Settings and Quit; each world keeps its own save folder (Q01).
+
 Game design, implementation plans and decisions live under [`docs/game/`](docs/game/README.md).
 
 ### The NLP Language Core
