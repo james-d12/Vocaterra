@@ -476,6 +476,43 @@ shape:** replace the fixed pack box by a lookup on the bag's look or id.
 
 `tests/Vocaterra.Game.Core.Tests/Items` (`Containers`, `Gear`, `Wearing`, the bag and the catalogue), `Stats`, `Temperature` and `Damage`; `Save/` for the worn items, the wear and the active bag; `tests/Vocaterra.Game.Tests/UI/Inventory` for the layout at every scale and slot count and `Graphics/Figures` for the avatar.
 
+## Building: the state byte and shaped blocks (the K series)
+
+The design is [the building plan](building-plan.md) (D-game-36).
+
+**The per-cell state byte (K01).** Besides its block id and water level, a cell may hold one state byte. It lives in `VoxelChunk` as a
+lazily allocated `byte[4096]` that stays null while every state in the chunk is 0 (like the water levels), so the built scene pays
+nothing. It is read with `IVoxelReader.GetState` (0 outside the world and where nothing is stored) and written with
+`SetBlock(x, y, z, id, state)`; `SetBlock(x, y, z, id)` writes state 0, so a replaced block never inherits the old block's facing, and
+air always holds 0. A state means nothing on its own: the block's id says how to read it (the `BlockState` layouts, K02). A state-only
+change is an edit: it bumps the chunk version and `BlockChange` carries `OldState` and `NewState`. The chunk digest takes the state
+bytes only when the chunk holds a non-zero state, so the digests and the save's `stateDigest` of every world without states are
+unchanged. `ChunkSnapshot` copies the states of its 18-cell neighbourhood (and holds no array while none is set) so the mesher can read
+them off the main thread. Saves (format 12) write the states of a changed chunk as run-length `StateRun`s, omitted when there are none.
+
+**Shapes (K02).** `BlockShapes.Of(id, state[, reader, x, y, z])` in `Voxel` is the one pure definition of a block's boxes, in sixteenths
+of a block (`ShapeBox`; y reaches 24 only for a fence's or a closed gate's collision). A `VoxelShape` holds `Drawn` (the mesher and the
+ray), `Collides` (bodies) and the `FaceCover` of each face worked out from the drawn boxes; the mesher hides a neighbour's face only
+behind a `Full` cover. Shapes are cached (the full cube shared, the 16 fence arm shapes, a table by oak id and state), so a call
+allocates nothing. The state layouts are in `BlockState` (log axis, stairs, slab, gate, door, trapdoor); horizontal directions are
+`Facing` (north is -Z, then clockwise); `BlockState.IsValid` says which states a block may hold. A block with no shape of its own is the
+full cube when solid and empty otherwise. The orientation rules are in the doc comment of `BlockShapes`.
+
+**Body collision, steps and the ray (K03).** `VoxelCollider` meets the true shapes: a plain solid cell is one full box; a block with a
+shape of its own (`BlockShapes.HasShape`) contributes its `Collides` boxes, in units (a sixteenth is 256). A cell is visited together with
+the block below it, so the part of a fence or closed gate above 16/16 is met from the cell above; a `Tall` block still blocks the whole
+cell above it, and lava still collides with nothing. `PlayerBody.MoveWithStepUp` lifts a grounded, non-rising body onto the top of the
+highest box it would overlap at the target that reaches down to its feet, when that top is at most one block up and the body fits
+there: a slab, a stair step and a block climb; a ceiling, a top slab or an upside-down stair never does. `BodyCollision` holds the shared
+planning rules that `VoxelGrid` and `SleepWalk.WalkView` call: a cell with any collision box blocks planning, only a full-cube
+collision can be stood on, and the cell above a fence or a `Tall` block is blocked (NPCs never use the oak pieces). `BlockRay` keeps its
+cell walk and, on a shaped cell, runs an exact-integer slab test against the drawn boxes, walking on when it misses;
+`BlockRayHit.{HitX, HitY, HitZ}` are 1/4096-block units within the cell, and `Adjacent` is the cell itself when the face hit lies
+inside the cell (the top of a bottom slab) and the neighbour when it is on the cell boundary.
+
+**Items (K05).** The seven oak pieces are data-only rows of `items.json` (ids 123 to 129, no `ItemId` members), crafted at the `mesa`
+from `madera`; their icons are UI-only atlas cells drawn by `BlockArtBuilding`.
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:

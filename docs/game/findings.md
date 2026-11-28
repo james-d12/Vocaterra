@@ -3318,3 +3318,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   and a second copy without it gives `textureGrad` its derivatives, since a centroid value's derivatives are unreliable on the edge. Seed 42's
   cavern (504,-30,176, `--msaa 4 --far-view off`) before and after: 781 pixels differ, all on block edges, 565 of them seams gone. The
   effects fallback (below OpenGL 3.3) keeps the seams under multisampling; a wider inset or an atlas gutter would cover it too.
+- **The content loop builds Debug but its goldens step needs Release (2026-11-28, K05 on `feature/building`).** K05's agent found
+  `scripts/content-loop.sh` building the Debug configuration while its goldens step reads a Release build, so the step failed until a
+  Release build was made by hand. Not fixed (the loop is shared tooling); a later tooling milestone or the next content milestone's brief
+  should say "build Release first" until it is.
+- **New nouns joined the A1 list (2026-11-28, K05).** `tronco`, `losa`, `valla`, `portón` and `trampilla` are in neither of the core's
+  lists, so K05 appended them to `cefr/a1.txt` with a "provisional until the language review (D-game-12)" note, as the stake's `estaca` was
+  (Y10); `escalera` was already in `a2.txt`. The scene's fence block is now named `valla`.

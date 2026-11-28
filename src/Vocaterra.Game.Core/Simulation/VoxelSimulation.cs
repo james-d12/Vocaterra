@@ -720,7 +720,7 @@ public sealed partial class VoxelSimulation
             return;
         }
 
-        if (BlockDefinition.IsSolid(placed) && OverlapsPlayer(cell))
+        if (BlockDefinition.IsSolid(placed) && OverlapsPlayer(cell, placed))
         {
             return;
         }
@@ -755,10 +755,15 @@ public sealed partial class VoxelSimulation
 
     /// <summary>Whether the cell's cube overlaps the player's box (touching an edge does not count).</summary>
     /// <param name="cell">The cell.</param>
-    public bool OverlapsPlayer(BlockPos cell) =>
-        Player.MinX < (cell.X + 1) * U && Player.MaxX > cell.X * U
-        && Player.MinY < (cell.Y + 1) * U && Player.MaxY > cell.Y * U
-        && Player.MinZ < (cell.Z + 1) * U && Player.MaxZ > cell.Z * U;
+    public bool OverlapsPlayer(BlockPos cell) => OverlapsPlayer(cell, BlockId.Stone);
+
+    /// <summary>
+    /// Whether the collision of the block <paramref name="id"/> placed at the cell would overlap the player's box (K03: the true shape, so a slab placed under the player's feet is allowed while a fence's 24-sixteenth post
+    /// is not; touching does not count).
+    /// </summary>
+    /// <param name="cell">The cell.</param>
+    /// <param name="id">The block that would stand there.</param>
+    /// <param name="state">Its state byte (0 until placement writes states, K06).</param>
+    public bool OverlapsPlayer(BlockPos cell, BlockId id, byte state = 0) =>
+        BodyCollision.Overlaps(id, state, cell, Player.MinX, Player.MinY, Player.MinZ, Player.MaxX, Player.MaxY, Player.MaxZ);
 }
-
-

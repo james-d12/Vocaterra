@@ -16,6 +16,9 @@ public interface IVoxelReader
     /// <summary>The block at the position; <see cref="BlockId.Air"/> outside the limits.</summary>
     BlockId GetBlock(int x, int y, int z);
 
+    /// <summary>The state byte of the cell (K01), 0 outside the limits, in a chunk that is not loaded and where the cell holds none; what it means depends on the block there (check <see cref="GetBlock"/> first).</summary>
+    byte GetState(int x, int y, int z);
+
     /// <summary>The water level at the position (<see cref="WaterLevel.Source"/> where there is none to read: check <see cref="GetBlock"/> first).</summary>
     WaterLevel GetWater(int x, int y, int z);
 

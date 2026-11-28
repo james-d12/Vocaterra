@@ -11,7 +11,7 @@ namespace Vocaterra.Game.Core.Tests.TestSupport;
 internal static class SaveFixture
 {
     /// <summary>The text of a fixture, with its bundle hash set to the current bundle's.</summary>
-    /// <param name="name">The file name under <c>Fixtures/</c>, for example <c>save-v11.json</c>.</param>
+    /// <param name="name">The file name under <c>Fixtures/</c>, for example <c>save-v12.json</c>.</param>
     public static string Read(string name)
     {
         var node = JsonNode.Parse(File.ReadAllText(Repo.Path("tests", "Vocaterra.Game.Core.Tests", "Fixtures", name)))!;

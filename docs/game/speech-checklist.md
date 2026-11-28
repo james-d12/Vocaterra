@@ -19,7 +19,7 @@ whose text changed or whose file was recorded again differently is listed again 
 | farmer (León) | `pm_santa` | 44 | 1.0 (0.8) | the pools `farmer_*` and `guide.lesson.farmer.*`, and its prompts |
 | innkeeper (Rosa) | `pf_dora` | 42 | 1.0 (0.8) | the pools `innkeeper_*` and `guide.lesson.innkeeper.*`, and its prompts |
 
-**To hear:** 1738 of the 1738 files have no mark (guide 564, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 136, innkeeper 96). Two files a line: the normal speed and the slow one.
+**To hear:** 1750 of the 1750 files have no mark (guide 576, baker 218, villager 218, farmer 176, shopkeeper 174, fisher 156, smith 136, innkeeper 96). Two files a line: the normal speed and the slow one.
 
 ## Lines
 
@@ -235,6 +235,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.cuerpo | speech/cards/card.cuerpo.wav | guide | 1.0 | el cuerpo |  |
 | card.equipo | speech/cards/card.equipo.slow.wav | guide | 0.8 | el equipo |  |
 | card.equipo | speech/cards/card.equipo.wav | guide | 1.0 | el equipo |  |
+| card.escalera | speech/cards/card.escalera.slow.wav | guide | 0.8 | la escalera |  |
+| card.escalera | speech/cards/card.escalera.wav | guide | 1.0 | la escalera |  |
 | card.escudo | speech/cards/card.escudo.slow.wav | guide | 0.8 | el escudo |  |
 | card.escudo | speech/cards/card.escudo.wav | guide | 1.0 | el escudo |  |
 | card.espalda | speech/cards/card.espalda.slow.wav | guide | 0.8 | la espalda |  |
@@ -263,6 +265,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.horno | speech/cards/card.horno.wav | guide | 1.0 | el horno |  |
 | card.libro | speech/cards/card.libro.slow.wav | guide | 0.8 | el libro |  |
 | card.libro | speech/cards/card.libro.wav | guide | 1.0 | el libro |  |
+| card.losa | speech/cards/card.losa.slow.wav | guide | 0.8 | la losa |  |
+| card.losa | speech/cards/card.losa.wav | guide | 1.0 | la losa |  |
 | card.madera | speech/cards/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/cards/card.madera.wav | guide | 1.0 | la madera |  |
 | card.mano | speech/cards/card.mano.slow.wav | guide | 0.8 | la mano |  |
@@ -289,6 +293,8 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.piedra | speech/cards/card.piedra.wav | guide | 1.0 | la piedra |  |
 | card.pierna | speech/cards/card.pierna.slow.wav | guide | 0.8 | la pierna |  |
 | card.pierna | speech/cards/card.pierna.wav | guide | 1.0 | la pierna |  |
+| card.porton | speech/cards/card.porton.slow.wav | guide | 0.8 | el portón |  |
+| card.porton | speech/cards/card.porton.wav | guide | 1.0 | el portón |  |
 | card.puente | speech/cards/card.puente.slow.wav | guide | 0.8 | el puente |  |
 | card.puente | speech/cards/card.puente.wav | guide | 1.0 | el puente |  |
 | card.puerta | speech/cards/card.puerta.slow.wav | guide | 0.8 | la puerta |  |
@@ -311,6 +317,12 @@ whose text changed or whose file was recorded again differently is listed again 
 | card.tienda | speech/cards/card.tienda.wav | guide | 1.0 | la tienda |  |
 | card.tierra | speech/cards/card.tierra.slow.wav | guide | 0.8 | la tierra |  |
 | card.tierra | speech/cards/card.tierra.wav | guide | 1.0 | la tierra |  |
+| card.trampilla | speech/cards/card.trampilla.slow.wav | guide | 0.8 | la trampilla |  |
+| card.trampilla | speech/cards/card.trampilla.wav | guide | 1.0 | la trampilla |  |
+| card.tronco | speech/cards/card.tronco.slow.wav | guide | 0.8 | el tronco |  |
+| card.tronco | speech/cards/card.tronco.wav | guide | 1.0 | el tronco |  |
+| card.valla | speech/cards/card.valla.slow.wav | guide | 0.8 | la valla |  |
+| card.valla | speech/cards/card.valla.wav | guide | 1.0 | la valla |  |
 | card.zapato | speech/cards/card.zapato.slow.wav | guide | 0.8 | los zapatos |  |
 | card.zapato | speech/cards/card.zapato.wav | guide | 1.0 | los zapatos |  |
 | farewell_reply.1 | speech/guide/farewell_reply.1.slow.wav | guide | 0.8 | ¡Adiós, amigo! Hasta luego. |  |

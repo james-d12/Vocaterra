@@ -37,6 +37,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-32 | The inn, bought land and the campsite (the Y series, `docs/game/settlement-plan.md` section 8) | decided (owner, 2026-11-10): the first slice built now on `feature/settlement`, in a new worktree from `main`; the inn's bed free once the innkeeper has given the room; placing refused in the village and on the roads, the camp kit and taking planks back only on owned land; saves break (version 8); amends D-game-15, D-game-24, D-game-25 and the village plan's principle 1, and takes W22's first lot and W23's stake out of the hold | nothing |
 | D-game-34 | A tall procedural world round hand-crafted regions (the B series, `docs/game/biomes-plan.md`) | decided (owner, 2026-11-15): an endless, streamed world, y −64 to 320, generated outside authored regions (biomes, great ranges, rivers, lakes and sea above; rock layers, caves, lava and iron, tin and copper ores below); the valley the first region, opened by a pass to the east; amends the prototype brief's LEAVE FOR LATER line, D-game-22's inward growth and the adaptation design's decision 15; takes over the settlement plan's phase 7; saves break (version 9); the pass opens once every lesson listed in `world.json` (all of today's) is complete, or at once with a cheat setting, and until then a rockfall closes it and the valley's edge stays a wall; no lesson uses the new land; nothing new can be gathered (no digging, no ore items or nouns); lava blocks the body and does no harm | nothing |
 | D-game-35 | Inventory and equipment (the I series, `docs/game/inventory-plan.md`) | decided (owner, 2026-11-15; building started the same day with I00; I01 waits for the owner's word): items move to data first (W12 taken over); a bag of the hotbar and 20 slots, a backpack slot whose bag (`el saco` 10, `la mochila` 20) adds slots; clothing, armour and cosmetic layers on head, body, legs and feet, three accessories and an off-hand; armour gives a rating for combat to come and reduces nothing yet; clothing's warmth against a temperature from the day, the weather and shelter, cold slows and never harms; every gear item craftable and buyable; gear drawn on the avatar; durability for gear and tools (W13 taken over); sort and trash; gear nouns above A2 join the world words; saves break; amends D-game-23 (c) | I00 to I10 |
+| D-game-36 | Building: the oak set and shaped blocks (the K series, `docs/game/building-plan.md`) | decided (owner, 2026-11-27): the oak building set (log, planks, stairs, slab, fence, gate, door, trapdoor) crafted from `madera` at the `mesa`; half-block steps; a per-cell state byte; land rules in the valley only, the procedural area free to build | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -1087,6 +1088,25 @@ W13 move to this series, and W26 keeps only the tailor and its voice trial.
     before I08a.
 11. **(b) The small bag:** "el saco". The small bag (10 slots) is `el saco`; the large one stays `la mochila` (20). «La bolsa» keeps
     naming the whole inventory («Tu bolsa está llena»).
+
+## D-game-36: building, the oak set and shaped blocks (decided, 2026-11-27)
+
+*Numbered D-game-36 because D-game-33 is reserved on `feature/talk-sets` and `main` holds D-game-35.*
+
+The owner, 2026-11-27: "Can you work on adding a building system to the game? we need basics so player can place blocks, lets introduce
+an oak wood complete item set, so stairs, slabs, planks, etc. like minecraft." The plan is [the building plan](building-plan.md) (the K
+series, on `feature/building`). The owner's answers, the same day:
+
+1. **The building set:** oak log (placed along the clicked face's axis), planks, stairs, slab (double when two meet), a fence that joins
+   its neighbours, a fence gate, a door two blocks tall and a trapdoor, the last three opening. Not now: bark-all-round or stripped wood,
+   buttons, pressure plates, signs.
+2. **Crafted from `madera` at the `mesa`.** Trees still drop `madera`, which still places as planks; nothing that names `madera` changes.
+3. **Half-block steps:** a grounded walk climbs a slab or a stair step without a jump; a full block still steps up as today.
+4. **"Building restrictions apply within the valley, but the procedural area is free build":** the land rules (Y09, D-game-32 (c)) stay
+   as they are in the valley and refuse nothing outside it.
+5. **Following from 1 to 3 (the orchestrator's design, the plan's section 3):** a cell gains an optional state byte (facing, half, axis,
+   open), stored like water; shapes are lists of boxes shared by collision, the ray and the mesher; the save takes its next version at
+   K01's merge and refuses older saves (the standing rule).
 
 ## Already decided
 

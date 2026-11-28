@@ -39,7 +39,8 @@
         "fern", "reeds", "yellow-flower", "white-flower", "mossy-stone", "cobble", "timber", "lantern", "crate", "awning-red", "awning-white",
         "canvas", "chest", "farmland", "wheat", "loaves", "apples", "bottles", "sign-tienda-a", "sign-tienda-b", "sign-rio", "sign-montana-a",
         "sign-montana-b", "post-torch", "bed", "bedroll", "bed-foot", "bedroll-foot", "counter",
-        "slate", "granite", "limestone", "gravel", "lava", "bedrock", "iron-ore", "tin-ore", "copper-ore", "basalt"
+        "slate", "granite", "limestone", "gravel", "lava", "bedrock", "iron-ore", "tin-ore", "copper-ore", "basalt",
+        "oak-log", "oak-stairs", "oak-slab", "oak-fence", "oak-fence-gate", "oak-door", "oak-trapdoor"
       ]
     }
   }

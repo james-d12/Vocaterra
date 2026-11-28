@@ -9,11 +9,12 @@ public sealed class ChunkContent
     /// <summary>Wraps the blocks (and, when any water cell holds a level other than source, the water levels) of one chunk.</summary>
     /// <param name="blocks">The 4 096 blocks in storage order (index = (localY * 16 + localZ) * 16 + localX).</param>
     /// <param name="waterLevels">The 4 096 encoded water levels in the same order (<see cref="WaterLevel.Encoded"/>; 0 for source and for cells that are not water), or <see langword="null"/> for none.</param>
-    /// <exception cref="ArgumentException">An array has the wrong length, or a level lies on a cell that is not water.</exception>
-    public ChunkContent(BlockId[] blocks, byte[]? waterLevels = null)
+    /// <param name="states">The 4 096 state bytes in the same order (K01; 0 for a cell with none), or <see langword="null"/> for none.</param>
+    /// <exception cref="ArgumentException">An array has the wrong length, a level lies on a cell that is not water, or a state lies on air.</exception>
+    public ChunkContent(BlockId[] blocks, byte[]? waterLevels = null, byte[]? states = null)
     {
         ArgumentNullException.ThrowIfNull(blocks);
-        if (blocks.Length != VoxelChunk.Volume || (waterLevels is not null && waterLevels.Length != VoxelChunk.Volume))
+        if (blocks.Length != VoxelChunk.Volume || (waterLevels is not null && waterLevels.Length != VoxelChunk.Volume) || (states is not null && states.Length != VoxelChunk.Volume))
         {
             throw new ArgumentException($"A chunk holds {VoxelChunk.Volume} blocks.", nameof(blocks));
         }
@@ -29,8 +30,20 @@ public sealed class ChunkContent
             }
         }
 
+        if (states is not null)
+        {
+            for (var i = 0; i < states.Length; i++)
+            {
+                if (states[i] != 0 && blocks[i] == BlockId.Air)
+                {
+                    throw new ArgumentException($"Cell {i} holds a state but is air.", nameof(states));
+                }
+            }
+        }
+
         Blocks = blocks;
         WaterLevels = waterLevels;
+        States = states;
     }
 
     /// <summary>The blocks in storage order.</summary>
@@ -38,4 +51,7 @@ public sealed class ChunkContent
 
     /// <summary>The encoded water levels in storage order, or <see langword="null"/>.</summary>
     internal byte[]? WaterLevels { get; }
+
+    /// <summary>The state bytes in storage order, or <see langword="null"/>.</summary>
+    internal byte[]? States { get; }
 }

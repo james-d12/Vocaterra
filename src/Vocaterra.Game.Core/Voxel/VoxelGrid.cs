@@ -170,6 +170,12 @@ public sealed class VoxelGrid : IVoxelWriter
             ? chunk.GetWater(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1))
             : WaterLevel.Source;
 
+    /// <summary>The state byte at the position (K01): 0 outside the grid and where the cell holds none. What it means depends on the block there: check <see cref="GetBlock"/> first.</summary>
+    public byte GetState(int x, int y, int z) =>
+        _limits.Contains(x, y, z) && ReadChunk(x >> VoxelChunk.Shift, y >> VoxelChunk.Shift, z >> VoxelChunk.Shift) is { } chunk
+            ? chunk.GetState(x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1))
+            : (byte)0;
+
     /// <summary>Whether the block position lies inside the grid's limits.</summary>
     public bool InBounds(int x, int y, int z) => _limits.Contains(x, y, z);
 
@@ -211,9 +217,9 @@ public sealed class VoxelGrid : IVoxelWriter
 
     /// <summary>
     /// Whether a body's box collides with the cell: a solid block, or the space just above a tall block (<see cref="BlockDefinition.Tall"/>, a fence),
-    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
+    /// which collides as two blocks high so that no step-up or jump takes a body onto it (issue #33), a block with a shape of its own whose collision has any box (K03, <see cref="BodyCollision"/>: the planning rule), or a block that stops the body without being solid (<see cref="BlockDefinition.StopsBody"/>: lava). The block ray and placement read <see cref="IsSolid"/>.
     /// </summary>
-    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || IsSolid(x, y, z) || BlockDefinition.IsTall(GetBlock(x, y - 1, z)) || BlockDefinition.StopsBodyOf(GetBlock(x, y, z));
+    public bool BlocksBody(int x, int y, int z) => IsWalled(x, z) || BodyCollision.BlocksBody(this, x, y, z);
 
     /// <inheritdoc />
     public bool IsWalled(int x, int z) => Barrier is { } barrier && barrier.Blocks(x, z);
@@ -222,7 +228,7 @@ public sealed class VoxelGrid : IVoxelWriter
     public BodyBarrier? Barrier { get; internal set; }
 
     /// <summary>Whether a body can stand on the block at the position: it is solid and not tall (nothing stands on a fence).</summary>
-    public bool CanStandOn(int x, int y, int z) => IsSolid(x, y, z) && !BlockDefinition.IsTall(GetBlock(x, y, z));
+    public bool CanStandOn(int x, int y, int z) => BodyCollision.CanStandOn(this, x, y, z);
 
     /// <summary>
     /// The chunk at the given chunk coordinates, resident afterwards: a streamed grid generates it (or makes an empty one without a generator) and installs it when it
@@ -575,7 +581,7 @@ public sealed class VoxelGrid : IVoxelWriter
     /// <param name="blocks">The 4 096 new blocks, which the chunk takes over.</param>
     internal void ReplaceBlocks(VoxelChunk chunk, BlockId[] blocks)
     {
-        chunk.Install(new ChunkContent(blocks, chunk.HasWaterLevels ? chunk.WaterLevels.ToArray() : null));
+        chunk.Install(new ChunkContent(blocks, chunk.HasWaterLevels ? chunk.WaterLevels.ToArray() : null, chunk.HasStates ? chunk.States.ToArray() : null));
         if (ReferenceEquals(_cacheChunk, chunk))
         {
             Cache(chunk);
@@ -616,8 +622,11 @@ public sealed class VoxelGrid : IVoxelWriter
         }
     }
 
-    /// <summary>Writes a block; returns whether the grid changed.</summary>
-    internal bool SetBlock(int x, int y, int z, BlockId block)
+    /// <summary>Writes a block with state 0 (so a replaced block keeps nothing of the old one's state); returns whether the grid changed.</summary>
+    internal bool SetBlock(int x, int y, int z, BlockId block) => SetBlock(x, y, z, block, 0);
+
+    /// <summary>Writes a block and its state together (K01); returns whether the grid changed (a different block, or the same block with a different state). Air always holds state 0.</summary>
+    internal bool SetBlock(int x, int y, int z, BlockId block, byte state)
     {
         if (!InBounds(x, y, z))
         {
@@ -632,12 +641,13 @@ public sealed class VoxelGrid : IVoxelWriter
         var (lx, ly, lz) = (x & (VoxelChunk.Size - 1), y & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1));
         var oldBlock = chunk[lx, ly, lz];
         var oldLevel = chunk.GetWater(lx, ly, lz);
-        var changed = chunk.Set(lx, ly, lz, block);
+        var oldState = chunk.GetState(lx, ly, lz);
+        var changed = chunk.Set(lx, ly, lz, block, state);
         if (changed)
         {
             Written(chunk);
             EditCount++;
-            Raise(new BlockChange(new BlockPos(x, y, z), oldBlock, block, oldLevel, chunk.GetWater(lx, ly, lz)));
+            Raise(new BlockChange(new BlockPos(x, y, z), oldBlock, block, oldLevel, chunk.GetWater(lx, ly, lz), oldState, chunk.GetState(lx, ly, lz)));
         }
 
         return changed;
@@ -668,11 +678,13 @@ public sealed class VoxelGrid : IVoxelWriter
         }
 
         EditCount++;
-        Raise(new BlockChange(new BlockPos(x, y, z), BlockId.Water, BlockId.Water, oldLevel, level));
+        Raise(new BlockChange(new BlockPos(x, y, z), BlockId.Water, BlockId.Water, oldLevel, level, 0, 0));
         return true;
     }
 
-    bool IVoxelWriter.SetBlock(int x, int y, int z, BlockId block) => SetBlock(x, y, z, block);
+    bool IVoxelWriter.SetBlock(int x, int y, int z, BlockId block) => SetBlock(x, y, z, block, 0);
+
+    bool IVoxelWriter.SetBlock(int x, int y, int z, BlockId block, byte state) => SetBlock(x, y, z, block, state);
 
     bool IVoxelWriter.SetWater(int x, int y, int z, WaterLevel level) => SetWater(x, y, z, level);
 
