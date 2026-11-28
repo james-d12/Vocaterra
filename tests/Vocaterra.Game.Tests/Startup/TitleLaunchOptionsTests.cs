@@ -34,6 +34,7 @@ public sealed class TitleLaunchOptionsTests
     [InlineData("--seed", "7")]
     [InlineData("--world", "valley")]
     [InlineData("--world", "streamed")]
+    [InlineData("--terrain", "mountains=100")]
     [InlineData("--load", "a.save")]
     [InlineData("--save", "a.save")]
     [InlineData("--session", "2")]

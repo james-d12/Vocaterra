@@ -146,7 +146,7 @@ public sealed record LaunchOptions
         + "  --settings              open the menu on its settings page once the steps are done\n"
         + "  --controls              open the menu on its controls page once the steps are done\n"
         + "  --menu-scroll <n>       scroll the settings or controls page down by this many rows when it opens (a scripted run)\n"
-        + "  --title                 open the title screen (New game, Load game, Settings, Quit) before any world is built. An interactive run with no start flag opens it by itself: a start flag is --seed, --world, --load, --save, --session, --skip-to-session,\n"
+        + "  --title                 open the title screen (New game, Load game, Settings, Quit) before any world is built. An interactive run with no start flag opens it by itself: a start flag is --seed, --world, --terrain, --load, --save, --session, --skip-to-session,\n"
         + "                          --check, --playtest, --pregen, --session-dir, --own-plot, --mark-plot, --lodging, --set-need, --needs off, --assume-known or --strict-save; a scripted run (--screenshot) never does. With --screenshot the title is drawn\n"
         + "                          on the fixed clock, saved as a PNG and the run ends; its steps (--look, --say and the rest) do not apply (Q01)\n"
         + "  --title-page <page>     with --title: the page to open, new, load, settings or delete (the confirmation, on the newest world), else the main page; it implies --title (Q01)\n"
@@ -610,11 +610,11 @@ public sealed record LaunchOptions
     public LaunchSettings ToLaunchSettings() => new(IsScreenshotRun, SfxVolume, AmbientVolume, TextScale, Quality, UnderwaterBlur, ViewEffects, NeedsRate, RelaxedNeeds, ViewDistance, FieldOfView, MouseSensitivity, InvertY, VoiceVolume, UiVolume, WeatherVolume, PassOpen, Grass, Workers, FarDistance, FarDetail, FarTrees, FarTextures, FarExact, GlShaders, SunFollowsHour, ClimateColours, WaterShader, HeightFog, FarLight, Msaa);
 
     /// <summary>
-    /// Whether the run has a start flag, one that gives it a world or a way of starting of its own (Q01): the seed, the world, a save to load or write, a session, a check battery, the playtest, the pregeneration, a session folder, the
+    /// Whether the run has a start flag, one that gives it a world or a way of starting of its own (Q01): the seed, the world, the terrain options (Q02), a save to load or write, a session, a check battery, the playtest, the pregeneration, a session folder, the
     /// dev aids that act on the new game (a plot, lodging, needs, known nouns) and the strict save. Such a run starts as it always did, with no title screen.
     /// </summary>
     public bool HasStartFlag =>
-        SeedGiven || WorldGiven || LoadPath is not null || SavePath is not null || Session is not null || SkipToSession is not null || Check is not null || Playtest || Pregen is not null
+        SeedGiven || WorldGiven || Terrain is not null || LoadPath is not null || SavePath is not null || Session is not null || SkipToSession is not null || Check is not null || Playtest || Pregen is not null
         || SessionDir is not null || OwnPlot is not null || MarkPlot is not null || Lodging || SetNeeds.Count > 0 || NeedsOff || AssumeKnown.Count > 0 || StrictSave || DebugCrashAfter is not null;
 
     /// <summary>
@@ -627,6 +627,7 @@ public sealed record LaunchOptions
         SeedGiven = false,
         World = WorldChoice.Streamed,
         WorldGiven = false,
+        Terrain = null,
         LoadPath = null,
         SavePath = null,
         Session = null,
