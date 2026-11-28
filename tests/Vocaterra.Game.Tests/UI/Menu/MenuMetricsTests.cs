@@ -18,7 +18,7 @@ public sealed class MenuMetricsTests
     {
         var (metrics, _, _) = Build(1280, 720);
         var layout = new MenuLayout(1280, 720, MenuPage.Main);
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < MenuLayout.ButtonCount; i++)
         {
             var button = layout.Button(i);
             Assert.Equal(i, metrics.HitAt(MenuPage.Main, 0, button.X + 5, button.Y + 5)?.Index);

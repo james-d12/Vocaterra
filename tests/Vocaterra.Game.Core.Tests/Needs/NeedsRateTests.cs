@@ -85,25 +85,23 @@ public sealed class NeedsRateTests
         Tick(a, 30 * Tps);
         Tick(b, 30 * Tps);
         Assert.Equal(a.Needs.Value(NeedMeter.Thirst), b.Needs.Value(NeedMeter.Thirst));
-        var saved = SaveGame.Serialize(SaveGame.Capture(a, new SaveSettings(new SoundVolumes(), 100, NeedsRate: 1.75)));
-        var restored = SaveGame.Parse(saved);
-        Assert.Equal(1.75, restored.Settings!.NeedsRate);
-        Assert.Equal(SaveGame.Parse(SaveGame.Serialize(SaveGame.Capture(b, null))).StateDigest, restored.StateDigest);
+        var restored = SaveGame.Parse(SaveGame.Serialize(SaveGame.Capture(a)));
+        Assert.Equal(1.75, SettingsFile.Parse(SettingsFile.Serialize(new SaveSettings(new SoundVolumes(), 100, NeedsRate: 1.75)))!.NeedsRate);
+        Assert.Equal(SaveGame.Parse(SaveGame.Serialize(SaveGame.Capture(b))).StateDigest, restored.StateDigest);
     }
 
     [Fact]
     public void TheDefaultWritesNoFieldAndAHandEditedValueIsClampedAndSnapped()
     {
-        var session = TestGame.NewSession();
-        string Text(double rate) => SaveGame.Serialize(SaveGame.Capture(session, new SaveSettings(new SoundVolumes(), 100, NeedsRate: rate)));
+        string Text(double rate) => SettingsFile.Serialize(new SaveSettings(new SoundVolumes(), 100, NeedsRate: rate));
 
         Assert.DoesNotContain("needsRate", Text(0), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("needsRate", Text(1), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("needsRate", Text(1.75), StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(4.0, SaveGame.Parse(Text(9)).Settings!.EffectiveNeedsRate);
-        Assert.Equal(0.5, SaveGame.Parse(Text(0.1)).Settings!.EffectiveNeedsRate);
-        Assert.Equal(1.25, SaveGame.Parse(Text(1.3)).Settings!.EffectiveNeedsRate);
-        Assert.Equal(1.0, SaveGame.Parse(Text(double.NaN)).Settings!.EffectiveNeedsRate);
+        Assert.Equal(4.0, SettingsFile.Parse(Text(9))!.EffectiveNeedsRate);
+        Assert.Equal(0.5, SettingsFile.Parse(Text(0.1))!.EffectiveNeedsRate);
+        Assert.Equal(1.25, SettingsFile.Parse(Text(1.3))!.EffectiveNeedsRate);
+        Assert.Equal(1.0, SettingsFile.Parse(Text(double.NaN))!.EffectiveNeedsRate);
         Assert.Equal(1.0, new SaveSettings(new SoundVolumes()).EffectiveNeedsRate);
     }
 }

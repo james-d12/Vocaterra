@@ -109,7 +109,7 @@ public sealed class AtmosphereSaveTests
     }
 
     [Theory]
-    [InlineData("save-v11.json")]
+    [InlineData("save-v12.json")]
     public void TheFixtureStillLoadsWithTheClockOfANewGame(string fixture)
     {
         var text = SaveFixture.Read(fixture);

@@ -41,8 +41,8 @@ public sealed class PassLockTests
 
     private static List<WorldEvent> Opened(VoxelSession session) => session.Events.OfType<WorldEvent>().Where(e => e.Name == WorldEvents.PassOpened).ToList();
 
-    private static VoxelSession Reload(VoxelSession session, SaveSettings? settings = null) =>
-        SaveGame.Load(SaveGame.Save(session, settings), TestGame.Data, TestGame.Route, credit: session.Credit, bumpSession: false);
+    private static VoxelSession Reload(VoxelSession session) =>
+        SaveGame.Load(SaveGame.Save(session), TestGame.Data, TestGame.Route, credit: session.Credit, bumpSession: false);
 
     [Fact]
     public void Given_NoLessonDone_When_TheSessionRuns_Then_ThePassIsClosedAndTheRockfallStands()
@@ -131,12 +131,12 @@ public sealed class PassLockTests
     }
 
     [Fact]
-    public void Given_ThePassOpenedByTheCheat_When_TheGameIsSavedWithTheCheatOffAndLoaded_Then_ItIsStillOpen()
+    public void Given_ThePassOpenedByTheCheat_When_TheGameIsSavedAndLoaded_Then_ItIsStillOpen()
     {
         var session = NewSession();
         session.PassCheat = true;
 
-        var loaded = Reload(session, new SaveSettings(new SoundVolumes(1, 1, 1, 1, 1), PassCheat: false));
+        var loaded = Reload(session);
 
         Assert.True(loaded.Pass.IsOpen);
         Assert.True(HeapGone(loaded));
@@ -225,9 +225,9 @@ public sealed class PassLockTests
     }
 
     [Fact]
-    public void Given_TheSettingsOfASave_When_ThePassCheatIsOff_Then_TheFieldIsNotWritten()
+    public void Given_TheSettingsFile_When_ThePassCheatIsOff_Then_TheFieldIsNotWritten()
     {
-        var off = SaveGame.Serialize(SaveGame.Capture(NewSession(), new PlayerSettings().ToSave()));
+        var off = SettingsFile.Serialize(new PlayerSettings().ToSave());
         Assert.DoesNotContain("passCheat", off, StringComparison.OrdinalIgnoreCase);
     }
 }

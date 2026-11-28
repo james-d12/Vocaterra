@@ -22,8 +22,7 @@ public sealed class SaveServiceTests : IDisposable
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var lines = new List<string>();
-        var settings = new SaveSettings(new SoundVolumes(), 125);
-        var saves = new SaveService(session, () => settings, lines.Add);
+        var saves = new SaveService(session, lines.Add);
         Directory.CreateDirectory(_folder);
         var path = Path.Combine(_folder, "game.save");
 
@@ -32,7 +31,6 @@ public sealed class SaveServiceTests : IDisposable
         Assert.Equal(SaveGame.Serialize(saves.Capture()), SaveFile.Read(path));
         Assert.Equal(2, lines.Count);
         Assert.StartsWith($"save: {path} written on F6 (session 1, tick 0,", lines[0]);
-        Assert.Equal(125, saves.Capture().Settings!.TextScale);
     }
 
     [Fact]
@@ -49,8 +47,7 @@ public sealed class SaveServiceTests : IDisposable
         sim.Held.Put(0, new ItemStack(TestItems.Bread, 1));
         sim.Held.SetOrigin(0, 5);
         var lines = new List<string>();
-        var settings = new SaveSettings(new SoundVolumes(), 125);
-        var saves = new SaveService(session, () => settings, lines.Add);
+        var saves = new SaveService(session, lines.Add);
         Directory.CreateDirectory(_folder);
         var path = Path.Combine(_folder, "game.save");
 
@@ -67,7 +64,7 @@ public sealed class SaveServiceTests : IDisposable
     public void Given_ASessionOnTheValley_When_TheFirstSaveIsTaken_Then_NoCopyOfTheWorldIsAllocated()
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
-        var saves = new SaveService(session, () => new SaveSettings(new SoundVolumes()), static _ => { });
+        var saves = new SaveService(session, static _ => { });
         _ = saves.Capture(); // warms the serializer-free paths, so the measure below is the save's own
 
         var before = GC.GetAllocatedBytesForCurrentThread();

@@ -4,16 +4,17 @@ using Vocaterra.Game.Core.Screens;
 namespace Vocaterra.Game.Core.Menu;
 
 /// <summary>
-/// The menu (the menu issue): Esc in the world opens it over the game, which it pauses the way the other panels do. Its main page has Resume, Settings, Controls and Exit; the
+/// The menu (the menu issue): Esc in the world opens it over the game, which it pauses the way the other panels do. Its main page has Resume, Settings, Controls, Main menu (Q01) and Exit; the
 /// settings page lists the <see cref="MenuRow"/>s (Left and Right change a row, Enter or Space flips or runs it); the controls page scrolls the control table. Esc goes back a page, and
 /// closes the menu from the main page (or from a page that <c>--controls</c> or <c>--settings</c> opened directly). Up and Down choose, the mouse clicks, drags a slider and scrolls with the wheel. Exit
-/// asks the front-end to save and quit. All state is here; the front-end only draws it.
+/// asks the front-end to save and quit, Main menu to save, close the world and return to the title screen. All state is here; the front-end only draws it.
 /// </summary>
 public sealed class MenuScreen : IScreen
 {
     private readonly IReadOnlyList<MenuRow> _rows;
     private readonly IMenuMetrics _metrics;
     private readonly Action _exit;
+    private readonly Action? _mainMenu;
     private bool _direct;
     private int? _dragging;
     private (int X, int Y)? _lastPointer;
@@ -22,7 +23,8 @@ public sealed class MenuScreen : IScreen
     /// <param name="settingsRows">The rows of the settings page.</param>
     /// <param name="metrics">How the page is drawn: what the pointer is on and how much fits.</param>
     /// <param name="exit">Saves and closes the game (the Exit button).</param>
-    public MenuScreen(IReadOnlyList<MenuRow> settingsRows, IMenuMetrics metrics, Action exit)
+    /// <param name="mainMenu">Saves the world, closes it and returns to the title screen (the Main menu button, Q01), or <see langword="null"/> for a menu that has no title to return to (the button then does nothing).</param>
+    public MenuScreen(IReadOnlyList<MenuRow> settingsRows, IMenuMetrics metrics, Action exit, Action? mainMenu = null)
     {
         ArgumentNullException.ThrowIfNull(settingsRows);
         ArgumentNullException.ThrowIfNull(metrics);
@@ -30,6 +32,7 @@ public sealed class MenuScreen : IScreen
         _rows = settingsRows;
         _metrics = metrics;
         _exit = exit;
+        _mainMenu = mainMenu;
         SettingsSelected = FirstSelectable();
     }
 
@@ -183,6 +186,9 @@ public sealed class MenuScreen : IScreen
             case MenuItem.Controls:
                 Page = MenuPage.Controls;
                 ControlsScroll = 0;
+                break;
+            case MenuItem.MainMenu:
+                _mainMenu?.Invoke();
                 break;
             default:
                 _exit();

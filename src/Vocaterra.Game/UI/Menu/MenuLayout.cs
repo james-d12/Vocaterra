@@ -4,7 +4,7 @@ using Vocaterra.Game.UI.Common;
 namespace Vocaterra.Game.UI.Menu;
 
 /// <summary>
-/// The menu's panel on a canvas, in plain numbers (the engine draws them, <see cref="MenuMetrics"/> answers the pointer from them). The main page is a short panel with four
+/// The menu's panel on a canvas, in plain numbers (the engine draws them, <see cref="MenuMetrics"/> answers the pointer from them). The main page is a short panel with five
 /// buttons; the settings and controls pages are as tall as the canvas allows and scroll: the settings by rows of <see cref="RowHeight"/>, the controls by lines of
 /// <see cref="LineHeight"/>. The Back button sits at the foot of both.
 /// </summary>
@@ -31,6 +31,9 @@ public readonly record struct MenuLayout
     /// <summary>The space between main-page buttons.</summary>
     public const int ButtonGap = 12;
 
+    /// <summary>How many buttons the main page has (<see cref="MenuItem"/>: Resume, Settings, Controls, Main menu and Exit).</summary>
+    public static readonly int ButtonCount = Enum.GetValues<MenuItem>().Length;
+
     /// <summary>The widest a settings row's label column is.</summary>
     public const int MaxLabelWidth = 250;
 
@@ -52,7 +55,7 @@ public readonly record struct MenuLayout
             _ => Math.Min(780, viewportWidth - 32),
         };
         var wanted = page == MenuPage.Main
-            ? HeaderHeight + (4 * ButtonHeight) + (3 * ButtonGap) + 28 + FooterHeight
+            ? HeaderHeight + (ButtonCount * ButtonHeight) + ((ButtonCount - 1) * ButtonGap) + 28 + FooterHeight
             : 640;
         var height = Math.Min(wanted, limit);
         Panel = new PixelBox((viewportWidth - width) / 2, Math.Max(Margin, (viewportHeight - height) / 2), width, height);

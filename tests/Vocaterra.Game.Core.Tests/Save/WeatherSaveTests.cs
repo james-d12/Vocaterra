@@ -127,7 +127,7 @@ public sealed class WeatherSaveTests
     }
 
     [Theory]
-    [InlineData("save-v11.json")]
+    [InlineData("save-v12.json")]
     public void TheFixtureStillLoadsWithTheWeatherOfANewGameAndTheVersionIsNine(string fixture)
     {
         var text = SaveFixture.Read(fixture);

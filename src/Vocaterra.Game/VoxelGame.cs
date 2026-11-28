@@ -83,7 +83,7 @@ namespace Vocaterra.Game;
 /// <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c> at the end (<see cref="ScenarioScript"/>).
 /// </para>
 /// </remarks>
-public sealed class VoxelGame : Microsoft.Xna.Framework.Game
+public sealed class VoxelGame : IDisposable
 {
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
@@ -96,7 +96,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly Scene _scene;
     private readonly SaveService _saves;
     private readonly VoxelSimulation _sim;
-    private readonly GraphicsDeviceManager _graphics;
+    private readonly IGameHost _host;
     private readonly TickAccumulator _accumulator = new(VoxelSimulation.TicksPerSecond);
     private readonly FrameStats _stats = new();
     private readonly IFrameClock _clock;
@@ -127,6 +127,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly LessonFrontend _lesson;
     private readonly PlayerSettings _settings;
     private readonly MenuScreen _menu;
+    private readonly SettingsPersistence? _settingsFile;
     private readonly ControlsPageCache _controlLines;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
@@ -147,6 +148,21 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly VoxelDebugOverlay _debug = new();
     private readonly SceneDrawer _drawer;
     private bool _firstUpdateSeen;
+
+    // The window's members, as the run's one window gives them (Q01: a world is played in the window the title screen opened).
+    private GraphicsDevice GraphicsDevice => _host.GraphicsDevice;
+
+    private GameWindow Window => _host.Window;
+
+    private bool IsActive => _host.IsActive;
+
+    private bool IsMouseVisible
+    {
+        set => _host.IsMouseVisible = value;
+    }
+
+    // The player left the world (the menu's Exit or Main menu, the playtest's end, a scripted run's end, or the window closed): the host ends it.
+    private void Exit() => IsFinished = true;
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
@@ -186,19 +202,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
     /// scene of the session's seed (a save is taken against it, S10).
     /// </summary>
+    /// <param name="host">The window the world is played in.</param>
     /// <param name="options">The launch options.</param>
     /// <param name="session">The started session.</param>
     /// <param name="scene">The built scene.</param>
     /// <param name="voice">The NPCs voices.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
-    /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
+    /// <param name="savedSettings">The settings the global settings file holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for the defaults; the command line's options override them for the run.</param>
     /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
+    /// <param name="settingsPath">The settings file the menu's settings page keeps its changes in (Q01), or <see langword="null"/> for none (a scripted run).</param>
+    public VoxelGame(IGameHost host, LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null, string? settingsPath = null)
     {
+        _host = host;
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
+        _settings = PlayerSettings.Resolve(savedSettings, options.ToLaunchSettings());
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -311,8 +330,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controlLines = new ControlsPageCache(session.Locale, () => _drawer.View.Fonts.Get(FontProvider.NativeSize));
         var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
-        _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
+        _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit, SaveAndMainMenu);
         _settings.Changed += ApplySetting;
+        if (settingsPath is not null)
+        {
+            _settingsFile = new SettingsPersistence(settingsPath, _settings, static () => (long)MonotonicClock.Milliseconds(), Console.WriteLine); // Q01: a change in the menu is kept in the one settings file
+        }
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
         _craftingPanel = new CraftingPanel(
             _crafting,
@@ -453,25 +476,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _inventoryPanel);
         _turns = new TurnPresenter(_pump, _sound, voice, _dialogue, _micCheck, Console.WriteLine);
 
-        var (startWidth, startHeight) = options.StartsFullScreen ? DisplaySize() : (options.WindowWidth ?? StartWidth, options.WindowHeight ?? StartHeight);
-        _graphics = new GraphicsDeviceManager(this)
-        {
-            PreferredBackBufferWidth = startWidth,
-            PreferredBackBufferHeight = startHeight,
-            PreferredDepthStencilFormat = DepthFormat.Depth24,
-            SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
-            HardwareModeSwitch = false, // full screen is borderless at the desktop's mode, never a display mode change
-            IsFullScreen = options.StartsFullScreen,
-            PreferMultiSampling = _settings.Msaa > 0, // B22: antialiased edges; the count is set below (the Antialiasing row of the settings page, B17c; --msaa wins for a run)
-        };
-        var multiSamples = _settings.Msaa;
-        _graphics.PreparingDeviceSettings += (_, e) => e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = multiSamples;
-        IsFixedTimeStep = false; // the accumulator owns the tick rate
-        IsMouseVisible = true;
-        Window.AllowUserResizing = true;
-        Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
+        _host.Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
+        _saves = new SaveService(session, Console.WriteLine, _dialogue); // the menu's settings are the settings file's since Q01, not the save's
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -658,8 +665,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
     public int ExitCode => _runEnd.ExitCode;
 
-    /// <inheritdoc />
-    protected override void LoadContent()
+    /// <summary>Whether the world is over (the player chose Exit or Main menu, the run's script ended, or the playtest ended): the host calls <see cref="Unload"/> and goes on.</summary>
+    public bool IsFinished { get; private set; }
+
+    /// <summary>Whether the player chose Main menu (Q01): the world was saved and closed, and the program goes back to the title screen instead of ending.</summary>
+    public bool ReturnToTitle { get; private set; }
+
+    /// <summary>Loads what the drawing needs from the graphics device (the window is open): call it once, when the world starts.</summary>
+    public void Load()
     {
         _devices.Start();
         if (_options.ThirdPerson)
@@ -699,15 +712,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Ending = _ending,
     };
 
-    /// <inheritdoc />
-    protected override void Update(GameTime gameTime)
+    /// <summary>One frame of the world: the input, the ticks, the turns and the sound. Call it once a frame while <see cref="IsFinished"/> is false.</summary>
+    /// <param name="gameTime">The frame's time.</param>
+    public void Update(GameTime gameTime)
     {
         // MonoGame calls Update once before the first Draw, outside the frame loop; skip it so that a frame is one Update plus one Draw.
         if (!_firstUpdateSeen)
         {
             _firstUpdateSeen = true;
             _ = _clock.NextFrameSeconds();
-            base.Update(gameTime);
             return;
         }
 
@@ -750,6 +763,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _playtestFlow.SaveIfDue();
 
         AutosaveDue(); // the autosave at its safe points (X05)
+        _settingsFile?.Pump(); // a settings change that has rested is written to the settings file (Q01)
 
         _checks.Drive();
         _session.PlayPauses = PlayPausesNow(); // the needs move only in active play (N01)
@@ -809,14 +823,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _ = scriptedWorker.WaitForOutcomes(ScriptedTurnWaitMilliseconds);
         }
 
-        base.Update(gameTime);
     }
 
     // A scripted run waits this long for the worker at the end of a frame at most (a stuck worker must not hang a run); a turn never takes this long.
     private const int ScriptedTurnWaitMilliseconds = 60_000;
 
-    /// <inheritdoc />
-    protected override void Draw(GameTime gameTime)
+    /// <summary>Draws the world and its layers into the window.</summary>
+    /// <param name="gameTime">The frame's time.</param>
+    public void Draw(GameTime gameTime)
     {
         var view = _drawer.View;
         var viewport = GraphicsDevice.PresentationParameters;
@@ -871,13 +885,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         var drawEnd = MonotonicClock.Milliseconds();
         _timings.Record(drawStart, drawEnd, _sim.Tick);
-        base.Draw(gameTime);
-
         _runEnd.AfterDraw(
             GraphicsDevice,
             width,
             height,
-            new WindowSizes(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
+            new WindowSizes(_host.Graphics.PreferredBackBufferWidth, _host.Graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
             _timings,
             _drawer.Renderer,
             _drawer.Preset,
@@ -886,8 +898,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _drawer.PhaseAllocations);
     }
 
-    /// <inheritdoc />
-    protected override void UnloadContent()
+    /// <summary>Ends the world: the end-of-run save, the session log, the sound and the streaming and every other thing it holds, so another world can start in the same process (Q01).</summary>
+    public void Unload()
     {
         Window.TextInput -= OnTextInput;
         foreach (var line in _support.Summary())
@@ -907,6 +919,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _playtestFlow.SaveAtQuit();
+        _settingsFile?.Close();
 
         if (_log is { } log)
         {
@@ -919,7 +932,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _soundLog?.Dispose();
         _soundOutput.Dispose();
         _drawer.Dispose();
-        base.UnloadContent();
     }
 
     // The crosshair is on a crafting station: the workbench (the mesa), or a lit fire (N07: a stone of a burning ring, or the ground inside it). E opens the crafting panel there, as C does
@@ -1115,12 +1127,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // F11: borderless full screen at the display's size (how an interactive run starts) and a window (the --size one, else 1280x720), and back.
     private void ToggleFullScreen()
     {
-        var full = !_graphics.IsFullScreen;
+        var full = !_host.Graphics.IsFullScreen;
         var (width, height) = full ? DisplaySize() : (_options.WindowWidth ?? StartWidth, _options.WindowHeight ?? StartHeight);
-        _graphics.PreferredBackBufferWidth = width;
-        _graphics.PreferredBackBufferHeight = height;
-        _graphics.IsFullScreen = full;
-        _graphics.ApplyChanges();
+        _host.Graphics.PreferredBackBufferWidth = width;
+        _host.Graphics.PreferredBackBufferHeight = height;
+        _host.Graphics.IsFullScreen = full;
+        _host.Graphics.ApplyChanges();
         Console.WriteLine($"display: {(full ? "full screen" : "window")} {width}x{height}");
     }
 
@@ -1391,6 +1403,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Exit();
     }
 
+    // The menu's Main menu (Q01): the game is saved as Exit saves it, then the window closes and the program goes back to the title screen, from which another world can start.
+    private void SaveAndMainMenu()
+    {
+        DrainForSave();
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
+        _ = _saves.Write(path, "on Main menu from the menu");
+        Console.WriteLine($"menu: Main menu: saved to {path}");
+        ReturnToTitle = true;
+        Exit();
+    }
+
     // --menu, --settings and --controls open the menu on that page once the script is done, scrolled down by --menu-scroll rows.
     private void OpenMenuFromScript(MenuPage page, int scroll)
     {
@@ -1474,16 +1497,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _dialogueScreen.Type(args.Character, InputDevices.AltHeld());
     }
 
-    /// <inheritdoc />
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _voice.Dispose();
-        }
-
-        base.Dispose(disposing);
-    }
+    /// <summary>Closes the NPCs' voices (after <see cref="Unload"/>).</summary>
+    public void Dispose() => _voice.Dispose();
 
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
