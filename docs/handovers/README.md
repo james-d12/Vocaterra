@@ -31,7 +31,7 @@ several of them were moved out of the orchestrator, the game plan and a research
 
 | Handover | Workstream | What it waits for |
 | --- | --- | --- |
-| [2026-11-27-2221-main-menu](2026-11-27-2221-main-menu.md) | The main menu and new worlds (the Q series, D-game-37) on `feature/main-menu` | Q01 and Q02 running |
+| [2026-11-27-2221-main-menu](2026-11-27-2221-main-menu.md) | The main menu and new worlds (the Q series, D-game-37) on `feature/main-menu` | Q01 running; Q02 merged |
 | [2026-11-19-2035-lod-lifecycle](2026-11-19-2035-lod-lifecycle.md) | The far view's LOD lifecycle after PR #72 (B49 to B55, from two reviews) on `feature/lod-lifecycle` (to cut from main) | The owner's merge of PR #72 and his flight and display checks |
 | [2026-11-09-2332-npc-lines](2026-11-09-2332-npc-lines.md) | Issue #53 (NPC lines not spoken) on `fix/issue-53-npc-lines` | The owner's check in the game and the merge of PR #59 |
 
