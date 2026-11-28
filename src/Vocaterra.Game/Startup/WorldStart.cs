@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Options;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Sound;
 
@@ -41,7 +42,17 @@ internal static class WorldStart
         var data = setup.Data;
         var sceneStarted = MonotonicClock.Milliseconds(); // a world after the first counts its own start
         var worldMode = options.World == WorldChoice.Valley ? WorldMode.Bounded : WorldMode.Streamed; // B07: the streamed tall world by default, --world valley keeps the bounded valley
-        Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, worldMode, setup.Layout);
+        if (!options.CheckTerrain(data.TerrainOptions, out var terrainAsked, out var terrainError))
+        {
+            // The options --terrain may name are the bundle's (game/world-options.json); GameSetup checked the run's own, this one is a world made from the title (Q02, Q03).
+            Console.Error.WriteLine(terrainError);
+            Console.Error.Write(LaunchOptions.Usage);
+            exitCode = 2;
+            return null;
+        }
+
+        var terrainOptions = terrainAsked ?? WorldOptions.Default; // Q02: the terrain options of the world: --terrain's, or under --load the save's (Q03 will set them from the New game page)
+        Func<ulong, Scene> buildFor = seed => WorldFactory.Create(data, seed, worldMode, setup.Layout, null, terrainOptions);
         Scene scene;
         VoxelSession session;
         IReadOnlyList<DialoguePageSave>? savedDialogue = null;
@@ -51,6 +62,13 @@ internal static class WorldStart
             var document = SaveGame.Parse(SaveFile.Read(loadPath));
             // A save of another bundle is refused in strict mode (--strict-save, and every --playtest: its recall check needs the frozen bundle, D-game-10); otherwise it is carried into this bundle (X01).
             SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null, migrate: !options.StrictSave);
+            var savedTerrain = SaveGame.TerrainOptionsOf(document, data);
+            if (terrainAsked is not null && !terrainAsked.Equals(savedTerrain))
+            {
+                throw new SaveException($"The save was made with terrain options {savedTerrain}, not {terrainAsked}. Load it without --terrain, or with the save's own (--terrain {(savedTerrain.IsDefault ? "with every option at its default" : savedTerrain.Canonical.Replace(';', ','))}).");
+            }
+
+            terrainOptions = savedTerrain; // --load restores the save's terrain options with its seed
             scene = buildFor(document.WorldSeed);
             session = SaveGame.Restore(document, data, scene, options.Credit, migrate: !options.StrictSave);
             options = options with { Seed = document.WorldSeed };
@@ -142,6 +160,7 @@ internal static class WorldStart
         }
 
         Console.WriteLine($"scene: {setup.LayoutFile} built in {MonotonicClock.Milliseconds() - sceneStarted:0} ms");
+        Console.WriteLine(terrainOptions.IsDefault ? "terrain: every option at its default" : $"terrain: {terrainOptions.Canonical.Replace(";", ", ", StringComparison.Ordinal)} (the rest at their defaults)");
         Console.WriteLine($"bundle: loaded in {MonotonicClock.Milliseconds() - startedMilliseconds:0} ms; typed credit {(options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full")}, spoken credit full");
 
         // The NPCs' pre-rendered voices (S9): the startup line counts the speakable lines' files; the playback never builds Kokoro.

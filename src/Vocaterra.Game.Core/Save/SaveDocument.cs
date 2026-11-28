@@ -64,6 +64,7 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Worn">The worn items (version 10, I03b), each by its slot group's id, its slot's name and the item's name (<see cref="WornSave"/>); <see langword="null"/>, and left out of the file, while nothing is worn. <see cref="Inventory"/> then holds the active slots: as many as the base and the worn bag give.</param>
 /// <param name="GivenOrders">The orders the player has taken on (issue #54: a «sí» to the NPC's offer, or the step of the lesson that tells it), ordinal. <see langword="null"/>, and left out of the file, while none is; a save without it has none, and the NPCs offer them again. Optional, so it needs no save version.</param>
 /// <param name="PassOpen">True once the pass through the east ring has opened (B08b: every required lesson complete, or the cheat setting); it never closes again. Written only when true; the rockfall's removal is in the world's changed chunks. Optional, so it needs no save version.</param>
+/// <param name="Terrain">The terrain options the world was made with (version 12, Q02), each by option id and value, for the options off their defaults; <see langword="null"/>, and left out of the file, at the defaults. A load builds the world from the seed and these.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -107,7 +108,8 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DialoguePageSave>? DialoguePages = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? GivenOrders = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WornSave>? Worn = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<TerrainOptionSave>? Terrain = null);
 
 /// <summary>The player's settings as the global settings file keeps them (S24; since Q01 they are in <see cref="SettingsFile"/>, not in a save). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>

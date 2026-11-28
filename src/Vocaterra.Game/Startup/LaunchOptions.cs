@@ -41,6 +41,10 @@ public sealed record LaunchOptions
     public const string Usage =
         "usage: Vocaterra.Game [--seed <ulong>] [--content <dir>] [--locale <code>] [--scene <file>] [--screenshot <path.png> [--frames <n>] [--say <line>]...]\n"
         + "  --seed <ulong>          the world seed (default 42)\n"
+        + "  --terrain <id>=<n>,...  the world's terrain options (Q02), each a whole number on its slider's grid; the rest stay at their defaults, which are today's world to the block. The options are the bundle's\n"
+        + "                          game/world-options.json (mountains, hills, ocean, continents, rivers; each row has its min, max, step and default); an unknown id or a value off the grid is refused, and the\n"
+        + "                          message lists the ids or the grid. The same seed with other options is another world (its own far-view cache); a save keeps its options and --load restores them\n"
+        + "                          (--terrain with --load must name the save's own)\n"
         + "  --content <dir>         the content bundle folder (default: content/game-v1 found above the executable or the current directory)\n"
         + "  --locale <code>         the learner's support language, a locale of content/locale (default: the bundle's supportLanguage, en)\n"
         + "  --scene <file>          the scene layout (default: game/scene.json in the bundle; a file of its own skips the bundle's hash check)\n"
@@ -263,6 +267,37 @@ public sealed record LaunchOptions
 
     /// <summary>Which world the run plays in (<c>--world</c>, B07): the streamed tall world by default, or the bounded valley alone.</summary>
     public WorldChoice World { get; init; } = WorldChoice.Streamed;
+
+    /// <summary>The text of <c>--terrain</c> (Q02): the terrain options, <c>id=value,id=value</c>, or <see langword="null"/> for the defaults (or, under <c>--load</c>, the save's). <see cref="CheckTerrain"/> reads it against the bundle's options.</summary>
+    public string? Terrain { get; init; }
+
+    /// <summary>
+    /// Reads <c>--terrain</c> against the bundle's terrain options, once the data has loaded, as <see cref="CheckWeather"/> does for the weather kinds: an id the bundle lacks and a value off an option's grid are refused with
+    /// a message that names the ids or the grid.
+    /// </summary>
+    /// <param name="table">The bundle's terrain options (<c>game/world-options.json</c>).</param>
+    /// <param name="options">The options <c>--terrain</c> asked for (the defaults for none moved), or <see langword="null"/> when <c>--terrain</c> was not given.</param>
+    /// <param name="error">The message for the first id or value that is refused, or empty.</param>
+    /// <returns>Whether <c>--terrain</c> is absent or names options of the bundle on their grids.</returns>
+    public bool CheckTerrain(Vocaterra.Game.Core.World.Options.TerrainOptionData table, out Vocaterra.Game.Core.World.Options.WorldOptions? options, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(table);
+        options = null;
+        error = string.Empty;
+        if (Terrain is null)
+        {
+            return true;
+        }
+
+        if (!table.TryParse(Terrain, out var parsed, out var problem))
+        {
+            error = $"--terrain: {problem}";
+            return false;
+        }
+
+        options = parsed;
+        return true;
+    }
 
     /// <summary>The worker threads of <c>--prefetch</c> (0 to 2), or <see langword="null"/> for the default of two.</summary>
     public int? Prefetch { get; init; }
@@ -887,7 +922,7 @@ public sealed record LaunchOptions
                 continue;
             }
 
-            if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
+            if (arg is not ("--seed" or "--terrain" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--wear" or "--repair" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
@@ -914,6 +949,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Seed = seed, SeedGiven = true };
+                    break;
+                case "--terrain":
+                    if (TerrainChoices.SyntaxProblem(value) is { } terrainProblem)
+                    {
+                        error = $"--terrain needs <id>=<value>,<id>=<value> with whole-number values (the ids are the bundle's game/world-options.json): {terrainProblem}";
+                        return false;
+                    }
+
+                    result = result with { Terrain = value };
                     break;
                 case "--time":
                     if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var hour) || !double.IsFinite(hour) || hour < 0 || hour > 24)

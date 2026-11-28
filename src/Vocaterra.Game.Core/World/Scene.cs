@@ -70,6 +70,7 @@ public sealed class Scene
         TemplateDigest = source.TemplateDigest;
         ChunkSource = source.ChunkSource;
         Streaming = source.Streaming;
+        TerrainOptions = source.TerrainOptions;
     }
 
     private readonly Dictionary<BlockPos, string> _propOf;
@@ -139,9 +140,12 @@ public sealed class Scene
     /// <summary>The pure parts a host drives a streamed world's residency and far view from (B07), or <see langword="null"/> for a bounded scene.</summary>
     public StreamedWorld? Streaming { get; private init; }
 
+    /// <summary>The terrain options the world was made with (Q02): <see cref="Options.WorldOptions.Default"/> for a scene <see cref="WorldFactory"/> made with none and for one it did not make. The world's state digest, the far store's cache and the save carry them.</summary>
+    public Options.WorldOptions TerrainOptions { get; private init; } = Options.WorldOptions.Default;
+
     /// <summary>A scene like this one on another grid, with the world's place query, template digest and chunk source set (<see cref="WorldFactory"/>).</summary>
-    internal Scene WithWorld(VoxelGrid grid, IPlaceInfo places, byte[] templateDigest, IChunkSource? source, StreamedWorld? streaming = null) =>
-        new(this, grid) { Places = places, TemplateDigest = templateDigest, ChunkSource = source, Streaming = streaming };
+    internal Scene WithWorld(VoxelGrid grid, IPlaceInfo places, byte[] templateDigest, IChunkSource? source, StreamedWorld? streaming = null, Options.WorldOptions? options = null) =>
+        new(this, grid) { Places = places, TemplateDigest = templateDigest, ChunkSource = source, Streaming = streaming, TerrainOptions = options ?? Options.WorldOptions.Default };
 
     /// <summary>The layout's name.</summary>
     public string Name { get; }

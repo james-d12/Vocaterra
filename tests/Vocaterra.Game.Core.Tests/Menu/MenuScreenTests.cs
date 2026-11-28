@@ -280,4 +280,39 @@ public sealed class MenuScreenTests
         Assert.False(rig.Menu.IsOpen);
         Assert.Null(rig.Menu.Hover);
     }
+
+    [Fact]
+    public void Given_TheMainPage_When_MainMenuIsChosen_Then_TheHostIsAskedOnceAndExitIsNotAndTheMenuStaysOpenForTheHostToClose()
+    {
+        var mainMenus = 0;
+        var exits = 0;
+        var rig = Build();
+        var menu = new MenuScreen(rig.Menu.Rows, rig.Metrics, () => exits++, () => mainMenus++);
+        menu.Open();
+
+        menu.HandleInput(Press(GameKey.Up)); // wraps to Exit
+        Assert.Equal(MenuItem.Exit, menu.MainSelected);
+        menu.HandleInput(Press(GameKey.Up)); // Main menu sits above Exit
+        Assert.Equal(MenuItem.MainMenu, menu.MainSelected);
+        menu.HandleInput(Press(GameKey.Enter));
+
+        Assert.Equal(1, mainMenus);
+        Assert.Equal(0, exits);
+        Assert.Equal([MenuItem.Resume, MenuItem.Settings, MenuItem.Controls, MenuItem.MainMenu, MenuItem.Exit], Enum.GetValues<MenuItem>());
+    }
+
+    [Fact]
+    public void Given_AMenuWithNoTitleToReturnTo_When_MainMenuIsChosen_Then_NothingHappens()
+    {
+        var rig = Build();
+        rig.Menu.Open();
+        rig.Menu.HandleInput(Press(GameKey.Up));
+        rig.Menu.HandleInput(Press(GameKey.Up));
+        Assert.Equal(MenuItem.MainMenu, rig.Menu.MainSelected);
+
+        rig.Menu.HandleInput(Press(GameKey.Enter));
+
+        Assert.Equal(0, rig.Exits());
+        Assert.True(rig.Menu.IsOpen);
+    }
 }

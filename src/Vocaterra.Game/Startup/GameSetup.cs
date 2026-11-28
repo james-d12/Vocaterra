@@ -21,7 +21,7 @@ internal sealed record GameSetup(string Directory, ContentBundle Bundle, GameDat
 {
     /// <summary>Loads the bundle, the locale and the layout for a run.</summary>
     /// <param name="options">The launch options.</param>
-    /// <param name="usageError">A usage error found once the content is read (an NPC or a weather kind the command line names that the bundle lacks), or <see langword="null"/>.</param>
+    /// <param name="usageError">A usage error found once the content is read (an NPC, a weather kind or a terrain option the command line names that the bundle lacks), or <see langword="null"/>.</param>
     /// <returns>The setup, or <see langword="null"/> when <paramref name="usageError"/> says why not.</returns>
     public static GameSetup? Load(LaunchOptions options, out string? usageError)
     {
@@ -45,6 +45,13 @@ internal sealed record GameSetup(string Directory, ContentBundle Bundle, GameDat
         {
             // The kinds --weather and --set-weather may name are the bundle's (game/weather.json), so the check waits for the data: a usage error like the others (E03, E05).
             usageError = weatherError;
+            return null;
+        }
+
+        if (!options.CheckTerrain(data.TerrainOptions, out _, out var terrainError))
+        {
+            // The options --terrain may name are the bundle's (game/world-options.json), so the check waits for the data: a usage error like the others (Q02).
+            usageError = terrainError;
             return null;
         }
 

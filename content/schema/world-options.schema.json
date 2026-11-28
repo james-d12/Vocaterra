@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/world-options.json",
+  "description": "The terrain options of a new world (Q02, D-game-37): the sliders of the New game page, each over a few of game/world.json's generator values with today's value as its default. Loaded by TerrainOptionData (Vocaterra.Game.Core); TerrainOptionValidator checks the grids, the targets and that world.json's own checks accept the numbers at every stop.",
+  "type": "object",
+  "required": ["schemaVersion", "options"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "about": { "type": "string" },
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The sliders, in the order the New game page shows them.",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "min", "max", "step", "default", "effects"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*$", "description": "The option's id, as --terrain <id>=<value> and the save name it." },
+          "label": { "type": "string", "minLength": 1, "description": "The English label of the slider." },
+          "hint": { "type": "string", "description": "A line of English that says what the option does." },
+          "unit": { "type": "string", "description": "The unit shown after the value (%); not shown when labels names every stop." },
+          "min": { "type": "integer", "description": "The lowest value." },
+          "max": { "type": "integer", "description": "The highest value." },
+          "step": { "type": "integer", "minimum": 1, "description": "The distance between two stops; it reaches max from min." },
+          "default": { "type": "integer", "description": "The value that leaves the world as game/world.json describes it; a stop of the grid." },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "An English name for each stop from the lowest, or none to show the value."
+          },
+          "effects": {
+            "type": "array",
+            "minItems": 1,
+            "description": "What the option changes, in the order it is applied.",
+            "items": {
+              "type": "object",
+              "required": ["target", "mode"],
+              "additionalProperties": false,
+              "properties": {
+                "target": {
+                  "enum": [
+                    "climate.continents.cell",
+                    "climate.continents.seaPerBlock",
+                    "height.peaks",
+                    "height.detail.calmAmplitude",
+                    "height.detail.ruggedAmplitude",
+                    "height.drainage.sourceArea"
+                  ],
+                  "description": "The generator value, a path in game/world.json; the list is the code's (TerrainTarget)."
+                },
+                "mode": {
+                  "enum": ["scale", "scaleInverse", "offset", "set"],
+                  "description": "scale: the target times the value as a percent (default 100); scaleInverse: the target divided by it (default 100); offset: the value added (default 0); set: the target replaced by the value (default is the file's own)."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
