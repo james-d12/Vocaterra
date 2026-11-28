@@ -510,6 +510,9 @@ cell walk and, on a shaped cell, runs an exact-integer slab test against the dra
 `BlockRayHit.{HitX, HitY, HitZ}` are 1/4096-block units within the cell, and `Adjacent` is the cell itself when the face hit lies
 inside the cell (the top of a bottom slab) and the neighbour when it is on the cell boundary.
 
+**Items (K05).** The seven oak pieces are data-only rows of `items.json` (ids 123 to 129, no `ItemId` members), crafted at the `mesa`
+from `madera`; their icons are UI-only atlas cells drawn by `BlockArtBuilding`.
+
 ## Needs (N01)
 
 The player's hunger, thirst, sleep, health and stamina (adaptation design section 9, D-game-24). Engine-free, in `Vocaterra.Game.Core`:
