@@ -150,7 +150,7 @@ public sealed class SleepEntrySaveTests
     [Fact]
     public void GivenTheFixtureWithThePlayerAtTheLitFire_When_ItLoadsAndTheyAreWokenBySleeping_Then_TheLastPlaceIsTheFire()
     {
-        var text = SaveFixture.Read("save-v11.json");
+        var text = SaveFixture.Read("save-v12.json");
         Assert.Null(SaveGame.Parse(text).Systems!.Sleep); // recorded before any sleep, with no lodging
         var loaded = SaveGame.Load(text, TestGame.Data, Pristine, credit: CreditRules.FullTyped, bumpSession: false);
         Assert.True(loaded.AtSleepPlace);
@@ -271,9 +271,9 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":7}"));
 
         Assert.Contains("version 7", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 11", error.Message, StringComparison.Ordinal);
-        Assert.Equal(11, SaveGame.OldestReadableVersion);
-        Assert.Equal(11, SaveGame.CurrentVersion);
+        Assert.Contains("loads is 12", error.Message, StringComparison.Ordinal);
+        Assert.Equal(12, SaveGame.OldestReadableVersion);
+        Assert.Equal(12, SaveGame.CurrentVersion);
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":8}"));
 
         Assert.Contains("version 8", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 11", error.Message, StringComparison.Ordinal);
+        Assert.Contains("loads is 12", error.Message, StringComparison.Ordinal);
         Assert.Contains("not migrated", error.Message, StringComparison.Ordinal);
     }
 

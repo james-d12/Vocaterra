@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Title;
 using Vocaterra.Game.Core.Temperature;
 using Vocaterra.Game.Core.Water;
 using Vocaterra.Game.Diagnostics;
@@ -85,7 +86,7 @@ public sealed record LaunchOptions
         + "  --needs on|off          the player's needs (hunger, thirst, sleep, health, stamina) run in active play (the default, on); off freezes them full, so the language\n"
         + "                          runs keep their baselines (a test aid, N01)\n"
         + "  --relaxed-needs         the relaxed-needs setting (N05): every drive falls at half its rate, and at zero health the player faints and wakes at the camp, the bag kept and no chest.\n"
-        + "                          Off by default, kept in a save's settings\n"
+        + "                          Off by default, kept in the settings file\n"
         + "  --world <name>          the world: streamed (the default: the tall procedural world round the valley, streamed in as you walk, with the far view beyond the chunks; B07) or valley (the bounded valley alone, as before)\n"
         + "  --stream-stats          a scripted run prints the streamed world's residency, mesh and far-view counts and timings on a line of its own (left out otherwise: they depend on how the world was loaded, not on what the run did)\n"
         + "  --gl-shaders [on|off]   draw every chunk pass (the faces, the cut-outs, the grass, the glow, the water) through the game's own GLSL program on MonoGame's OpenGL context (B17b; on by default, the settings page's Shaders row; off draws with MonoGame's effects, as does a context below OpenGL 3.3 or a program that does not compile: the log's gl: lines say which). A bare --gl-shaders is on\n"
@@ -106,7 +107,7 @@ public sealed record LaunchOptions
         + "  --pregen-at <x,z>       the point --pregen works round (default: where the run starts)\n"
         + "  --far-view <off|blocks> how far the far view's level-of-detail land is drawn in the streamed world, in blocks (default: the quality preset's, 4096 low, 8192 medium, 16384 high; off draws only the chunks)\n"
         + "  --pass open             the pass cheat (B08b): the pass through the east ring is open from the start, the rockfall gone (the settings menu has the same switch, \"Open the pass (cheat)\"; a test aid)\n"
-        + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in a save's settings\n"
+        + "  --view-effects on|off   the needs' effects on the view (dim edges, a blink, red edges; N05); the icons and the lines stay. F7 switches them in the game; kept in the settings file\n"
         + "  --eat <item>            eat or drink the item as a right click with it selected does (one is given if the bag has none; a test aid, N02): pan, fruta, manzana, agua\n"
         + "  --need <need> <n>       a script step: set a need where the script stands (a test aid, N04; --set-need sets at launch)\n"
         + "  --take-belongings       take back what a death left in the chest the crosshair is on, within reach, as E does (N04)\n"
@@ -132,7 +133,7 @@ public sealed record LaunchOptions
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --size <W>x<H>          start in a window of this size (default: borderless full screen, 1280x720 in a scripted run or after F11;\n"
         + "                          800x600 is the smallest the book is made for)\n"
-        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 150, the largest; 100 in a scripted run; F9 steps through them; X08)\n"
+        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the settings file's, else 150, the largest; 100 in a scripted run; F9 steps through them; X08)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
@@ -141,7 +142,15 @@ public sealed record LaunchOptions
         + "  --settings              open the menu on its settings page once the steps are done\n"
         + "  --controls              open the menu on its controls page once the steps are done\n"
         + "  --menu-scroll <n>       scroll the settings or controls page down by this many rows when it opens (a scripted run)\n"
-        + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the save's)\n"
+        + "  --title                 open the title screen (New game, Load game, Settings, Quit) before any world is built. An interactive run with no start flag opens it by itself: a start flag is --seed, --world, --load, --save, --session, --skip-to-session,\n"
+        + "                          --check, --playtest, --pregen, --session-dir, --own-plot, --mark-plot, --lodging, --set-need, --needs off, --assume-known or --strict-save; a scripted run (--screenshot) never does. With --screenshot the title is drawn\n"
+        + "                          on the fixed clock, saved as a PNG and the run ends; its steps (--look, --say and the rest) do not apply (Q01)\n"
+        + "  --title-page <page>     with --title: the page to open, new, load, settings or delete (the confirmation, on the newest world), else the main page; it implies --title (Q01)\n"
+        + "  --title-name <text>     with --title: type this world name on the New game page, and --title-seed <text> this seed (scripted pictures of a refusal or a typed seed; Q01)\n"
+        + "  --saves-dir <dir>       the folder of the worlds, one folder each with its save and world.json (default: ~/.local/share/vocaterra/saves, or VOCATERRA_SAVES_DIR; Q01)\n"
+        + "  --settings-file <file>  the one settings file the title's and the menu's settings pages keep the player's settings in (default: ~/.local/share/vocaterra/settings.json, or VOCATERRA_SETTINGS_FILE; a scripted run\n"
+        + "                          reads and writes none unless it is given one, so its pictures are the same on every machine; Q01)\n"
+        + "  --needs-rate <x>        the drive rate, 0.5 to 4 in steps of 0.25 (default 1, or the settings file's)\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
@@ -160,20 +169,20 @@ public sealed record LaunchOptions
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
-        + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the save's (S24)\n"
-        + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
-        + "  --weather-volume <0..1> the volume of the weather's own sounds (the rain); default 0.6, or the save's (E09)\n"
-        + "  --voice-volume <0..1>   the volume of the NPCs' voices; default 1, or the save's (the menu)\n"
-        + "  --ui-volume <0..1>      the volume of the interface and progress sounds; default 0.8, or the save's (the menu)\n"
+        + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the settings file's (S24)\n"
+        + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the settings file's (S24)\n"
+        + "  --weather-volume <0..1> the volume of the weather's own sounds (the rain); default 0.6, or the settings file's (E09)\n"
+        + "  --voice-volume <0..1>   the volume of the NPCs' voices; default 1, or the settings file's (the menu)\n"
+        + "  --ui-volume <0..1>      the volume of the interface and progress sounds; default 0.8, or the settings file's (the menu)\n"
         + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
         + "  --sound-log <file>      write every cue played, with its tick and category, to this file; a scripted run plays nothing aloud (S24)\n"
-        + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the save's); the fog closes in at that distance\n"
+        + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default or the settings file's); the fog closes in at that distance\n"
         + "  --underwater-blur <off|low|medium|high>  how much the view softens under water (H05; default low)\n"
-        + "  --view-distance <blocks>     draw this far instead of the quality's distance (48 to 576 in steps of 16, the menu's Draw distance; or the save's; default Auto)\n"
+        + "  --view-distance <blocks>     draw this far instead of the quality's distance (48 to 576 in steps of 16, the menu's Draw distance; or the settings file's; default Auto)\n"
         + "  --msaa <0|2|4|8>        the samples per pixel of the window's antialiasing, 0 for none (B22; default the quality's: 4 at medium and high; changing the quality in the menu takes effect for it at the next start)\n"
-        + "  --fov <degrees>         the vertical field of view, 60 to 110 in steps of 5 (default 70, or the save's; the menu's Field of view)\n"
-        + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the save's; the menu's Mouse sensitivity)\n"
-        + "  --invert-y on|off       moving the mouse up looks down (default off, or the save's; the menu's Invert mouse Y)\n"
+        + "  --fov <degrees>         the vertical field of view, 60 to 110 in steps of 5 (default 70, or the settings file's; the menu's Field of view)\n"
+        + "  --mouse-sensitivity <percent>  the mouse sensitivity, 25 to 300 in steps of 5 (default 100, or the settings file's; the menu's Mouse sensitivity)\n"
+        + "  --invert-y on|off       moving the mouse up looks down (default off, or the settings file's; the menu's Invert mouse Y)\n"
         + "  --pour <x,y,z>          put a water source in this cell, which then flows (a debug step for screenshots, H06); a step\n"
         + "  --set-time <hour|run>   a step: hold the clock at an hour from 0 to 24 from this step on, or 'run' to let it run on (E03)\n"
         + "  --set-weather <id|run>  a step: hold a weather kind by its id (the ids of game/weather.json) from this step on, or 'run' to let it run on (E03)\n"
@@ -206,6 +215,33 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--seed</c> was given: a load then refuses a save of another seed, and without it the save's seed is taken.</summary>
     public bool SeedGiven { get; init; }
+
+    /// <summary>Whether <c>--world</c> was given (it is a start flag: the run has a world of its own and opens no title screen, Q01).</summary>
+    public bool WorldGiven { get; init; }
+
+    /// <summary>Whether <c>--title</c> or <c>--title-page</c> was given: the run opens on the title screen, in a scripted run too (Q01).</summary>
+    public bool Title { get; init; }
+
+    /// <summary>The page <c>--title-page</c> opens the title on, or <see langword="null"/> for the main page (Q01).</summary>
+    public TitlePage? TitlePage { get; init; }
+
+    /// <summary>The text <c>--title-name</c> types in the New game page's name field, or <see langword="null"/> (Q01).</summary>
+    public string? TitleName { get; init; }
+
+    /// <summary>The text <c>--title-seed</c> types in the New game page's seed field, or <see langword="null"/> (Q01).</summary>
+    public string? TitleSeed { get; init; }
+
+    /// <summary>The folder of the worlds from <c>--saves-dir</c>, or <see langword="null"/> for the default (<see cref="UserFolders.Saves"/>; Q01).</summary>
+    public string? SavesDir { get; init; }
+
+    /// <summary>The settings file from <c>--settings-file</c>, or <see langword="null"/> for the default (<see cref="UserFolders.SettingsPath"/>; Q01).</summary>
+    public string? SettingsFile { get; init; }
+
+    /// <summary>
+    /// The folder of the world this run plays, when it was started from the title screen (Q01): not a flag, set by the program. The world's save is <c>world.save</c> in it, which the autosave, the Exit save and
+    /// F6 write; the run's session log stays under <c>sessions/</c> as for any run.
+    /// </summary>
+    public string? WorldFolder { get; init; }
 
     /// <summary>The save file to write (on quit, on F6 and at the end of a scripted run), or <see langword="null"/>.</summary>
     public string? SavePath { get; init; }
@@ -532,6 +568,59 @@ public sealed record LaunchOptions
     /// <summary>Whether the run is the next-day recall of a playtest (<c>--playtest --load</c>): it runs the recall check and saves nothing.</summary>
     public bool IsPlaytestRecall => Playtest && Check == CheckKind.Recall;
 
+    /// <summary>The save file of the world this run plays when it was started from the title screen (<c>world.save</c> in <see cref="WorldFolder"/>), or <see langword="null"/>.</summary>
+    public string? WorldSavePath => WorldFolder is null ? null : Path.Combine(WorldFolder, Core.Worlds.WorldFiles.SaveFileName);
+
+    /// <summary>The settings the command line fixed for this run, each over the settings file's value (a flag wins for the run).</summary>
+    public LaunchSettings ToLaunchSettings() => new(IsScreenshotRun, SfxVolume, AmbientVolume, TextScale, Quality, UnderwaterBlur, ViewEffects, NeedsRate, RelaxedNeeds, ViewDistance, FieldOfView, MouseSensitivity, InvertY, VoiceVolume, UiVolume, WeatherVolume, PassOpen, Grass, Workers, FarDistance, FarDetail, FarTrees, FarTextures, FarExact, GlShaders, SunFollowsHour, ClimateColours, WaterShader, HeightFog, FarLight, Msaa);
+
+    /// <summary>
+    /// Whether the run has a start flag, one that gives it a world or a way of starting of its own (Q01): the seed, the world, a save to load or write, a session, a check battery, the playtest, the pregeneration, a session folder, the
+    /// dev aids that act on the new game (a plot, lodging, needs, known nouns) and the strict save. Such a run starts as it always did, with no title screen.
+    /// </summary>
+    public bool HasStartFlag =>
+        SeedGiven || WorldGiven || LoadPath is not null || SavePath is not null || Session is not null || SkipToSession is not null || Check is not null || Playtest || Pregen is not null
+        || SessionDir is not null || OwnPlot is not null || MarkPlot is not null || Lodging || SetNeeds.Count > 0 || NeedsOff || AssumeKnown.Count > 0 || StrictSave || DebugCrashAfter is not null;
+
+    /// <summary>
+    /// The options without the ones that start a world in a way of its own (<see cref="HasStartFlag"/>), for a world chosen on the title screen after Main menu (Q01): the world comes from the title, so a save to load, a seed, a session, a
+    /// check battery and the like of the run's first world must not start it again. The settings flags (volume, quality, text size and the rest) stay: they are for the whole run.
+    /// </summary>
+    public LaunchOptions WithoutStartFlags() => this with
+    {
+        Seed = DefaultSeed,
+        SeedGiven = false,
+        World = WorldChoice.Streamed,
+        WorldGiven = false,
+        LoadPath = null,
+        SavePath = null,
+        Session = null,
+        SkipToSession = null,
+        Check = null,
+        Playtest = false,
+        Pregen = null,
+        SessionDir = null,
+        OwnPlot = null,
+        MarkPlot = null,
+        Lodging = false,
+        SetNeeds = [],
+        NeedsOff = false,
+        AssumeKnown = [],
+        StrictSave = false,
+        DebugCrashAfter = null,
+        Title = false,
+        TitlePage = null,
+        TitleName = null,
+        TitleSeed = null,
+        WorldFolder = null,
+    };
+
+    /// <summary>
+    /// Whether the run opens on the title screen before any world is built (Q01): <c>--title</c> (or <c>--title-page</c>) asks for it, and an interactive run without a start flag (<see cref="HasStartFlag"/>) opens it by itself.
+    /// A scripted run (<c>--screenshot</c>) and every run with a start flag start as they did.
+    /// </summary>
+    public bool ShowsTitle => Title || (!IsScreenshotRun && !HasStartFlag);
+
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
 
@@ -615,10 +704,13 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--settings" or "--menu" or "--controls" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--expand" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders" or "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light")
+                    or "--playtest" or "--dev" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help" or "--sleep" or "--drink" or "--take-belongings" or "--relaxed-needs" or "--proc-help" or "--lodging" or "--stream-stats" or "--no-settle" or "--gl-shaders" or "--sun-follows-hour" or "--climate-colours" or "--water-shader" or "--height-fog" or "--far-light" or "--title")
             {
                 switch (arg)
                 {
+                    case "--title":
+                        result = result with { Title = true };
+                        break;
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
                         break;
@@ -799,7 +891,7 @@ public sealed record LaunchOptions
                 or "--place" or "--pour" or "--set-time" or "--set-weather" or "--select" or "--craft" or "--move" or "--eat" or "--give" or "--equip" or "--wear" or "--repair" or "--plant" or "--place-camp" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip" or "--scroll"
                 or "--check" or "--pick" or "--time" or "--weather" or "--temperature" or "--session-dir" or "--session" or "--skip-to-session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--underwater-blur" or "--view-distance" or "--msaa" or "--teleport" or "--teleport-to" or "--own-plot" or "--mark-plot" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale" or "--menu-scroll"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--voice-volume" or "--ui-volume" or "--weather-volume" or "--sound-log" or "--fov" or "--grass" or "--mouse-sensitivity" or "--invert-y"
-                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after" or "--needs" or "--view-effects" or "--pass" or "--world" or "--prefetch" or "--workers" or "--far-distance" or "--far-detail" or "--far-trees" or "--far-textures" or "--far-exact" or "--pregen" or "--pregen-at" or "--far-view" or "--needs-rate" or "--station" or "--station-say" or "--act" or "--title-page" or "--title-name" or "--title-seed" or "--saves-dir" or "--settings-file"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -1020,7 +1112,49 @@ public sealed record LaunchOptions
                         return false;
                     }
 
-                    result = result with { World = world };
+                    result = result with { World = world, WorldGiven = true };
+                    break;
+                case "--title-page":
+                    TitlePage? titlePage = value switch
+                    {
+                        "main" => Core.Title.TitlePage.Main,
+                        "new" => Core.Title.TitlePage.New,
+                        "load" => Core.Title.TitlePage.Load,
+                        "settings" => Core.Title.TitlePage.Settings,
+                        "delete" => Core.Title.TitlePage.ConfirmDelete,
+                        _ => null,
+                    };
+                    if (titlePage is null)
+                    {
+                        error = $"--title-page needs main, new, load, settings or delete, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Title = true, TitlePage = titlePage };
+                    break;
+                case "--title-name":
+                    result = result with { Title = true, TitleName = value };
+                    break;
+                case "--title-seed":
+                    result = result with { Title = true, TitleSeed = value };
+                    break;
+                case "--saves-dir":
+                    if (value.Length == 0)
+                    {
+                        error = "--saves-dir needs a folder.";
+                        return false;
+                    }
+
+                    result = result with { SavesDir = value };
+                    break;
+                case "--settings-file":
+                    if (value.Length == 0)
+                    {
+                        error = "--settings-file needs a file path.";
+                        return false;
+                    }
+
+                    result = result with { SettingsFile = value };
                     break;
                 case "--prefetch":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var prefetch) || prefetch > 2)

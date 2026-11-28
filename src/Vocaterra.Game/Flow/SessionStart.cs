@@ -17,7 +17,7 @@ public sealed record SessionStarted(string Directory, SessionLog Log, AutosaveCo
 /// <summary>
 /// The start of a run's session (S11, X01, X05): the session folder and its log, opened first so that everything after is in it, with the run's
 /// profile; a migrated save is logged and toasted; the finished turns go to the log; the playtest's save goes in the folder; and the autosave's
-/// file is the playtest's save, else <c>autosave.save</c> in the folder.
+/// file is the playtest's save, else the world's save of a world started from the title (Q01), else <c>autosave.save</c> in the folder.
 /// </summary>
 public static class SessionStart
 {
@@ -46,7 +46,7 @@ public static class SessionStart
         session.Applied += applied;
         playtest.Prepare(directory);
         // The controller always exists so that the menu's Autosave row can switch it on; --no-autosave starts it off.
-        var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
+        var autosavePath = playtest.SavePath ?? options.WorldSavePath ?? Path.Combine(directory, AutosaveFiles.FileName); // a world started from the title keeps its autosave where its Exit save is (Q01)
         var autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
         if (!options.NoAutosave)
         {

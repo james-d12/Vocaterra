@@ -12,6 +12,9 @@ public enum MenuItem
     /// <summary>The controls page.</summary>
     Controls,
 
+    /// <summary>Save the world, close it and return to the title screen (Q01).</summary>
+    MainMenu,
+
     /// <summary>Save, then close the game.</summary>
     Exit,
 }

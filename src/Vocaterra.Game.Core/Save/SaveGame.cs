@@ -42,15 +42,15 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>
-    /// The format version this code writes. Version 11 (I07) adds the optional <c>wear</c> of an inventory slot and of a worn item (left out at 0). Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
-    /// name and item name, and, with 11, is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, B05, keyed the world edits by chunk coordinates
+    /// The format version this code writes. Version 12 (Q01) drops the player's <c>settings</c> from the save: they live in the one global settings file (<see cref="SettingsFile"/>), and a save of version 11 is refused like any older one. Version 11 (I07) adds the optional <c>wear</c> of an inventory slot and of a worn item (left out at 0). Version 10 (I03b) stores the inventory's active slots only (the base and the worn bag's capacity; 30 with no bag) and adds the optional <c>worn</c> entry, the worn items by group id, slot
+    /// name and item name, and, with 12, is the oldest this code reads: the game is unreleased, so a save of an older version is refused and none is migrated. (Version 9, B05, keyed the world edits by chunk coordinates
     /// (<see cref="ChunkEdit"/>: X, Y, Z, Y may be negative) instead of the dense chunk index, dropped <c>world</c> (the chunk counts) and checks the world's state digest (<see cref="WorldStateDigest"/>, the changed chunks only);
     /// I01 stored an inventory slot's item by its name in place of the code's enum name; version 8, Y02, added the optional <c>sleep</c> entry of <c>systems</c>.)
     /// </summary>
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 12;
 
-    /// <summary>The oldest format version this code reads: 11. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, B05, I01, I03b).</summary>
-    public const int OldestReadableVersion = 11;
+    /// <summary>The oldest format version this code reads: 12. The game is unreleased, so a save of an older version is refused and none is migrated (Y02, B05, I01, I03b).</summary>
+    public const int OldestReadableVersion = 12;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -119,10 +119,9 @@ public static class SaveGame
     /// no opening waiting). The world part lists the chunks that differ from the world as generated (<see cref="VoxelGridDiff.Capture"/>). The session is not changed.
     /// </summary>
     /// <param name="session">The running game.</param>
-    /// <param name="settings">The player's settings to keep in the save (S24: the sound volumes), or <see langword="null"/> for none.</param>
     /// <param name="dialoguePages">The NPCs' conversation pages (U08, <see cref="DialoguePageSave.Capture"/>), or <see langword="null"/> for none.</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
-    public static SaveDocument Capture(VoxelSession session, SaveSettings? settings = null, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
+    public static SaveDocument Capture(VoxelSession session, IReadOnlyList<DialoguePageSave>? dialoguePages = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         if (!session.CanSave)
@@ -169,7 +168,6 @@ public static class SaveGame
             session.Tips.Capture(),
             session.Learner.Capture(),
             BookGranted: true,
-            Settings: settings is null ? null : settings.Clamped(),
             SkippedTo: session.SkippedTo,
             Sitting: session.Sitting,
             KeyWordsTaughtBy: session.KeyWordsTaughtBy,
@@ -185,8 +183,7 @@ public static class SaveGame
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
     /// <param name="session">The running game (at rest).</param>
-    /// <param name="settings">The player's settings to keep in the save (S24), or <see langword="null"/>.</param>
-    public static string Save(VoxelSession session, SaveSettings? settings = null) => Serialize(Capture(session, settings));
+    public static string Save(VoxelSession session) => Serialize(Capture(session));
 
     /// <summary>
     /// Reads a save's text, checks it against the bundle and the requested seed, builds its scene with <paramref name="buildPristine"/> and restores

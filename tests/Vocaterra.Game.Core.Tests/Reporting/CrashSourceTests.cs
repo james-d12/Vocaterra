@@ -54,7 +54,7 @@ public sealed class CrashSourceTests : IDisposable
         Directory.CreateDirectory(_folder);
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
-        var saves = new SaveService(session, () => new SaveSettings(new SoundVolumes()), _ => { });
+        var saves = new SaveService(session, _ => { });
         return (new CrashSource(_folder, "reports-here", session, dialogue, new ReportPanel(), autosave: null, saves), session, dialogue);
     }
 }

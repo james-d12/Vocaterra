@@ -127,6 +127,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly LessonFrontend _lesson;
     private readonly PlayerSettings _settings;
     private readonly MenuScreen _menu;
+    private readonly SettingsPersistence? _settingsFile;
     private readonly ControlsPageCache _controlLines;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
@@ -191,14 +192,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="scene">The built scene.</param>
     /// <param name="voice">The NPCs voices.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
-    /// <param name="savedSettings">The settings a loaded save holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for a new game; the command line's options override them for the run.</param>
+    /// <param name="savedSettings">The settings the global settings file holds (the volumes, the text size, the graphics and the mouse: the menu's settings), or <see langword="null"/> for the defaults; the command line's options override them for the run.</param>
     /// <param name="savedDialogue">The NPCs' conversation pages a loaded save holds (U08), or <see langword="null"/> for a new game.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null)
+    /// <param name="settingsPath">The settings file the menu's settings page keeps its changes in (Q01), or <see langword="null"/> for none (a scripted run).</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, SceneLayout? layout = null, SaveSettings? savedSettings = null, IReadOnlyList<DialoguePageSave>? savedDialogue = null, string? settingsPath = null)
     {
         _options = options;
         _showTips = options.ShowsTips;
         // The player's settings (the menu issue): the save's, or a new game's defaults (high quality, the text at its largest), then the command line's over them for this run.
-        _settings = PlayerSettings.Resolve(savedSettings, new LaunchSettings(options.IsScreenshotRun, options.SfxVolume, options.AmbientVolume, options.TextScale, options.Quality, options.UnderwaterBlur, options.ViewEffects, options.NeedsRate, options.RelaxedNeeds, options.ViewDistance, options.FieldOfView, options.MouseSensitivity, options.InvertY, options.VoiceVolume, options.UiVolume, options.WeatherVolume, options.PassOpen, options.Grass, options.Workers, options.FarDistance, options.FarDetail, options.FarTrees, options.FarTextures, options.FarExact, options.GlShaders, options.SunFollowsHour, options.ClimateColours, options.WaterShader, options.HeightFog, options.FarLight, options.Msaa));
+        _settings = PlayerSettings.Resolve(savedSettings, options.ToLaunchSettings());
         _canvas = new UiCanvas(_settings.TextPercent, () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _devices = new InputDevices(_canvas);
         _session = session;
@@ -311,8 +313,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controlLines = new ControlsPageCache(session.Locale, () => _drawer.View.Fonts.Get(FontProvider.NativeSize));
         var menuRows = MenuRows.Settings(_settings, _playtest ? null : TestingHooksNow());
-        _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit);
+        _menu = new MenuScreen(menuRows, new MenuMetrics(() => (_canvas.Width, _canvas.Height), () => menuRows, layout => _controlLines.For(layout)), SaveAndExit, SaveAndMainMenu);
         _settings.Changed += ApplySetting;
+        if (settingsPath is not null)
+        {
+            _settingsFile = new SettingsPersistence(settingsPath, _settings, static () => (long)MonotonicClock.Milliseconds(), Console.WriteLine); // Q01: a change in the menu is kept in the one settings file
+        }
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen, (x, y) => new InventoryLayout(_canvas.Width, _canvas.Height, session.Simulation.Inventory.SlotCount, _needsHud is { Visible: true } hud ? hud.ListRows().Count : 0, session.Simulation.Equipment.Data.Shape).Hit(x, y, session.Simulation.Inventory.SlotCount)); // I02: clicks move items by hand; I04: the doll's cells too
         _craftingPanel = new CraftingPanel(
             _crafting,
@@ -471,7 +477,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
-        _saves = new SaveService(session, _settings.ToSave, Console.WriteLine, _dialogue); // the menu's settings (the volumes, the graphics, the text size, the mouse, the needs) ride in the save's settings
+        _saves = new SaveService(session, Console.WriteLine, _dialogue); // the menu's settings are the settings file's since Q01, not the save's
         _checks = new CheckBattery(
             session,
             () => _log,
@@ -658,6 +664,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
     public int ExitCode => _runEnd.ExitCode;
 
+    /// <summary>Whether the player chose Main menu (Q01): the world was saved and closed, and the program goes back to the title screen instead of ending.</summary>
+    public bool ReturnToTitle { get; private set; }
+
     /// <inheritdoc />
     protected override void LoadContent()
     {
@@ -750,6 +759,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _playtestFlow.SaveIfDue();
 
         AutosaveDue(); // the autosave at its safe points (X05)
+        _settingsFile?.Pump(); // a settings change that has rested is written to the settings file (Q01)
 
         _checks.Drive();
         _session.PlayPauses = PlayPausesNow(); // the needs move only in active play (N01)
@@ -907,6 +917,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _playtestFlow.SaveAtQuit();
+        _settingsFile?.Close();
 
         if (_log is { } log)
         {
@@ -1388,6 +1399,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
         _ = _saves.Write(path, "on Exit from the menu");
         Console.WriteLine($"menu: Exit: saved to {path}");
+        Exit();
+    }
+
+    // The menu's Main menu (Q01): the game is saved as Exit saves it, then the window closes and the program goes back to the title screen, from which another world can start.
+    private void SaveAndMainMenu()
+    {
+        DrainForSave();
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
+        _ = _saves.Write(path, "on Main menu from the menu");
+        Console.WriteLine($"menu: Main menu: saved to {path}");
+        ReturnToTitle = true;
         Exit();
     }
 

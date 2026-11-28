@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Water;
 
 namespace Vocaterra.Game.Core.Tests.Save;
@@ -8,7 +7,7 @@ namespace Vocaterra.Game.Core.Tests.Save;
 public sealed class UnderwaterBlurSettingTests
 {
     private static string Text(UnderwaterBlur? blur) =>
-        SaveGame.Serialize(SaveGame.Capture(TestGame.NewSession(), new SaveSettings(new SoundVolumes(), 100, UnderwaterBlur: blur)));
+        SettingsFile.Serialize(new SaveSettings(new SoundVolumes(), 100, UnderwaterBlur: blur));
 
     [Theory]
     [InlineData(UnderwaterBlur.Off)]
@@ -16,10 +15,10 @@ public sealed class UnderwaterBlurSettingTests
     [InlineData(UnderwaterBlur.High)]
     public void Given_AChosenLevel_When_SavedAndParsed_Then_TheLevelComesBack(UnderwaterBlur level)
     {
-        var parsed = SaveGame.Parse(Text(level));
+        var parsed = SettingsFile.Parse(Text(level))!;
 
-        Assert.Equal(level, parsed.Settings!.EffectiveUnderwaterBlur);
-        Assert.Equal(SaveGame.Serialize(parsed), Text(level));
+        Assert.Equal(level, parsed.EffectiveUnderwaterBlur);
+        Assert.Equal(SettingsFile.Serialize(parsed), Text(level));
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public sealed class UnderwaterBlurSettingTests
     {
         Assert.DoesNotContain("underwaterBlur", Text(null), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("underwaterBlur", Text(UnderwaterBlur.Low), StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(UnderwaterBlur.Low, SaveGame.Parse(Text(null)).Settings!.EffectiveUnderwaterBlur);
+        Assert.Equal(UnderwaterBlur.Low, SettingsFile.Parse(Text(null))!.EffectiveUnderwaterBlur);
         Assert.Equal(UnderwaterBlur.Low, new SaveSettings(new SoundVolumes()).EffectiveUnderwaterBlur);
     }
 

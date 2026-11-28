@@ -46,6 +46,8 @@ public sealed class ArchitectureRulesTests
         ["World/Generation/ValleyUnderground.cs"] = "the bounded valley's underground is laid column by column on at most two threads (B24a, the two-worker rule); the result is identical at any thread count (tested)",
         ["World/Drainage/DrainageNetwork.cs"] = "two [ThreadStatic] scratch caches (the last cell read, a no-read counter): per-thread state the workers never share, not a thread of its own",
         ["Save/SaveFile.cs"] = "the save file: written to a temporary file and moved over the old one, read back whole",
+        ["Save/SettingsFile.cs"] = "the global settings file (Q01): read whole, written through SaveFile into a folder it makes; the front-end gives the path",
+        ["Worlds/WorldStore.cs"] = "the saves folder (Q01): one folder per world with its metadata file and its save, listed, made and deleted; the front-end gives the base folder",
         ["Content/LocaleBundle.cs"] = "loads the locale bundle from its folder, beside the game bundle",
         ["Session/GameBundle.cs"] = "finds the game bundle's folder: the environment variable, then the folders above the program",
         ["Language/Speech/SpeechEngine.cs"] = "finds the model store and the manifest (environment variables, the cache folder) and checks the model folders exist",

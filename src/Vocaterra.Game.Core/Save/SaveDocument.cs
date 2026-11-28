@@ -51,7 +51,6 @@ namespace Vocaterra.Game.Core.Save;
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history). A version 2 save's rows counted the check answers (S19b); they are taken out on the load.</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
-/// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
 /// <param name="SkippedTo">The play session a test run was skipped to (<c>--skip-to-session</c>, V12c): the sessions before it were counted as done, not played, so the save is
 /// no learner's. <see langword="null"/>, and left out of the file, for every other game.</param>
 /// <param name="Sitting">The sitting the save was taken in (V25): the play session of the phrase-credit spacing rule, which a launch, a load and a sleep each begin. A load runs in the
@@ -98,7 +97,6 @@ public sealed record SaveDocument(
     TipsSave? Tips = null,
     LearnerRecordSave? Learner = null,
     bool BookGranted = false,
-    SaveSettings? Settings = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? SkippedTo = null,
     int? Sitting = null,
     IReadOnlyList<string>? KeyWordsTaughtBy = null,
@@ -111,7 +109,7 @@ public sealed record SaveDocument(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<WornSave>? Worn = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool PassOpen = false);
 
-/// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
+/// <summary>The player's settings as the global settings file keeps them (S24; since Q01 they are in <see cref="SettingsFile"/>, not in a save). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>
 /// <param name="TextScale">The size of the interface text in percent (X08): one of <see cref="TextScaleLevels"/>; a save from before has 100.</param>
 /// <param name="ViewEffectsOff">True when the player turned the needs' effects on the view off (N05: dim edges, a blink, red edges; the icons and the lines stay). Written only when true, so a save of the default is byte for byte what it was.</param>

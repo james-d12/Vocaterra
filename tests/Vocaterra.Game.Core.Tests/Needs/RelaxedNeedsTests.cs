@@ -102,24 +102,24 @@ public sealed class RelaxedNeedsTests
     }
 
     [Fact]
-    public void ASaveOfTheDefaultSettingsIsWhatItWasAndTheSettingRoundTrips()
+    public void TheSettingsFileOfTheDefaultsIsWhatItWasAndTheSettingRoundTrips()
     {
         var session = Playing(relaxed: false);
-        var plain = SaveGame.Save(session, new SaveSettings(new SoundVolumes(), 100));
+        var plain = SettingsFile.Serialize(new SaveSettings(new SoundVolumes(), 100));
         Assert.DoesNotContain("relaxedNeeds", plain, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("viewEffectsOff", plain, StringComparison.OrdinalIgnoreCase);
 
-        var text = SaveGame.Save(session, new SaveSettings(new SoundVolumes(), 125, ViewEffectsOff: true, RelaxedNeeds: true));
-        var settings = SaveGame.Parse(text).Settings!.Clamped();
+        var text = SettingsFile.Serialize(new SaveSettings(new SoundVolumes(), 125, ViewEffectsOff: true, RelaxedNeeds: true));
+        var settings = SettingsFile.Parse(text)!;
         Assert.True(settings.RelaxedNeeds);
         Assert.True(settings.ViewEffectsOff);
         Assert.Equal(125, settings.TextScale);
 
         // The setting is the player's, not the world's: the save's world is the same either way, so it loads under either.
-        var loaded = SaveGame.Parse(plain);
-        Assert.False(loaded.Settings!.RelaxedNeeds);
-        Assert.False(loaded.Settings.ViewEffectsOff);
-        Assert.Equal(SaveGame.Parse(plain).StateDigest, SaveGame.Parse(SaveGame.Save(Playing(relaxed: true), new SaveSettings(new SoundVolumes(), 100))).StateDigest);
+        var loaded = SettingsFile.Parse(plain)!;
+        Assert.False(loaded.RelaxedNeeds);
+        Assert.False(loaded.ViewEffectsOff);
+        Assert.Equal(SaveGame.Parse(SaveGame.Save(session)).StateDigest, SaveGame.Parse(SaveGame.Save(Playing(relaxed: true))).StateDigest);
     }
 
     private static string? WorldEventsWoke(VoxelSession session) =>

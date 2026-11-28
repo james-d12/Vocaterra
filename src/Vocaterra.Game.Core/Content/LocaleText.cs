@@ -85,6 +85,7 @@ public sealed class LocaleText
         "stationOutOfOrder", "stationDone", "stationAgain", "stationBagFull", "stationMissing", "stationVerbs",
         "stationBakeAtOnce", "stationGuided", "stationNotEnough", "stationTalkType", "stationTalkListening", "stationTalkThinking", "stationTalkAnswer",
         .. Menu.MenuText.UiKeys,
+        .. Title.TitleText.UiKeys,
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

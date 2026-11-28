@@ -715,7 +715,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
         var main = new MenuLayout(canvas.Width, canvas.Height, MenuPage.Main);
         Assert.True(Inside(main.Panel, window), $"the menu panel {main.Panel} is outside the canvas");
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < MenuLayout.ButtonCount; i++)
         {
             Assert.True(Inside(main.Button(i), main.Panel), $"button {i} leaves the panel");
             if (i > 0)

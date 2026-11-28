@@ -16,6 +16,14 @@ public static class WorldChoices
     /// <summary>The names, for a usage error.</summary>
     public static string Names => string.Join(" or ", Enum.GetNames<WorldChoice>().Select(static name => name.ToLowerInvariant()));
 
+    /// <summary>The run's world for a world's type as its folder keeps it (Q01).</summary>
+    /// <param name="kind">The type.</param>
+    public static WorldChoice Of(Core.Worlds.WorldKind kind) => kind == Core.Worlds.WorldKind.Valley ? WorldChoice.Valley : WorldChoice.Streamed;
+
+    /// <summary>The type a run's world is kept as in a world's folder (Q01).</summary>
+    /// <param name="choice">The run's world.</param>
+    public static Core.Worlds.WorldKind KindOf(WorldChoice choice) => choice == WorldChoice.Valley ? Core.Worlds.WorldKind.Valley : Core.Worlds.WorldKind.Streamed;
+
     /// <summary>The world a name stands for, or <see langword="null"/>.</summary>
     /// <param name="value">The name.</param>
     public static WorldChoice? Parse(string value) => value switch
