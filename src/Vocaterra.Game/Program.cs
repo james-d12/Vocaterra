@@ -59,136 +59,102 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 // The worlds on disk and the one settings file (Q01). A scripted run reads and writes no settings file but the one it is told of, so its pictures are the same on every machine.
 var store = new WorldStore(UserFolders.Saves(options), static () => WallClock.Now.ToUnixTimeSeconds());
 var settingsPath = UserFolders.SettingsPath(options);
-var displayChecked = false;
+WorldEntry? current = null; // the world of the title screen that is being played, whose last-played time is touched when it starts and when it ends
 
-// The loop of a run: the title screen (when the run opens on it), a world, and, from the world's Main menu, the title again and another world, all in this process.
-var wantTitle = options.ShowsTitle;
-var worldOptions = options;
-TitleNotice? notice = null;
-var titleOptions = options;
-var firstWorld = true;
-while (true)
+// A run opens on the title screen when it has no start flag (or asks for it); a run with a start flag, or a scripted one, builds its world first, as it always did, and opens in it.
+StartedWorld? initial = null;
+if (!options.ShowsTitle)
 {
-    WorldEntry? entry = null;
-    if (wantTitle)
-    {
-        CheckDisplay();
-        using var title = new TitleGame(titleOptions, setup.Data.Locale, store, ReadSettings(), settingsPath, static () => (ulong)System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, 1_000_000_000), notice);
-        try
-        {
-            title.Run();
-        }
-        catch (Exception ex)
-        {
-            crash.Handle(ex, "the title screen's loop", stopped: true);
-            return CrashHandler.ExitCode;
-        }
-
-        if (options.IsScreenshotRun)
-        {
-            return title.ExitCode; // a scripted title picture ends the run
-        }
-
-        if (title.Choice is not { Kind: not TitleChoiceKind.Quit, World: { } chosen })
-        {
-            return 0; // Quit, or the window was closed
-        }
-
-        entry = chosen;
-        worldOptions = TitleChosen(options.WithoutStartFlags(), chosen);
-        notice = null;
-    }
-
-    StartedWorld? started;
     try
     {
-        started = WorldStart.Build(worldOptions, setup, ReadSettings(), firstWorld ? setup.StartedMilliseconds : MonotonicClock.Milliseconds(), out var exitCode);
-        if (started is null)
+        initial = WorldStart.Build(options, setup, ReadSettings(), setup.StartedMilliseconds, out var exitCode);
+        if (initial is null)
         {
             return exitCode;
         }
-    }
-    catch (Exception ex) when (wantTitle && ex is SaveException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException or ArgumentException)
-    {
-        // A world chosen on the title screen that cannot be started (its save is of another seed or an older version, or unreadable): the title opens again on the Load page, and says why.
-        Console.Error.WriteLine(ex.Message);
-        notice = new TitleNotice("titleLoadFailed", entry?.Name ?? string.Empty, ex.Message);
-        titleOptions = options.WithoutStartFlags() with { TitlePage = TitlePage.Load, TitleName = null, TitleSeed = null };
-        continue;
     }
     catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException or ArgumentException)
     {
         Console.Error.WriteLine(ex.Message);
         return 1;
     }
-
-    firstWorld = false;
-    if (entry is not null)
-    {
-        entry = Touch(entry); // played now: it comes first in the Load list
-        Console.WriteLine($"world: {entry.Name} ({entry.Folder}), seed {entry.Meta!.Seed}, {entry.Meta.World}; its save is {entry.SavePath}");
-    }
-
-    CheckDisplay();
-
-    // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-    bool returnToTitle;
-    int exit;
-    using (var game = new VoxelGame(started.Options, started.Session, started.Scene, started.Voice, savedSettings: ReadSettings(), savedDialogue: started.SavedDialogue, settingsPath: settingsPath))
-    {
-        crash.Attach(game.CrashSource); // the crash report, the last-chance save and the state come from the game (X05)
-        try
-        {
-            game.Run();
-        }
-        catch (Exception ex)
-        {
-            // The game loop threw: the crash report and the last-chance save are written, the paths are printed, and the exit code is not zero (X05).
-            crash.Handle(ex, "the game loop", stopped: true);
-            return CrashHandler.ExitCode;
-        }
-
-        returnToTitle = game.ReturnToTitle;
-        exit = game.ExitCode;
-    }
-
-    if (entry is not null)
-    {
-        _ = Touch(entry);
-    }
-
-    if (returnToTitle)
-    {
-        // The Main menu: the world was saved and closed (the game is disposed above), and the title opens again for another.
-        Console.WriteLine("menu: back to the title screen");
-        wantTitle = true;
-        titleOptions = options.WithoutStartFlags() with { TitleName = null, TitleSeed = null };
-        continue;
-    }
-
-    // B46: with no display left SDL's window destruction (the game's disposal, above) dies with SIGSEGV; the run is over and its output written, so the process ends here instead.
-    if (SdlDisplays.NoneLeft())
-    {
-        Console.Out.Flush();
-        Console.Error.Flush();
-        Environment.Exit(exit);
-    }
-
-    return exit;
 }
 
-// The settings the settings file holds, read when a window opens so what the title's settings page changed is what the world starts with; none for a run that keeps no file.
+// B46, B48: a scripted run (a screenshot) and any run in a Wayland session tell SDL not to follow the X server's outputs, so its display cannot vanish under it when the monitor
+// sleeps (see SdlDisplays); SDL starts in the game's constructor.
+if (SdlDisplays.IgnoreRandRChangesIfNeeded(options.IsScreenshotRun) && !options.IsScreenshotRun)
+{
+    Console.WriteLine($"display: SDL does not follow the X server's outputs ({SdlDisplays.RandRVariable}=0; a Wayland session, B48)");
+}
+
+// The one window of the run: the title screen, and the world of the run or of a choice made there, one after the other (a Main menu returns to the title; another world starts in the same window).
+// The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
+using var app = new AppGame(options, setup.Data.Locale, store, settingsPath, ReadSettings, static () => (ulong)System.Security.Cryptography.RandomNumberGenerator.GetInt32(1, 1_000_000_000), initial, StartFromTitle, world => crash.Attach(world.CrashSource), WorldEnded, notice: null);
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    // The game loop threw: the crash report and the last-chance save are written, the paths are printed, and the exit code is not zero (X05).
+    crash.Handle(ex, "the game loop", stopped: true);
+    return CrashHandler.ExitCode;
+}
+
+// B46: with no display left SDL's window destruction (the game's disposal, next) dies with SIGSEGV; the run is over and its output written, so the process ends here instead.
+if (SdlDisplays.NoneLeft())
+{
+    Console.Out.Flush();
+    Console.Error.Flush();
+    Environment.Exit(app.ExitCode);
+}
+
+return app.ExitCode;
+
+// The settings the settings file holds, read when the title opens and when a world starts, so what a settings page changed is what the next one starts with; none for a run that keeps no file.
 SaveSettings? ReadSettings() => settingsPath is null ? null : SettingsFile.Read(settingsPath);
 
 // A world chosen on the title screen: its seed and type, its folder (its save, which the autosave, the Exit save and F6 all write), and, for a world that has a save, loading it as --load does.
-LaunchOptions TitleChosen(LaunchOptions baseOptions, WorldEntry chosen) => baseOptions with
+WorldAttempt StartFromTitle(TitleChoice choice)
 {
-    Seed = chosen.Meta!.Seed,
-    World = WorldChoices.Of(chosen.Meta.World),
-    WorldFolder = chosen.Directory,
-    SavePath = chosen.SavePath,
-    LoadPath = chosen.HasSave ? chosen.SavePath : null,
-};
+    var chosen = choice.World!;
+    var worldOptions = options.WithoutStartFlags() with
+    {
+        Seed = chosen.Meta!.Seed,
+        World = WorldChoices.Of(chosen.Meta.World),
+        WorldFolder = chosen.Directory,
+        SavePath = chosen.SavePath,
+        LoadPath = chosen.HasSave ? chosen.SavePath : null,
+    };
+    try
+    {
+        var started = WorldStart.Build(worldOptions, setup, ReadSettings(), MonotonicClock.Milliseconds(), out var exitCode);
+        if (started is null)
+        {
+            return new WorldAttempt(null, ExitCode: exitCode);
+        }
+
+        current = Touch(chosen); // played now: it comes first in the Load list
+        Console.WriteLine($"world: {current.Name} ({current.Folder}), seed {current.Meta!.Seed}, {current.Meta.World}; its save is {current.SavePath}");
+        return new WorldAttempt(started);
+    }
+    catch (Exception ex) when (ex is SaveException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException or ArgumentException)
+    {
+        // A world that cannot be started (its save is of another seed or an older version, or unreadable): the title opens again on the Load page, and says why.
+        Console.Error.WriteLine(ex.Message);
+        return new WorldAttempt(null, ex.Message);
+    }
+}
+
+// The world is over and closed: its last-played time is now.
+void WorldEnded(VoxelGame world)
+{
+    if (current is not null)
+    {
+        _ = Touch(current);
+        current = null;
+    }
+}
 
 // The world's last-played time is now (it was started, or left); a folder that cannot be written is said and the game goes on.
 WorldEntry Touch(WorldEntry world)
@@ -201,21 +167,5 @@ WorldEntry Touch(WorldEntry world)
     {
         Console.Error.WriteLine($"world: {world.Name}: not touched: {ex.Message}");
         return world;
-    }
-}
-
-// B46, B48: a scripted run (a screenshot) and any run in a Wayland session tell SDL not to follow the X server's outputs, so its display cannot vanish under it when the monitor
-// sleeps (see SdlDisplays); SDL starts in the game's constructor, so this is done before the first window of the run, once.
-void CheckDisplay()
-{
-    if (displayChecked)
-    {
-        return;
-    }
-
-    displayChecked = true;
-    if (SdlDisplays.IgnoreRandRChangesIfNeeded(options.IsScreenshotRun) && !options.IsScreenshotRun)
-    {
-        Console.WriteLine($"display: SDL does not follow the X server's outputs ({SdlDisplays.RandRVariable}=0; a Wayland session, B48)");
     }
 }

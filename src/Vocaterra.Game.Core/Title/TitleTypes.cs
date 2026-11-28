@@ -134,7 +134,7 @@ public static class TitleText
     /// <summary>Every <c>ui.</c> key of the title screen, so the locale check holds a locale to each.</summary>
     public static IReadOnlyList<string> UiKeys { get; } =
     [
-        "titleName", "titleDefaultName", "titleNew", "titleLoad", "titleSettings", "titleQuit", "titleHint", "titleNewHint", "titleLoadHint", "titleConfirmHint",
+        "titleName", "titleMaking", "titleDefaultName", "titleNew", "titleLoad", "titleSettings", "titleQuit", "titleHint", "titleNewHint", "titleLoadHint", "titleConfirmHint",
         "titleNewHeading", "titleLoadHeading", "titleDeleteHeading", "titleNameLabel", "titleSeedLabel", "titleSeedRandom", "titleSeedBlank", "titleTypeLabel",
         "titleTypeStreamed", "titleTypeValley", "titleCreate", "titleLoadButton", "titleDeleteButton", "titleKeepButton", "titleConfirmDelete", "titleNoWorlds", "titleNoSave",
         "titleNameEmpty", "titleNameLong", "titleNameTaken", "titleCannotLoad", "titleLoadFailed", "titleDeleted", "titleDeleteFailed", "titleCreateFailed", "titleWorldLine",

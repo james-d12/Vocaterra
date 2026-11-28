@@ -15,7 +15,7 @@ public sealed partial class NoLiteralTextTests
     {
         ["src/Vocaterra.Game/Startup/LaunchOptions.cs"] = "the command line's usage and errors",
         ["src/Vocaterra.Game/Program.cs"] = "the console at launch",
-        ["src/Vocaterra.Game/Flow/TitleGame.cs"] = "the title window's title (the game's name; Q01)",
+        ["src/Vocaterra.Game/Flow/AppGame.cs"] = "the window's title on the title screen (the game's name; Q01)",
         ["src/Vocaterra.Game/Startup/WorldStart.cs"] = "the console at the start of a world and the dev aids' refusals (what Program.cs held, moved so a run can start more than one world; Q01)",
         ["src/Vocaterra.Game/VoxelGame.cs"] = "the window's title (seed and mode) and the save's reason on the console",
         ["src/Vocaterra.Game/UI/Common/UiPalette.cs"] = "the palette's colour names (the contrast test reports them)",

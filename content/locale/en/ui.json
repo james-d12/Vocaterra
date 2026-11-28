@@ -401,6 +401,7 @@
     "ui.menuBack": "Back",
     "ui.menuMainMenu": "Main menu",
     "ui.titleName": "Vocaterra",
+    "ui.titleMaking": "Making the world...",
     "ui.titleDefaultName": "World {n}",
     "ui.titleNew": "New game",
     "ui.titleLoad": "Load game",

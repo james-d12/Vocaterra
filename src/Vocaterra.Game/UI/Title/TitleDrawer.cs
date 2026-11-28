@@ -60,6 +60,24 @@ public static class TitleDrawer
         }
     }
 
+    /// <summary>Draws the frame shown while the program makes the world the player chose (it takes some seconds): the night, the game's name and a line saying so.</summary>
+    /// <param name="spriteBatch">The batch the canvas is drawn with (begun under the interface scale).</param>
+    /// <param name="pixel">The one-pixel white texture.</param>
+    /// <param name="fonts">The fonts.</param>
+    /// <param name="ui">The locale whose words the line uses.</param>
+    /// <param name="width">The canvas's width.</param>
+    /// <param name="height">The canvas's height.</param>
+    public static void DrawMaking(SpriteBatch spriteBatch, Texture2D pixel, FontProvider fonts, LocaleText ui, int width, int height)
+    {
+        Background(spriteBatch, pixel, width, height);
+        var big = fonts.Get(FontProvider.NativeSize * 4);
+        var name = ui.Ui("titleName");
+        DrawHelpers.Text(spriteBatch, big, name, new Vector2((width - (int)DrawHelpers.Width(big, name)) / 2f, (height / 2f) - TitleLayout.NameHeight), MenuPainter.Gold);
+        var font = fonts.Get(FontProvider.NativeSize);
+        var line = ui.Ui("titleMaking");
+        DrawHelpers.Text(spriteBatch, font, line, new Vector2((width - (int)DrawHelpers.Width(font, line)) / 2f, (height / 2f) + 16), MenuPainter.Dim);
+    }
+
     // The night: a vertical gradient, a few stars, and two ranges of hills that are the same on every run (whole-number waves, no random numbers).
     private static void Background(SpriteBatch spriteBatch, Texture2D pixel, int width, int height)
     {
