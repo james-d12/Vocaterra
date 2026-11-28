@@ -38,6 +38,7 @@ public sealed class TitleGame : Microsoft.Xna.Framework.Game
     private SpriteBatch? _spriteBatch;
     private Texture2D? _pixel;
     private FontProvider? _fonts;
+    private readonly TitleNotice? _notice;
     private int _frames;
 
     /// <summary>Creates the title screen's window.</summary>
@@ -82,11 +83,7 @@ public sealed class TitleGame : Microsoft.Xna.Framework.Game
             _persistence = new SettingsPersistence(settingsPath, _settings, static () => (long)MonotonicClock.Milliseconds(), Console.WriteLine);
         }
 
-        _title.Start(options.TitlePage ?? TitlePage.Main, notice);
-        if (options.TitleName is not null || options.TitleSeed is not null)
-        {
-            _title.Prefill(options.TitleName, options.TitleSeed);
-        }
+        _notice = notice;
     }
 
     /// <summary>What the player chose: a world to start or Quit; <see langword="null"/> when the window was closed (the same as Quit) or the scripted picture was taken.</summary>
@@ -103,6 +100,12 @@ public sealed class TitleGame : Microsoft.Xna.Framework.Game
         _pixel.SetData([Color.White]);
         _fonts = new FontProvider(AssetPaths.Font);
         _devices.Start();
+        _title.Start(_options.TitlePage ?? TitlePage.Main, _notice); // the pages ask the canvas for its size, which the window gives once it is open
+        if (_options.TitleName is not null || _options.TitleSeed is not null)
+        {
+            _title.Prefill(_options.TitleName, _options.TitleSeed);
+        }
+
         base.LoadContent();
     }
 

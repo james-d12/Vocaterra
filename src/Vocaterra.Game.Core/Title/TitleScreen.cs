@@ -221,7 +221,10 @@ public sealed class TitleScreen
     {
         _worlds = _store.List(probeSaves: true);
         _names = [.. _worlds.Select(static w => w.Name)];
-        LoadScroll = Math.Clamp(LoadScroll, 0, MaxLoadScroll());
+        if (Page == TitlePage.Load)
+        {
+            LoadScroll = Math.Clamp(LoadScroll, 0, MaxLoadScroll()); // the metrics are asked only on the page that has a list
+        }
     }
 
     private void GoTo(TitlePage page, int selected)
