@@ -33,6 +33,7 @@ public sealed class WallClockRulesTests(ITestOutputHelper output)
     {
         ["Vocaterra.Game.Core.Tests/TestSupport/HangGuard.cs"] = "the hang guard itself: the one place a test reads the tick count",
         ["Vocaterra.Game.Core.Tests/Language/Speech/SpokenModelTests.cs"] = "hands Environment.TickCount64 to the turn worker as its clock (code under test takes a clock function); nothing asserts on it",
+        ["Vocaterra.Game.Core.Tests/World/Options/TerrainWorldTests.cs"] = "reports the milliseconds the chunks of each terrain option's extreme took to generate (Q02); the assert is on the chunk count, not on the time",
         ["Vocaterra.Game.Core.Tests/Voxel/WaterAtRestTests.cs"] = "reports the slowest water step in milliseconds; the assert is on the step's update count, not its time",
         ["Vocaterra.Game.Tests/Component/VillageFrontendTests.cs"] = "reports the milliseconds a frame takes; the assert is on the bytes allocated, not the time",
         ["Vocaterra.Game.Tests/Component/CheckBatteryTests.cs"] = "hands MonotonicClock.Milliseconds to the check battery as its clock (code under test takes a clock function); nothing asserts on it",

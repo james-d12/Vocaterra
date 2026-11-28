@@ -81,13 +81,13 @@ public sealed class ItemsSaveTests
     }
 
     [Fact]
-    public void Given_ASaveOfVersion10_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
+    public void Given_ASaveOfVersion11_When_ItIsRead_Then_ItIsRefusedWithTheMessageOfEveryOlderVersion()
     {
-        var text = SaveFixture.Read("save-v11.json").Replace("\"version\":11,", "\"version\":10,", StringComparison.Ordinal);
+        var text = SaveFixture.Read("save-v11.json").Replace("\"version\":12,", "\"version\":11,", StringComparison.Ordinal);
 
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse(text));
 
-        Assert.Equal("The save is format version 10; the oldest this game loads is 11 (it writes 11), and older saves are not migrated.", error.Message);
+        Assert.Equal("The save is format version 11; the oldest this game loads is 12 (it writes 12), and older saves are not migrated.", error.Message);
         Assert.Equal(12, SaveGame.OldestReadableVersion);
         _ = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Data, Pristine));
     }

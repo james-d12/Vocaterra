@@ -271,7 +271,7 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":7}"));
 
         Assert.Contains("version 7", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 11", error.Message, StringComparison.Ordinal);
+        Assert.Contains("loads is 12", error.Message, StringComparison.Ordinal);
         Assert.Equal(12, SaveGame.OldestReadableVersion);
         Assert.Equal(12, SaveGame.CurrentVersion);
     }
@@ -282,7 +282,7 @@ public sealed class SleepEntrySaveTests
         var error = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"vocaterra-save\",\"version\":8}"));
 
         Assert.Contains("version 8", error.Message, StringComparison.Ordinal);
-        Assert.Contains("loads is 11", error.Message, StringComparison.Ordinal);
+        Assert.Contains("loads is 12", error.Message, StringComparison.Ordinal);
         Assert.Contains("not migrated", error.Message, StringComparison.Ordinal);
     }
 
