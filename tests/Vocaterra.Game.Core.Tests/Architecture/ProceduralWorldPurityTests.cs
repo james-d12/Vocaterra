@@ -44,7 +44,7 @@ public sealed partial class ProceduralWorldPurityTests
     private static readonly Dictionary<string, string> NotPureWorldFolders = new()
     {
         ["Options"] = "the terrain option rows' loader and validator and the options value (Q02): read once at load, caching a digest and a static table of targets; the generator never calls them, it is handed the world numbers the options were laid over",
-        ["Lod"] ="the far view's store: locks, interlocked counters and a disk writer's queue are its job (B07f), and it is not read by the generator",
+        ["Lod"] = "the far view's store: locks, interlocked counters and a disk writer's queue are its job (B07f), and it is not read by the generator",
     };
 
     private static readonly string[] PureNamespaces =
