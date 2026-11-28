@@ -31,7 +31,7 @@ public sealed class TerrainWorldTests(ITestOutputHelper output)
 
     public static TheoryData<string, int> Extremes()
     {
-        var data = new TheoryData<string, int>();
+        var data = new TheoryData<string, int> { { "mountains", 100 } }; // the default first: its time is the one the extremes are read against
         foreach (var option in TestGame.Data.TerrainOptions.Options)
         {
             data.Add(option.Id, option.Min);
