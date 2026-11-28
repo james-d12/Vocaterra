@@ -9,12 +9,22 @@ public static class BlockArtBuilding
 {
     private static readonly Dictionary<char, (byte R, byte G, byte B)> Planks = new()
     {
-        ['o'] = (74, 50, 26), ['h'] = (214, 170, 104), ['m'] = (188, 144, 82), ['s'] = (146, 104, 56), ['i'] = (60, 60, 66), ['r'] = (226, 190, 128),
+        ['o'] = (74, 50, 26),
+        ['h'] = (214, 170, 104),
+        ['m'] = (188, 144, 82),
+        ['s'] = (146, 104, 56),
+        ['i'] = (60, 60, 66),
+        ['r'] = (226, 190, 128),
     };
 
     private static readonly Dictionary<char, (byte R, byte G, byte B)> Trunk = new()
     {
-        ['o'] = (50, 34, 18), ['h'] = (150, 108, 62), ['m'] = (120, 84, 46), ['s'] = (92, 64, 34), ['r'] = (222, 184, 122), ['b'] = (200, 160, 100),
+        ['o'] = (50, 34, 18),
+        ['h'] = (150, 108, 62),
+        ['m'] = (120, 84, 46),
+        ['s'] = (92, 64, 34),
+        ['r'] = (222, 184, 122),
+        ['b'] = (200, 160, 100),
     };
 
     private static readonly Dictionary<BlockCell, (Dictionary<char, (byte R, byte G, byte B)> Palette, string[] Rows)> Icons = new()
